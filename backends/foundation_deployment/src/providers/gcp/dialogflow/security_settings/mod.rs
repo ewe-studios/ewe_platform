@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,26 +22,25 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudDialogflowCxV3ListSecuritySettingsResponse` type.
+/// `GoogleCloudDialogflowCxV3SecuritySettingsAudioExportSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ListSecuritySettingsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// securitySettings property.
-    pub security_settings: Option<Vec<GoogleCloudDialogflowCxV3SecuritySettings>>,
-}
-
-/// `GoogleCloudDialogflowCxV3SecuritySettingsInsightsExportSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3SecuritySettingsInsightsExportSettings {
-    /// enableInsightsExport property.
-    pub enable_insights_export: Option<bool>,
+pub struct GoogleCloudDialogflowCxV3SecuritySettingsAudioExportSettings {
+    /// audioExportPattern property.
+    pub audio_export_pattern: Option<String>,
+    /// audioFormat property.
+    pub audio_format: Option<String>,
+    /// enableAudioRedaction property.
+    pub enable_audio_redaction: Option<bool>,
+    /// gcsBucket property.
+    pub gcs_bucket: Option<String>,
+    /// storeTtsAudio property.
+    pub store_tts_audio: Option<bool>,
 }
 
 /// `GoogleCloudDialogflowCxV3SecuritySettings` type.
@@ -71,19 +71,20 @@ pub struct GoogleCloudDialogflowCxV3SecuritySettings {
     pub retention_window_days: Option<i64>,
 }
 
-/// `GoogleCloudDialogflowCxV3SecuritySettingsAudioExportSettings` type.
+/// `GoogleCloudDialogflowCxV3ListSecuritySettingsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3SecuritySettingsAudioExportSettings {
-    /// audioExportPattern property.
-    pub audio_export_pattern: Option<String>,
-    /// audioFormat property.
-    pub audio_format: Option<String>,
-    /// enableAudioRedaction property.
-    pub enable_audio_redaction: Option<bool>,
-    /// gcsBucket property.
-    pub gcs_bucket: Option<String>,
-    /// storeTtsAudio property.
-    pub store_tts_audio: Option<bool>,
+pub struct GoogleCloudDialogflowCxV3ListSecuritySettingsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// securitySettings property.
+    pub security_settings: Option<Vec<GoogleCloudDialogflowCxV3SecuritySettings>>,
+}
+
+/// `GoogleCloudDialogflowCxV3SecuritySettingsInsightsExportSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3SecuritySettingsInsightsExportSettings {
+    /// enableInsightsExport property.
+    pub enable_insights_export: Option<bool>,
 }
 
 // =============================================================================

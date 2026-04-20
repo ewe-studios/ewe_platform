@@ -12,144 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `DynamicRules` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DynamicRules {
-    /// autoTargetedFieldIds property.
-    pub auto_targeted_field_ids: Option<Vec<i64>>,
-    /// customRules property.
-    pub custom_rules: Option<Vec<CustomRule>>,
-    /// customValueFields property.
-    pub custom_value_fields: Option<Vec<CustomValueField>>,
-    /// proximityFilter property.
-    pub proximity_filter: Option<ProximityFilter>,
-    /// remarketingValueAttributes property.
-    pub remarketing_value_attributes: Option<Vec<RemarketingValueAttribute>>,
-    /// rotationType property.
-    pub rotation_type: Option<String>,
-    /// ruleType property.
-    pub rule_type: Option<String>,
-    /// weightFieldId property.
-    pub weight_field_id: Option<i64>,
-}
-
-/// `ProximityFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProximityFilter {
-    /// fieldId property.
-    pub field_id: Option<i64>,
-    /// radiusBucketType property.
-    pub radius_bucket_type: Option<String>,
-    /// radiusUnitType property.
-    pub radius_unit_type: Option<String>,
-    /// radiusValue property.
-    pub radius_value: Option<i64>,
-}
-
-/// `RequestValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RequestValue {
-    /// excludeFromUserAttributeIds property.
-    pub exclude_from_user_attribute_ids: Option<Vec<String>>,
-    /// key property.
-    pub key: Option<String>,
-    /// userAttributeIds property.
-    pub user_attribute_ids: Option<Vec<String>>,
-}
-
-/// `CustomRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomRule {
-    /// name property.
-    pub name: Option<String>,
-    /// priority property.
-    pub priority: Option<i64>,
-    /// ruleBlocks property.
-    pub rule_blocks: Option<Vec<RuleBlock>>,
-}
-
-/// `FieldFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FieldFilter {
-    /// boolValue property.
-    pub bool_value: Option<bool>,
-    /// dependentFieldValue property.
-    pub dependent_field_value: Option<DependentFieldValue>,
-    /// fieldId property.
-    pub field_id: Option<i64>,
-    /// matchType property.
-    pub match_type: Option<String>,
-    /// requestValue property.
-    pub request_value: Option<RequestValue>,
-    /// stringValue property.
-    pub string_value: Option<String>,
-    /// valueType property.
-    pub value_type: Option<String>,
-}
-
-/// `DynamicProfileFeedSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DynamicProfileFeedSettings {
-    /// dynamicFeedId property.
-    pub dynamic_feed_id: Option<String>,
-    /// dynamicRules property.
-    pub dynamic_rules: Option<DynamicRules>,
-    /// quantity property.
-    pub quantity: Option<i64>,
-}
-
-/// `LastModifiedInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LastModifiedInfo {
-    /// time property.
-    pub time: Option<String>,
-}
-
-/// `DependentFieldValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DependentFieldValue {
-    /// elementId property.
-    pub element_id: Option<String>,
-    /// fieldId property.
-    pub field_id: Option<i64>,
-}
-
-/// `RuleBlock` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RuleBlock {
-    /// fieldFilter property.
-    pub field_filter: Option<Vec<FieldFilter>>,
-}
-
-/// `RemarketingValueAttribute` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemarketingValueAttribute {
-    /// fieldId property.
-    pub field_id: Option<i64>,
-    /// userAttributeIds property.
-    pub user_attribute_ids: Option<Vec<String>>,
-}
-
-/// `CustomValueField` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomValueField {
-    /// fieldId property.
-    pub field_id: Option<i64>,
-    /// requestKey property.
-    pub request_key: Option<String>,
-}
 
 /// `DynamicProfile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -185,6 +59,133 @@ pub struct DynamicProfileVersion {
     pub dynamic_profile_feed_settings: Option<Vec<DynamicProfileFeedSettings>>,
     /// versionId property.
     pub version_id: Option<String>,
+}
+
+/// `DependentFieldValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DependentFieldValue {
+    /// elementId property.
+    pub element_id: Option<String>,
+    /// fieldId property.
+    pub field_id: Option<i64>,
+}
+
+/// `CustomValueField` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomValueField {
+    /// fieldId property.
+    pub field_id: Option<i64>,
+    /// requestKey property.
+    pub request_key: Option<String>,
+}
+
+/// `ProximityFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProximityFilter {
+    /// fieldId property.
+    pub field_id: Option<i64>,
+    /// radiusBucketType property.
+    pub radius_bucket_type: Option<String>,
+    /// radiusUnitType property.
+    pub radius_unit_type: Option<String>,
+    /// radiusValue property.
+    pub radius_value: Option<i64>,
+}
+
+/// `DynamicProfileFeedSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DynamicProfileFeedSettings {
+    /// dynamicFeedId property.
+    pub dynamic_feed_id: Option<String>,
+    /// dynamicRules property.
+    pub dynamic_rules: Option<DynamicRules>,
+    /// quantity property.
+    pub quantity: Option<i64>,
+}
+
+/// `DynamicRules` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DynamicRules {
+    /// autoTargetedFieldIds property.
+    pub auto_targeted_field_ids: Option<Vec<i64>>,
+    /// customRules property.
+    pub custom_rules: Option<Vec<CustomRule>>,
+    /// customValueFields property.
+    pub custom_value_fields: Option<Vec<CustomValueField>>,
+    /// proximityFilter property.
+    pub proximity_filter: Option<ProximityFilter>,
+    /// remarketingValueAttributes property.
+    pub remarketing_value_attributes: Option<Vec<RemarketingValueAttribute>>,
+    /// rotationType property.
+    pub rotation_type: Option<String>,
+    /// ruleType property.
+    pub rule_type: Option<String>,
+    /// weightFieldId property.
+    pub weight_field_id: Option<i64>,
+}
+
+/// `RequestValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RequestValue {
+    /// excludeFromUserAttributeIds property.
+    pub exclude_from_user_attribute_ids: Option<Vec<String>>,
+    /// key property.
+    pub key: Option<String>,
+    /// userAttributeIds property.
+    pub user_attribute_ids: Option<Vec<String>>,
+}
+
+/// `RemarketingValueAttribute` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RemarketingValueAttribute {
+    /// fieldId property.
+    pub field_id: Option<i64>,
+    /// userAttributeIds property.
+    pub user_attribute_ids: Option<Vec<String>>,
+}
+
+/// `CustomRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomRule {
+    /// name property.
+    pub name: Option<String>,
+    /// priority property.
+    pub priority: Option<i64>,
+    /// ruleBlocks property.
+    pub rule_blocks: Option<Vec<RuleBlock>>,
+}
+
+/// `FieldFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FieldFilter {
+    /// boolValue property.
+    pub bool_value: Option<bool>,
+    /// dependentFieldValue property.
+    pub dependent_field_value: Option<DependentFieldValue>,
+    /// fieldId property.
+    pub field_id: Option<i64>,
+    /// matchType property.
+    pub match_type: Option<String>,
+    /// requestValue property.
+    pub request_value: Option<RequestValue>,
+    /// stringValue property.
+    pub string_value: Option<String>,
+    /// valueType property.
+    pub value_type: Option<String>,
+}
+
+/// `RuleBlock` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RuleBlock {
+    /// fieldFilter property.
+    pub field_filter: Option<Vec<FieldFilter>>,
+}
+
+/// `LastModifiedInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LastModifiedInfo {
+    /// time property.
+    pub time: Option<String>,
 }
 
 // =============================================================================

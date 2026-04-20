@@ -12,21 +12,22 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudDatalabelingV1Beta1DataItem` response type.
+/// `GoogleCloudDatalabelingV1Beta1VideoPayload` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatalabelingV1Beta1DataItem {
+pub struct GoogleCloudDatalabelingV1Beta1VideoPayload {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -40,9 +41,9 @@ pub struct GoogleCloudDatalabelingV1Beta1ImagePayload {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleCloudDatalabelingV1Beta1VideoPayload` response type.
+/// `GoogleCloudDatalabelingV1Beta1TextPayload` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatalabelingV1Beta1VideoPayload {
+pub struct GoogleCloudDatalabelingV1Beta1TextPayload {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -57,22 +58,6 @@ pub struct GoogleCloudDatalabelingV1beta1ListDataItemsResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `GoogleCloudDatalabelingV1Beta1TextPayload` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatalabelingV1Beta1TextPayload {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleCloudDatalabelingV1Beta1VideoThumbnail` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatalabelingV1Beta1VideoThumbnail {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `GoogleCloudDatalabelingV1beta1DataItem` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1DataItem {
@@ -84,6 +69,22 @@ pub struct GoogleCloudDatalabelingV1beta1DataItem {
     pub text_payload: Option<GoogleCloudDatalabelingV1Beta1TextPayload>,
     /// videoPayload property.
     pub video_payload: Option<GoogleCloudDatalabelingV1Beta1VideoPayload>,
+}
+
+/// `GoogleCloudDatalabelingV1Beta1VideoThumbnail` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatalabelingV1Beta1VideoThumbnail {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudDatalabelingV1Beta1DataItem` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatalabelingV1Beta1DataItem {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 // =============================================================================

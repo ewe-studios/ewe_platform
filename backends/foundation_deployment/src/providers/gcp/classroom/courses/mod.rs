@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,19 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Form` type.
+/// `YouTubeVideo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Form {
-    /// formUrl property.
-    pub form_url: Option<String>,
-    /// responseUrl property.
-    pub response_url: Option<String>,
+pub struct YouTubeVideo {
+    /// alternateLink property.
+    pub alternate_link: Option<String>,
+    /// id property.
+    pub id: Option<String>,
     /// thumbnailUrl property.
     pub thumbnail_url: Option<String>,
     /// title property.
@@ -51,26 +52,17 @@ pub struct DriveFolder {
     pub title: Option<String>,
 }
 
-/// `CourseMaterial` type.
+/// `GradeCategory` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CourseMaterial {
-    /// driveFile property.
-    pub drive_file: Option<DriveFile>,
-    /// form property.
-    pub form: Option<Form>,
-    /// link property.
-    pub link: Option<Link>,
-    /// youTubeVideo property.
-    pub you_tube_video: Option<YouTubeVideo>,
-}
-
-/// `CourseMaterialSet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CourseMaterialSet {
-    /// materials property.
-    pub materials: Option<Vec<CourseMaterial>>,
-    /// title property.
-    pub title: Option<String>,
+pub struct GradeCategory {
+    /// defaultGradeDenominator property.
+    pub default_grade_denominator: Option<i64>,
+    /// id property.
+    pub id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// weight property.
+    pub weight: Option<i64>,
 }
 
 /// `Course` type.
@@ -118,6 +110,17 @@ pub struct Course {
     pub update_time: Option<String>,
 }
 
+/// `GradebookSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GradebookSettings {
+    /// calculationType property.
+    pub calculation_type: Option<String>,
+    /// displaySetting property.
+    pub display_setting: Option<String>,
+    /// gradeCategories property.
+    pub grade_categories: Option<Vec<GradeCategory>>,
+}
+
 /// `ListCoursesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCoursesResponse {
@@ -127,17 +130,13 @@ pub struct ListCoursesResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `GradeCategory` type.
+/// `CourseMaterialSet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GradeCategory {
-    /// defaultGradeDenominator property.
-    pub default_grade_denominator: Option<i64>,
-    /// id property.
-    pub id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// weight property.
-    pub weight: Option<i64>,
+pub struct CourseMaterialSet {
+    /// materials property.
+    pub materials: Option<Vec<CourseMaterial>>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 /// `DriveFile` type.
@@ -153,15 +152,30 @@ pub struct DriveFile {
     pub title: Option<String>,
 }
 
-/// `GradebookSettings` type.
+/// `Form` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GradebookSettings {
-    /// calculationType property.
-    pub calculation_type: Option<String>,
-    /// displaySetting property.
-    pub display_setting: Option<String>,
-    /// gradeCategories property.
-    pub grade_categories: Option<Vec<GradeCategory>>,
+pub struct Form {
+    /// formUrl property.
+    pub form_url: Option<String>,
+    /// responseUrl property.
+    pub response_url: Option<String>,
+    /// thumbnailUrl property.
+    pub thumbnail_url: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `CourseMaterial` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CourseMaterial {
+    /// driveFile property.
+    pub drive_file: Option<DriveFile>,
+    /// form property.
+    pub form: Option<Form>,
+    /// link property.
+    pub link: Option<Link>,
+    /// youTubeVideo property.
+    pub you_tube_video: Option<YouTubeVideo>,
 }
 
 /// `Link` type.
@@ -173,19 +187,6 @@ pub struct Link {
     pub title: Option<String>,
     /// url property.
     pub url: Option<String>,
-}
-
-/// `YouTubeVideo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct YouTubeVideo {
-    /// alternateLink property.
-    pub alternate_link: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// thumbnailUrl property.
-    pub thumbnail_url: Option<String>,
-    /// title property.
-    pub title: Option<String>,
 }
 
 // =============================================================================

@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `SshAuthenticationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SshAuthenticationConfig {
-    /// hostPublicKey property.
-    pub host_public_key: Option<String>,
-    /// userPrivateKeySecretVersion property.
-    pub user_private_key_secret_version: Option<String>,
-}
 
 /// `ListLocationsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,21 +32,6 @@ pub struct ListLocationsResponse {
     pub locations: Option<Vec<Location>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-}
-
-/// `Location` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Location {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// locationId property.
-    pub location_id: Option<String>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
 }
 
 /// `Repository` type.
@@ -90,6 +67,28 @@ pub struct Repository {
     pub workspace_compilation_overrides: Option<WorkspaceCompilationOverrides>,
 }
 
+/// `DataEncryptionState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataEncryptionState {
+    /// kmsKeyVersionName property.
+    pub kms_key_version_name: Option<String>,
+}
+
+/// `GitRemoteSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GitRemoteSettings {
+    /// authenticationTokenSecretVersion property.
+    pub authentication_token_secret_version: Option<String>,
+    /// defaultBranch property.
+    pub default_branch: Option<String>,
+    /// sshAuthenticationConfig property.
+    pub ssh_authentication_config: Option<SshAuthenticationConfig>,
+    /// tokenStatus property.
+    pub token_status: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
 /// `Folder` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Folder {
@@ -111,11 +110,13 @@ pub struct Folder {
     pub update_time: Option<String>,
 }
 
-/// `DataEncryptionState` type.
+/// `SshAuthenticationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataEncryptionState {
-    /// kmsKeyVersionName property.
-    pub kms_key_version_name: Option<String>,
+pub struct SshAuthenticationConfig {
+    /// hostPublicKey property.
+    pub host_public_key: Option<String>,
+    /// userPrivateKeySecretVersion property.
+    pub user_private_key_secret_version: Option<String>,
 }
 
 /// `QueryUserRootContentsResponse` type.
@@ -136,21 +137,6 @@ pub struct RootContentsEntry {
     pub repository: Option<Repository>,
 }
 
-/// `GitRemoteSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GitRemoteSettings {
-    /// authenticationTokenSecretVersion property.
-    pub authentication_token_secret_version: Option<String>,
-    /// defaultBranch property.
-    pub default_branch: Option<String>,
-    /// sshAuthenticationConfig property.
-    pub ssh_authentication_config: Option<SshAuthenticationConfig>,
-    /// tokenStatus property.
-    pub token_status: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
 /// `WorkspaceCompilationOverrides` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkspaceCompilationOverrides {
@@ -160,6 +146,21 @@ pub struct WorkspaceCompilationOverrides {
     pub schema_suffix: Option<String>,
     /// tablePrefix property.
     pub table_prefix: Option<String>,
+}
+
+/// `Location` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Location {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// locationId property.
+    pub location_id: Option<String>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 // =============================================================================

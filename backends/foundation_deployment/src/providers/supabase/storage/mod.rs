@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -23,6 +24,17 @@ use super::shared::ApiResponse;
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `UpdateStorageConfigBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateStorageConfigBody {
+    /// external property.
+    pub external: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// features property.
+    pub features: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// fileSizeLimit property.
+    pub file_size_limit: Option<i64>,
+}
 
 /// `StorageConfigResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -50,17 +62,6 @@ pub struct V1ProfileResponse {
     pub primary_email: String,
     /// username property.
     pub username: String,
-}
-
-/// `UpdateStorageConfigBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateStorageConfigBody {
-    /// external property.
-    pub external: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// features property.
-    pub features: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// fileSizeLimit property.
-    pub file_size_limit: Option<i64>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,357 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `EncryptionNotEnforced` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EncryptionNotEnforced {}
+
+/// `MongodbSslConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MongodbSslConfig {
+    /// caCertificate property.
+    pub ca_certificate: Option<String>,
+    /// caCertificateSet property.
+    pub ca_certificate_set: Option<bool>,
+    /// clientCertificate property.
+    pub client_certificate: Option<String>,
+    /// clientCertificateSet property.
+    pub client_certificate_set: Option<bool>,
+    /// clientKey property.
+    pub client_key: Option<String>,
+    /// clientKeySet property.
+    pub client_key_set: Option<bool>,
+    /// secretManagerStoredClientKey property.
+    pub secret_manager_stored_client_key: Option<String>,
+}
+
+/// `PrivateConnectivity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrivateConnectivity {
+    /// privateConnection property.
+    pub private_connection: Option<String>,
+}
+
+/// `SpannerProfile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpannerProfile {
+    /// database property.
+    pub database: Option<String>,
+    /// host property.
+    pub host: Option<String>,
+}
+
+/// `ForwardSshTunnelConnectivity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ForwardSshTunnelConnectivity {
+    /// hostname property.
+    pub hostname: Option<String>,
+    /// password property.
+    pub password: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
+    /// privateKey property.
+    pub private_key: Option<String>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `StaticServiceIpConnectivity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StaticServiceIpConnectivity {}
+
+/// `SrvConnectionFormat` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SrvConnectionFormat {}
+
+/// `UserCredentials` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UserCredentials {
+    /// password property.
+    pub password: Option<String>,
+    /// secretManagerStoredPassword property.
+    pub secret_manager_stored_password: Option<String>,
+    /// secretManagerStoredSecurityToken property.
+    pub secret_manager_stored_security_token: Option<String>,
+    /// securityToken property.
+    pub security_token: Option<String>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `PostgresqlProfile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostgresqlProfile {
+    /// database property.
+    pub database: Option<String>,
+    /// hostname property.
+    pub hostname: Option<String>,
+    /// password property.
+    pub password: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
+    /// secretManagerStoredPassword property.
+    pub secret_manager_stored_password: Option<String>,
+    /// sslConfig property.
+    pub ssl_config: Option<PostgresqlSslConfig>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `BasicEncryption` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BasicEncryption {}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `EncryptionAndServerValidation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EncryptionAndServerValidation {
+    /// caCertificate property.
+    pub ca_certificate: Option<String>,
+    /// serverCertificateHostname property.
+    pub server_certificate_hostname: Option<String>,
+}
+
+/// `SqlServerSslConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerSslConfig {
+    /// basicEncryption property.
+    pub basic_encryption: Option<BasicEncryption>,
+    /// encryptionAndServerValidation property.
+    pub encryption_and_server_validation: Option<EncryptionAndServerValidation>,
+    /// encryptionNotEnforced property.
+    pub encryption_not_enforced: Option<EncryptionNotEnforced>,
+}
+
+/// `OracleProfile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OracleProfile {
+    /// connectionAttributes property.
+    pub connection_attributes: Option<serde_json::Value>,
+    /// databaseService property.
+    pub database_service: Option<String>,
+    /// hostname property.
+    pub hostname: Option<String>,
+    /// oracleAsmConfig property.
+    pub oracle_asm_config: Option<OracleAsmConfig>,
+    /// oracleSslConfig property.
+    pub oracle_ssl_config: Option<OracleSslConfig>,
+    /// password property.
+    pub password: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
+    /// secretManagerStoredPassword property.
+    pub secret_manager_stored_password: Option<String>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `StandardConnectionFormat` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StandardConnectionFormat {
+    /// directConnection property.
+    pub direct_connection: Option<bool>,
+}
+
+/// `OracleAsmConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OracleAsmConfig {
+    /// asmService property.
+    pub asm_service: Option<String>,
+    /// connectionAttributes property.
+    pub connection_attributes: Option<serde_json::Value>,
+    /// hostname property.
+    pub hostname: Option<String>,
+    /// oracleSslConfig property.
+    pub oracle_ssl_config: Option<OracleSslConfig>,
+    /// password property.
+    pub password: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
+    /// secretManagerStoredPassword property.
+    pub secret_manager_stored_password: Option<String>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `MysqlProfile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MysqlProfile {
+    /// hostname property.
+    pub hostname: Option<String>,
+    /// password property.
+    pub password: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
+    /// secretManagerStoredPassword property.
+    pub secret_manager_stored_password: Option<String>,
+    /// sslConfig property.
+    pub ssl_config: Option<MysqlSslConfig>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `Oauth2ClientCredentials` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Oauth2ClientCredentials {
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// clientSecret property.
+    pub client_secret: Option<String>,
+    /// secretManagerStoredClientSecret property.
+    pub secret_manager_stored_client_secret: Option<String>,
+}
+
+/// `PostgresqlSslConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostgresqlSslConfig {
+    /// serverAndClientVerification property.
+    pub server_and_client_verification: Option<ServerAndClientVerification>,
+    /// serverVerification property.
+    pub server_verification: Option<ServerVerification>,
+}
+
+/// `SalesforceProfile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SalesforceProfile {
+    /// domain property.
+    pub domain: Option<String>,
+    /// oauth2ClientCredentials property.
+    pub oauth2_client_credentials: Option<Oauth2ClientCredentials>,
+    /// userCredentials property.
+    pub user_credentials: Option<UserCredentials>,
+}
+
+/// `ListConnectionProfilesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListConnectionProfilesResponse {
+    /// connectionProfiles property.
+    pub connection_profiles: Option<Vec<ConnectionProfile>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `ServerVerification` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServerVerification {
+    /// caCertificate property.
+    pub ca_certificate: Option<String>,
+    /// serverCertificateHostname property.
+    pub server_certificate_hostname: Option<String>,
+}
+
+/// `OracleSslConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OracleSslConfig {
+    /// caCertificate property.
+    pub ca_certificate: Option<String>,
+    /// caCertificateSet property.
+    pub ca_certificate_set: Option<bool>,
+    /// serverCertificateDistinguishedName property.
+    pub server_certificate_distinguished_name: Option<String>,
+}
+
+/// `MongodbProfile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MongodbProfile {
+    /// additionalOptions property.
+    pub additional_options: Option<serde_json::Value>,
+    /// hostAddresses property.
+    pub host_addresses: Option<Vec<HostAddress>>,
+    /// password property.
+    pub password: Option<String>,
+    /// replicaSet property.
+    pub replica_set: Option<String>,
+    /// secretManagerStoredPassword property.
+    pub secret_manager_stored_password: Option<String>,
+    /// srvConnectionFormat property.
+    pub srv_connection_format: Option<SrvConnectionFormat>,
+    /// sslConfig property.
+    pub ssl_config: Option<MongodbSslConfig>,
+    /// standardConnectionFormat property.
+    pub standard_connection_format: Option<StandardConnectionFormat>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `BigQueryProfile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BigQueryProfile {}
+
+/// `SqlServerProfile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerProfile {
+    /// database property.
+    pub database: Option<String>,
+    /// hostname property.
+    pub hostname: Option<String>,
+    /// password property.
+    pub password: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
+    /// secretManagerStoredPassword property.
+    pub secret_manager_stored_password: Option<String>,
+    /// sslConfig property.
+    pub ssl_config: Option<SqlServerSslConfig>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `ServerAndClientVerification` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServerAndClientVerification {
+    /// caCertificate property.
+    pub ca_certificate: Option<String>,
+    /// clientCertificate property.
+    pub client_certificate: Option<String>,
+    /// clientKey property.
+    pub client_key: Option<String>,
+    /// serverCertificateHostname property.
+    pub server_certificate_hostname: Option<String>,
+}
+
+/// `MysqlSslConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MysqlSslConfig {
+    /// caCertificate property.
+    pub ca_certificate: Option<String>,
+    /// caCertificateSet property.
+    pub ca_certificate_set: Option<bool>,
+    /// clientCertificate property.
+    pub client_certificate: Option<String>,
+    /// clientCertificateSet property.
+    pub client_certificate_set: Option<bool>,
+    /// clientKey property.
+    pub client_key: Option<String>,
+    /// clientKeySet property.
+    pub client_key_set: Option<bool>,
+}
+
+/// `HostAddress` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HostAddress {
+    /// hostname property.
+    pub hostname: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
+}
 
 /// `ConnectionProfile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -70,56 +417,6 @@ pub struct ConnectionProfile {
     pub update_time: Option<String>,
 }
 
-/// `ListConnectionProfilesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListConnectionProfilesResponse {
-    /// connectionProfiles property.
-    pub connection_profiles: Option<Vec<ConnectionProfile>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `SqlServerSslConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerSslConfig {
-    /// basicEncryption property.
-    pub basic_encryption: Option<BasicEncryption>,
-    /// encryptionAndServerValidation property.
-    pub encryption_and_server_validation: Option<EncryptionAndServerValidation>,
-    /// encryptionNotEnforced property.
-    pub encryption_not_enforced: Option<EncryptionNotEnforced>,
-}
-
-/// `Oauth2ClientCredentials` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Oauth2ClientCredentials {
-    /// clientId property.
-    pub client_id: Option<String>,
-    /// clientSecret property.
-    pub client_secret: Option<String>,
-    /// secretManagerStoredClientSecret property.
-    pub secret_manager_stored_client_secret: Option<String>,
-}
-
-/// `MysqlSslConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MysqlSslConfig {
-    /// caCertificate property.
-    pub ca_certificate: Option<String>,
-    /// caCertificateSet property.
-    pub ca_certificate_set: Option<bool>,
-    /// clientCertificate property.
-    pub client_certificate: Option<String>,
-    /// clientCertificateSet property.
-    pub client_certificate_set: Option<bool>,
-    /// clientKey property.
-    pub client_key: Option<String>,
-    /// clientKeySet property.
-    pub client_key_set: Option<bool>,
-}
-
 /// `GcsProfile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcsProfile {
@@ -127,302 +424,6 @@ pub struct GcsProfile {
     pub bucket: Option<String>,
     /// rootPath property.
     pub root_path: Option<String>,
-}
-
-/// `StandardConnectionFormat` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StandardConnectionFormat {
-    /// directConnection property.
-    pub direct_connection: Option<bool>,
-}
-
-/// `EncryptionNotEnforced` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionNotEnforced {}
-
-/// `ServerVerification` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServerVerification {
-    /// caCertificate property.
-    pub ca_certificate: Option<String>,
-    /// serverCertificateHostname property.
-    pub server_certificate_hostname: Option<String>,
-}
-
-/// `SrvConnectionFormat` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SrvConnectionFormat {}
-
-/// `UserCredentials` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserCredentials {
-    /// password property.
-    pub password: Option<String>,
-    /// secretManagerStoredPassword property.
-    pub secret_manager_stored_password: Option<String>,
-    /// secretManagerStoredSecurityToken property.
-    pub secret_manager_stored_security_token: Option<String>,
-    /// securityToken property.
-    pub security_token: Option<String>,
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `SqlServerProfile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerProfile {
-    /// database property.
-    pub database: Option<String>,
-    /// hostname property.
-    pub hostname: Option<String>,
-    /// password property.
-    pub password: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
-    /// secretManagerStoredPassword property.
-    pub secret_manager_stored_password: Option<String>,
-    /// sslConfig property.
-    pub ssl_config: Option<SqlServerSslConfig>,
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `BigQueryProfile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BigQueryProfile {}
-
-/// `OracleAsmConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OracleAsmConfig {
-    /// asmService property.
-    pub asm_service: Option<String>,
-    /// connectionAttributes property.
-    pub connection_attributes: Option<serde_json::Value>,
-    /// hostname property.
-    pub hostname: Option<String>,
-    /// oracleSslConfig property.
-    pub oracle_ssl_config: Option<OracleSslConfig>,
-    /// password property.
-    pub password: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
-    /// secretManagerStoredPassword property.
-    pub secret_manager_stored_password: Option<String>,
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `MongodbProfile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MongodbProfile {
-    /// additionalOptions property.
-    pub additional_options: Option<serde_json::Value>,
-    /// hostAddresses property.
-    pub host_addresses: Option<Vec<HostAddress>>,
-    /// password property.
-    pub password: Option<String>,
-    /// replicaSet property.
-    pub replica_set: Option<String>,
-    /// secretManagerStoredPassword property.
-    pub secret_manager_stored_password: Option<String>,
-    /// srvConnectionFormat property.
-    pub srv_connection_format: Option<SrvConnectionFormat>,
-    /// sslConfig property.
-    pub ssl_config: Option<MongodbSslConfig>,
-    /// standardConnectionFormat property.
-    pub standard_connection_format: Option<StandardConnectionFormat>,
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `HostAddress` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HostAddress {
-    /// hostname property.
-    pub hostname: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
-}
-
-/// `StaticServiceIpConnectivity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StaticServiceIpConnectivity {}
-
-/// `OracleProfile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OracleProfile {
-    /// connectionAttributes property.
-    pub connection_attributes: Option<serde_json::Value>,
-    /// databaseService property.
-    pub database_service: Option<String>,
-    /// hostname property.
-    pub hostname: Option<String>,
-    /// oracleAsmConfig property.
-    pub oracle_asm_config: Option<OracleAsmConfig>,
-    /// oracleSslConfig property.
-    pub oracle_ssl_config: Option<OracleSslConfig>,
-    /// password property.
-    pub password: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
-    /// secretManagerStoredPassword property.
-    pub secret_manager_stored_password: Option<String>,
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `BasicEncryption` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BasicEncryption {}
-
-/// `MongodbSslConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MongodbSslConfig {
-    /// caCertificate property.
-    pub ca_certificate: Option<String>,
-    /// caCertificateSet property.
-    pub ca_certificate_set: Option<bool>,
-    /// clientCertificate property.
-    pub client_certificate: Option<String>,
-    /// clientCertificateSet property.
-    pub client_certificate_set: Option<bool>,
-    /// clientKey property.
-    pub client_key: Option<String>,
-    /// clientKeySet property.
-    pub client_key_set: Option<bool>,
-    /// secretManagerStoredClientKey property.
-    pub secret_manager_stored_client_key: Option<String>,
-}
-
-/// `PostgresqlSslConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostgresqlSslConfig {
-    /// serverAndClientVerification property.
-    pub server_and_client_verification: Option<ServerAndClientVerification>,
-    /// serverVerification property.
-    pub server_verification: Option<ServerVerification>,
-}
-
-/// `SpannerProfile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpannerProfile {
-    /// database property.
-    pub database: Option<String>,
-    /// host property.
-    pub host: Option<String>,
-}
-
-/// `PostgresqlProfile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostgresqlProfile {
-    /// database property.
-    pub database: Option<String>,
-    /// hostname property.
-    pub hostname: Option<String>,
-    /// password property.
-    pub password: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
-    /// secretManagerStoredPassword property.
-    pub secret_manager_stored_password: Option<String>,
-    /// sslConfig property.
-    pub ssl_config: Option<PostgresqlSslConfig>,
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `PrivateConnectivity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrivateConnectivity {
-    /// privateConnection property.
-    pub private_connection: Option<String>,
-}
-
-/// `SalesforceProfile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SalesforceProfile {
-    /// domain property.
-    pub domain: Option<String>,
-    /// oauth2ClientCredentials property.
-    pub oauth2_client_credentials: Option<Oauth2ClientCredentials>,
-    /// userCredentials property.
-    pub user_credentials: Option<UserCredentials>,
-}
-
-/// `ServerAndClientVerification` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServerAndClientVerification {
-    /// caCertificate property.
-    pub ca_certificate: Option<String>,
-    /// clientCertificate property.
-    pub client_certificate: Option<String>,
-    /// clientKey property.
-    pub client_key: Option<String>,
-    /// serverCertificateHostname property.
-    pub server_certificate_hostname: Option<String>,
-}
-
-/// `OracleSslConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OracleSslConfig {
-    /// caCertificate property.
-    pub ca_certificate: Option<String>,
-    /// caCertificateSet property.
-    pub ca_certificate_set: Option<bool>,
-    /// serverCertificateDistinguishedName property.
-    pub server_certificate_distinguished_name: Option<String>,
-}
-
-/// `EncryptionAndServerValidation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionAndServerValidation {
-    /// caCertificate property.
-    pub ca_certificate: Option<String>,
-    /// serverCertificateHostname property.
-    pub server_certificate_hostname: Option<String>,
-}
-
-/// `ForwardSshTunnelConnectivity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ForwardSshTunnelConnectivity {
-    /// hostname property.
-    pub hostname: Option<String>,
-    /// password property.
-    pub password: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
-    /// privateKey property.
-    pub private_key: Option<String>,
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `MysqlProfile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MysqlProfile {
-    /// hostname property.
-    pub hostname: Option<String>,
-    /// password property.
-    pub password: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
-    /// secretManagerStoredPassword property.
-    pub secret_manager_stored_password: Option<String>,
-    /// sslConfig property.
-    pub ssl_config: Option<MysqlSslConfig>,
-    /// username property.
-    pub username: Option<String>,
 }
 
 // =============================================================================

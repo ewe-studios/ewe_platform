@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,44 +22,17 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::StreamObject;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `IngestionTimePartition` type.
+/// `StartBackfillJobResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IngestionTimePartition {
-    /// partitioningTimeGranularity property.
-    pub partitioning_time_granularity: Option<String>,
-}
-
-/// `SpannerObjectIdentifier` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpannerObjectIdentifier {
-    /// schema property.
-    pub schema: Option<String>,
-    /// table property.
-    pub table: Option<String>,
-}
-
-/// `MongodbObjectIdentifier` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MongodbObjectIdentifier {
-    /// collection property.
-    pub collection: Option<String>,
-    /// database property.
-    pub database: Option<String>,
-}
-
-/// `PostgresqlObjectIdentifier` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostgresqlObjectIdentifier {
-    /// schema property.
-    pub schema: Option<String>,
-    /// table property.
-    pub table: Option<String>,
+pub struct StartBackfillJobResponse {
+    /// object property.
+    pub object: Option<StreamObject>,
 }
 
 /// `BigQueryPartitioning` type.
@@ -72,6 +46,73 @@ pub struct BigQueryPartitioning {
     pub require_partition_filter: Option<bool>,
     /// timeUnitPartition property.
     pub time_unit_partition: Option<TimeUnitPartition>,
+}
+
+/// `SpannerObjectIdentifier` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpannerObjectIdentifier {
+    /// schema property.
+    pub schema: Option<String>,
+    /// table property.
+    pub table: Option<String>,
+}
+
+/// `StopBackfillJobResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StopBackfillJobResponse {
+    /// object property.
+    pub object: Option<StreamObject>,
+}
+
+/// `ListStreamObjectsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListStreamObjectsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// streamObjects property.
+    pub stream_objects: Option<Vec<StreamObject>>,
+}
+
+/// `CustomizationRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomizationRule {
+    /// bigqueryClustering property.
+    pub bigquery_clustering: Option<BigQueryClustering>,
+    /// bigqueryPartitioning property.
+    pub bigquery_partitioning: Option<BigQueryPartitioning>,
+}
+
+/// `Error` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Error {
+    /// details property.
+    pub details: Option<serde_json::Value>,
+    /// errorTime property.
+    pub error_time: Option<String>,
+    /// errorUuid property.
+    pub error_uuid: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `PostgresqlObjectIdentifier` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostgresqlObjectIdentifier {
+    /// schema property.
+    pub schema: Option<String>,
+    /// table property.
+    pub table: Option<String>,
+}
+
+/// `SqlServerObjectIdentifier` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerObjectIdentifier {
+    /// schema property.
+    pub schema: Option<String>,
+    /// table property.
+    pub table: Option<String>,
 }
 
 /// `OracleObjectIdentifier` type.
@@ -92,44 +133,42 @@ pub struct TimeUnitPartition {
     pub partitioning_time_granularity: Option<String>,
 }
 
-/// `ListStreamObjectsResponse` type.
+/// `SalesforceObjectIdentifier` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListStreamObjectsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// streamObjects property.
-    pub stream_objects: Option<Vec<StreamObject>>,
+pub struct SalesforceObjectIdentifier {
+    /// objectName property.
+    pub object_name: Option<String>,
 }
 
-/// `Error` type.
+/// `MongodbObjectIdentifier` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Error {
-    /// details property.
-    pub details: Option<serde_json::Value>,
-    /// errorTime property.
-    pub error_time: Option<String>,
-    /// errorUuid property.
-    pub error_uuid: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
+pub struct MongodbObjectIdentifier {
+    /// collection property.
+    pub collection: Option<String>,
+    /// database property.
+    pub database: Option<String>,
 }
 
-/// `StartBackfillJobResponse` type.
+/// `MysqlObjectIdentifier` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StartBackfillJobResponse {
-    /// object property.
-    pub object: Option<StreamObject>,
+pub struct MysqlObjectIdentifier {
+    /// database property.
+    pub database: Option<String>,
+    /// table property.
+    pub table: Option<String>,
 }
 
-/// `CustomizationRule` type.
+/// `IntegerRangePartition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomizationRule {
-    /// bigqueryClustering property.
-    pub bigquery_clustering: Option<BigQueryClustering>,
-    /// bigqueryPartitioning property.
-    pub bigquery_partitioning: Option<BigQueryPartitioning>,
+pub struct IntegerRangePartition {
+    /// column property.
+    pub column: Option<String>,
+    /// end property.
+    pub end: Option<String>,
+    /// interval property.
+    pub interval: Option<String>,
+    /// start property.
+    pub start: Option<String>,
 }
 
 /// `SourceObjectIdentifier` type.
@@ -151,42 +190,11 @@ pub struct SourceObjectIdentifier {
     pub sql_server_identifier: Option<SqlServerObjectIdentifier>,
 }
 
-/// `MysqlObjectIdentifier` type.
+/// `BigQueryClustering` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MysqlObjectIdentifier {
-    /// database property.
-    pub database: Option<String>,
-    /// table property.
-    pub table: Option<String>,
-}
-
-/// `StopBackfillJobResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StopBackfillJobResponse {
-    /// object property.
-    pub object: Option<StreamObject>,
-}
-
-/// `SqlServerObjectIdentifier` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerObjectIdentifier {
-    /// schema property.
-    pub schema: Option<String>,
-    /// table property.
-    pub table: Option<String>,
-}
-
-/// `IntegerRangePartition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntegerRangePartition {
-    /// column property.
-    pub column: Option<String>,
-    /// end property.
-    pub end: Option<String>,
-    /// interval property.
-    pub interval: Option<String>,
-    /// start property.
-    pub start: Option<String>,
+pub struct BigQueryClustering {
+    /// columns property.
+    pub columns: Option<Vec<String>>,
 }
 
 /// `BackfillJob` type.
@@ -204,18 +212,11 @@ pub struct BackfillJob {
     pub trigger: Option<String>,
 }
 
-/// `BigQueryClustering` type.
+/// `IngestionTimePartition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BigQueryClustering {
-    /// columns property.
-    pub columns: Option<Vec<String>>,
-}
-
-/// `SalesforceObjectIdentifier` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SalesforceObjectIdentifier {
-    /// objectName property.
-    pub object_name: Option<String>,
+pub struct IngestionTimePartition {
+    /// partitioningTimeGranularity property.
+    pub partitioning_time_granularity: Option<String>,
 }
 
 // =============================================================================

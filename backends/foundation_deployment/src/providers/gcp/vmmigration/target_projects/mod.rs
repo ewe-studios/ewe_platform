@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,22 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListTargetProjectsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListTargetProjectsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// targetProjects property.
+    pub target_projects: Option<Vec<TargetProject>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
 
 /// `TargetProject` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,17 +52,6 @@ pub struct TargetProject {
     pub project: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `ListTargetProjectsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListTargetProjectsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// targetProjects property.
-    pub target_projects: Option<Vec<TargetProject>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
 }
 
 /// `Status` type.

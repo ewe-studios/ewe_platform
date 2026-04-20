@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,11 +23,27 @@ use serde::{Deserialize, Serialize};
 use super::shared::GoogleLongrunningOperation;
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudAiplatformV1EncryptionSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1EncryptionSpec {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ListDataLabelingJobsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ListDataLabelingJobsResponse {
+    /// dataLabelingJobs property.
+    pub data_labeling_jobs: Option<Vec<GoogleCloudAiplatformV1DataLabelingJob>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -39,20 +56,39 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1ListDataLabelingJobsResponse` type.
+/// `GoogleCloudAiplatformV1ActiveLearningConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListDataLabelingJobsResponse {
-    /// dataLabelingJobs property.
-    pub data_labeling_jobs: Option<Vec<GoogleCloudAiplatformV1DataLabelingJob>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct GoogleCloudAiplatformV1ActiveLearningConfig {
+    /// maxDataItemCount property.
+    pub max_data_item_count: Option<String>,
+    /// maxDataItemPercentage property.
+    pub max_data_item_percentage: Option<i64>,
+    /// sampleConfig property.
+    pub sample_config: Option<GoogleCloudAiplatformV1SampleConfig>,
+    /// trainingConfig property.
+    pub training_config: Option<GoogleCloudAiplatformV1TrainingConfig>,
 }
 
-/// `GoogleCloudAiplatformV1EncryptionSpec` type.
+/// `GoogleCloudAiplatformV1SampleConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EncryptionSpec {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
+pub struct GoogleCloudAiplatformV1SampleConfig {
+    /// followingBatchSamplePercentage property.
+    pub following_batch_sample_percentage: Option<i64>,
+    /// initialBatchSamplePercentage property.
+    pub initial_batch_sample_percentage: Option<i64>,
+    /// sampleStrategy property.
+    pub sample_strategy: Option<String>,
+}
+
+/// `GoogleTypeMoney` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeMoney {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// units property.
+    pub units: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1DataLabelingJob` type.
@@ -96,46 +132,11 @@ pub struct GoogleCloudAiplatformV1DataLabelingJob {
     pub update_time: Option<String>,
 }
 
-/// `GoogleTypeMoney` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeMoney {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// units property.
-    pub units: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1SampleConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SampleConfig {
-    /// followingBatchSamplePercentage property.
-    pub following_batch_sample_percentage: Option<i64>,
-    /// initialBatchSamplePercentage property.
-    pub initial_batch_sample_percentage: Option<i64>,
-    /// sampleStrategy property.
-    pub sample_strategy: Option<String>,
-}
-
 /// `GoogleCloudAiplatformV1TrainingConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrainingConfig {
     /// timeoutTrainingMilliHours property.
     pub timeout_training_milli_hours: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ActiveLearningConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ActiveLearningConfig {
-    /// maxDataItemCount property.
-    pub max_data_item_count: Option<String>,
-    /// maxDataItemPercentage property.
-    pub max_data_item_percentage: Option<i64>,
-    /// sampleConfig property.
-    pub sample_config: Option<GoogleCloudAiplatformV1SampleConfig>,
-    /// trainingConfig property.
-    pub training_config: Option<GoogleCloudAiplatformV1TrainingConfig>,
 }
 
 // =============================================================================

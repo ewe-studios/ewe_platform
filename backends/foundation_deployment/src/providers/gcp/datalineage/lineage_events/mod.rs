@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -49,6 +50,13 @@ pub struct GoogleCloudDatacatalogLineageV1ListLineageEventsResponse {
     pub next_page_token: Option<String>,
 }
 
+/// `GoogleCloudDatacatalogLineageV1EntityReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogLineageV1EntityReference {
+    /// fullyQualifiedName property.
+    pub fully_qualified_name: Option<String>,
+}
+
 /// `GoogleCloudDatacatalogLineageV1EventLink` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageV1EventLink {
@@ -56,13 +64,6 @@ pub struct GoogleCloudDatacatalogLineageV1EventLink {
     pub source: Option<GoogleCloudDatacatalogLineageV1EntityReference>,
     /// target property.
     pub target: Option<GoogleCloudDatacatalogLineageV1EntityReference>,
-}
-
-/// `GoogleCloudDatacatalogLineageV1EntityReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogLineageV1EntityReference {
-    /// fullyQualifiedName property.
-    pub fully_qualified_name: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,18 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListSchemaRegistriesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSchemaRegistriesResponse {
-    /// schemaRegistries property.
-    pub schema_registries: Option<Vec<SchemaRegistry>>,
-}
 
 /// `SchemaRegistry` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -41,6 +35,13 @@ pub struct SchemaRegistry {
     pub contexts: Option<Vec<String>>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `ListSchemaRegistriesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListSchemaRegistriesResponse {
+    /// schemaRegistries property.
+    pub schema_registries: Option<Vec<SchemaRegistry>>,
 }
 
 // =============================================================================

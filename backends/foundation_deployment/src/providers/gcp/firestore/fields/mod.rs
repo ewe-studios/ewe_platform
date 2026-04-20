@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,20 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleFirestoreAdminV1TtlConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirestoreAdminV1TtlConfig {
+    /// expirationOffset property.
+    pub expiration_offset: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
 
 /// `GoogleFirestoreAdminV1ListFieldsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -34,6 +44,37 @@ pub struct GoogleFirestoreAdminV1ListFieldsResponse {
     pub fields: Option<Vec<GoogleFirestoreAdminV1Field>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `GoogleFirestoreAdminV1Field` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirestoreAdminV1Field {
+    /// indexConfig property.
+    pub index_config: Option<GoogleFirestoreAdminV1IndexConfig>,
+    /// name property.
+    pub name: Option<String>,
+    /// ttlConfig property.
+    pub ttl_config: Option<GoogleFirestoreAdminV1TtlConfig>,
+}
+
+/// `GoogleFirestoreAdminV1VectorConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirestoreAdminV1VectorConfig {
+    /// dimension property.
+    pub dimension: Option<i64>,
+    /// flat property.
+    pub flat: Option<GoogleFirestoreAdminV1FlatIndex>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `GoogleFirestoreAdminV1SearchConfig` type.
@@ -45,15 +86,55 @@ pub struct GoogleFirestoreAdminV1SearchConfig {
     pub text_spec: Option<GoogleFirestoreAdminV1SearchTextSpec>,
 }
 
-/// `GoogleFirestoreAdminV1FlatIndex` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1FlatIndex {}
-
 /// `GoogleFirestoreAdminV1SearchGeoSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1SearchGeoSpec {
     /// geoJsonIndexingDisabled property.
     pub geo_json_indexing_disabled: Option<bool>,
+}
+
+/// `GoogleFirestoreAdminV1IndexConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirestoreAdminV1IndexConfig {
+    /// ancestorField property.
+    pub ancestor_field: Option<String>,
+    /// indexes property.
+    pub indexes: Option<Vec<GoogleFirestoreAdminV1Index>>,
+    /// reverting property.
+    pub reverting: Option<bool>,
+    /// usesAncestorConfig property.
+    pub uses_ancestor_config: Option<bool>,
+}
+
+/// `GoogleFirestoreAdminV1SearchIndexOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirestoreAdminV1SearchIndexOptions {
+    /// textLanguage property.
+    pub text_language: Option<String>,
+    /// textLanguageOverrideFieldPath property.
+    pub text_language_override_field_path: Option<String>,
+}
+
+/// `GoogleFirestoreAdminV1SearchTextSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirestoreAdminV1SearchTextSpec {
+    /// indexSpecs property.
+    pub index_specs: Option<Vec<GoogleFirestoreAdminV1SearchTextIndexSpec>>,
+}
+
+/// `GoogleFirestoreAdminV1IndexField` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirestoreAdminV1IndexField {
+    /// arrayConfig property.
+    pub array_config: Option<String>,
+    /// fieldPath property.
+    pub field_path: Option<String>,
+    /// order property.
+    pub order: Option<String>,
+    /// searchConfig property.
+    pub search_config: Option<GoogleFirestoreAdminV1SearchConfig>,
+    /// vectorConfig property.
+    pub vector_config: Option<GoogleFirestoreAdminV1VectorConfig>,
 }
 
 /// `GoogleFirestoreAdminV1Index` type.
@@ -81,81 +162,6 @@ pub struct GoogleFirestoreAdminV1Index {
     pub unique: Option<bool>,
 }
 
-/// `GoogleFirestoreAdminV1TtlConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1TtlConfig {
-    /// expirationOffset property.
-    pub expiration_offset: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleFirestoreAdminV1IndexField` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1IndexField {
-    /// arrayConfig property.
-    pub array_config: Option<String>,
-    /// fieldPath property.
-    pub field_path: Option<String>,
-    /// order property.
-    pub order: Option<String>,
-    /// searchConfig property.
-    pub search_config: Option<GoogleFirestoreAdminV1SearchConfig>,
-    /// vectorConfig property.
-    pub vector_config: Option<GoogleFirestoreAdminV1VectorConfig>,
-}
-
-/// `GoogleFirestoreAdminV1Field` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1Field {
-    /// indexConfig property.
-    pub index_config: Option<GoogleFirestoreAdminV1IndexConfig>,
-    /// name property.
-    pub name: Option<String>,
-    /// ttlConfig property.
-    pub ttl_config: Option<GoogleFirestoreAdminV1TtlConfig>,
-}
-
-/// `GoogleFirestoreAdminV1SearchTextSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1SearchTextSpec {
-    /// indexSpecs property.
-    pub index_specs: Option<Vec<GoogleFirestoreAdminV1SearchTextIndexSpec>>,
-}
-
-/// `GoogleFirestoreAdminV1SearchIndexOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1SearchIndexOptions {
-    /// textLanguage property.
-    pub text_language: Option<String>,
-    /// textLanguageOverrideFieldPath property.
-    pub text_language_override_field_path: Option<String>,
-}
-
-/// `GoogleFirestoreAdminV1IndexConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1IndexConfig {
-    /// ancestorField property.
-    pub ancestor_field: Option<String>,
-    /// indexes property.
-    pub indexes: Option<Vec<GoogleFirestoreAdminV1Index>>,
-    /// reverting property.
-    pub reverting: Option<bool>,
-    /// usesAncestorConfig property.
-    pub uses_ancestor_config: Option<bool>,
-}
-
 /// `GoogleFirestoreAdminV1SearchTextIndexSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1SearchTextIndexSpec {
@@ -165,14 +171,9 @@ pub struct GoogleFirestoreAdminV1SearchTextIndexSpec {
     pub match_type: Option<String>,
 }
 
-/// `GoogleFirestoreAdminV1VectorConfig` type.
+/// `GoogleFirestoreAdminV1FlatIndex` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1VectorConfig {
-    /// dimension property.
-    pub dimension: Option<i64>,
-    /// flat property.
-    pub flat: Option<GoogleFirestoreAdminV1FlatIndex>,
-}
+pub struct GoogleFirestoreAdminV1FlatIndex {}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

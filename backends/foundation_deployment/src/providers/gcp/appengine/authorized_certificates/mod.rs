@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,29 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListAuthorizedCertificatesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAuthorizedCertificatesResponse {
+    /// certificates property.
+    pub certificates: Option<Vec<AuthorizedCertificate>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `CertificateRawData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CertificateRawData {
+    /// privateKey property.
+    pub private_key: Option<String>,
+    /// publicCertificate property.
+    pub public_certificate: Option<String>,
+}
 
 /// `AuthorizedCertificate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -48,24 +67,6 @@ pub struct AuthorizedCertificate {
     pub name: Option<String>,
     /// visibleDomainMappings property.
     pub visible_domain_mappings: Option<Vec<String>>,
-}
-
-/// `ListAuthorizedCertificatesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAuthorizedCertificatesResponse {
-    /// certificates property.
-    pub certificates: Option<Vec<AuthorizedCertificate>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `CertificateRawData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CertificateRawData {
-    /// privateKey property.
-    pub private_key: Option<String>,
-    /// publicCertificate property.
-    pub public_certificate: Option<String>,
 }
 
 /// `ManagedCertificate` type.

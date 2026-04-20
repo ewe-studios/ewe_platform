@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -35,11 +36,27 @@ pub struct GoogleCloudDiscoveryengineV1FetchDomainVerificationStatusResponse {
     pub total_size: Option<i64>,
 }
 
+/// `GoogleCloudDiscoveryengineV1SiteVerificationInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1SiteVerificationInfo {
+    /// siteVerificationState property.
+    pub site_verification_state: Option<String>,
+    /// verifyTime property.
+    pub verify_time: Option<String>,
+}
+
 /// `GoogleCloudDiscoveryengineV1TargetSiteFailureReasonQuotaFailure` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1TargetSiteFailureReasonQuotaFailure {
     /// totalRequiredQuota property.
     pub total_required_quota: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1TargetSiteFailureReason` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1TargetSiteFailureReason {
+    /// quotaFailure property.
+    pub quota_failure: Option<GoogleCloudDiscoveryengineV1TargetSiteFailureReasonQuotaFailure>,
 }
 
 /// `GoogleCloudDiscoveryengineV1TargetSite` type.
@@ -65,22 +82,6 @@ pub struct GoogleCloudDiscoveryengineV1TargetSite {
     pub r#type: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1SiteVerificationInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SiteVerificationInfo {
-    /// siteVerificationState property.
-    pub site_verification_state: Option<String>,
-    /// verifyTime property.
-    pub verify_time: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1TargetSiteFailureReason` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1TargetSiteFailureReason {
-    /// quotaFailure property.
-    pub quota_failure: Option<GoogleCloudDiscoveryengineV1TargetSiteFailureReasonQuotaFailure>,
 }
 
 // =============================================================================

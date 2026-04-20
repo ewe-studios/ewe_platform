@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,19 +22,77 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ServiceAccount` type.
+/// `ListNodesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceAccount {
-    /// email property.
-    pub email: Option<String>,
-    /// scope property.
-    pub scope: Option<Vec<String>>,
+pub struct ListNodesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// nodes property.
+    pub nodes: Option<Vec<Node>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `GuestAttributesEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GuestAttributesEntry {
+    /// key property.
+    pub key: Option<String>,
+    /// namespace property.
+    pub namespace: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `AttachedDisk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AttachedDisk {
+    /// mode property.
+    pub mode: Option<String>,
+    /// sourceDisk property.
+    pub source_disk: Option<String>,
+}
+
+/// `GuestAttributesValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GuestAttributesValue {
+    /// items property.
+    pub items: Option<Vec<GuestAttributesEntry>>,
+}
+
+/// `AcceleratorConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AcceleratorConfig {
+    /// topology property.
+    pub topology: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `Symptom` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Symptom {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// details property.
+    pub details: Option<String>,
+    /// symptomType property.
+    pub symptom_type: Option<String>,
+    /// workerId property.
+    pub worker_id: Option<String>,
+}
+
+/// `AccessConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessConfig {
+    /// externalIp property.
+    pub external_ip: Option<String>,
 }
 
 /// `CustomerEncryptionKey` type.
@@ -41,6 +100,50 @@ pub struct ServiceAccount {
 pub struct CustomerEncryptionKey {
     /// kmsKeyName property.
     pub kms_key_name: Option<String>,
+}
+
+/// `SchedulingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SchedulingConfig {
+    /// preemptible property.
+    pub preemptible: Option<bool>,
+    /// reserved property.
+    pub reserved: Option<bool>,
+    /// spot property.
+    pub spot: Option<bool>,
+}
+
+/// `NetworkConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkConfig {
+    /// canIpForward property.
+    pub can_ip_forward: Option<bool>,
+    /// enableExternalIps property.
+    pub enable_external_ips: Option<bool>,
+    /// network property.
+    pub network: Option<String>,
+    /// queueCount property.
+    pub queue_count: Option<i64>,
+    /// subnetwork property.
+    pub subnetwork: Option<String>,
+}
+
+/// `NetworkEndpoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkEndpoint {
+    /// accessConfig property.
+    pub access_config: Option<AccessConfig>,
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
+}
+
+/// `BootDiskConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BootDiskConfig {
+    /// customerEncryptionKey property.
+    pub customer_encryption_key: Option<CustomerEncryptionKey>,
 }
 
 /// `Node` type.
@@ -102,76 +205,6 @@ pub struct Node {
     pub upcoming_maintenance: Option<UpcomingMaintenance>,
 }
 
-/// `ListNodesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListNodesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// nodes property.
-    pub nodes: Option<Vec<Node>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `NetworkConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkConfig {
-    /// canIpForward property.
-    pub can_ip_forward: Option<bool>,
-    /// enableExternalIps property.
-    pub enable_external_ips: Option<bool>,
-    /// network property.
-    pub network: Option<String>,
-    /// queueCount property.
-    pub queue_count: Option<i64>,
-    /// subnetwork property.
-    pub subnetwork: Option<String>,
-}
-
-/// `GuestAttributes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GuestAttributes {
-    /// queryPath property.
-    pub query_path: Option<String>,
-    /// queryValue property.
-    pub query_value: Option<GuestAttributesValue>,
-}
-
-/// `Symptom` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Symptom {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// details property.
-    pub details: Option<String>,
-    /// symptomType property.
-    pub symptom_type: Option<String>,
-    /// workerId property.
-    pub worker_id: Option<String>,
-}
-
-/// `SchedulingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SchedulingConfig {
-    /// preemptible property.
-    pub preemptible: Option<bool>,
-    /// reserved property.
-    pub reserved: Option<bool>,
-    /// spot property.
-    pub spot: Option<bool>,
-}
-
-/// `GuestAttributesEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GuestAttributesEntry {
-    /// key property.
-    pub key: Option<String>,
-    /// namespace property.
-    pub namespace: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
 /// `UpcomingMaintenance` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpcomingMaintenance {
@@ -189,54 +222,20 @@ pub struct UpcomingMaintenance {
     pub window_start_time: Option<String>,
 }
 
-/// `AttachedDisk` type.
+/// `ServiceAccount` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AttachedDisk {
-    /// mode property.
-    pub mode: Option<String>,
-    /// sourceDisk property.
-    pub source_disk: Option<String>,
+pub struct ServiceAccount {
+    /// email property.
+    pub email: Option<String>,
+    /// scope property.
+    pub scope: Option<Vec<String>>,
 }
 
-/// `NetworkEndpoint` type.
+/// `ShieldedInstanceConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkEndpoint {
-    /// accessConfig property.
-    pub access_config: Option<AccessConfig>,
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
-}
-
-/// `GuestAttributesValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GuestAttributesValue {
-    /// items property.
-    pub items: Option<Vec<GuestAttributesEntry>>,
-}
-
-/// `BootDiskConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BootDiskConfig {
-    /// customerEncryptionKey property.
-    pub customer_encryption_key: Option<CustomerEncryptionKey>,
-}
-
-/// `GetGuestAttributesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetGuestAttributesResponse {
-    /// guestAttributes property.
-    pub guest_attributes: Option<Vec<GuestAttributes>>,
-}
-
-/// `AcceleratorConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcceleratorConfig {
-    /// topology property.
-    pub topology: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct ShieldedInstanceConfig {
+    /// enableSecureBoot property.
+    pub enable_secure_boot: Option<bool>,
 }
 
 /// `Status` type.
@@ -250,18 +249,20 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `AccessConfig` type.
+/// `GuestAttributes` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessConfig {
-    /// externalIp property.
-    pub external_ip: Option<String>,
+pub struct GuestAttributes {
+    /// queryPath property.
+    pub query_path: Option<String>,
+    /// queryValue property.
+    pub query_value: Option<GuestAttributesValue>,
 }
 
-/// `ShieldedInstanceConfig` type.
+/// `GetGuestAttributesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShieldedInstanceConfig {
-    /// enableSecureBoot property.
-    pub enable_secure_boot: Option<bool>,
+pub struct GetGuestAttributesResponse {
+    /// guestAttributes property.
+    pub guest_attributes: Option<Vec<GuestAttributes>>,
 }
 
 // =============================================================================

@@ -12,17 +12,59 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `SystemFeature` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SystemFeature {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `UserCountrySet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UserCountrySet {
+    /// countryCodes property.
+    pub country_codes: Option<Vec<String>>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `DeviceTier` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceTier {
+    /// deviceGroupNames property.
+    pub device_group_names: Option<Vec<String>>,
+    /// level property.
+    pub level: Option<i64>,
+}
+
+/// `DeviceTierSet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceTierSet {
+    /// deviceTiers property.
+    pub device_tiers: Option<Vec<DeviceTier>>,
+}
+
+/// `DeviceId` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceId {
+    /// buildBrand property.
+    pub build_brand: Option<String>,
+    /// buildDevice property.
+    pub build_device: Option<String>,
+}
 
 /// `DeviceSelector` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -41,26 +83,13 @@ pub struct DeviceSelector {
     pub system_on_chips: Option<Vec<SystemOnChip>>,
 }
 
-/// `DeviceTierConfig` type.
+/// `DeviceGroup` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceTierConfig {
-    /// deviceGroups property.
-    pub device_groups: Option<Vec<DeviceGroup>>,
-    /// deviceTierConfigId property.
-    pub device_tier_config_id: Option<String>,
-    /// deviceTierSet property.
-    pub device_tier_set: Option<DeviceTierSet>,
-    /// userCountrySets property.
-    pub user_country_sets: Option<Vec<UserCountrySet>>,
-}
-
-/// `ListDeviceTierConfigsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDeviceTierConfigsResponse {
-    /// deviceTierConfigs property.
-    pub device_tier_configs: Option<Vec<DeviceTierConfig>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct DeviceGroup {
+    /// deviceSelectors property.
+    pub device_selectors: Option<Vec<DeviceSelector>>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 /// `SystemOnChip` type.
@@ -72,6 +101,15 @@ pub struct SystemOnChip {
     pub model: Option<String>,
 }
 
+/// `ListDeviceTierConfigsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDeviceTierConfigsResponse {
+    /// deviceTierConfigs property.
+    pub device_tier_configs: Option<Vec<DeviceTierConfig>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
 /// `DeviceRam` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceRam {
@@ -81,54 +119,17 @@ pub struct DeviceRam {
     pub min_bytes: Option<String>,
 }
 
-/// `UserCountrySet` type.
+/// `DeviceTierConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserCountrySet {
-    /// countryCodes property.
-    pub country_codes: Option<Vec<String>>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `DeviceTierSet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceTierSet {
-    /// deviceTiers property.
-    pub device_tiers: Option<Vec<DeviceTier>>,
-}
-
-/// `DeviceTier` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceTier {
-    /// deviceGroupNames property.
-    pub device_group_names: Option<Vec<String>>,
-    /// level property.
-    pub level: Option<i64>,
-}
-
-/// `DeviceId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceId {
-    /// buildBrand property.
-    pub build_brand: Option<String>,
-    /// buildDevice property.
-    pub build_device: Option<String>,
-}
-
-/// `SystemFeature` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SystemFeature {
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `DeviceGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceGroup {
-    /// deviceSelectors property.
-    pub device_selectors: Option<Vec<DeviceSelector>>,
-    /// name property.
-    pub name: Option<String>,
+pub struct DeviceTierConfig {
+    /// deviceGroups property.
+    pub device_groups: Option<Vec<DeviceGroup>>,
+    /// deviceTierConfigId property.
+    pub device_tier_config_id: Option<String>,
+    /// deviceTierSet property.
+    pub device_tier_set: Option<DeviceTierSet>,
+    /// userCountrySets property.
+    pub user_country_sets: Option<Vec<UserCountrySet>>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,30 +22,22 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `WindowsBasedSli` type.
+/// `TimeSeriesRatio` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WindowsBasedSli {
-    /// goodBadMetricFilter property.
-    pub good_bad_metric_filter: Option<String>,
-    /// goodTotalRatioThreshold property.
-    pub good_total_ratio_threshold: Option<PerformanceThreshold>,
-    /// metricMeanInRange property.
-    pub metric_mean_in_range: Option<MetricRange>,
-    /// metricSumInRange property.
-    pub metric_sum_in_range: Option<MetricRange>,
-    /// windowPeriod property.
-    pub window_period: Option<String>,
+pub struct TimeSeriesRatio {
+    /// badServiceFilter property.
+    pub bad_service_filter: Option<String>,
+    /// goodServiceFilter property.
+    pub good_service_filter: Option<String>,
+    /// totalServiceFilter property.
+    pub total_service_filter: Option<String>,
 }
-
-/// `AvailabilityCriteria` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AvailabilityCriteria {}
 
 /// `ServiceLevelObjective` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -65,6 +58,15 @@ pub struct ServiceLevelObjective {
     pub user_labels: Option<serde_json::Value>,
 }
 
+/// `GoogleMonitoringV3Range` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMonitoringV3Range {
+    /// max property.
+    pub max: Option<f64>,
+    /// min property.
+    pub min: Option<f64>,
+}
+
 /// `LatencyCriteria` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LatencyCriteria {
@@ -72,13 +74,58 @@ pub struct LatencyCriteria {
     pub threshold: Option<String>,
 }
 
-/// `ListServiceLevelObjectivesResponse` type.
+/// `WindowsBasedSli` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListServiceLevelObjectivesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// serviceLevelObjectives property.
-    pub service_level_objectives: Option<Vec<ServiceLevelObjective>>,
+pub struct WindowsBasedSli {
+    /// goodBadMetricFilter property.
+    pub good_bad_metric_filter: Option<String>,
+    /// goodTotalRatioThreshold property.
+    pub good_total_ratio_threshold: Option<PerformanceThreshold>,
+    /// metricMeanInRange property.
+    pub metric_mean_in_range: Option<MetricRange>,
+    /// metricSumInRange property.
+    pub metric_sum_in_range: Option<MetricRange>,
+    /// windowPeriod property.
+    pub window_period: Option<String>,
+}
+
+/// `BasicSli` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BasicSli {
+    /// availability property.
+    pub availability: Option<AvailabilityCriteria>,
+    /// latency property.
+    pub latency: Option<LatencyCriteria>,
+    /// location property.
+    pub location: Option<Vec<String>>,
+    /// method property.
+    pub method: Option<Vec<String>>,
+    /// version property.
+    pub version: Option<Vec<String>>,
+}
+
+/// `AvailabilityCriteria` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AvailabilityCriteria {}
+
+/// `PerformanceThreshold` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PerformanceThreshold {
+    /// basicSliPerformance property.
+    pub basic_sli_performance: Option<BasicSli>,
+    /// performance property.
+    pub performance: Option<RequestBasedSli>,
+    /// threshold property.
+    pub threshold: Option<f64>,
+}
+
+/// `DistributionCut` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DistributionCut {
+    /// distributionFilter property.
+    pub distribution_filter: Option<String>,
+    /// range property.
+    pub range: Option<GoogleMonitoringV3Range>,
 }
 
 /// `ServiceLevelIndicator` type.
@@ -110,59 +157,13 @@ pub struct MetricRange {
     pub time_series: Option<String>,
 }
 
-/// `TimeSeriesRatio` type.
+/// `ListServiceLevelObjectivesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeSeriesRatio {
-    /// badServiceFilter property.
-    pub bad_service_filter: Option<String>,
-    /// goodServiceFilter property.
-    pub good_service_filter: Option<String>,
-    /// totalServiceFilter property.
-    pub total_service_filter: Option<String>,
-}
-
-/// `BasicSli` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BasicSli {
-    /// availability property.
-    pub availability: Option<AvailabilityCriteria>,
-    /// latency property.
-    pub latency: Option<LatencyCriteria>,
-    /// location property.
-    pub location: Option<Vec<String>>,
-    /// method property.
-    pub method: Option<Vec<String>>,
-    /// version property.
-    pub version: Option<Vec<String>>,
-}
-
-/// `PerformanceThreshold` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PerformanceThreshold {
-    /// basicSliPerformance property.
-    pub basic_sli_performance: Option<BasicSli>,
-    /// performance property.
-    pub performance: Option<RequestBasedSli>,
-    /// threshold property.
-    pub threshold: Option<f64>,
-}
-
-/// `GoogleMonitoringV3Range` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMonitoringV3Range {
-    /// max property.
-    pub max: Option<f64>,
-    /// min property.
-    pub min: Option<f64>,
-}
-
-/// `DistributionCut` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DistributionCut {
-    /// distributionFilter property.
-    pub distribution_filter: Option<String>,
-    /// range property.
-    pub range: Option<GoogleMonitoringV3Range>,
+pub struct ListServiceLevelObjectivesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// serviceLevelObjectives property.
+    pub service_level_objectives: Option<Vec<ServiceLevelObjective>>,
 }
 
 // =============================================================================

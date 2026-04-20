@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,89 +22,17 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `BackendBucketCdnPolicyNegativeCachingPolicy` type.
+/// `BackendBucketCdnPolicyBypassCacheOnRequestHeader` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendBucketCdnPolicyNegativeCachingPolicy {
-    /// code property.
-    pub code: Option<i64>,
-    /// ttl property.
-    pub ttl: Option<i64>,
-}
-
-/// `InstancesBulkInsertOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
-}
-
-/// `BackendBucketCdnPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendBucketCdnPolicy {
-    /// bypassCacheOnRequestHeaders property.
-    pub bypass_cache_on_request_headers:
-        Option<Vec<BackendBucketCdnPolicyBypassCacheOnRequestHeader>>,
-    /// cacheKeyPolicy property.
-    pub cache_key_policy: Option<BackendBucketCdnPolicyCacheKeyPolicy>,
-    /// cacheMode property.
-    pub cache_mode: Option<String>,
-    /// clientTtl property.
-    pub client_ttl: Option<i64>,
-    /// defaultTtl property.
-    pub default_ttl: Option<i64>,
-    /// maxTtl property.
-    pub max_ttl: Option<i64>,
-    /// negativeCaching property.
-    pub negative_caching: Option<bool>,
-    /// negativeCachingPolicy property.
-    pub negative_caching_policy: Option<Vec<BackendBucketCdnPolicyNegativeCachingPolicy>>,
-    /// requestCoalescing property.
-    pub request_coalescing: Option<bool>,
-    /// serveWhileStale property.
-    pub serve_while_stale: Option<i64>,
-    /// signedUrlCacheMaxAgeSec property.
-    pub signed_url_cache_max_age_sec: Option<String>,
-    /// signedUrlKeyNames property.
-    pub signed_url_key_names: Option<Vec<String>>,
-}
-
-/// `Help` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
-}
-
-/// `BackendBucketList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendBucketList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<BackendBucket>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
+pub struct BackendBucketCdnPolicyBypassCacheOnRequestHeader {
+    /// headerName property.
+    pub header_name: Option<String>,
 }
 
 /// `BackendBucketUsedBy` type.
@@ -113,90 +42,11 @@ pub struct BackendBucketUsedBy {
     pub reference: Option<String>,
 }
 
-/// `BackendBucketCdnPolicyBypassCacheOnRequestHeader` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendBucketCdnPolicyBypassCacheOnRequestHeader {
-    /// headerName property.
-    pub header_name: Option<String>,
-}
-
-/// `BackendBucketAggregatedList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendBucketAggregatedList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<serde_json::Value>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `BackendBucketCdnPolicyCacheKeyPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendBucketCdnPolicyCacheKeyPolicy {
-    /// includeHttpHeaders property.
-    pub include_http_headers: Option<Vec<String>>,
-    /// queryStringWhitelist property.
-    pub query_string_whitelist: Option<Vec<String>>,
-}
-
-/// `ErrorInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `QuotaExceededInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotaExceededInfo {
-    /// dimensions property.
-    pub dimensions: Option<serde_json::Value>,
-    /// futureLimit property.
-    pub future_limit: Option<f64>,
-    /// limit property.
-    pub limit: Option<f64>,
-    /// limitName property.
-    pub limit_name: Option<String>,
-    /// metricName property.
-    pub metric_name: Option<String>,
-    /// rolloutStatus property.
-    pub rollout_status: Option<String>,
-}
-
 /// `GetVersionOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetVersionOperationMetadata {
     /// inlineSbomInfo property.
     pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
-}
-
-/// `GetVersionOperationMetadataSbomInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
-}
-
-/// `HelpLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
 }
 
 /// `BackendBucket` type.
@@ -236,6 +86,74 @@ pub struct BackendBucket {
     pub used_by: Option<Vec<BackendBucketUsedBy>>,
 }
 
+/// `BackendBucketAggregatedList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendBucketAggregatedList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<serde_json::Value>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `QuotaExceededInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuotaExceededInfo {
+    /// dimensions property.
+    pub dimensions: Option<serde_json::Value>,
+    /// futureLimit property.
+    pub future_limit: Option<f64>,
+    /// limit property.
+    pub limit: Option<f64>,
+    /// limitName property.
+    pub limit_name: Option<String>,
+    /// metricName property.
+    pub metric_name: Option<String>,
+    /// rolloutStatus property.
+    pub rollout_status: Option<String>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `GetVersionOperationMetadataSbomInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
+}
+
+/// `BackendBucketParams` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendBucketParams {
+    /// resourceManagerTags property.
+    pub resource_manager_tags: Option<serde_json::Value>,
+}
+
+/// `ErrorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
 /// `SetCommonInstanceMetadataOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetCommonInstanceMetadataOperationMetadata {
@@ -245,11 +163,94 @@ pub struct SetCommonInstanceMetadataOperationMetadata {
     pub per_location_operations: Option<serde_json::Value>,
 }
 
-/// `BackendBucketParams` type.
+/// `HelpLink` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendBucketParams {
-    /// resourceManagerTags property.
-    pub resource_manager_tags: Option<serde_json::Value>,
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `BackendBucketCdnPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendBucketCdnPolicy {
+    /// bypassCacheOnRequestHeaders property.
+    pub bypass_cache_on_request_headers:
+        Option<Vec<BackendBucketCdnPolicyBypassCacheOnRequestHeader>>,
+    /// cacheKeyPolicy property.
+    pub cache_key_policy: Option<BackendBucketCdnPolicyCacheKeyPolicy>,
+    /// cacheMode property.
+    pub cache_mode: Option<String>,
+    /// clientTtl property.
+    pub client_ttl: Option<i64>,
+    /// defaultTtl property.
+    pub default_ttl: Option<i64>,
+    /// maxTtl property.
+    pub max_ttl: Option<i64>,
+    /// negativeCaching property.
+    pub negative_caching: Option<bool>,
+    /// negativeCachingPolicy property.
+    pub negative_caching_policy: Option<Vec<BackendBucketCdnPolicyNegativeCachingPolicy>>,
+    /// requestCoalescing property.
+    pub request_coalescing: Option<bool>,
+    /// serveWhileStale property.
+    pub serve_while_stale: Option<i64>,
+    /// signedUrlCacheMaxAgeSec property.
+    pub signed_url_cache_max_age_sec: Option<String>,
+    /// signedUrlKeyNames property.
+    pub signed_url_key_names: Option<Vec<String>>,
+}
+
+/// `Help` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
+}
+
+/// `LocalizedMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `BackendBucketList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendBucketList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<BackendBucket>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `BackendBucketCdnPolicyCacheKeyPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendBucketCdnPolicyCacheKeyPolicy {
+    /// includeHttpHeaders property.
+    pub include_http_headers: Option<Vec<String>>,
+    /// queryStringWhitelist property.
+    pub query_string_whitelist: Option<Vec<String>>,
+}
+
+/// `BackendBucketCdnPolicyNegativeCachingPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendBucketCdnPolicyNegativeCachingPolicy {
+    /// code property.
+    pub code: Option<i64>,
+    /// ttl property.
+    pub ttl: Option<i64>,
 }
 
 // =============================================================================

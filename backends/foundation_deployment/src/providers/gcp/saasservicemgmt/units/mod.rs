@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,21 +22,30 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListUnitsResponse` type.
+/// `UnitVariable` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListUnitsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// units property.
-    pub units: Option<Vec<Unit>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct UnitVariable {
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+    /// variable property.
+    pub variable: Option<String>,
+}
+
+/// `UnitDependency` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UnitDependency {
+    /// alias property.
+    pub alias: Option<String>,
+    /// unit property.
+    pub unit: Option<String>,
 }
 
 /// `UnitCondition` type.
@@ -53,15 +63,22 @@ pub struct UnitCondition {
     pub r#type: Option<String>,
 }
 
-/// `UnitVariable` type.
+/// `MaintenanceSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UnitVariable {
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-    /// variable property.
-    pub variable: Option<String>,
+pub struct MaintenanceSettings {
+    /// pinnedUntilTime property.
+    pub pinned_until_time: Option<String>,
+}
+
+/// `ListUnitsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListUnitsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// units property.
+    pub units: Option<Vec<Unit>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `Unit` type.
@@ -117,22 +134,6 @@ pub struct Unit {
     pub unit_kind: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `UnitDependency` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UnitDependency {
-    /// alias property.
-    pub alias: Option<String>,
-    /// unit property.
-    pub unit: Option<String>,
-}
-
-/// `MaintenanceSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaintenanceSettings {
-    /// pinnedUntilTime property.
-    pub pinned_until_time: Option<String>,
 }
 
 // =============================================================================

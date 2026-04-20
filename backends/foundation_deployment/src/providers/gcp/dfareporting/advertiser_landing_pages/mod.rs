@@ -12,32 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `DeepLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeepLink {
-    /// appUrl property.
-    pub app_url: Option<String>,
-    /// fallbackUrl property.
-    pub fallback_url: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// mobileApp property.
-    pub mobile_app: Option<MobileApp>,
-    /// remarketingListIds property.
-    pub remarketing_list_ids: Option<Vec<String>>,
-}
 
 /// `LandingPage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -58,15 +44,19 @@ pub struct LandingPage {
     pub url: Option<String>,
 }
 
-/// `AdvertiserLandingPagesListResponse` type.
+/// `DeepLink` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdvertiserLandingPagesListResponse {
+pub struct DeepLink {
+    /// appUrl property.
+    pub app_url: Option<String>,
+    /// fallbackUrl property.
+    pub fallback_url: Option<String>,
     /// kind property.
     pub kind: Option<String>,
-    /// landingPages property.
-    pub landing_pages: Option<Vec<LandingPage>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+    /// mobileApp property.
+    pub mobile_app: Option<MobileApp>,
+    /// remarketingListIds property.
+    pub remarketing_list_ids: Option<Vec<String>>,
 }
 
 /// `MobileApp` type.
@@ -82,6 +72,17 @@ pub struct MobileApp {
     pub publisher_name: Option<String>,
     /// title property.
     pub title: Option<String>,
+}
+
+/// `AdvertiserLandingPagesListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdvertiserLandingPagesListResponse {
+    /// kind property.
+    pub kind: Option<String>,
+    /// landingPages property.
+    pub landing_pages: Option<Vec<LandingPage>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

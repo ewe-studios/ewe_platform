@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -33,6 +34,13 @@ pub struct Variant {
     pub options: Option<SystemApkOptions>,
     /// variantId property.
     pub variant_id: Option<i64>,
+}
+
+/// `SystemApksListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SystemApksListResponse {
+    /// variants property.
+    pub variants: Option<Vec<Variant>>,
 }
 
 /// `DeviceSpec` type.
@@ -55,13 +63,6 @@ pub struct SystemApkOptions {
     pub uncompressed_dex_files: Option<bool>,
     /// uncompressedNativeLibraries property.
     pub uncompressed_native_libraries: Option<bool>,
-}
-
-/// `SystemApksListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SystemApksListResponse {
-    /// variants property.
-    pub variants: Option<Vec<Variant>>,
 }
 
 // =============================================================================

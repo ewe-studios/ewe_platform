@@ -12,17 +12,40 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `BillingRateTieredRate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BillingRateTieredRate {
+    /// highValue property.
+    pub high_value: Option<String>,
+    /// lowValue property.
+    pub low_value: Option<String>,
+    /// rateInMicros property.
+    pub rate_in_micros: Option<String>,
+}
+
+/// `BillingRatesListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BillingRatesListResponse {
+    /// billingRates property.
+    pub billing_rates: Option<Vec<BillingRate>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `BillingRate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,28 +68,6 @@ pub struct BillingRate {
     pub r#type: Option<String>,
     /// unitOfMeasure property.
     pub unit_of_measure: Option<String>,
-}
-
-/// `BillingRateTieredRate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BillingRateTieredRate {
-    /// highValue property.
-    pub high_value: Option<String>,
-    /// lowValue property.
-    pub low_value: Option<String>,
-    /// rateInMicros property.
-    pub rate_in_micros: Option<String>,
-}
-
-/// `BillingRatesListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BillingRatesListResponse {
-    /// billingRates property.
-    pub billing_rates: Option<Vec<BillingRate>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,26 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudContactcenterinsightsV1QaQuestionQaQuestionDataOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1QaQuestionQaQuestionDataOptions {
-    /// conversationDataOptions property.
-    pub conversation_data_options:
-        Option<GoogleCloudContactcenterinsightsV1ConversationDataOptions>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1QaQuestionPredefinedQuestionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1QaQuestionPredefinedQuestionConfig {
-    /// type property.
-    pub r#type: Option<String>,
-}
 
 /// `GoogleCloudContactcenterinsightsV1QaQuestion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -77,6 +63,24 @@ pub struct GoogleCloudContactcenterinsightsV1QaQuestion {
     pub update_time: Option<String>,
 }
 
+/// `GoogleCloudContactcenterinsightsV1QaQuestionMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1QaQuestionMetrics {
+    /// accuracy property.
+    pub accuracy: Option<f64>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1QaQuestionTuningMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1QaQuestionTuningMetadata {
+    /// datasetValidationWarnings property.
+    pub dataset_validation_warnings: Option<Vec<String>>,
+    /// totalValidLabelCount property.
+    pub total_valid_label_count: Option<String>,
+    /// tuningError property.
+    pub tuning_error: Option<String>,
+}
+
 /// `GoogleCloudContactcenterinsightsV1QaQuestionAnswerChoice` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QaQuestionAnswerChoice {
@@ -103,13 +107,6 @@ pub struct GoogleCloudContactcenterinsightsV1ListQaQuestionsResponse {
     pub qa_questions: Option<Vec<GoogleCloudContactcenterinsightsV1QaQuestion>>,
 }
 
-/// `GoogleCloudContactcenterinsightsV1QaQuestionMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1QaQuestionMetrics {
-    /// accuracy property.
-    pub accuracy: Option<f64>,
-}
-
 /// `GoogleCloudContactcenterinsightsV1ConversationDataOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ConversationDataOptions {
@@ -117,15 +114,19 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationDataOptions {
     pub include_dialogflow_interaction_data: Option<bool>,
 }
 
-/// `GoogleCloudContactcenterinsightsV1QaQuestionTuningMetadata` type.
+/// `GoogleCloudContactcenterinsightsV1QaQuestionQaQuestionDataOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1QaQuestionTuningMetadata {
-    /// datasetValidationWarnings property.
-    pub dataset_validation_warnings: Option<Vec<String>>,
-    /// totalValidLabelCount property.
-    pub total_valid_label_count: Option<String>,
-    /// tuningError property.
-    pub tuning_error: Option<String>,
+pub struct GoogleCloudContactcenterinsightsV1QaQuestionQaQuestionDataOptions {
+    /// conversationDataOptions property.
+    pub conversation_data_options:
+        Option<GoogleCloudContactcenterinsightsV1ConversationDataOptions>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1QaQuestionPredefinedQuestionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1QaQuestionPredefinedQuestionConfig {
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 // =============================================================================

@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -23,33 +24,6 @@ use super::shared::ApiResponse;
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ComputeservicesVersionsGetResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeservicesVersionsGetResponse {
-    /// data property.
-    pub data: Vec<ComputeservicesVersions>,
-    /// pagination property.
-    pub pagination: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ComputeservicesVersionsPostRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeservicesVersionsPostRequest {
-    /// envVars property.
-    pub env_vars: Option<serde_json::Value>,
-    /// portMapping property.
-    pub port_mapping: Option<ComputeservicesVersionsPostRequestPortMapping>,
-    /// skipCodeUpload property.
-    pub skip_code_upload: Option<bool>,
-}
-
-/// `VersionsGetResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VersionsGetResponse {
-    /// data property.
-    pub data: Versions,
-}
 
 /// `Versions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -74,11 +48,58 @@ pub struct Versions {
     pub url: String,
 }
 
+/// `ComputeservicesVersionsPostResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeservicesVersionsPostResponse {
+    /// data property.
+    pub data: ComputeservicesVersions,
+}
+
+/// `VersionsPostResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VersionsPostResponse {
+    /// data property.
+    pub data: Versions,
+}
+
 /// `ComputeservicesVersionsPostRequestPortMapping` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeservicesVersionsPostRequestPortMapping {
     /// http property.
     pub http: Option<serde_json::Value>,
+}
+
+/// `ComputeservicesVersionsPostRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeservicesVersionsPostRequest {
+    /// envVars property.
+    pub env_vars: Option<serde_json::Value>,
+    /// portMapping property.
+    pub port_mapping: Option<ComputeservicesVersionsPostRequestPortMapping>,
+    /// skipCodeUpload property.
+    pub skip_code_upload: Option<bool>,
+}
+
+/// `VersionsGetResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VersionsGetResponse {
+    /// data property.
+    pub data: Versions,
+}
+
+/// `ComputeservicesVersions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeservicesVersions {
+    /// foundryVersionId property.
+    pub foundry_version_id: String,
+    /// id property.
+    pub id: String,
+    /// type property.
+    pub r#type: String,
+    /// uploadUrl property.
+    pub upload_url: String,
+    /// url property.
+    pub url: String,
 }
 
 /// `VersionsPostRequestPortMapping` type.
@@ -101,21 +122,6 @@ pub struct VersionsPostRequest {
     pub skip_code_upload: Option<bool>,
 }
 
-/// `ComputeservicesVersions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeservicesVersions {
-    /// foundryVersionId property.
-    pub foundry_version_id: String,
-    /// id property.
-    pub id: String,
-    /// type property.
-    pub r#type: String,
-    /// uploadUrl property.
-    pub upload_url: String,
-    /// url property.
-    pub url: String,
-}
-
 /// `VersionsPortMapping` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VersionsPortMapping {
@@ -123,18 +129,13 @@ pub struct VersionsPortMapping {
     pub http: Option<f64>,
 }
 
-/// `VersionsPostResponse` type.
+/// `ComputeservicesVersionsGetResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VersionsPostResponse {
+pub struct ComputeservicesVersionsGetResponse {
     /// data property.
-    pub data: Versions,
-}
-
-/// `ComputeservicesVersionsPostResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeservicesVersionsPostResponse {
-    /// data property.
-    pub data: ComputeservicesVersions,
+    pub data: Vec<ComputeservicesVersions>,
+    /// pagination property.
+    pub pagination: std::collections::HashMap<String, serde_json::Value>,
 }
 
 // =============================================================================

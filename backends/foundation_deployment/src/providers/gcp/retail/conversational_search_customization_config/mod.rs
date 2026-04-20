@@ -12,27 +12,49 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudRetailV2IntentClassificationConfigInlineForceIntent` type.
+/// `GoogleCloudRetailV2ConversationalSearchCustomizationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2IntentClassificationConfigInlineForceIntent {
+pub struct GoogleCloudRetailV2ConversationalSearchCustomizationConfig {
+    /// catalog property.
+    pub catalog: Option<String>,
+    /// intentClassificationConfig property.
+    pub intent_classification_config: Option<GoogleCloudRetailV2IntentClassificationConfig>,
+    /// retailerDisplayName property.
+    pub retailer_display_name: Option<String>,
+}
+
+/// `GoogleCloudRetailV2IntentClassificationConfigInlineSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2IntentClassificationConfigInlineSource {
+    /// inlineForceIntents property.
+    pub inline_force_intents:
+        Option<Vec<GoogleCloudRetailV2IntentClassificationConfigInlineForceIntent>>,
+}
+
+/// `GoogleCloudRetailV2IntentClassificationConfigExample` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2IntentClassificationConfigExample {
+    /// classifiedPositive property.
+    pub classified_positive: Option<bool>,
     /// intentType property.
     pub intent_type: Option<String>,
-    /// operation property.
-    pub operation: Option<String>,
     /// query property.
     pub query: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
 }
 
 /// `GoogleCloudRetailV2IntentClassificationConfig` type.
@@ -50,36 +72,15 @@ pub struct GoogleCloudRetailV2IntentClassificationConfig {
     pub model_preamble: Option<String>,
 }
 
-/// `GoogleCloudRetailV2IntentClassificationConfigExample` type.
+/// `GoogleCloudRetailV2IntentClassificationConfigInlineForceIntent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2IntentClassificationConfigExample {
-    /// classifiedPositive property.
-    pub classified_positive: Option<bool>,
+pub struct GoogleCloudRetailV2IntentClassificationConfigInlineForceIntent {
     /// intentType property.
     pub intent_type: Option<String>,
+    /// operation property.
+    pub operation: Option<String>,
     /// query property.
     pub query: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `GoogleCloudRetailV2IntentClassificationConfigInlineSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2IntentClassificationConfigInlineSource {
-    /// inlineForceIntents property.
-    pub inline_force_intents:
-        Option<Vec<GoogleCloudRetailV2IntentClassificationConfigInlineForceIntent>>,
-}
-
-/// `GoogleCloudRetailV2ConversationalSearchCustomizationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2ConversationalSearchCustomizationConfig {
-    /// catalog property.
-    pub catalog: Option<String>,
-    /// intentClassificationConfig property.
-    pub intent_classification_config: Option<GoogleCloudRetailV2IntentClassificationConfig>,
-    /// retailerDisplayName property.
-    pub retailer_display_name: Option<String>,
 }
 
 // =============================================================================

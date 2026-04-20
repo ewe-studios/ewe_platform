@@ -12,34 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleTypeTimeZone` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeTimeZone {
-    /// id property.
-    pub id: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `GooglePlayDeveloperReportingV1Beta1FreshnessInfoFreshness` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePlayDeveloperReportingV1Beta1FreshnessInfoFreshness {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
 
 /// `GooglePlayDeveloperReportingV1beta1CrashRateMetricSet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -48,6 +32,14 @@ pub struct GooglePlayDeveloperReportingV1beta1CrashRateMetricSet {
     pub freshness_info: Option<GooglePlayDeveloperReportingV1Beta1FreshnessInfo>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `GooglePlayDeveloperReportingV1Beta1FreshnessInfoFreshness` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePlayDeveloperReportingV1Beta1FreshnessInfoFreshness {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `GoogleTypeDateTime` type.
@@ -79,6 +71,15 @@ pub struct GooglePlayDeveloperReportingV1Beta1FreshnessInfo {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleTypeTimeZone` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeTimeZone {
+    /// id property.
+    pub id: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
 // =============================================================================

@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -23,13 +24,6 @@ use super::shared::ApiResponse;
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `OrganizationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OrganizationsResponse {
-    /// organizations property.
-    pub organizations: Vec<Organization>,
-}
 
 /// `Organization` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -50,6 +44,13 @@ pub struct Organization {
     pub plan: String,
     /// updated_at property.
     pub updated_at: String,
+}
+
+/// `OrganizationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OrganizationsResponse {
+    /// organizations property.
+    pub organizations: Vec<Organization>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,7 +23,7 @@ use serde::{Deserialize, Serialize};
 use super::shared::GoogleLongrunningOperation;
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -47,26 +48,6 @@ pub struct GoogleCloudContactcenterinsightsV1QaScorecard {
     pub update_time: Option<String>,
 }
 
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1ListQaScorecardRevisionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1ListQaScorecardRevisionsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// qaScorecardRevisions property.
-    pub qa_scorecard_revisions: Option<Vec<GoogleCloudContactcenterinsightsV1QaScorecardRevision>>,
-}
-
 /// `GoogleCloudContactcenterinsightsV1QaScorecardRevision` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QaScorecardRevision {
@@ -80,6 +61,26 @@ pub struct GoogleCloudContactcenterinsightsV1QaScorecardRevision {
     pub snapshot: Option<GoogleCloudContactcenterinsightsV1QaScorecard>,
     /// state property.
     pub state: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1ListQaScorecardRevisionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1ListQaScorecardRevisionsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// qaScorecardRevisions property.
+    pub qa_scorecard_revisions: Option<Vec<GoogleCloudContactcenterinsightsV1QaScorecardRevision>>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

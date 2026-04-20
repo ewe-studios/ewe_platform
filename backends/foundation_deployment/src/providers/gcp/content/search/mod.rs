@@ -12,17 +12,245 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `BestSellers` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BestSellers {
+    /// categoryId property.
+    pub category_id: Option<String>,
+    /// countryCode property.
+    pub country_code: Option<String>,
+    /// previousRank property.
+    pub previous_rank: Option<String>,
+    /// previousRelativeDemand property.
+    pub previous_relative_demand: Option<String>,
+    /// rank property.
+    pub rank: Option<String>,
+    /// relativeDemand property.
+    pub relative_demand: Option<String>,
+    /// relativeDemandChange property.
+    pub relative_demand_change: Option<String>,
+    /// reportDate property.
+    pub report_date: Option<Date>,
+    /// reportGranularity property.
+    pub report_granularity: Option<String>,
+}
+
+/// `CompetitiveVisibility` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CompetitiveVisibility {
+    /// adsOrganicRatio property.
+    pub ads_organic_ratio: Option<f64>,
+    /// categoryBenchmarkVisibilityTrend property.
+    pub category_benchmark_visibility_trend: Option<f64>,
+    /// categoryId property.
+    pub category_id: Option<String>,
+    /// countryCode property.
+    pub country_code: Option<String>,
+    /// date property.
+    pub date: Option<Date>,
+    /// domain property.
+    pub domain: Option<String>,
+    /// higherPositionRate property.
+    pub higher_position_rate: Option<f64>,
+    /// isYourDomain property.
+    pub is_your_domain: Option<bool>,
+    /// pageOverlapRate property.
+    pub page_overlap_rate: Option<f64>,
+    /// rank property.
+    pub rank: Option<String>,
+    /// relativeVisibility property.
+    pub relative_visibility: Option<f64>,
+    /// trafficSource property.
+    pub traffic_source: Option<String>,
+    /// yourDomainVisibilityTrend property.
+    pub your_domain_visibility_trend: Option<f64>,
+}
+
+/// `ReportRow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportRow {
+    /// bestSellers property.
+    pub best_sellers: Option<BestSellers>,
+    /// brand property.
+    pub brand: Option<Brand>,
+    /// competitiveVisibility property.
+    pub competitive_visibility: Option<CompetitiveVisibility>,
+    /// metrics property.
+    pub metrics: Option<Metrics>,
+    /// priceCompetitiveness property.
+    pub price_competitiveness: Option<PriceCompetitiveness>,
+    /// priceInsights property.
+    pub price_insights: Option<PriceInsights>,
+    /// productCluster property.
+    pub product_cluster: Option<ProductCluster>,
+    /// productView property.
+    pub product_view: Option<ProductView>,
+    /// segments property.
+    pub segments: Option<Segments>,
+    /// topicTrends property.
+    pub topic_trends: Option<TopicTrends>,
+}
+
+/// `PriceCompetitiveness` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PriceCompetitiveness {
+    /// benchmarkPriceCurrencyCode property.
+    pub benchmark_price_currency_code: Option<String>,
+    /// benchmarkPriceMicros property.
+    pub benchmark_price_micros: Option<String>,
+    /// countryCode property.
+    pub country_code: Option<String>,
+}
+
+/// `Date` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `ProductViewItemIssueIssueSeverityPerDestination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductViewItemIssueIssueSeverityPerDestination {
+    /// demotedCountries property.
+    pub demoted_countries: Option<Vec<String>>,
+    /// destination property.
+    pub destination: Option<String>,
+    /// disapprovedCountries property.
+    pub disapproved_countries: Option<Vec<String>>,
+}
+
+/// `SearchResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// results property.
+    pub results: Option<Vec<ReportRow>>,
+}
+
+/// `TopicTrends` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TopicTrends {
+    /// customerCountryCode property.
+    pub customer_country_code: Option<String>,
+    /// date property.
+    pub date: Option<Date>,
+    /// last120DaysSearchInterest property.
+    pub last120_days_search_interest: Option<f64>,
+    /// last30DaysSearchInterest property.
+    pub last30_days_search_interest: Option<f64>,
+    /// last7DaysSearchInterest property.
+    pub last7_days_search_interest: Option<f64>,
+    /// last90DaysSearchInterest property.
+    pub last90_days_search_interest: Option<f64>,
+    /// next7DaysSearchInterest property.
+    pub next7_days_search_interest: Option<f64>,
+    /// searchInterest property.
+    pub search_interest: Option<f64>,
+    /// topic property.
+    pub topic: Option<String>,
+}
+
+/// `PriceInsights` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PriceInsights {
+    /// effectiveness property.
+    pub effectiveness: Option<String>,
+    /// predictedClicksChangeFraction property.
+    pub predicted_clicks_change_fraction: Option<f64>,
+    /// predictedConversionsChangeFraction property.
+    pub predicted_conversions_change_fraction: Option<f64>,
+    /// predictedGrossProfitChangeFraction property.
+    pub predicted_gross_profit_change_fraction: Option<f64>,
+    /// predictedImpressionsChangeFraction property.
+    pub predicted_impressions_change_fraction: Option<f64>,
+    /// predictedMonthlyGrossProfitChangeCurrencyCode property.
+    pub predicted_monthly_gross_profit_change_currency_code: Option<String>,
+    /// predictedMonthlyGrossProfitChangeMicros property.
+    pub predicted_monthly_gross_profit_change_micros: Option<String>,
+    /// suggestedPriceCurrencyCode property.
+    pub suggested_price_currency_code: Option<String>,
+    /// suggestedPriceMicros property.
+    pub suggested_price_micros: Option<String>,
+}
+
+/// `ProductViewItemIssueItemIssueType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductViewItemIssueItemIssueType {
+    /// canonicalAttribute property.
+    pub canonical_attribute: Option<String>,
+    /// code property.
+    pub code: Option<String>,
+}
+
+/// `Segments` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Segments {
+    /// brand property.
+    pub brand: Option<String>,
+    /// categoryL1 property.
+    pub category_l1: Option<String>,
+    /// categoryL2 property.
+    pub category_l2: Option<String>,
+    /// categoryL3 property.
+    pub category_l3: Option<String>,
+    /// categoryL4 property.
+    pub category_l4: Option<String>,
+    /// categoryL5 property.
+    pub category_l5: Option<String>,
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// customLabel0 property.
+    pub custom_label0: Option<String>,
+    /// customLabel1 property.
+    pub custom_label1: Option<String>,
+    /// customLabel2 property.
+    pub custom_label2: Option<String>,
+    /// customLabel3 property.
+    pub custom_label3: Option<String>,
+    /// customLabel4 property.
+    pub custom_label4: Option<String>,
+    /// customerCountryCode property.
+    pub customer_country_code: Option<String>,
+    /// date property.
+    pub date: Option<Date>,
+    /// offerId property.
+    pub offer_id: Option<String>,
+    /// productTypeL1 property.
+    pub product_type_l1: Option<String>,
+    /// productTypeL2 property.
+    pub product_type_l2: Option<String>,
+    /// productTypeL3 property.
+    pub product_type_l3: Option<String>,
+    /// productTypeL4 property.
+    pub product_type_l4: Option<String>,
+    /// productTypeL5 property.
+    pub product_type_l5: Option<String>,
+    /// program property.
+    pub program: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// week property.
+    pub week: Option<Date>,
+}
 
 /// `ProductViewItemIssue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -35,13 +263,13 @@ pub struct ProductViewItemIssue {
     pub severity: Option<ProductViewItemIssueItemIssueSeverity>,
 }
 
-/// `SearchResponse` type.
+/// `ProductViewItemIssueItemIssueSeverity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// results property.
-    pub results: Option<Vec<ReportRow>>,
+pub struct ProductViewItemIssueItemIssueSeverity {
+    /// aggregatedSeverity property.
+    pub aggregated_severity: Option<String>,
+    /// severityPerDestination property.
+    pub severity_per_destination: Option<Vec<ProductViewItemIssueIssueSeverityPerDestination>>,
 }
 
 /// `Brand` type.
@@ -49,6 +277,57 @@ pub struct SearchResponse {
 pub struct Brand {
     /// name property.
     pub name: Option<String>,
+}
+
+/// `Metrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Metrics {
+    /// aos property.
+    pub aos: Option<f64>,
+    /// aovMicros property.
+    pub aov_micros: Option<f64>,
+    /// clicks property.
+    pub clicks: Option<String>,
+    /// conversionRate property.
+    pub conversion_rate: Option<f64>,
+    /// conversionValueMicros property.
+    pub conversion_value_micros: Option<String>,
+    /// conversions property.
+    pub conversions: Option<f64>,
+    /// ctr property.
+    pub ctr: Option<f64>,
+    /// daysToShip property.
+    pub days_to_ship: Option<f64>,
+    /// impressions property.
+    pub impressions: Option<String>,
+    /// itemDaysToShip property.
+    pub item_days_to_ship: Option<f64>,
+    /// itemFillRate property.
+    pub item_fill_rate: Option<f64>,
+    /// orderedItemSalesMicros property.
+    pub ordered_item_sales_micros: Option<String>,
+    /// orderedItems property.
+    pub ordered_items: Option<String>,
+    /// orders property.
+    pub orders: Option<String>,
+    /// rejectedItems property.
+    pub rejected_items: Option<String>,
+    /// returnRate property.
+    pub return_rate: Option<f64>,
+    /// returnedItems property.
+    pub returned_items: Option<String>,
+    /// returnsMicros property.
+    pub returns_micros: Option<String>,
+    /// shippedItemSalesMicros property.
+    pub shipped_item_sales_micros: Option<String>,
+    /// shippedItems property.
+    pub shipped_items: Option<String>,
+    /// shippedOrders property.
+    pub shipped_orders: Option<String>,
+    /// unshippedItems property.
+    pub unshipped_items: Option<f64>,
+    /// unshippedOrders property.
+    pub unshipped_orders: Option<f64>,
 }
 
 /// `ProductView` type.
@@ -112,284 +391,6 @@ pub struct ProductView {
     pub shipping_label: Option<String>,
     /// title property.
     pub title: Option<String>,
-}
-
-/// `Segments` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Segments {
-    /// brand property.
-    pub brand: Option<String>,
-    /// categoryL1 property.
-    pub category_l1: Option<String>,
-    /// categoryL2 property.
-    pub category_l2: Option<String>,
-    /// categoryL3 property.
-    pub category_l3: Option<String>,
-    /// categoryL4 property.
-    pub category_l4: Option<String>,
-    /// categoryL5 property.
-    pub category_l5: Option<String>,
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// customLabel0 property.
-    pub custom_label0: Option<String>,
-    /// customLabel1 property.
-    pub custom_label1: Option<String>,
-    /// customLabel2 property.
-    pub custom_label2: Option<String>,
-    /// customLabel3 property.
-    pub custom_label3: Option<String>,
-    /// customLabel4 property.
-    pub custom_label4: Option<String>,
-    /// customerCountryCode property.
-    pub customer_country_code: Option<String>,
-    /// date property.
-    pub date: Option<Date>,
-    /// offerId property.
-    pub offer_id: Option<String>,
-    /// productTypeL1 property.
-    pub product_type_l1: Option<String>,
-    /// productTypeL2 property.
-    pub product_type_l2: Option<String>,
-    /// productTypeL3 property.
-    pub product_type_l3: Option<String>,
-    /// productTypeL4 property.
-    pub product_type_l4: Option<String>,
-    /// productTypeL5 property.
-    pub product_type_l5: Option<String>,
-    /// program property.
-    pub program: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-    /// week property.
-    pub week: Option<Date>,
-}
-
-/// `PriceCompetitiveness` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PriceCompetitiveness {
-    /// benchmarkPriceCurrencyCode property.
-    pub benchmark_price_currency_code: Option<String>,
-    /// benchmarkPriceMicros property.
-    pub benchmark_price_micros: Option<String>,
-    /// countryCode property.
-    pub country_code: Option<String>,
-}
-
-/// `ProductViewItemIssueItemIssueType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductViewItemIssueItemIssueType {
-    /// canonicalAttribute property.
-    pub canonical_attribute: Option<String>,
-    /// code property.
-    pub code: Option<String>,
-}
-
-/// `ReportRow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportRow {
-    /// bestSellers property.
-    pub best_sellers: Option<BestSellers>,
-    /// brand property.
-    pub brand: Option<Brand>,
-    /// competitiveVisibility property.
-    pub competitive_visibility: Option<CompetitiveVisibility>,
-    /// metrics property.
-    pub metrics: Option<Metrics>,
-    /// priceCompetitiveness property.
-    pub price_competitiveness: Option<PriceCompetitiveness>,
-    /// priceInsights property.
-    pub price_insights: Option<PriceInsights>,
-    /// productCluster property.
-    pub product_cluster: Option<ProductCluster>,
-    /// productView property.
-    pub product_view: Option<ProductView>,
-    /// segments property.
-    pub segments: Option<Segments>,
-    /// topicTrends property.
-    pub topic_trends: Option<TopicTrends>,
-}
-
-/// `TopicTrends` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TopicTrends {
-    /// customerCountryCode property.
-    pub customer_country_code: Option<String>,
-    /// date property.
-    pub date: Option<Date>,
-    /// last120DaysSearchInterest property.
-    pub last120_days_search_interest: Option<f64>,
-    /// last30DaysSearchInterest property.
-    pub last30_days_search_interest: Option<f64>,
-    /// last7DaysSearchInterest property.
-    pub last7_days_search_interest: Option<f64>,
-    /// last90DaysSearchInterest property.
-    pub last90_days_search_interest: Option<f64>,
-    /// next7DaysSearchInterest property.
-    pub next7_days_search_interest: Option<f64>,
-    /// searchInterest property.
-    pub search_interest: Option<f64>,
-    /// topic property.
-    pub topic: Option<String>,
-}
-
-/// `CompetitiveVisibility` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompetitiveVisibility {
-    /// adsOrganicRatio property.
-    pub ads_organic_ratio: Option<f64>,
-    /// categoryBenchmarkVisibilityTrend property.
-    pub category_benchmark_visibility_trend: Option<f64>,
-    /// categoryId property.
-    pub category_id: Option<String>,
-    /// countryCode property.
-    pub country_code: Option<String>,
-    /// date property.
-    pub date: Option<Date>,
-    /// domain property.
-    pub domain: Option<String>,
-    /// higherPositionRate property.
-    pub higher_position_rate: Option<f64>,
-    /// isYourDomain property.
-    pub is_your_domain: Option<bool>,
-    /// pageOverlapRate property.
-    pub page_overlap_rate: Option<f64>,
-    /// rank property.
-    pub rank: Option<String>,
-    /// relativeVisibility property.
-    pub relative_visibility: Option<f64>,
-    /// trafficSource property.
-    pub traffic_source: Option<String>,
-    /// yourDomainVisibilityTrend property.
-    pub your_domain_visibility_trend: Option<f64>,
-}
-
-/// `ProductViewItemIssueItemIssueSeverity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductViewItemIssueItemIssueSeverity {
-    /// aggregatedSeverity property.
-    pub aggregated_severity: Option<String>,
-    /// severityPerDestination property.
-    pub severity_per_destination: Option<Vec<ProductViewItemIssueIssueSeverityPerDestination>>,
-}
-
-/// `PriceInsights` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PriceInsights {
-    /// effectiveness property.
-    pub effectiveness: Option<String>,
-    /// predictedClicksChangeFraction property.
-    pub predicted_clicks_change_fraction: Option<f64>,
-    /// predictedConversionsChangeFraction property.
-    pub predicted_conversions_change_fraction: Option<f64>,
-    /// predictedGrossProfitChangeFraction property.
-    pub predicted_gross_profit_change_fraction: Option<f64>,
-    /// predictedImpressionsChangeFraction property.
-    pub predicted_impressions_change_fraction: Option<f64>,
-    /// predictedMonthlyGrossProfitChangeCurrencyCode property.
-    pub predicted_monthly_gross_profit_change_currency_code: Option<String>,
-    /// predictedMonthlyGrossProfitChangeMicros property.
-    pub predicted_monthly_gross_profit_change_micros: Option<String>,
-    /// suggestedPriceCurrencyCode property.
-    pub suggested_price_currency_code: Option<String>,
-    /// suggestedPriceMicros property.
-    pub suggested_price_micros: Option<String>,
-}
-
-/// `ProductViewItemIssueIssueSeverityPerDestination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductViewItemIssueIssueSeverityPerDestination {
-    /// demotedCountries property.
-    pub demoted_countries: Option<Vec<String>>,
-    /// destination property.
-    pub destination: Option<String>,
-    /// disapprovedCountries property.
-    pub disapproved_countries: Option<Vec<String>>,
-}
-
-/// `BestSellers` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BestSellers {
-    /// categoryId property.
-    pub category_id: Option<String>,
-    /// countryCode property.
-    pub country_code: Option<String>,
-    /// previousRank property.
-    pub previous_rank: Option<String>,
-    /// previousRelativeDemand property.
-    pub previous_relative_demand: Option<String>,
-    /// rank property.
-    pub rank: Option<String>,
-    /// relativeDemand property.
-    pub relative_demand: Option<String>,
-    /// relativeDemandChange property.
-    pub relative_demand_change: Option<String>,
-    /// reportDate property.
-    pub report_date: Option<Date>,
-    /// reportGranularity property.
-    pub report_granularity: Option<String>,
-}
-
-/// `Date` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `Metrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Metrics {
-    /// aos property.
-    pub aos: Option<f64>,
-    /// aovMicros property.
-    pub aov_micros: Option<f64>,
-    /// clicks property.
-    pub clicks: Option<String>,
-    /// conversionRate property.
-    pub conversion_rate: Option<f64>,
-    /// conversionValueMicros property.
-    pub conversion_value_micros: Option<String>,
-    /// conversions property.
-    pub conversions: Option<f64>,
-    /// ctr property.
-    pub ctr: Option<f64>,
-    /// daysToShip property.
-    pub days_to_ship: Option<f64>,
-    /// impressions property.
-    pub impressions: Option<String>,
-    /// itemDaysToShip property.
-    pub item_days_to_ship: Option<f64>,
-    /// itemFillRate property.
-    pub item_fill_rate: Option<f64>,
-    /// orderedItemSalesMicros property.
-    pub ordered_item_sales_micros: Option<String>,
-    /// orderedItems property.
-    pub ordered_items: Option<String>,
-    /// orders property.
-    pub orders: Option<String>,
-    /// rejectedItems property.
-    pub rejected_items: Option<String>,
-    /// returnRate property.
-    pub return_rate: Option<f64>,
-    /// returnedItems property.
-    pub returned_items: Option<String>,
-    /// returnsMicros property.
-    pub returns_micros: Option<String>,
-    /// shippedItemSalesMicros property.
-    pub shipped_item_sales_micros: Option<String>,
-    /// shippedItems property.
-    pub shipped_items: Option<String>,
-    /// shippedOrders property.
-    pub shipped_orders: Option<String>,
-    /// unshippedItems property.
-    pub unshipped_items: Option<f64>,
-    /// unshippedOrders property.
-    pub unshipped_orders: Option<f64>,
 }
 
 /// `ProductCluster` type.

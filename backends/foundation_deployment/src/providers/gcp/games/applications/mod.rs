@@ -12,94 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Instance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Instance {
-    /// acquisitionUri property.
-    pub acquisition_uri: Option<String>,
-    /// androidInstance property.
-    pub android_instance: Option<InstanceAndroidDetails>,
-    /// iosInstance property.
-    pub ios_instance: Option<InstanceIosDetails>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// platformType property.
-    pub platform_type: Option<String>,
-    /// realtimePlay property.
-    pub realtime_play: Option<bool>,
-    /// turnBasedPlay property.
-    pub turn_based_play: Option<bool>,
-    /// webInstance property.
-    pub web_instance: Option<InstanceWebDetails>,
-}
-
-/// `ApplicationCategory` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApplicationCategory {
-    /// kind property.
-    pub kind: Option<String>,
-    /// primary property.
-    pub primary: Option<String>,
-    /// secondary property.
-    pub secondary: Option<String>,
-}
-
-/// `InstanceAndroidDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceAndroidDetails {
-    /// enablePiracyCheck property.
-    pub enable_piracy_check: Option<bool>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// packageName property.
-    pub package_name: Option<String>,
-    /// preferred property.
-    pub preferred: Option<bool>,
-}
-
-/// `InstanceIosDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceIosDetails {
-    /// bundleIdentifier property.
-    pub bundle_identifier: Option<String>,
-    /// itunesAppId property.
-    pub itunes_app_id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// preferredForIpad property.
-    pub preferred_for_ipad: Option<bool>,
-    /// preferredForIphone property.
-    pub preferred_for_iphone: Option<bool>,
-    /// supportIpad property.
-    pub support_ipad: Option<bool>,
-    /// supportIphone property.
-    pub support_iphone: Option<bool>,
-}
-
-/// `InstanceWebDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceWebDetails {
-    /// kind property.
-    pub kind: Option<String>,
-    /// launchUrl property.
-    pub launch_url: Option<String>,
-    /// preferred property.
-    pub preferred: Option<bool>,
-}
 
 /// `Application` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -145,6 +69,83 @@ pub struct ImageAsset {
     pub url: Option<String>,
     /// width property.
     pub width: Option<i64>,
+}
+
+/// `ApplicationCategory` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApplicationCategory {
+    /// kind property.
+    pub kind: Option<String>,
+    /// primary property.
+    pub primary: Option<String>,
+    /// secondary property.
+    pub secondary: Option<String>,
+}
+
+/// `Instance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Instance {
+    /// acquisitionUri property.
+    pub acquisition_uri: Option<String>,
+    /// androidInstance property.
+    pub android_instance: Option<InstanceAndroidDetails>,
+    /// iosInstance property.
+    pub ios_instance: Option<InstanceIosDetails>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// platformType property.
+    pub platform_type: Option<String>,
+    /// realtimePlay property.
+    pub realtime_play: Option<bool>,
+    /// turnBasedPlay property.
+    pub turn_based_play: Option<bool>,
+    /// webInstance property.
+    pub web_instance: Option<InstanceWebDetails>,
+}
+
+/// `InstanceAndroidDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceAndroidDetails {
+    /// enablePiracyCheck property.
+    pub enable_piracy_check: Option<bool>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// packageName property.
+    pub package_name: Option<String>,
+    /// preferred property.
+    pub preferred: Option<bool>,
+}
+
+/// `InstanceIosDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceIosDetails {
+    /// bundleIdentifier property.
+    pub bundle_identifier: Option<String>,
+    /// itunesAppId property.
+    pub itunes_app_id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// preferredForIpad property.
+    pub preferred_for_ipad: Option<bool>,
+    /// preferredForIphone property.
+    pub preferred_for_iphone: Option<bool>,
+    /// supportIpad property.
+    pub support_ipad: Option<bool>,
+    /// supportIphone property.
+    pub support_iphone: Option<bool>,
+}
+
+/// `InstanceWebDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceWebDetails {
+    /// kind property.
+    pub kind: Option<String>,
+    /// launchUrl property.
+    pub launch_url: Option<String>,
+    /// preferred property.
+    pub preferred: Option<bool>,
 }
 
 // =============================================================================

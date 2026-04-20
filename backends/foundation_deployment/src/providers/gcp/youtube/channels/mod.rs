@@ -12,17 +12,171 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ChannelLocalization` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChannelLocalization {
+    /// description property.
+    pub description: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `LocalizedProperty` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedProperty {
+    /// default property.
+    pub default: Option<String>,
+    /// defaultLanguage property.
+    pub default_language: Option<LanguageTag>,
+    /// localized property.
+    pub localized: Option<Vec<LocalizedString>>,
+}
+
+/// `ChannelAuditDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChannelAuditDetails {
+    /// communityGuidelinesGoodStanding property.
+    pub community_guidelines_good_standing: Option<bool>,
+    /// contentIdClaimsGoodStanding property.
+    pub content_id_claims_good_standing: Option<bool>,
+    /// copyrightStrikesGoodStanding property.
+    pub copyright_strikes_good_standing: Option<bool>,
+}
+
+/// `ThumbnailDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ThumbnailDetails {
+    /// default property.
+    pub default: Option<Thumbnail>,
+    /// high property.
+    pub high: Option<Thumbnail>,
+    /// maxres property.
+    pub maxres: Option<Thumbnail>,
+    /// medium property.
+    pub medium: Option<Thumbnail>,
+    /// standard property.
+    pub standard: Option<Thumbnail>,
+}
+
+/// `Channel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Channel {
+    /// auditDetails property.
+    pub audit_details: Option<ChannelAuditDetails>,
+    /// brandingSettings property.
+    pub branding_settings: Option<ChannelBrandingSettings>,
+    /// contentDetails property.
+    pub content_details: Option<ChannelContentDetails>,
+    /// contentOwnerDetails property.
+    pub content_owner_details: Option<ChannelContentOwnerDetails>,
+    /// conversionPings property.
+    pub conversion_pings: Option<ChannelConversionPings>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// localizations property.
+    pub localizations: Option<serde_json::Value>,
+    /// snippet property.
+    pub snippet: Option<ChannelSnippet>,
+    /// statistics property.
+    pub statistics: Option<ChannelStatistics>,
+    /// status property.
+    pub status: Option<ChannelStatus>,
+    /// topicDetails property.
+    pub topic_details: Option<ChannelTopicDetails>,
+}
+
+/// `PageInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PageInfo {
+    /// resultsPerPage property.
+    pub results_per_page: Option<i64>,
+    /// totalResults property.
+    pub total_results: Option<i64>,
+}
+
+/// `ChannelStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChannelStatus {
+    /// isChannelMonetizationEnabled property.
+    pub is_channel_monetization_enabled: Option<bool>,
+    /// isLinked property.
+    pub is_linked: Option<bool>,
+    /// longUploadsStatus property.
+    pub long_uploads_status: Option<String>,
+    /// madeForKids property.
+    pub made_for_kids: Option<bool>,
+    /// privacyStatus property.
+    pub privacy_status: Option<String>,
+    /// selfDeclaredMadeForKids property.
+    pub self_declared_made_for_kids: Option<bool>,
+}
+
+/// `ChannelTopicDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChannelTopicDetails {
+    /// topicCategories property.
+    pub topic_categories: Option<Vec<String>>,
+    /// topicIds property.
+    pub topic_ids: Option<Vec<String>>,
+}
+
+/// `ChannelContentOwnerDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChannelContentOwnerDetails {
+    /// contentOwner property.
+    pub content_owner: Option<String>,
+    /// timeLinked property.
+    pub time_linked: Option<String>,
+}
+
+/// `ChannelConversionPings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChannelConversionPings {
+    /// pings property.
+    pub pings: Option<Vec<ChannelConversionPing>>,
+}
+
+/// `LocalizedString` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedString {
+    /// language property.
+    pub language: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `ChannelContentDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChannelContentDetails {
+    /// relatedPlaylists property.
+    pub related_playlists: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `PropertyValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PropertyValue {
+    /// property property.
+    pub property: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
 
 /// `ChannelBrandingSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -35,6 +189,21 @@ pub struct ChannelBrandingSettings {
     pub image: Option<ImageSettings>,
     /// watch property.
     pub watch: Option<WatchSettings>,
+}
+
+/// `ChannelStatistics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChannelStatistics {
+    /// commentCount property.
+    pub comment_count: Option<String>,
+    /// hiddenSubscriberCount property.
+    pub hidden_subscriber_count: Option<bool>,
+    /// subscriberCount property.
+    pub subscriber_count: Option<String>,
+    /// videoCount property.
+    pub video_count: Option<String>,
+    /// viewCount property.
+    pub view_count: Option<String>,
 }
 
 /// `ImageSettings` type.
@@ -86,187 +255,20 @@ pub struct ImageSettings {
     pub watch_icon_image_url: Option<String>,
 }
 
+/// `ChannelConversionPing` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChannelConversionPing {
+    /// context property.
+    pub context: Option<String>,
+    /// conversionUrl property.
+    pub conversion_url: Option<String>,
+}
+
 /// `LanguageTag` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LanguageTag {
     /// value property.
     pub value: Option<String>,
-}
-
-/// `PageInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PageInfo {
-    /// resultsPerPage property.
-    pub results_per_page: Option<i64>,
-    /// totalResults property.
-    pub total_results: Option<i64>,
-}
-
-/// `ChannelAuditDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelAuditDetails {
-    /// communityGuidelinesGoodStanding property.
-    pub community_guidelines_good_standing: Option<bool>,
-    /// contentIdClaimsGoodStanding property.
-    pub content_id_claims_good_standing: Option<bool>,
-    /// copyrightStrikesGoodStanding property.
-    pub copyright_strikes_good_standing: Option<bool>,
-}
-
-/// `ChannelContentDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelContentDetails {
-    /// relatedPlaylists property.
-    pub related_playlists: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `WatchSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WatchSettings {
-    /// backgroundColor property.
-    pub background_color: Option<String>,
-    /// featuredPlaylistId property.
-    pub featured_playlist_id: Option<String>,
-    /// textColor property.
-    pub text_color: Option<String>,
-}
-
-/// `Channel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Channel {
-    /// auditDetails property.
-    pub audit_details: Option<ChannelAuditDetails>,
-    /// brandingSettings property.
-    pub branding_settings: Option<ChannelBrandingSettings>,
-    /// contentDetails property.
-    pub content_details: Option<ChannelContentDetails>,
-    /// contentOwnerDetails property.
-    pub content_owner_details: Option<ChannelContentOwnerDetails>,
-    /// conversionPings property.
-    pub conversion_pings: Option<ChannelConversionPings>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// localizations property.
-    pub localizations: Option<serde_json::Value>,
-    /// snippet property.
-    pub snippet: Option<ChannelSnippet>,
-    /// statistics property.
-    pub statistics: Option<ChannelStatistics>,
-    /// status property.
-    pub status: Option<ChannelStatus>,
-    /// topicDetails property.
-    pub topic_details: Option<ChannelTopicDetails>,
-}
-
-/// `ChannelConversionPings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelConversionPings {
-    /// pings property.
-    pub pings: Option<Vec<ChannelConversionPing>>,
-}
-
-/// `LocalizedProperty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedProperty {
-    /// default property.
-    pub default: Option<String>,
-    /// defaultLanguage property.
-    pub default_language: Option<LanguageTag>,
-    /// localized property.
-    pub localized: Option<Vec<LocalizedString>>,
-}
-
-/// `ChannelSnippet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelSnippet {
-    /// country property.
-    pub country: Option<String>,
-    /// customUrl property.
-    pub custom_url: Option<String>,
-    /// defaultLanguage property.
-    pub default_language: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// localized property.
-    pub localized: Option<ChannelLocalization>,
-    /// publishedAt property.
-    pub published_at: Option<String>,
-    /// thumbnails property.
-    pub thumbnails: Option<ThumbnailDetails>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `TokenPagination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TokenPagination {}
-
-/// `ChannelStatistics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelStatistics {
-    /// commentCount property.
-    pub comment_count: Option<String>,
-    /// hiddenSubscriberCount property.
-    pub hidden_subscriber_count: Option<bool>,
-    /// subscriberCount property.
-    pub subscriber_count: Option<String>,
-    /// videoCount property.
-    pub video_count: Option<String>,
-    /// viewCount property.
-    pub view_count: Option<String>,
-}
-
-/// `ChannelLocalization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelLocalization {
-    /// description property.
-    pub description: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `ChannelListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelListResponse {
-    /// etag property.
-    pub etag: Option<String>,
-    /// eventId property.
-    pub event_id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<Channel>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// pageInfo property.
-    pub page_info: Option<PageInfo>,
-    /// prevPageToken property.
-    pub prev_page_token: Option<String>,
-    /// tokenPagination property.
-    pub token_pagination: Option<TokenPagination>,
-    /// visitorId property.
-    pub visitor_id: Option<String>,
-}
-
-/// `ChannelStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelStatus {
-    /// isChannelMonetizationEnabled property.
-    pub is_channel_monetization_enabled: Option<bool>,
-    /// isLinked property.
-    pub is_linked: Option<bool>,
-    /// longUploadsStatus property.
-    pub long_uploads_status: Option<String>,
-    /// madeForKids property.
-    pub made_for_kids: Option<bool>,
-    /// privacyStatus property.
-    pub privacy_status: Option<String>,
-    /// selfDeclaredMadeForKids property.
-    pub self_declared_made_for_kids: Option<bool>,
 }
 
 /// `Thumbnail` type.
@@ -278,24 +280,6 @@ pub struct Thumbnail {
     pub url: Option<String>,
     /// width property.
     pub width: Option<i64>,
-}
-
-/// `ChannelConversionPing` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelConversionPing {
-    /// context property.
-    pub context: Option<String>,
-    /// conversionUrl property.
-    pub conversion_url: Option<String>,
-}
-
-/// `ChannelTopicDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelTopicDetails {
-    /// topicCategories property.
-    pub topic_categories: Option<Vec<String>>,
-    /// topicIds property.
-    pub topic_ids: Option<Vec<String>>,
 }
 
 /// `ChannelSettings` type.
@@ -331,47 +315,64 @@ pub struct ChannelSettings {
     pub unsubscribed_trailer: Option<String>,
 }
 
-/// `LocalizedString` type.
+/// `WatchSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedString {
-    /// language property.
-    pub language: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct WatchSettings {
+    /// backgroundColor property.
+    pub background_color: Option<String>,
+    /// featuredPlaylistId property.
+    pub featured_playlist_id: Option<String>,
+    /// textColor property.
+    pub text_color: Option<String>,
 }
 
-/// `ThumbnailDetails` type.
+/// `ChannelSnippet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ThumbnailDetails {
-    /// default property.
-    pub default: Option<Thumbnail>,
-    /// high property.
-    pub high: Option<Thumbnail>,
-    /// maxres property.
-    pub maxres: Option<Thumbnail>,
-    /// medium property.
-    pub medium: Option<Thumbnail>,
-    /// standard property.
-    pub standard: Option<Thumbnail>,
+pub struct ChannelSnippet {
+    /// country property.
+    pub country: Option<String>,
+    /// customUrl property.
+    pub custom_url: Option<String>,
+    /// defaultLanguage property.
+    pub default_language: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// localized property.
+    pub localized: Option<ChannelLocalization>,
+    /// publishedAt property.
+    pub published_at: Option<String>,
+    /// thumbnails property.
+    pub thumbnails: Option<ThumbnailDetails>,
+    /// title property.
+    pub title: Option<String>,
 }
 
-/// `ChannelContentOwnerDetails` type.
+/// `ChannelListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelContentOwnerDetails {
-    /// contentOwner property.
-    pub content_owner: Option<String>,
-    /// timeLinked property.
-    pub time_linked: Option<String>,
+pub struct ChannelListResponse {
+    /// etag property.
+    pub etag: Option<String>,
+    /// eventId property.
+    pub event_id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<Channel>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// pageInfo property.
+    pub page_info: Option<PageInfo>,
+    /// prevPageToken property.
+    pub prev_page_token: Option<String>,
+    /// tokenPagination property.
+    pub token_pagination: Option<TokenPagination>,
+    /// visitorId property.
+    pub visitor_id: Option<String>,
 }
 
-/// `PropertyValue` type.
+/// `TokenPagination` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PropertyValue {
-    /// property property.
-    pub property: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
+pub struct TokenPagination {}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

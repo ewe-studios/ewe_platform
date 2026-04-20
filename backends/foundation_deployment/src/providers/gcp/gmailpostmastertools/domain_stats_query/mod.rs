@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -44,13 +45,6 @@ pub struct Date {
     pub year: Option<i64>,
 }
 
-/// `StringList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StringList {
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
 /// `StatisticValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StatisticValue {
@@ -64,6 +58,13 @@ pub struct StatisticValue {
     pub string_list: Option<StringList>,
     /// stringValue property.
     pub string_value: Option<String>,
+}
+
+/// `StringList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StringList {
+    /// values property.
+    pub values: Option<Vec<String>>,
 }
 
 /// `DomainStat` type.

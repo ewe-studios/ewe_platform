@@ -12,17 +12,52 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `CustomSourceLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomSourceLocation {
+    /// stateful property.
+    pub stateful: Option<bool>,
+}
+
+/// `SeqMapTaskOutputInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SeqMapTaskOutputInfo {
+    /// sink property.
+    pub sink: Option<Sink>,
+    /// tag property.
+    pub tag: Option<String>,
+}
+
+/// `StateFamilyConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StateFamilyConfig {
+    /// isRead property.
+    pub is_read: Option<bool>,
+    /// stateFamily property.
+    pub state_family: Option<String>,
+}
+
+/// `ShellTask` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShellTask {
+    /// command property.
+    pub command: Option<String>,
+    /// exitCode property.
+    pub exit_code: Option<i64>,
+}
 
 /// `Package` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -33,34 +68,30 @@ pub struct Package {
     pub name: Option<String>,
 }
 
-/// `PubsubLocation` type.
+/// `InstructionInput` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PubsubLocation {
-    /// dropLateData property.
-    pub drop_late_data: Option<bool>,
-    /// dynamicDestinations property.
-    pub dynamic_destinations: Option<bool>,
-    /// idLabel property.
-    pub id_label: Option<String>,
-    /// subscription property.
-    pub subscription: Option<String>,
-    /// timestampLabel property.
-    pub timestamp_label: Option<String>,
-    /// topic property.
-    pub topic: Option<String>,
-    /// trackingSubscription property.
-    pub tracking_subscription: Option<String>,
-    /// withAttributes property.
-    pub with_attributes: Option<bool>,
+pub struct InstructionInput {
+    /// outputNum property.
+    pub output_num: Option<i64>,
+    /// producerInstructionIndex property.
+    pub producer_instruction_index: Option<i64>,
 }
 
-/// `DataDiskAssignment` type.
+/// `InstructionOutput` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataDiskAssignment {
-    /// dataDisks property.
-    pub data_disks: Option<Vec<String>>,
-    /// vmInstance property.
-    pub vm_instance: Option<String>,
+pub struct InstructionOutput {
+    /// codec property.
+    pub codec: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// onlyCountKeyBytes property.
+    pub only_count_key_bytes: Option<bool>,
+    /// onlyCountValueBytes property.
+    pub only_count_value_bytes: Option<bool>,
+    /// originalName property.
+    pub original_name: Option<String>,
+    /// systemName property.
+    pub system_name: Option<String>,
 }
 
 /// `WorkItem` type.
@@ -98,6 +129,92 @@ pub struct WorkItem {
     pub streaming_setup_task: Option<StreamingSetupTask>,
 }
 
+/// `StreamingStageLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StreamingStageLocation {
+    /// streamId property.
+    pub stream_id: Option<String>,
+}
+
+/// `SourceSplitRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SourceSplitRequest {
+    /// options property.
+    pub options: Option<SourceSplitOptions>,
+    /// source property.
+    pub source: Option<Source>,
+}
+
+/// `Sink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Sink {
+    /// codec property.
+    pub codec: Option<serde_json::Value>,
+    /// spec property.
+    pub spec: Option<serde_json::Value>,
+}
+
+/// `MapTask` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MapTask {
+    /// counterPrefix property.
+    pub counter_prefix: Option<String>,
+    /// instructions property.
+    pub instructions: Option<Vec<ParallelInstruction>>,
+    /// stageName property.
+    pub stage_name: Option<String>,
+    /// systemName property.
+    pub system_name: Option<String>,
+}
+
+/// `WriteInstruction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WriteInstruction {
+    /// input property.
+    pub input: Option<InstructionInput>,
+    /// sink property.
+    pub sink: Option<Sink>,
+}
+
+/// `Source` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Source {
+    /// baseSpecs property.
+    pub base_specs: Option<Vec<serde_json::Value>>,
+    /// codec property.
+    pub codec: Option<serde_json::Value>,
+    /// doesNotNeedSplitting property.
+    pub does_not_need_splitting: Option<bool>,
+    /// metadata property.
+    pub metadata: Option<SourceMetadata>,
+    /// spec property.
+    pub spec: Option<serde_json::Value>,
+}
+
+/// `TopologyConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TopologyConfig {
+    /// computations property.
+    pub computations: Option<Vec<ComputationTopology>>,
+    /// dataDiskAssignments property.
+    pub data_disk_assignments: Option<Vec<DataDiskAssignment>>,
+    /// forwardingKeyBits property.
+    pub forwarding_key_bits: Option<i64>,
+    /// persistentStateVersion property.
+    pub persistent_state_version: Option<i64>,
+    /// userStageToComputationNameMap property.
+    pub user_stage_to_computation_name_map: Option<serde_json::Value>,
+}
+
+/// `SourceSplitOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SourceSplitOptions {
+    /// desiredBundleSizeBytes property.
+    pub desired_bundle_size_bytes: Option<String>,
+    /// desiredShardSizeBytes property.
+    pub desired_shard_size_bytes: Option<String>,
+}
+
 /// `StreamingConfigTask` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamingConfigTask {
@@ -125,84 +242,146 @@ pub struct StreamingConfigTask {
     pub windmill_service_port: Option<String>,
 }
 
-/// `StateFamilyConfig` type.
+/// `ComputationTopology` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StateFamilyConfig {
-    /// isRead property.
-    pub is_read: Option<bool>,
-    /// stateFamily property.
-    pub state_family: Option<String>,
-}
-
-/// `StreamingSideInputLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StreamingSideInputLocation {
-    /// stateFamily property.
-    pub state_family: Option<String>,
-    /// tag property.
-    pub tag: Option<String>,
-}
-
-/// `StreamingComputationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StreamingComputationConfig {
+pub struct ComputationTopology {
     /// computationId property.
     pub computation_id: Option<String>,
-    /// instructions property.
-    pub instructions: Option<Vec<ParallelInstruction>>,
-    /// stageName property.
-    pub stage_name: Option<String>,
-    /// systemName property.
-    pub system_name: Option<String>,
-    /// transformUserNameToStateFamily property.
-    pub transform_user_name_to_state_family: Option<serde_json::Value>,
+    /// inputs property.
+    pub inputs: Option<Vec<StreamLocation>>,
+    /// keyRanges property.
+    pub key_ranges: Option<Vec<KeyRangeLocation>>,
+    /// outputs property.
+    pub outputs: Option<Vec<StreamLocation>>,
+    /// stateFamilies property.
+    pub state_families: Option<Vec<StateFamilyConfig>>,
+    /// systemStageName property.
+    pub system_stage_name: Option<String>,
 }
 
-/// `ParDoInstruction` type.
+/// `StreamLocation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ParDoInstruction {
-    /// input property.
-    pub input: Option<InstructionInput>,
-    /// multiOutputInfos property.
-    pub multi_output_infos: Option<Vec<MultiOutputInfo>>,
-    /// numOutputs property.
-    pub num_outputs: Option<i64>,
-    /// sideInputs property.
-    pub side_inputs: Option<Vec<SideInputInfo>>,
-    /// userFn property.
-    pub user_fn: Option<serde_json::Value>,
+pub struct StreamLocation {
+    /// customSourceLocation property.
+    pub custom_source_location: Option<CustomSourceLocation>,
+    /// pubsubLocation property.
+    pub pubsub_location: Option<PubsubLocation>,
+    /// sideInputLocation property.
+    pub side_input_location: Option<StreamingSideInputLocation>,
+    /// streamingStageLocation property.
+    pub streaming_stage_location: Option<StreamingStageLocation>,
 }
 
-/// `SourceSplitRequest` type.
+/// `SourceMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceSplitRequest {
-    /// options property.
-    pub options: Option<SourceSplitOptions>,
+pub struct SourceMetadata {
+    /// estimatedSizeBytes property.
+    pub estimated_size_bytes: Option<String>,
+    /// infinite property.
+    pub infinite: Option<bool>,
+    /// producesSortedKeys property.
+    pub produces_sorted_keys: Option<bool>,
+}
+
+/// `MountedDataDisk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MountedDataDisk {
+    /// dataDisk property.
+    pub data_disk: Option<String>,
+}
+
+/// `LeaseWorkItemResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LeaseWorkItemResponse {
+    /// unifiedWorkerResponse property.
+    pub unified_worker_response: Option<serde_json::Value>,
+    /// workItems property.
+    pub work_items: Option<Vec<WorkItem>>,
+}
+
+/// `FlattenInstruction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlattenInstruction {
+    /// inputs property.
+    pub inputs: Option<Vec<InstructionInput>>,
+}
+
+/// `ReadInstruction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReadInstruction {
     /// source property.
     pub source: Option<Source>,
 }
 
-/// `CustomSourceLocation` type.
+/// `SeqMapTask` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomSourceLocation {
-    /// stateful property.
-    pub stateful: Option<bool>,
+pub struct SeqMapTask {
+    /// inputs property.
+    pub inputs: Option<Vec<SideInputInfo>>,
+    /// name property.
+    pub name: Option<String>,
+    /// outputInfos property.
+    pub output_infos: Option<Vec<SeqMapTaskOutputInfo>>,
+    /// stageName property.
+    pub stage_name: Option<String>,
+    /// systemName property.
+    pub system_name: Option<String>,
+    /// userFn property.
+    pub user_fn: Option<serde_json::Value>,
 }
 
-/// `WriteInstruction` type.
+/// `PubsubLocation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WriteInstruction {
+pub struct PubsubLocation {
+    /// dropLateData property.
+    pub drop_late_data: Option<bool>,
+    /// dynamicDestinations property.
+    pub dynamic_destinations: Option<bool>,
+    /// idLabel property.
+    pub id_label: Option<String>,
+    /// subscription property.
+    pub subscription: Option<String>,
+    /// timestampLabel property.
+    pub timestamp_label: Option<String>,
+    /// topic property.
+    pub topic: Option<String>,
+    /// trackingSubscription property.
+    pub tracking_subscription: Option<String>,
+    /// withAttributes property.
+    pub with_attributes: Option<bool>,
+}
+
+/// `PartialGroupByKeyInstruction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PartialGroupByKeyInstruction {
     /// input property.
     pub input: Option<InstructionInput>,
-    /// sink property.
-    pub sink: Option<Sink>,
+    /// inputElementCodec property.
+    pub input_element_codec: Option<serde_json::Value>,
+    /// originalCombineValuesInputStoreName property.
+    pub original_combine_values_input_store_name: Option<String>,
+    /// originalCombineValuesStepName property.
+    pub original_combine_values_step_name: Option<String>,
+    /// sideInputs property.
+    pub side_inputs: Option<Vec<SideInputInfo>>,
+    /// valueCombiningFn property.
+    pub value_combining_fn: Option<serde_json::Value>,
 }
 
-/// `SeqMapTaskOutputInfo` type.
+/// `KeyRangeDataDiskAssignment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SeqMapTaskOutputInfo {
-    /// sink property.
-    pub sink: Option<Sink>,
+pub struct KeyRangeDataDiskAssignment {
+    /// dataDisk property.
+    pub data_disk: Option<String>,
+    /// end property.
+    pub end: Option<String>,
+    /// start property.
+    pub start: Option<String>,
+}
+
+/// `MultiOutputInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MultiOutputInfo {
     /// tag property.
     pub tag: Option<String>,
 }
@@ -220,6 +399,103 @@ pub struct KeyRangeLocation {
     pub end: Option<String>,
     /// start property.
     pub start: Option<String>,
+}
+
+/// `StreamingSideInputLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StreamingSideInputLocation {
+    /// stateFamily property.
+    pub state_family: Option<String>,
+    /// tag property.
+    pub tag: Option<String>,
+}
+
+/// `StreamingOperationalLimits` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StreamingOperationalLimits {
+    /// maxBagElementBytes property.
+    pub max_bag_element_bytes: Option<String>,
+    /// maxGlobalDataBytes property.
+    pub max_global_data_bytes: Option<String>,
+    /// maxKeyBytes property.
+    pub max_key_bytes: Option<String>,
+    /// maxProductionOutputBytes property.
+    pub max_production_output_bytes: Option<String>,
+    /// maxSortedListElementBytes property.
+    pub max_sorted_list_element_bytes: Option<String>,
+    /// maxSourceStateBytes property.
+    pub max_source_state_bytes: Option<String>,
+    /// maxTagBytes property.
+    pub max_tag_bytes: Option<String>,
+    /// maxValueBytes property.
+    pub max_value_bytes: Option<String>,
+}
+
+/// `StreamingComputationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StreamingComputationConfig {
+    /// computationId property.
+    pub computation_id: Option<String>,
+    /// instructions property.
+    pub instructions: Option<Vec<ParallelInstruction>>,
+    /// stageName property.
+    pub stage_name: Option<String>,
+    /// systemName property.
+    pub system_name: Option<String>,
+    /// transformUserNameToStateFamily property.
+    pub transform_user_name_to_state_family: Option<serde_json::Value>,
+}
+
+/// `StreamingSetupTask` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StreamingSetupTask {
+    /// drain property.
+    pub drain: Option<bool>,
+    /// receiveWorkPort property.
+    pub receive_work_port: Option<i64>,
+    /// snapshotConfig property.
+    pub snapshot_config: Option<StreamingApplianceSnapshotConfig>,
+    /// streamingComputationTopology property.
+    pub streaming_computation_topology: Option<TopologyConfig>,
+    /// workerHarnessPort property.
+    pub worker_harness_port: Option<i64>,
+}
+
+/// `StreamingComputationTask` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StreamingComputationTask {
+    /// computationRanges property.
+    pub computation_ranges: Option<Vec<StreamingComputationRanges>>,
+    /// dataDisks property.
+    pub data_disks: Option<Vec<MountedDataDisk>>,
+    /// taskType property.
+    pub task_type: Option<String>,
+}
+
+/// `SourceOperationRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SourceOperationRequest {
+    /// getMetadata property.
+    pub get_metadata: Option<SourceGetMetadataRequest>,
+    /// name property.
+    pub name: Option<String>,
+    /// originalName property.
+    pub original_name: Option<String>,
+    /// split property.
+    pub split: Option<SourceSplitRequest>,
+    /// stageName property.
+    pub stage_name: Option<String>,
+    /// systemName property.
+    pub system_name: Option<String>,
+}
+
+/// `StreamingApplianceSnapshotConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StreamingApplianceSnapshotConfig {
+    /// importStateEndpoint property.
+    pub import_state_endpoint: Option<String>,
+    /// snapshotId property.
+    pub snapshot_id: Option<String>,
 }
 
 /// `ParallelInstruction` type.
@@ -245,250 +521,6 @@ pub struct ParallelInstruction {
     pub write: Option<WriteInstruction>,
 }
 
-/// `ComputationTopology` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputationTopology {
-    /// computationId property.
-    pub computation_id: Option<String>,
-    /// inputs property.
-    pub inputs: Option<Vec<StreamLocation>>,
-    /// keyRanges property.
-    pub key_ranges: Option<Vec<KeyRangeLocation>>,
-    /// outputs property.
-    pub outputs: Option<Vec<StreamLocation>>,
-    /// stateFamilies property.
-    pub state_families: Option<Vec<StateFamilyConfig>>,
-    /// systemStageName property.
-    pub system_stage_name: Option<String>,
-}
-
-/// `StreamingApplianceSnapshotConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StreamingApplianceSnapshotConfig {
-    /// importStateEndpoint property.
-    pub import_state_endpoint: Option<String>,
-    /// snapshotId property.
-    pub snapshot_id: Option<String>,
-}
-
-/// `StreamingOperationalLimits` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StreamingOperationalLimits {
-    /// maxBagElementBytes property.
-    pub max_bag_element_bytes: Option<String>,
-    /// maxGlobalDataBytes property.
-    pub max_global_data_bytes: Option<String>,
-    /// maxKeyBytes property.
-    pub max_key_bytes: Option<String>,
-    /// maxProductionOutputBytes property.
-    pub max_production_output_bytes: Option<String>,
-    /// maxSortedListElementBytes property.
-    pub max_sorted_list_element_bytes: Option<String>,
-    /// maxSourceStateBytes property.
-    pub max_source_state_bytes: Option<String>,
-    /// maxTagBytes property.
-    pub max_tag_bytes: Option<String>,
-    /// maxValueBytes property.
-    pub max_value_bytes: Option<String>,
-}
-
-/// `InstructionOutput` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstructionOutput {
-    /// codec property.
-    pub codec: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// onlyCountKeyBytes property.
-    pub only_count_key_bytes: Option<bool>,
-    /// onlyCountValueBytes property.
-    pub only_count_value_bytes: Option<bool>,
-    /// originalName property.
-    pub original_name: Option<String>,
-    /// systemName property.
-    pub system_name: Option<String>,
-}
-
-/// `SourceOperationRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceOperationRequest {
-    /// getMetadata property.
-    pub get_metadata: Option<SourceGetMetadataRequest>,
-    /// name property.
-    pub name: Option<String>,
-    /// originalName property.
-    pub original_name: Option<String>,
-    /// split property.
-    pub split: Option<SourceSplitRequest>,
-    /// stageName property.
-    pub stage_name: Option<String>,
-    /// systemName property.
-    pub system_name: Option<String>,
-}
-
-/// `SourceGetMetadataRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceGetMetadataRequest {
-    /// source property.
-    pub source: Option<Source>,
-}
-
-/// `MapTask` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MapTask {
-    /// counterPrefix property.
-    pub counter_prefix: Option<String>,
-    /// instructions property.
-    pub instructions: Option<Vec<ParallelInstruction>>,
-    /// stageName property.
-    pub stage_name: Option<String>,
-    /// systemName property.
-    pub system_name: Option<String>,
-}
-
-/// `TopologyConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TopologyConfig {
-    /// computations property.
-    pub computations: Option<Vec<ComputationTopology>>,
-    /// dataDiskAssignments property.
-    pub data_disk_assignments: Option<Vec<DataDiskAssignment>>,
-    /// forwardingKeyBits property.
-    pub forwarding_key_bits: Option<i64>,
-    /// persistentStateVersion property.
-    pub persistent_state_version: Option<i64>,
-    /// userStageToComputationNameMap property.
-    pub user_stage_to_computation_name_map: Option<serde_json::Value>,
-}
-
-/// `ShellTask` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShellTask {
-    /// command property.
-    pub command: Option<String>,
-    /// exitCode property.
-    pub exit_code: Option<i64>,
-}
-
-/// `PartialGroupByKeyInstruction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PartialGroupByKeyInstruction {
-    /// input property.
-    pub input: Option<InstructionInput>,
-    /// inputElementCodec property.
-    pub input_element_codec: Option<serde_json::Value>,
-    /// originalCombineValuesInputStoreName property.
-    pub original_combine_values_input_store_name: Option<String>,
-    /// originalCombineValuesStepName property.
-    pub original_combine_values_step_name: Option<String>,
-    /// sideInputs property.
-    pub side_inputs: Option<Vec<SideInputInfo>>,
-    /// valueCombiningFn property.
-    pub value_combining_fn: Option<serde_json::Value>,
-}
-
-/// `FlattenInstruction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlattenInstruction {
-    /// inputs property.
-    pub inputs: Option<Vec<InstructionInput>>,
-}
-
-/// `StreamLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StreamLocation {
-    /// customSourceLocation property.
-    pub custom_source_location: Option<CustomSourceLocation>,
-    /// pubsubLocation property.
-    pub pubsub_location: Option<PubsubLocation>,
-    /// sideInputLocation property.
-    pub side_input_location: Option<StreamingSideInputLocation>,
-    /// streamingStageLocation property.
-    pub streaming_stage_location: Option<StreamingStageLocation>,
-}
-
-/// `LeaseWorkItemResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LeaseWorkItemResponse {
-    /// unifiedWorkerResponse property.
-    pub unified_worker_response: Option<serde_json::Value>,
-    /// workItems property.
-    pub work_items: Option<Vec<WorkItem>>,
-}
-
-/// `InstructionInput` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstructionInput {
-    /// outputNum property.
-    pub output_num: Option<i64>,
-    /// producerInstructionIndex property.
-    pub producer_instruction_index: Option<i64>,
-}
-
-/// `MultiOutputInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MultiOutputInfo {
-    /// tag property.
-    pub tag: Option<String>,
-}
-
-/// `SourceSplitOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceSplitOptions {
-    /// desiredBundleSizeBytes property.
-    pub desired_bundle_size_bytes: Option<String>,
-    /// desiredShardSizeBytes property.
-    pub desired_shard_size_bytes: Option<String>,
-}
-
-/// `KeyRangeDataDiskAssignment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KeyRangeDataDiskAssignment {
-    /// dataDisk property.
-    pub data_disk: Option<String>,
-    /// end property.
-    pub end: Option<String>,
-    /// start property.
-    pub start: Option<String>,
-}
-
-/// `Source` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Source {
-    /// baseSpecs property.
-    pub base_specs: Option<Vec<serde_json::Value>>,
-    /// codec property.
-    pub codec: Option<serde_json::Value>,
-    /// doesNotNeedSplitting property.
-    pub does_not_need_splitting: Option<bool>,
-    /// metadata property.
-    pub metadata: Option<SourceMetadata>,
-    /// spec property.
-    pub spec: Option<serde_json::Value>,
-}
-
-/// `ReadInstruction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReadInstruction {
-    /// source property.
-    pub source: Option<Source>,
-}
-
-/// `StreamingSetupTask` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StreamingSetupTask {
-    /// drain property.
-    pub drain: Option<bool>,
-    /// receiveWorkPort property.
-    pub receive_work_port: Option<i64>,
-    /// snapshotConfig property.
-    pub snapshot_config: Option<StreamingApplianceSnapshotConfig>,
-    /// streamingComputationTopology property.
-    pub streaming_computation_topology: Option<TopologyConfig>,
-    /// workerHarnessPort property.
-    pub worker_harness_port: Option<i64>,
-}
-
 /// `SideInputInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SideInputInfo {
@@ -500,24 +532,19 @@ pub struct SideInputInfo {
     pub tag: Option<String>,
 }
 
-/// `Sink` type.
+/// `ParDoInstruction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Sink {
-    /// codec property.
-    pub codec: Option<serde_json::Value>,
-    /// spec property.
-    pub spec: Option<serde_json::Value>,
-}
-
-/// `StreamingComputationTask` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StreamingComputationTask {
-    /// computationRanges property.
-    pub computation_ranges: Option<Vec<StreamingComputationRanges>>,
-    /// dataDisks property.
-    pub data_disks: Option<Vec<MountedDataDisk>>,
-    /// taskType property.
-    pub task_type: Option<String>,
+pub struct ParDoInstruction {
+    /// input property.
+    pub input: Option<InstructionInput>,
+    /// multiOutputInfos property.
+    pub multi_output_infos: Option<Vec<MultiOutputInfo>>,
+    /// numOutputs property.
+    pub num_outputs: Option<i64>,
+    /// sideInputs property.
+    pub side_inputs: Option<Vec<SideInputInfo>>,
+    /// userFn property.
+    pub user_fn: Option<serde_json::Value>,
 }
 
 /// `StreamingComputationRanges` type.
@@ -529,46 +556,20 @@ pub struct StreamingComputationRanges {
     pub range_assignments: Option<Vec<KeyRangeDataDiskAssignment>>,
 }
 
-/// `SeqMapTask` type.
+/// `DataDiskAssignment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SeqMapTask {
-    /// inputs property.
-    pub inputs: Option<Vec<SideInputInfo>>,
-    /// name property.
-    pub name: Option<String>,
-    /// outputInfos property.
-    pub output_infos: Option<Vec<SeqMapTaskOutputInfo>>,
-    /// stageName property.
-    pub stage_name: Option<String>,
-    /// systemName property.
-    pub system_name: Option<String>,
-    /// userFn property.
-    pub user_fn: Option<serde_json::Value>,
+pub struct DataDiskAssignment {
+    /// dataDisks property.
+    pub data_disks: Option<Vec<String>>,
+    /// vmInstance property.
+    pub vm_instance: Option<String>,
 }
 
-/// `StreamingStageLocation` type.
+/// `SourceGetMetadataRequest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StreamingStageLocation {
-    /// streamId property.
-    pub stream_id: Option<String>,
-}
-
-/// `MountedDataDisk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MountedDataDisk {
-    /// dataDisk property.
-    pub data_disk: Option<String>,
-}
-
-/// `SourceMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceMetadata {
-    /// estimatedSizeBytes property.
-    pub estimated_size_bytes: Option<String>,
-    /// infinite property.
-    pub infinite: Option<bool>,
-    /// producesSortedKeys property.
-    pub produces_sorted_keys: Option<bool>,
+pub struct SourceGetMetadataRequest {
+    /// source property.
+    pub source: Option<Source>,
 }
 
 // =============================================================================

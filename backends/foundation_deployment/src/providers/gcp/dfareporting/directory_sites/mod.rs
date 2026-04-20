@@ -12,56 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `DirectorySitesListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DirectorySitesListResponse {
-    /// directorySites property.
-    pub directory_sites: Option<Vec<DirectorySite>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `DirectorySiteSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DirectorySiteSettings {
-    /// activeViewOptOut property.
-    pub active_view_opt_out: Option<bool>,
-    /// dfpSettings property.
-    pub dfp_settings: Option<DfpSettings>,
-    /// instreamVideoPlacementAccepted property.
-    pub instream_video_placement_accepted: Option<bool>,
-    /// interstitialPlacementAccepted property.
-    pub interstitial_placement_accepted: Option<bool>,
-}
-
-/// `DfpSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DfpSettings {
-    /// dfpNetworkCode property.
-    pub dfp_network_code: Option<String>,
-    /// dfpNetworkName property.
-    pub dfp_network_name: Option<String>,
-    /// programmaticPlacementAccepted property.
-    pub programmatic_placement_accepted: Option<bool>,
-    /// pubPaidPlacementAccepted property.
-    pub pub_paid_placement_accepted: Option<bool>,
-    /// publisherPortalOnly property.
-    pub publisher_portal_only: Option<bool>,
-}
 
 /// `DirectorySite` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -86,6 +48,19 @@ pub struct DirectorySite {
     pub url: Option<String>,
 }
 
+/// `DirectorySiteSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DirectorySiteSettings {
+    /// activeViewOptOut property.
+    pub active_view_opt_out: Option<bool>,
+    /// dfpSettings property.
+    pub dfp_settings: Option<DfpSettings>,
+    /// instreamVideoPlacementAccepted property.
+    pub instream_video_placement_accepted: Option<bool>,
+    /// interstitialPlacementAccepted property.
+    pub interstitial_placement_accepted: Option<bool>,
+}
+
 /// `DimensionValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DimensionValue {
@@ -101,6 +76,32 @@ pub struct DimensionValue {
     pub match_type: Option<String>,
     /// value property.
     pub value: Option<String>,
+}
+
+/// `DfpSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DfpSettings {
+    /// dfpNetworkCode property.
+    pub dfp_network_code: Option<String>,
+    /// dfpNetworkName property.
+    pub dfp_network_name: Option<String>,
+    /// programmaticPlacementAccepted property.
+    pub programmatic_placement_accepted: Option<bool>,
+    /// pubPaidPlacementAccepted property.
+    pub pub_paid_placement_accepted: Option<bool>,
+    /// publisherPortalOnly property.
+    pub publisher_portal_only: Option<bool>,
+}
+
+/// `DirectorySitesListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DirectorySitesListResponse {
+    /// directorySites property.
+    pub directory_sites: Option<Vec<DirectorySite>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

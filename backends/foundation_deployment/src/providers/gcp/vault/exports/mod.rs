@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,122 +22,17 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListExportsResponse` type.
+/// `DriveDocumentInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListExportsResponse {
-    /// exports property.
-    pub exports: Option<Vec<Export>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `HangoutsChatExportOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HangoutsChatExportOptions {
-    /// exportFormat property.
-    pub export_format: Option<String>,
-}
-
-/// `DriveDocumentIds` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DriveDocumentIds {
-    /// ids property.
-    pub ids: Option<Vec<String>>,
-}
-
-/// `DriveExportOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DriveExportOptions {
-    /// includeAccessInfo property.
-    pub include_access_info: Option<bool>,
-}
-
-/// `MailExportOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MailExportOptions {
-    /// exportFormat property.
-    pub export_format: Option<String>,
-    /// exportLinkedDriveFiles property.
-    pub export_linked_drive_files: Option<bool>,
-    /// showConfidentialModeContent property.
-    pub show_confidential_mode_content: Option<bool>,
-    /// useNewExport property.
-    pub use_new_export: Option<bool>,
-}
-
-/// `CloudStorageSink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudStorageSink {
-    /// files property.
-    pub files: Option<Vec<CloudStorageFile>>,
-}
-
-/// `CalendarOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CalendarOptions {
-    /// locationQuery property.
-    pub location_query: Option<Vec<String>>,
-    /// minusWords property.
-    pub minus_words: Option<Vec<String>>,
-    /// peopleQuery property.
-    pub people_query: Option<Vec<String>>,
-    /// responseStatuses property.
-    pub response_statuses: Option<Vec<String>>,
-    /// versionDate property.
-    pub version_date: Option<String>,
-}
-
-/// `TeamDriveInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TeamDriveInfo {
-    /// teamDriveIds property.
-    pub team_drive_ids: Option<Vec<String>>,
-}
-
-/// `CloudStorageFile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudStorageFile {
-    /// bucketName property.
-    pub bucket_name: Option<String>,
-    /// md5Hash property.
-    pub md5_hash: Option<String>,
-    /// objectName property.
-    pub object_name: Option<String>,
-    /// size property.
-    pub size: Option<String>,
-}
-
-/// `MailOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MailOptions {
-    /// clientSideEncryptedOption property.
-    pub client_side_encrypted_option: Option<String>,
-    /// excludeDrafts property.
-    pub exclude_drafts: Option<bool>,
-}
-
-/// `ExportStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExportStats {
-    /// exportedArtifactCount property.
-    pub exported_artifact_count: Option<String>,
-    /// sizeInBytes property.
-    pub size_in_bytes: Option<String>,
-    /// totalArtifactCount property.
-    pub total_artifact_count: Option<String>,
-}
-
-/// `VoiceExportOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VoiceExportOptions {
-    /// exportFormat property.
-    pub export_format: Option<String>,
+pub struct DriveDocumentInfo {
+    /// documentIds property.
+    pub document_ids: Option<DriveDocumentIds>,
 }
 
 /// `Export` type.
@@ -166,13 +62,6 @@ pub struct Export {
     pub status: Option<String>,
 }
 
-/// `HangoutsChatOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HangoutsChatOptions {
-    /// includeRooms property.
-    pub include_rooms: Option<bool>,
-}
-
 /// `SharedDriveInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SharedDriveInfo {
@@ -180,25 +69,18 @@ pub struct SharedDriveInfo {
     pub shared_drive_ids: Option<Vec<String>>,
 }
 
-/// `HangoutsChatInfo` type.
+/// `DriveExportOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HangoutsChatInfo {
-    /// roomId property.
-    pub room_id: Option<Vec<String>>,
+pub struct DriveExportOptions {
+    /// includeAccessInfo property.
+    pub include_access_info: Option<bool>,
 }
 
-/// `VoiceOptions` type.
+/// `SitesUrlInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VoiceOptions {
-    /// coveredData property.
-    pub covered_data: Option<Vec<String>>,
-}
-
-/// `AccountInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountInfo {
-    /// emails property.
-    pub emails: Option<Vec<String>>,
+pub struct SitesUrlInfo {
+    /// urls property.
+    pub urls: Option<Vec<String>>,
 }
 
 /// `GroupsExportOptions` type.
@@ -208,22 +90,17 @@ pub struct GroupsExportOptions {
     pub export_format: Option<String>,
 }
 
-/// `CalendarExportOptions` type.
+/// `CloudStorageFile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CalendarExportOptions {
-    /// exportFormat property.
-    pub export_format: Option<String>,
-}
-
-/// `GeminiOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeminiOptions {}
-
-/// `DriveDocumentInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DriveDocumentInfo {
-    /// documentIds property.
-    pub document_ids: Option<DriveDocumentIds>,
+pub struct CloudStorageFile {
+    /// bucketName property.
+    pub bucket_name: Option<String>,
+    /// md5Hash property.
+    pub md5_hash: Option<String>,
+    /// objectName property.
+    pub object_name: Option<String>,
+    /// size property.
+    pub size: Option<String>,
 }
 
 /// `Query` type.
@@ -273,6 +150,59 @@ pub struct Query {
     pub voice_options: Option<VoiceOptions>,
 }
 
+/// `HangoutsChatInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HangoutsChatInfo {
+    /// roomId property.
+    pub room_id: Option<Vec<String>>,
+}
+
+/// `MailExportOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MailExportOptions {
+    /// exportFormat property.
+    pub export_format: Option<String>,
+    /// exportLinkedDriveFiles property.
+    pub export_linked_drive_files: Option<bool>,
+    /// showConfidentialModeContent property.
+    pub show_confidential_mode_content: Option<bool>,
+    /// useNewExport property.
+    pub use_new_export: Option<bool>,
+}
+
+/// `ExportStats` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExportStats {
+    /// exportedArtifactCount property.
+    pub exported_artifact_count: Option<String>,
+    /// sizeInBytes property.
+    pub size_in_bytes: Option<String>,
+    /// totalArtifactCount property.
+    pub total_artifact_count: Option<String>,
+}
+
+/// `VoiceOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VoiceOptions {
+    /// coveredData property.
+    pub covered_data: Option<Vec<String>>,
+}
+
+/// `CalendarOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CalendarOptions {
+    /// locationQuery property.
+    pub location_query: Option<Vec<String>>,
+    /// minusWords property.
+    pub minus_words: Option<Vec<String>>,
+    /// peopleQuery property.
+    pub people_query: Option<Vec<String>>,
+    /// responseStatuses property.
+    pub response_statuses: Option<Vec<String>>,
+    /// versionDate property.
+    pub version_date: Option<String>,
+}
+
 /// `DriveOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveOptions {
@@ -288,11 +218,34 @@ pub struct DriveOptions {
     pub version_date: Option<String>,
 }
 
-/// `SitesUrlInfo` type.
+/// `ListExportsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SitesUrlInfo {
-    /// urls property.
-    pub urls: Option<Vec<String>>,
+pub struct ListExportsResponse {
+    /// exports property.
+    pub exports: Option<Vec<Export>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `AccountInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountInfo {
+    /// emails property.
+    pub emails: Option<Vec<String>>,
+}
+
+/// `CalendarExportOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CalendarExportOptions {
+    /// exportFormat property.
+    pub export_format: Option<String>,
+}
+
+/// `VoiceExportOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VoiceExportOptions {
+    /// exportFormat property.
+    pub export_format: Option<String>,
 }
 
 /// `OrgUnitInfo` type.
@@ -323,6 +276,54 @@ pub struct ExportOptions {
     pub voice_options: Option<VoiceExportOptions>,
 }
 
+/// `GeminiExportOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GeminiExportOptions {
+    /// exportFormat property.
+    pub export_format: Option<String>,
+}
+
+/// `HangoutsChatOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HangoutsChatOptions {
+    /// includeRooms property.
+    pub include_rooms: Option<bool>,
+}
+
+/// `GeminiOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GeminiOptions {}
+
+/// `MailOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MailOptions {
+    /// clientSideEncryptedOption property.
+    pub client_side_encrypted_option: Option<String>,
+    /// excludeDrafts property.
+    pub exclude_drafts: Option<bool>,
+}
+
+/// `CloudStorageSink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudStorageSink {
+    /// files property.
+    pub files: Option<Vec<CloudStorageFile>>,
+}
+
+/// `TeamDriveInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TeamDriveInfo {
+    /// teamDriveIds property.
+    pub team_drive_ids: Option<Vec<String>>,
+}
+
+/// `DriveDocumentIds` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DriveDocumentIds {
+    /// ids property.
+    pub ids: Option<Vec<String>>,
+}
+
 /// `UserInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserInfo {
@@ -332,9 +333,9 @@ pub struct UserInfo {
     pub email: Option<String>,
 }
 
-/// `GeminiExportOptions` type.
+/// `HangoutsChatExportOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeminiExportOptions {
+pub struct HangoutsChatExportOptions {
     /// exportFormat property.
     pub export_format: Option<String>,
 }

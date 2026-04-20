@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,49 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `InterceptLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterceptLocation {
+    /// location property.
+    pub location: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `InterceptEndpointGroupAssociationLocationDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterceptEndpointGroupAssociationLocationDetails {
+    /// location property.
+    pub location: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ListInterceptEndpointGroupAssociationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListInterceptEndpointGroupAssociationsResponse {
+    /// interceptEndpointGroupAssociations property.
+    pub intercept_endpoint_group_associations: Option<Vec<InterceptEndpointGroupAssociation>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `InterceptEndpointGroupAssociation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -52,44 +91,6 @@ pub struct InterceptEndpointGroupAssociation {
     pub state: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `InterceptLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterceptLocation {
-    /// location property.
-    pub location: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `InterceptEndpointGroupAssociationLocationDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterceptEndpointGroupAssociationLocationDetails {
-    /// location property.
-    pub location: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `ListInterceptEndpointGroupAssociationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListInterceptEndpointGroupAssociationsResponse {
-    /// interceptEndpointGroupAssociations property.
-    pub intercept_endpoint_group_associations: Option<Vec<InterceptEndpointGroupAssociation>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 // =============================================================================

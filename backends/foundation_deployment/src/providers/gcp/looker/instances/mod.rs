@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,31 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `PscConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PscConfig {
-    /// allowedVpcs property.
-    pub allowed_vpcs: Option<Vec<String>>,
-    /// lookerServiceAttachmentUri property.
-    pub looker_service_attachment_uri: Option<String>,
-    /// serviceAttachments property.
-    pub service_attachments: Option<Vec<ServiceAttachment>>,
-}
-
-/// `MaintenanceWindow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaintenanceWindow {
-    /// dayOfWeek property.
-    pub day_of_week: Option<String>,
-    /// startTime property.
-    pub start_time: Option<TimeOfDay>,
-}
 
 /// `UserMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -56,35 +37,6 @@ pub struct UserMetadata {
     pub additional_standard_user_count: Option<i64>,
     /// additionalViewerUserCount property.
     pub additional_viewer_user_count: Option<i64>,
-}
-
-/// `IngressIpAllowlistRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IngressIpAllowlistRule {
-    /// description property.
-    pub description: Option<String>,
-    /// ipRange property.
-    pub ip_range: Option<String>,
-}
-
-/// `DenyMaintenancePeriod` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DenyMaintenancePeriod {
-    /// endDate property.
-    pub end_date: Option<Date>,
-    /// startDate property.
-    pub start_date: Option<Date>,
-    /// time property.
-    pub time: Option<TimeOfDay>,
-}
-
-/// `MaintenanceSchedule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaintenanceSchedule {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
 }
 
 /// `ControlledEgressConfig` type.
@@ -98,46 +50,79 @@ pub struct ControlledEgressConfig {
     pub web_proxy_ips: Option<Vec<String>>,
 }
 
-/// `CustomDomain` type.
+/// `ListInstancesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomDomain {
-    /// domain property.
-    pub domain: Option<String>,
-    /// state property.
-    pub state: Option<String>,
+pub struct ListInstancesResponse {
+    /// instances property.
+    pub instances: Option<Vec<Instance>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
-/// `OAuthConfig` type.
+/// `PeriodicExportConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OAuthConfig {
-    /// clientId property.
-    pub client_id: Option<String>,
-    /// clientSecret property.
-    pub client_secret: Option<String>,
-    /// sharedOauthClientEnabled property.
-    pub shared_oauth_client_enabled: Option<bool>,
+pub struct PeriodicExportConfig {
+    /// gcsUri property.
+    pub gcs_uri: Option<String>,
+    /// kmsKey property.
+    pub kms_key: Option<String>,
+    /// startTime property.
+    pub start_time: Option<TimeOfDay>,
 }
 
-/// `Status` type.
+/// `ServiceAttachment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct ServiceAttachment {
+    /// connectionStatus property.
+    pub connection_status: Option<String>,
+    /// failureReason property.
+    pub failure_reason: Option<String>,
+    /// localFqdn property.
+    pub local_fqdn: Option<String>,
+    /// localFqdns property.
+    pub local_fqdns: Option<Vec<String>>,
+    /// targetServiceAttachmentUri property.
+    pub target_service_attachment_uri: Option<String>,
 }
 
-/// `EncryptionConfig` type.
+/// `PscConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionConfig {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-    /// kmsKeyNameVersion property.
-    pub kms_key_name_version: Option<String>,
-    /// kmsKeyState property.
-    pub kms_key_state: Option<String>,
+pub struct PscConfig {
+    /// allowedVpcs property.
+    pub allowed_vpcs: Option<Vec<String>>,
+    /// lookerServiceAttachmentUri property.
+    pub looker_service_attachment_uri: Option<String>,
+    /// serviceAttachments property.
+    pub service_attachments: Option<Vec<ServiceAttachment>>,
+}
+
+/// `DenyMaintenancePeriod` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DenyMaintenancePeriod {
+    /// endDate property.
+    pub end_date: Option<Date>,
+    /// startDate property.
+    pub start_date: Option<Date>,
+    /// time property.
+    pub time: Option<TimeOfDay>,
+}
+
+/// `MaintenanceWindow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MaintenanceWindow {
+    /// dayOfWeek property.
+    pub day_of_week: Option<String>,
+    /// startTime property.
+    pub start_time: Option<TimeOfDay>,
+}
+
+/// `AdminSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdminSettings {
+    /// allowedEmailDomains property.
+    pub allowed_email_domains: Option<Vec<String>>,
 }
 
 /// `IngressIpAllowlistConfig` type.
@@ -151,6 +136,15 @@ pub struct IngressIpAllowlistConfig {
     pub google_services_enabled: Option<bool>,
 }
 
+/// `MaintenanceSchedule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MaintenanceSchedule {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
 /// `Date` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
@@ -160,6 +154,17 @@ pub struct Date {
     pub month: Option<i64>,
     /// year property.
     pub year: Option<i64>,
+}
+
+/// `OAuthConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OAuthConfig {
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// clientSecret property.
+    pub client_secret: Option<String>,
+    /// sharedOauthClientEnabled property.
+    pub shared_oauth_client_enabled: Option<bool>,
 }
 
 /// `Instance` type.
@@ -239,19 +244,22 @@ pub struct Instance {
     pub user_metadata: Option<UserMetadata>,
 }
 
-/// `ServiceAttachment` type.
+/// `IngressIpAllowlistRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceAttachment {
-    /// connectionStatus property.
-    pub connection_status: Option<String>,
-    /// failureReason property.
-    pub failure_reason: Option<String>,
-    /// localFqdn property.
-    pub local_fqdn: Option<String>,
-    /// localFqdns property.
-    pub local_fqdns: Option<Vec<String>>,
-    /// targetServiceAttachmentUri property.
-    pub target_service_attachment_uri: Option<String>,
+pub struct IngressIpAllowlistRule {
+    /// description property.
+    pub description: Option<String>,
+    /// ipRange property.
+    pub ip_range: Option<String>,
+}
+
+/// `CustomDomain` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomDomain {
+    /// domain property.
+    pub domain: Option<String>,
+    /// state property.
+    pub state: Option<String>,
 }
 
 /// `TimeOfDay` type.
@@ -267,33 +275,26 @@ pub struct TimeOfDay {
     pub seconds: Option<i64>,
 }
 
-/// `PeriodicExportConfig` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PeriodicExportConfig {
-    /// gcsUri property.
-    pub gcs_uri: Option<String>,
-    /// kmsKey property.
-    pub kms_key: Option<String>,
-    /// startTime property.
-    pub start_time: Option<TimeOfDay>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
-/// `ListInstancesResponse` type.
+/// `EncryptionConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListInstancesResponse {
-    /// instances property.
-    pub instances: Option<Vec<Instance>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `AdminSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdminSettings {
-    /// allowedEmailDomains property.
-    pub allowed_email_domains: Option<Vec<String>>,
+pub struct EncryptionConfig {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+    /// kmsKeyNameVersion property.
+    pub kms_key_name_version: Option<String>,
+    /// kmsKeyState property.
+    pub kms_key_state: Option<String>,
 }
 
 // =============================================================================

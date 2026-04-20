@@ -12,55 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `CustomerProfileSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerProfileSummary {
-    /// areaServed property.
-    pub area_served: Option<CustomerProfileCitedString>,
-    /// brands property.
-    pub brands: Option<CustomerProfileCitedString>,
-    /// entityType property.
-    pub entity_type: Option<CustomerProfileCitedString>,
-    /// founded property.
-    pub founded: Option<CustomerProfileCitedString>,
-    /// headquarters property.
-    pub headquarters: Option<CustomerProfileCitedString>,
-    /// industry property.
-    pub industry: Option<CustomerProfileCitedString>,
-    /// keyPeopleSummary property.
-    pub key_people_summary: Option<CustomerProfileCitedString>,
-    /// parentCompany property.
-    pub parent_company: Option<CustomerProfileCitedString>,
-    /// primaryWebsite property.
-    pub primary_website: Option<CustomerProfileCitedString>,
-    /// productsSummary property.
-    pub products_summary: Option<CustomerProfileCitedString>,
-    /// servicesSummary property.
-    pub services_summary: Option<CustomerProfileCitedString>,
-    /// title property.
-    pub title: Option<CustomerProfileCitedString>,
-}
-
-/// `CustomerProfileIndustry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerProfileIndustry {
-    /// citationIds property.
-    pub citation_ids: Option<Vec<String>>,
-    /// industry property.
-    pub industry: Option<String>,
-}
 
 /// `CustomerProfileLocation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -73,108 +36,6 @@ pub struct CustomerProfileLocation {
     pub citation_ids: Option<Vec<String>>,
     /// facilityType property.
     pub facility_type: Option<String>,
-}
-
-/// `Audit` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Audit {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// creator property.
-    pub creator: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-    /// updater property.
-    pub updater: Option<String>,
-}
-
-/// `CustomerProfileContactInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerProfileContactInfo {
-    /// address property.
-    pub address: Option<String>,
-    /// citationIds property.
-    pub citation_ids: Option<Vec<String>>,
-    /// email property.
-    pub email: Option<String>,
-    /// label property.
-    pub label: Option<String>,
-    /// other property.
-    pub other: Option<String>,
-    /// phone property.
-    pub phone: Option<String>,
-}
-
-/// `ConfigurationRevision` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigurationRevision {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// snapshot property.
-    pub snapshot: Option<Configuration>,
-}
-
-/// `CustomerProfileProduct` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerProfileProduct {
-    /// brand property.
-    pub brand: Option<String>,
-    /// citationIds property.
-    pub citation_ids: Option<Vec<String>>,
-    /// product property.
-    pub product: Option<String>,
-}
-
-/// `Configuration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Configuration {
-    /// audit property.
-    pub audit: Option<Audit>,
-    /// description property.
-    pub description: Option<String>,
-    /// detail property.
-    pub detail: Option<ConfigurationDetail>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// provider property.
-    pub provider: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `ListConfigurationRevisionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListConfigurationRevisionsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// revisions property.
-    pub revisions: Option<Vec<ConfigurationRevision>>,
-}
-
-/// `CustomerProfilePerson` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerProfilePerson {
-    /// citationIds property.
-    pub citation_ids: Option<Vec<String>>,
-    /// name property.
-    pub name: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `CustomerProfileWebPresence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerProfileWebPresence {
-    /// citationIds property.
-    pub citation_ids: Option<Vec<String>>,
-    /// domain property.
-    pub domain: Option<String>,
 }
 
 /// `CustomerProfileConfig` type.
@@ -208,40 +69,35 @@ pub struct CustomerProfileConfig {
     pub web_presences: Option<Vec<CustomerProfileWebPresence>>,
 }
 
-/// `CustomerProfileCompany` type.
+/// `Audit` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerProfileCompany {
+pub struct Audit {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// creator property.
+    pub creator: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+    /// updater property.
+    pub updater: Option<String>,
+}
+
+/// `CustomerProfileIndustry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomerProfileIndustry {
     /// citationIds property.
     pub citation_ids: Option<Vec<String>>,
-    /// company property.
-    pub company: Option<String>,
+    /// industry property.
+    pub industry: Option<String>,
 }
 
-/// `CustomerProfileSecurityConsiderations` type.
+/// `CustomerProfileWebPresence` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerProfileSecurityConsiderations {
-    /// considerations property.
-    pub considerations: Option<Vec<String>>,
-    /// note property.
-    pub note: Option<String>,
-}
-
-/// `ConfigurationDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigurationDetail {
-    /// customerProfile property.
-    pub customer_profile: Option<CustomerProfileConfig>,
-    /// detailType property.
-    pub detail_type: Option<String>,
-}
-
-/// `CustomerProfileCitedString` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerProfileCitedString {
+pub struct CustomerProfileWebPresence {
     /// citationIds property.
     pub citation_ids: Option<Vec<String>>,
-    /// value property.
-    pub value: Option<String>,
+    /// domain property.
+    pub domain: Option<String>,
 }
 
 /// `CustomerProfileCitation` type.
@@ -257,6 +113,151 @@ pub struct CustomerProfileCitation {
     pub source: Option<String>,
     /// uri property.
     pub uri: Option<String>,
+}
+
+/// `CustomerProfileContactInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomerProfileContactInfo {
+    /// address property.
+    pub address: Option<String>,
+    /// citationIds property.
+    pub citation_ids: Option<Vec<String>>,
+    /// email property.
+    pub email: Option<String>,
+    /// label property.
+    pub label: Option<String>,
+    /// other property.
+    pub other: Option<String>,
+    /// phone property.
+    pub phone: Option<String>,
+}
+
+/// `CustomerProfileCompany` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomerProfileCompany {
+    /// citationIds property.
+    pub citation_ids: Option<Vec<String>>,
+    /// company property.
+    pub company: Option<String>,
+}
+
+/// `CustomerProfileSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomerProfileSummary {
+    /// areaServed property.
+    pub area_served: Option<CustomerProfileCitedString>,
+    /// brands property.
+    pub brands: Option<CustomerProfileCitedString>,
+    /// entityType property.
+    pub entity_type: Option<CustomerProfileCitedString>,
+    /// founded property.
+    pub founded: Option<CustomerProfileCitedString>,
+    /// headquarters property.
+    pub headquarters: Option<CustomerProfileCitedString>,
+    /// industry property.
+    pub industry: Option<CustomerProfileCitedString>,
+    /// keyPeopleSummary property.
+    pub key_people_summary: Option<CustomerProfileCitedString>,
+    /// parentCompany property.
+    pub parent_company: Option<CustomerProfileCitedString>,
+    /// primaryWebsite property.
+    pub primary_website: Option<CustomerProfileCitedString>,
+    /// productsSummary property.
+    pub products_summary: Option<CustomerProfileCitedString>,
+    /// servicesSummary property.
+    pub services_summary: Option<CustomerProfileCitedString>,
+    /// title property.
+    pub title: Option<CustomerProfileCitedString>,
+}
+
+/// `CustomerProfileSecurityConsiderations` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomerProfileSecurityConsiderations {
+    /// considerations property.
+    pub considerations: Option<Vec<String>>,
+    /// note property.
+    pub note: Option<String>,
+}
+
+/// `CustomerProfilePerson` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomerProfilePerson {
+    /// citationIds property.
+    pub citation_ids: Option<Vec<String>>,
+    /// name property.
+    pub name: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `CustomerProfileCitedString` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomerProfileCitedString {
+    /// citationIds property.
+    pub citation_ids: Option<Vec<String>>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `ConfigurationDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigurationDetail {
+    /// customerProfile property.
+    pub customer_profile: Option<CustomerProfileConfig>,
+    /// detailType property.
+    pub detail_type: Option<String>,
+}
+
+/// `ListConfigurationRevisionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListConfigurationRevisionsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// revisions property.
+    pub revisions: Option<Vec<ConfigurationRevision>>,
+}
+
+/// `CustomerProfileProduct` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomerProfileProduct {
+    /// brand property.
+    pub brand: Option<String>,
+    /// citationIds property.
+    pub citation_ids: Option<Vec<String>>,
+    /// product property.
+    pub product: Option<String>,
+}
+
+/// `ConfigurationRevision` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigurationRevision {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// snapshot property.
+    pub snapshot: Option<Configuration>,
+}
+
+/// `Configuration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Configuration {
+    /// audit property.
+    pub audit: Option<Audit>,
+    /// description property.
+    pub description: Option<String>,
+    /// detail property.
+    pub detail: Option<ConfigurationDetail>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// provider property.
+    pub provider: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
 // =============================================================================

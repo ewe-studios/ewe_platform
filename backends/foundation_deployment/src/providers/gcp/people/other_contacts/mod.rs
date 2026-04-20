@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,213 +22,26 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Person;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `AgeRangeType` type.
+/// `ContactGroupMembership` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AgeRangeType {
-    /// ageRange property.
-    pub age_range: Option<String>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
+pub struct ContactGroupMembership {
+    /// contactGroupId property.
+    pub contact_group_id: Option<String>,
+    /// contactGroupResourceName property.
+    pub contact_group_resource_name: Option<String>,
 }
 
-/// `ListOtherContactsResponse` type.
+/// `DomainMembership` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListOtherContactsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// nextSyncToken property.
-    pub next_sync_token: Option<String>,
-    /// otherContacts property.
-    pub other_contacts: Option<Vec<Person>>,
-    /// totalSize property.
-    pub total_size: Option<i64>,
-}
-
-/// `ClientData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClientData {
-    /// key property.
-    pub key: Option<String>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `CoverPhoto` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CoverPhoto {
-    /// default property.
-    pub default: Option<bool>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `Gender` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Gender {
-    /// addressMeAs property.
-    pub address_me_as: Option<String>,
-    /// formattedValue property.
-    pub formatted_value: Option<String>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Nickname` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Nickname {
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `PhoneNumber` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PhoneNumber {
-    /// canonicalForm property.
-    pub canonical_form: Option<String>,
-    /// formattedType property.
-    pub formatted_type: Option<String>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `SipAddress` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SipAddress {
-    /// formattedType property.
-    pub formatted_type: Option<String>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Skill` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Skill {
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Date` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `Biography` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Biography {
-    /// contentType property.
-    pub content_type: Option<String>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `CalendarUrl` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CalendarUrl {
-    /// formattedType property.
-    pub formatted_type: Option<String>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `Organization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Organization {
-    /// costCenter property.
-    pub cost_center: Option<String>,
-    /// current property.
-    pub current: Option<bool>,
-    /// department property.
-    pub department: Option<String>,
-    /// domain property.
-    pub domain: Option<String>,
-    /// endDate property.
-    pub end_date: Option<Date>,
-    /// formattedType property.
-    pub formatted_type: Option<String>,
-    /// fullTimeEquivalentMillipercent property.
-    pub full_time_equivalent_millipercent: Option<i64>,
-    /// jobDescription property.
-    pub job_description: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// name property.
-    pub name: Option<String>,
-    /// phoneticName property.
-    pub phonetic_name: Option<String>,
-    /// startDate property.
-    pub start_date: Option<Date>,
-    /// symbol property.
-    pub symbol: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `Source` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Source {
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// profileMetadata property.
-    pub profile_metadata: Option<ProfileMetadata>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `Birthday` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Birthday {
-    /// date property.
-    pub date: Option<Date>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// text property.
-    pub text: Option<String>,
+pub struct DomainMembership {
+    /// inViewerDomain property.
+    pub in_viewer_domain: Option<bool>,
 }
 
 /// `FileAs` type.
@@ -274,90 +88,6 @@ pub struct Name {
     pub unstructured_name: Option<String>,
 }
 
-/// `Occupation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Occupation {
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Photo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Photo {
-    /// default property.
-    pub default: Option<bool>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `Locale` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Locale {
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Membership` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Membership {
-    /// contactGroupMembership property.
-    pub contact_group_membership: Option<ContactGroupMembership>,
-    /// domainMembership property.
-    pub domain_membership: Option<DomainMembership>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-}
-
-/// `Event` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Event {
-    /// date property.
-    pub date: Option<Date>,
-    /// formattedType property.
-    pub formatted_type: Option<String>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `MiscKeyword` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MiscKeyword {
-    /// formattedType property.
-    pub formatted_type: Option<String>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `DomainMembership` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DomainMembership {
-    /// inViewerDomain property.
-    pub in_viewer_domain: Option<bool>,
-}
-
-/// `Residence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Residence {
-    /// current property.
-    pub current: Option<bool>,
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// value property.
-    pub value: Option<String>,
-}
-
 /// `Interest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Interest {
@@ -367,24 +97,9 @@ pub struct Interest {
     pub value: Option<String>,
 }
 
-/// `PersonMetadata` type.
+/// `Occupation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PersonMetadata {
-    /// deleted property.
-    pub deleted: Option<bool>,
-    /// linkedPeopleResourceNames property.
-    pub linked_people_resource_names: Option<Vec<String>>,
-    /// objectType property.
-    pub object_type: Option<String>,
-    /// previousResourceNames property.
-    pub previous_resource_names: Option<Vec<String>>,
-    /// sources property.
-    pub sources: Option<Vec<Source>>,
-}
-
-/// `Tagline` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Tagline {
+pub struct Occupation {
     /// metadata property.
     pub metadata: Option<FieldMetadata>,
     /// value property.
@@ -402,18 +117,22 @@ pub struct RelationshipStatus {
     pub value: Option<String>,
 }
 
-/// `ProfileMetadata` type.
+/// `CoverPhoto` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProfileMetadata {
-    /// objectType property.
-    pub object_type: Option<String>,
-    /// userTypes property.
-    pub user_types: Option<Vec<String>>,
+pub struct CoverPhoto {
+    /// default property.
+    pub default: Option<bool>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// url property.
+    pub url: Option<String>,
 }
 
-/// `ExternalId` type.
+/// `PhoneNumber` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExternalId {
+pub struct PhoneNumber {
+    /// canonicalForm property.
+    pub canonical_form: Option<String>,
     /// formattedType property.
     pub formatted_type: Option<String>,
     /// metadata property.
@@ -454,6 +173,285 @@ pub struct Relation {
     pub r#type: Option<String>,
 }
 
+/// `FieldMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FieldMetadata {
+    /// primary property.
+    pub primary: Option<bool>,
+    /// source property.
+    pub source: Option<Source>,
+    /// sourcePrimary property.
+    pub source_primary: Option<bool>,
+    /// verified property.
+    pub verified: Option<bool>,
+}
+
+/// `AgeRangeType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AgeRangeType {
+    /// ageRange property.
+    pub age_range: Option<String>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+}
+
+/// `Nickname` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Nickname {
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Birthday` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Birthday {
+    /// date property.
+    pub date: Option<Date>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `ExternalId` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExternalId {
+    /// formattedType property.
+    pub formatted_type: Option<String>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `CalendarUrl` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CalendarUrl {
+    /// formattedType property.
+    pub formatted_type: Option<String>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `Gender` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Gender {
+    /// addressMeAs property.
+    pub address_me_as: Option<String>,
+    /// formattedValue property.
+    pub formatted_value: Option<String>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `PersonMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PersonMetadata {
+    /// deleted property.
+    pub deleted: Option<bool>,
+    /// linkedPeopleResourceNames property.
+    pub linked_people_resource_names: Option<Vec<String>>,
+    /// objectType property.
+    pub object_type: Option<String>,
+    /// previousResourceNames property.
+    pub previous_resource_names: Option<Vec<String>>,
+    /// sources property.
+    pub sources: Option<Vec<Source>>,
+}
+
+/// `Source` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Source {
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// profileMetadata property.
+    pub profile_metadata: Option<ProfileMetadata>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `MiscKeyword` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MiscKeyword {
+    /// formattedType property.
+    pub formatted_type: Option<String>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Organization` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Organization {
+    /// costCenter property.
+    pub cost_center: Option<String>,
+    /// current property.
+    pub current: Option<bool>,
+    /// department property.
+    pub department: Option<String>,
+    /// domain property.
+    pub domain: Option<String>,
+    /// endDate property.
+    pub end_date: Option<Date>,
+    /// formattedType property.
+    pub formatted_type: Option<String>,
+    /// fullTimeEquivalentMillipercent property.
+    pub full_time_equivalent_millipercent: Option<i64>,
+    /// jobDescription property.
+    pub job_description: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// name property.
+    pub name: Option<String>,
+    /// phoneticName property.
+    pub phonetic_name: Option<String>,
+    /// startDate property.
+    pub start_date: Option<Date>,
+    /// symbol property.
+    pub symbol: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `RelationshipInterest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RelationshipInterest {
+    /// formattedValue property.
+    pub formatted_value: Option<String>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Residence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Residence {
+    /// current property.
+    pub current: Option<bool>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Photo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Photo {
+    /// default property.
+    pub default: Option<bool>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `Tagline` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Tagline {
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `ListOtherContactsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListOtherContactsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// nextSyncToken property.
+    pub next_sync_token: Option<String>,
+    /// otherContacts property.
+    pub other_contacts: Option<Vec<Person>>,
+    /// totalSize property.
+    pub total_size: Option<i64>,
+}
+
+/// `ProfileMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProfileMetadata {
+    /// objectType property.
+    pub object_type: Option<String>,
+    /// userTypes property.
+    pub user_types: Option<Vec<String>>,
+}
+
+/// `Date` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `BraggingRights` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BraggingRights {
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Membership` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Membership {
+    /// contactGroupMembership property.
+    pub contact_group_membership: Option<ContactGroupMembership>,
+    /// domainMembership property.
+    pub domain_membership: Option<DomainMembership>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+}
+
+/// `Location` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Location {
+    /// buildingId property.
+    pub building_id: Option<String>,
+    /// current property.
+    pub current: Option<bool>,
+    /// deskCode property.
+    pub desk_code: Option<String>,
+    /// floor property.
+    pub floor: Option<String>,
+    /// floorSection property.
+    pub floor_section: Option<String>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
 /// `Address` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Address {
@@ -483,17 +481,24 @@ pub struct Address {
     pub r#type: Option<String>,
 }
 
-/// `EmailAddress` type.
+/// `UserDefined` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EmailAddress {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// formattedType property.
-    pub formatted_type: Option<String>,
+pub struct UserDefined {
+    /// key property.
+    pub key: Option<String>,
     /// metadata property.
     pub metadata: Option<FieldMetadata>,
-    /// type property.
-    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Biography` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Biography {
+    /// contentType property.
+    pub content_type: Option<String>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
     /// value property.
     pub value: Option<String>,
 }
@@ -511,41 +516,13 @@ pub struct Url {
     pub value: Option<String>,
 }
 
-/// `FieldMetadata` type.
+/// `EmailAddress` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FieldMetadata {
-    /// primary property.
-    pub primary: Option<bool>,
-    /// source property.
-    pub source: Option<Source>,
-    /// sourcePrimary property.
-    pub source_primary: Option<bool>,
-    /// verified property.
-    pub verified: Option<bool>,
-}
-
-/// `BraggingRights` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BraggingRights {
-    /// metadata property.
-    pub metadata: Option<FieldMetadata>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Location` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Location {
-    /// buildingId property.
-    pub building_id: Option<String>,
-    /// current property.
-    pub current: Option<bool>,
-    /// deskCode property.
-    pub desk_code: Option<String>,
-    /// floor property.
-    pub floor: Option<String>,
-    /// floorSection property.
-    pub floor_section: Option<String>,
+pub struct EmailAddress {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// formattedType property.
+    pub formatted_type: Option<String>,
     /// metadata property.
     pub metadata: Option<FieldMetadata>,
     /// type property.
@@ -554,9 +531,9 @@ pub struct Location {
     pub value: Option<String>,
 }
 
-/// `UserDefined` type.
+/// `ClientData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserDefined {
+pub struct ClientData {
     /// key property.
     pub key: Option<String>,
     /// metadata property.
@@ -565,24 +542,48 @@ pub struct UserDefined {
     pub value: Option<String>,
 }
 
-/// `RelationshipInterest` type.
+/// `Event` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RelationshipInterest {
-    /// formattedValue property.
-    pub formatted_value: Option<String>,
+pub struct Event {
+    /// date property.
+    pub date: Option<Date>,
+    /// formattedType property.
+    pub formatted_type: Option<String>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `Locale` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Locale {
     /// metadata property.
     pub metadata: Option<FieldMetadata>,
     /// value property.
     pub value: Option<String>,
 }
 
-/// `ContactGroupMembership` type.
+/// `SipAddress` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContactGroupMembership {
-    /// contactGroupId property.
-    pub contact_group_id: Option<String>,
-    /// contactGroupResourceName property.
-    pub contact_group_resource_name: Option<String>,
+pub struct SipAddress {
+    /// formattedType property.
+    pub formatted_type: Option<String>,
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Skill` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Skill {
+    /// metadata property.
+    pub metadata: Option<FieldMetadata>,
+    /// value property.
+    pub value: Option<String>,
 }
 
 // =============================================================================

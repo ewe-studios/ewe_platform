@@ -12,63 +12,24 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GdataCompositeMedia` type.
+/// `GdataDiffDownloadResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GdataCompositeMedia {
-    /// blobRef property.
-    pub blob_ref: Option<String>,
-    /// blobstore2Info property.
-    pub blobstore2_info: Option<GdataBlobstore2Info>,
-    /// cosmoBinaryReference property.
-    pub cosmo_binary_reference: Option<String>,
-    /// crc32cHash property.
-    pub crc32c_hash: Option<i64>,
-    /// inline property.
-    pub inline: Option<String>,
-    /// length property.
-    pub length: Option<String>,
-    /// md5Hash property.
-    pub md5_hash: Option<String>,
-    /// objectId property.
-    pub object_id: Option<GdataObjectId>,
-    /// path property.
-    pub path: Option<String>,
-    /// referenceType property.
-    pub reference_type: Option<String>,
-    /// sha1Hash property.
-    pub sha1_hash: Option<String>,
-}
-
-/// `GdataDiffVersionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GdataDiffVersionResponse {
-    /// objectSizeBytes property.
-    pub object_size_bytes: Option<String>,
-    /// objectVersion property.
-    pub object_version: Option<String>,
-}
-
-/// `GdataObjectId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GdataObjectId {
-    /// bucketName property.
-    pub bucket_name: Option<String>,
-    /// generation property.
-    pub generation: Option<String>,
-    /// objectName property.
-    pub object_name: Option<String>,
+pub struct GdataDiffDownloadResponse {
+    /// objectLocation property.
+    pub object_location: Option<GdataCompositeMedia>,
 }
 
 /// `GdataDiffUploadRequest` type.
@@ -97,22 +58,57 @@ pub struct GdataContentTypeInfo {
     pub from_url_path: Option<String>,
 }
 
-/// `GdataDownloadParameters` type.
+/// `GdataObjectId` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GdataDownloadParameters {
-    /// allowGzipCompression property.
-    pub allow_gzip_compression: Option<bool>,
-    /// ignoreRange property.
-    pub ignore_range: Option<bool>,
+pub struct GdataObjectId {
+    /// bucketName property.
+    pub bucket_name: Option<String>,
+    /// generation property.
+    pub generation: Option<String>,
+    /// objectName property.
+    pub object_name: Option<String>,
 }
 
-/// `GdataDiffUploadResponse` type.
+/// `GdataCompositeMedia` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GdataDiffUploadResponse {
+pub struct GdataCompositeMedia {
+    /// blobRef property.
+    pub blob_ref: Option<String>,
+    /// blobstore2Info property.
+    pub blobstore2_info: Option<GdataBlobstore2Info>,
+    /// cosmoBinaryReference property.
+    pub cosmo_binary_reference: Option<String>,
+    /// crc32cHash property.
+    pub crc32c_hash: Option<i64>,
+    /// inline property.
+    pub inline: Option<String>,
+    /// length property.
+    pub length: Option<String>,
+    /// md5Hash property.
+    pub md5_hash: Option<String>,
+    /// objectId property.
+    pub object_id: Option<GdataObjectId>,
+    /// path property.
+    pub path: Option<String>,
+    /// referenceType property.
+    pub reference_type: Option<String>,
+    /// sha1Hash property.
+    pub sha1_hash: Option<String>,
+}
+
+/// `GdataDiffChecksumsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GdataDiffChecksumsResponse {
+    /// checksumsLocation property.
+    pub checksums_location: Option<GdataCompositeMedia>,
+    /// chunkSizeBytes property.
+    pub chunk_size_bytes: Option<String>,
+    /// objectLocation property.
+    pub object_location: Option<GdataCompositeMedia>,
+    /// objectSizeBytes property.
+    pub object_size_bytes: Option<String>,
     /// objectVersion property.
     pub object_version: Option<String>,
-    /// originalObject property.
-    pub original_object: Option<GdataCompositeMedia>,
 }
 
 /// `GdataBlobstore2Info` type.
@@ -132,28 +128,6 @@ pub struct GdataBlobstore2Info {
     pub upload_fragment_list_creation_info: Option<String>,
     /// uploadMetadataContainer property.
     pub upload_metadata_container: Option<String>,
-}
-
-/// `GdataDiffDownloadResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GdataDiffDownloadResponse {
-    /// objectLocation property.
-    pub object_location: Option<GdataCompositeMedia>,
-}
-
-/// `GdataDiffChecksumsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GdataDiffChecksumsResponse {
-    /// checksumsLocation property.
-    pub checksums_location: Option<GdataCompositeMedia>,
-    /// chunkSizeBytes property.
-    pub chunk_size_bytes: Option<String>,
-    /// objectLocation property.
-    pub object_location: Option<GdataCompositeMedia>,
-    /// objectSizeBytes property.
-    pub object_size_bytes: Option<String>,
-    /// objectVersion property.
-    pub object_version: Option<String>,
 }
 
 /// `GdataMedia` type.
@@ -219,6 +193,33 @@ pub struct GdataMedia {
     pub timestamp: Option<String>,
     /// token property.
     pub token: Option<String>,
+}
+
+/// `GdataDiffVersionResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GdataDiffVersionResponse {
+    /// objectSizeBytes property.
+    pub object_size_bytes: Option<String>,
+    /// objectVersion property.
+    pub object_version: Option<String>,
+}
+
+/// `GdataDiffUploadResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GdataDiffUploadResponse {
+    /// objectVersion property.
+    pub object_version: Option<String>,
+    /// originalObject property.
+    pub original_object: Option<GdataCompositeMedia>,
+}
+
+/// `GdataDownloadParameters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GdataDownloadParameters {
+    /// allowGzipCompression property.
+    pub allow_gzip_compression: Option<bool>,
+    /// ignoreRange property.
+    pub ignore_range: Option<bool>,
 }
 
 // =============================================================================

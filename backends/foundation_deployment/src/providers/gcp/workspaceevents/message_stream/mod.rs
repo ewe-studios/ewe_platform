@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::StreamResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -57,36 +58,11 @@ pub struct Part {
     pub text: Option<String>,
 }
 
-/// `TaskStatusUpdateEvent` type.
+/// `DataPart` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TaskStatusUpdateEvent {
-    /// contextId property.
-    pub context_id: Option<String>,
-    /// final property.
-    pub r#final: Option<bool>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// status property.
-    pub status: Option<TaskStatus>,
-    /// taskId property.
-    pub task_id: Option<String>,
-}
-
-/// `TaskArtifactUpdateEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TaskArtifactUpdateEvent {
-    /// append property.
-    pub append: Option<bool>,
-    /// artifact property.
-    pub artifact: Option<Artifact>,
-    /// contextId property.
-    pub context_id: Option<String>,
-    /// lastChunk property.
-    pub last_chunk: Option<bool>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// taskId property.
-    pub task_id: Option<String>,
+pub struct DataPart {
+    /// data property.
+    pub data: Option<serde_json::Value>,
 }
 
 /// `Task` type.
@@ -106,15 +82,34 @@ pub struct Task {
     pub status: Option<TaskStatus>,
 }
 
-/// `TaskStatus` type.
+/// `FilePart` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TaskStatus {
-    /// message property.
-    pub message: Option<Message>,
-    /// state property.
-    pub state: Option<String>,
-    /// timestamp property.
-    pub timestamp: Option<String>,
+pub struct FilePart {
+    /// fileWithBytes property.
+    pub file_with_bytes: Option<String>,
+    /// fileWithUri property.
+    pub file_with_uri: Option<String>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `TaskArtifactUpdateEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TaskArtifactUpdateEvent {
+    /// append property.
+    pub append: Option<bool>,
+    /// artifact property.
+    pub artifact: Option<Artifact>,
+    /// contextId property.
+    pub context_id: Option<String>,
+    /// lastChunk property.
+    pub last_chunk: Option<bool>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// taskId property.
+    pub task_id: Option<String>,
 }
 
 /// `Message` type.
@@ -136,24 +131,30 @@ pub struct Message {
     pub task_id: Option<String>,
 }
 
-/// `DataPart` type.
+/// `TaskStatusUpdateEvent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataPart {
-    /// data property.
-    pub data: Option<serde_json::Value>,
+pub struct TaskStatusUpdateEvent {
+    /// contextId property.
+    pub context_id: Option<String>,
+    /// final property.
+    pub r#final: Option<bool>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// status property.
+    pub status: Option<TaskStatus>,
+    /// taskId property.
+    pub task_id: Option<String>,
 }
 
-/// `FilePart` type.
+/// `TaskStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FilePart {
-    /// fileWithBytes property.
-    pub file_with_bytes: Option<String>,
-    /// fileWithUri property.
-    pub file_with_uri: Option<String>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-    /// name property.
-    pub name: Option<String>,
+pub struct TaskStatus {
+    /// message property.
+    pub message: Option<Message>,
+    /// state property.
+    pub state: Option<String>,
+    /// timestamp property.
+    pub timestamp: Option<String>,
 }
 
 // =============================================================================

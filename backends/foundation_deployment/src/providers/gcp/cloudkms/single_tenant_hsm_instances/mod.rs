@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,22 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `QuorumAuth` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuorumAuth {
+    /// requiredApproverCount property.
+    pub required_approver_count: Option<i64>,
+    /// totalApproverCount property.
+    pub total_approver_count: Option<i64>,
+    /// twoFactorPublicKeyPems property.
+    pub two_factor_public_key_pems: Option<Vec<String>>,
+}
 
 /// `SingleTenantHsmInstance` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -55,17 +67,6 @@ pub struct ListSingleTenantHsmInstancesResponse {
     pub single_tenant_hsm_instances: Option<Vec<SingleTenantHsmInstance>>,
     /// totalSize property.
     pub total_size: Option<i64>,
-}
-
-/// `QuorumAuth` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuorumAuth {
-    /// requiredApproverCount property.
-    pub required_approver_count: Option<i64>,
-    /// totalApproverCount property.
-    pub total_approver_count: Option<i64>,
-    /// twoFactorPublicKeyPems property.
-    pub two_factor_public_key_pems: Option<Vec<String>>,
 }
 
 /// `Status` type.

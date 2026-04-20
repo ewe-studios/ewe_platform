@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,56 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `TestIamPermissionsResponse` type.
+/// `AuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestIamPermissionsResponse {
-    /// permissions property.
-    pub permissions: Option<Vec<String>>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `Attributes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Attributes {
-    /// businessOwners property.
-    pub business_owners: Option<Vec<ContactInfo>>,
-    /// criticality property.
-    pub criticality: Option<Criticality>,
-    /// developerOwners property.
-    pub developer_owners: Option<Vec<ContactInfo>>,
-    /// environment property.
-    pub environment: Option<Environment>,
-    /// operatorOwners property.
-    pub operator_owners: Option<Vec<ContactInfo>>,
-}
-
-/// `ListApplicationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListApplicationsResponse {
-    /// applications property.
-    pub applications: Option<Vec<Application>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
 }
 
 /// `Binding` type.
@@ -84,6 +48,44 @@ pub struct Binding {
     pub role: Option<String>,
 }
 
+/// `Scope` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Scope {
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `Policy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Policy {
+    /// auditConfigs property.
+    pub audit_configs: Option<Vec<AuditConfig>>,
+    /// bindings property.
+    pub bindings: Option<Vec<Binding>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// version property.
+    pub version: Option<i64>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `TestIamPermissionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TestIamPermissionsResponse {
+    /// permissions property.
+    pub permissions: Option<Vec<String>>,
+}
+
 /// `AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
@@ -93,29 +95,15 @@ pub struct AuditLogConfig {
     pub log_type: Option<String>,
 }
 
-/// `Criticality` type.
+/// `ListApplicationsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Criticality {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `ContactInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContactInfo {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// email property.
-    pub email: Option<String>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
+pub struct ListApplicationsResponse {
+    /// applications property.
+    pub applications: Option<Vec<Application>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `Application` type.
@@ -141,15 +129,19 @@ pub struct Application {
     pub update_time: Option<String>,
 }
 
-/// `Status` type.
+/// `Attributes` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct Attributes {
+    /// businessOwners property.
+    pub business_owners: Option<Vec<ContactInfo>>,
+    /// criticality property.
+    pub criticality: Option<Criticality>,
+    /// developerOwners property.
+    pub developer_owners: Option<Vec<ContactInfo>>,
+    /// environment property.
+    pub environment: Option<Environment>,
+    /// operatorOwners property.
+    pub operator_owners: Option<Vec<ContactInfo>>,
 }
 
 /// `Environment` type.
@@ -159,24 +151,33 @@ pub struct Environment {
     pub r#type: Option<String>,
 }
 
-/// `Scope` type.
+/// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Scope {
-    /// type property.
-    pub r#type: Option<String>,
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
-/// `Policy` type.
+/// `ContactInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Policy {
-    /// auditConfigs property.
-    pub audit_configs: Option<Vec<AuditConfig>>,
-    /// bindings property.
-    pub bindings: Option<Vec<Binding>>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// version property.
-    pub version: Option<i64>,
+pub struct ContactInfo {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// email property.
+    pub email: Option<String>,
+}
+
+/// `Criticality` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Criticality {
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,19 +22,35 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `PlatformLogsConfig` type.
+/// `UpstreamCredentials` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlatformLogsConfig {
-    /// loggingState property.
-    pub logging_state: Option<String>,
-    /// severityLevel property.
-    pub severity_level: Option<String>,
+pub struct UpstreamCredentials {
+    /// usernamePasswordCredentials property.
+    pub username_password_credentials: Option<UsernamePasswordCredentials>,
+}
+
+/// `GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigMavenRepositoryCustomRepository` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigMavenRepositoryCustomRepository {
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `ListRepositoriesResponse` type.
@@ -43,6 +60,46 @@ pub struct ListRepositoriesResponse {
     pub next_page_token: Option<String>,
     /// repositories property.
     pub repositories: Option<Vec<Repository>>,
+}
+
+/// `DockerRepositoryConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DockerRepositoryConfig {
+    /// immutableTags property.
+    pub immutable_tags: Option<bool>,
+}
+
+/// `NpmRepository` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NpmRepository {
+    /// customRepository property.
+    pub custom_repository:
+        Option<GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigNpmRepositoryCustomRepository>,
+    /// publicRepository property.
+    pub public_repository: Option<String>,
+}
+
+/// `GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryPublicRepository` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryPublicRepository {
+    /// repositoryBase property.
+    pub repository_base: Option<String>,
+    /// repositoryPath property.
+    pub repository_path: Option<String>,
+}
+
+/// `CommonRemoteRepository` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CommonRemoteRepository {
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `VirtualRepositoryConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VirtualRepositoryConfig {
+    /// upstreamPolicies property.
+    pub upstream_policies: Option<Vec<UpstreamPolicy>>,
 }
 
 /// `Repository` type.
@@ -92,52 +149,17 @@ pub struct Repository {
     pub vulnerability_scanning_config: Option<VulnerabilityScanningConfig>,
 }
 
-/// `NpmRepository` type.
+/// `VulnerabilityScanningConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NpmRepository {
-    /// customRepository property.
-    pub custom_repository:
-        Option<GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigNpmRepositoryCustomRepository>,
-    /// publicRepository property.
-    pub public_repository: Option<String>,
-}
-
-/// `UpstreamCredentials` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpstreamCredentials {
-    /// usernamePasswordCredentials property.
-    pub username_password_credentials: Option<UsernamePasswordCredentials>,
-}
-
-/// `UsernamePasswordCredentials` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UsernamePasswordCredentials {
-    /// passwordSecretVersion property.
-    pub password_secret_version: Option<String>,
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `PythonRepository` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PythonRepository {
-    /// customRepository property.
-    pub custom_repository: Option<
-        GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigPythonRepositoryCustomRepository,
-    >,
-    /// publicRepository property.
-    pub public_repository: Option<String>,
-}
-
-/// `MavenRepository` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MavenRepository {
-    /// customRepository property.
-    pub custom_repository: Option<
-        GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigMavenRepositoryCustomRepository,
-    >,
-    /// publicRepository property.
-    pub public_repository: Option<String>,
+pub struct VulnerabilityScanningConfig {
+    /// enablementConfig property.
+    pub enablement_config: Option<String>,
+    /// enablementState property.
+    pub enablement_state: Option<String>,
+    /// enablementStateReason property.
+    pub enablement_state_reason: Option<String>,
+    /// lastEnableTime property.
+    pub last_enable_time: Option<String>,
 }
 
 /// `RemoteRepositoryConfig` type.
@@ -165,17 +187,6 @@ pub struct RemoteRepositoryConfig {
     pub yum_repository: Option<YumRepository>,
 }
 
-/// `DockerRepository` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DockerRepository {
-    /// customRepository property.
-    pub custom_repository: Option<
-        GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigDockerRepositoryCustomRepository,
-    >,
-    /// publicRepository property.
-    pub public_repository: Option<String>,
-}
-
 /// `AptRepository` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AptRepository {
@@ -187,43 +198,48 @@ pub struct AptRepository {
         Option<GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryPublicRepository>,
 }
 
-/// `GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryCustomRepository` type.
+/// `DockerRepository` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryCustomRepository {
-    /// uri property.
-    pub uri: Option<String>,
+pub struct DockerRepository {
+    /// customRepository property.
+    pub custom_repository: Option<
+        GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigDockerRepositoryCustomRepository,
+    >,
+    /// publicRepository property.
+    pub public_repository: Option<String>,
 }
 
-/// `DockerRepositoryConfig` type.
+/// `UsernamePasswordCredentials` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DockerRepositoryConfig {
-    /// immutableTags property.
-    pub immutable_tags: Option<bool>,
+pub struct UsernamePasswordCredentials {
+    /// passwordSecretVersion property.
+    pub password_secret_version: Option<String>,
+    /// username property.
+    pub username: Option<String>,
 }
 
-/// `VirtualRepositoryConfig` type.
+/// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VirtualRepositoryConfig {
-    /// upstreamPolicies property.
-    pub upstream_policies: Option<Vec<UpstreamPolicy>>,
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
-/// `Binding` type.
+/// `MavenRepository` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryCustomRepository` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryCustomRepository {
-    /// uri property.
-    pub uri: Option<String>,
+pub struct MavenRepository {
+    /// customRepository property.
+    pub custom_repository: Option<
+        GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigMavenRepositoryCustomRepository,
+    >,
+    /// publicRepository property.
+    pub public_repository: Option<String>,
 }
 
 /// `TestIamPermissionsResponse` type.
@@ -233,42 +249,67 @@ pub struct TestIamPermissionsResponse {
     pub permissions: Option<Vec<String>>,
 }
 
-/// `MavenRepositoryConfig` type.
+/// `GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryCustomRepository` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MavenRepositoryConfig {
-    /// allowSnapshotOverwrites property.
-    pub allow_snapshot_overwrites: Option<bool>,
-    /// versionPolicy property.
-    pub version_policy: Option<String>,
+pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryCustomRepository {
+    /// uri property.
+    pub uri: Option<String>,
 }
 
-/// `GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryPublicRepository` type.
+/// `YumRepository` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryPublicRepository {
-    /// repositoryBase property.
-    pub repository_base: Option<String>,
-    /// repositoryPath property.
-    pub repository_path: Option<String>,
+pub struct YumRepository {
+    /// customRepository property.
+    pub custom_repository:
+        Option<GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryCustomRepository>,
+    /// publicRepository property.
+    pub public_repository:
+        Option<GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryPublicRepository>,
 }
 
-/// `GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryPublicRepository` type.
+/// `PythonRepository` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryPublicRepository {
-    /// repositoryBase property.
-    pub repository_base: Option<String>,
-    /// repositoryPath property.
-    pub repository_path: Option<String>,
+pub struct PythonRepository {
+    /// customRepository property.
+    pub custom_repository: Option<
+        GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigPythonRepositoryCustomRepository,
+    >,
+    /// publicRepository property.
+    pub public_repository: Option<String>,
 }
 
-/// `Policy` type.
+/// `UpstreamPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Policy {
-    /// bindings property.
-    pub bindings: Option<Vec<Binding>>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// version property.
-    pub version: Option<i64>,
+pub struct UpstreamPolicy {
+    /// id property.
+    pub id: Option<String>,
+    /// priority property.
+    pub priority: Option<i64>,
+    /// repository property.
+    pub repository: Option<String>,
+}
+
+/// `GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigDockerRepositoryCustomRepository` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigDockerRepositoryCustomRepository {
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryCustomRepository` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryCustomRepository {
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `PlatformLogsConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlatformLogsConfig {
+    /// loggingState property.
+    pub logging_state: Option<String>,
+    /// severityLevel property.
+    pub severity_level: Option<String>,
 }
 
 /// `GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigPythonRepositoryCustomRepository` type.
@@ -296,73 +337,33 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `YumRepository` type.
+/// `Policy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct YumRepository {
-    /// customRepository property.
-    pub custom_repository:
-        Option<GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryCustomRepository>,
-    /// publicRepository property.
-    pub public_repository:
-        Option<GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryPublicRepository>,
+pub struct Policy {
+    /// bindings property.
+    pub bindings: Option<Vec<Binding>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// version property.
+    pub version: Option<i64>,
 }
 
-/// `VulnerabilityScanningConfig` type.
+/// `GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryPublicRepository` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VulnerabilityScanningConfig {
-    /// enablementConfig property.
-    pub enablement_config: Option<String>,
-    /// enablementState property.
-    pub enablement_state: Option<String>,
-    /// enablementStateReason property.
-    pub enablement_state_reason: Option<String>,
-    /// lastEnableTime property.
-    pub last_enable_time: Option<String>,
+pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryPublicRepository {
+    /// repositoryBase property.
+    pub repository_base: Option<String>,
+    /// repositoryPath property.
+    pub repository_path: Option<String>,
 }
 
-/// `GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigMavenRepositoryCustomRepository` type.
+/// `MavenRepositoryConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigMavenRepositoryCustomRepository {
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `UpstreamPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpstreamPolicy {
-    /// id property.
-    pub id: Option<String>,
-    /// priority property.
-    pub priority: Option<i64>,
-    /// repository property.
-    pub repository: Option<String>,
-}
-
-/// `CommonRemoteRepository` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CommonRemoteRepository {
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigDockerRepositoryCustomRepository` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigDockerRepositoryCustomRepository {
-    /// uri property.
-    pub uri: Option<String>,
+pub struct MavenRepositoryConfig {
+    /// allowSnapshotOverwrites property.
+    pub allow_snapshot_overwrites: Option<bool>,
+    /// versionPolicy property.
+    pub version_policy: Option<String>,
 }
 
 // =============================================================================

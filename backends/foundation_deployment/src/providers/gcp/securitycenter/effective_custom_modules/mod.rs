@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -34,35 +35,6 @@ pub struct ListEffectiveEventThreatDetectionCustomModulesResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleCloudSecuritycenterV1CustomOutputSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudSecuritycenterV1CustomOutputSpec {
-    /// properties property.
-    pub properties: Option<Vec<GoogleCloudSecuritycenterV1Property>>,
-}
-
-/// `GoogleCloudSecuritycenterV1Property` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudSecuritycenterV1Property {
-    /// name property.
-    pub name: Option<String>,
-    /// valueExpression property.
-    pub value_expression: Option<Expr>,
-}
-
 /// `GoogleCloudSecuritycenterV1EffectiveSecurityHealthAnalyticsCustomModule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1EffectiveSecurityHealthAnalyticsCustomModule {
@@ -76,6 +48,43 @@ pub struct GoogleCloudSecuritycenterV1EffectiveSecurityHealthAnalyticsCustomModu
     pub enablement_state: Option<String>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `GoogleCloudSecuritycenterV1CustomOutputSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudSecuritycenterV1CustomOutputSpec {
+    /// properties property.
+    pub properties: Option<Vec<GoogleCloudSecuritycenterV1Property>>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleCloudSecuritycenterV1CustomConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudSecuritycenterV1CustomConfig {
+    /// customOutput property.
+    pub custom_output: Option<GoogleCloudSecuritycenterV1CustomOutputSpec>,
+    /// description property.
+    pub description: Option<String>,
+    /// predicate property.
+    pub predicate: Option<Expr>,
+    /// recommendation property.
+    pub recommendation: Option<String>,
+    /// resourceSelector property.
+    pub resource_selector: Option<GoogleCloudSecuritycenterV1ResourceSelector>,
+    /// severity property.
+    pub severity: Option<String>,
 }
 
 /// `GoogleCloudSecuritycenterV1ResourceSelector` type.
@@ -95,6 +104,15 @@ pub struct ListEffectiveSecurityHealthAnalyticsCustomModulesResponse {
     pub next_page_token: Option<String>,
 }
 
+/// `GoogleCloudSecuritycenterV1Property` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudSecuritycenterV1Property {
+    /// name property.
+    pub name: Option<String>,
+    /// valueExpression property.
+    pub value_expression: Option<Expr>,
+}
+
 /// `EffectiveEventThreatDetectionCustomModule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EffectiveEventThreatDetectionCustomModule {
@@ -112,23 +130,6 @@ pub struct EffectiveEventThreatDetectionCustomModule {
     pub name: Option<String>,
     /// type property.
     pub r#type: Option<String>,
-}
-
-/// `GoogleCloudSecuritycenterV1CustomConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudSecuritycenterV1CustomConfig {
-    /// customOutput property.
-    pub custom_output: Option<GoogleCloudSecuritycenterV1CustomOutputSpec>,
-    /// description property.
-    pub description: Option<String>,
-    /// predicate property.
-    pub predicate: Option<Expr>,
-    /// recommendation property.
-    pub recommendation: Option<String>,
-    /// resourceSelector property.
-    pub resource_selector: Option<GoogleCloudSecuritycenterV1ResourceSelector>,
-    /// severity property.
-    pub severity: Option<String>,
 }
 
 // =============================================================================

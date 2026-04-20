@@ -12,72 +12,35 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleChromeManagementV1PeripheralsReport` type.
+/// `GoogleChromeManagementV1AppReport` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1PeripheralsReport {
+pub struct GoogleChromeManagementV1AppReport {
     /// reportTime property.
     pub report_time: Option<String>,
-    /// usbPeripheralReport property.
-    pub usb_peripheral_report: Option<Vec<GoogleChromeManagementV1UsbPeripheralReport>>,
+    /// usageData property.
+    pub usage_data: Option<Vec<GoogleChromeManagementV1AppUsageData>>,
 }
 
-/// `GoogleChromeManagementV1TelemetryUserDevice` type.
+/// `GoogleChromeManagementV1DeviceActivityReport` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1TelemetryUserDevice {
-    /// appReport property.
-    pub app_report: Option<Vec<GoogleChromeManagementV1AppReport>>,
-    /// audioStatusReport property.
-    pub audio_status_report: Option<Vec<GoogleChromeManagementV1AudioStatusReport>>,
-    /// deviceActivityReport property.
-    pub device_activity_report: Option<Vec<GoogleChromeManagementV1DeviceActivityReport>>,
-    /// deviceId property.
-    pub device_id: Option<String>,
-    /// networkBandwidthReport property.
-    pub network_bandwidth_report: Option<Vec<GoogleChromeManagementV1NetworkBandwidthReport>>,
-    /// peripheralsReport property.
-    pub peripherals_report: Option<Vec<GoogleChromeManagementV1PeripheralsReport>>,
-}
-
-/// `GoogleChromeManagementV1ListTelemetryUsersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1ListTelemetryUsersResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// telemetryUsers property.
-    pub telemetry_users: Option<Vec<GoogleChromeManagementV1TelemetryUser>>,
-}
-
-/// `GoogleChromeManagementV1UsbPeripheralReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1UsbPeripheralReport {
-    /// categories property.
-    pub categories: Option<Vec<String>>,
-    /// classId property.
-    pub class_id: Option<i64>,
-    /// firmwareVersion property.
-    pub firmware_version: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// pid property.
-    pub pid: Option<i64>,
-    /// subclassId property.
-    pub subclass_id: Option<i64>,
-    /// vendor property.
-    pub vendor: Option<String>,
-    /// vid property.
-    pub vid: Option<i64>,
+pub struct GoogleChromeManagementV1DeviceActivityReport {
+    /// deviceActivityState property.
+    pub device_activity_state: Option<String>,
+    /// reportTime property.
+    pub report_time: Option<String>,
 }
 
 /// `GoogleChromeManagementV1TelemetryUser` type.
@@ -97,11 +60,37 @@ pub struct GoogleChromeManagementV1TelemetryUser {
     pub user_id: Option<String>,
 }
 
-/// `GoogleChromeManagementV1DeviceActivityReport` type.
+/// `GoogleChromeManagementV1ListTelemetryUsersResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1DeviceActivityReport {
-    /// deviceActivityState property.
-    pub device_activity_state: Option<String>,
+pub struct GoogleChromeManagementV1ListTelemetryUsersResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// telemetryUsers property.
+    pub telemetry_users: Option<Vec<GoogleChromeManagementV1TelemetryUser>>,
+}
+
+/// `GoogleChromeManagementV1TelemetryUserDevice` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1TelemetryUserDevice {
+    /// appReport property.
+    pub app_report: Option<Vec<GoogleChromeManagementV1AppReport>>,
+    /// audioStatusReport property.
+    pub audio_status_report: Option<Vec<GoogleChromeManagementV1AudioStatusReport>>,
+    /// deviceActivityReport property.
+    pub device_activity_report: Option<Vec<GoogleChromeManagementV1DeviceActivityReport>>,
+    /// deviceId property.
+    pub device_id: Option<String>,
+    /// networkBandwidthReport property.
+    pub network_bandwidth_report: Option<Vec<GoogleChromeManagementV1NetworkBandwidthReport>>,
+    /// peripheralsReport property.
+    pub peripherals_report: Option<Vec<GoogleChromeManagementV1PeripheralsReport>>,
+}
+
+/// `GoogleChromeManagementV1NetworkBandwidthReport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1NetworkBandwidthReport {
+    /// downloadSpeedKbps property.
+    pub download_speed_kbps: Option<String>,
     /// reportTime property.
     pub report_time: Option<String>,
 }
@@ -119,13 +108,13 @@ pub struct GoogleChromeManagementV1AppUsageData {
     pub running_duration: Option<String>,
 }
 
-/// `GoogleChromeManagementV1AppReport` type.
+/// `GoogleChromeManagementV1PeripheralsReport` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1AppReport {
+pub struct GoogleChromeManagementV1PeripheralsReport {
     /// reportTime property.
     pub report_time: Option<String>,
-    /// usageData property.
-    pub usage_data: Option<Vec<GoogleChromeManagementV1AppUsageData>>,
+    /// usbPeripheralReport property.
+    pub usb_peripheral_report: Option<Vec<GoogleChromeManagementV1UsbPeripheralReport>>,
 }
 
 /// `GoogleChromeManagementV1AudioStatusReport` type.
@@ -147,13 +136,25 @@ pub struct GoogleChromeManagementV1AudioStatusReport {
     pub report_time: Option<String>,
 }
 
-/// `GoogleChromeManagementV1NetworkBandwidthReport` type.
+/// `GoogleChromeManagementV1UsbPeripheralReport` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1NetworkBandwidthReport {
-    /// downloadSpeedKbps property.
-    pub download_speed_kbps: Option<String>,
-    /// reportTime property.
-    pub report_time: Option<String>,
+pub struct GoogleChromeManagementV1UsbPeripheralReport {
+    /// categories property.
+    pub categories: Option<Vec<String>>,
+    /// classId property.
+    pub class_id: Option<i64>,
+    /// firmwareVersion property.
+    pub firmware_version: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// pid property.
+    pub pid: Option<i64>,
+    /// subclassId property.
+    pub subclass_id: Option<i64>,
+    /// vendor property.
+    pub vendor: Option<String>,
+    /// vid property.
+    pub vid: Option<i64>,
 }
 
 // =============================================================================

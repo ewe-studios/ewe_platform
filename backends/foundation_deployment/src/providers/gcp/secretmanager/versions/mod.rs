@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,43 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::SecretVersion;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ReplicationStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReplicationStatus {
-    /// automatic property.
-    pub automatic: Option<AutomaticStatus>,
-    /// userManaged property.
-    pub user_managed: Option<UserManagedStatus>,
-}
-
-/// `UserManagedStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserManagedStatus {
-    /// replicas property.
-    pub replicas: Option<Vec<ReplicaStatus>>,
-}
-
-/// `ReplicaStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReplicaStatus {
-    /// customerManagedEncryption property.
-    pub customer_managed_encryption: Option<CustomerManagedEncryptionStatus>,
-    /// location property.
-    pub location: Option<String>,
-}
-
-/// `CustomerManagedEncryptionStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerManagedEncryptionStatus {
-    /// kmsKeyVersionName property.
-    pub kms_key_version_name: Option<String>,
-}
 
 /// `AccessSecretVersionResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -79,11 +48,36 @@ pub struct ListSecretVersionsResponse {
     pub versions: Option<Vec<SecretVersion>>,
 }
 
+/// `ReplicationStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReplicationStatus {
+    /// automatic property.
+    pub automatic: Option<AutomaticStatus>,
+    /// userManaged property.
+    pub user_managed: Option<UserManagedStatus>,
+}
+
+/// `ReplicaStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReplicaStatus {
+    /// customerManagedEncryption property.
+    pub customer_managed_encryption: Option<CustomerManagedEncryptionStatus>,
+    /// location property.
+    pub location: Option<String>,
+}
+
 /// `AutomaticStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutomaticStatus {
     /// customerManagedEncryption property.
     pub customer_managed_encryption: Option<CustomerManagedEncryptionStatus>,
+}
+
+/// `CustomerManagedEncryptionStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomerManagedEncryptionStatus {
+    /// kmsKeyVersionName property.
+    pub kms_key_version_name: Option<String>,
 }
 
 /// `SecretPayload` type.
@@ -93,6 +87,13 @@ pub struct SecretPayload {
     pub data: Option<String>,
     /// dataCrc32c property.
     pub data_crc32c: Option<String>,
+}
+
+/// `UserManagedStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UserManagedStatus {
+    /// replicas property.
+    pub replicas: Option<Vec<ReplicaStatus>>,
 }
 
 // =============================================================================

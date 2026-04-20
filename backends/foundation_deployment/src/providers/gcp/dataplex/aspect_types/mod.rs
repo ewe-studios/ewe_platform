@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,122 +24,17 @@ use super::shared::GoogleIamV1Policy;
 use super::shared::GoogleIamV1TestIamPermissionsResponse;
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudDataplexV1ListAspectTypesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1ListAspectTypesResponse {
-    /// aspectTypes property.
-    pub aspect_types: Option<Vec<GoogleCloudDataplexV1AspectType>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachableLocations property.
-    pub unreachable_locations: Option<Vec<String>>,
-}
 
 /// `GoogleCloudDataplexV1AspectTypeAuthorization` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1AspectTypeAuthorization {
     /// alternateUsePermission property.
     pub alternate_use_permission: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1AspectTypeMetadataTemplate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplate {
-    /// annotations property.
-    pub annotations: Option<GoogleCloudDataplexV1AspectTypeMetadataTemplateAnnotations>,
-    /// arrayItems property.
-    pub array_items: Option<GoogleCloudDataplexV1AspectTypeMetadataTemplate>,
-    /// constraints property.
-    pub constraints: Option<GoogleCloudDataplexV1AspectTypeMetadataTemplateConstraints>,
-    /// enumValues property.
-    pub enum_values: Option<Vec<GoogleCloudDataplexV1AspectTypeMetadataTemplateEnumValue>>,
-    /// index property.
-    pub index: Option<i64>,
-    /// mapItems property.
-    pub map_items: Option<GoogleCloudDataplexV1AspectTypeMetadataTemplate>,
-    /// name property.
-    pub name: Option<String>,
-    /// recordFields property.
-    pub record_fields: Option<Vec<GoogleCloudDataplexV1AspectTypeMetadataTemplate>>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// typeId property.
-    pub type_id: Option<String>,
-    /// typeRef property.
-    pub type_ref: Option<String>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleIamV1Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Binding {
-    /// condition property.
-    pub condition: Option<GoogleTypeExpr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1AspectTypeMetadataTemplateConstraints` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplateConstraints {
-    /// required property.
-    pub required: Option<bool>,
-}
-
-/// `GoogleIamV1AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1AspectType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1AspectType {
-    /// authorization property.
-    pub authorization: Option<GoogleCloudDataplexV1AspectTypeAuthorization>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// dataClassification property.
-    pub data_classification: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// metadataTemplate property.
-    pub metadata_template: Option<GoogleCloudDataplexV1AspectTypeMetadataTemplate>,
-    /// name property.
-    pub name: Option<String>,
-    /// transferStatus property.
-    pub transfer_status: Option<String>,
-    /// uid property.
-    pub uid: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
 }
 
 /// `GoogleCloudDataplexV1AspectTypeMetadataTemplateAnnotations` type.
@@ -171,13 +67,15 @@ pub struct GoogleTypeExpr {
     pub title: Option<String>,
 }
 
-/// `GoogleIamV1AuditConfig` type.
+/// `GoogleCloudDataplexV1ListAspectTypesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
+pub struct GoogleCloudDataplexV1ListAspectTypesResponse {
+    /// aspectTypes property.
+    pub aspect_types: Option<Vec<GoogleCloudDataplexV1AspectType>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachableLocations property.
+    pub unreachable_locations: Option<Vec<String>>,
 }
 
 /// `GoogleCloudDataplexV1AspectTypeMetadataTemplateEnumValue` type.
@@ -189,6 +87,109 @@ pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplateEnumValue {
     pub index: Option<i64>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1AspectTypeMetadataTemplateConstraints` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplateConstraints {
+    /// required property.
+    pub required: Option<bool>,
+}
+
+/// `GoogleIamV1AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1AspectType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1AspectType {
+    /// authorization property.
+    pub authorization: Option<GoogleCloudDataplexV1AspectTypeAuthorization>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// dataClassification property.
+    pub data_classification: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// metadataTemplate property.
+    pub metadata_template: Option<Box<GoogleCloudDataplexV1AspectTypeMetadataTemplate>>,
+    /// name property.
+    pub name: Option<String>,
+    /// transferStatus property.
+    pub transfer_status: Option<String>,
+    /// uid property.
+    pub uid: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `GoogleIamV1Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1Binding {
+    /// condition property.
+    pub condition: Option<GoogleTypeExpr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1AspectTypeMetadataTemplate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplate {
+    /// annotations property.
+    pub annotations: Option<GoogleCloudDataplexV1AspectTypeMetadataTemplateAnnotations>,
+    /// arrayItems property.
+    pub array_items: Option<Box<GoogleCloudDataplexV1AspectTypeMetadataTemplate>>,
+    /// constraints property.
+    pub constraints: Option<GoogleCloudDataplexV1AspectTypeMetadataTemplateConstraints>,
+    /// enumValues property.
+    pub enum_values: Option<Vec<GoogleCloudDataplexV1AspectTypeMetadataTemplateEnumValue>>,
+    /// index property.
+    pub index: Option<i64>,
+    /// mapItems property.
+    pub map_items: Option<Box<GoogleCloudDataplexV1AspectTypeMetadataTemplate>>,
+    /// name property.
+    pub name: Option<String>,
+    /// recordFields property.
+    pub record_fields: Option<Vec<Box<GoogleCloudDataplexV1AspectTypeMetadataTemplate>>>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// typeId property.
+    pub type_id: Option<String>,
+    /// typeRef property.
+    pub type_ref: Option<String>,
+}
+
+/// `GoogleIamV1AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
 // =============================================================================

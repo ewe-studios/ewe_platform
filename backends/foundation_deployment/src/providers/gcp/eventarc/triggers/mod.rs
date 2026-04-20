@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,80 +24,11 @@ use super::shared::GoogleLongrunningOperation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListTriggersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListTriggersResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// triggers property.
-    pub triggers: Option<Vec<Trigger>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `Transport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Transport {
-    /// pubsub property.
-    pub pubsub: Option<Pubsub>,
-}
-
-/// `HttpEndpoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpEndpoint {
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `EventFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventFilter {
-    /// attribute property.
-    pub attribute: Option<String>,
-    /// operator property.
-    pub operator: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Pubsub` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Pubsub {
-    /// subscription property.
-    pub subscription: Option<String>,
-    /// topic property.
-    pub topic: Option<String>,
-}
-
-/// `CloudRun` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudRun {
-    /// path property.
-    pub path: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-    /// service property.
-    pub service: Option<String>,
-}
 
 /// `AuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -105,6 +37,22 @@ pub struct AuditConfig {
     pub audit_log_configs: Option<Vec<AuditLogConfig>>,
     /// service property.
     pub service: Option<String>,
+}
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `RetryPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RetryPolicy {
+    /// maxAttempts property.
+    pub max_attempts: Option<i64>,
 }
 
 /// `Trigger` type.
@@ -142,35 +90,6 @@ pub struct Trigger {
     pub update_time: Option<String>,
 }
 
-/// `NetworkConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkConfig {
-    /// networkAttachment property.
-    pub network_attachment: Option<String>,
-}
-
-/// `GKE` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GKE {
-    /// cluster property.
-    pub cluster: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// namespace property.
-    pub namespace: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `RetryPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RetryPolicy {
-    /// maxAttempts property.
-    pub max_attempts: Option<i64>,
-}
-
 /// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
@@ -180,17 +99,6 @@ pub struct Binding {
     pub members: Option<Vec<String>>,
     /// role property.
     pub role: Option<String>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 /// `Destination` type.
@@ -210,13 +118,106 @@ pub struct Destination {
     pub workflow: Option<String>,
 }
 
-/// `AuditLogConfig` type.
+/// `Transport` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
+pub struct Transport {
+    /// pubsub property.
+    pub pubsub: Option<Pubsub>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `Pubsub` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Pubsub {
+    /// subscription property.
+    pub subscription: Option<String>,
+    /// topic property.
+    pub topic: Option<String>,
+}
+
+/// `GKE` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GKE {
+    /// cluster property.
+    pub cluster: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// namespace property.
+    pub namespace: Option<String>,
+    /// path property.
+    pub path: Option<String>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `EventFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EventFilter {
+    /// attribute property.
+    pub attribute: Option<String>,
+    /// operator property.
+    pub operator: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `HttpEndpoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpEndpoint {
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `CloudRun` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudRun {
+    /// path property.
+    pub path: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `NetworkConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkConfig {
+    /// networkAttachment property.
+    pub network_attachment: Option<String>,
+}
+
+/// `ListTriggersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListTriggersResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// triggers property.
+    pub triggers: Option<Vec<Trigger>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 // =============================================================================

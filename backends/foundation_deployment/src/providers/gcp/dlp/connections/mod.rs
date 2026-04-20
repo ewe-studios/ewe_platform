@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,15 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GooglePrivacyDlpV2CloudSqlIamCredential` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2CloudSqlIamCredential {}
 
 /// `GooglePrivacyDlpV2CloudSqlProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -55,13 +60,15 @@ pub struct GooglePrivacyDlpV2Connection {
     pub state: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2SecretManagerCredential` type.
+/// `GooglePrivacyDlpV2Error` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2SecretManagerCredential {
-    /// passwordSecretVersionName property.
-    pub password_secret_version_name: Option<String>,
-    /// username property.
-    pub username: Option<String>,
+pub struct GooglePrivacyDlpV2Error {
+    /// details property.
+    pub details: Option<GoogleRpcStatus>,
+    /// extraInfo property.
+    pub extra_info: Option<String>,
+    /// timestamps property.
+    pub timestamps: Option<Vec<String>>,
 }
 
 /// `GoogleRpcStatus` type.
@@ -84,19 +91,13 @@ pub struct GooglePrivacyDlpV2ListConnectionsResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2CloudSqlIamCredential` type.
+/// `GooglePrivacyDlpV2SecretManagerCredential` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2CloudSqlIamCredential {}
-
-/// `GooglePrivacyDlpV2Error` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Error {
-    /// details property.
-    pub details: Option<GoogleRpcStatus>,
-    /// extraInfo property.
-    pub extra_info: Option<String>,
-    /// timestamps property.
-    pub timestamps: Option<Vec<String>>,
+pub struct GooglePrivacyDlpV2SecretManagerCredential {
+    /// passwordSecretVersionName property.
+    pub password_secret_version_name: Option<String>,
+    /// username property.
+    pub username: Option<String>,
 }
 
 // =============================================================================

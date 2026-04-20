@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,21 +22,17 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Name` type.
+/// `GlobalPermission` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Name {
-    /// familyName property.
-    pub family_name: Option<String>,
-    /// fullName property.
-    pub full_name: Option<String>,
-    /// givenName property.
-    pub given_name: Option<String>,
+pub struct GlobalPermission {
+    /// permission property.
+    pub permission: Option<String>,
 }
 
 /// `UserProfile` type.
@@ -53,6 +50,17 @@ pub struct UserProfile {
     pub photo_url: Option<String>,
     /// verifiedTeacher property.
     pub verified_teacher: Option<bool>,
+}
+
+/// `Name` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Name {
+    /// familyName property.
+    pub family_name: Option<String>,
+    /// fullName property.
+    pub full_name: Option<String>,
+    /// givenName property.
+    pub given_name: Option<String>,
 }
 
 /// `ListGuardiansResponse` type.
@@ -75,13 +83,6 @@ pub struct Guardian {
     pub invited_email_address: Option<String>,
     /// studentId property.
     pub student_id: Option<String>,
-}
-
-/// `GlobalPermission` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GlobalPermission {
-    /// permission property.
-    pub permission: Option<String>,
 }
 
 // =============================================================================

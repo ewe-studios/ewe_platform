@@ -12,42 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudAiplatformV1SharePointSources` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SharePointSources {
-    /// sharePointSources property.
-    pub share_point_sources: Option<Vec<GoogleCloudAiplatformV1SharePointSourcesSharePointSource>>,
-}
-
-/// `GoogleCloudAiplatformV1JiraSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1JiraSource {
-    /// jiraQueries property.
-    pub jira_queries: Option<Vec<GoogleCloudAiplatformV1JiraSourceJiraQueries>>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
 
 /// `GoogleCloudAiplatformV1RagFile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -80,6 +56,19 @@ pub struct GoogleCloudAiplatformV1RagFile {
     pub user_metadata: Option<String>,
 }
 
+/// `GoogleCloudAiplatformV1FileStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FileStatus {
+    /// errorStatus property.
+    pub error_status: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1DirectUploadSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1DirectUploadSource {}
+
 /// `GoogleCloudAiplatformV1JiraSourceJiraQueries` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1JiraSourceJiraQueries {
@@ -95,29 +84,70 @@ pub struct GoogleCloudAiplatformV1JiraSourceJiraQueries {
     pub server_uri: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1FileStatus` type.
+/// `GoogleCloudAiplatformV1SlackSourceSlackChannels` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FileStatus {
-    /// errorStatus property.
-    pub error_status: Option<String>,
-    /// state property.
-    pub state: Option<String>,
+pub struct GoogleCloudAiplatformV1SlackSourceSlackChannels {
+    /// apiKeyConfig property.
+    pub api_key_config: Option<GoogleCloudAiplatformV1ApiAuthApiKeyConfig>,
+    /// channels property.
+    pub channels: Option<Vec<GoogleCloudAiplatformV1SlackSourceSlackChannelsSlackChannel>>,
 }
 
-/// `GoogleCloudAiplatformV1GcsSource` type.
+/// `GoogleCloudAiplatformV1GoogleDriveSourceResourceId` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GcsSource {
-    /// uris property.
-    pub uris: Option<Vec<String>>,
+pub struct GoogleCloudAiplatformV1GoogleDriveSourceResourceId {
+    /// resourceId property.
+    pub resource_id: Option<String>,
+    /// resourceType property.
+    pub resource_type: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1UploadRagFileResponse` type.
+/// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1UploadRagFileResponse {
-    /// error property.
-    pub error: Option<GoogleRpcStatus>,
-    /// ragFile property.
-    pub rag_file: Option<GoogleCloudAiplatformV1RagFile>,
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1SlackSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1SlackSource {
+    /// channels property.
+    pub channels: Option<Vec<GoogleCloudAiplatformV1SlackSourceSlackChannels>>,
+}
+
+/// `GoogleCloudAiplatformV1GoogleDriveSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1GoogleDriveSource {
+    /// resourceIds property.
+    pub resource_ids: Option<Vec<GoogleCloudAiplatformV1GoogleDriveSourceResourceId>>,
+}
+
+/// `GoogleCloudAiplatformV1JiraSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1JiraSource {
+    /// jiraQueries property.
+    pub jira_queries: Option<Vec<GoogleCloudAiplatformV1JiraSourceJiraQueries>>,
+}
+
+/// `GoogleCloudAiplatformV1ApiAuthApiKeyConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ApiAuthApiKeyConfig {
+    /// apiKeySecretVersion property.
+    pub api_key_secret_version: Option<String>,
+    /// apiKeyString property.
+    pub api_key_string: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1SharePointSources` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1SharePointSources {
+    /// sharePointSources property.
+    pub share_point_sources: Option<Vec<GoogleCloudAiplatformV1SharePointSourcesSharePointSource>>,
 }
 
 /// `GoogleCloudAiplatformV1SlackSourceSlackChannelsSlackChannel` type.
@@ -129,6 +159,15 @@ pub struct GoogleCloudAiplatformV1SlackSourceSlackChannelsSlackChannel {
     pub end_time: Option<String>,
     /// startTime property.
     pub start_time: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1UploadRagFileResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1UploadRagFileResponse {
+    /// error property.
+    pub error: Option<GoogleRpcStatus>,
+    /// ragFile property.
+    pub rag_file: Option<GoogleCloudAiplatformV1RagFile>,
 }
 
 /// `GoogleCloudAiplatformV1SharePointSourcesSharePointSource` type.
@@ -154,49 +193,11 @@ pub struct GoogleCloudAiplatformV1SharePointSourcesSharePointSource {
     pub tenant_id: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1SlackSourceSlackChannels` type.
+/// `GoogleCloudAiplatformV1GcsSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SlackSourceSlackChannels {
-    /// apiKeyConfig property.
-    pub api_key_config: Option<GoogleCloudAiplatformV1ApiAuthApiKeyConfig>,
-    /// channels property.
-    pub channels: Option<Vec<GoogleCloudAiplatformV1SlackSourceSlackChannelsSlackChannel>>,
-}
-
-/// `GoogleCloudAiplatformV1SlackSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SlackSource {
-    /// channels property.
-    pub channels: Option<Vec<GoogleCloudAiplatformV1SlackSourceSlackChannels>>,
-}
-
-/// `GoogleCloudAiplatformV1DirectUploadSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DirectUploadSource {}
-
-/// `GoogleCloudAiplatformV1ApiAuthApiKeyConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ApiAuthApiKeyConfig {
-    /// apiKeySecretVersion property.
-    pub api_key_secret_version: Option<String>,
-    /// apiKeyString property.
-    pub api_key_string: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1GoogleDriveSourceResourceId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GoogleDriveSourceResourceId {
-    /// resourceId property.
-    pub resource_id: Option<String>,
-    /// resourceType property.
-    pub resource_type: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1GoogleDriveSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GoogleDriveSource {
-    /// resourceIds property.
-    pub resource_ids: Option<Vec<GoogleCloudAiplatformV1GoogleDriveSourceResourceId>>,
+pub struct GoogleCloudAiplatformV1GcsSource {
+    /// uris property.
+    pub uris: Option<Vec<String>>,
 }
 
 // =============================================================================

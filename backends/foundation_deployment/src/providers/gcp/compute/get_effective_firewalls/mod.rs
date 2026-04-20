@@ -12,109 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::FirewallPolicyRule;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `InstancesGetEffectiveFirewallsResponse` type.
+/// `FirewallParams` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesGetEffectiveFirewallsResponse {
-    /// firewallPolicys property.
-    pub firewall_policys:
-        Option<Vec<InstancesGetEffectiveFirewallsResponseEffectiveFirewallPolicy>>,
-    /// firewalls property.
-    pub firewalls: Option<Vec<Firewall>>,
-}
-
-/// `FirewallPolicyRuleSecureTag` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallPolicyRuleSecureTag {
-    /// name property.
-    pub name: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `NetworksGetEffectiveFirewallsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworksGetEffectiveFirewallsResponse {
-    /// firewallPolicys property.
-    pub firewall_policys: Option<Vec<NetworksGetEffectiveFirewallsResponseEffectiveFirewallPolicy>>,
-    /// firewalls property.
-    pub firewalls: Option<Vec<Firewall>>,
-}
-
-/// `RegionNetworkFirewallPoliciesGetEffectiveFirewallsResponseEffectiveFirewallPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegionNetworkFirewallPoliciesGetEffectiveFirewallsResponseEffectiveFirewallPolicy {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// packetMirroringRules property.
-    pub packet_mirroring_rules: Option<Vec<FirewallPolicyRule>>,
-    /// priority property.
-    pub priority: Option<i64>,
-    /// rules property.
-    pub rules: Option<Vec<FirewallPolicyRule>>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `FirewallLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallLogConfig {
-    /// enable property.
-    pub enable: Option<bool>,
-    /// metadata property.
-    pub metadata: Option<String>,
-}
-
-/// `InstancesGetEffectiveFirewallsResponseEffectiveFirewallPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesGetEffectiveFirewallsResponseEffectiveFirewallPolicy {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// packetMirroringRules property.
-    pub packet_mirroring_rules: Option<Vec<FirewallPolicyRule>>,
-    /// priority property.
-    pub priority: Option<i64>,
-    /// rules property.
-    pub rules: Option<Vec<FirewallPolicyRule>>,
-    /// shortName property.
-    pub short_name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `RegionNetworkFirewallPoliciesGetEffectiveFirewallsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegionNetworkFirewallPoliciesGetEffectiveFirewallsResponse {
-    /// firewallPolicys property.
-    pub firewall_policys: Option<
-        Vec<RegionNetworkFirewallPoliciesGetEffectiveFirewallsResponseEffectiveFirewallPolicy>,
-    >,
-    /// firewalls property.
-    pub firewalls: Option<Vec<Firewall>>,
-}
-
-/// `FirewallPolicyRuleMatcherLayer4Config` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallPolicyRuleMatcherLayer4Config {
-    /// ipProtocol property.
-    pub ip_protocol: Option<String>,
-    /// ports property.
-    pub ports: Option<Vec<String>>,
+pub struct FirewallParams {
+    /// resourceManagerTags property.
+    pub resource_manager_tags: Option<serde_json::Value>,
 }
 
 /// `FirewallPolicyRuleMatcher` type.
@@ -156,16 +74,9 @@ pub struct FirewallPolicyRuleMatcher {
     pub src_threat_intelligences: Option<Vec<String>>,
 }
 
-/// `FirewallParams` type.
+/// `RegionNetworkFirewallPoliciesGetEffectiveFirewallsResponseEffectiveFirewallPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallParams {
-    /// resourceManagerTags property.
-    pub resource_manager_tags: Option<serde_json::Value>,
-}
-
-/// `NetworksGetEffectiveFirewallsResponseEffectiveFirewallPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworksGetEffectiveFirewallsResponseEffectiveFirewallPolicy {
+pub struct RegionNetworkFirewallPoliciesGetEffectiveFirewallsResponseEffectiveFirewallPolicy {
     /// displayName property.
     pub display_name: Option<String>,
     /// name property.
@@ -176,10 +87,28 @@ pub struct NetworksGetEffectiveFirewallsResponseEffectiveFirewallPolicy {
     pub priority: Option<i64>,
     /// rules property.
     pub rules: Option<Vec<FirewallPolicyRule>>,
-    /// shortName property.
-    pub short_name: Option<String>,
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `RegionNetworkFirewallPoliciesGetEffectiveFirewallsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegionNetworkFirewallPoliciesGetEffectiveFirewallsResponse {
+    /// firewallPolicys property.
+    pub firewall_policys: Option<
+        Vec<RegionNetworkFirewallPoliciesGetEffectiveFirewallsResponseEffectiveFirewallPolicy>,
+    >,
+    /// firewalls property.
+    pub firewalls: Option<Vec<Firewall>>,
+}
+
+/// `FirewallLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FirewallLogConfig {
+    /// enable property.
+    pub enable: Option<bool>,
+    /// metadata property.
+    pub metadata: Option<String>,
 }
 
 /// `Firewall` type.
@@ -225,6 +154,81 @@ pub struct Firewall {
     pub target_service_accounts: Option<Vec<String>>,
     /// targetTags property.
     pub target_tags: Option<Vec<String>>,
+}
+
+/// `InstancesGetEffectiveFirewallsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesGetEffectiveFirewallsResponse {
+    /// firewallPolicys property.
+    pub firewall_policys:
+        Option<Vec<InstancesGetEffectiveFirewallsResponseEffectiveFirewallPolicy>>,
+    /// firewalls property.
+    pub firewalls: Option<Vec<Firewall>>,
+}
+
+/// `NetworksGetEffectiveFirewallsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworksGetEffectiveFirewallsResponse {
+    /// firewallPolicys property.
+    pub firewall_policys: Option<Vec<NetworksGetEffectiveFirewallsResponseEffectiveFirewallPolicy>>,
+    /// firewalls property.
+    pub firewalls: Option<Vec<Firewall>>,
+}
+
+/// `FirewallPolicyRuleMatcherLayer4Config` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FirewallPolicyRuleMatcherLayer4Config {
+    /// ipProtocol property.
+    pub ip_protocol: Option<String>,
+    /// ports property.
+    pub ports: Option<Vec<String>>,
+}
+
+/// `InstancesGetEffectiveFirewallsResponseEffectiveFirewallPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesGetEffectiveFirewallsResponseEffectiveFirewallPolicy {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// packetMirroringRules property.
+    pub packet_mirroring_rules: Option<Vec<FirewallPolicyRule>>,
+    /// priority property.
+    pub priority: Option<i64>,
+    /// rules property.
+    pub rules: Option<Vec<FirewallPolicyRule>>,
+    /// shortName property.
+    pub short_name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `FirewallPolicyRuleSecureTag` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FirewallPolicyRuleSecureTag {
+    /// name property.
+    pub name: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `NetworksGetEffectiveFirewallsResponseEffectiveFirewallPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworksGetEffectiveFirewallsResponseEffectiveFirewallPolicy {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// packetMirroringRules property.
+    pub packet_mirroring_rules: Option<Vec<FirewallPolicyRule>>,
+    /// priority property.
+    pub priority: Option<i64>,
+    /// rules property.
+    pub rules: Option<Vec<FirewallPolicyRule>>,
+    /// shortName property.
+    pub short_name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 // =============================================================================

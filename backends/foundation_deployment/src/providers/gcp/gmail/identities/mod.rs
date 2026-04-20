@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `SignAndEncryptKeyPairs` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SignAndEncryptKeyPairs {
-    /// encryptionKeyPairId property.
-    pub encryption_key_pair_id: Option<String>,
-    /// signingKeyPairId property.
-    pub signing_key_pair_id: Option<String>,
-}
 
 /// `CseIdentity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -51,6 +43,15 @@ pub struct ListCseIdentitiesResponse {
     pub cse_identities: Option<Vec<CseIdentity>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `SignAndEncryptKeyPairs` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SignAndEncryptKeyPairs {
+    /// encryptionKeyPairId property.
+    pub encryption_key_pair_id: Option<String>,
+    /// signingKeyPairId property.
+    pub signing_key_pair_id: Option<String>,
 }
 
 // =============================================================================

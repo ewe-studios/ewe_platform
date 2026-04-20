@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,49 +22,17 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ModifyMembershipRolesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ModifyMembershipRolesResponse {
-    /// membership property.
-    pub membership: Option<Membership>,
-}
-
-/// `ExpiryDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExpiryDetail {
-    /// expireTime property.
-    pub expire_time: Option<String>,
-}
-
-/// `MembershipRole` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MembershipRole {
-    /// expiryDetail property.
-    pub expiry_detail: Option<ExpiryDetail>,
-    /// name property.
-    pub name: Option<String>,
-    /// restrictionEvaluations property.
-    pub restriction_evaluations: Option<RestrictionEvaluations>,
-}
 
 /// `RestrictionEvaluations` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestrictionEvaluations {
     /// memberRestrictionEvaluation property.
     pub member_restriction_evaluation: Option<MembershipRoleRestrictionEvaluation>,
-}
-
-/// `MembershipRoleRestrictionEvaluation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MembershipRoleRestrictionEvaluation {
-    /// state property.
-    pub state: Option<String>,
 }
 
 /// `ListMembershipsResponse` type.
@@ -73,26 +42,6 @@ pub struct ListMembershipsResponse {
     pub memberships: Option<Vec<Membership>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-}
-
-/// `EntityKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EntityKey {
-    /// id property.
-    pub id: Option<String>,
-    /// namespace property.
-    pub namespace: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 /// `Membership` type.
@@ -112,6 +61,58 @@ pub struct Membership {
     pub r#type: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `ModifyMembershipRolesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ModifyMembershipRolesResponse {
+    /// membership property.
+    pub membership: Option<Membership>,
+}
+
+/// `MembershipRole` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MembershipRole {
+    /// expiryDetail property.
+    pub expiry_detail: Option<ExpiryDetail>,
+    /// name property.
+    pub name: Option<String>,
+    /// restrictionEvaluations property.
+    pub restriction_evaluations: Option<RestrictionEvaluations>,
+}
+
+/// `MembershipRoleRestrictionEvaluation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MembershipRoleRestrictionEvaluation {
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `EntityKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EntityKey {
+    /// id property.
+    pub id: Option<String>,
+    /// namespace property.
+    pub namespace: Option<String>,
+}
+
+/// `ExpiryDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExpiryDetail {
+    /// expireTime property.
+    pub expire_time: Option<String>,
 }
 
 // =============================================================================

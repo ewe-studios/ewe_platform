@@ -12,56 +12,22 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
+use super::shared::Empty;
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `ApproveSingleTenantHsmInstanceProposalResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApproveSingleTenantHsmInstanceProposalResponse {}
-
-/// `DeleteSingleTenantHsmInstance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteSingleTenantHsmInstance {}
-
-/// `DisableSingleTenantHsmInstance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DisableSingleTenantHsmInstance {}
-
-/// `Challenge` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Challenge {
-    /// challenge property.
-    pub challenge: Option<String>,
-    /// publicKeyPem property.
-    pub public_key_pem: Option<String>,
-}
-
-/// `EnableSingleTenantHsmInstance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnableSingleTenantHsmInstance {}
 
 /// `SingleTenantHsmInstanceProposal` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -102,18 +68,39 @@ pub struct SingleTenantHsmInstanceProposal {
     pub ttl: Option<String>,
 }
 
+/// `ListSingleTenantHsmInstanceProposalsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListSingleTenantHsmInstanceProposalsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// singleTenantHsmInstanceProposals property.
+    pub single_tenant_hsm_instance_proposals: Option<Vec<SingleTenantHsmInstanceProposal>>,
+    /// totalSize property.
+    pub total_size: Option<i64>,
+}
+
+/// `DeleteSingleTenantHsmInstance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeleteSingleTenantHsmInstance {}
+
+/// `EnableSingleTenantHsmInstance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnableSingleTenantHsmInstance {}
+
+/// `AddQuorumMember` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AddQuorumMember {
+    /// twoFactorPublicKeyPem property.
+    pub two_factor_public_key_pem: Option<String>,
+}
+
+/// `DisableSingleTenantHsmInstance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DisableSingleTenantHsmInstance {}
+
 /// `RefreshSingleTenantHsmInstance` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefreshSingleTenantHsmInstance {}
-
-/// `RegisterTwoFactorAuthKeys` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegisterTwoFactorAuthKeys {
-    /// requiredApproverCount property.
-    pub required_approver_count: Option<i64>,
-    /// twoFactorPublicKeyPems property.
-    pub two_factor_public_key_pems: Option<Vec<String>>,
-}
 
 /// `QuorumParameters` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -124,20 +111,6 @@ pub struct QuorumParameters {
     pub challenges: Option<Vec<Challenge>>,
     /// requiredApproverCount property.
     pub required_approver_count: Option<i64>,
-}
-
-/// `RemoveQuorumMember` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemoveQuorumMember {
-    /// twoFactorPublicKeyPem property.
-    pub two_factor_public_key_pem: Option<String>,
-}
-
-/// `AddQuorumMember` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AddQuorumMember {
-    /// twoFactorPublicKeyPem property.
-    pub two_factor_public_key_pem: Option<String>,
 }
 
 /// `RequiredActionQuorumParameters` type.
@@ -153,19 +126,44 @@ pub struct RequiredActionQuorumParameters {
     pub required_challenges: Option<Vec<Challenge>>,
 }
 
-/// `Empty` type.
+/// `ApproveSingleTenantHsmInstanceProposalResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct ApproveSingleTenantHsmInstanceProposalResponse {}
 
-/// `ListSingleTenantHsmInstanceProposalsResponse` type.
+/// `RegisterTwoFactorAuthKeys` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSingleTenantHsmInstanceProposalsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// singleTenantHsmInstanceProposals property.
-    pub single_tenant_hsm_instance_proposals: Option<Vec<SingleTenantHsmInstanceProposal>>,
-    /// totalSize property.
-    pub total_size: Option<i64>,
+pub struct RegisterTwoFactorAuthKeys {
+    /// requiredApproverCount property.
+    pub required_approver_count: Option<i64>,
+    /// twoFactorPublicKeyPems property.
+    pub two_factor_public_key_pems: Option<Vec<String>>,
+}
+
+/// `RemoveQuorumMember` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RemoveQuorumMember {
+    /// twoFactorPublicKeyPem property.
+    pub two_factor_public_key_pem: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `Challenge` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Challenge {
+    /// challenge property.
+    pub challenge: Option<String>,
+    /// publicKeyPem property.
+    pub public_key_pem: Option<String>,
 }
 
 // =============================================================================

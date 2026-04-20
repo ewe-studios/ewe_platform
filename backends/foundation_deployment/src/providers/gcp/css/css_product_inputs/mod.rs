@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,29 +23,11 @@ use serde::{Deserialize, Serialize};
 use super::shared::CssProductInput;
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Price` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Price {
-    /// amountMicros property.
-    pub amount_micros: Option<String>,
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-}
-
-/// `ProductDimension` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductDimension {
-    /// unit property.
-    pub unit: Option<String>,
-    /// value property.
-    pub value: Option<f64>,
-}
 
 /// `ProductWeight` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -75,6 +58,46 @@ pub struct HeadlineOfferInstallment {
     pub downpayment: Option<Price>,
     /// months property.
     pub months: Option<String>,
+}
+
+/// `HeadlineOfferSubscriptionCost` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HeadlineOfferSubscriptionCost {
+    /// amount property.
+    pub amount: Option<Price>,
+    /// period property.
+    pub period: Option<String>,
+    /// periodLength property.
+    pub period_length: Option<String>,
+}
+
+/// `ProductDimension` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductDimension {
+    /// unit property.
+    pub unit: Option<String>,
+    /// value property.
+    pub value: Option<f64>,
+}
+
+/// `Price` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Price {
+    /// amountMicros property.
+    pub amount_micros: Option<String>,
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+}
+
+/// `CustomAttribute` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomAttribute {
+    /// groupValues property.
+    pub group_values: Option<Vec<Box<CustomAttribute>>>,
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
 /// `ProductDetail` type.
@@ -199,28 +222,6 @@ pub struct Attributes {
     pub size_types: Option<Vec<String>>,
     /// title property.
     pub title: Option<String>,
-}
-
-/// `HeadlineOfferSubscriptionCost` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HeadlineOfferSubscriptionCost {
-    /// amount property.
-    pub amount: Option<Price>,
-    /// period property.
-    pub period: Option<String>,
-    /// periodLength property.
-    pub period_length: Option<String>,
-}
-
-/// `CustomAttribute` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomAttribute {
-    /// groupValues property.
-    pub group_values: Option<Vec<CustomAttribute>>,
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
 }
 
 // =============================================================================

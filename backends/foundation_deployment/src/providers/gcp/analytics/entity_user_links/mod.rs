@@ -12,62 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `EntityUserLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EntityUserLink {
-    /// entity property.
-    pub entity: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// permissions property.
-    pub permissions: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// userRef property.
-    pub user_ref: Option<UserRef>,
-}
-
-/// `UserRef` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserRef {
-    /// email property.
-    pub email: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `WebPropertyRef` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WebPropertyRef {
-    /// accountId property.
-    pub account_id: Option<String>,
-    /// href property.
-    pub href: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// internalWebPropertyId property.
-    pub internal_web_property_id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
 
 /// `AccountRef` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -99,6 +55,51 @@ pub struct ProfileRef {
     pub name: Option<String>,
     /// webPropertyId property.
     pub web_property_id: Option<String>,
+}
+
+/// `UserRef` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UserRef {
+    /// email property.
+    pub email: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `WebPropertyRef` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WebPropertyRef {
+    /// accountId property.
+    pub account_id: Option<String>,
+    /// href property.
+    pub href: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// internalWebPropertyId property.
+    pub internal_web_property_id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `EntityUserLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EntityUserLink {
+    /// entity property.
+    pub entity: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// permissions property.
+    pub permissions: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// userRef property.
+    pub user_ref: Option<UserRef>,
 }
 
 /// `EntityUserLinks` type.

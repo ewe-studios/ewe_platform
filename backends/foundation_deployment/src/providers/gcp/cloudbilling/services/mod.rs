@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListServicesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListServicesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// services property.
+    pub services: Option<Vec<Service>>,
+}
 
 /// `Service` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -35,15 +45,6 @@ pub struct Service {
     pub name: Option<String>,
     /// serviceId property.
     pub service_id: Option<String>,
-}
-
-/// `ListServicesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListServicesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// services property.
-    pub services: Option<Vec<Service>>,
 }
 
 // =============================================================================

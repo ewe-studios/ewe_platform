@@ -12,38 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `NetworkProfileNetworkFeaturesPredefinedSubnetworkRange` type.
+/// `NetworkProfileLocation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkProfileNetworkFeaturesPredefinedSubnetworkRange {
-    /// ipv6Range property.
-    pub ipv6_range: Option<String>,
-    /// namePrefix property.
-    pub name_prefix: Option<String>,
-}
-
-/// `NetworkProfileProfileType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkProfileProfileType {
-    /// networkType property.
-    pub network_type: Option<String>,
-    /// rdmaSubtype property.
-    pub rdma_subtype: Option<String>,
-    /// ullSubtype property.
-    pub ull_subtype: Option<String>,
-    /// vpcSubtype property.
-    pub vpc_subtype: Option<String>,
+pub struct NetworkProfileLocation {
+    /// name property.
+    pub name: Option<String>,
+    /// scope property.
+    pub scope: Option<String>,
 }
 
 /// `NetworkProfileNetworkFeatures` type.
@@ -174,13 +162,26 @@ pub struct NetworkProfilesListResponse {
     pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `NetworkProfileLocation` type.
+/// `NetworkProfileProfileType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkProfileLocation {
-    /// name property.
-    pub name: Option<String>,
-    /// scope property.
-    pub scope: Option<String>,
+pub struct NetworkProfileProfileType {
+    /// networkType property.
+    pub network_type: Option<String>,
+    /// rdmaSubtype property.
+    pub rdma_subtype: Option<String>,
+    /// ullSubtype property.
+    pub ull_subtype: Option<String>,
+    /// vpcSubtype property.
+    pub vpc_subtype: Option<String>,
+}
+
+/// `NetworkProfileNetworkFeaturesPredefinedSubnetworkRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkProfileNetworkFeaturesPredefinedSubnetworkRange {
+    /// ipv6Range property.
+    pub ipv6_range: Option<String>,
+    /// namePrefix property.
+    pub name_prefix: Option<String>,
 }
 
 // =============================================================================

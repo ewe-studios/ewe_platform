@@ -12,17 +12,36 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `HiveDatabaseOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HiveDatabaseOptions {
+    /// locationUri property.
+    pub location_uri: Option<String>,
+    /// parameters property.
+    pub parameters: Option<serde_json::Value>,
+}
+
+/// `ListDatabasesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDatabasesResponse {
+    /// databases property.
+    pub databases: Option<Vec<Database>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `Database` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -41,24 +60,6 @@ pub struct Database {
     pub r#type: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `ListDatabasesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDatabasesResponse {
-    /// databases property.
-    pub databases: Option<Vec<Database>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `HiveDatabaseOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HiveDatabaseOptions {
-    /// locationUri property.
-    pub location_uri: Option<String>,
-    /// parameters property.
-    pub parameters: Option<serde_json::Value>,
 }
 
 // =============================================================================

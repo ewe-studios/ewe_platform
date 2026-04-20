@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -29,31 +30,6 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 pub struct ShowEffectiveAutokeyConfigResponse {
     /// keyProject property.
     pub key_project: Option<String>,
-}
-
-/// `ShowEffectiveKeyAccessJustificationsPolicyConfigResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShowEffectiveKeyAccessJustificationsPolicyConfigResponse {
-    /// effectiveKajPolicy property.
-    pub effective_kaj_policy: Option<KeyAccessJustificationsPolicyConfig>,
-}
-
-/// `KeyAccessJustificationsPolicyConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KeyAccessJustificationsPolicyConfig {
-    /// defaultKeyAccessJustificationPolicy property.
-    pub default_key_access_justification_policy: Option<KeyAccessJustificationsPolicy>,
-    /// defaultPolicyAvailable property.
-    pub default_policy_available: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `KeyAccessJustificationsPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KeyAccessJustificationsPolicy {
-    /// allowedAccessReasons property.
-    pub allowed_access_reasons: Option<Vec<String>>,
 }
 
 /// `ShowEffectiveKeyAccessJustificationsEnrollmentConfigResponse` type.
@@ -67,6 +43,17 @@ pub struct ShowEffectiveKeyAccessJustificationsEnrollmentConfigResponse {
     pub software_config: Option<KeyAccessJustificationsEnrollmentConfig>,
 }
 
+/// `KeyAccessJustificationsPolicyConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KeyAccessJustificationsPolicyConfig {
+    /// defaultKeyAccessJustificationPolicy property.
+    pub default_key_access_justification_policy: Option<KeyAccessJustificationsPolicy>,
+    /// defaultPolicyAvailable property.
+    pub default_policy_available: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+}
+
 /// `KeyAccessJustificationsEnrollmentConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyAccessJustificationsEnrollmentConfig {
@@ -74,6 +61,20 @@ pub struct KeyAccessJustificationsEnrollmentConfig {
     pub audit_logging: Option<bool>,
     /// policyEnforcement property.
     pub policy_enforcement: Option<bool>,
+}
+
+/// `ShowEffectiveKeyAccessJustificationsPolicyConfigResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShowEffectiveKeyAccessJustificationsPolicyConfigResponse {
+    /// effectiveKajPolicy property.
+    pub effective_kaj_policy: Option<KeyAccessJustificationsPolicyConfig>,
+}
+
+/// `KeyAccessJustificationsPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KeyAccessJustificationsPolicy {
+    /// allowedAccessReasons property.
+    pub allowed_access_reasons: Option<Vec<String>>,
 }
 
 // =============================================================================

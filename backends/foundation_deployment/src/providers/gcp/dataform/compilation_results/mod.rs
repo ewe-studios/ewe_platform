@@ -12,17 +12,61 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `CodeCompilationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CodeCompilationConfig {
+    /// assertionSchema property.
+    pub assertion_schema: Option<String>,
+    /// builtinAssertionNamePrefix property.
+    pub builtin_assertion_name_prefix: Option<String>,
+    /// databaseSuffix property.
+    pub database_suffix: Option<String>,
+    /// defaultDatabase property.
+    pub default_database: Option<String>,
+    /// defaultLocation property.
+    pub default_location: Option<String>,
+    /// defaultNotebookRuntimeOptions property.
+    pub default_notebook_runtime_options: Option<NotebookRuntimeOptions>,
+    /// defaultSchema property.
+    pub default_schema: Option<String>,
+    /// schemaSuffix property.
+    pub schema_suffix: Option<String>,
+    /// tablePrefix property.
+    pub table_prefix: Option<String>,
+    /// vars property.
+    pub vars: Option<serde_json::Value>,
+}
+
+/// `Target` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Target {
+    /// database property.
+    pub database: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// schema property.
+    pub schema: Option<String>,
+}
+
+/// `DataEncryptionState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataEncryptionState {
+    /// kmsKeyVersionName property.
+    pub kms_key_version_name: Option<String>,
+}
 
 /// `CompilationResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -53,114 +97,6 @@ pub struct CompilationResult {
     pub workspace: Option<String>,
 }
 
-/// `Assertion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Assertion {
-    /// dependencyTargets property.
-    pub dependency_targets: Option<Vec<Target>>,
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// parentAction property.
-    pub parent_action: Option<Target>,
-    /// relationDescriptor property.
-    pub relation_descriptor: Option<RelationDescriptor>,
-    /// selectQuery property.
-    pub select_query: Option<String>,
-    /// tags property.
-    pub tags: Option<Vec<String>>,
-}
-
-/// `Operations` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Operations {
-    /// dependencyTargets property.
-    pub dependency_targets: Option<Vec<Target>>,
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// hasOutput property.
-    pub has_output: Option<bool>,
-    /// queries property.
-    pub queries: Option<Vec<String>>,
-    /// relationDescriptor property.
-    pub relation_descriptor: Option<RelationDescriptor>,
-    /// tags property.
-    pub tags: Option<Vec<String>>,
-}
-
-/// `RelationDescriptor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RelationDescriptor {
-    /// bigqueryLabels property.
-    pub bigquery_labels: Option<serde_json::Value>,
-    /// columns property.
-    pub columns: Option<Vec<ColumnDescriptor>>,
-    /// description property.
-    pub description: Option<String>,
-}
-
-/// `Notebook` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Notebook {
-    /// contents property.
-    pub contents: Option<String>,
-    /// dependencyTargets property.
-    pub dependency_targets: Option<Vec<Target>>,
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// tags property.
-    pub tags: Option<Vec<String>>,
-}
-
-/// `SqlDefinition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlDefinition {
-    /// errorTable property.
-    pub error_table: Option<ErrorTable>,
-    /// load property.
-    pub load: Option<LoadConfig>,
-    /// query property.
-    pub query: Option<String>,
-}
-
-/// `ColumnDescriptor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ColumnDescriptor {
-    /// bigqueryPolicyTags property.
-    pub bigquery_policy_tags: Option<Vec<String>>,
-    /// description property.
-    pub description: Option<String>,
-    /// path property.
-    pub path: Option<Vec<String>>,
-}
-
-/// `ErrorTable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorTable {
-    /// retentionDays property.
-    pub retention_days: Option<i64>,
-    /// target property.
-    pub target: Option<Target>,
-}
-
-/// `DataPreparation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataPreparation {
-    /// contentsSql property.
-    pub contents_sql: Option<SqlDefinition>,
-    /// contentsYaml property.
-    pub contents_yaml: Option<String>,
-    /// dependencyTargets property.
-    pub dependency_targets: Option<Vec<Target>>,
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// tags property.
-    pub tags: Option<Vec<String>>,
-}
-
-/// `SimpleLoadMode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SimpleLoadMode {}
-
 /// `CompilationResultAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompilationResultAction {
@@ -186,78 +122,21 @@ pub struct CompilationResultAction {
     pub target: Option<Target>,
 }
 
-/// `IncrementalLoadMode` type.
+/// `Assertion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IncrementalLoadMode {
-    /// column property.
-    pub column: Option<String>,
-}
-
-/// `CodeCompilationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CodeCompilationConfig {
-    /// assertionSchema property.
-    pub assertion_schema: Option<String>,
-    /// builtinAssertionNamePrefix property.
-    pub builtin_assertion_name_prefix: Option<String>,
-    /// databaseSuffix property.
-    pub database_suffix: Option<String>,
-    /// defaultDatabase property.
-    pub default_database: Option<String>,
-    /// defaultLocation property.
-    pub default_location: Option<String>,
-    /// defaultNotebookRuntimeOptions property.
-    pub default_notebook_runtime_options: Option<NotebookRuntimeOptions>,
-    /// defaultSchema property.
-    pub default_schema: Option<String>,
-    /// schemaSuffix property.
-    pub schema_suffix: Option<String>,
-    /// tablePrefix property.
-    pub table_prefix: Option<String>,
-    /// vars property.
-    pub vars: Option<serde_json::Value>,
-}
-
-/// `CompilationError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompilationError {
-    /// actionTarget property.
-    pub action_target: Option<Target>,
-    /// message property.
-    pub message: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-    /// stack property.
-    pub stack: Option<String>,
-}
-
-/// `LoadConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoadConfig {
-    /// append property.
-    pub append: Option<SimpleLoadMode>,
-    /// maximum property.
-    pub maximum: Option<IncrementalLoadMode>,
-    /// replace property.
-    pub replace: Option<SimpleLoadMode>,
-    /// unique property.
-    pub unique: Option<IncrementalLoadMode>,
-}
-
-/// `NotebookRuntimeOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NotebookRuntimeOptions {
-    /// aiPlatformNotebookRuntimeTemplate property.
-    pub ai_platform_notebook_runtime_template: Option<String>,
-    /// gcsOutputBucket property.
-    pub gcs_output_bucket: Option<String>,
-}
-
-/// `DataEncryptionState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataEncryptionState {
-    /// kmsKeyVersionName property.
-    pub kms_key_version_name: Option<String>,
+pub struct Assertion {
+    /// dependencyTargets property.
+    pub dependency_targets: Option<Vec<Target>>,
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// parentAction property.
+    pub parent_action: Option<Target>,
+    /// relationDescriptor property.
+    pub relation_descriptor: Option<RelationDescriptor>,
+    /// selectQuery property.
+    pub select_query: Option<String>,
+    /// tags property.
+    pub tags: Option<Vec<String>>,
 }
 
 /// `ListCompilationResultsResponse` type.
@@ -271,24 +150,13 @@ pub struct ListCompilationResultsResponse {
     pub unreachable: Option<Vec<String>>,
 }
 
-/// `QueryCompilationResultActionsResponse` type.
+/// `NotebookRuntimeOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryCompilationResultActionsResponse {
-    /// compilationResultActions property.
-    pub compilation_result_actions: Option<Vec<CompilationResultAction>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `Target` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Target {
-    /// database property.
-    pub database: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// schema property.
-    pub schema: Option<String>,
+pub struct NotebookRuntimeOptions {
+    /// aiPlatformNotebookRuntimeTemplate property.
+    pub ai_platform_notebook_runtime_template: Option<String>,
+    /// gcsOutputBucket property.
+    pub gcs_output_bucket: Option<String>,
 }
 
 /// `Declaration` type.
@@ -298,28 +166,21 @@ pub struct Declaration {
     pub relation_descriptor: Option<RelationDescriptor>,
 }
 
-/// `IncrementalTableConfig` type.
+/// `Operations` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IncrementalTableConfig {
-    /// incrementalPostOperations property.
-    pub incremental_post_operations: Option<Vec<String>>,
-    /// incrementalPreOperations property.
-    pub incremental_pre_operations: Option<Vec<String>>,
-    /// incrementalSelectQuery property.
-    pub incremental_select_query: Option<String>,
-    /// refreshDisabled property.
-    pub refresh_disabled: Option<bool>,
-    /// uniqueKeyParts property.
-    pub unique_key_parts: Option<Vec<String>>,
-    /// updatePartitionFilter property.
-    pub update_partition_filter: Option<String>,
-}
-
-/// `PrivateResourceMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrivateResourceMetadata {
-    /// userScoped property.
-    pub user_scoped: Option<bool>,
+pub struct Operations {
+    /// dependencyTargets property.
+    pub dependency_targets: Option<Vec<Target>>,
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// hasOutput property.
+    pub has_output: Option<bool>,
+    /// queries property.
+    pub queries: Option<Vec<String>>,
+    /// relationDescriptor property.
+    pub relation_descriptor: Option<RelationDescriptor>,
+    /// tags property.
+    pub tags: Option<Vec<String>>,
 }
 
 /// `Relation` type.
@@ -361,6 +222,146 @@ pub struct Relation {
     pub table_format: Option<String>,
     /// tags property.
     pub tags: Option<Vec<String>>,
+}
+
+/// `IncrementalTableConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IncrementalTableConfig {
+    /// incrementalPostOperations property.
+    pub incremental_post_operations: Option<Vec<String>>,
+    /// incrementalPreOperations property.
+    pub incremental_pre_operations: Option<Vec<String>>,
+    /// incrementalSelectQuery property.
+    pub incremental_select_query: Option<String>,
+    /// refreshDisabled property.
+    pub refresh_disabled: Option<bool>,
+    /// uniqueKeyParts property.
+    pub unique_key_parts: Option<Vec<String>>,
+    /// updatePartitionFilter property.
+    pub update_partition_filter: Option<String>,
+}
+
+/// `ColumnDescriptor` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ColumnDescriptor {
+    /// bigqueryPolicyTags property.
+    pub bigquery_policy_tags: Option<Vec<String>>,
+    /// description property.
+    pub description: Option<String>,
+    /// path property.
+    pub path: Option<Vec<String>>,
+}
+
+/// `SimpleLoadMode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SimpleLoadMode {}
+
+/// `QueryCompilationResultActionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueryCompilationResultActionsResponse {
+    /// compilationResultActions property.
+    pub compilation_result_actions: Option<Vec<CompilationResultAction>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `DataPreparation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataPreparation {
+    /// contentsSql property.
+    pub contents_sql: Option<SqlDefinition>,
+    /// contentsYaml property.
+    pub contents_yaml: Option<String>,
+    /// dependencyTargets property.
+    pub dependency_targets: Option<Vec<Target>>,
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// tags property.
+    pub tags: Option<Vec<String>>,
+}
+
+/// `ErrorTable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorTable {
+    /// retentionDays property.
+    pub retention_days: Option<i64>,
+    /// target property.
+    pub target: Option<Target>,
+}
+
+/// `RelationDescriptor` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RelationDescriptor {
+    /// bigqueryLabels property.
+    pub bigquery_labels: Option<serde_json::Value>,
+    /// columns property.
+    pub columns: Option<Vec<ColumnDescriptor>>,
+    /// description property.
+    pub description: Option<String>,
+}
+
+/// `CompilationError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CompilationError {
+    /// actionTarget property.
+    pub action_target: Option<Target>,
+    /// message property.
+    pub message: Option<String>,
+    /// path property.
+    pub path: Option<String>,
+    /// stack property.
+    pub stack: Option<String>,
+}
+
+/// `PrivateResourceMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrivateResourceMetadata {
+    /// userScoped property.
+    pub user_scoped: Option<bool>,
+}
+
+/// `Notebook` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Notebook {
+    /// contents property.
+    pub contents: Option<String>,
+    /// dependencyTargets property.
+    pub dependency_targets: Option<Vec<Target>>,
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// tags property.
+    pub tags: Option<Vec<String>>,
+}
+
+/// `SqlDefinition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlDefinition {
+    /// errorTable property.
+    pub error_table: Option<ErrorTable>,
+    /// load property.
+    pub load: Option<LoadConfig>,
+    /// query property.
+    pub query: Option<String>,
+}
+
+/// `IncrementalLoadMode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IncrementalLoadMode {
+    /// column property.
+    pub column: Option<String>,
+}
+
+/// `LoadConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoadConfig {
+    /// append property.
+    pub append: Option<SimpleLoadMode>,
+    /// maximum property.
+    pub maximum: Option<IncrementalLoadMode>,
+    /// replace property.
+    pub replace: Option<SimpleLoadMode>,
+    /// unique property.
+    pub unique: Option<IncrementalLoadMode>,
 }
 
 // =============================================================================

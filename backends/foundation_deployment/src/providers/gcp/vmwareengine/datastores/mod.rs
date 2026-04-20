@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,35 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `NfsDatastore` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NfsDatastore {
+    /// googleFileService property.
+    pub google_file_service: Option<GoogleFileService>,
+    /// googleVmwareFileService property.
+    pub google_vmware_file_service: Option<GoogleVmwareFileService>,
+    /// thirdPartyFileService property.
+    pub third_party_file_service: Option<ThirdPartyFileService>,
+}
+
+/// `GoogleFileService` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFileService {
+    /// filestoreInstance property.
+    pub filestore_instance: Option<String>,
+    /// netappVolume property.
+    pub netapp_volume: Option<String>,
+}
+
+/// `GoogleVmwareFileService` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleVmwareFileService {}
 
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -38,13 +63,15 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `GoogleFileService` type.
+/// `ThirdPartyFileService` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFileService {
-    /// filestoreInstance property.
-    pub filestore_instance: Option<String>,
-    /// netappVolume property.
-    pub netapp_volume: Option<String>,
+pub struct ThirdPartyFileService {
+    /// fileShare property.
+    pub file_share: Option<String>,
+    /// network property.
+    pub network: Option<String>,
+    /// servers property.
+    pub servers: Option<Vec<String>>,
 }
 
 /// `Datastore` type.
@@ -70,21 +97,6 @@ pub struct Datastore {
     pub update_time: Option<String>,
 }
 
-/// `GoogleVmwareFileService` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleVmwareFileService {}
-
-/// `ThirdPartyFileService` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ThirdPartyFileService {
-    /// fileShare property.
-    pub file_share: Option<String>,
-    /// network property.
-    pub network: Option<String>,
-    /// servers property.
-    pub servers: Option<Vec<String>>,
-}
-
 /// `ListDatastoresResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDatastoresResponse {
@@ -94,17 +106,6 @@ pub struct ListDatastoresResponse {
     pub next_page_token: Option<String>,
     /// unreachable property.
     pub unreachable: Option<Vec<String>>,
-}
-
-/// `NfsDatastore` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NfsDatastore {
-    /// googleFileService property.
-    pub google_file_service: Option<GoogleFileService>,
-    /// googleVmwareFileService property.
-    pub google_vmware_file_service: Option<GoogleVmwareFileService>,
-    /// thirdPartyFileService property.
-    pub third_party_file_service: Option<ThirdPartyFileService>,
 }
 
 // =============================================================================

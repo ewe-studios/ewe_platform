@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -53,17 +54,6 @@ pub struct GoogleCloudAiplatformV1Trial {
     pub web_access_uris: Option<serde_json::Value>,
 }
 
-/// `GoogleCloudAiplatformV1Measurement` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Measurement {
-    /// elapsedDuration property.
-    pub elapsed_duration: Option<String>,
-    /// metrics property.
-    pub metrics: Option<Vec<GoogleCloudAiplatformV1MeasurementMetric>>,
-    /// stepCount property.
-    pub step_count: Option<String>,
-}
-
 /// `GoogleCloudAiplatformV1TrialParameter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrialParameter {
@@ -71,6 +61,13 @@ pub struct GoogleCloudAiplatformV1TrialParameter {
     pub parameter_id: Option<String>,
     /// value property.
     pub value: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudAiplatformV1ListOptimalTrialsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ListOptimalTrialsResponse {
+    /// optimalTrials property.
+    pub optimal_trials: Option<Vec<GoogleCloudAiplatformV1Trial>>,
 }
 
 /// `GoogleCloudAiplatformV1MeasurementMetric` type.
@@ -82,11 +79,15 @@ pub struct GoogleCloudAiplatformV1MeasurementMetric {
     pub value: Option<f64>,
 }
 
-/// `GoogleCloudAiplatformV1ListOptimalTrialsResponse` type.
+/// `GoogleCloudAiplatformV1Measurement` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListOptimalTrialsResponse {
-    /// optimalTrials property.
-    pub optimal_trials: Option<Vec<GoogleCloudAiplatformV1Trial>>,
+pub struct GoogleCloudAiplatformV1Measurement {
+    /// elapsedDuration property.
+    pub elapsed_duration: Option<String>,
+    /// metrics property.
+    pub metrics: Option<Vec<GoogleCloudAiplatformV1MeasurementMetric>>,
+    /// stepCount property.
+    pub step_count: Option<String>,
 }
 
 // =============================================================================

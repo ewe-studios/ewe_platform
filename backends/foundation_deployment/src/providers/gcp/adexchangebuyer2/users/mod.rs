@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListClientUsersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListClientUsersResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// users property.
+    pub users: Option<Vec<ClientUser>>,
+}
 
 /// `ClientUser` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -35,15 +45,6 @@ pub struct ClientUser {
     pub status: Option<String>,
     /// userId property.
     pub user_id: Option<String>,
-}
-
-/// `ListClientUsersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListClientUsersResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// users property.
-    pub users: Option<Vec<ClientUser>>,
 }
 
 // =============================================================================

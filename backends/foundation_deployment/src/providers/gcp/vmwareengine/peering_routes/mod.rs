@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListPrivateConnectionPeeringRoutesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListPrivateConnectionPeeringRoutesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// peeringRoutes property.
-    pub peering_routes: Option<Vec<PeeringRoute>>,
-}
 
 /// `ListPeeringRoutesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -57,6 +49,15 @@ pub struct PeeringRoute {
     pub priority: Option<String>,
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `ListPrivateConnectionPeeringRoutesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListPrivateConnectionPeeringRoutesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// peeringRoutes property.
+    pub peering_routes: Option<Vec<PeeringRoute>>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -43,6 +44,15 @@ pub struct GoogleCloudApigeeV1ListSecurityMonitoringConditionsResponse {
     pub next_page_token: Option<String>,
     /// securityMonitoringConditions property.
     pub security_monitoring_conditions: Option<Vec<GoogleCloudApigeeV1SecurityMonitoringCondition>>,
+}
+
+/// `GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestResourceArrayResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestResourceArrayResource {
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestIncludeAll` type.
@@ -76,15 +86,6 @@ pub struct GoogleCloudApigeeV1SecurityMonitoringCondition {
     pub total_monitored_resources: Option<i64>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestResourceArrayResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestResourceArrayResource {
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
 }
 
 // =============================================================================

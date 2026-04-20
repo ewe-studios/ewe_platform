@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,29 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::FirewallPolicyRule;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `FirewallPolicyRuleMatcherLayer4Config` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FirewallPolicyRuleMatcherLayer4Config {
+    /// ipProtocol property.
+    pub ip_protocol: Option<String>,
+    /// ports property.
+    pub ports: Option<Vec<String>>,
+}
+
+/// `FirewallPolicyRuleSecureTag` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FirewallPolicyRuleSecureTag {
+    /// name property.
+    pub name: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
 
 /// `FirewallPolicyRuleMatcher` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -64,24 +83,6 @@ pub struct FirewallPolicyRuleMatcher {
     pub src_secure_tags: Option<Vec<FirewallPolicyRuleSecureTag>>,
     /// srcThreatIntelligences property.
     pub src_threat_intelligences: Option<Vec<String>>,
-}
-
-/// `FirewallPolicyRuleSecureTag` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallPolicyRuleSecureTag {
-    /// name property.
-    pub name: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `FirewallPolicyRuleMatcherLayer4Config` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallPolicyRuleMatcherLayer4Config {
-    /// ipProtocol property.
-    pub ip_protocol: Option<String>,
-    /// ports property.
-    pub ports: Option<Vec<String>>,
 }
 
 // =============================================================================

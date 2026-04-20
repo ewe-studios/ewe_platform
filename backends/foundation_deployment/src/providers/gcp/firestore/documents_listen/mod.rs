@@ -12,31 +12,59 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListenResponse` type.
+/// `BloomFilter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListenResponse {
-    /// documentChange property.
-    pub document_change: Option<DocumentChange>,
-    /// documentDelete property.
-    pub document_delete: Option<DocumentDelete>,
-    /// documentRemove property.
-    pub document_remove: Option<DocumentRemove>,
-    /// filter property.
-    pub filter: Option<ExistenceFilter>,
-    /// targetChange property.
-    pub target_change: Option<TargetChange>,
+pub struct BloomFilter {
+    /// bits property.
+    pub bits: Option<BitSequence>,
+    /// hashCount property.
+    pub hash_count: Option<i64>,
+}
+
+/// `BitSequence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BitSequence {
+    /// bitmap property.
+    pub bitmap: Option<String>,
+    /// padding property.
+    pub padding: Option<i64>,
+}
+
+/// `Document` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Document {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// fields property.
+    pub fields: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `TargetChange` type.
@@ -54,9 +82,24 @@ pub struct TargetChange {
     pub target_ids: Option<Vec<i64>>,
 }
 
-/// `DocumentDelete` type.
+/// `ListenResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DocumentDelete {
+pub struct ListenResponse {
+    /// documentChange property.
+    pub document_change: Option<DocumentChange>,
+    /// documentDelete property.
+    pub document_delete: Option<DocumentDelete>,
+    /// documentRemove property.
+    pub document_remove: Option<DocumentRemove>,
+    /// filter property.
+    pub filter: Option<ExistenceFilter>,
+    /// targetChange property.
+    pub target_change: Option<TargetChange>,
+}
+
+/// `DocumentRemove` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DocumentRemove {
     /// document property.
     pub document: Option<String>,
     /// readTime property.
@@ -76,35 +119,6 @@ pub struct ExistenceFilter {
     pub unchanged_names: Option<BloomFilter>,
 }
 
-/// `BitSequence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BitSequence {
-    /// bitmap property.
-    pub bitmap: Option<String>,
-    /// padding property.
-    pub padding: Option<i64>,
-}
-
-/// `BloomFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BloomFilter {
-    /// bits property.
-    pub bits: Option<BitSequence>,
-    /// hashCount property.
-    pub hash_count: Option<i64>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
 /// `DocumentChange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DocumentChange {
@@ -116,28 +130,15 @@ pub struct DocumentChange {
     pub target_ids: Option<Vec<i64>>,
 }
 
-/// `DocumentRemove` type.
+/// `DocumentDelete` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DocumentRemove {
+pub struct DocumentDelete {
     /// document property.
     pub document: Option<String>,
     /// readTime property.
     pub read_time: Option<String>,
     /// removedTargetIds property.
     pub removed_target_ids: Option<Vec<i64>>,
-}
-
-/// `Document` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Document {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// fields property.
-    pub fields: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
 }
 
 // =============================================================================

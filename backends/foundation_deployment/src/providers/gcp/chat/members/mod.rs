@@ -12,17 +12,40 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `User` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct User {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// domainId property.
+    pub domain_id: Option<String>,
+    /// isAnonymous property.
+    pub is_anonymous: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `Group` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Group {
+    /// name property.
+    pub name: Option<String>,
+}
 
 /// `Membership` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -50,28 +73,6 @@ pub struct ListMembershipsResponse {
     pub memberships: Option<Vec<Membership>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-}
-
-/// `User` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct User {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// domainId property.
-    pub domain_id: Option<String>,
-    /// isAnonymous property.
-    pub is_anonymous: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `Group` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Group {
-    /// name property.
-    pub name: Option<String>,
 }
 
 // =============================================================================

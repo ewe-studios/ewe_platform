@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,22 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudContactcenterinsightsV1AnnotatorSelectorSummarizationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorSummarizationConfig {
+    /// conversationProfile property.
+    pub conversation_profile: Option<String>,
+    /// generator property.
+    pub generator: Option<String>,
+    /// summarizationModel property.
+    pub summarization_model: Option<String>,
+}
 
 /// `GoogleCloudContactcenterinsightsV1AnalysisRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -54,24 +66,6 @@ pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfig {
     /// scorecardList property.
     pub scorecard_list:
         Option<GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfigScorecardList>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1AnnotatorSelectorSummarizationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorSummarizationConfig {
-    /// conversationProfile property.
-    pub conversation_profile: Option<String>,
-    /// generator property.
-    pub generator: Option<String>,
-    /// summarizationModel property.
-    pub summarization_model: Option<String>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfigScorecardList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfigScorecardList {
-    /// qaScorecardRevisions property.
-    pub qa_scorecard_revisions: Option<Vec<String>>,
 }
 
 /// `GoogleCloudContactcenterinsightsV1AnnotatorSelector` type.
@@ -115,6 +109,13 @@ pub struct GoogleCloudContactcenterinsightsV1ListAnalysisRulesResponse {
     pub analysis_rules: Option<Vec<GoogleCloudContactcenterinsightsV1AnalysisRule>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfigScorecardList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfigScorecardList {
+    /// qaScorecardRevisions property.
+    pub qa_scorecard_revisions: Option<Vec<String>>,
 }
 
 // =============================================================================

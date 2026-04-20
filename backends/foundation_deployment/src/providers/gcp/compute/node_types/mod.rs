@@ -12,17 +12,68 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `NodeType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodeType {
+    /// cpuPlatform property.
+    pub cpu_platform: Option<String>,
+    /// creationTimestamp property.
+    pub creation_timestamp: Option<String>,
+    /// deprecated property.
+    pub deprecated: Option<DeprecationStatus>,
+    /// description property.
+    pub description: Option<String>,
+    /// guestCpus property.
+    pub guest_cpus: Option<i64>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// localSsdGb property.
+    pub local_ssd_gb: Option<i64>,
+    /// maxVms property.
+    pub max_vms: Option<i64>,
+    /// memoryMb property.
+    pub memory_mb: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// zone property.
+    pub zone: Option<String>,
+}
+
+/// `NodeTypeAggregatedList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodeTypeAggregatedList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<serde_json::Value>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// unreachables property.
+    pub unreachables: Option<Vec<String>>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
 
 /// `NodeTypeList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -54,56 +105,6 @@ pub struct DeprecationStatus {
     pub replacement: Option<String>,
     /// state property.
     pub state: Option<String>,
-}
-
-/// `NodeTypeAggregatedList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeTypeAggregatedList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<serde_json::Value>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// unreachables property.
-    pub unreachables: Option<Vec<String>>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `NodeType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeType {
-    /// cpuPlatform property.
-    pub cpu_platform: Option<String>,
-    /// creationTimestamp property.
-    pub creation_timestamp: Option<String>,
-    /// deprecated property.
-    pub deprecated: Option<DeprecationStatus>,
-    /// description property.
-    pub description: Option<String>,
-    /// guestCpus property.
-    pub guest_cpus: Option<i64>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// localSsdGb property.
-    pub local_ssd_gb: Option<i64>,
-    /// maxVms property.
-    pub max_vms: Option<i64>,
-    /// memoryMb property.
-    pub memory_mb: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// zone property.
-    pub zone: Option<String>,
 }
 
 // =============================================================================

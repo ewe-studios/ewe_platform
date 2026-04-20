@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,34 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::LeaderboardScores;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `LeaderboardEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LeaderboardEntry {
-    /// formattedScore property.
-    pub formatted_score: Option<String>,
-    /// formattedScoreRank property.
-    pub formatted_score_rank: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// player property.
-    pub player: Option<Player>,
-    /// scoreRank property.
-    pub score_rank: Option<String>,
-    /// scoreTag property.
-    pub score_tag: Option<String>,
-    /// scoreValue property.
-    pub score_value: Option<String>,
-    /// timeSpan property.
-    pub time_span: Option<String>,
-    /// writeTimestampMillis property.
-    pub write_timestamp_millis: Option<String>,
-}
 
 /// `Player` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -81,6 +59,42 @@ pub struct Player {
     pub title: Option<String>,
 }
 
+/// `LeaderboardEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LeaderboardEntry {
+    /// formattedScore property.
+    pub formatted_score: Option<String>,
+    /// formattedScoreRank property.
+    pub formatted_score_rank: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// player property.
+    pub player: Option<Player>,
+    /// scoreRank property.
+    pub score_rank: Option<String>,
+    /// scoreTag property.
+    pub score_tag: Option<String>,
+    /// scoreValue property.
+    pub score_value: Option<String>,
+    /// timeSpan property.
+    pub time_span: Option<String>,
+    /// writeTimestampMillis property.
+    pub write_timestamp_millis: Option<String>,
+}
+
+/// `PlayerLevel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlayerLevel {
+    /// kind property.
+    pub kind: Option<String>,
+    /// level property.
+    pub level: Option<i64>,
+    /// maxExperiencePoints property.
+    pub max_experience_points: Option<String>,
+    /// minExperiencePoints property.
+    pub min_experience_points: Option<String>,
+}
+
 /// `PlayerExperienceInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlayerExperienceInfo {
@@ -105,19 +119,6 @@ pub struct ProfileSettings {
     pub kind: Option<String>,
     /// profileVisible property.
     pub profile_visible: Option<bool>,
-}
-
-/// `PlayerLevel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlayerLevel {
-    /// kind property.
-    pub kind: Option<String>,
-    /// level property.
-    pub level: Option<i64>,
-    /// maxExperiencePoints property.
-    pub max_experience_points: Option<String>,
-    /// minExperiencePoints property.
-    pub min_experience_points: Option<String>,
 }
 
 // =============================================================================

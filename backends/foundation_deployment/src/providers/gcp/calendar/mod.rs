@@ -6,6 +6,7 @@
 #![cfg(feature = "gcp_calendar")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
 #![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(unused_imports)]
 
 pub mod shared;
 
@@ -27,8 +28,8 @@ pub mod free_busy;
 pub mod import;
 #[cfg(feature = "gcp_calendar_instances")]
 pub mod instances;
-#[cfg(feature = "gcp_calendar_move")]
-pub mod move;
+#[cfg(feature = "gcp_calendar_move_mod")]
+pub mod move_mod;
 #[cfg(feature = "gcp_calendar_quick_add")]
 pub mod quick_add;
 #[cfg(feature = "gcp_calendar_settings")]

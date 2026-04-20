@@ -12,207 +12,24 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `NetworkAdapterList` type.
+/// `GuestInstalledApplicationList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkAdapterList {
+pub struct GuestInstalledApplicationList {
     /// entries property.
-    pub entries: Option<Vec<NetworkAdapterDetails>>,
-}
-
-/// `DatabaseDeploymentDetailsAggregatedStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseDeploymentDetailsAggregatedStats {
-    /// databaseCount property.
-    pub database_count: Option<i64>,
-}
-
-/// `NetworkAdapterDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkAdapterDetails {
-    /// adapterType property.
-    pub adapter_type: Option<String>,
-    /// addresses property.
-    pub addresses: Option<NetworkAddressList>,
-    /// macAddress property.
-    pub mac_address: Option<String>,
-}
-
-/// `DatabaseInstance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseInstance {
-    /// instanceName property.
-    pub instance_name: Option<String>,
-    /// network property.
-    pub network: Option<DatabaseInstanceNetwork>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `MySqlStorageEngineDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MySqlStorageEngineDetails {
-    /// encryptedTableCount property.
-    pub encrypted_table_count: Option<i64>,
-    /// engine property.
-    pub engine: Option<String>,
-    /// tableCount property.
-    pub table_count: Option<i64>,
-}
-
-/// `GuestRuntimeDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GuestRuntimeDetails {
-    /// domain property.
-    pub domain: Option<String>,
-    /// installedApps property.
-    pub installed_apps: Option<GuestInstalledApplicationList>,
-    /// lastBootTime property.
-    pub last_boot_time: Option<String>,
-    /// machineName property.
-    pub machine_name: Option<String>,
-    /// network property.
-    pub network: Option<RuntimeNetworkInfo>,
-    /// openFileList property.
-    pub open_file_list: Option<OpenFileList>,
-    /// processes property.
-    pub processes: Option<RunningProcessList>,
-    /// services property.
-    pub services: Option<RunningServiceList>,
-}
-
-/// `VmwareDiskConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareDiskConfig {
-    /// backingType property.
-    pub backing_type: Option<String>,
-    /// rdmCompatibility property.
-    pub rdm_compatibility: Option<String>,
-    /// shared property.
-    pub shared: Option<bool>,
-    /// vmdkMode property.
-    pub vmdk_mode: Option<String>,
-}
-
-/// `ComputeEngineMigrationTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeEngineMigrationTarget {
-    /// shape property.
-    pub shape: Option<ComputeEngineShapeDescriptor>,
-}
-
-/// `DailyResourceUsageAggregationDisk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DailyResourceUsageAggregationDisk {
-    /// iops property.
-    pub iops: Option<DailyResourceUsageAggregationStats>,
-    /// readIops property.
-    pub read_iops: Option<DailyResourceUsageAggregationStats>,
-    /// writeIops property.
-    pub write_iops: Option<DailyResourceUsageAggregationStats>,
-}
-
-/// `AwsEc2PlatformDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AwsEc2PlatformDetails {
-    /// hyperthreading property.
-    pub hyperthreading: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// machineTypeLabel property.
-    pub machine_type_label: Option<String>,
-}
-
-/// `GenericPlatformDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GenericPlatformDetails {
-    /// hyperthreading property.
-    pub hyperthreading: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-}
-
-/// `NfsExportList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NfsExportList {
-    /// entries property.
-    pub entries: Option<Vec<NfsExport>>,
-}
-
-/// `DiskEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskEntry {
-    /// capacityBytes property.
-    pub capacity_bytes: Option<String>,
-    /// diskLabel property.
-    pub disk_label: Option<String>,
-    /// diskLabelType property.
-    pub disk_label_type: Option<String>,
-    /// freeBytes property.
-    pub free_bytes: Option<String>,
-    /// hwAddress property.
-    pub hw_address: Option<String>,
-    /// interfaceType property.
-    pub interface_type: Option<String>,
-    /// partitions property.
-    pub partitions: Option<DiskPartitionList>,
-    /// vmware property.
-    pub vmware: Option<VmwareDiskConfig>,
-}
-
-/// `DatabaseObjects` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseObjects {
-    /// category property.
-    pub category: Option<String>,
-    /// count property.
-    pub count: Option<String>,
-}
-
-/// `PostgreSqlExtension` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostgreSqlExtension {
-    /// extension property.
-    pub extension: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `AwsRds` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AwsRds {}
-
-/// `AssetPerformanceData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AssetPerformanceData {
-    /// dailyResourceUsageAggregations property.
-    pub daily_resource_usage_aggregations: Option<Vec<DailyResourceUsageAggregation>>,
-}
-
-/// `DailyResourceUsageAggregation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DailyResourceUsageAggregation {
-    /// cpu property.
-    pub cpu: Option<DailyResourceUsageAggregationCPU>,
-    /// date property.
-    pub date: Option<Date>,
-    /// disk property.
-    pub disk: Option<DailyResourceUsageAggregationDisk>,
-    /// memory property.
-    pub memory: Option<DailyResourceUsageAggregationMemory>,
-    /// network property.
-    pub network: Option<DailyResourceUsageAggregationNetwork>,
+    pub entries: Option<Vec<GuestInstalledApplication>>,
 }
 
 /// `PostgreSqlSchemaDetails` type.
@@ -222,111 +39,6 @@ pub struct PostgreSqlSchemaDetails {
     pub foreign_tables_count: Option<i64>,
     /// postgresqlExtensions property.
     pub postgresql_extensions: Option<Vec<PostgreSqlExtension>>,
-}
-
-/// `Insight` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Insight {
-    /// genericInsight property.
-    pub generic_insight: Option<GenericInsight>,
-    /// migrationInsight property.
-    pub migration_insight: Option<MigrationInsight>,
-}
-
-/// `MigrationInsight` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MigrationInsight {
-    /// computeEngineTarget property.
-    pub compute_engine_target: Option<ComputeEngineMigrationTarget>,
-    /// fit property.
-    pub fit: Option<FitDescriptor>,
-}
-
-/// `VmwarePlatformDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwarePlatformDetails {
-    /// esxHyperthreading property.
-    pub esx_hyperthreading: Option<String>,
-    /// esxVersion property.
-    pub esx_version: Option<String>,
-    /// osid property.
-    pub osid: Option<String>,
-    /// vcenterFolder property.
-    pub vcenter_folder: Option<String>,
-    /// vcenterUri property.
-    pub vcenter_uri: Option<String>,
-    /// vcenterVersion property.
-    pub vcenter_version: Option<String>,
-    /// vcenterVmId property.
-    pub vcenter_vm_id: Option<String>,
-}
-
-/// `DailyResourceUsageAggregationNetwork` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DailyResourceUsageAggregationNetwork {
-    /// egressBps property.
-    pub egress_bps: Option<DailyResourceUsageAggregationStats>,
-    /// ingressBps property.
-    pub ingress_bps: Option<DailyResourceUsageAggregationStats>,
-}
-
-/// `PostgreSqlDatabaseDeployment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostgreSqlDatabaseDeployment {
-    /// properties property.
-    pub properties: Option<Vec<PostgreSqlProperty>>,
-    /// settings property.
-    pub settings: Option<Vec<PostgreSqlSetting>>,
-}
-
-/// `GenericInsight` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GenericInsight {
-    /// additionalInformation property.
-    pub additional_information: Option<Vec<String>>,
-    /// defaultMessage property.
-    pub default_message: Option<String>,
-    /// messageId property.
-    pub message_id: Option<String>,
-}
-
-/// `MySqlPlugin` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MySqlPlugin {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// plugin property.
-    pub plugin: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `NetworkAddress` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkAddress {
-    /// assignment property.
-    pub assignment: Option<String>,
-    /// bcast property.
-    pub bcast: Option<String>,
-    /// fqdn property.
-    pub fqdn: Option<String>,
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// subnetMask property.
-    pub subnet_mask: Option<String>,
-}
-
-/// `OpenFileDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OpenFileDetails {
-    /// command property.
-    pub command: Option<String>,
-    /// filePath property.
-    pub file_path: Option<String>,
-    /// fileType property.
-    pub file_type: Option<String>,
-    /// user property.
-    pub user: Option<String>,
 }
 
 /// `SqlServerServerFlag` type.
@@ -340,238 +52,30 @@ pub struct SqlServerServerFlag {
     pub value_in_use: Option<String>,
 }
 
-/// `Date` type.
+/// `RunningService` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `DiskPartition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskPartition {
-    /// capacityBytes property.
-    pub capacity_bytes: Option<String>,
-    /// fileSystem property.
-    pub file_system: Option<String>,
-    /// freeBytes property.
-    pub free_bytes: Option<String>,
-    /// mountPoint property.
-    pub mount_point: Option<String>,
-    /// subPartitions property.
-    pub sub_partitions: Option<DiskPartitionList>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// uuid property.
-    pub uuid: Option<String>,
-}
-
-/// `RunningServiceList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RunningServiceList {
-    /// entries property.
-    pub entries: Option<Vec<RunningService>>,
-}
-
-/// `GuestInstalledApplicationList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GuestInstalledApplicationList {
-    /// entries property.
-    pub entries: Option<Vec<GuestInstalledApplication>>,
-}
-
-/// `NetworkConnectionList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkConnectionList {
-    /// entries property.
-    pub entries: Option<Vec<NetworkConnection>>,
-}
-
-/// `NfsExport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NfsExport {
-    /// exportDirectory property.
-    pub export_directory: Option<String>,
-    /// hosts property.
-    pub hosts: Option<Vec<String>>,
-}
-
-/// `DailyResourceUsageAggregationMemory` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DailyResourceUsageAggregationMemory {
-    /// utilizationPercentage property.
-    pub utilization_percentage: Option<DailyResourceUsageAggregationStats>,
-}
-
-/// `GuestInstalledApplication` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GuestInstalledApplication {
-    /// applicationName property.
-    pub application_name: Option<String>,
-    /// installTime property.
-    pub install_time: Option<String>,
-    /// licenses property.
-    pub licenses: Option<Vec<String>>,
-    /// path property.
-    pub path: Option<String>,
-    /// vendor property.
-    pub vendor: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `RunningProcessList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RunningProcessList {
-    /// entries property.
-    pub entries: Option<Vec<RunningProcess>>,
-}
-
-/// `MysqlDatabaseDeployment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MysqlDatabaseDeployment {
-    /// plugins property.
-    pub plugins: Option<Vec<MySqlPlugin>>,
-    /// properties property.
-    pub properties: Option<Vec<MySqlProperty>>,
-    /// resourceGroupsCount property.
-    pub resource_groups_count: Option<i64>,
-    /// variables property.
-    pub variables: Option<Vec<MySqlVariable>>,
-}
-
-/// `DatabaseDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseDetails {
-    /// allocatedStorageBytes property.
-    pub allocated_storage_bytes: Option<String>,
-    /// databaseName property.
-    pub database_name: Option<String>,
-    /// parentDatabaseDeployment property.
-    pub parent_database_deployment: Option<DatabaseDetailsParentDatabaseDeployment>,
-    /// schemas property.
-    pub schemas: Option<Vec<DatabaseSchema>>,
-}
-
-/// `RuntimeNetworkInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RuntimeNetworkInfo {
-    /// connections property.
-    pub connections: Option<NetworkConnectionList>,
-    /// scanTime property.
-    pub scan_time: Option<String>,
-}
-
-/// `OpenFileList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OpenFileList {
-    /// entries property.
-    pub entries: Option<Vec<OpenFileDetails>>,
-}
-
-/// `RunningProcess` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RunningProcess {
-    /// attributes property.
-    pub attributes: Option<serde_json::Value>,
+pub struct RunningService {
     /// cmdline property.
     pub cmdline: Option<String>,
     /// exePath property.
     pub exe_path: Option<String>,
     /// pid property.
     pub pid: Option<String>,
-    /// user property.
-    pub user: Option<String>,
+    /// serviceName property.
+    pub service_name: Option<String>,
+    /// startMode property.
+    pub start_mode: Option<String>,
+    /// state property.
+    pub state: Option<String>,
 }
 
-/// `SqlServerDatabaseDeployment` type.
+/// `InsightList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerDatabaseDeployment {
-    /// features property.
-    pub features: Option<Vec<SqlServerFeature>>,
-    /// serverFlags property.
-    pub server_flags: Option<Vec<SqlServerServerFlag>>,
-    /// traceFlags property.
-    pub trace_flags: Option<Vec<SqlServerTraceFlag>>,
-}
-
-/// `AzureVmPlatformDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AzureVmPlatformDetails {
-    /// hyperthreading property.
-    pub hyperthreading: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// machineTypeLabel property.
-    pub machine_type_label: Option<String>,
-    /// provisioningState property.
-    pub provisioning_state: Option<String>,
-}
-
-/// `DatabaseDeploymentTopology` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseDeploymentTopology {
-    /// coreCount property.
-    pub core_count: Option<i64>,
-    /// coreLimit property.
-    pub core_limit: Option<i64>,
-    /// diskAllocatedBytes property.
-    pub disk_allocated_bytes: Option<String>,
-    /// diskUsedBytes property.
-    pub disk_used_bytes: Option<String>,
-    /// instances property.
-    pub instances: Option<Vec<DatabaseInstance>>,
-    /// memoryBytes property.
-    pub memory_bytes: Option<String>,
-    /// memoryLimitBytes property.
-    pub memory_limit_bytes: Option<String>,
-    /// physicalCoreCount property.
-    pub physical_core_count: Option<i64>,
-    /// physicalCoreLimit property.
-    pub physical_core_limit: Option<i64>,
-}
-
-/// `HostsEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HostsEntry {
-    /// hostNames property.
-    pub host_names: Option<Vec<String>>,
-    /// ip property.
-    pub ip: Option<String>,
-}
-
-/// `PostgreSqlProperty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostgreSqlProperty {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// numericValue property.
-    pub numeric_value: Option<String>,
-    /// property property.
-    pub property: Option<String>,
-}
-
-/// `PostgreSqlSetting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostgreSqlSetting {
-    /// boolValue property.
-    pub bool_value: Option<bool>,
-    /// intValue property.
-    pub int_value: Option<String>,
-    /// realValue property.
-    pub real_value: Option<f64>,
-    /// setting property.
-    pub setting: Option<String>,
-    /// source property.
-    pub source: Option<String>,
-    /// stringValue property.
-    pub string_value: Option<String>,
-    /// unit property.
-    pub unit: Option<String>,
+pub struct InsightList {
+    /// insights property.
+    pub insights: Option<Vec<Insight>>,
+    /// updateTime property.
+    pub update_time: Option<String>,
 }
 
 /// `DatabaseDeploymentDetails` type.
@@ -599,26 +103,485 @@ pub struct DatabaseDeploymentDetails {
     pub version: Option<String>,
 }
 
-/// `DailyResourceUsageAggregationStats` type.
+/// `MySqlPlugin` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DailyResourceUsageAggregationStats {
-    /// average property.
-    pub average: Option<f64>,
-    /// median property.
-    pub median: Option<f64>,
-    /// ninteyFifthPercentile property.
-    pub nintey_fifth_percentile: Option<f64>,
-    /// peak property.
-    pub peak: Option<f64>,
+pub struct MySqlPlugin {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// plugin property.
+    pub plugin: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
-/// `PhysicalPlatformDetails` type.
+/// `GuestOsDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PhysicalPlatformDetails {
+pub struct GuestOsDetails {
+    /// config property.
+    pub config: Option<GuestConfigDetails>,
+    /// family property.
+    pub family: Option<String>,
+    /// osName property.
+    pub os_name: Option<String>,
+    /// runtime property.
+    pub runtime: Option<GuestRuntimeDetails>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `AwsEc2PlatformDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AwsEc2PlatformDetails {
     /// hyperthreading property.
     pub hyperthreading: Option<String>,
     /// location property.
     pub location: Option<String>,
+    /// machineTypeLabel property.
+    pub machine_type_label: Option<String>,
+}
+
+/// `OpenFileDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OpenFileDetails {
+    /// command property.
+    pub command: Option<String>,
+    /// filePath property.
+    pub file_path: Option<String>,
+    /// fileType property.
+    pub file_type: Option<String>,
+    /// user property.
+    pub user: Option<String>,
+}
+
+/// `GenericInsight` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GenericInsight {
+    /// additionalInformation property.
+    pub additional_information: Option<Vec<String>>,
+    /// defaultMessage property.
+    pub default_message: Option<String>,
+    /// messageId property.
+    pub message_id: Option<String>,
+}
+
+/// `DatabaseDeploymentTopology` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseDeploymentTopology {
+    /// coreCount property.
+    pub core_count: Option<i64>,
+    /// coreLimit property.
+    pub core_limit: Option<i64>,
+    /// diskAllocatedBytes property.
+    pub disk_allocated_bytes: Option<String>,
+    /// diskUsedBytes property.
+    pub disk_used_bytes: Option<String>,
+    /// instances property.
+    pub instances: Option<Vec<DatabaseInstance>>,
+    /// memoryBytes property.
+    pub memory_bytes: Option<String>,
+    /// memoryLimitBytes property.
+    pub memory_limit_bytes: Option<String>,
+    /// physicalCoreCount property.
+    pub physical_core_count: Option<i64>,
+    /// physicalCoreLimit property.
+    pub physical_core_limit: Option<i64>,
+}
+
+/// `HostsEntryList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HostsEntryList {
+    /// entries property.
+    pub entries: Option<Vec<HostsEntry>>,
+}
+
+/// `OpenFileList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OpenFileList {
+    /// entries property.
+    pub entries: Option<Vec<OpenFileDetails>>,
+}
+
+/// `MySqlStorageEngineDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MySqlStorageEngineDetails {
+    /// encryptedTableCount property.
+    pub encrypted_table_count: Option<i64>,
+    /// engine property.
+    pub engine: Option<String>,
+    /// tableCount property.
+    pub table_count: Option<i64>,
+}
+
+/// `DailyResourceUsageAggregationNetwork` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DailyResourceUsageAggregationNetwork {
+    /// egressBps property.
+    pub egress_bps: Option<DailyResourceUsageAggregationStats>,
+    /// ingressBps property.
+    pub ingress_bps: Option<DailyResourceUsageAggregationStats>,
+}
+
+/// `MysqlDatabaseDeployment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MysqlDatabaseDeployment {
+    /// plugins property.
+    pub plugins: Option<Vec<MySqlPlugin>>,
+    /// properties property.
+    pub properties: Option<Vec<MySqlProperty>>,
+    /// resourceGroupsCount property.
+    pub resource_groups_count: Option<i64>,
+    /// variables property.
+    pub variables: Option<Vec<MySqlVariable>>,
+}
+
+/// `DiskPartitionList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskPartitionList {
+    /// entries property.
+    pub entries: Option<Vec<Box<DiskPartition>>>,
+}
+
+/// `DiskPartitionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskPartitionDetails {
+    /// freeSpaceBytes property.
+    pub free_space_bytes: Option<String>,
+    /// partitions property.
+    pub partitions: Option<Box<DiskPartitionList>>,
+    /// totalCapacityBytes property.
+    pub total_capacity_bytes: Option<String>,
+}
+
+/// `AssetPerformanceData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AssetPerformanceData {
+    /// dailyResourceUsageAggregations property.
+    pub daily_resource_usage_aggregations: Option<Vec<DailyResourceUsageAggregation>>,
+}
+
+/// `NetworkConnection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkConnection {
+    /// localIpAddress property.
+    pub local_ip_address: Option<String>,
+    /// localPort property.
+    pub local_port: Option<i64>,
+    /// pid property.
+    pub pid: Option<String>,
+    /// processName property.
+    pub process_name: Option<String>,
+    /// protocol property.
+    pub protocol: Option<String>,
+    /// remoteIpAddress property.
+    pub remote_ip_address: Option<String>,
+    /// remotePort property.
+    pub remote_port: Option<i64>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `SqlServerDatabaseDeployment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerDatabaseDeployment {
+    /// features property.
+    pub features: Option<Vec<SqlServerFeature>>,
+    /// serverFlags property.
+    pub server_flags: Option<Vec<SqlServerServerFlag>>,
+    /// traceFlags property.
+    pub trace_flags: Option<Vec<SqlServerTraceFlag>>,
+}
+
+/// `RunningProcessList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RunningProcessList {
+    /// entries property.
+    pub entries: Option<Vec<RunningProcess>>,
+}
+
+/// `MachineDiskDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MachineDiskDetails {
+    /// disks property.
+    pub disks: Option<DiskEntryList>,
+    /// totalCapacityBytes property.
+    pub total_capacity_bytes: Option<String>,
+    /// totalFreeBytes property.
+    pub total_free_bytes: Option<String>,
+}
+
+/// `MachineNetworkDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MachineNetworkDetails {
+    /// adapters property.
+    pub adapters: Option<NetworkAdapterList>,
+    /// defaultGateway property.
+    pub default_gateway: Option<String>,
+    /// primaryIpAddress property.
+    pub primary_ip_address: Option<String>,
+    /// primaryMacAddress property.
+    pub primary_mac_address: Option<String>,
+    /// publicIpAddress property.
+    pub public_ip_address: Option<String>,
+}
+
+/// `MachineArchitectureDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MachineArchitectureDetails {
+    /// bios property.
+    pub bios: Option<BiosDetails>,
+    /// cpuArchitecture property.
+    pub cpu_architecture: Option<String>,
+    /// cpuManufacturer property.
+    pub cpu_manufacturer: Option<String>,
+    /// cpuName property.
+    pub cpu_name: Option<String>,
+    /// cpuSocketCount property.
+    pub cpu_socket_count: Option<i64>,
+    /// cpuThreadCount property.
+    pub cpu_thread_count: Option<i64>,
+    /// firmwareType property.
+    pub firmware_type: Option<String>,
+    /// hyperthreading property.
+    pub hyperthreading: Option<String>,
+    /// vendor property.
+    pub vendor: Option<String>,
+}
+
+/// `GenericPlatformDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GenericPlatformDetails {
+    /// hyperthreading property.
+    pub hyperthreading: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+}
+
+/// `NetworkAdapterList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkAdapterList {
+    /// entries property.
+    pub entries: Option<Vec<NetworkAdapterDetails>>,
+}
+
+/// `RunningProcess` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RunningProcess {
+    /// attributes property.
+    pub attributes: Option<serde_json::Value>,
+    /// cmdline property.
+    pub cmdline: Option<String>,
+    /// exePath property.
+    pub exe_path: Option<String>,
+    /// pid property.
+    pub pid: Option<String>,
+    /// user property.
+    pub user: Option<String>,
+}
+
+/// `ComputeStorageDescriptor` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeStorageDescriptor {
+    /// sizeGb property.
+    pub size_gb: Option<i64>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `BiosDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BiosDetails {
+    /// biosName property.
+    pub bios_name: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// manufacturer property.
+    pub manufacturer: Option<String>,
+    /// releaseDate property.
+    pub release_date: Option<Date>,
+    /// smbiosUuid property.
+    pub smbios_uuid: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `DatabaseSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseSchema {
+    /// mysql property.
+    pub mysql: Option<MySqlSchemaDetails>,
+    /// objects property.
+    pub objects: Option<Vec<DatabaseObjects>>,
+    /// postgresql property.
+    pub postgresql: Option<PostgreSqlSchemaDetails>,
+    /// schemaName property.
+    pub schema_name: Option<String>,
+    /// sqlServer property.
+    pub sql_server: Option<SqlServerSchemaDetails>,
+    /// tablesSizeBytes property.
+    pub tables_size_bytes: Option<String>,
+}
+
+/// `PostgreSqlExtension` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostgreSqlExtension {
+    /// extension property.
+    pub extension: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `GuestRuntimeDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GuestRuntimeDetails {
+    /// domain property.
+    pub domain: Option<String>,
+    /// installedApps property.
+    pub installed_apps: Option<GuestInstalledApplicationList>,
+    /// lastBootTime property.
+    pub last_boot_time: Option<String>,
+    /// machineName property.
+    pub machine_name: Option<String>,
+    /// network property.
+    pub network: Option<RuntimeNetworkInfo>,
+    /// openFileList property.
+    pub open_file_list: Option<OpenFileList>,
+    /// processes property.
+    pub processes: Option<RunningProcessList>,
+    /// services property.
+    pub services: Option<RunningServiceList>,
+}
+
+/// `Insight` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Insight {
+    /// genericInsight property.
+    pub generic_insight: Option<GenericInsight>,
+    /// migrationInsight property.
+    pub migration_insight: Option<MigrationInsight>,
+}
+
+/// `DatabaseDetailsParentDatabaseDeployment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseDetailsParentDatabaseDeployment {
+    /// generatedId property.
+    pub generated_id: Option<String>,
+    /// manualUniqueId property.
+    pub manual_unique_id: Option<String>,
+}
+
+/// `DiskEntryList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskEntryList {
+    /// entries property.
+    pub entries: Option<Vec<DiskEntry>>,
+}
+
+/// `NfsExport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NfsExport {
+    /// exportDirectory property.
+    pub export_directory: Option<String>,
+    /// hosts property.
+    pub hosts: Option<Vec<String>>,
+}
+
+/// `NfsExportList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NfsExportList {
+    /// entries property.
+    pub entries: Option<Vec<NfsExport>>,
+}
+
+/// `DailyResourceUsageAggregationCPU` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DailyResourceUsageAggregationCPU {
+    /// utilizationPercentage property.
+    pub utilization_percentage: Option<DailyResourceUsageAggregationStats>,
+}
+
+/// `NetworkAdapterDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkAdapterDetails {
+    /// adapterType property.
+    pub adapter_type: Option<String>,
+    /// addresses property.
+    pub addresses: Option<NetworkAddressList>,
+    /// macAddress property.
+    pub mac_address: Option<String>,
+}
+
+/// `DiskPartition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskPartition {
+    /// capacityBytes property.
+    pub capacity_bytes: Option<String>,
+    /// fileSystem property.
+    pub file_system: Option<String>,
+    /// freeBytes property.
+    pub free_bytes: Option<String>,
+    /// mountPoint property.
+    pub mount_point: Option<String>,
+    /// subPartitions property.
+    pub sub_partitions: Option<Box<DiskPartitionList>>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// uuid property.
+    pub uuid: Option<String>,
+}
+
+/// `NetworkAddressList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkAddressList {
+    /// entries property.
+    pub entries: Option<Vec<NetworkAddress>>,
+}
+
+/// `RuntimeNetworkInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RuntimeNetworkInfo {
+    /// connections property.
+    pub connections: Option<NetworkConnectionList>,
+    /// scanTime property.
+    pub scan_time: Option<String>,
+}
+
+/// `GuestInstalledApplication` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GuestInstalledApplication {
+    /// applicationName property.
+    pub application_name: Option<String>,
+    /// installTime property.
+    pub install_time: Option<String>,
+    /// licenses property.
+    pub licenses: Option<Vec<String>>,
+    /// path property.
+    pub path: Option<String>,
+    /// vendor property.
+    pub vendor: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `NetworkAddress` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkAddress {
+    /// assignment property.
+    pub assignment: Option<String>,
+    /// bcast property.
+    pub bcast: Option<String>,
+    /// fqdn property.
+    pub fqdn: Option<String>,
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// subnetMask property.
+    pub subnet_mask: Option<String>,
+}
+
+/// `FstabEntryList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FstabEntryList {
+    /// entries property.
+    pub entries: Option<Vec<FstabEntry>>,
 }
 
 /// `ComputeEngineShapeDescriptor` type.
@@ -638,75 +601,18 @@ pub struct ComputeEngineShapeDescriptor {
     pub storage: Option<Vec<ComputeStorageDescriptor>>,
 }
 
-/// `DatabaseDetailsParentDatabaseDeployment` type.
+/// `ComputeEngineMigrationTarget` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseDetailsParentDatabaseDeployment {
-    /// generatedId property.
-    pub generated_id: Option<String>,
-    /// manualUniqueId property.
-    pub manual_unique_id: Option<String>,
+pub struct ComputeEngineMigrationTarget {
+    /// shape property.
+    pub shape: Option<ComputeEngineShapeDescriptor>,
 }
 
-/// `MySqlProperty` type.
+/// `RunningServiceList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MySqlProperty {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// numericValue property.
-    pub numeric_value: Option<String>,
-    /// property property.
-    pub property: Option<String>,
-}
-
-/// `PlatformDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlatformDetails {
-    /// awsEc2Details property.
-    pub aws_ec2_details: Option<AwsEc2PlatformDetails>,
-    /// azureVmDetails property.
-    pub azure_vm_details: Option<AzureVmPlatformDetails>,
-    /// genericDetails property.
-    pub generic_details: Option<GenericPlatformDetails>,
-    /// physicalDetails property.
-    pub physical_details: Option<PhysicalPlatformDetails>,
-    /// vmwareDetails property.
-    pub vmware_details: Option<VmwarePlatformDetails>,
-}
-
-/// `BatchUpdateAssetsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BatchUpdateAssetsResponse {
-    /// assets property.
-    pub assets: Option<Vec<Asset>>,
-}
-
-/// `GuestConfigDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GuestConfigDetails {
-    /// fstab property.
-    pub fstab: Option<FstabEntryList>,
-    /// hosts property.
-    pub hosts: Option<HostsEntryList>,
-    /// issue property.
-    pub issue: Option<String>,
-    /// nfsExports property.
-    pub nfs_exports: Option<NfsExportList>,
-    /// selinuxMode property.
-    pub selinux_mode: Option<String>,
-}
-
-/// `DiskPartitionList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskPartitionList {
+pub struct RunningServiceList {
     /// entries property.
-    pub entries: Option<Vec<DiskPartition>>,
-}
-
-/// `SqlServerSchemaDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerSchemaDetails {
-    /// clrObjectCount property.
-    pub clr_object_count: Option<i64>,
+    pub entries: Option<Vec<RunningService>>,
 }
 
 /// `Asset` type.
@@ -746,82 +652,15 @@ pub struct Asset {
     pub update_time: Option<String>,
 }
 
-/// `MachineNetworkDetails` type.
+/// `PostgreSqlProperty` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MachineNetworkDetails {
-    /// adapters property.
-    pub adapters: Option<NetworkAdapterList>,
-    /// defaultGateway property.
-    pub default_gateway: Option<String>,
-    /// primaryIpAddress property.
-    pub primary_ip_address: Option<String>,
-    /// primaryMacAddress property.
-    pub primary_mac_address: Option<String>,
-    /// publicIpAddress property.
-    pub public_ip_address: Option<String>,
-}
-
-/// `DailyResourceUsageAggregationCPU` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DailyResourceUsageAggregationCPU {
-    /// utilizationPercentage property.
-    pub utilization_percentage: Option<DailyResourceUsageAggregationStats>,
-}
-
-/// `GuestOsDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GuestOsDetails {
-    /// config property.
-    pub config: Option<GuestConfigDetails>,
-    /// family property.
-    pub family: Option<String>,
-    /// osName property.
-    pub os_name: Option<String>,
-    /// runtime property.
-    pub runtime: Option<GuestRuntimeDetails>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `MachineDiskDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MachineDiskDetails {
-    /// disks property.
-    pub disks: Option<DiskEntryList>,
-    /// totalCapacityBytes property.
-    pub total_capacity_bytes: Option<String>,
-    /// totalFreeBytes property.
-    pub total_free_bytes: Option<String>,
-}
-
-/// `FstabEntryList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FstabEntryList {
-    /// entries property.
-    pub entries: Option<Vec<FstabEntry>>,
-}
-
-/// `DiskEntryList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskEntryList {
-    /// entries property.
-    pub entries: Option<Vec<DiskEntry>>,
-}
-
-/// `FitDescriptor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FitDescriptor {
-    /// fitLevel property.
-    pub fit_level: Option<String>,
-}
-
-/// `SqlServerFeature` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerFeature {
+pub struct PostgreSqlProperty {
     /// enabled property.
     pub enabled: Option<bool>,
-    /// featureName property.
-    pub feature_name: Option<String>,
+    /// numericValue property.
+    pub numeric_value: Option<String>,
+    /// property property.
+    pub property: Option<String>,
 }
 
 /// `DatabaseInstanceNetwork` type.
@@ -833,6 +672,160 @@ pub struct DatabaseInstanceNetwork {
     pub ip_addresses: Option<Vec<String>>,
     /// primaryMacAddress property.
     pub primary_mac_address: Option<String>,
+}
+
+/// `GuestConfigDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GuestConfigDetails {
+    /// fstab property.
+    pub fstab: Option<FstabEntryList>,
+    /// hosts property.
+    pub hosts: Option<HostsEntryList>,
+    /// issue property.
+    pub issue: Option<String>,
+    /// nfsExports property.
+    pub nfs_exports: Option<NfsExportList>,
+    /// selinuxMode property.
+    pub selinux_mode: Option<String>,
+}
+
+/// `PostgreSqlDatabaseDeployment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostgreSqlDatabaseDeployment {
+    /// properties property.
+    pub properties: Option<Vec<PostgreSqlProperty>>,
+    /// settings property.
+    pub settings: Option<Vec<PostgreSqlSetting>>,
+}
+
+/// `DatabaseInstance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseInstance {
+    /// instanceName property.
+    pub instance_name: Option<String>,
+    /// network property.
+    pub network: Option<DatabaseInstanceNetwork>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `NetworkConnectionList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkConnectionList {
+    /// entries property.
+    pub entries: Option<Vec<NetworkConnection>>,
+}
+
+/// `FstabEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FstabEntry {
+    /// file property.
+    pub file: Option<String>,
+    /// freq property.
+    pub freq: Option<i64>,
+    /// mntops property.
+    pub mntops: Option<String>,
+    /// passno property.
+    pub passno: Option<i64>,
+    /// spec property.
+    pub spec: Option<String>,
+    /// vfstype property.
+    pub vfstype: Option<String>,
+}
+
+/// `FitDescriptor` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FitDescriptor {
+    /// fitLevel property.
+    pub fit_level: Option<String>,
+}
+
+/// `DatabaseDeploymentDetailsAggregatedStats` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseDeploymentDetailsAggregatedStats {
+    /// databaseCount property.
+    pub database_count: Option<i64>,
+}
+
+/// `SqlServerFeature` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerFeature {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// featureName property.
+    pub feature_name: Option<String>,
+}
+
+/// `VmwarePlatformDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmwarePlatformDetails {
+    /// esxHyperthreading property.
+    pub esx_hyperthreading: Option<String>,
+    /// esxVersion property.
+    pub esx_version: Option<String>,
+    /// osid property.
+    pub osid: Option<String>,
+    /// vcenterFolder property.
+    pub vcenter_folder: Option<String>,
+    /// vcenterUri property.
+    pub vcenter_uri: Option<String>,
+    /// vcenterVersion property.
+    pub vcenter_version: Option<String>,
+    /// vcenterVmId property.
+    pub vcenter_vm_id: Option<String>,
+}
+
+/// `MigrationInsight` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MigrationInsight {
+    /// computeEngineTarget property.
+    pub compute_engine_target: Option<ComputeEngineMigrationTarget>,
+    /// fit property.
+    pub fit: Option<FitDescriptor>,
+}
+
+/// `MySqlSchemaDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MySqlSchemaDetails {
+    /// storageEngines property.
+    pub storage_engines: Option<Vec<MySqlStorageEngineDetails>>,
+}
+
+/// `VmwareDiskConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmwareDiskConfig {
+    /// backingType property.
+    pub backing_type: Option<String>,
+    /// rdmCompatibility property.
+    pub rdm_compatibility: Option<String>,
+    /// shared property.
+    pub shared: Option<bool>,
+    /// vmdkMode property.
+    pub vmdk_mode: Option<String>,
+}
+
+/// `DailyResourceUsageAggregation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DailyResourceUsageAggregation {
+    /// cpu property.
+    pub cpu: Option<DailyResourceUsageAggregationCPU>,
+    /// date property.
+    pub date: Option<Date>,
+    /// disk property.
+    pub disk: Option<DailyResourceUsageAggregationDisk>,
+    /// memory property.
+    pub memory: Option<DailyResourceUsageAggregationMemory>,
+    /// network property.
+    pub network: Option<DailyResourceUsageAggregationNetwork>,
+}
+
+/// `HostsEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HostsEntry {
+    /// hostNames property.
+    pub host_names: Option<Vec<String>>,
+    /// ip property.
+    pub ip: Option<String>,
 }
 
 /// `MachineDetails` type.
@@ -864,38 +857,80 @@ pub struct MachineDetails {
     pub uuid: Option<String>,
 }
 
-/// `RunningService` type.
+/// `AzureVmPlatformDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RunningService {
-    /// cmdline property.
-    pub cmdline: Option<String>,
-    /// exePath property.
-    pub exe_path: Option<String>,
-    /// pid property.
-    pub pid: Option<String>,
-    /// serviceName property.
-    pub service_name: Option<String>,
-    /// startMode property.
-    pub start_mode: Option<String>,
-    /// state property.
-    pub state: Option<String>,
+pub struct AzureVmPlatformDetails {
+    /// hyperthreading property.
+    pub hyperthreading: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// machineTypeLabel property.
+    pub machine_type_label: Option<String>,
+    /// provisioningState property.
+    pub provisioning_state: Option<String>,
 }
 
-/// `DatabaseSchema` type.
+/// `DailyResourceUsageAggregationDisk` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseSchema {
-    /// mysql property.
-    pub mysql: Option<MySqlSchemaDetails>,
-    /// objects property.
-    pub objects: Option<Vec<DatabaseObjects>>,
-    /// postgresql property.
-    pub postgresql: Option<PostgreSqlSchemaDetails>,
-    /// schemaName property.
-    pub schema_name: Option<String>,
-    /// sqlServer property.
-    pub sql_server: Option<SqlServerSchemaDetails>,
-    /// tablesSizeBytes property.
-    pub tables_size_bytes: Option<String>,
+pub struct DailyResourceUsageAggregationDisk {
+    /// iops property.
+    pub iops: Option<DailyResourceUsageAggregationStats>,
+    /// readIops property.
+    pub read_iops: Option<DailyResourceUsageAggregationStats>,
+    /// writeIops property.
+    pub write_iops: Option<DailyResourceUsageAggregationStats>,
+}
+
+/// `DailyResourceUsageAggregationMemory` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DailyResourceUsageAggregationMemory {
+    /// utilizationPercentage property.
+    pub utilization_percentage: Option<DailyResourceUsageAggregationStats>,
+}
+
+/// `DailyResourceUsageAggregationStats` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DailyResourceUsageAggregationStats {
+    /// average property.
+    pub average: Option<f64>,
+    /// median property.
+    pub median: Option<f64>,
+    /// ninteyFifthPercentile property.
+    pub nintey_fifth_percentile: Option<f64>,
+    /// peak property.
+    pub peak: Option<f64>,
+}
+
+/// `DiskEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskEntry {
+    /// capacityBytes property.
+    pub capacity_bytes: Option<String>,
+    /// diskLabel property.
+    pub disk_label: Option<String>,
+    /// diskLabelType property.
+    pub disk_label_type: Option<String>,
+    /// freeBytes property.
+    pub free_bytes: Option<String>,
+    /// hwAddress property.
+    pub hw_address: Option<String>,
+    /// interfaceType property.
+    pub interface_type: Option<String>,
+    /// partitions property.
+    pub partitions: Option<Box<DiskPartitionList>>,
+    /// vmware property.
+    pub vmware: Option<VmwareDiskConfig>,
+}
+
+/// `AwsRds` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AwsRds {}
+
+/// `SqlServerSchemaDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerSchemaDetails {
+    /// clrObjectCount property.
+    pub clr_object_count: Option<i64>,
 }
 
 /// `SqlServerTraceFlag` type.
@@ -907,67 +942,24 @@ pub struct SqlServerTraceFlag {
     pub trace_flag_name: Option<String>,
 }
 
-/// `MySqlSchemaDetails` type.
+/// `MySqlProperty` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MySqlSchemaDetails {
-    /// storageEngines property.
-    pub storage_engines: Option<Vec<MySqlStorageEngineDetails>>,
+pub struct MySqlProperty {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// numericValue property.
+    pub numeric_value: Option<String>,
+    /// property property.
+    pub property: Option<String>,
 }
 
-/// `HostsEntryList` type.
+/// `PhysicalPlatformDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HostsEntryList {
-    /// entries property.
-    pub entries: Option<Vec<HostsEntry>>,
-}
-
-/// `ComputeStorageDescriptor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeStorageDescriptor {
-    /// sizeGb property.
-    pub size_gb: Option<i64>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `FstabEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FstabEntry {
-    /// file property.
-    pub file: Option<String>,
-    /// freq property.
-    pub freq: Option<i64>,
-    /// mntops property.
-    pub mntops: Option<String>,
-    /// passno property.
-    pub passno: Option<i64>,
-    /// spec property.
-    pub spec: Option<String>,
-    /// vfstype property.
-    pub vfstype: Option<String>,
-}
-
-/// `MachineArchitectureDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MachineArchitectureDetails {
-    /// bios property.
-    pub bios: Option<BiosDetails>,
-    /// cpuArchitecture property.
-    pub cpu_architecture: Option<String>,
-    /// cpuManufacturer property.
-    pub cpu_manufacturer: Option<String>,
-    /// cpuName property.
-    pub cpu_name: Option<String>,
-    /// cpuSocketCount property.
-    pub cpu_socket_count: Option<i64>,
-    /// cpuThreadCount property.
-    pub cpu_thread_count: Option<i64>,
-    /// firmwareType property.
-    pub firmware_type: Option<String>,
+pub struct PhysicalPlatformDetails {
     /// hyperthreading property.
     pub hyperthreading: Option<String>,
-    /// vendor property.
-    pub vendor: Option<String>,
+    /// location property.
+    pub location: Option<String>,
 }
 
 /// `MySqlVariable` type.
@@ -981,69 +973,78 @@ pub struct MySqlVariable {
     pub variable: Option<String>,
 }
 
-/// `NetworkConnection` type.
+/// `BatchUpdateAssetsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkConnection {
-    /// localIpAddress property.
-    pub local_ip_address: Option<String>,
-    /// localPort property.
-    pub local_port: Option<i64>,
-    /// pid property.
-    pub pid: Option<String>,
-    /// processName property.
-    pub process_name: Option<String>,
-    /// protocol property.
-    pub protocol: Option<String>,
-    /// remoteIpAddress property.
-    pub remote_ip_address: Option<String>,
-    /// remotePort property.
-    pub remote_port: Option<i64>,
-    /// state property.
-    pub state: Option<String>,
+pub struct BatchUpdateAssetsResponse {
+    /// assets property.
+    pub assets: Option<Vec<Asset>>,
 }
 
-/// `DiskPartitionDetails` type.
+/// `PostgreSqlSetting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskPartitionDetails {
-    /// freeSpaceBytes property.
-    pub free_space_bytes: Option<String>,
-    /// partitions property.
-    pub partitions: Option<DiskPartitionList>,
-    /// totalCapacityBytes property.
-    pub total_capacity_bytes: Option<String>,
+pub struct PostgreSqlSetting {
+    /// boolValue property.
+    pub bool_value: Option<bool>,
+    /// intValue property.
+    pub int_value: Option<String>,
+    /// realValue property.
+    pub real_value: Option<f64>,
+    /// setting property.
+    pub setting: Option<String>,
+    /// source property.
+    pub source: Option<String>,
+    /// stringValue property.
+    pub string_value: Option<String>,
+    /// unit property.
+    pub unit: Option<String>,
 }
 
-/// `NetworkAddressList` type.
+/// `DatabaseObjects` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkAddressList {
-    /// entries property.
-    pub entries: Option<Vec<NetworkAddress>>,
+pub struct DatabaseObjects {
+    /// category property.
+    pub category: Option<String>,
+    /// count property.
+    pub count: Option<String>,
 }
 
-/// `InsightList` type.
+/// `DatabaseDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InsightList {
-    /// insights property.
-    pub insights: Option<Vec<Insight>>,
-    /// updateTime property.
-    pub update_time: Option<String>,
+pub struct DatabaseDetails {
+    /// allocatedStorageBytes property.
+    pub allocated_storage_bytes: Option<String>,
+    /// databaseName property.
+    pub database_name: Option<String>,
+    /// parentDatabaseDeployment property.
+    pub parent_database_deployment: Option<DatabaseDetailsParentDatabaseDeployment>,
+    /// schemas property.
+    pub schemas: Option<Vec<DatabaseSchema>>,
 }
 
-/// `BiosDetails` type.
+/// `Date` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BiosDetails {
-    /// biosName property.
-    pub bios_name: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// manufacturer property.
-    pub manufacturer: Option<String>,
-    /// releaseDate property.
-    pub release_date: Option<Date>,
-    /// smbiosUuid property.
-    pub smbios_uuid: Option<String>,
-    /// version property.
-    pub version: Option<String>,
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `PlatformDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlatformDetails {
+    /// awsEc2Details property.
+    pub aws_ec2_details: Option<AwsEc2PlatformDetails>,
+    /// azureVmDetails property.
+    pub azure_vm_details: Option<AzureVmPlatformDetails>,
+    /// genericDetails property.
+    pub generic_details: Option<GenericPlatformDetails>,
+    /// physicalDetails property.
+    pub physical_details: Option<PhysicalPlatformDetails>,
+    /// vmwareDetails property.
+    pub vmware_details: Option<VmwarePlatformDetails>,
 }
 
 // =============================================================================

@@ -12,17 +12,37 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ManagedProperty` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedProperty {
+    /// defaultValue property.
+    pub default_value: Option<serde_json::Value>,
+    /// description property.
+    pub description: Option<String>,
+    /// entries property.
+    pub entries: Option<Vec<ManagedPropertyEntry>>,
+    /// key property.
+    pub key: Option<String>,
+    /// nestedProperties property.
+    pub nested_properties: Option<Vec<Box<ManagedProperty>>>,
+    /// title property.
+    pub title: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
 
 /// `Application` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -52,7 +72,7 @@ pub struct Application {
     /// iconUrl property.
     pub icon_url: Option<String>,
     /// managedProperties property.
-    pub managed_properties: Option<Vec<ManagedProperty>>,
+    pub managed_properties: Option<Vec<Box<ManagedProperty>>>,
     /// minAndroidSdkVersion property.
     pub min_android_sdk_version: Option<i64>,
     /// name property.
@@ -71,6 +91,15 @@ pub struct Application {
     pub title: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `AppTrackInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppTrackInfo {
+    /// trackAlias property.
+    pub track_alias: Option<String>,
+    /// trackId property.
+    pub track_id: Option<String>,
 }
 
 /// `ManagedPropertyEntry` type.
@@ -93,34 +122,6 @@ pub struct AppVersion {
     pub version_code: Option<i64>,
     /// versionString property.
     pub version_string: Option<String>,
-}
-
-/// `ManagedProperty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedProperty {
-    /// defaultValue property.
-    pub default_value: Option<serde_json::Value>,
-    /// description property.
-    pub description: Option<String>,
-    /// entries property.
-    pub entries: Option<Vec<ManagedPropertyEntry>>,
-    /// key property.
-    pub key: Option<String>,
-    /// nestedProperties property.
-    pub nested_properties: Option<Vec<ManagedProperty>>,
-    /// title property.
-    pub title: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `AppTrackInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppTrackInfo {
-    /// trackAlias property.
-    pub track_alias: Option<String>,
-    /// trackId property.
-    pub track_id: Option<String>,
 }
 
 /// `ApplicationPermission` type.

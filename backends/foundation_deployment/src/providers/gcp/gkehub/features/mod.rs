@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,23 +22,41 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ConfigManagementErrorResource` type.
+/// `PolicyControllerOnClusterState` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementErrorResource {
-    /// resourceGvk property.
-    pub resource_gvk: Option<ConfigManagementGroupVersionKind>,
-    /// resourceName property.
-    pub resource_name: Option<String>,
-    /// resourceNamespace property.
-    pub resource_namespace: Option<String>,
-    /// sourcePath property.
-    pub source_path: Option<String>,
+pub struct PolicyControllerOnClusterState {
+    /// details property.
+    pub details: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `ListMembershipFeaturesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListMembershipFeaturesResponse {
+    /// membershipFeatures property.
+    pub membership_features: Option<Vec<MembershipFeature>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `PolicyControllerState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PolicyControllerState {
+    /// componentStates property.
+    pub component_states: Option<serde_json::Value>,
+    /// policyContentState property.
+    pub policy_content_state: Option<PolicyControllerPolicyContentState>,
+    /// state property.
+    pub state: Option<String>,
 }
 
 /// `ConfigManagementState` type.
@@ -61,9 +80,630 @@ pub struct ConfigManagementState {
     pub policy_controller_state: Option<ConfigManagementPolicyControllerState>,
 }
 
+/// `IdentityServiceState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IdentityServiceState {
+    /// failureReason property.
+    pub failure_reason: Option<String>,
+    /// installedVersion property.
+    pub installed_version: Option<String>,
+    /// memberConfig property.
+    pub member_config: Option<IdentityServiceSpec>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `MembershipFeature` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MembershipFeature {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// deleteTime property.
+    pub delete_time: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// lifecycleState property.
+    pub lifecycle_state: Option<LifecycleState>,
+    /// name property.
+    pub name: Option<String>,
+    /// spec property.
+    pub spec: Option<FeatureSpec>,
+    /// state property.
+    pub state: Option<FeatureState>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `ConfigManagementConfigSyncVersion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementConfigSyncVersion {
+    /// admissionWebhook property.
+    pub admission_webhook: Option<String>,
+    /// gitSync property.
+    pub git_sync: Option<String>,
+    /// importer property.
+    pub importer: Option<String>,
+    /// monitor property.
+    pub monitor: Option<String>,
+    /// otelCollector property.
+    pub otel_collector: Option<String>,
+    /// reconcilerManager property.
+    pub reconciler_manager: Option<String>,
+    /// resourceGroupControllerManager property.
+    pub resource_group_controller_manager: Option<String>,
+    /// rootReconciler property.
+    pub root_reconciler: Option<String>,
+    /// syncer property.
+    pub syncer: Option<String>,
+}
+
+/// `IdentityServiceUserConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IdentityServiceUserConfig {
+    /// baseDn property.
+    pub base_dn: Option<String>,
+    /// filter property.
+    pub filter: Option<String>,
+    /// idAttribute property.
+    pub id_attribute: Option<String>,
+    /// loginAttribute property.
+    pub login_attribute: Option<String>,
+}
+
+/// `ConfigManagementPolicyController` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementPolicyController {
+    /// auditIntervalSeconds property.
+    pub audit_interval_seconds: Option<String>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// exemptableNamespaces property.
+    pub exemptable_namespaces: Option<Vec<String>>,
+    /// logDeniesEnabled property.
+    pub log_denies_enabled: Option<bool>,
+    /// monitoring property.
+    pub monitoring: Option<ConfigManagementPolicyControllerMonitoring>,
+    /// mutationEnabled property.
+    pub mutation_enabled: Option<bool>,
+    /// referentialRulesEnabled property.
+    pub referential_rules_enabled: Option<bool>,
+    /// templateLibraryInstalled property.
+    pub template_library_installed: Option<bool>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `IdentityServiceSimpleBindCredentials` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IdentityServiceSimpleBindCredentials {
+    /// dn property.
+    pub dn: Option<String>,
+    /// encryptedPassword property.
+    pub encrypted_password: Option<String>,
+    /// password property.
+    pub password: Option<String>,
+}
+
+/// `ConfigManagementOperatorState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementOperatorState {
+    /// deploymentState property.
+    pub deployment_state: Option<String>,
+    /// errors property.
+    pub errors: Option<Vec<ConfigManagementInstallError>>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `PolicyControllerTemplateLibraryConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PolicyControllerTemplateLibraryConfig {
+    /// installation property.
+    pub installation: Option<String>,
+}
+
+/// `IdentityServiceIdentityServiceOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IdentityServiceIdentityServiceOptions {
+    /// diagnosticInterface property.
+    pub diagnostic_interface: Option<IdentityServiceDiagnosticInterface>,
+    /// sessionDuration property.
+    pub session_duration: Option<String>,
+}
+
+/// `ConfigManagementGroupVersionKind` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementGroupVersionKind {
+    /// group property.
+    pub group: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `ServiceMeshCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceMeshCondition {
+    /// code property.
+    pub code: Option<String>,
+    /// details property.
+    pub details: Option<String>,
+    /// documentationLink property.
+    pub documentation_link: Option<String>,
+    /// severity property.
+    pub severity: Option<String>,
+}
+
 /// `ConfigManagementPolicyControllerVersion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementPolicyControllerVersion {
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `ConfigManagementErrorResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementErrorResource {
+    /// resourceGvk property.
+    pub resource_gvk: Option<ConfigManagementGroupVersionKind>,
+    /// resourceName property.
+    pub resource_name: Option<String>,
+    /// resourceNamespace property.
+    pub resource_namespace: Option<String>,
+    /// sourcePath property.
+    pub source_path: Option<String>,
+}
+
+/// `FeatureState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FeatureState {
+    /// appdevexperience property.
+    pub appdevexperience: Option<AppDevExperienceState>,
+    /// clusterupgrade property.
+    pub clusterupgrade: Option<ClusterUpgradeState>,
+    /// configmanagement property.
+    pub configmanagement: Option<ConfigManagementState>,
+    /// identityservice property.
+    pub identityservice: Option<IdentityServiceState>,
+    /// metering property.
+    pub metering: Option<MeteringState>,
+    /// policycontroller property.
+    pub policycontroller: Option<PolicyControllerState>,
+    /// rbacrolebindingactuation property.
+    pub rbacrolebindingactuation: Option<RBACRoleBindingActuationState>,
+    /// servicemesh property.
+    pub servicemesh: Option<ServiceMeshState>,
+    /// state property.
+    pub state: Option<State>,
+    /// workloadidentity property.
+    pub workloadidentity: Option<WorkloadIdentityState>,
+}
+
+/// `ConfigManagementBinauthzState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementBinauthzState {
+    /// version property.
+    pub version: Option<ConfigManagementBinauthzVersion>,
+    /// webhook property.
+    pub webhook: Option<String>,
+}
+
+/// `ConfigManagementConfigSync` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementConfigSync {
+    /// deploymentOverrides property.
+    pub deployment_overrides: Option<Vec<ConfigManagementDeploymentOverride>>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// git property.
+    pub git: Option<ConfigManagementGitConfig>,
+    /// metricsGcpServiceAccountEmail property.
+    pub metrics_gcp_service_account_email: Option<String>,
+    /// oci property.
+    pub oci: Option<ConfigManagementOciConfig>,
+    /// preventDrift property.
+    pub prevent_drift: Option<bool>,
+    /// sourceFormat property.
+    pub source_format: Option<String>,
+    /// stopSyncing property.
+    pub stop_syncing: Option<bool>,
+}
+
+/// `State` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct State {
+    /// code property.
+    pub code: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `ConfigManagementGatekeeperDeploymentState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementGatekeeperDeploymentState {
+    /// gatekeeperAudit property.
+    pub gatekeeper_audit: Option<String>,
+    /// gatekeeperControllerManagerState property.
+    pub gatekeeper_controller_manager_state: Option<String>,
+    /// gatekeeperMutation property.
+    pub gatekeeper_mutation: Option<String>,
+}
+
+/// `ConfigManagementHierarchyControllerConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementHierarchyControllerConfig {
+    /// enableHierarchicalResourceQuota property.
+    pub enable_hierarchical_resource_quota: Option<bool>,
+    /// enablePodTreeLabels property.
+    pub enable_pod_tree_labels: Option<bool>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `ConfigManagementBinauthzVersion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementBinauthzVersion {
+    /// webhookVersion property.
+    pub webhook_version: Option<String>,
+}
+
+/// `LifecycleState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LifecycleState {
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `ConfigManagementPolicyControllerMigration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementPolicyControllerMigration {
+    /// copyTime property.
+    pub copy_time: Option<String>,
+    /// stage property.
+    pub stage: Option<String>,
+}
+
+/// `ClusterUpgradeIgnoredMembership` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterUpgradeIgnoredMembership {
+    /// ignoredTime property.
+    pub ignored_time: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `ConfigManagementConfigSyncState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementConfigSyncState {
+    /// clusterLevelStopSyncingState property.
+    pub cluster_level_stop_syncing_state: Option<String>,
+    /// crCount property.
+    pub cr_count: Option<i64>,
+    /// deploymentState property.
+    pub deployment_state: Option<ConfigManagementConfigSyncDeploymentState>,
+    /// errors property.
+    pub errors: Option<Vec<ConfigManagementConfigSyncError>>,
+    /// reposyncCrd property.
+    pub reposync_crd: Option<String>,
+    /// rootsyncCrd property.
+    pub rootsync_crd: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// syncState property.
+    pub sync_state: Option<ConfigManagementSyncState>,
+    /// version property.
+    pub version: Option<ConfigManagementConfigSyncVersion>,
+}
+
+/// `ClusterUpgradeMembershipGKEUpgradeState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterUpgradeMembershipGKEUpgradeState {
+    /// status property.
+    pub status: Option<ClusterUpgradeUpgradeStatus>,
+    /// upgrade property.
+    pub upgrade: Option<ClusterUpgradeGKEUpgrade>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ConfigManagementOciConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementOciConfig {
+    /// gcpServiceAccountEmail property.
+    pub gcp_service_account_email: Option<String>,
+    /// policyDir property.
+    pub policy_dir: Option<String>,
+    /// secretType property.
+    pub secret_type: Option<String>,
+    /// syncRepo property.
+    pub sync_repo: Option<String>,
+    /// syncWaitSecs property.
+    pub sync_wait_secs: Option<String>,
+}
+
+/// `RBACRoleBindingActuationSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RBACRoleBindingActuationSpec {}
+
+/// `ServiceMeshStatusDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceMeshStatusDetails {
+    /// code property.
+    pub code: Option<String>,
+    /// details property.
+    pub details: Option<String>,
+}
+
+/// `ClusterUpgradeState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterUpgradeState {
+    /// ignored property.
+    pub ignored: Option<ClusterUpgradeIgnoredMembership>,
+    /// upgrades property.
+    pub upgrades: Option<Vec<ClusterUpgradeMembershipGKEUpgradeState>>,
+}
+
+/// `ServiceMeshControlPlaneManagement` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceMeshControlPlaneManagement {
+    /// details property.
+    pub details: Option<Vec<ServiceMeshStatusDetails>>,
+    /// implementation property.
+    pub implementation: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `IdentityServiceAuthMethod` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IdentityServiceAuthMethod {
+    /// azureadConfig property.
+    pub azuread_config: Option<IdentityServiceAzureADConfig>,
+    /// googleConfig property.
+    pub google_config: Option<IdentityServiceGoogleConfig>,
+    /// ldapConfig property.
+    pub ldap_config: Option<IdentityServiceLdapConfig>,
+    /// name property.
+    pub name: Option<String>,
+    /// oidcConfig property.
+    pub oidc_config: Option<IdentityServiceOidcConfig>,
+    /// proxy property.
+    pub proxy: Option<String>,
+    /// samlConfig property.
+    pub saml_config: Option<IdentityServiceSamlConfig>,
+}
+
+/// `ServiceMeshSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceMeshSpec {
+    /// configApi property.
+    pub config_api: Option<String>,
+    /// controlPlane property.
+    pub control_plane: Option<String>,
+    /// defaultChannel property.
+    pub default_channel: Option<String>,
+    /// management property.
+    pub management: Option<String>,
+}
+
+/// `WorkloadCertificateSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkloadCertificateSpec {
+    /// certificateManagement property.
+    pub certificate_management: Option<String>,
+}
+
+/// `IdentityServiceSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IdentityServiceSpec {
+    /// authMethods property.
+    pub auth_methods: Option<Vec<IdentityServiceAuthMethod>>,
+    /// identityServiceOptions property.
+    pub identity_service_options: Option<IdentityServiceIdentityServiceOptions>,
+}
+
+/// `IdentityServiceServerConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IdentityServiceServerConfig {
+    /// certificateAuthorityData property.
+    pub certificate_authority_data: Option<String>,
+    /// connectionType property.
+    pub connection_type: Option<String>,
+    /// host property.
+    pub host: Option<String>,
+}
+
+/// `RBACRoleBindingActuationState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RBACRoleBindingActuationState {
+    /// rbacrolebindingStates property.
+    pub rbacrolebinding_states: Option<serde_json::Value>,
+}
+
+/// `ServiceMeshAnalysisMessageBase` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceMeshAnalysisMessageBase {
+    /// documentationUrl property.
+    pub documentation_url: Option<String>,
+    /// level property.
+    pub level: Option<String>,
+    /// type property.
+    pub r#type: Option<ServiceMeshType>,
+}
+
+/// `AppDevExperienceState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppDevExperienceState {
+    /// networkingInstallSucceeded property.
+    pub networking_install_succeeded: Option<AppDevExperienceStatus>,
+}
+
+/// `ServiceMeshState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceMeshState {
+    /// analysisMessages property.
+    pub analysis_messages: Option<Vec<ServiceMeshAnalysisMessage>>,
+    /// conditions property.
+    pub conditions: Option<Vec<ServiceMeshCondition>>,
+    /// configApiVersion property.
+    pub config_api_version: Option<String>,
+    /// controlPlaneManagement property.
+    pub control_plane_management: Option<ServiceMeshControlPlaneManagement>,
+    /// dataPlaneManagement property.
+    pub data_plane_management: Option<ServiceMeshDataPlaneManagement>,
+}
+
+/// `ConfigManagementPolicyControllerState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementPolicyControllerState {
+    /// deploymentState property.
+    pub deployment_state: Option<ConfigManagementGatekeeperDeploymentState>,
+    /// migration property.
+    pub migration: Option<ConfigManagementPolicyControllerMigration>,
+    /// version property.
+    pub version: Option<ConfigManagementPolicyControllerVersion>,
+}
+
+/// `ConfigManagementHierarchyControllerDeploymentState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementHierarchyControllerDeploymentState {
+    /// extension property.
+    pub extension: Option<String>,
+    /// hnc property.
+    pub hnc: Option<String>,
+}
+
+/// `ServiceMeshType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceMeshType {
+    /// code property.
+    pub code: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+}
+
+/// `ConfigManagementSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementSpec {
+    /// binauthz property.
+    pub binauthz: Option<ConfigManagementBinauthzConfig>,
+    /// cluster property.
+    pub cluster: Option<String>,
+    /// configSync property.
+    pub config_sync: Option<ConfigManagementConfigSync>,
+    /// hierarchyController property.
+    pub hierarchy_controller: Option<ConfigManagementHierarchyControllerConfig>,
+    /// management property.
+    pub management: Option<String>,
+    /// policyController property.
+    pub policy_controller: Option<ConfigManagementPolicyController>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `IdentityServiceSamlConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IdentityServiceSamlConfig {
+    /// attributeMapping property.
+    pub attribute_mapping: Option<serde_json::Value>,
+    /// groupPrefix property.
+    pub group_prefix: Option<String>,
+    /// groupsAttribute property.
+    pub groups_attribute: Option<String>,
+    /// identityProviderCertificates property.
+    pub identity_provider_certificates: Option<Vec<String>>,
+    /// identityProviderId property.
+    pub identity_provider_id: Option<String>,
+    /// identityProviderSsoUri property.
+    pub identity_provider_sso_uri: Option<String>,
+    /// userAttribute property.
+    pub user_attribute: Option<String>,
+    /// userPrefix property.
+    pub user_prefix: Option<String>,
+}
+
+/// `IdentityServiceAzureADConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IdentityServiceAzureADConfig {
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// clientSecret property.
+    pub client_secret: Option<String>,
+    /// encryptedClientSecret property.
+    pub encrypted_client_secret: Option<String>,
+    /// groupFormat property.
+    pub group_format: Option<String>,
+    /// kubectlRedirectUri property.
+    pub kubectl_redirect_uri: Option<String>,
+    /// tenant property.
+    pub tenant: Option<String>,
+    /// userClaim property.
+    pub user_claim: Option<String>,
+}
+
+/// `ConfigManagementHierarchyControllerVersion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementHierarchyControllerVersion {
+    /// extension property.
+    pub extension: Option<String>,
+    /// hnc property.
+    pub hnc: Option<String>,
+}
+
+/// `ConfigManagementSyncState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementSyncState {
+    /// code property.
+    pub code: Option<String>,
+    /// errors property.
+    pub errors: Option<Vec<ConfigManagementSyncError>>,
+    /// importToken property.
+    pub import_token: Option<String>,
+    /// lastSync property.
+    pub last_sync: Option<String>,
+    /// lastSyncTime property.
+    pub last_sync_time: Option<String>,
+    /// sourceToken property.
+    pub source_token: Option<String>,
+    /// syncToken property.
+    pub sync_token: Option<String>,
+}
+
+/// `ConfigManagementInstallError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementInstallError {
+    /// errorMessage property.
+    pub error_message: Option<String>,
+}
+
+/// `ConfigManagementSyncError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementSyncError {
+    /// code property.
+    pub code: Option<String>,
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// errorResources property.
+    pub error_resources: Option<Vec<ConfigManagementErrorResource>>,
+}
+
+/// `PolicyControllerSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PolicyControllerSpec {
+    /// policyControllerHubConfig property.
+    pub policy_controller_hub_config: Option<PolicyControllerHubConfig>,
     /// version property.
     pub version: Option<String>,
 }
@@ -93,88 +733,13 @@ pub struct PolicyControllerHubConfig {
     pub referential_rules_enabled: Option<bool>,
 }
 
-/// `ConfigManagementConfigSyncState` type.
+/// `PolicyControllerPolicyContentSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementConfigSyncState {
-    /// clusterLevelStopSyncingState property.
-    pub cluster_level_stop_syncing_state: Option<String>,
-    /// crCount property.
-    pub cr_count: Option<i64>,
-    /// deploymentState property.
-    pub deployment_state: Option<ConfigManagementConfigSyncDeploymentState>,
-    /// errors property.
-    pub errors: Option<Vec<ConfigManagementConfigSyncError>>,
-    /// reposyncCrd property.
-    pub reposync_crd: Option<String>,
-    /// rootsyncCrd property.
-    pub rootsync_crd: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// syncState property.
-    pub sync_state: Option<ConfigManagementSyncState>,
-    /// version property.
-    pub version: Option<ConfigManagementConfigSyncVersion>,
-}
-
-/// `ServiceMeshStatusDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceMeshStatusDetails {
-    /// code property.
-    pub code: Option<String>,
-    /// details property.
-    pub details: Option<String>,
-}
-
-/// `ConfigManagementGitConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementGitConfig {
-    /// gcpServiceAccountEmail property.
-    pub gcp_service_account_email: Option<String>,
-    /// httpsProxy property.
-    pub https_proxy: Option<String>,
-    /// policyDir property.
-    pub policy_dir: Option<String>,
-    /// secretType property.
-    pub secret_type: Option<String>,
-    /// syncBranch property.
-    pub sync_branch: Option<String>,
-    /// syncRepo property.
-    pub sync_repo: Option<String>,
-    /// syncRev property.
-    pub sync_rev: Option<String>,
-    /// syncWaitSecs property.
-    pub sync_wait_secs: Option<String>,
-}
-
-/// `PolicyControllerState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PolicyControllerState {
-    /// componentStates property.
-    pub component_states: Option<serde_json::Value>,
-    /// policyContentState property.
-    pub policy_content_state: Option<PolicyControllerPolicyContentState>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `IdentityServiceIdentityServiceOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdentityServiceIdentityServiceOptions {
-    /// diagnosticInterface property.
-    pub diagnostic_interface: Option<IdentityServiceDiagnosticInterface>,
-    /// sessionDuration property.
-    pub session_duration: Option<String>,
-}
-
-/// `IdentityServiceServerConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdentityServiceServerConfig {
-    /// certificateAuthorityData property.
-    pub certificate_authority_data: Option<String>,
-    /// connectionType property.
-    pub connection_type: Option<String>,
-    /// host property.
-    pub host: Option<String>,
+pub struct PolicyControllerPolicyContentSpec {
+    /// bundles property.
+    pub bundles: Option<serde_json::Value>,
+    /// templateLibrary property.
+    pub template_library: Option<PolicyControllerTemplateLibraryConfig>,
 }
 
 /// `PolicyControllerMonitoringConfig` type.
@@ -182,157 +747,6 @@ pub struct IdentityServiceServerConfig {
 pub struct PolicyControllerMonitoringConfig {
     /// backends property.
     pub backends: Option<Vec<String>>,
-}
-
-/// `PolicyControllerPolicyContentState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PolicyControllerPolicyContentState {
-    /// bundleStates property.
-    pub bundle_states: Option<serde_json::Value>,
-    /// referentialSyncConfigState property.
-    pub referential_sync_config_state: Option<PolicyControllerOnClusterState>,
-    /// templateLibraryState property.
-    pub template_library_state: Option<PolicyControllerOnClusterState>,
-}
-
-/// `ServiceMeshDataPlaneManagement` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceMeshDataPlaneManagement {
-    /// details property.
-    pub details: Option<Vec<ServiceMeshStatusDetails>>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `ConfigManagementPolicyController` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementPolicyController {
-    /// auditIntervalSeconds property.
-    pub audit_interval_seconds: Option<String>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// exemptableNamespaces property.
-    pub exemptable_namespaces: Option<Vec<String>>,
-    /// logDeniesEnabled property.
-    pub log_denies_enabled: Option<bool>,
-    /// monitoring property.
-    pub monitoring: Option<ConfigManagementPolicyControllerMonitoring>,
-    /// mutationEnabled property.
-    pub mutation_enabled: Option<bool>,
-    /// referentialRulesEnabled property.
-    pub referential_rules_enabled: Option<bool>,
-    /// templateLibraryInstalled property.
-    pub template_library_installed: Option<bool>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `IdentityServiceSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdentityServiceSpec {
-    /// authMethods property.
-    pub auth_methods: Option<Vec<IdentityServiceAuthMethod>>,
-    /// identityServiceOptions property.
-    pub identity_service_options: Option<IdentityServiceIdentityServiceOptions>,
-}
-
-/// `IdentityServiceGoogleConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdentityServiceGoogleConfig {
-    /// disable property.
-    pub disable: Option<bool>,
-}
-
-/// `RBACRoleBindingActuationSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RBACRoleBindingActuationSpec {}
-
-/// `ServiceMeshAnalysisMessageBase` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceMeshAnalysisMessageBase {
-    /// documentationUrl property.
-    pub documentation_url: Option<String>,
-    /// level property.
-    pub level: Option<String>,
-    /// type property.
-    pub r#type: Option<ServiceMeshType>,
-}
-
-/// `MeteringState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MeteringState {
-    /// lastMeasurementTime property.
-    pub last_measurement_time: Option<String>,
-    /// preciseLastMeasuredClusterVcpuCapacity property.
-    pub precise_last_measured_cluster_vcpu_capacity: Option<f64>,
-}
-
-/// `ConfigManagementBinauthzConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementBinauthzConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `ConfigManagementGroupVersionKind` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementGroupVersionKind {
-    /// group property.
-    pub group: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `ConfigManagementOperatorState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementOperatorState {
-    /// deploymentState property.
-    pub deployment_state: Option<String>,
-    /// errors property.
-    pub errors: Option<Vec<ConfigManagementInstallError>>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `ListMembershipFeaturesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListMembershipFeaturesResponse {
-    /// membershipFeatures property.
-    pub membership_features: Option<Vec<MembershipFeature>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `IdentityServiceSamlConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdentityServiceSamlConfig {
-    /// attributeMapping property.
-    pub attribute_mapping: Option<serde_json::Value>,
-    /// groupPrefix property.
-    pub group_prefix: Option<String>,
-    /// groupsAttribute property.
-    pub groups_attribute: Option<String>,
-    /// identityProviderCertificates property.
-    pub identity_provider_certificates: Option<Vec<String>>,
-    /// identityProviderId property.
-    pub identity_provider_id: Option<String>,
-    /// identityProviderSsoUri property.
-    pub identity_provider_sso_uri: Option<String>,
-    /// userAttribute property.
-    pub user_attribute: Option<String>,
-    /// userPrefix property.
-    pub user_prefix: Option<String>,
-}
-
-/// `RBACRoleBindingActuationState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RBACRoleBindingActuationState {
-    /// rbacrolebindingStates property.
-    pub rbacrolebinding_states: Option<serde_json::Value>,
 }
 
 /// `FeatureSpec` type.
@@ -356,274 +770,26 @@ pub struct FeatureSpec {
     pub workloadcertificate: Option<WorkloadCertificateSpec>,
 }
 
-/// `ConfigManagementConfigSyncError` type.
+/// `IdentityServiceLdapConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementConfigSyncError {
-    /// errorMessage property.
-    pub error_message: Option<String>,
+pub struct IdentityServiceLdapConfig {
+    /// group property.
+    pub group: Option<IdentityServiceGroupConfig>,
+    /// server property.
+    pub server: Option<IdentityServiceServerConfig>,
+    /// serviceAccount property.
+    pub service_account: Option<IdentityServiceServiceAccountConfig>,
+    /// user property.
+    pub user: Option<IdentityServiceUserConfig>,
 }
 
-/// `ConfigManagementInstallError` type.
+/// `IdentityServiceDiagnosticInterface` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementInstallError {
-    /// errorMessage property.
-    pub error_message: Option<String>,
-}
-
-/// `ConfigManagementBinauthzVersion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementBinauthzVersion {
-    /// webhookVersion property.
-    pub webhook_version: Option<String>,
-}
-
-/// `ClusterUpgradeIgnoredMembership` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterUpgradeIgnoredMembership {
-    /// ignoredTime property.
-    pub ignored_time: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `ClusterUpgradeGKEUpgrade` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterUpgradeGKEUpgrade {
-    /// name property.
-    pub name: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `ConfigManagementHierarchyControllerState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementHierarchyControllerState {
-    /// state property.
-    pub state: Option<ConfigManagementHierarchyControllerDeploymentState>,
-    /// version property.
-    pub version: Option<ConfigManagementHierarchyControllerVersion>,
-}
-
-/// `ClusterUpgradeUpgradeStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterUpgradeUpgradeStatus {
-    /// code property.
-    pub code: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `Origin` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Origin {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `FeatureState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FeatureState {
-    /// appdevexperience property.
-    pub appdevexperience: Option<AppDevExperienceState>,
-    /// clusterupgrade property.
-    pub clusterupgrade: Option<ClusterUpgradeState>,
-    /// configmanagement property.
-    pub configmanagement: Option<ConfigManagementState>,
-    /// identityservice property.
-    pub identityservice: Option<IdentityServiceState>,
-    /// metering property.
-    pub metering: Option<MeteringState>,
-    /// policycontroller property.
-    pub policycontroller: Option<PolicyControllerState>,
-    /// rbacrolebindingactuation property.
-    pub rbacrolebindingactuation: Option<RBACRoleBindingActuationState>,
-    /// servicemesh property.
-    pub servicemesh: Option<ServiceMeshState>,
-    /// state property.
-    pub state: Option<State>,
-    /// workloadidentity property.
-    pub workloadidentity: Option<WorkloadIdentityState>,
-}
-
-/// `PolicyControllerOnClusterState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PolicyControllerOnClusterState {
-    /// details property.
-    pub details: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `IdentityServiceAzureADConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdentityServiceAzureADConfig {
-    /// clientId property.
-    pub client_id: Option<String>,
-    /// clientSecret property.
-    pub client_secret: Option<String>,
-    /// encryptedClientSecret property.
-    pub encrypted_client_secret: Option<String>,
-    /// groupFormat property.
-    pub group_format: Option<String>,
-    /// kubectlRedirectUri property.
-    pub kubectl_redirect_uri: Option<String>,
-    /// tenant property.
-    pub tenant: Option<String>,
-    /// userClaim property.
-    pub user_claim: Option<String>,
-}
-
-/// `ConfigManagementHierarchyControllerDeploymentState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementHierarchyControllerDeploymentState {
-    /// extension property.
-    pub extension: Option<String>,
-    /// hnc property.
-    pub hnc: Option<String>,
-}
-
-/// `ClusterUpgradeState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterUpgradeState {
-    /// ignored property.
-    pub ignored: Option<ClusterUpgradeIgnoredMembership>,
-    /// upgrades property.
-    pub upgrades: Option<Vec<ClusterUpgradeMembershipGKEUpgradeState>>,
-}
-
-/// `ConfigManagementSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementSpec {
-    /// binauthz property.
-    pub binauthz: Option<ConfigManagementBinauthzConfig>,
-    /// cluster property.
-    pub cluster: Option<String>,
-    /// configSync property.
-    pub config_sync: Option<ConfigManagementConfigSync>,
-    /// hierarchyController property.
-    pub hierarchy_controller: Option<ConfigManagementHierarchyControllerConfig>,
-    /// management property.
-    pub management: Option<String>,
-    /// policyController property.
-    pub policy_controller: Option<ConfigManagementPolicyController>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `IdentityServiceState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdentityServiceState {
-    /// failureReason property.
-    pub failure_reason: Option<String>,
-    /// installedVersion property.
-    pub installed_version: Option<String>,
-    /// memberConfig property.
-    pub member_config: Option<IdentityServiceSpec>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `ConfigManagementPolicyControllerState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementPolicyControllerState {
-    /// deploymentState property.
-    pub deployment_state: Option<ConfigManagementGatekeeperDeploymentState>,
-    /// migration property.
-    pub migration: Option<ConfigManagementPolicyControllerMigration>,
-    /// version property.
-    pub version: Option<ConfigManagementPolicyControllerVersion>,
-}
-
-/// `ConfigManagementHierarchyControllerConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementHierarchyControllerConfig {
-    /// enableHierarchicalResourceQuota property.
-    pub enable_hierarchical_resource_quota: Option<bool>,
-    /// enablePodTreeLabels property.
-    pub enable_pod_tree_labels: Option<bool>,
+pub struct IdentityServiceDiagnosticInterface {
     /// enabled property.
     pub enabled: Option<bool>,
-}
-
-/// `ConfigManagementConfigSyncDeploymentState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementConfigSyncDeploymentState {
-    /// admissionWebhook property.
-    pub admission_webhook: Option<String>,
-    /// gitSync property.
-    pub git_sync: Option<String>,
-    /// importer property.
-    pub importer: Option<String>,
-    /// monitor property.
-    pub monitor: Option<String>,
-    /// otelCollector property.
-    pub otel_collector: Option<String>,
-    /// reconcilerManager property.
-    pub reconciler_manager: Option<String>,
-    /// resourceGroupControllerManager property.
-    pub resource_group_controller_manager: Option<String>,
-    /// rootReconciler property.
-    pub root_reconciler: Option<String>,
-    /// syncer property.
-    pub syncer: Option<String>,
-}
-
-/// `ConfigManagementConfigSync` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementConfigSync {
-    /// deploymentOverrides property.
-    pub deployment_overrides: Option<Vec<ConfigManagementDeploymentOverride>>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// git property.
-    pub git: Option<ConfigManagementGitConfig>,
-    /// metricsGcpServiceAccountEmail property.
-    pub metrics_gcp_service_account_email: Option<String>,
-    /// oci property.
-    pub oci: Option<ConfigManagementOciConfig>,
-    /// preventDrift property.
-    pub prevent_drift: Option<bool>,
-    /// sourceFormat property.
-    pub source_format: Option<String>,
-    /// stopSyncing property.
-    pub stop_syncing: Option<bool>,
-}
-
-/// `AppDevExperienceStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppDevExperienceStatus {
-    /// code property.
-    pub code: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-}
-
-/// `ServiceMeshControlPlaneManagement` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceMeshControlPlaneManagement {
-    /// details property.
-    pub details: Option<Vec<ServiceMeshStatusDetails>>,
-    /// implementation property.
-    pub implementation: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `ConfigManagementOciConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementOciConfig {
-    /// gcpServiceAccountEmail property.
-    pub gcp_service_account_email: Option<String>,
-    /// policyDir property.
-    pub policy_dir: Option<String>,
-    /// secretType property.
-    pub secret_type: Option<String>,
-    /// syncRepo property.
-    pub sync_repo: Option<String>,
-    /// syncWaitSecs property.
-    pub sync_wait_secs: Option<String>,
+    /// expirationTime property.
+    pub expiration_time: Option<String>,
 }
 
 /// `IdentityServiceOidcConfig` type.
@@ -659,73 +825,34 @@ pub struct IdentityServiceOidcConfig {
     pub user_prefix: Option<String>,
 }
 
-/// `IdentityServiceGroupConfig` type.
+/// `IdentityServiceServiceAccountConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdentityServiceGroupConfig {
-    /// baseDn property.
-    pub base_dn: Option<String>,
-    /// filter property.
-    pub filter: Option<String>,
-    /// idAttribute property.
-    pub id_attribute: Option<String>,
+pub struct IdentityServiceServiceAccountConfig {
+    /// simpleBindCredentials property.
+    pub simple_bind_credentials: Option<IdentityServiceSimpleBindCredentials>,
 }
 
-/// `ConfigManagementContainerOverride` type.
+/// `ConfigManagementBinauthzConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementContainerOverride {
-    /// containerName property.
-    pub container_name: Option<String>,
-    /// cpuLimit property.
-    pub cpu_limit: Option<String>,
-    /// cpuRequest property.
-    pub cpu_request: Option<String>,
-    /// memoryLimit property.
-    pub memory_limit: Option<String>,
-    /// memoryRequest property.
-    pub memory_request: Option<String>,
+pub struct ConfigManagementBinauthzConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
 }
 
-/// `GoogleRpcStatus` type.
+/// `ConfigManagementDeploymentOverride` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct ConfigManagementDeploymentOverride {
+    /// containers property.
+    pub containers: Option<Vec<ConfigManagementContainerOverride>>,
+    /// deploymentName property.
+    pub deployment_name: Option<String>,
+    /// deploymentNamespace property.
+    pub deployment_namespace: Option<String>,
 }
 
-/// `PolicyControllerSpec` type.
+/// `ConfigManagementConfigSyncDeploymentState` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PolicyControllerSpec {
-    /// policyControllerHubConfig property.
-    pub policy_controller_hub_config: Option<PolicyControllerHubConfig>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `WorkloadIdentityState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkloadIdentityState {
-    /// description property.
-    pub description: Option<String>,
-    /// identityProviderStateDetails property.
-    pub identity_provider_state_details: Option<serde_json::Value>,
-}
-
-/// `ServiceMeshType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceMeshType {
-    /// code property.
-    pub code: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-}
-
-/// `ConfigManagementConfigSyncVersion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementConfigSyncVersion {
+pub struct ConfigManagementConfigSyncDeploymentState {
     /// admissionWebhook property.
     pub admission_webhook: Option<String>,
     /// gitSync property.
@@ -746,18 +873,146 @@ pub struct ConfigManagementConfigSyncVersion {
     pub syncer: Option<String>,
 }
 
-/// `IdentityServiceServiceAccountConfig` type.
+/// `CloudBuildSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdentityServiceServiceAccountConfig {
-    /// simpleBindCredentials property.
-    pub simple_bind_credentials: Option<IdentityServiceSimpleBindCredentials>,
+pub struct CloudBuildSpec {
+    /// securityPolicy property.
+    pub security_policy: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
-/// `AppDevExperienceState` type.
+/// `PolicyControllerPolicyContentState` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppDevExperienceState {
-    /// networkingInstallSucceeded property.
-    pub networking_install_succeeded: Option<AppDevExperienceStatus>,
+pub struct PolicyControllerPolicyContentState {
+    /// bundleStates property.
+    pub bundle_states: Option<serde_json::Value>,
+    /// referentialSyncConfigState property.
+    pub referential_sync_config_state: Option<PolicyControllerOnClusterState>,
+    /// templateLibraryState property.
+    pub template_library_state: Option<PolicyControllerOnClusterState>,
+}
+
+/// `ClusterUpgradeGKEUpgrade` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterUpgradeGKEUpgrade {
+    /// name property.
+    pub name: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `AppDevExperienceStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppDevExperienceStatus {
+    /// code property.
+    pub code: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+}
+
+/// `ConfigManagementConfigSyncError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementConfigSyncError {
+    /// errorMessage property.
+    pub error_message: Option<String>,
+}
+
+/// `MeteringState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MeteringState {
+    /// lastMeasurementTime property.
+    pub last_measurement_time: Option<String>,
+    /// preciseLastMeasuredClusterVcpuCapacity property.
+    pub precise_last_measured_cluster_vcpu_capacity: Option<f64>,
+}
+
+/// `ConfigManagementContainerOverride` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementContainerOverride {
+    /// containerName property.
+    pub container_name: Option<String>,
+    /// cpuLimit property.
+    pub cpu_limit: Option<String>,
+    /// cpuRequest property.
+    pub cpu_request: Option<String>,
+    /// memoryLimit property.
+    pub memory_limit: Option<String>,
+    /// memoryRequest property.
+    pub memory_request: Option<String>,
+}
+
+/// `ConfigManagementGitConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementGitConfig {
+    /// gcpServiceAccountEmail property.
+    pub gcp_service_account_email: Option<String>,
+    /// httpsProxy property.
+    pub https_proxy: Option<String>,
+    /// policyDir property.
+    pub policy_dir: Option<String>,
+    /// secretType property.
+    pub secret_type: Option<String>,
+    /// syncBranch property.
+    pub sync_branch: Option<String>,
+    /// syncRepo property.
+    pub sync_repo: Option<String>,
+    /// syncRev property.
+    pub sync_rev: Option<String>,
+    /// syncWaitSecs property.
+    pub sync_wait_secs: Option<String>,
+}
+
+/// `ClusterUpgradeUpgradeStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterUpgradeUpgradeStatus {
+    /// code property.
+    pub code: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `ServiceMeshDataPlaneManagement` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceMeshDataPlaneManagement {
+    /// details property.
+    pub details: Option<Vec<ServiceMeshStatusDetails>>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `Origin` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Origin {
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `IdentityServiceGoogleConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IdentityServiceGoogleConfig {
+    /// disable property.
+    pub disable: Option<bool>,
+}
+
+/// `WorkloadIdentityState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkloadIdentityState {
+    /// description property.
+    pub description: Option<String>,
+    /// identityProviderStateDetails property.
+    pub identity_provider_state_details: Option<serde_json::Value>,
+}
+
+/// `ConfigManagementHierarchyControllerState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigManagementHierarchyControllerState {
+    /// state property.
+    pub state: Option<ConfigManagementHierarchyControllerDeploymentState>,
+    /// version property.
+    pub version: Option<ConfigManagementHierarchyControllerVersion>,
 }
 
 /// `ConfigManagementPolicyControllerMonitoring` type.
@@ -765,169 +1020,6 @@ pub struct AppDevExperienceState {
 pub struct ConfigManagementPolicyControllerMonitoring {
     /// backends property.
     pub backends: Option<Vec<String>>,
-}
-
-/// `ServiceMeshCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceMeshCondition {
-    /// code property.
-    pub code: Option<String>,
-    /// details property.
-    pub details: Option<String>,
-    /// documentationLink property.
-    pub documentation_link: Option<String>,
-    /// severity property.
-    pub severity: Option<String>,
-}
-
-/// `ServiceMeshState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceMeshState {
-    /// analysisMessages property.
-    pub analysis_messages: Option<Vec<ServiceMeshAnalysisMessage>>,
-    /// conditions property.
-    pub conditions: Option<Vec<ServiceMeshCondition>>,
-    /// configApiVersion property.
-    pub config_api_version: Option<String>,
-    /// controlPlaneManagement property.
-    pub control_plane_management: Option<ServiceMeshControlPlaneManagement>,
-    /// dataPlaneManagement property.
-    pub data_plane_management: Option<ServiceMeshDataPlaneManagement>,
-}
-
-/// `ConfigManagementBinauthzState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementBinauthzState {
-    /// version property.
-    pub version: Option<ConfigManagementBinauthzVersion>,
-    /// webhook property.
-    pub webhook: Option<String>,
-}
-
-/// `ConfigManagementPolicyControllerMigration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementPolicyControllerMigration {
-    /// copyTime property.
-    pub copy_time: Option<String>,
-    /// stage property.
-    pub stage: Option<String>,
-}
-
-/// `MembershipFeature` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MembershipFeature {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// deleteTime property.
-    pub delete_time: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// lifecycleState property.
-    pub lifecycle_state: Option<LifecycleState>,
-    /// name property.
-    pub name: Option<String>,
-    /// spec property.
-    pub spec: Option<FeatureSpec>,
-    /// state property.
-    pub state: Option<FeatureState>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `LifecycleState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LifecycleState {
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `IdentityServiceUserConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdentityServiceUserConfig {
-    /// baseDn property.
-    pub base_dn: Option<String>,
-    /// filter property.
-    pub filter: Option<String>,
-    /// idAttribute property.
-    pub id_attribute: Option<String>,
-    /// loginAttribute property.
-    pub login_attribute: Option<String>,
-}
-
-/// `IdentityServiceSimpleBindCredentials` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdentityServiceSimpleBindCredentials {
-    /// dn property.
-    pub dn: Option<String>,
-    /// encryptedPassword property.
-    pub encrypted_password: Option<String>,
-    /// password property.
-    pub password: Option<String>,
-}
-
-/// `ConfigManagementDeploymentOverride` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementDeploymentOverride {
-    /// containers property.
-    pub containers: Option<Vec<ConfigManagementContainerOverride>>,
-    /// deploymentName property.
-    pub deployment_name: Option<String>,
-    /// deploymentNamespace property.
-    pub deployment_namespace: Option<String>,
-}
-
-/// `ConfigManagementHierarchyControllerVersion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementHierarchyControllerVersion {
-    /// extension property.
-    pub extension: Option<String>,
-    /// hnc property.
-    pub hnc: Option<String>,
-}
-
-/// `ConfigManagementSyncError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementSyncError {
-    /// code property.
-    pub code: Option<String>,
-    /// errorMessage property.
-    pub error_message: Option<String>,
-    /// errorResources property.
-    pub error_resources: Option<Vec<ConfigManagementErrorResource>>,
-}
-
-/// `State` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct State {
-    /// code property.
-    pub code: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `ClusterUpgradeMembershipGKEUpgradeState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterUpgradeMembershipGKEUpgradeState {
-    /// status property.
-    pub status: Option<ClusterUpgradeUpgradeStatus>,
-    /// upgrade property.
-    pub upgrade: Option<ClusterUpgradeGKEUpgrade>,
-}
-
-/// `WorkloadCertificateSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkloadCertificateSpec {
-    /// certificateManagement property.
-    pub certificate_management: Option<String>,
-}
-
-/// `PolicyControllerTemplateLibraryConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PolicyControllerTemplateLibraryConfig {
-    /// installation property.
-    pub installation: Option<String>,
 }
 
 /// `ServiceMeshAnalysisMessage` type.
@@ -943,106 +1035,15 @@ pub struct ServiceMeshAnalysisMessage {
     pub resource_paths: Option<Vec<String>>,
 }
 
-/// `CloudBuildSpec` type.
+/// `IdentityServiceGroupConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudBuildSpec {
-    /// securityPolicy property.
-    pub security_policy: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `IdentityServiceDiagnosticInterface` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdentityServiceDiagnosticInterface {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// expirationTime property.
-    pub expiration_time: Option<String>,
-}
-
-/// `ConfigManagementGatekeeperDeploymentState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementGatekeeperDeploymentState {
-    /// gatekeeperAudit property.
-    pub gatekeeper_audit: Option<String>,
-    /// gatekeeperControllerManagerState property.
-    pub gatekeeper_controller_manager_state: Option<String>,
-    /// gatekeeperMutation property.
-    pub gatekeeper_mutation: Option<String>,
-}
-
-/// `IdentityServiceAuthMethod` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdentityServiceAuthMethod {
-    /// azureadConfig property.
-    pub azuread_config: Option<IdentityServiceAzureADConfig>,
-    /// googleConfig property.
-    pub google_config: Option<IdentityServiceGoogleConfig>,
-    /// ldapConfig property.
-    pub ldap_config: Option<IdentityServiceLdapConfig>,
-    /// name property.
-    pub name: Option<String>,
-    /// oidcConfig property.
-    pub oidc_config: Option<IdentityServiceOidcConfig>,
-    /// proxy property.
-    pub proxy: Option<String>,
-    /// samlConfig property.
-    pub saml_config: Option<IdentityServiceSamlConfig>,
-}
-
-/// `ConfigManagementSyncState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigManagementSyncState {
-    /// code property.
-    pub code: Option<String>,
-    /// errors property.
-    pub errors: Option<Vec<ConfigManagementSyncError>>,
-    /// importToken property.
-    pub import_token: Option<String>,
-    /// lastSync property.
-    pub last_sync: Option<String>,
-    /// lastSyncTime property.
-    pub last_sync_time: Option<String>,
-    /// sourceToken property.
-    pub source_token: Option<String>,
-    /// syncToken property.
-    pub sync_token: Option<String>,
-}
-
-/// `ServiceMeshSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceMeshSpec {
-    /// configApi property.
-    pub config_api: Option<String>,
-    /// controlPlane property.
-    pub control_plane: Option<String>,
-    /// defaultChannel property.
-    pub default_channel: Option<String>,
-    /// management property.
-    pub management: Option<String>,
-}
-
-/// `IdentityServiceLdapConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdentityServiceLdapConfig {
-    /// group property.
-    pub group: Option<IdentityServiceGroupConfig>,
-    /// server property.
-    pub server: Option<IdentityServiceServerConfig>,
-    /// serviceAccount property.
-    pub service_account: Option<IdentityServiceServiceAccountConfig>,
-    /// user property.
-    pub user: Option<IdentityServiceUserConfig>,
-}
-
-/// `PolicyControllerPolicyContentSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PolicyControllerPolicyContentSpec {
-    /// bundles property.
-    pub bundles: Option<serde_json::Value>,
-    /// templateLibrary property.
-    pub template_library: Option<PolicyControllerTemplateLibraryConfig>,
+pub struct IdentityServiceGroupConfig {
+    /// baseDn property.
+    pub base_dn: Option<String>,
+    /// filter property.
+    pub filter: Option<String>,
+    /// idAttribute property.
+    pub id_attribute: Option<String>,
 }
 
 // =============================================================================

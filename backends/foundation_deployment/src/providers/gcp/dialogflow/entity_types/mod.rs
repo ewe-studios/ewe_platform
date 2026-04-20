@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,21 +22,35 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudDialogflowCxV3SessionEntityType` type.
+/// `GoogleCloudDialogflowCxV3ListEntityTypesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3SessionEntityType {
-    /// entities property.
-    pub entities: Option<Vec<GoogleCloudDialogflowCxV3EntityTypeEntity>>,
-    /// entityOverrideMode property.
-    pub entity_override_mode: Option<String>,
-    /// name property.
-    pub name: Option<String>,
+pub struct GoogleCloudDialogflowCxV3ListEntityTypesResponse {
+    /// entityTypes property.
+    pub entity_types: Option<Vec<GoogleCloudDialogflowCxV3EntityType>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3ListSessionEntityTypesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ListSessionEntityTypesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// sessionEntityTypes property.
+    pub session_entity_types: Option<Vec<GoogleCloudDialogflowCxV3SessionEntityType>>,
+}
+
+/// `GoogleCloudDialogflowCxV3EntityTypeExcludedPhrase` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3EntityTypeExcludedPhrase {
+    /// value property.
+    pub value: Option<String>,
 }
 
 /// `GoogleCloudDialogflowCxV3EntityType` type.
@@ -59,31 +74,6 @@ pub struct GoogleCloudDialogflowCxV3EntityType {
     pub redact: Option<bool>,
 }
 
-/// `GoogleCloudDialogflowCxV3ListEntityTypesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ListEntityTypesResponse {
-    /// entityTypes property.
-    pub entity_types: Option<Vec<GoogleCloudDialogflowCxV3EntityType>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3EntityTypeExcludedPhrase` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3EntityTypeExcludedPhrase {
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3ListSessionEntityTypesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ListSessionEntityTypesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// sessionEntityTypes property.
-    pub session_entity_types: Option<Vec<GoogleCloudDialogflowCxV3SessionEntityType>>,
-}
-
 /// `GoogleCloudDialogflowCxV3EntityTypeEntity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDialogflowCxV3EntityTypeEntity {
@@ -91,6 +81,17 @@ pub struct GoogleCloudDialogflowCxV3EntityTypeEntity {
     pub synonyms: Option<Vec<String>>,
     /// value property.
     pub value: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3SessionEntityType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3SessionEntityType {
+    /// entities property.
+    pub entities: Option<Vec<GoogleCloudDialogflowCxV3EntityTypeEntity>>,
+    /// entityOverrideMode property.
+    pub entity_override_mode: Option<String>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 // =============================================================================

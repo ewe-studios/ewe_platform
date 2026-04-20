@@ -12,62 +12,93 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ResponseDebugInfo` type.
+/// `DateValues` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResponseDebugInfo {
-    /// formattedDebugInfo property.
-    pub formatted_debug_info: Option<String>,
-}
-
-/// `Photo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Photo {
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `ObjectValues` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObjectValues {
+pub struct DateValues {
     /// values property.
-    pub values: Option<Vec<StructuredDataObject>>,
+    pub values: Option<Vec<Date>>,
 }
 
-/// `Filter` type.
+/// `NamedProperty` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Filter {
-    /// compositeFilter property.
-    pub composite_filter: Option<CompositeFilter>,
-    /// valueFilter property.
-    pub value_filter: Option<ValueFilter>,
+pub struct NamedProperty {
+    /// booleanValue property.
+    pub boolean_value: Option<bool>,
+    /// dateValues property.
+    pub date_values: Option<DateValues>,
+    /// doubleValues property.
+    pub double_values: Option<DoubleValues>,
+    /// enumValues property.
+    pub enum_values: Option<EnumValues>,
+    /// htmlValues property.
+    pub html_values: Option<HtmlValues>,
+    /// integerValues property.
+    pub integer_values: Option<IntegerValues>,
+    /// name property.
+    pub name: Option<String>,
+    /// objectValues property.
+    pub object_values: Option<Box<ObjectValues>>,
+    /// textValues property.
+    pub text_values: Option<TextValues>,
+    /// timestampValues property.
+    pub timestamp_values: Option<TimestampValues>,
 }
 
-/// `MatchRange` type.
+/// `ResultCounts` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MatchRange {
-    /// end property.
-    pub end: Option<i64>,
-    /// start property.
-    pub start: Option<i64>,
+pub struct ResultCounts {
+    /// sourceResultCounts property.
+    pub source_result_counts: Option<Vec<SourceResultCount>>,
+}
+
+/// `SafeHtmlProto` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SafeHtmlProto {
+    /// privateDoNotAccessOrElseSafeHtmlWrappedValue property.
+    pub private_do_not_access_or_else_safe_html_wrapped_value: Option<String>,
+}
+
+/// `Metadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Metadata {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// displayOptions property.
+    pub display_options: Option<ResultDisplayMetadata>,
+    /// fields property.
+    pub fields: Option<Vec<Box<NamedProperty>>>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+    /// objectType property.
+    pub object_type: Option<String>,
+    /// owner property.
+    pub owner: Option<Person>,
+    /// source property.
+    pub source: Option<Source>,
+    /// thumbnailUrl property.
+    pub thumbnail_url: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
 }
 
 /// `SearchResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchResult {
     /// clusteredResults property.
-    pub clustered_results: Option<Vec<SearchResult>>,
+    pub clustered_results: Option<Vec<Box<SearchResult>>>,
     /// debugInfo property.
     pub debug_info: Option<ResultDebugInfo>,
     /// metadata property.
@@ -80,20 +111,90 @@ pub struct SearchResult {
     pub url: Option<String>,
 }
 
-/// `ValueFilter` type.
+/// `PhoneNumber` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValueFilter {
-    /// operatorName property.
-    pub operator_name: Option<String>,
-    /// value property.
-    pub value: Option<Value>,
+pub struct PhoneNumber {
+    /// phoneNumber property.
+    pub phone_number: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
-/// `DoubleValues` type.
+/// `TimestampValues` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DoubleValues {
+pub struct TimestampValues {
     /// values property.
-    pub values: Option<Vec<f64>>,
+    pub values: Option<Vec<String>>,
+}
+
+/// `StructuredResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StructuredResult {
+    /// person property.
+    pub person: Option<Person>,
+}
+
+/// `ErrorMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorMessage {
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// source property.
+    pub source: Option<Source>,
+}
+
+/// `CompositeFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CompositeFilter {
+    /// logicOperator property.
+    pub logic_operator: Option<String>,
+    /// subFilters property.
+    pub sub_filters: Option<Vec<Box<Filter>>>,
+}
+
+/// `SourceResultCount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SourceResultCount {
+    /// hasMoreResults property.
+    pub has_more_results: Option<bool>,
+    /// resultCountEstimate property.
+    pub result_count_estimate: Option<String>,
+    /// resultCountExact property.
+    pub result_count_exact: Option<String>,
+    /// source property.
+    pub source: Option<Source>,
+}
+
+/// `SpellResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpellResult {
+    /// suggestedQuery property.
+    pub suggested_query: Option<String>,
+    /// suggestedQueryHtml property.
+    pub suggested_query_html: Option<SafeHtmlProto>,
+    /// suggestionType property.
+    pub suggestion_type: Option<String>,
+}
+
+/// `IntegerValues` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntegerValues {
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `ObjectValues` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ObjectValues {
+    /// values property.
+    pub values: Option<Vec<Box<StructuredDataObject>>>,
+}
+
+/// `HtmlValues` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HtmlValues {
+    /// values property.
+    pub values: Option<Vec<String>>,
 }
 
 /// `Value` type.
@@ -111,6 +212,176 @@ pub struct Value {
     pub string_value: Option<String>,
     /// timestampValue property.
     pub timestamp_value: Option<String>,
+}
+
+/// `ValueFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ValueFilter {
+    /// operatorName property.
+    pub operator_name: Option<String>,
+    /// value property.
+    pub value: Option<Value>,
+}
+
+/// `Photo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Photo {
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `ErrorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorInfo {
+    /// errorMessages property.
+    pub error_messages: Option<Vec<ErrorMessage>>,
+}
+
+/// `Source` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Source {
+    /// name property.
+    pub name: Option<String>,
+    /// predefinedSource property.
+    pub predefined_source: Option<String>,
+}
+
+/// `ResultDisplayMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResultDisplayMetadata {
+    /// metalines property.
+    pub metalines: Option<Vec<ResultDisplayLine>>,
+    /// objectTypeLabel property.
+    pub object_type_label: Option<String>,
+}
+
+/// `Person` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Person {
+    /// emailAddresses property.
+    pub email_addresses: Option<Vec<EmailAddress>>,
+    /// name property.
+    pub name: Option<String>,
+    /// obfuscatedId property.
+    pub obfuscated_id: Option<String>,
+    /// personNames property.
+    pub person_names: Option<Vec<Name>>,
+    /// phoneNumbers property.
+    pub phone_numbers: Option<Vec<PhoneNumber>>,
+    /// photos property.
+    pub photos: Option<Vec<Photo>>,
+}
+
+/// `QueryInterpretation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueryInterpretation {
+    /// interpretationType property.
+    pub interpretation_type: Option<String>,
+    /// interpretedQuery property.
+    pub interpreted_query: Option<String>,
+    /// interpretedQueryActualResultCount property.
+    pub interpreted_query_actual_result_count: Option<i64>,
+    /// interpretedQueryEstimatedResultCount property.
+    pub interpreted_query_estimated_result_count: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `EmailAddress` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EmailAddress {
+    /// customType property.
+    pub custom_type: Option<String>,
+    /// emailAddress property.
+    pub email_address: Option<String>,
+    /// emailUrl property.
+    pub email_url: Option<String>,
+    /// primary property.
+    pub primary: Option<bool>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `Name` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Name {
+    /// displayName property.
+    pub display_name: Option<String>,
+}
+
+/// `Snippet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Snippet {
+    /// matchRanges property.
+    pub match_ranges: Option<Vec<MatchRange>>,
+    /// snippet property.
+    pub snippet: Option<String>,
+}
+
+/// `ResultDisplayLine` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResultDisplayLine {
+    /// fields property.
+    pub fields: Option<Vec<ResultDisplayField>>,
+}
+
+/// `TextValues` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextValues {
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `StructuredDataObject` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StructuredDataObject {
+    /// properties property.
+    pub properties: Option<Vec<Box<NamedProperty>>>,
+}
+
+/// `FacetBucket` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FacetBucket {
+    /// count property.
+    pub count: Option<i64>,
+    /// filter property.
+    pub filter: Option<Box<Filter>>,
+    /// percentage property.
+    pub percentage: Option<i64>,
+    /// value property.
+    pub value: Option<Value>,
+}
+
+/// `ResultDebugInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResultDebugInfo {
+    /// formattedDebugInfo property.
+    pub formatted_debug_info: Option<String>,
+}
+
+/// `ResponseDebugInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResponseDebugInfo {
+    /// formattedDebugInfo property.
+    pub formatted_debug_info: Option<String>,
+}
+
+/// `DoubleValues` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DoubleValues {
+    /// values property.
+    pub values: Option<Vec<f64>>,
+}
+
+/// `Date` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
 }
 
 /// `SearchResponse` type.
@@ -133,106 +404,11 @@ pub struct SearchResponse {
     /// resultCounts property.
     pub result_counts: Option<ResultCounts>,
     /// results property.
-    pub results: Option<Vec<SearchResult>>,
+    pub results: Option<Vec<Box<SearchResult>>>,
     /// spellResults property.
     pub spell_results: Option<Vec<SpellResult>>,
     /// structuredResults property.
     pub structured_results: Option<Vec<StructuredResult>>,
-}
-
-/// `TextValues` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextValues {
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `Name` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Name {
-    /// displayName property.
-    pub display_name: Option<String>,
-}
-
-/// `Source` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Source {
-    /// name property.
-    pub name: Option<String>,
-    /// predefinedSource property.
-    pub predefined_source: Option<String>,
-}
-
-/// `ErrorMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorMessage {
-    /// errorMessage property.
-    pub error_message: Option<String>,
-    /// source property.
-    pub source: Option<Source>,
-}
-
-/// `TimestampValues` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimestampValues {
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `QueryInterpretation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryInterpretation {
-    /// interpretationType property.
-    pub interpretation_type: Option<String>,
-    /// interpretedQuery property.
-    pub interpreted_query: Option<String>,
-    /// interpretedQueryActualResultCount property.
-    pub interpreted_query_actual_result_count: Option<i64>,
-    /// interpretedQueryEstimatedResultCount property.
-    pub interpreted_query_estimated_result_count: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `ResultDisplayMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResultDisplayMetadata {
-    /// metalines property.
-    pub metalines: Option<Vec<ResultDisplayLine>>,
-    /// objectTypeLabel property.
-    pub object_type_label: Option<String>,
-}
-
-/// `ResultDebugInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResultDebugInfo {
-    /// formattedDebugInfo property.
-    pub formatted_debug_info: Option<String>,
-}
-
-/// `DateValues` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DateValues {
-    /// values property.
-    pub values: Option<Vec<Date>>,
-}
-
-/// `PhoneNumber` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PhoneNumber {
-    /// phoneNumber property.
-    pub phone_number: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `Snippet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Snippet {
-    /// matchRanges property.
-    pub match_ranges: Option<Vec<MatchRange>>,
-    /// snippet property.
-    pub snippet: Option<String>,
 }
 
 /// `FacetResult` type.
@@ -248,134 +424,6 @@ pub struct FacetResult {
     pub source_name: Option<String>,
 }
 
-/// `FacetBucket` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FacetBucket {
-    /// count property.
-    pub count: Option<i64>,
-    /// filter property.
-    pub filter: Option<Filter>,
-    /// percentage property.
-    pub percentage: Option<i64>,
-    /// value property.
-    pub value: Option<Value>,
-}
-
-/// `IntegerValues` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntegerValues {
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `ErrorInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// errorMessages property.
-    pub error_messages: Option<Vec<ErrorMessage>>,
-}
-
-/// `Date` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `EmailAddress` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EmailAddress {
-    /// customType property.
-    pub custom_type: Option<String>,
-    /// emailAddress property.
-    pub email_address: Option<String>,
-    /// emailUrl property.
-    pub email_url: Option<String>,
-    /// primary property.
-    pub primary: Option<bool>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `NamedProperty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NamedProperty {
-    /// booleanValue property.
-    pub boolean_value: Option<bool>,
-    /// dateValues property.
-    pub date_values: Option<DateValues>,
-    /// doubleValues property.
-    pub double_values: Option<DoubleValues>,
-    /// enumValues property.
-    pub enum_values: Option<EnumValues>,
-    /// htmlValues property.
-    pub html_values: Option<HtmlValues>,
-    /// integerValues property.
-    pub integer_values: Option<IntegerValues>,
-    /// name property.
-    pub name: Option<String>,
-    /// objectValues property.
-    pub object_values: Option<ObjectValues>,
-    /// textValues property.
-    pub text_values: Option<TextValues>,
-    /// timestampValues property.
-    pub timestamp_values: Option<TimestampValues>,
-}
-
-/// `StructuredDataObject` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StructuredDataObject {
-    /// properties property.
-    pub properties: Option<Vec<NamedProperty>>,
-}
-
-/// `SourceResultCount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceResultCount {
-    /// hasMoreResults property.
-    pub has_more_results: Option<bool>,
-    /// resultCountEstimate property.
-    pub result_count_estimate: Option<String>,
-    /// resultCountExact property.
-    pub result_count_exact: Option<String>,
-    /// source property.
-    pub source: Option<Source>,
-}
-
-/// `SafeHtmlProto` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SafeHtmlProto {
-    /// privateDoNotAccessOrElseSafeHtmlWrappedValue property.
-    pub private_do_not_access_or_else_safe_html_wrapped_value: Option<String>,
-}
-
-/// `Metadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Metadata {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// displayOptions property.
-    pub display_options: Option<ResultDisplayMetadata>,
-    /// fields property.
-    pub fields: Option<Vec<NamedProperty>>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-    /// objectType property.
-    pub object_type: Option<String>,
-    /// owner property.
-    pub owner: Option<Person>,
-    /// source property.
-    pub source: Option<Source>,
-    /// thumbnailUrl property.
-    pub thumbnail_url: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
 /// `EnumValues` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnumValues {
@@ -383,46 +431,13 @@ pub struct EnumValues {
     pub values: Option<Vec<String>>,
 }
 
-/// `ResultCounts` type.
+/// `Filter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResultCounts {
-    /// sourceResultCounts property.
-    pub source_result_counts: Option<Vec<SourceResultCount>>,
-}
-
-/// `Person` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Person {
-    /// emailAddresses property.
-    pub email_addresses: Option<Vec<EmailAddress>>,
-    /// name property.
-    pub name: Option<String>,
-    /// obfuscatedId property.
-    pub obfuscated_id: Option<String>,
-    /// personNames property.
-    pub person_names: Option<Vec<Name>>,
-    /// phoneNumbers property.
-    pub phone_numbers: Option<Vec<PhoneNumber>>,
-    /// photos property.
-    pub photos: Option<Vec<Photo>>,
-}
-
-/// `SpellResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpellResult {
-    /// suggestedQuery property.
-    pub suggested_query: Option<String>,
-    /// suggestedQueryHtml property.
-    pub suggested_query_html: Option<SafeHtmlProto>,
-    /// suggestionType property.
-    pub suggestion_type: Option<String>,
-}
-
-/// `HtmlValues` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HtmlValues {
-    /// values property.
-    pub values: Option<Vec<String>>,
+pub struct Filter {
+    /// compositeFilter property.
+    pub composite_filter: Option<Box<CompositeFilter>>,
+    /// valueFilter property.
+    pub value_filter: Option<ValueFilter>,
 }
 
 /// `ResultDisplayField` type.
@@ -433,30 +448,16 @@ pub struct ResultDisplayField {
     /// operatorName property.
     pub operator_name: Option<String>,
     /// property property.
-    pub property: Option<NamedProperty>,
+    pub property: Option<Box<NamedProperty>>,
 }
 
-/// `CompositeFilter` type.
+/// `MatchRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompositeFilter {
-    /// logicOperator property.
-    pub logic_operator: Option<String>,
-    /// subFilters property.
-    pub sub_filters: Option<Vec<Filter>>,
-}
-
-/// `StructuredResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StructuredResult {
-    /// person property.
-    pub person: Option<Person>,
-}
-
-/// `ResultDisplayLine` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResultDisplayLine {
-    /// fields property.
-    pub fields: Option<Vec<ResultDisplayField>>,
+pub struct MatchRange {
+    /// end property.
+    pub end: Option<i64>,
+    /// start property.
+    pub start: Option<i64>,
 }
 
 // =============================================================================

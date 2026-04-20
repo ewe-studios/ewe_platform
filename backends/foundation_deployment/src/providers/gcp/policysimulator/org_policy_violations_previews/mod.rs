@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,86 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudOrgpolicyV2PolicySpecPolicyRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudOrgpolicyV2PolicySpecPolicyRule {
-    /// allowAll property.
-    pub allow_all: Option<bool>,
-    /// condition property.
-    pub condition: Option<GoogleTypeExpr>,
-    /// denyAll property.
-    pub deny_all: Option<bool>,
-    /// enforce property.
-    pub enforce: Option<bool>,
-    /// parameters property.
-    pub parameters: Option<serde_json::Value>,
-    /// values property.
-    pub values: Option<GoogleCloudOrgpolicyV2PolicySpecPolicyRuleStringValues>,
-}
-
-/// `GoogleCloudPolicysimulatorV1OrgPolicyOverlay` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicysimulatorV1OrgPolicyOverlay {
-    /// customConstraints property.
-    pub custom_constraints:
-        Option<Vec<GoogleCloudPolicysimulatorV1OrgPolicyOverlayCustomConstraintOverlay>>,
-    /// policies property.
-    pub policies: Option<Vec<GoogleCloudPolicysimulatorV1OrgPolicyOverlayPolicyOverlay>>,
-}
-
-/// `GoogleCloudPolicysimulatorV1OrgPolicyOverlayCustomConstraintOverlay` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicysimulatorV1OrgPolicyOverlayCustomConstraintOverlay {
-    /// customConstraint property.
-    pub custom_constraint: Option<GoogleCloudOrgpolicyV2CustomConstraint>,
-    /// customConstraintParent property.
-    pub custom_constraint_parent: Option<String>,
-}
-
-/// `GoogleTypeExpr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeExpr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudPolicysimulatorV1OrgPolicyViolationsPreviewResourceCounts` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicysimulatorV1OrgPolicyViolationsPreviewResourceCounts {
-    /// compliant property.
-    pub compliant: Option<i64>,
-    /// errors property.
-    pub errors: Option<i64>,
-    /// noncompliant property.
-    pub noncompliant: Option<i64>,
-    /// scanned property.
-    pub scanned: Option<i64>,
-    /// unenforced property.
-    pub unenforced: Option<i64>,
-}
 
 /// `GoogleCloudPolicysimulatorV1OrgPolicyViolationsPreview` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -120,25 +46,6 @@ pub struct GoogleCloudPolicysimulatorV1OrgPolicyViolationsPreview {
     pub state: Option<String>,
     /// violationsCount property.
     pub violations_count: Option<i64>,
-}
-
-/// `GoogleCloudPolicysimulatorV1ListOrgPolicyViolationsPreviewsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicysimulatorV1ListOrgPolicyViolationsPreviewsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// orgPolicyViolationsPreviews property.
-    pub org_policy_violations_previews:
-        Option<Vec<GoogleCloudPolicysimulatorV1OrgPolicyViolationsPreview>>,
-}
-
-/// `GoogleCloudOrgpolicyV2AlternatePolicySpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudOrgpolicyV2AlternatePolicySpec {
-    /// launch property.
-    pub launch: Option<String>,
-    /// spec property.
-    pub spec: Option<GoogleCloudOrgpolicyV2PolicySpec>,
 }
 
 /// `GoogleCloudOrgpolicyV2CustomConstraint` type.
@@ -162,6 +69,63 @@ pub struct GoogleCloudOrgpolicyV2CustomConstraint {
     pub update_time: Option<String>,
 }
 
+/// `GoogleCloudPolicysimulatorV1OrgPolicyOverlay` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicysimulatorV1OrgPolicyOverlay {
+    /// customConstraints property.
+    pub custom_constraints:
+        Option<Vec<GoogleCloudPolicysimulatorV1OrgPolicyOverlayCustomConstraintOverlay>>,
+    /// policies property.
+    pub policies: Option<Vec<GoogleCloudPolicysimulatorV1OrgPolicyOverlayPolicyOverlay>>,
+}
+
+/// `GoogleCloudPolicysimulatorV1OrgPolicyOverlayPolicyOverlay` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicysimulatorV1OrgPolicyOverlayPolicyOverlay {
+    /// policy property.
+    pub policy: Option<GoogleCloudOrgpolicyV2Policy>,
+    /// policyParent property.
+    pub policy_parent: Option<String>,
+}
+
+/// `GoogleCloudPolicysimulatorV1ListOrgPolicyViolationsPreviewsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicysimulatorV1ListOrgPolicyViolationsPreviewsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// orgPolicyViolationsPreviews property.
+    pub org_policy_violations_previews:
+        Option<Vec<GoogleCloudPolicysimulatorV1OrgPolicyViolationsPreview>>,
+}
+
+/// `GoogleTypeExpr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeExpr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleCloudPolicysimulatorV1OrgPolicyViolationsPreviewResourceCounts` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicysimulatorV1OrgPolicyViolationsPreviewResourceCounts {
+    /// compliant property.
+    pub compliant: Option<i64>,
+    /// errors property.
+    pub errors: Option<i64>,
+    /// noncompliant property.
+    pub noncompliant: Option<i64>,
+    /// scanned property.
+    pub scanned: Option<i64>,
+    /// unenforced property.
+    pub unenforced: Option<i64>,
+}
+
 /// `GoogleCloudOrgpolicyV2PolicySpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2PolicySpec {
@@ -177,13 +141,15 @@ pub struct GoogleCloudOrgpolicyV2PolicySpec {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudPolicysimulatorV1OrgPolicyOverlayPolicyOverlay` type.
+/// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicysimulatorV1OrgPolicyOverlayPolicyOverlay {
-    /// policy property.
-    pub policy: Option<GoogleCloudOrgpolicyV2Policy>,
-    /// policyParent property.
-    pub policy_parent: Option<String>,
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `GoogleCloudOrgpolicyV2PolicySpecPolicyRuleStringValues` type.
@@ -193,6 +159,15 @@ pub struct GoogleCloudOrgpolicyV2PolicySpecPolicyRuleStringValues {
     pub allowed_values: Option<Vec<String>>,
     /// deniedValues property.
     pub denied_values: Option<Vec<String>>,
+}
+
+/// `GoogleCloudOrgpolicyV2AlternatePolicySpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudOrgpolicyV2AlternatePolicySpec {
+    /// launch property.
+    pub launch: Option<String>,
+    /// spec property.
+    pub spec: Option<GoogleCloudOrgpolicyV2PolicySpec>,
 }
 
 /// `GoogleCloudOrgpolicyV2Policy` type.
@@ -208,6 +183,32 @@ pub struct GoogleCloudOrgpolicyV2Policy {
     pub name: Option<String>,
     /// spec property.
     pub spec: Option<GoogleCloudOrgpolicyV2PolicySpec>,
+}
+
+/// `GoogleCloudOrgpolicyV2PolicySpecPolicyRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudOrgpolicyV2PolicySpecPolicyRule {
+    /// allowAll property.
+    pub allow_all: Option<bool>,
+    /// condition property.
+    pub condition: Option<GoogleTypeExpr>,
+    /// denyAll property.
+    pub deny_all: Option<bool>,
+    /// enforce property.
+    pub enforce: Option<bool>,
+    /// parameters property.
+    pub parameters: Option<serde_json::Value>,
+    /// values property.
+    pub values: Option<GoogleCloudOrgpolicyV2PolicySpecPolicyRuleStringValues>,
+}
+
+/// `GoogleCloudPolicysimulatorV1OrgPolicyOverlayCustomConstraintOverlay` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicysimulatorV1OrgPolicyOverlayCustomConstraintOverlay {
+    /// customConstraint property.
+    pub custom_constraint: Option<GoogleCloudOrgpolicyV2CustomConstraint>,
+    /// customConstraintParent property.
+    pub custom_constraint_parent: Option<String>,
 }
 
 // =============================================================================

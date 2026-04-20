@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,27 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudContentwarehouseV1ListSynonymSetsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1ListSynonymSetsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// synonymSets property.
-    pub synonym_sets: Option<Vec<GoogleCloudContentwarehouseV1SynonymSet>>,
-}
-
-/// `GoogleCloudContentwarehouseV1SynonymSetSynonym` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1SynonymSetSynonym {
-    /// words property.
-    pub words: Option<Vec<String>>,
-}
 
 /// `GoogleCloudContentwarehouseV1SynonymSet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -52,6 +37,22 @@ pub struct GoogleCloudContentwarehouseV1SynonymSet {
     pub name: Option<String>,
     /// synonyms property.
     pub synonyms: Option<Vec<GoogleCloudContentwarehouseV1SynonymSetSynonym>>,
+}
+
+/// `GoogleCloudContentwarehouseV1SynonymSetSynonym` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1SynonymSetSynonym {
+    /// words property.
+    pub words: Option<Vec<String>>,
+}
+
+/// `GoogleCloudContentwarehouseV1ListSynonymSetsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1ListSynonymSetsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// synonymSets property.
+    pub synonym_sets: Option<Vec<GoogleCloudContentwarehouseV1SynonymSet>>,
 }
 
 // =============================================================================

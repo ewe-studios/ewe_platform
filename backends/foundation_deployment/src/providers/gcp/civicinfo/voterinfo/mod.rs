@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -37,6 +38,192 @@ pub struct CivicinfoSchemaV2ElectionOfficial {
     pub office_phone_number: Option<String>,
     /// title property.
     pub title: Option<String>,
+}
+
+/// `CivicinfoSchemaV2Election` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CivicinfoSchemaV2Election {
+    /// electionDay property.
+    pub election_day: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// ocdDivisionId property.
+    pub ocd_division_id: Option<String>,
+    /// shapeLookupBehavior property.
+    pub shape_lookup_behavior: Option<String>,
+}
+
+/// `CivicinfoSchemaV2Precinct` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CivicinfoSchemaV2Precinct {
+    /// administrationRegionId property.
+    pub administration_region_id: Option<String>,
+    /// contestId property.
+    pub contest_id: Option<Vec<String>>,
+    /// datasetId property.
+    pub dataset_id: Option<String>,
+    /// earlyVoteSiteId property.
+    pub early_vote_site_id: Option<Vec<String>>,
+    /// electoralDistrictId property.
+    pub electoral_district_id: Option<Vec<String>>,
+    /// id property.
+    pub id: Option<String>,
+    /// mailOnly property.
+    pub mail_only: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+    /// number property.
+    pub number: Option<String>,
+    /// ocdId property.
+    pub ocd_id: Option<Vec<String>>,
+    /// pollingLocationId property.
+    pub polling_location_id: Option<Vec<String>>,
+    /// spatialBoundaryId property.
+    pub spatial_boundary_id: Option<Vec<String>>,
+    /// splitName property.
+    pub split_name: Option<String>,
+    /// ward property.
+    pub ward: Option<String>,
+}
+
+/// `CivicinfoSchemaV2Channel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CivicinfoSchemaV2Channel {
+    /// id property.
+    pub id: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `CivicinfoSchemaV2ElectoralDistrict` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CivicinfoSchemaV2ElectoralDistrict {
+    /// id property.
+    pub id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// scope property.
+    pub scope: Option<String>,
+}
+
+/// `CivicinfoApiprotosV2VoterInfoResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CivicinfoApiprotosV2VoterInfoResponse {
+    /// contests property.
+    pub contests: Option<Vec<CivicinfoSchemaV2Contest>>,
+    /// dropOffLocations property.
+    pub drop_off_locations: Option<Vec<CivicinfoSchemaV2PollingLocation>>,
+    /// earlyVoteSites property.
+    pub early_vote_sites: Option<Vec<CivicinfoSchemaV2PollingLocation>>,
+    /// election property.
+    pub election: Option<CivicinfoSchemaV2Election>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// mailOnly property.
+    pub mail_only: Option<bool>,
+    /// normalizedInput property.
+    pub normalized_input: Option<CivicinfoSchemaV2SimpleAddressType>,
+    /// otherElections property.
+    pub other_elections: Option<Vec<CivicinfoSchemaV2Election>>,
+    /// pollingLocations property.
+    pub polling_locations: Option<Vec<CivicinfoSchemaV2PollingLocation>>,
+    /// precinctId property.
+    pub precinct_id: Option<String>,
+    /// precincts property.
+    pub precincts: Option<Vec<CivicinfoSchemaV2Precinct>>,
+    /// state property.
+    pub state: Option<Vec<Box<CivicinfoSchemaV2AdministrationRegion>>>,
+}
+
+/// `CivicinfoSchemaV2Source` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CivicinfoSchemaV2Source {
+    /// name property.
+    pub name: Option<String>,
+    /// official property.
+    pub official: Option<bool>,
+}
+
+/// `CivicinfoSchemaV2Candidate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CivicinfoSchemaV2Candidate {
+    /// candidateUrl property.
+    pub candidate_url: Option<String>,
+    /// channels property.
+    pub channels: Option<Vec<CivicinfoSchemaV2Channel>>,
+    /// email property.
+    pub email: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// orderOnBallot property.
+    pub order_on_ballot: Option<String>,
+    /// party property.
+    pub party: Option<String>,
+    /// phone property.
+    pub phone: Option<String>,
+    /// photoUrl property.
+    pub photo_url: Option<String>,
+}
+
+/// `CivicinfoSchemaV2SimpleAddressType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CivicinfoSchemaV2SimpleAddressType {
+    /// addressLine property.
+    pub address_line: Option<Vec<String>>,
+    /// city property.
+    pub city: Option<String>,
+    /// line1 property.
+    pub line1: Option<String>,
+    /// line2 property.
+    pub line2: Option<String>,
+    /// line3 property.
+    pub line3: Option<String>,
+    /// locationName property.
+    pub location_name: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// zip property.
+    pub zip: Option<String>,
+}
+
+/// `CivicinfoSchemaV2AdministrationRegion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CivicinfoSchemaV2AdministrationRegion {
+    /// electionAdministrationBody property.
+    pub election_administration_body: Option<CivicinfoSchemaV2AdministrativeBody>,
+    /// local_jurisdiction property.
+    pub local_jurisdiction: Option<Box<CivicinfoSchemaV2AdministrationRegion>>,
+    /// name property.
+    pub name: Option<String>,
+    /// sources property.
+    pub sources: Option<Vec<CivicinfoSchemaV2Source>>,
+}
+
+/// `CivicinfoSchemaV2PollingLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CivicinfoSchemaV2PollingLocation {
+    /// address property.
+    pub address: Option<CivicinfoSchemaV2SimpleAddressType>,
+    /// endDate property.
+    pub end_date: Option<String>,
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
+    /// name property.
+    pub name: Option<String>,
+    /// notes property.
+    pub notes: Option<String>,
+    /// pollingHours property.
+    pub polling_hours: Option<String>,
+    /// sources property.
+    pub sources: Option<Vec<CivicinfoSchemaV2Source>>,
+    /// startDate property.
+    pub start_date: Option<String>,
+    /// voterServices property.
+    pub voter_services: Option<String>,
 }
 
 /// `CivicinfoSchemaV2Contest` type.
@@ -90,192 +277,6 @@ pub struct CivicinfoSchemaV2Contest {
     pub special: Option<String>,
     /// type property.
     pub r#type: Option<String>,
-}
-
-/// `CivicinfoSchemaV2Candidate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CivicinfoSchemaV2Candidate {
-    /// candidateUrl property.
-    pub candidate_url: Option<String>,
-    /// channels property.
-    pub channels: Option<Vec<CivicinfoSchemaV2Channel>>,
-    /// email property.
-    pub email: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// orderOnBallot property.
-    pub order_on_ballot: Option<String>,
-    /// party property.
-    pub party: Option<String>,
-    /// phone property.
-    pub phone: Option<String>,
-    /// photoUrl property.
-    pub photo_url: Option<String>,
-}
-
-/// `CivicinfoApiprotosV2VoterInfoResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CivicinfoApiprotosV2VoterInfoResponse {
-    /// contests property.
-    pub contests: Option<Vec<CivicinfoSchemaV2Contest>>,
-    /// dropOffLocations property.
-    pub drop_off_locations: Option<Vec<CivicinfoSchemaV2PollingLocation>>,
-    /// earlyVoteSites property.
-    pub early_vote_sites: Option<Vec<CivicinfoSchemaV2PollingLocation>>,
-    /// election property.
-    pub election: Option<CivicinfoSchemaV2Election>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// mailOnly property.
-    pub mail_only: Option<bool>,
-    /// normalizedInput property.
-    pub normalized_input: Option<CivicinfoSchemaV2SimpleAddressType>,
-    /// otherElections property.
-    pub other_elections: Option<Vec<CivicinfoSchemaV2Election>>,
-    /// pollingLocations property.
-    pub polling_locations: Option<Vec<CivicinfoSchemaV2PollingLocation>>,
-    /// precinctId property.
-    pub precinct_id: Option<String>,
-    /// precincts property.
-    pub precincts: Option<Vec<CivicinfoSchemaV2Precinct>>,
-    /// state property.
-    pub state: Option<Vec<CivicinfoSchemaV2AdministrationRegion>>,
-}
-
-/// `CivicinfoSchemaV2Channel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CivicinfoSchemaV2Channel {
-    /// id property.
-    pub id: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `CivicinfoSchemaV2Precinct` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CivicinfoSchemaV2Precinct {
-    /// administrationRegionId property.
-    pub administration_region_id: Option<String>,
-    /// contestId property.
-    pub contest_id: Option<Vec<String>>,
-    /// datasetId property.
-    pub dataset_id: Option<String>,
-    /// earlyVoteSiteId property.
-    pub early_vote_site_id: Option<Vec<String>>,
-    /// electoralDistrictId property.
-    pub electoral_district_id: Option<Vec<String>>,
-    /// id property.
-    pub id: Option<String>,
-    /// mailOnly property.
-    pub mail_only: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-    /// number property.
-    pub number: Option<String>,
-    /// ocdId property.
-    pub ocd_id: Option<Vec<String>>,
-    /// pollingLocationId property.
-    pub polling_location_id: Option<Vec<String>>,
-    /// spatialBoundaryId property.
-    pub spatial_boundary_id: Option<Vec<String>>,
-    /// splitName property.
-    pub split_name: Option<String>,
-    /// ward property.
-    pub ward: Option<String>,
-}
-
-/// `CivicinfoSchemaV2Source` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CivicinfoSchemaV2Source {
-    /// name property.
-    pub name: Option<String>,
-    /// official property.
-    pub official: Option<bool>,
-}
-
-/// `CivicinfoSchemaV2ElectoralDistrict` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CivicinfoSchemaV2ElectoralDistrict {
-    /// id property.
-    pub id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// scope property.
-    pub scope: Option<String>,
-}
-
-/// `CivicinfoSchemaV2SimpleAddressType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CivicinfoSchemaV2SimpleAddressType {
-    /// addressLine property.
-    pub address_line: Option<Vec<String>>,
-    /// city property.
-    pub city: Option<String>,
-    /// line1 property.
-    pub line1: Option<String>,
-    /// line2 property.
-    pub line2: Option<String>,
-    /// line3 property.
-    pub line3: Option<String>,
-    /// locationName property.
-    pub location_name: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// zip property.
-    pub zip: Option<String>,
-}
-
-/// `CivicinfoSchemaV2PollingLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CivicinfoSchemaV2PollingLocation {
-    /// address property.
-    pub address: Option<CivicinfoSchemaV2SimpleAddressType>,
-    /// endDate property.
-    pub end_date: Option<String>,
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
-    /// name property.
-    pub name: Option<String>,
-    /// notes property.
-    pub notes: Option<String>,
-    /// pollingHours property.
-    pub polling_hours: Option<String>,
-    /// sources property.
-    pub sources: Option<Vec<CivicinfoSchemaV2Source>>,
-    /// startDate property.
-    pub start_date: Option<String>,
-    /// voterServices property.
-    pub voter_services: Option<String>,
-}
-
-/// `CivicinfoSchemaV2Election` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CivicinfoSchemaV2Election {
-    /// electionDay property.
-    pub election_day: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// ocdDivisionId property.
-    pub ocd_division_id: Option<String>,
-    /// shapeLookupBehavior property.
-    pub shape_lookup_behavior: Option<String>,
-}
-
-/// `CivicinfoSchemaV2AdministrationRegion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CivicinfoSchemaV2AdministrationRegion {
-    /// electionAdministrationBody property.
-    pub election_administration_body: Option<CivicinfoSchemaV2AdministrativeBody>,
-    /// local_jurisdiction property.
-    pub local_jurisdiction: Option<CivicinfoSchemaV2AdministrationRegion>,
-    /// name property.
-    pub name: Option<String>,
-    /// sources property.
-    pub sources: Option<Vec<CivicinfoSchemaV2Source>>,
 }
 
 /// `CivicinfoSchemaV2AdministrativeBody` type.

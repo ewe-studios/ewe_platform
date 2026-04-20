@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,78 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Volumes;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `DownloadAccessRestriction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DownloadAccessRestriction {
+    /// deviceAllowed property.
+    pub device_allowed: Option<bool>,
+    /// downloadsAcquired property.
+    pub downloads_acquired: Option<i64>,
+    /// justAcquired property.
+    pub just_acquired: Option<bool>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// maxDownloadDevices property.
+    pub max_download_devices: Option<i64>,
+    /// message property.
+    pub message: Option<String>,
+    /// nonce property.
+    pub nonce: Option<String>,
+    /// reasonCode property.
+    pub reason_code: Option<String>,
+    /// restricted property.
+    pub restricted: Option<bool>,
+    /// signature property.
+    pub signature: Option<String>,
+    /// source property.
+    pub source: Option<String>,
+    /// volumeId property.
+    pub volume_id: Option<String>,
+}
+
+/// `Volumeseriesinfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Volumeseriesinfo {
+    /// bookDisplayNumber property.
+    pub book_display_number: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// shortSeriesBookTitle property.
+    pub short_series_book_title: Option<String>,
+    /// volumeSeries property.
+    pub volume_series: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+}
+
+/// `Review` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Review {
+    /// author property.
+    pub author: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// content property.
+    pub content: Option<String>,
+    /// date property.
+    pub date: Option<String>,
+    /// fullTextUrl property.
+    pub full_text_url: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// rating property.
+    pub rating: Option<String>,
+    /// source property.
+    pub source: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// title property.
+    pub title: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// volumeId property.
+    pub volume_id: Option<String>,
+}
 
 /// `Volume` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -71,73 +139,6 @@ pub struct ReadingPosition {
     pub updated: Option<String>,
     /// volumeId property.
     pub volume_id: Option<String>,
-}
-
-/// `Review` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Review {
-    /// author property.
-    pub author: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// content property.
-    pub content: Option<String>,
-    /// date property.
-    pub date: Option<String>,
-    /// fullTextUrl property.
-    pub full_text_url: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// rating property.
-    pub rating: Option<String>,
-    /// source property.
-    pub source: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// title property.
-    pub title: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// volumeId property.
-    pub volume_id: Option<String>,
-}
-
-/// `DownloadAccessRestriction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DownloadAccessRestriction {
-    /// deviceAllowed property.
-    pub device_allowed: Option<bool>,
-    /// downloadsAcquired property.
-    pub downloads_acquired: Option<i64>,
-    /// justAcquired property.
-    pub just_acquired: Option<bool>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// maxDownloadDevices property.
-    pub max_download_devices: Option<i64>,
-    /// message property.
-    pub message: Option<String>,
-    /// nonce property.
-    pub nonce: Option<String>,
-    /// reasonCode property.
-    pub reason_code: Option<String>,
-    /// restricted property.
-    pub restricted: Option<bool>,
-    /// signature property.
-    pub signature: Option<String>,
-    /// source property.
-    pub source: Option<String>,
-    /// volumeId property.
-    pub volume_id: Option<String>,
-}
-
-/// `Volumeseriesinfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Volumeseriesinfo {
-    /// bookDisplayNumber property.
-    pub book_display_number: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// shortSeriesBookTitle property.
-    pub short_series_book_title: Option<String>,
-    /// volumeSeries property.
-    pub volume_series: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
 }
 
 // =============================================================================

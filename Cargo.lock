@@ -1458,8 +1458,10 @@ dependencies = [
  "foundation_core",
  "foundation_db",
  "foundation_deployment",
+ "foundation_testing",
  "serde",
  "serde_json",
+ "tempfile",
  "thiserror 1.0.69",
  "tracing",
 ]

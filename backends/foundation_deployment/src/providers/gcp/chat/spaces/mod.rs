@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,11 +23,45 @@ use serde::{Deserialize, Serialize};
 use super::shared::Empty;
 use super::shared::Space;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `CompleteImportSpaceResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CompleteImportSpaceResponse {
+    /// space property.
+    pub space: Option<Space>,
+}
+
+/// `ListSpacesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListSpacesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// spaces property.
+    pub spaces: Option<Vec<Space>>,
+}
+
+/// `MembershipCount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MembershipCount {
+    /// joinedDirectHumanUserCount property.
+    pub joined_direct_human_user_count: Option<i64>,
+    /// joinedGroupCount property.
+    pub joined_group_count: Option<i64>,
+}
+
+/// `AccessSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessSettings {
+    /// accessState property.
+    pub access_state: Option<String>,
+    /// audience property.
+    pub audience: Option<String>,
+}
 
 /// `PermissionSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,49 +84,6 @@ pub struct PermissionSettings {
     pub use_at_mention_all: Option<PermissionSetting>,
 }
 
-/// `CompleteImportSpaceResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompleteImportSpaceResponse {
-    /// space property.
-    pub space: Option<Space>,
-}
-
-/// `AccessSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessSettings {
-    /// accessState property.
-    pub access_state: Option<String>,
-    /// audience property.
-    pub audience: Option<String>,
-}
-
-/// `SpaceDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpaceDetails {
-    /// description property.
-    pub description: Option<String>,
-    /// guidelines property.
-    pub guidelines: Option<String>,
-}
-
-/// `MembershipCount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MembershipCount {
-    /// joinedDirectHumanUserCount property.
-    pub joined_direct_human_user_count: Option<i64>,
-    /// joinedGroupCount property.
-    pub joined_group_count: Option<i64>,
-}
-
-/// `ListSpacesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSpacesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// spaces property.
-    pub spaces: Option<Vec<Space>>,
-}
-
 /// `PermissionSetting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PermissionSetting {
@@ -101,6 +93,15 @@ pub struct PermissionSetting {
     pub managers_allowed: Option<bool>,
     /// membersAllowed property.
     pub members_allowed: Option<bool>,
+}
+
+/// `SpaceDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpaceDetails {
+    /// description property.
+    pub description: Option<String>,
+    /// guidelines property.
+    pub guidelines: Option<String>,
 }
 
 // =============================================================================

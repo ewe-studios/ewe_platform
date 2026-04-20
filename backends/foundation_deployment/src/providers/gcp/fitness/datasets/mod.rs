@@ -12,46 +12,24 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DataPoint` type.
+/// `MapValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataPoint {
-    /// computationTimeMillis property.
-    pub computation_time_millis: Option<String>,
-    /// dataTypeName property.
-    pub data_type_name: Option<String>,
-    /// endTimeNanos property.
-    pub end_time_nanos: Option<String>,
-    /// modifiedTimeMillis property.
-    pub modified_time_millis: Option<String>,
-    /// originDataSourceId property.
-    pub origin_data_source_id: Option<String>,
-    /// rawTimestampNanos property.
-    pub raw_timestamp_nanos: Option<String>,
-    /// startTimeNanos property.
-    pub start_time_nanos: Option<String>,
-    /// value property.
-    pub value: Option<Vec<Value>>,
-}
-
-/// `ValueMapValEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValueMapValEntry {
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<MapValue>,
+pub struct MapValue {
+    /// fpVal property.
+    pub fp_val: Option<f64>,
 }
 
 /// `Dataset` type.
@@ -82,11 +60,34 @@ pub struct Value {
     pub string_val: Option<String>,
 }
 
-/// `MapValue` type.
+/// `ValueMapValEntry` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MapValue {
-    /// fpVal property.
-    pub fp_val: Option<f64>,
+pub struct ValueMapValEntry {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<MapValue>,
+}
+
+/// `DataPoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataPoint {
+    /// computationTimeMillis property.
+    pub computation_time_millis: Option<String>,
+    /// dataTypeName property.
+    pub data_type_name: Option<String>,
+    /// endTimeNanos property.
+    pub end_time_nanos: Option<String>,
+    /// modifiedTimeMillis property.
+    pub modified_time_millis: Option<String>,
+    /// originDataSourceId property.
+    pub origin_data_source_id: Option<String>,
+    /// rawTimestampNanos property.
+    pub raw_timestamp_nanos: Option<String>,
+    /// startTimeNanos property.
+    pub start_time_nanos: Option<String>,
+    /// value property.
+    pub value: Option<Vec<Value>>,
 }
 
 // =============================================================================

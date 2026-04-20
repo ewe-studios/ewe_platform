@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Organization` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Organization {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
 
 /// `BillInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -37,54 +47,6 @@ pub struct BillInfo {
     pub total: Option<Money>,
 }
 
-/// `ClientData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClientData {
-    /// endDate property.
-    pub end_date: Option<Date>,
-    /// organization property.
-    pub organization: Option<Organization>,
-    /// startDate property.
-    pub start_date: Option<Date>,
-}
-
-/// `Organization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Organization {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `ReportPropertyUsageResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportPropertyUsageResponse {
-    /// billInfo property.
-    pub bill_info: Option<BillInfo>,
-    /// propertyUsages property.
-    pub property_usages: Option<Vec<PropertyUsage>>,
-}
-
-/// `PropertyUsage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PropertyUsage {
-    /// accountId property.
-    pub account_id: Option<String>,
-    /// billableEventCount property.
-    pub billable_event_count: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// property property.
-    pub property: Option<String>,
-    /// propertyType property.
-    pub property_type: Option<String>,
-    /// serviceLevel property.
-    pub service_level: Option<String>,
-    /// totalEventCount property.
-    pub total_event_count: Option<String>,
-}
-
 /// `ListOrganizationsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOrganizationsResponse {
@@ -92,13 +54,6 @@ pub struct ListOrganizationsResponse {
     pub next_page_token: Option<String>,
     /// organizations property.
     pub organizations: Option<Vec<Organization>>,
-}
-
-/// `FindSalesPartnerManagedClientsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FindSalesPartnerManagedClientsResponse {
-    /// clientData property.
-    pub client_data: Option<Vec<ClientData>>,
 }
 
 /// `Date` type.
@@ -121,6 +76,52 @@ pub struct Money {
     pub nanos: Option<i64>,
     /// units property.
     pub units: Option<String>,
+}
+
+/// `ReportPropertyUsageResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportPropertyUsageResponse {
+    /// billInfo property.
+    pub bill_info: Option<BillInfo>,
+    /// propertyUsages property.
+    pub property_usages: Option<Vec<PropertyUsage>>,
+}
+
+/// `ClientData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClientData {
+    /// endDate property.
+    pub end_date: Option<Date>,
+    /// organization property.
+    pub organization: Option<Organization>,
+    /// startDate property.
+    pub start_date: Option<Date>,
+}
+
+/// `FindSalesPartnerManagedClientsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FindSalesPartnerManagedClientsResponse {
+    /// clientData property.
+    pub client_data: Option<Vec<ClientData>>,
+}
+
+/// `PropertyUsage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PropertyUsage {
+    /// accountId property.
+    pub account_id: Option<String>,
+    /// billableEventCount property.
+    pub billable_event_count: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// property property.
+    pub property: Option<String>,
+    /// propertyType property.
+    pub property_type: Option<String>,
+    /// serviceLevel property.
+    pub service_level: Option<String>,
+    /// totalEventCount property.
+    pub total_event_count: Option<String>,
 }
 
 // =============================================================================

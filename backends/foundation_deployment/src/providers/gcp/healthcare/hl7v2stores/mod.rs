@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -24,42 +25,11 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Hl7V2StoreMetric` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Hl7V2StoreMetric {
-    /// count property.
-    pub count: Option<String>,
-    /// messageType property.
-    pub message_type: Option<String>,
-    /// structuredStorageSizeBytes property.
-    pub structured_storage_size_bytes: Option<String>,
-}
-
-/// `VersionSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VersionSource {
-    /// mshField property.
-    pub msh_field: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
 
 /// `ListHl7V2StoresResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -83,39 +53,6 @@ pub struct Expr {
     pub title: Option<String>,
 }
 
-/// `Hl7SchemaConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Hl7SchemaConfig {
-    /// messageSchemaConfigs property.
-    pub message_schema_configs: Option<serde_json::Value>,
-    /// version property.
-    pub version: Option<Vec<VersionSource>>,
-}
-
-/// `Hl7V2NotificationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Hl7V2NotificationConfig {
-    /// filter property.
-    pub filter: Option<String>,
-    /// pubsubTopic property.
-    pub pubsub_topic: Option<String>,
-}
-
-/// `Hl7V2Store` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Hl7V2Store {
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// notificationConfigs property.
-    pub notification_configs: Option<Vec<Hl7V2NotificationConfig>>,
-    /// parserConfig property.
-    pub parser_config: Option<ParserConfig>,
-    /// rejectDuplicateMessage property.
-    pub reject_duplicate_message: Option<bool>,
-}
-
 /// `SchemaPackage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SchemaPackage {
@@ -131,15 +68,35 @@ pub struct SchemaPackage {
     pub unexpected_segment_handling: Option<String>,
 }
 
-/// `Type` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Type {
-    /// fields property.
-    pub fields: Option<Vec<Field>>,
-    /// name property.
-    pub name: Option<String>,
-    /// primitive property.
-    pub primitive: Option<String>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `Hl7V2StoreMetrics` type.
@@ -151,17 +108,22 @@ pub struct Hl7V2StoreMetrics {
     pub name: Option<String>,
 }
 
-/// `ParserConfig` type.
+/// `AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ParserConfig {
-    /// allowNullHeader property.
-    pub allow_null_header: Option<bool>,
-    /// schema property.
-    pub schema: Option<SchemaPackage>,
-    /// segmentTerminator property.
-    pub segment_terminator: Option<String>,
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `Hl7SchemaConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Hl7SchemaConfig {
+    /// messageSchemaConfigs property.
+    pub message_schema_configs: Option<serde_json::Value>,
     /// version property.
-    pub version: Option<String>,
+    pub version: Option<Vec<VersionSource>>,
 }
 
 /// `Field` type.
@@ -179,6 +141,65 @@ pub struct Field {
     pub r#type: Option<String>,
 }
 
+/// `Type` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Type {
+    /// fields property.
+    pub fields: Option<Vec<Field>>,
+    /// name property.
+    pub name: Option<String>,
+    /// primitive property.
+    pub primitive: Option<String>,
+}
+
+/// `ParserConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ParserConfig {
+    /// allowNullHeader property.
+    pub allow_null_header: Option<bool>,
+    /// schema property.
+    pub schema: Option<SchemaPackage>,
+    /// segmentTerminator property.
+    pub segment_terminator: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `VersionSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VersionSource {
+    /// mshField property.
+    pub msh_field: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Hl7V2Store` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Hl7V2Store {
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// notificationConfigs property.
+    pub notification_configs: Option<Vec<Hl7V2NotificationConfig>>,
+    /// parserConfig property.
+    pub parser_config: Option<ParserConfig>,
+    /// rejectDuplicateMessage property.
+    pub reject_duplicate_message: Option<bool>,
+}
+
+/// `Hl7V2StoreMetric` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Hl7V2StoreMetric {
+    /// count property.
+    pub count: Option<String>,
+    /// messageType property.
+    pub message_type: Option<String>,
+    /// structuredStorageSizeBytes property.
+    pub structured_storage_size_bytes: Option<String>,
+}
+
 /// `Hl7TypesConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Hl7TypesConfig {
@@ -188,33 +209,13 @@ pub struct Hl7TypesConfig {
     pub version: Option<Vec<VersionSource>>,
 }
 
-/// `AuditLogConfig` type.
+/// `Hl7V2NotificationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct Hl7V2NotificationConfig {
+    /// filter property.
+    pub filter: Option<String>,
+    /// pubsubTopic property.
+    pub pubsub_topic: Option<String>,
 }
 
 // =============================================================================

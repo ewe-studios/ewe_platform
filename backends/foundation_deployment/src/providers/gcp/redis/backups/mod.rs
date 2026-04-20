@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -38,28 +39,15 @@ pub struct BackupFile {
     pub size_bytes: Option<String>,
 }
 
-/// `Status` type.
+/// `ListBackupsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `EncryptionInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionInfo {
-    /// encryptionType property.
-    pub encryption_type: Option<String>,
-    /// kmsKeyPrimaryState property.
-    pub kms_key_primary_state: Option<String>,
-    /// kmsKeyVersions property.
-    pub kms_key_versions: Option<Vec<String>>,
-    /// lastUpdateTime property.
-    pub last_update_time: Option<String>,
+pub struct ListBackupsResponse {
+    /// backups property.
+    pub backups: Option<Vec<Backup>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `Backup` type.
@@ -97,15 +85,28 @@ pub struct Backup {
     pub uid: Option<String>,
 }
 
-/// `ListBackupsResponse` type.
+/// `EncryptionInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListBackupsResponse {
-    /// backups property.
-    pub backups: Option<Vec<Backup>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct EncryptionInfo {
+    /// encryptionType property.
+    pub encryption_type: Option<String>,
+    /// kmsKeyPrimaryState property.
+    pub kms_key_primary_state: Option<String>,
+    /// kmsKeyVersions property.
+    pub kms_key_versions: Option<Vec<String>>,
+    /// lastUpdateTime property.
+    pub last_update_time: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

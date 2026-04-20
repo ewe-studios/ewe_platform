@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -35,17 +36,32 @@ pub struct LookupForecastResponse {
     pub region_code: Option<String>,
 }
 
-/// `Color` type.
+/// `Date` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Color {
-    /// alpha property.
-    pub alpha: Option<f64>,
-    /// blue property.
-    pub blue: Option<f64>,
-    /// green property.
-    pub green: Option<f64>,
-    /// red property.
-    pub red: Option<f64>,
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `IndexInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IndexInfo {
+    /// category property.
+    pub category: Option<String>,
+    /// code property.
+    pub code: Option<String>,
+    /// color property.
+    pub color: Option<Color>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// indexDescription property.
+    pub index_description: Option<String>,
+    /// value property.
+    pub value: Option<i64>,
 }
 
 /// `PlantInfo` type.
@@ -84,15 +100,15 @@ pub struct PlantDescription {
     pub r#type: Option<String>,
 }
 
-/// `Date` type.
+/// `DayInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
+pub struct DayInfo {
+    /// date property.
+    pub date: Option<Date>,
+    /// plantInfo property.
+    pub plant_info: Option<Vec<PlantInfo>>,
+    /// pollenTypeInfo property.
+    pub pollen_type_info: Option<Vec<PollenTypeInfo>>,
 }
 
 /// `PollenTypeInfo` type.
@@ -110,32 +126,17 @@ pub struct PollenTypeInfo {
     pub index_info: Option<IndexInfo>,
 }
 
-/// `DayInfo` type.
+/// `Color` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DayInfo {
-    /// date property.
-    pub date: Option<Date>,
-    /// plantInfo property.
-    pub plant_info: Option<Vec<PlantInfo>>,
-    /// pollenTypeInfo property.
-    pub pollen_type_info: Option<Vec<PollenTypeInfo>>,
-}
-
-/// `IndexInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IndexInfo {
-    /// category property.
-    pub category: Option<String>,
-    /// code property.
-    pub code: Option<String>,
-    /// color property.
-    pub color: Option<Color>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// indexDescription property.
-    pub index_description: Option<String>,
-    /// value property.
-    pub value: Option<i64>,
+pub struct Color {
+    /// alpha property.
+    pub alpha: Option<f64>,
+    /// blue property.
+    pub blue: Option<f64>,
+    /// green property.
+    pub green: Option<f64>,
+    /// red property.
+    pub red: Option<f64>,
 }
 
 // =============================================================================

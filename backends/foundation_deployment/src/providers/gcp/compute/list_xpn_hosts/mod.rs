@@ -12,13 +12,17 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Project;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -33,28 +37,6 @@ pub struct Metadata {
     pub items: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
     /// kind property.
     pub kind: Option<String>,
-}
-
-/// `Quota` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Quota {
-    /// limit property.
-    pub limit: Option<f64>,
-    /// metric property.
-    pub metric: Option<String>,
-    /// owner property.
-    pub owner: Option<String>,
-    /// usage property.
-    pub usage: Option<f64>,
-}
-
-/// `UsageExportLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UsageExportLocation {
-    /// bucketName property.
-    pub bucket_name: Option<String>,
-    /// reportNamePrefix property.
-    pub report_name_prefix: Option<String>,
 }
 
 /// `XpnHostList` type.
@@ -72,6 +54,28 @@ pub struct XpnHostList {
     pub self_link: Option<String>,
     /// warning property.
     pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `UsageExportLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UsageExportLocation {
+    /// bucketName property.
+    pub bucket_name: Option<String>,
+    /// reportNamePrefix property.
+    pub report_name_prefix: Option<String>,
+}
+
+/// `Quota` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Quota {
+    /// limit property.
+    pub limit: Option<f64>,
+    /// metric property.
+    pub metric: Option<String>,
+    /// owner property.
+    pub owner: Option<String>,
+    /// usage property.
+    pub usage: Option<f64>,
 }
 
 // =============================================================================

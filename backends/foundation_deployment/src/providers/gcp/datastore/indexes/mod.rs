@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,31 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleDatastoreAdminV1ListIndexesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleDatastoreAdminV1ListIndexesResponse {
-    /// indexes property.
-    pub indexes: Option<Vec<GoogleDatastoreAdminV1Index>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
 
 /// `GoogleDatastoreAdminV1IndexedProperty` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -71,6 +52,26 @@ pub struct GoogleDatastoreAdminV1Index {
     pub properties: Option<Vec<GoogleDatastoreAdminV1IndexedProperty>>,
     /// state property.
     pub state: Option<String>,
+}
+
+/// `GoogleDatastoreAdminV1ListIndexesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleDatastoreAdminV1ListIndexesResponse {
+    /// indexes property.
+    pub indexes: Option<Vec<GoogleDatastoreAdminV1Index>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

@@ -12,143 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `LineItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LineItem {
-    /// listingPrice property.
-    pub listing_price: Option<Money>,
-    /// oneTimePurchaseDetails property.
-    pub one_time_purchase_details: Option<OneTimePurchaseDetails>,
-    /// paidAppDetails property.
-    pub paid_app_details: Option<PaidAppDetails>,
-    /// productId property.
-    pub product_id: Option<String>,
-    /// productTitle property.
-    pub product_title: Option<String>,
-    /// subscriptionDetails property.
-    pub subscription_details: Option<SubscriptionDetails>,
-    /// tax property.
-    pub tax: Option<Money>,
-    /// total property.
-    pub total: Option<Money>,
-}
-
-/// `SubscriptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubscriptionDetails {
-    /// basePlanId property.
-    pub base_plan_id: Option<String>,
-    /// offerId property.
-    pub offer_id: Option<String>,
-    /// offerPhase property.
-    pub offer_phase: Option<String>,
-    /// offerPhaseDetails property.
-    pub offer_phase_details: Option<OfferPhaseDetails>,
-    /// servicePeriodEndTime property.
-    pub service_period_end_time: Option<String>,
-    /// servicePeriodStartTime property.
-    pub service_period_start_time: Option<String>,
-}
-
-/// `RentalDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RentalDetails {}
-
-/// `Money` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Money {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// units property.
-    pub units: Option<String>,
-}
-
-/// `RefundDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RefundDetails {
-    /// tax property.
-    pub tax: Option<Money>,
-    /// total property.
-    pub total: Option<Money>,
-}
-
-/// `OneTimePurchaseDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OneTimePurchaseDetails {
-    /// offerId property.
-    pub offer_id: Option<String>,
-    /// preorderDetails property.
-    pub preorder_details: Option<PreorderDetails>,
-    /// purchaseOptionId property.
-    pub purchase_option_id: Option<String>,
-    /// quantity property.
-    pub quantity: Option<i64>,
-    /// rentalDetails property.
-    pub rental_details: Option<RentalDetails>,
-}
-
-/// `RefundEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RefundEvent {
-    /// eventTime property.
-    pub event_time: Option<String>,
-    /// refundDetails property.
-    pub refund_details: Option<RefundDetails>,
-    /// refundReason property.
-    pub refund_reason: Option<String>,
-}
-
-/// `ProcessedEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProcessedEvent {
-    /// eventTime property.
-    pub event_time: Option<String>,
-}
-
-/// `IntroductoryPriceDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntroductoryPriceDetails {}
-
-/// `PointsDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PointsDetails {
-    /// pointsCouponValue property.
-    pub points_coupon_value: Option<Money>,
-    /// pointsDiscountRateMicros property.
-    pub points_discount_rate_micros: Option<String>,
-    /// pointsOfferId property.
-    pub points_offer_id: Option<String>,
-    /// pointsSpent property.
-    pub points_spent: Option<String>,
-}
-
-/// `CancellationEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancellationEvent {
-    /// eventTime property.
-    pub event_time: Option<String>,
-}
-
-/// `OrderDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OrderDetails {
-    /// taxInclusive property.
-    pub tax_inclusive: Option<bool>,
-}
 
 /// `Order` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -183,31 +58,47 @@ pub struct Order {
     pub total: Option<Money>,
 }
 
-/// `ProrationPeriodDetails` type.
+/// `PreorderDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProrationPeriodDetails {
-    /// originalOfferPhase property.
-    pub original_offer_phase: Option<String>,
+pub struct PreorderDetails {}
+
+/// `LineItem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LineItem {
+    /// listingPrice property.
+    pub listing_price: Option<Money>,
+    /// oneTimePurchaseDetails property.
+    pub one_time_purchase_details: Option<OneTimePurchaseDetails>,
+    /// paidAppDetails property.
+    pub paid_app_details: Option<PaidAppDetails>,
+    /// productId property.
+    pub product_id: Option<String>,
+    /// productTitle property.
+    pub product_title: Option<String>,
+    /// subscriptionDetails property.
+    pub subscription_details: Option<SubscriptionDetails>,
+    /// tax property.
+    pub tax: Option<Money>,
+    /// total property.
+    pub total: Option<Money>,
 }
 
-/// `BatchGetOrdersResponse` type.
+/// `BuyerAddress` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BatchGetOrdersResponse {
-    /// orders property.
-    pub orders: Option<Vec<Order>>,
+pub struct BuyerAddress {
+    /// buyerCountry property.
+    pub buyer_country: Option<String>,
+    /// buyerPostcode property.
+    pub buyer_postcode: Option<String>,
+    /// buyerState property.
+    pub buyer_state: Option<String>,
 }
 
-/// `OfferPhaseDetails` type.
+/// `CancellationEvent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OfferPhaseDetails {
-    /// baseDetails property.
-    pub base_details: Option<BaseDetails>,
-    /// freeTrialDetails property.
-    pub free_trial_details: Option<FreeTrialDetails>,
-    /// introductoryPriceDetails property.
-    pub introductory_price_details: Option<IntroductoryPriceDetails>,
-    /// prorationPeriodDetails property.
-    pub proration_period_details: Option<ProrationPeriodDetails>,
+pub struct CancellationEvent {
+    /// eventTime property.
+    pub event_time: Option<String>,
 }
 
 /// `PartialRefundEvent` type.
@@ -223,6 +114,48 @@ pub struct PartialRefundEvent {
     pub state: Option<String>,
 }
 
+/// `BatchGetOrdersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BatchGetOrdersResponse {
+    /// orders property.
+    pub orders: Option<Vec<Order>>,
+}
+
+/// `RefundDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RefundDetails {
+    /// tax property.
+    pub tax: Option<Money>,
+    /// total property.
+    pub total: Option<Money>,
+}
+
+/// `IntroductoryPriceDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntroductoryPriceDetails {}
+
+/// `OneTimePurchaseDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OneTimePurchaseDetails {
+    /// offerId property.
+    pub offer_id: Option<String>,
+    /// preorderDetails property.
+    pub preorder_details: Option<PreorderDetails>,
+    /// purchaseOptionId property.
+    pub purchase_option_id: Option<String>,
+    /// quantity property.
+    pub quantity: Option<i64>,
+    /// rentalDetails property.
+    pub rental_details: Option<RentalDetails>,
+}
+
+/// `ProcessedEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProcessedEvent {
+    /// eventTime property.
+    pub event_time: Option<String>,
+}
+
 /// `OrderHistory` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrderHistory {
@@ -236,32 +169,100 @@ pub struct OrderHistory {
     pub refund_event: Option<RefundEvent>,
 }
 
-/// `BaseDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BaseDetails {}
-
 /// `PaidAppDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaidAppDetails {}
 
-/// `BuyerAddress` type.
+/// `SubscriptionDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BuyerAddress {
-    /// buyerCountry property.
-    pub buyer_country: Option<String>,
-    /// buyerPostcode property.
-    pub buyer_postcode: Option<String>,
-    /// buyerState property.
-    pub buyer_state: Option<String>,
+pub struct SubscriptionDetails {
+    /// basePlanId property.
+    pub base_plan_id: Option<String>,
+    /// offerId property.
+    pub offer_id: Option<String>,
+    /// offerPhase property.
+    pub offer_phase: Option<String>,
+    /// offerPhaseDetails property.
+    pub offer_phase_details: Option<OfferPhaseDetails>,
+    /// servicePeriodEndTime property.
+    pub service_period_end_time: Option<String>,
+    /// servicePeriodStartTime property.
+    pub service_period_start_time: Option<String>,
 }
 
-/// `PreorderDetails` type.
+/// `OfferPhaseDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreorderDetails {}
+pub struct OfferPhaseDetails {
+    /// baseDetails property.
+    pub base_details: Option<BaseDetails>,
+    /// freeTrialDetails property.
+    pub free_trial_details: Option<FreeTrialDetails>,
+    /// introductoryPriceDetails property.
+    pub introductory_price_details: Option<IntroductoryPriceDetails>,
+    /// prorationPeriodDetails property.
+    pub proration_period_details: Option<ProrationPeriodDetails>,
+}
+
+/// `BaseDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BaseDetails {}
+
+/// `OrderDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OrderDetails {
+    /// taxInclusive property.
+    pub tax_inclusive: Option<bool>,
+}
+
+/// `PointsDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PointsDetails {
+    /// pointsCouponValue property.
+    pub points_coupon_value: Option<Money>,
+    /// pointsDiscountRateMicros property.
+    pub points_discount_rate_micros: Option<String>,
+    /// pointsOfferId property.
+    pub points_offer_id: Option<String>,
+    /// pointsSpent property.
+    pub points_spent: Option<String>,
+}
+
+/// `RefundEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RefundEvent {
+    /// eventTime property.
+    pub event_time: Option<String>,
+    /// refundDetails property.
+    pub refund_details: Option<RefundDetails>,
+    /// refundReason property.
+    pub refund_reason: Option<String>,
+}
 
 /// `FreeTrialDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FreeTrialDetails {}
+
+/// `Money` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Money {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// units property.
+    pub units: Option<String>,
+}
+
+/// `RentalDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RentalDetails {}
+
+/// `ProrationPeriodDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProrationPeriodDetails {
+    /// originalOfferPhase property.
+    pub original_offer_phase: Option<String>,
+}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

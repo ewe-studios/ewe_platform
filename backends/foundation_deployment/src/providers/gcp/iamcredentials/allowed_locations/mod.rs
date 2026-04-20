@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -33,18 +34,18 @@ pub struct ServiceAccountAllowedLocations {
     pub locations: Option<Vec<String>>,
 }
 
-/// `WorkforcePoolAllowedLocations` type.
+/// `WorkloadIdentityPoolAllowedLocations` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkforcePoolAllowedLocations {
+pub struct WorkloadIdentityPoolAllowedLocations {
     /// encodedLocations property.
     pub encoded_locations: Option<String>,
     /// locations property.
     pub locations: Option<Vec<String>>,
 }
 
-/// `WorkloadIdentityPoolAllowedLocations` type.
+/// `WorkforcePoolAllowedLocations` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkloadIdentityPoolAllowedLocations {
+pub struct WorkforcePoolAllowedLocations {
     /// encodedLocations property.
     pub encoded_locations: Option<String>,
     /// locations property.

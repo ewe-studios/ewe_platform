@@ -12,47 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `WorkItemDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkItemDetails {
-    /// attemptId property.
-    pub attempt_id: Option<String>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// metrics property.
-    pub metrics: Option<Vec<MetricUpdate>>,
-    /// progress property.
-    pub progress: Option<ProgressTimeseries>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// stragglerInfo property.
-    pub straggler_info: Option<StragglerInfo>,
-    /// taskId property.
-    pub task_id: Option<String>,
-}
-
-/// `StageExecutionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StageExecutionDetails {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// workers property.
-    pub workers: Option<Vec<WorkerDetails>>,
-}
 
 /// `WorkerDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -72,15 +43,6 @@ pub struct Point {
     pub value: Option<f64>,
 }
 
-/// `StragglerInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StragglerInfo {
-    /// causes property.
-    pub causes: Option<serde_json::Value>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
 /// `MetricStructuredName` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricStructuredName {
@@ -92,38 +54,33 @@ pub struct MetricStructuredName {
     pub origin: Option<String>,
 }
 
-/// `StreamingStragglerInfo` type.
+/// `JobExecutionDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StreamingStragglerInfo {
-    /// dataWatermarkLag property.
-    pub data_watermark_lag: Option<String>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// systemWatermarkLag property.
-    pub system_watermark_lag: Option<String>,
-    /// workerName property.
-    pub worker_name: Option<String>,
+pub struct JobExecutionDetails {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// stages property.
+    pub stages: Option<Vec<StageSummary>>,
 }
 
-/// `StageSummary` type.
+/// `StragglerSummary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StageSummary {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// metrics property.
-    pub metrics: Option<Vec<MetricUpdate>>,
-    /// progress property.
-    pub progress: Option<ProgressTimeseries>,
-    /// stageId property.
-    pub stage_id: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// stragglerSummary property.
-    pub straggler_summary: Option<StragglerSummary>,
+pub struct StragglerSummary {
+    /// recentStragglers property.
+    pub recent_stragglers: Option<Vec<Straggler>>,
+    /// stragglerCauseCount property.
+    pub straggler_cause_count: Option<serde_json::Value>,
+    /// totalStragglerCount property.
+    pub total_straggler_count: Option<String>,
+}
+
+/// `StageExecutionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StageExecutionDetails {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// workers property.
+    pub workers: Option<Vec<WorkerDetails>>,
 }
 
 /// `MetricUpdate` type.
@@ -157,26 +114,6 @@ pub struct MetricUpdate {
     pub update_time: Option<String>,
 }
 
-/// `StragglerSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StragglerSummary {
-    /// recentStragglers property.
-    pub recent_stragglers: Option<Vec<Straggler>>,
-    /// stragglerCauseCount property.
-    pub straggler_cause_count: Option<serde_json::Value>,
-    /// totalStragglerCount property.
-    pub total_straggler_count: Option<String>,
-}
-
-/// `JobExecutionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobExecutionDetails {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// stages property.
-    pub stages: Option<Vec<StageSummary>>,
-}
-
 /// `ProgressTimeseries` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProgressTimeseries {
@@ -193,6 +130,70 @@ pub struct Straggler {
     pub batch_straggler: Option<StragglerInfo>,
     /// streamingStraggler property.
     pub streaming_straggler: Option<StreamingStragglerInfo>,
+}
+
+/// `StageSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StageSummary {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// metrics property.
+    pub metrics: Option<Vec<MetricUpdate>>,
+    /// progress property.
+    pub progress: Option<ProgressTimeseries>,
+    /// stageId property.
+    pub stage_id: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// stragglerSummary property.
+    pub straggler_summary: Option<StragglerSummary>,
+}
+
+/// `StreamingStragglerInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StreamingStragglerInfo {
+    /// dataWatermarkLag property.
+    pub data_watermark_lag: Option<String>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// systemWatermarkLag property.
+    pub system_watermark_lag: Option<String>,
+    /// workerName property.
+    pub worker_name: Option<String>,
+}
+
+/// `WorkItemDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkItemDetails {
+    /// attemptId property.
+    pub attempt_id: Option<String>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// metrics property.
+    pub metrics: Option<Vec<MetricUpdate>>,
+    /// progress property.
+    pub progress: Option<ProgressTimeseries>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// stragglerInfo property.
+    pub straggler_info: Option<StragglerInfo>,
+    /// taskId property.
+    pub task_id: Option<String>,
+}
+
+/// `StragglerInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StragglerInfo {
+    /// causes property.
+    pub causes: Option<serde_json::Value>,
+    /// startTime property.
+    pub start_time: Option<String>,
 }
 
 // =============================================================================

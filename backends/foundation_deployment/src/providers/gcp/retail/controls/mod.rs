@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,61 +22,21 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudRetailV2ConditionTimeRange` type.
+/// `GoogleCloudRetailV2RuleDoNotAssociateAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2ConditionTimeRange {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `GoogleCloudRetailV2RuleOnewaySynonymsAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2RuleOnewaySynonymsAction {
-    /// onewayTerms property.
-    pub oneway_terms: Option<Vec<String>>,
+pub struct GoogleCloudRetailV2RuleDoNotAssociateAction {
+    /// doNotAssociateTerms property.
+    pub do_not_associate_terms: Option<Vec<String>>,
     /// queryTerms property.
     pub query_terms: Option<Vec<String>>,
-    /// synonyms property.
-    pub synonyms: Option<Vec<String>>,
-}
-
-/// `GoogleCloudRetailV2RuleBoostAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2RuleBoostAction {
-    /// boost property.
-    pub boost: Option<f64>,
-    /// productsFilter property.
-    pub products_filter: Option<String>,
-}
-
-/// `GoogleCloudRetailV2RuleReplacementAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2RuleReplacementAction {
-    /// queryTerms property.
-    pub query_terms: Option<Vec<String>>,
-    /// replacementTerm property.
-    pub replacement_term: Option<String>,
-    /// term property.
-    pub term: Option<String>,
-}
-
-/// `GoogleCloudRetailV2Condition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2Condition {
-    /// activeTimeRange property.
-    pub active_time_range: Option<Vec<GoogleCloudRetailV2ConditionTimeRange>>,
-    /// pageCategories property.
-    pub page_categories: Option<Vec<String>>,
-    /// queryTerms property.
-    pub query_terms: Option<Vec<GoogleCloudRetailV2ConditionQueryTerm>>,
+    /// terms property.
+    pub terms: Option<Vec<String>>,
 }
 
 /// `GoogleCloudRetailV2ListControlsResponse` type.
@@ -87,28 +48,18 @@ pub struct GoogleCloudRetailV2ListControlsResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `GoogleCloudRetailV2Control` type.
+/// `GoogleCloudRetailV2RuleRedirectAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2Control {
-    /// associatedServingConfigIds property.
-    pub associated_serving_config_ids: Option<Vec<String>>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// rule property.
-    pub rule: Option<GoogleCloudRetailV2Rule>,
-    /// searchSolutionUseCase property.
-    pub search_solution_use_case: Option<Vec<String>>,
-    /// solutionTypes property.
-    pub solution_types: Option<Vec<String>>,
+pub struct GoogleCloudRetailV2RuleRedirectAction {
+    /// redirectUri property.
+    pub redirect_uri: Option<String>,
 }
 
-/// `GoogleCloudRetailV2RuleFilterAction` type.
+/// `GoogleCloudRetailV2RuleRemoveFacetAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2RuleFilterAction {
-    /// filter property.
-    pub filter: Option<String>,
+pub struct GoogleCloudRetailV2RuleRemoveFacetAction {
+    /// attributeNames property.
+    pub attribute_names: Option<Vec<String>>,
 }
 
 /// `GoogleCloudRetailV2Rule` type.
@@ -147,29 +98,58 @@ pub struct GoogleCloudRetailV2RulePinAction {
     pub pin_map: Option<serde_json::Value>,
 }
 
-/// `GoogleCloudRetailV2RuleRedirectAction` type.
+/// `GoogleCloudRetailV2RuleIgnoreAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2RuleRedirectAction {
-    /// redirectUri property.
-    pub redirect_uri: Option<String>,
+pub struct GoogleCloudRetailV2RuleIgnoreAction {
+    /// ignoreTerms property.
+    pub ignore_terms: Option<Vec<String>>,
 }
 
-/// `GoogleCloudRetailV2RuleDoNotAssociateAction` type.
+/// `GoogleCloudRetailV2RuleOnewaySynonymsAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2RuleDoNotAssociateAction {
-    /// doNotAssociateTerms property.
-    pub do_not_associate_terms: Option<Vec<String>>,
+pub struct GoogleCloudRetailV2RuleOnewaySynonymsAction {
+    /// onewayTerms property.
+    pub oneway_terms: Option<Vec<String>>,
     /// queryTerms property.
     pub query_terms: Option<Vec<String>>,
-    /// terms property.
-    pub terms: Option<Vec<String>>,
+    /// synonyms property.
+    pub synonyms: Option<Vec<String>>,
 }
 
-/// `GoogleCloudRetailV2RuleRemoveFacetAction` type.
+/// `GoogleCloudRetailV2RuleForceReturnFacetAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2RuleRemoveFacetAction {
-    /// attributeNames property.
-    pub attribute_names: Option<Vec<String>>,
+pub struct GoogleCloudRetailV2RuleForceReturnFacetAction {
+    /// facetPositionAdjustments property.
+    pub facet_position_adjustments:
+        Option<Vec<GoogleCloudRetailV2RuleForceReturnFacetActionFacetPositionAdjustment>>,
+}
+
+/// `GoogleCloudRetailV2RuleReplacementAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2RuleReplacementAction {
+    /// queryTerms property.
+    pub query_terms: Option<Vec<String>>,
+    /// replacementTerm property.
+    pub replacement_term: Option<String>,
+    /// term property.
+    pub term: Option<String>,
+}
+
+/// `GoogleCloudRetailV2Control` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2Control {
+    /// associatedServingConfigIds property.
+    pub associated_serving_config_ids: Option<Vec<String>>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// rule property.
+    pub rule: Option<GoogleCloudRetailV2Rule>,
+    /// searchSolutionUseCase property.
+    pub search_solution_use_case: Option<Vec<String>>,
+    /// solutionTypes property.
+    pub solution_types: Option<Vec<String>>,
 }
 
 /// `GoogleCloudRetailV2RuleTwowaySynonymsAction` type.
@@ -188,11 +168,31 @@ pub struct GoogleCloudRetailV2RuleForceReturnFacetActionFacetPositionAdjustment 
     pub position: Option<i64>,
 }
 
-/// `GoogleCloudRetailV2RuleIgnoreAction` type.
+/// `GoogleCloudRetailV2Condition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2RuleIgnoreAction {
-    /// ignoreTerms property.
-    pub ignore_terms: Option<Vec<String>>,
+pub struct GoogleCloudRetailV2Condition {
+    /// activeTimeRange property.
+    pub active_time_range: Option<Vec<GoogleCloudRetailV2ConditionTimeRange>>,
+    /// pageCategories property.
+    pub page_categories: Option<Vec<String>>,
+    /// queryTerms property.
+    pub query_terms: Option<Vec<GoogleCloudRetailV2ConditionQueryTerm>>,
+}
+
+/// `GoogleCloudRetailV2RuleFilterAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2RuleFilterAction {
+    /// filter property.
+    pub filter: Option<String>,
+}
+
+/// `GoogleCloudRetailV2ConditionTimeRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2ConditionTimeRange {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
 }
 
 /// `GoogleCloudRetailV2ConditionQueryTerm` type.
@@ -204,12 +204,13 @@ pub struct GoogleCloudRetailV2ConditionQueryTerm {
     pub value: Option<String>,
 }
 
-/// `GoogleCloudRetailV2RuleForceReturnFacetAction` type.
+/// `GoogleCloudRetailV2RuleBoostAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2RuleForceReturnFacetAction {
-    /// facetPositionAdjustments property.
-    pub facet_position_adjustments:
-        Option<Vec<GoogleCloudRetailV2RuleForceReturnFacetActionFacetPositionAdjustment>>,
+pub struct GoogleCloudRetailV2RuleBoostAction {
+    /// boost property.
+    pub boost: Option<f64>,
+    /// productsFilter property.
+    pub products_filter: Option<String>,
 }
 
 // =============================================================================

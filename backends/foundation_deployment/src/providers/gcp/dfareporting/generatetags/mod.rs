@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -39,15 +40,6 @@ pub struct TagData {
     pub impression_tag: Option<String>,
 }
 
-/// `PlacementTag` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlacementTag {
-    /// placementId property.
-    pub placement_id: Option<String>,
-    /// tagDatas property.
-    pub tag_datas: Option<Vec<TagData>>,
-}
-
 /// `PlacementsGenerateTagsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlacementsGenerateTagsResponse {
@@ -55,6 +47,15 @@ pub struct PlacementsGenerateTagsResponse {
     pub kind: Option<String>,
     /// placementTags property.
     pub placement_tags: Option<Vec<PlacementTag>>,
+}
+
+/// `PlacementTag` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlacementTag {
+    /// placementId property.
+    pub placement_id: Option<String>,
+    /// tagDatas property.
+    pub tag_datas: Option<Vec<TagData>>,
 }
 
 // =============================================================================

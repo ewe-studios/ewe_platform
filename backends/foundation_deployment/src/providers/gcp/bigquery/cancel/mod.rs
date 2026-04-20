@@ -12,142 +12,43 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ExportDataStatistics` type.
+/// `GenAiFunctionStats` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExportDataStatistics {
-    /// fileCount property.
-    pub file_count: Option<String>,
-    /// rowCount property.
-    pub row_count: Option<String>,
+pub struct GenAiFunctionStats {
+    /// costOptimizationStats property.
+    pub cost_optimization_stats: Option<GenAiFunctionCostOptimizationStats>,
+    /// errorStats property.
+    pub error_stats: Option<GenAiFunctionErrorStats>,
+    /// functionName property.
+    pub function_name: Option<String>,
+    /// numProcessedRows property.
+    pub num_processed_rows: Option<String>,
+    /// prompt property.
+    pub prompt: Option<String>,
 }
 
-/// `StagePerformanceChangeInsight` type.
+/// `ClusteringMetrics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StagePerformanceChangeInsight {
-    /// inputDataChange property.
-    pub input_data_change: Option<InputDataChange>,
-    /// stageId property.
-    pub stage_id: Option<String>,
-}
-
-/// `TableReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableReference {
-    /// datasetId property.
-    pub dataset_id: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// tableId property.
-    pub table_id: Option<String>,
-}
-
-/// `PropertyGraphReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PropertyGraphReference {
-    /// datasetId property.
-    pub dataset_id: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// propertyGraphId property.
-    pub property_graph_id: Option<String>,
-}
-
-/// `BiEngineStatistics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BiEngineStatistics {
-    /// accelerationMode property.
-    pub acceleration_mode: Option<String>,
-    /// biEngineMode property.
-    pub bi_engine_mode: Option<String>,
-    /// biEngineReasons property.
-    pub bi_engine_reasons: Option<Vec<BiEngineReason>>,
-}
-
-/// `StoredColumnsUsage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StoredColumnsUsage {
-    /// baseTable property.
-    pub base_table: Option<TableReference>,
-    /// isQueryAccelerated property.
-    pub is_query_accelerated: Option<bool>,
-    /// storedColumnsUnusedReasons property.
-    pub stored_columns_unused_reasons: Option<Vec<StoredColumnsUnusedReason>>,
-}
-
-/// `EvaluationMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EvaluationMetrics {
-    /// arimaForecastingMetrics property.
-    pub arima_forecasting_metrics: Option<ArimaForecastingMetrics>,
-    /// binaryClassificationMetrics property.
-    pub binary_classification_metrics: Option<BinaryClassificationMetrics>,
-    /// clusteringMetrics property.
-    pub clustering_metrics: Option<ClusteringMetrics>,
-    /// dimensionalityReductionMetrics property.
-    pub dimensionality_reduction_metrics: Option<DimensionalityReductionMetrics>,
-    /// multiClassClassificationMetrics property.
-    pub multi_class_classification_metrics: Option<MultiClassClassificationMetrics>,
-    /// rankingMetrics property.
-    pub ranking_metrics: Option<RankingMetrics>,
-    /// regressionMetrics property.
-    pub regression_metrics: Option<RegressionMetrics>,
-}
-
-/// `JobStatistics3` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobStatistics3 {
-    /// badRecords property.
-    pub bad_records: Option<String>,
-    /// inputFileBytes property.
-    pub input_file_bytes: Option<String>,
-    /// inputFiles property.
-    pub input_files: Option<String>,
-    /// outputBytes property.
-    pub output_bytes: Option<String>,
-    /// outputRows property.
-    pub output_rows: Option<String>,
-    /// timeline property.
-    pub timeline: Option<Vec<QueryTimelineSample>>,
-}
-
-/// `ArimaFittingMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArimaFittingMetrics {
-    /// aic property.
-    pub aic: Option<f64>,
-    /// logLikelihood property.
-    pub log_likelihood: Option<f64>,
-    /// variance property.
-    pub variance: Option<f64>,
-}
-
-/// `ExternalServiceCost` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExternalServiceCost {
-    /// billingMethod property.
-    pub billing_method: Option<String>,
-    /// bytesBilled property.
-    pub bytes_billed: Option<String>,
-    /// bytesProcessed property.
-    pub bytes_processed: Option<String>,
-    /// externalService property.
-    pub external_service: Option<String>,
-    /// reservedSlotCount property.
-    pub reserved_slot_count: Option<String>,
-    /// slotMs property.
-    pub slot_ms: Option<String>,
+pub struct ClusteringMetrics {
+    /// clusters property.
+    pub clusters: Option<Vec<Cluster>>,
+    /// daviesBouldinIndex property.
+    pub davies_bouldin_index: Option<f64>,
+    /// meanSquaredDistance property.
+    pub mean_squared_distance: Option<f64>,
 }
 
 /// `JobConfigurationQuery` type.
@@ -211,21 +112,135 @@ pub struct JobConfigurationQuery {
     pub write_incremental_results: Option<bool>,
 }
 
-/// `SparkStatistics` type.
+/// `BinaryConfusionMatrix` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkStatistics {
-    /// endpoints property.
-    pub endpoints: Option<serde_json::Value>,
-    /// gcsStagingBucket property.
-    pub gcs_staging_bucket: Option<String>,
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-    /// loggingInfo property.
-    pub logging_info: Option<SparkLoggingInfo>,
-    /// sparkJobId property.
-    pub spark_job_id: Option<String>,
-    /// sparkJobLocation property.
-    pub spark_job_location: Option<String>,
+pub struct BinaryConfusionMatrix {
+    /// accuracy property.
+    pub accuracy: Option<f64>,
+    /// f1Score property.
+    pub f1_score: Option<f64>,
+    /// falseNegatives property.
+    pub false_negatives: Option<String>,
+    /// falsePositives property.
+    pub false_positives: Option<String>,
+    /// positiveClassThreshold property.
+    pub positive_class_threshold: Option<f64>,
+    /// precision property.
+    pub precision: Option<f64>,
+    /// recall property.
+    pub recall: Option<f64>,
+    /// trueNegatives property.
+    pub true_negatives: Option<String>,
+    /// truePositives property.
+    pub true_positives: Option<String>,
+}
+
+/// `RoutineReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RoutineReference {
+    /// datasetId property.
+    pub dataset_id: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// routineId property.
+    pub routine_id: Option<String>,
+}
+
+/// `SparkLoggingInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkLoggingInfo {
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// resourceType property.
+    pub resource_type: Option<String>,
+}
+
+/// `ExplainQueryStage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExplainQueryStage {
+    /// completedParallelInputs property.
+    pub completed_parallel_inputs: Option<String>,
+    /// computeMode property.
+    pub compute_mode: Option<String>,
+    /// computeMsAvg property.
+    pub compute_ms_avg: Option<String>,
+    /// computeMsMax property.
+    pub compute_ms_max: Option<String>,
+    /// computeRatioAvg property.
+    pub compute_ratio_avg: Option<f64>,
+    /// computeRatioMax property.
+    pub compute_ratio_max: Option<f64>,
+    /// endMs property.
+    pub end_ms: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// inputStages property.
+    pub input_stages: Option<Vec<String>>,
+    /// name property.
+    pub name: Option<String>,
+    /// parallelInputs property.
+    pub parallel_inputs: Option<String>,
+    /// readMsAvg property.
+    pub read_ms_avg: Option<String>,
+    /// readMsMax property.
+    pub read_ms_max: Option<String>,
+    /// readRatioAvg property.
+    pub read_ratio_avg: Option<f64>,
+    /// readRatioMax property.
+    pub read_ratio_max: Option<f64>,
+    /// recordsRead property.
+    pub records_read: Option<String>,
+    /// recordsWritten property.
+    pub records_written: Option<String>,
+    /// shuffleOutputBytes property.
+    pub shuffle_output_bytes: Option<String>,
+    /// shuffleOutputBytesSpilled property.
+    pub shuffle_output_bytes_spilled: Option<String>,
+    /// slotMs property.
+    pub slot_ms: Option<String>,
+    /// startMs property.
+    pub start_ms: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+    /// steps property.
+    pub steps: Option<Vec<ExplainQueryStep>>,
+    /// waitMsAvg property.
+    pub wait_ms_avg: Option<String>,
+    /// waitMsMax property.
+    pub wait_ms_max: Option<String>,
+    /// waitRatioAvg property.
+    pub wait_ratio_avg: Option<f64>,
+    /// waitRatioMax property.
+    pub wait_ratio_max: Option<f64>,
+    /// writeMsAvg property.
+    pub write_ms_avg: Option<String>,
+    /// writeMsMax property.
+    pub write_ms_max: Option<String>,
+    /// writeRatioAvg property.
+    pub write_ratio_avg: Option<f64>,
+    /// writeRatioMax property.
+    pub write_ratio_max: Option<f64>,
+}
+
+/// `JobConfigurationTableCopy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JobConfigurationTableCopy {
+    /// createDisposition property.
+    pub create_disposition: Option<String>,
+    /// destinationEncryptionConfiguration property.
+    pub destination_encryption_configuration: Option<EncryptionConfiguration>,
+    /// destinationExpirationTime property.
+    pub destination_expiration_time: Option<String>,
+    /// destinationTable property.
+    pub destination_table: Option<TableReference>,
+    /// operationType property.
+    pub operation_type: Option<String>,
+    /// sourceTable property.
+    pub source_table: Option<TableReference>,
+    /// sourceTables property.
+    pub source_tables: Option<Vec<TableReference>>,
+    /// writeDisposition property.
+    pub write_disposition: Option<String>,
 }
 
 /// `TableMetadataCacheUsage` type.
@@ -245,125 +260,177 @@ pub struct TableMetadataCacheUsage {
     pub unused_reason: Option<String>,
 }
 
-/// `PerformanceInsights` type.
+/// `JobCreationReason` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PerformanceInsights {
-    /// avgPreviousExecutionMs property.
-    pub avg_previous_execution_ms: Option<String>,
-    /// stagePerformanceChangeInsights property.
-    pub stage_performance_change_insights: Option<Vec<StagePerformanceChangeInsight>>,
-    /// stagePerformanceStandaloneInsights property.
-    pub stage_performance_standalone_insights: Option<Vec<StagePerformanceStandaloneInsight>>,
-}
-
-/// `DmlStatistics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DmlStatistics {
-    /// deletedRowCount property.
-    pub deleted_row_count: Option<String>,
-    /// dmlMode property.
-    pub dml_mode: Option<String>,
-    /// fineGrainedDmlUnusedReason property.
-    pub fine_grained_dml_unused_reason: Option<String>,
-    /// insertedRowCount property.
-    pub inserted_row_count: Option<String>,
-    /// updatedRowCount property.
-    pub updated_row_count: Option<String>,
-}
-
-/// `StoredColumnsUnusedReason` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StoredColumnsUnusedReason {
+pub struct JobCreationReason {
     /// code property.
     pub code: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// uncoveredColumns property.
-    pub uncovered_columns: Option<Vec<String>>,
 }
 
-/// `ClusterInfo` type.
+/// `HparamTuningTrial` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterInfo {
-    /// centroidId property.
-    pub centroid_id: Option<String>,
-    /// clusterRadius property.
-    pub cluster_radius: Option<f64>,
-    /// clusterSize property.
-    pub cluster_size: Option<String>,
+pub struct HparamTuningTrial {
+    /// endTimeMs property.
+    pub end_time_ms: Option<String>,
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// evalLoss property.
+    pub eval_loss: Option<f64>,
+    /// evaluationMetrics property.
+    pub evaluation_metrics: Option<EvaluationMetrics>,
+    /// hparamTuningEvaluationMetrics property.
+    pub hparam_tuning_evaluation_metrics: Option<EvaluationMetrics>,
+    /// hparams property.
+    pub hparams: Option<TrainingOptions>,
+    /// startTimeMs property.
+    pub start_time_ms: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+    /// trainingLoss property.
+    pub training_loss: Option<f64>,
+    /// trialId property.
+    pub trial_id: Option<String>,
 }
 
-/// `CategoricalValue` type.
+/// `IterationResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CategoricalValue {
-    /// categoryCounts property.
-    pub category_counts: Option<Vec<CategoryCount>>,
+pub struct IterationResult {
+    /// arimaResult property.
+    pub arima_result: Option<ArimaResult>,
+    /// clusterInfos property.
+    pub cluster_infos: Option<Vec<ClusterInfo>>,
+    /// durationMs property.
+    pub duration_ms: Option<String>,
+    /// evalLoss property.
+    pub eval_loss: Option<f64>,
+    /// index property.
+    pub index: Option<i64>,
+    /// learnRate property.
+    pub learn_rate: Option<f64>,
+    /// principalComponentInfos property.
+    pub principal_component_infos: Option<Vec<PrincipalComponentInfo>>,
+    /// trainingLoss property.
+    pub training_loss: Option<f64>,
 }
 
-/// `RegressionMetrics` type.
+/// `JobCancelResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegressionMetrics {
-    /// meanAbsoluteError property.
-    pub mean_absolute_error: Option<f64>,
+pub struct JobCancelResponse {
+    /// job property.
+    pub job: Option<Job>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `CategoryCount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CategoryCount {
+    /// category property.
+    pub category: Option<String>,
+    /// count property.
+    pub count: Option<String>,
+}
+
+/// `QueryParameter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueryParameter {
+    /// name property.
+    pub name: Option<String>,
+    /// parameterType property.
+    pub parameter_type: Option<Box<QueryParameterType>>,
+    /// parameterValue property.
+    pub parameter_value: Option<Box<QueryParameterValue>>,
+}
+
+/// `HighCardinalityJoin` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HighCardinalityJoin {
+    /// leftRows property.
+    pub left_rows: Option<String>,
+    /// outputRows property.
+    pub output_rows: Option<String>,
+    /// rightRows property.
+    pub right_rows: Option<String>,
+    /// stepIndex property.
+    pub step_index: Option<i64>,
+}
+
+/// `ConnectionProperty` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectionProperty {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `RankingMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RankingMetrics {
+    /// averageRank property.
+    pub average_rank: Option<f64>,
+    /// meanAveragePrecision property.
+    pub mean_average_precision: Option<f64>,
     /// meanSquaredError property.
     pub mean_squared_error: Option<f64>,
-    /// meanSquaredLogError property.
-    pub mean_squared_log_error: Option<f64>,
-    /// medianAbsoluteError property.
-    pub median_absolute_error: Option<f64>,
-    /// rSquared property.
-    pub r_squared: Option<f64>,
+    /// normalizedDiscountedCumulativeGain property.
+    pub normalized_discounted_cumulative_gain: Option<f64>,
 }
 
-/// `DataMaskingStatistics` type.
+/// `ExportDataStatistics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataMaskingStatistics {
-    /// dataMaskingApplied property.
-    pub data_masking_applied: Option<bool>,
+pub struct ExportDataStatistics {
+    /// fileCount property.
+    pub file_count: Option<String>,
+    /// rowCount property.
+    pub row_count: Option<String>,
 }
 
-/// `BigQueryModelTraining` type.
+/// `ArimaSingleModelForecastingMetrics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BigQueryModelTraining {
-    /// currentIteration property.
-    pub current_iteration: Option<i64>,
-    /// expectedTotalIterations property.
-    pub expected_total_iterations: Option<String>,
+pub struct ArimaSingleModelForecastingMetrics {
+    /// arimaFittingMetrics property.
+    pub arima_fitting_metrics: Option<ArimaFittingMetrics>,
+    /// hasDrift property.
+    pub has_drift: Option<bool>,
+    /// hasHolidayEffect property.
+    pub has_holiday_effect: Option<bool>,
+    /// hasSpikesAndDips property.
+    pub has_spikes_and_dips: Option<bool>,
+    /// hasStepChanges property.
+    pub has_step_changes: Option<bool>,
+    /// nonSeasonalOrder property.
+    pub non_seasonal_order: Option<ArimaOrder>,
+    /// seasonalPeriods property.
+    pub seasonal_periods: Option<Vec<String>>,
+    /// timeSeriesId property.
+    pub time_series_id: Option<String>,
+    /// timeSeriesIds property.
+    pub time_series_ids: Option<Vec<String>>,
 }
 
-/// `DimensionalityReductionMetrics` type.
+/// `PropertyGraphReference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DimensionalityReductionMetrics {
-    /// totalExplainedVarianceRatio property.
-    pub total_explained_variance_ratio: Option<f64>,
+pub struct PropertyGraphReference {
+    /// datasetId property.
+    pub dataset_id: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// propertyGraphId property.
+    pub property_graph_id: Option<String>,
 }
 
-/// `UserDefinedFunctionResource` type.
+/// `RowAccessPolicyReference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserDefinedFunctionResource {
-    /// inlineCode property.
-    pub inline_code: Option<String>,
-    /// resourceUri property.
-    pub resource_uri: Option<String>,
-}
-
-/// `QueryTimelineSample` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryTimelineSample {
-    /// activeUnits property.
-    pub active_units: Option<String>,
-    /// completedUnits property.
-    pub completed_units: Option<String>,
-    /// elapsedMs property.
-    pub elapsed_ms: Option<String>,
-    /// estimatedRunnableUnits property.
-    pub estimated_runnable_units: Option<String>,
-    /// pendingUnits property.
-    pub pending_units: Option<String>,
-    /// shuffleRamUsageRatio property.
-    pub shuffle_ram_usage_ratio: Option<f64>,
-    /// totalSlotMs property.
-    pub total_slot_ms: Option<String>,
+pub struct RowAccessPolicyReference {
+    /// datasetId property.
+    pub dataset_id: Option<String>,
+    /// policyId property.
+    pub policy_id: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// tableId property.
+    pub table_id: Option<String>,
 }
 
 /// `JobStatistics2` type.
@@ -467,6 +534,181 @@ pub struct JobStatistics2 {
     pub vector_search_statistics: Option<VectorSearchStatistics>,
 }
 
+/// `GenAiErrorStats` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GenAiErrorStats {
+    /// errors property.
+    pub errors: Option<Vec<String>>,
+}
+
+/// `TableReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableReference {
+    /// datasetId property.
+    pub dataset_id: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// tableId property.
+    pub table_id: Option<String>,
+}
+
+/// `RangePartitioning` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RangePartitioning {
+    /// field property.
+    pub field: Option<String>,
+    /// range property.
+    pub range: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `PartitionSkew` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PartitionSkew {
+    /// skewSources property.
+    pub skew_sources: Option<Vec<SkewSource>>,
+}
+
+/// `DimensionalityReductionMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DimensionalityReductionMetrics {
+    /// totalExplainedVarianceRatio property.
+    pub total_explained_variance_ratio: Option<f64>,
+}
+
+/// `ArimaOrder` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ArimaOrder {
+    /// d property.
+    pub d: Option<String>,
+    /// p property.
+    pub p: Option<String>,
+    /// q property.
+    pub q: Option<String>,
+}
+
+/// `RegressionMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegressionMetrics {
+    /// meanAbsoluteError property.
+    pub mean_absolute_error: Option<f64>,
+    /// meanSquaredError property.
+    pub mean_squared_error: Option<f64>,
+    /// meanSquaredLogError property.
+    pub mean_squared_log_error: Option<f64>,
+    /// medianAbsoluteError property.
+    pub median_absolute_error: Option<f64>,
+    /// rSquared property.
+    pub r_squared: Option<f64>,
+}
+
+/// `IndexUnusedReason` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IndexUnusedReason {
+    /// baseTable property.
+    pub base_table: Option<TableReference>,
+    /// code property.
+    pub code: Option<String>,
+    /// indexName property.
+    pub index_name: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `StagePerformanceChangeInsight` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StagePerformanceChangeInsight {
+    /// inputDataChange property.
+    pub input_data_change: Option<InputDataChange>,
+    /// stageId property.
+    pub stage_id: Option<String>,
+}
+
+/// `PerformanceInsights` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PerformanceInsights {
+    /// avgPreviousExecutionMs property.
+    pub avg_previous_execution_ms: Option<String>,
+    /// stagePerformanceChangeInsights property.
+    pub stage_performance_change_insights: Option<Vec<StagePerformanceChangeInsight>>,
+    /// stagePerformanceStandaloneInsights property.
+    pub stage_performance_standalone_insights: Option<Vec<StagePerformanceStandaloneInsight>>,
+}
+
+/// `ArimaForecastingMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ArimaForecastingMetrics {
+    /// arimaFittingMetrics property.
+    pub arima_fitting_metrics: Option<Vec<ArimaFittingMetrics>>,
+    /// arimaSingleModelForecastingMetrics property.
+    pub arima_single_model_forecasting_metrics: Option<Vec<ArimaSingleModelForecastingMetrics>>,
+    /// hasDrift property.
+    pub has_drift: Option<Vec<bool>>,
+    /// nonSeasonalOrder property.
+    pub non_seasonal_order: Option<Vec<ArimaOrder>>,
+    /// seasonalPeriods property.
+    pub seasonal_periods: Option<Vec<String>>,
+    /// timeSeriesId property.
+    pub time_series_id: Option<Vec<String>>,
+}
+
+/// `PruningStats` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PruningStats {
+    /// postCmetaPruningParallelInputCount property.
+    pub post_cmeta_pruning_parallel_input_count: Option<String>,
+    /// postCmetaPruningPartitionCount property.
+    pub post_cmeta_pruning_partition_count: Option<String>,
+    /// preCmetaPruningParallelInputCount property.
+    pub pre_cmeta_pruning_parallel_input_count: Option<String>,
+}
+
+/// `JobStatistics4` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JobStatistics4 {
+    /// destinationUriFileCounts property.
+    pub destination_uri_file_counts: Option<Vec<String>>,
+    /// inputBytes property.
+    pub input_bytes: Option<String>,
+    /// timeline property.
+    pub timeline: Option<Vec<QueryTimelineSample>>,
+}
+
+/// `SystemVariables` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SystemVariables {
+    /// types property.
+    pub types: Option<serde_json::Value>,
+    /// values property.
+    pub values: Option<serde_json::Value>,
+}
+
+/// `Job` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Job {
+    /// configuration property.
+    pub configuration: Option<JobConfiguration>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// jobCreationReason property.
+    pub job_creation_reason: Option<JobCreationReason>,
+    /// jobReference property.
+    pub job_reference: Option<JobReference>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// principal_subject property.
+    pub principal_subject: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// statistics property.
+    pub statistics: Option<JobStatistics>,
+    /// status property.
+    pub status: Option<JobStatus>,
+    /// user_email property.
+    pub user_email: Option<String>,
+}
+
 /// `JobConfigurationExtract` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobConfigurationExtract {
@@ -492,21 +734,621 @@ pub struct JobConfigurationExtract {
     pub use_avro_logical_types: Option<bool>,
 }
 
-/// `ScriptStackFrame` type.
+/// `MaterializedViewStatistics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScriptStackFrame {
-    /// endColumn property.
-    pub end_column: Option<i64>,
-    /// endLine property.
-    pub end_line: Option<i64>,
-    /// procedureId property.
-    pub procedure_id: Option<String>,
-    /// startColumn property.
-    pub start_column: Option<i64>,
-    /// startLine property.
-    pub start_line: Option<i64>,
-    /// text property.
-    pub text: Option<String>,
+pub struct MaterializedViewStatistics {
+    /// materializedView property.
+    pub materialized_view: Option<Vec<MaterializedView>>,
+}
+
+/// `ForeignTypeInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ForeignTypeInfo {
+    /// typeSystem property.
+    pub type_system: Option<String>,
+}
+
+/// `SessionInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SessionInfo {
+    /// sessionId property.
+    pub session_id: Option<String>,
+}
+
+/// `JobStatistics5` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JobStatistics5 {
+    /// copiedLogicalBytes property.
+    pub copied_logical_bytes: Option<String>,
+    /// copiedRows property.
+    pub copied_rows: Option<String>,
+}
+
+/// `ExternalServiceCost` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExternalServiceCost {
+    /// billingMethod property.
+    pub billing_method: Option<String>,
+    /// bytesBilled property.
+    pub bytes_billed: Option<String>,
+    /// bytesProcessed property.
+    pub bytes_processed: Option<String>,
+    /// externalService property.
+    pub external_service: Option<String>,
+    /// reservedSlotCount property.
+    pub reserved_slot_count: Option<String>,
+    /// slotMs property.
+    pub slot_ms: Option<String>,
+}
+
+/// `DataPolicyOption` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataPolicyOption {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `JobStatistics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JobStatistics {
+    /// completionRatio property.
+    pub completion_ratio: Option<f64>,
+    /// copy property.
+    pub copy: Option<JobStatistics5>,
+    /// creationTime property.
+    pub creation_time: Option<String>,
+    /// dataMaskingStatistics property.
+    pub data_masking_statistics: Option<DataMaskingStatistics>,
+    /// edition property.
+    pub edition: Option<String>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// extract property.
+    pub extract: Option<JobStatistics4>,
+    /// finalExecutionDurationMs property.
+    pub final_execution_duration_ms: Option<String>,
+    /// load property.
+    pub load: Option<JobStatistics3>,
+    /// numChildJobs property.
+    pub num_child_jobs: Option<String>,
+    /// parentJobId property.
+    pub parent_job_id: Option<String>,
+    /// query property.
+    pub query: Option<JobStatistics2>,
+    /// quotaDeferments property.
+    pub quota_deferments: Option<Vec<String>>,
+    /// reservationGroupPath property.
+    pub reservation_group_path: Option<Vec<String>>,
+    /// reservationUsage property.
+    pub reservation_usage: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// reservation_id property.
+    pub reservation_id: Option<String>,
+    /// rowLevelSecurityStatistics property.
+    pub row_level_security_statistics: Option<RowLevelSecurityStatistics>,
+    /// scriptStatistics property.
+    pub script_statistics: Option<ScriptStatistics>,
+    /// sessionInfo property.
+    pub session_info: Option<SessionInfo>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// totalBytesProcessed property.
+    pub total_bytes_processed: Option<String>,
+    /// totalSlotMs property.
+    pub total_slot_ms: Option<String>,
+    /// transactionInfo property.
+    pub transaction_info: Option<TransactionInfo>,
+}
+
+/// `TransactionInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TransactionInfo {
+    /// transactionId property.
+    pub transaction_id: Option<String>,
+}
+
+/// `QueryInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueryInfo {
+    /// optimizationDetails property.
+    pub optimization_details: Option<serde_json::Value>,
+}
+
+/// `SearchStatistics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchStatistics {
+    /// indexPruningStats property.
+    pub index_pruning_stats: Option<Vec<IndexPruningStats>>,
+    /// indexUnusedReasons property.
+    pub index_unused_reasons: Option<Vec<IndexUnusedReason>>,
+    /// indexUsageMode property.
+    pub index_usage_mode: Option<String>,
+}
+
+/// `DestinationTableProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DestinationTableProperties {
+    /// description property.
+    pub description: Option<String>,
+    /// expirationTime property.
+    pub expiration_time: Option<String>,
+    /// friendlyName property.
+    pub friendly_name: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+}
+
+/// `RangeValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RangeValue {
+    /// end property.
+    pub end: Option<Box<QueryParameterValue>>,
+    /// start property.
+    pub start: Option<Box<QueryParameterValue>>,
+}
+
+/// `Clustering` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Clustering {
+    /// fields property.
+    pub fields: Option<Vec<String>>,
+}
+
+/// `ExplainQueryStep` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExplainQueryStep {
+    /// kind property.
+    pub kind: Option<String>,
+    /// substeps property.
+    pub substeps: Option<Vec<String>>,
+}
+
+/// `ConfusionMatrix` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfusionMatrix {
+    /// confidenceThreshold property.
+    pub confidence_threshold: Option<f64>,
+    /// rows property.
+    pub rows: Option<Vec<Row>>,
+}
+
+/// `ArimaFittingMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ArimaFittingMetrics {
+    /// aic property.
+    pub aic: Option<f64>,
+    /// logLikelihood property.
+    pub log_likelihood: Option<f64>,
+    /// variance property.
+    pub variance: Option<f64>,
+}
+
+/// `Entry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Entry {
+    /// itemCount property.
+    pub item_count: Option<String>,
+    /// predictedLabel property.
+    pub predicted_label: Option<String>,
+}
+
+/// `LoadQueryStatistics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoadQueryStatistics {
+    /// badRecords property.
+    pub bad_records: Option<String>,
+    /// bytesTransferred property.
+    pub bytes_transferred: Option<String>,
+    /// inputFileBytes property.
+    pub input_file_bytes: Option<String>,
+    /// inputFiles property.
+    pub input_files: Option<String>,
+    /// outputBytes property.
+    pub output_bytes: Option<String>,
+    /// outputRows property.
+    pub output_rows: Option<String>,
+}
+
+/// `DmlStatistics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DmlStatistics {
+    /// deletedRowCount property.
+    pub deleted_row_count: Option<String>,
+    /// dmlMode property.
+    pub dml_mode: Option<String>,
+    /// fineGrainedDmlUnusedReason property.
+    pub fine_grained_dml_unused_reason: Option<String>,
+    /// insertedRowCount property.
+    pub inserted_row_count: Option<String>,
+    /// updatedRowCount property.
+    pub updated_row_count: Option<String>,
+}
+
+/// `ErrorProto` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorProto {
+    /// debugInfo property.
+    pub debug_info: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `BiEngineStatistics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BiEngineStatistics {
+    /// accelerationMode property.
+    pub acceleration_mode: Option<String>,
+    /// biEngineMode property.
+    pub bi_engine_mode: Option<String>,
+    /// biEngineReasons property.
+    pub bi_engine_reasons: Option<Vec<BiEngineReason>>,
+}
+
+/// `ModelExtractOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ModelExtractOptions {
+    /// trialId property.
+    pub trial_id: Option<String>,
+}
+
+/// `StoredColumnsUsage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StoredColumnsUsage {
+    /// baseTable property.
+    pub base_table: Option<TableReference>,
+    /// isQueryAccelerated property.
+    pub is_query_accelerated: Option<bool>,
+    /// storedColumnsUnusedReasons property.
+    pub stored_columns_unused_reasons: Option<Vec<StoredColumnsUnusedReason>>,
+}
+
+/// `StagePerformanceStandaloneInsight` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StagePerformanceStandaloneInsight {
+    /// biEngineReasons property.
+    pub bi_engine_reasons: Option<Vec<BiEngineReason>>,
+    /// highCardinalityJoins property.
+    pub high_cardinality_joins: Option<Vec<HighCardinalityJoin>>,
+    /// insufficientShuffleQuota property.
+    pub insufficient_shuffle_quota: Option<bool>,
+    /// partitionSkew property.
+    pub partition_skew: Option<PartitionSkew>,
+    /// slotContention property.
+    pub slot_contention: Option<bool>,
+    /// stageId property.
+    pub stage_id: Option<String>,
+}
+
+/// `GenAiStats` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GenAiStats {
+    /// errorStats property.
+    pub error_stats: Option<GenAiErrorStats>,
+    /// functionStats property.
+    pub function_stats: Option<Vec<GenAiFunctionStats>>,
+}
+
+/// `ArimaModelInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ArimaModelInfo {
+    /// arimaCoefficients property.
+    pub arima_coefficients: Option<ArimaCoefficients>,
+    /// arimaFittingMetrics property.
+    pub arima_fitting_metrics: Option<ArimaFittingMetrics>,
+    /// hasDrift property.
+    pub has_drift: Option<bool>,
+    /// hasHolidayEffect property.
+    pub has_holiday_effect: Option<bool>,
+    /// hasSpikesAndDips property.
+    pub has_spikes_and_dips: Option<bool>,
+    /// hasStepChanges property.
+    pub has_step_changes: Option<bool>,
+    /// nonSeasonalOrder property.
+    pub non_seasonal_order: Option<ArimaOrder>,
+    /// seasonalPeriods property.
+    pub seasonal_periods: Option<Vec<String>>,
+    /// timeSeriesId property.
+    pub time_series_id: Option<String>,
+    /// timeSeriesIds property.
+    pub time_series_ids: Option<Vec<String>>,
+}
+
+/// `ClusterInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterInfo {
+    /// centroidId property.
+    pub centroid_id: Option<String>,
+    /// clusterRadius property.
+    pub cluster_radius: Option<f64>,
+    /// clusterSize property.
+    pub cluster_size: Option<String>,
+}
+
+/// `EncryptionConfiguration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EncryptionConfiguration {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+}
+
+/// `AggregateClassificationMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AggregateClassificationMetrics {
+    /// accuracy property.
+    pub accuracy: Option<f64>,
+    /// f1Score property.
+    pub f1_score: Option<f64>,
+    /// logLoss property.
+    pub log_loss: Option<f64>,
+    /// precision property.
+    pub precision: Option<f64>,
+    /// recall property.
+    pub recall: Option<f64>,
+    /// rocAuc property.
+    pub roc_auc: Option<f64>,
+    /// threshold property.
+    pub threshold: Option<f64>,
+}
+
+/// `JobStatistics3` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JobStatistics3 {
+    /// badRecords property.
+    pub bad_records: Option<String>,
+    /// inputFileBytes property.
+    pub input_file_bytes: Option<String>,
+    /// inputFiles property.
+    pub input_files: Option<String>,
+    /// outputBytes property.
+    pub output_bytes: Option<String>,
+    /// outputRows property.
+    pub output_rows: Option<String>,
+    /// timeline property.
+    pub timeline: Option<Vec<QueryTimelineSample>>,
+}
+
+/// `MlStatistics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MlStatistics {
+    /// hparamTrials property.
+    pub hparam_trials: Option<Vec<HparamTuningTrial>>,
+    /// iterationResults property.
+    pub iteration_results: Option<Vec<IterationResult>>,
+    /// maxIterations property.
+    pub max_iterations: Option<String>,
+    /// modelType property.
+    pub model_type: Option<String>,
+    /// trainingType property.
+    pub training_type: Option<String>,
+}
+
+/// `TimePartitioning` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimePartitioning {
+    /// expirationMs property.
+    pub expiration_ms: Option<String>,
+    /// field property.
+    pub field: Option<String>,
+    /// requirePartitionFilter property.
+    pub require_partition_filter: Option<bool>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `HivePartitioningOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HivePartitioningOptions {
+    /// fields property.
+    pub fields: Option<Vec<String>>,
+    /// mode property.
+    pub mode: Option<String>,
+    /// requirePartitionFilter property.
+    pub require_partition_filter: Option<bool>,
+    /// sourceUriPrefix property.
+    pub source_uri_prefix: Option<String>,
+}
+
+/// `IncrementalResultStats` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IncrementalResultStats {
+    /// disabledReason property.
+    pub disabled_reason: Option<String>,
+    /// disabledReasonDetails property.
+    pub disabled_reason_details: Option<String>,
+    /// firstIncrementalRowTime property.
+    pub first_incremental_row_time: Option<String>,
+    /// incrementalRowCount property.
+    pub incremental_row_count: Option<String>,
+    /// lastIncrementalRowTime property.
+    pub last_incremental_row_time: Option<String>,
+    /// resultSetLastModifyTime property.
+    pub result_set_last_modify_time: Option<String>,
+    /// resultSetLastReplaceTime property.
+    pub result_set_last_replace_time: Option<String>,
+}
+
+/// `GeneratedColumn` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GeneratedColumn {
+    /// generatedExpressionInfo property.
+    pub generated_expression_info: Option<GeneratedExpressionInfo>,
+    /// generatedMode property.
+    pub generated_mode: Option<String>,
+}
+
+/// `DataMaskingStatistics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataMaskingStatistics {
+    /// dataMaskingApplied property.
+    pub data_masking_applied: Option<bool>,
+}
+
+/// `JobStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JobStatus {
+    /// errorResult property.
+    pub error_result: Option<ErrorProto>,
+    /// errors property.
+    pub errors: Option<Vec<ErrorProto>>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `FeatureValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FeatureValue {
+    /// categoricalValue property.
+    pub categorical_value: Option<CategoricalValue>,
+    /// featureColumn property.
+    pub feature_column: Option<String>,
+    /// numericalValue property.
+    pub numerical_value: Option<f64>,
+}
+
+/// `TableSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableSchema {
+    /// fields property.
+    pub fields: Option<Vec<Box<TableFieldSchema>>>,
+    /// foreignTypeInfo property.
+    pub foreign_type_info: Option<ForeignTypeInfo>,
+}
+
+/// `ScriptOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ScriptOptions {
+    /// keyResultStatement property.
+    pub key_result_statement: Option<String>,
+    /// statementByteBudget property.
+    pub statement_byte_budget: Option<String>,
+    /// statementTimeoutMs property.
+    pub statement_timeout_ms: Option<String>,
+}
+
+/// `BiEngineReason` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BiEngineReason {
+    /// code property.
+    pub code: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GeneratedExpressionInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GeneratedExpressionInfo {
+    /// asynchronous property.
+    pub asynchronous: Option<bool>,
+    /// generationExpression property.
+    pub generation_expression: Option<String>,
+    /// stored property.
+    pub stored: Option<bool>,
+}
+
+/// `QueryParameterType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueryParameterType {
+    /// arrayType property.
+    pub array_type: Option<Box<QueryParameterType>>,
+    /// rangeElementType property.
+    pub range_element_type: Option<Box<QueryParameterType>>,
+    /// structTypes property.
+    pub struct_types: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// timestampPrecision property.
+    pub timestamp_precision: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `EvaluationMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EvaluationMetrics {
+    /// arimaForecastingMetrics property.
+    pub arima_forecasting_metrics: Option<ArimaForecastingMetrics>,
+    /// binaryClassificationMetrics property.
+    pub binary_classification_metrics: Option<BinaryClassificationMetrics>,
+    /// clusteringMetrics property.
+    pub clustering_metrics: Option<ClusteringMetrics>,
+    /// dimensionalityReductionMetrics property.
+    pub dimensionality_reduction_metrics: Option<DimensionalityReductionMetrics>,
+    /// multiClassClassificationMetrics property.
+    pub multi_class_classification_metrics: Option<MultiClassClassificationMetrics>,
+    /// rankingMetrics property.
+    pub ranking_metrics: Option<RankingMetrics>,
+    /// regressionMetrics property.
+    pub regression_metrics: Option<RegressionMetrics>,
+}
+
+/// `VectorSearchStatistics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VectorSearchStatistics {
+    /// indexUnusedReasons property.
+    pub index_unused_reasons: Option<Vec<IndexUnusedReason>>,
+    /// indexUsageMode property.
+    pub index_usage_mode: Option<String>,
+    /// storedColumnsUsages property.
+    pub stored_columns_usages: Option<Vec<StoredColumnsUsage>>,
+}
+
+/// `SparkStatistics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkStatistics {
+    /// endpoints property.
+    pub endpoints: Option<serde_json::Value>,
+    /// gcsStagingBucket property.
+    pub gcs_staging_bucket: Option<String>,
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+    /// loggingInfo property.
+    pub logging_info: Option<SparkLoggingInfo>,
+    /// sparkJobId property.
+    pub spark_job_id: Option<String>,
+    /// sparkJobLocation property.
+    pub spark_job_location: Option<String>,
+}
+
+/// `TableFieldSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableFieldSchema {
+    /// categories property.
+    pub categories: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// collation property.
+    pub collation: Option<String>,
+    /// dataPolicies property.
+    pub data_policies: Option<Vec<DataPolicyOption>>,
+    /// defaultValueExpression property.
+    pub default_value_expression: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// fields property.
+    pub fields: Option<Vec<Box<TableFieldSchema>>>,
+    /// foreignTypeDefinition property.
+    pub foreign_type_definition: Option<String>,
+    /// generatedColumn property.
+    pub generated_column: Option<GeneratedColumn>,
+    /// maxLength property.
+    pub max_length: Option<String>,
+    /// mode property.
+    pub mode: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// policyTags property.
+    pub policy_tags: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// precision property.
+    pub precision: Option<String>,
+    /// rangeElementType property.
+    pub range_element_type: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// roundingMode property.
+    pub rounding_mode: Option<String>,
+    /// scale property.
+    pub scale: Option<String>,
+    /// timestampPrecision property.
+    pub timestamp_precision: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `JobConfigurationLoad` type.
@@ -604,705 +1446,15 @@ pub struct JobConfigurationLoad {
     pub write_disposition: Option<String>,
 }
 
-/// `MetadataCacheStatistics` type.
+/// `StoredColumnsUnusedReason` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetadataCacheStatistics {
-    /// tableMetadataCacheUsage property.
-    pub table_metadata_cache_usage: Option<Vec<TableMetadataCacheUsage>>,
-}
-
-/// `BiEngineReason` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BiEngineReason {
+pub struct StoredColumnsUnusedReason {
     /// code property.
     pub code: Option<String>,
     /// message property.
     pub message: Option<String>,
-}
-
-/// `ScriptStatistics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScriptStatistics {
-    /// evaluationKind property.
-    pub evaluation_kind: Option<String>,
-    /// stackFrames property.
-    pub stack_frames: Option<Vec<ScriptStackFrame>>,
-}
-
-/// `IterationResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IterationResult {
-    /// arimaResult property.
-    pub arima_result: Option<ArimaResult>,
-    /// clusterInfos property.
-    pub cluster_infos: Option<Vec<ClusterInfo>>,
-    /// durationMs property.
-    pub duration_ms: Option<String>,
-    /// evalLoss property.
-    pub eval_loss: Option<f64>,
-    /// index property.
-    pub index: Option<i64>,
-    /// learnRate property.
-    pub learn_rate: Option<f64>,
-    /// principalComponentInfos property.
-    pub principal_component_infos: Option<Vec<PrincipalComponentInfo>>,
-    /// trainingLoss property.
-    pub training_loss: Option<f64>,
-}
-
-/// `GenAiFunctionStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GenAiFunctionStats {
-    /// costOptimizationStats property.
-    pub cost_optimization_stats: Option<GenAiFunctionCostOptimizationStats>,
-    /// errorStats property.
-    pub error_stats: Option<GenAiFunctionErrorStats>,
-    /// functionName property.
-    pub function_name: Option<String>,
-    /// numProcessedRows property.
-    pub num_processed_rows: Option<String>,
-    /// prompt property.
-    pub prompt: Option<String>,
-}
-
-/// `PrincipalComponentInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrincipalComponentInfo {
-    /// cumulativeExplainedVarianceRatio property.
-    pub cumulative_explained_variance_ratio: Option<f64>,
-    /// explainedVariance property.
-    pub explained_variance: Option<f64>,
-    /// explainedVarianceRatio property.
-    pub explained_variance_ratio: Option<f64>,
-    /// principalComponentId property.
-    pub principal_component_id: Option<String>,
-}
-
-/// `InputDataChange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InputDataChange {
-    /// recordsReadDiffPercentage property.
-    pub records_read_diff_percentage: Option<f64>,
-}
-
-/// `SkewSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SkewSource {
-    /// stageId property.
-    pub stage_id: Option<String>,
-}
-
-/// `ParquetOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ParquetOptions {
-    /// enableListInference property.
-    pub enable_list_inference: Option<bool>,
-    /// enumAsString property.
-    pub enum_as_string: Option<bool>,
-    /// mapTargetType property.
-    pub map_target_type: Option<String>,
-}
-
-/// `TableFieldSchema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableFieldSchema {
-    /// categories property.
-    pub categories: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// collation property.
-    pub collation: Option<String>,
-    /// dataPolicies property.
-    pub data_policies: Option<Vec<DataPolicyOption>>,
-    /// defaultValueExpression property.
-    pub default_value_expression: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// fields property.
-    pub fields: Option<Vec<TableFieldSchema>>,
-    /// foreignTypeDefinition property.
-    pub foreign_type_definition: Option<String>,
-    /// generatedColumn property.
-    pub generated_column: Option<GeneratedColumn>,
-    /// maxLength property.
-    pub max_length: Option<String>,
-    /// mode property.
-    pub mode: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// policyTags property.
-    pub policy_tags: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// precision property.
-    pub precision: Option<String>,
-    /// rangeElementType property.
-    pub range_element_type: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// roundingMode property.
-    pub rounding_mode: Option<String>,
-    /// scale property.
-    pub scale: Option<String>,
-    /// timestampPrecision property.
-    pub timestamp_precision: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `HparamTuningTrial` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HparamTuningTrial {
-    /// endTimeMs property.
-    pub end_time_ms: Option<String>,
-    /// errorMessage property.
-    pub error_message: Option<String>,
-    /// evalLoss property.
-    pub eval_loss: Option<f64>,
-    /// evaluationMetrics property.
-    pub evaluation_metrics: Option<EvaluationMetrics>,
-    /// hparamTuningEvaluationMetrics property.
-    pub hparam_tuning_evaluation_metrics: Option<EvaluationMetrics>,
-    /// hparams property.
-    pub hparams: Option<TrainingOptions>,
-    /// startTimeMs property.
-    pub start_time_ms: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-    /// trainingLoss property.
-    pub training_loss: Option<f64>,
-    /// trialId property.
-    pub trial_id: Option<String>,
-}
-
-/// `VectorSearchStatistics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VectorSearchStatistics {
-    /// indexUnusedReasons property.
-    pub index_unused_reasons: Option<Vec<IndexUnusedReason>>,
-    /// indexUsageMode property.
-    pub index_usage_mode: Option<String>,
-    /// storedColumnsUsages property.
-    pub stored_columns_usages: Option<Vec<StoredColumnsUsage>>,
-}
-
-/// `RowLevelSecurityStatistics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RowLevelSecurityStatistics {
-    /// rowLevelSecurityApplied property.
-    pub row_level_security_applied: Option<bool>,
-}
-
-/// `MaterializedViewStatistics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaterializedViewStatistics {
-    /// materializedView property.
-    pub materialized_view: Option<Vec<MaterializedView>>,
-}
-
-/// `QueryParameterType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryParameterType {
-    /// arrayType property.
-    pub array_type: Option<QueryParameterType>,
-    /// rangeElementType property.
-    pub range_element_type: Option<QueryParameterType>,
-    /// structTypes property.
-    pub struct_types: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// timestampPrecision property.
-    pub timestamp_precision: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `ArimaModelInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArimaModelInfo {
-    /// arimaCoefficients property.
-    pub arima_coefficients: Option<ArimaCoefficients>,
-    /// arimaFittingMetrics property.
-    pub arima_fitting_metrics: Option<ArimaFittingMetrics>,
-    /// hasDrift property.
-    pub has_drift: Option<bool>,
-    /// hasHolidayEffect property.
-    pub has_holiday_effect: Option<bool>,
-    /// hasSpikesAndDips property.
-    pub has_spikes_and_dips: Option<bool>,
-    /// hasStepChanges property.
-    pub has_step_changes: Option<bool>,
-    /// nonSeasonalOrder property.
-    pub non_seasonal_order: Option<ArimaOrder>,
-    /// seasonalPeriods property.
-    pub seasonal_periods: Option<Vec<String>>,
-    /// timeSeriesId property.
-    pub time_series_id: Option<String>,
-    /// timeSeriesIds property.
-    pub time_series_ids: Option<Vec<String>>,
-}
-
-/// `JobStatistics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobStatistics {
-    /// completionRatio property.
-    pub completion_ratio: Option<f64>,
-    /// copy property.
-    pub copy: Option<JobStatistics5>,
-    /// creationTime property.
-    pub creation_time: Option<String>,
-    /// dataMaskingStatistics property.
-    pub data_masking_statistics: Option<DataMaskingStatistics>,
-    /// edition property.
-    pub edition: Option<String>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// extract property.
-    pub extract: Option<JobStatistics4>,
-    /// finalExecutionDurationMs property.
-    pub final_execution_duration_ms: Option<String>,
-    /// load property.
-    pub load: Option<JobStatistics3>,
-    /// numChildJobs property.
-    pub num_child_jobs: Option<String>,
-    /// parentJobId property.
-    pub parent_job_id: Option<String>,
-    /// query property.
-    pub query: Option<JobStatistics2>,
-    /// quotaDeferments property.
-    pub quota_deferments: Option<Vec<String>>,
-    /// reservationGroupPath property.
-    pub reservation_group_path: Option<Vec<String>>,
-    /// reservationUsage property.
-    pub reservation_usage: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// reservation_id property.
-    pub reservation_id: Option<String>,
-    /// rowLevelSecurityStatistics property.
-    pub row_level_security_statistics: Option<RowLevelSecurityStatistics>,
-    /// scriptStatistics property.
-    pub script_statistics: Option<ScriptStatistics>,
-    /// sessionInfo property.
-    pub session_info: Option<SessionInfo>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// totalBytesProcessed property.
-    pub total_bytes_processed: Option<String>,
-    /// totalSlotMs property.
-    pub total_slot_ms: Option<String>,
-    /// transactionInfo property.
-    pub transaction_info: Option<TransactionInfo>,
-}
-
-/// `MaterializedView` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaterializedView {
-    /// chosen property.
-    pub chosen: Option<bool>,
-    /// estimatedBytesSaved property.
-    pub estimated_bytes_saved: Option<String>,
-    /// rejectedReason property.
-    pub rejected_reason: Option<String>,
-    /// tableReference property.
-    pub table_reference: Option<TableReference>,
-}
-
-/// `GeneratedColumn` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeneratedColumn {
-    /// generatedExpressionInfo property.
-    pub generated_expression_info: Option<GeneratedExpressionInfo>,
-    /// generatedMode property.
-    pub generated_mode: Option<String>,
-}
-
-/// `ClusteringMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusteringMetrics {
-    /// clusters property.
-    pub clusters: Option<Vec<Cluster>>,
-    /// daviesBouldinIndex property.
-    pub davies_bouldin_index: Option<f64>,
-    /// meanSquaredDistance property.
-    pub mean_squared_distance: Option<f64>,
-}
-
-/// `Job` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Job {
-    /// configuration property.
-    pub configuration: Option<JobConfiguration>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// jobCreationReason property.
-    pub job_creation_reason: Option<JobCreationReason>,
-    /// jobReference property.
-    pub job_reference: Option<JobReference>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// principal_subject property.
-    pub principal_subject: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// statistics property.
-    pub statistics: Option<JobStatistics>,
-    /// status property.
-    pub status: Option<JobStatus>,
-    /// user_email property.
-    pub user_email: Option<String>,
-}
-
-/// `TimePartitioning` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimePartitioning {
-    /// expirationMs property.
-    pub expiration_ms: Option<String>,
-    /// field property.
-    pub field: Option<String>,
-    /// requirePartitionFilter property.
-    pub require_partition_filter: Option<bool>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `TransactionInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransactionInfo {
-    /// transactionId property.
-    pub transaction_id: Option<String>,
-}
-
-/// `AggregateClassificationMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AggregateClassificationMetrics {
-    /// accuracy property.
-    pub accuracy: Option<f64>,
-    /// f1Score property.
-    pub f1_score: Option<f64>,
-    /// logLoss property.
-    pub log_loss: Option<f64>,
-    /// precision property.
-    pub precision: Option<f64>,
-    /// recall property.
-    pub recall: Option<f64>,
-    /// rocAuc property.
-    pub roc_auc: Option<f64>,
-    /// threshold property.
-    pub threshold: Option<f64>,
-}
-
-/// `QueryInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryInfo {
-    /// optimizationDetails property.
-    pub optimization_details: Option<serde_json::Value>,
-}
-
-/// `JobStatistics5` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobStatistics5 {
-    /// copiedLogicalBytes property.
-    pub copied_logical_bytes: Option<String>,
-    /// copiedRows property.
-    pub copied_rows: Option<String>,
-}
-
-/// `SparkLoggingInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkLoggingInfo {
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// resourceType property.
-    pub resource_type: Option<String>,
-}
-
-/// `ExplainQueryStep` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExplainQueryStep {
-    /// kind property.
-    pub kind: Option<String>,
-    /// substeps property.
-    pub substeps: Option<Vec<String>>,
-}
-
-/// `IndexPruningStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IndexPruningStats {
-    /// baseTable property.
-    pub base_table: Option<TableReference>,
-    /// indexId property.
-    pub index_id: Option<String>,
-    /// postIndexPruningParallelInputCount property.
-    pub post_index_pruning_parallel_input_count: Option<String>,
-    /// preIndexPruningParallelInputCount property.
-    pub pre_index_pruning_parallel_input_count: Option<String>,
-}
-
-/// `RowAccessPolicyReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RowAccessPolicyReference {
-    /// datasetId property.
-    pub dataset_id: Option<String>,
-    /// policyId property.
-    pub policy_id: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// tableId property.
-    pub table_id: Option<String>,
-}
-
-/// `QueryParameterValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryParameterValue {
-    /// arrayValues property.
-    pub array_values: Option<Vec<QueryParameterValue>>,
-    /// rangeValue property.
-    pub range_value: Option<RangeValue>,
-    /// structValues property.
-    pub struct_values: Option<serde_json::Value>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `SearchStatistics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchStatistics {
-    /// indexPruningStats property.
-    pub index_pruning_stats: Option<Vec<IndexPruningStats>>,
-    /// indexUnusedReasons property.
-    pub index_unused_reasons: Option<Vec<IndexUnusedReason>>,
-    /// indexUsageMode property.
-    pub index_usage_mode: Option<String>,
-}
-
-/// `ModelExtractOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ModelExtractOptions {
-    /// trialId property.
-    pub trial_id: Option<String>,
-}
-
-/// `LoadQueryStatistics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoadQueryStatistics {
-    /// badRecords property.
-    pub bad_records: Option<String>,
-    /// bytesTransferred property.
-    pub bytes_transferred: Option<String>,
-    /// inputFileBytes property.
-    pub input_file_bytes: Option<String>,
-    /// inputFiles property.
-    pub input_files: Option<String>,
-    /// outputBytes property.
-    pub output_bytes: Option<String>,
-    /// outputRows property.
-    pub output_rows: Option<String>,
-}
-
-/// `RangeValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RangeValue {
-    /// end property.
-    pub end: Option<QueryParameterValue>,
-    /// start property.
-    pub start: Option<QueryParameterValue>,
-}
-
-/// `DataPolicyOption` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataPolicyOption {
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `DatasetReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatasetReference {
-    /// datasetId property.
-    pub dataset_id: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-}
-
-/// `JobConfigurationTableCopy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobConfigurationTableCopy {
-    /// createDisposition property.
-    pub create_disposition: Option<String>,
-    /// destinationEncryptionConfiguration property.
-    pub destination_encryption_configuration: Option<EncryptionConfiguration>,
-    /// destinationExpirationTime property.
-    pub destination_expiration_time: Option<String>,
-    /// destinationTable property.
-    pub destination_table: Option<TableReference>,
-    /// operationType property.
-    pub operation_type: Option<String>,
-    /// sourceTable property.
-    pub source_table: Option<TableReference>,
-    /// sourceTables property.
-    pub source_tables: Option<Vec<TableReference>>,
-    /// writeDisposition property.
-    pub write_disposition: Option<String>,
-}
-
-/// `Row` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Row {
-    /// actualLabel property.
-    pub actual_label: Option<String>,
-    /// entries property.
-    pub entries: Option<Vec<Entry>>,
-}
-
-/// `DestinationTableProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DestinationTableProperties {
-    /// description property.
-    pub description: Option<String>,
-    /// expirationTime property.
-    pub expiration_time: Option<String>,
-    /// friendlyName property.
-    pub friendly_name: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-}
-
-/// `ForeignTypeInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ForeignTypeInfo {
-    /// typeSystem property.
-    pub type_system: Option<String>,
-}
-
-/// `GenAiErrorStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GenAiErrorStats {
-    /// errors property.
-    pub errors: Option<Vec<String>>,
-}
-
-/// `Cluster` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Cluster {
-    /// centroidId property.
-    pub centroid_id: Option<String>,
-    /// count property.
-    pub count: Option<String>,
-    /// featureValues property.
-    pub feature_values: Option<Vec<FeatureValue>>,
-}
-
-/// `MlStatistics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MlStatistics {
-    /// hparamTrials property.
-    pub hparam_trials: Option<Vec<HparamTuningTrial>>,
-    /// iterationResults property.
-    pub iteration_results: Option<Vec<IterationResult>>,
-    /// maxIterations property.
-    pub max_iterations: Option<String>,
-    /// modelType property.
-    pub model_type: Option<String>,
-    /// trainingType property.
-    pub training_type: Option<String>,
-}
-
-/// `ErrorProto` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorProto {
-    /// debugInfo property.
-    pub debug_info: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `GenAiStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GenAiStats {
-    /// errorStats property.
-    pub error_stats: Option<GenAiErrorStats>,
-    /// functionStats property.
-    pub function_stats: Option<Vec<GenAiFunctionStats>>,
-}
-
-/// `GenAiFunctionErrorStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GenAiFunctionErrorStats {
-    /// errors property.
-    pub errors: Option<Vec<String>>,
-    /// numFailedRows property.
-    pub num_failed_rows: Option<String>,
-}
-
-/// `SystemVariables` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SystemVariables {
-    /// types property.
-    pub types: Option<serde_json::Value>,
-    /// values property.
-    pub values: Option<serde_json::Value>,
-}
-
-/// `IncrementalResultStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IncrementalResultStats {
-    /// disabledReason property.
-    pub disabled_reason: Option<String>,
-    /// disabledReasonDetails property.
-    pub disabled_reason_details: Option<String>,
-    /// firstIncrementalRowTime property.
-    pub first_incremental_row_time: Option<String>,
-    /// incrementalRowCount property.
-    pub incremental_row_count: Option<String>,
-    /// lastIncrementalRowTime property.
-    pub last_incremental_row_time: Option<String>,
-    /// resultSetLastModifyTime property.
-    pub result_set_last_modify_time: Option<String>,
-    /// resultSetLastReplaceTime property.
-    pub result_set_last_replace_time: Option<String>,
-}
-
-/// `TableSchema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableSchema {
-    /// fields property.
-    pub fields: Option<Vec<TableFieldSchema>>,
-    /// foreignTypeInfo property.
-    pub foreign_type_info: Option<ForeignTypeInfo>,
-}
-
-/// `ScriptOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScriptOptions {
-    /// keyResultStatement property.
-    pub key_result_statement: Option<String>,
-    /// statementByteBudget property.
-    pub statement_byte_budget: Option<String>,
-    /// statementTimeoutMs property.
-    pub statement_timeout_ms: Option<String>,
-}
-
-/// `ArimaForecastingMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArimaForecastingMetrics {
-    /// arimaFittingMetrics property.
-    pub arima_fitting_metrics: Option<Vec<ArimaFittingMetrics>>,
-    /// arimaSingleModelForecastingMetrics property.
-    pub arima_single_model_forecasting_metrics: Option<Vec<ArimaSingleModelForecastingMetrics>>,
-    /// hasDrift property.
-    pub has_drift: Option<Vec<bool>>,
-    /// nonSeasonalOrder property.
-    pub non_seasonal_order: Option<Vec<ArimaOrder>>,
-    /// seasonalPeriods property.
-    pub seasonal_periods: Option<Vec<String>>,
-    /// timeSeriesId property.
-    pub time_series_id: Option<Vec<String>>,
-}
-
-/// `ArimaResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArimaResult {
-    /// arimaModelInfo property.
-    pub arima_model_info: Option<Vec<ArimaModelInfo>>,
-    /// seasonalPeriods property.
-    pub seasonal_periods: Option<Vec<String>>,
+    /// uncoveredColumns property.
+    pub uncovered_columns: Option<Vec<String>>,
 }
 
 /// `ArimaCoefficients` type.
@@ -1314,6 +1466,13 @@ pub struct ArimaCoefficients {
     pub intercept_coefficient: Option<f64>,
     /// movingAverageCoefficients property.
     pub moving_average_coefficients: Option<Vec<f64>>,
+}
+
+/// `CategoricalValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CategoricalValue {
+    /// categoryCounts property.
+    pub category_counts: Option<Vec<CategoryCount>>,
 }
 
 /// `TrainingOptions` type.
@@ -1523,31 +1682,181 @@ pub struct TrainingOptions {
     pub xgboost_version: Option<String>,
 }
 
-/// `MultiClassClassificationMetrics` type.
+/// `ParquetOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MultiClassClassificationMetrics {
+pub struct ParquetOptions {
+    /// enableListInference property.
+    pub enable_list_inference: Option<bool>,
+    /// enumAsString property.
+    pub enum_as_string: Option<bool>,
+    /// mapTargetType property.
+    pub map_target_type: Option<String>,
+}
+
+/// `UserDefinedFunctionResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UserDefinedFunctionResource {
+    /// inlineCode property.
+    pub inline_code: Option<String>,
+    /// resourceUri property.
+    pub resource_uri: Option<String>,
+}
+
+/// `RowLevelSecurityStatistics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RowLevelSecurityStatistics {
+    /// rowLevelSecurityApplied property.
+    pub row_level_security_applied: Option<bool>,
+}
+
+/// `Cluster` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Cluster {
+    /// centroidId property.
+    pub centroid_id: Option<String>,
+    /// count property.
+    pub count: Option<String>,
+    /// featureValues property.
+    pub feature_values: Option<Vec<FeatureValue>>,
+}
+
+/// `PrincipalComponentInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrincipalComponentInfo {
+    /// cumulativeExplainedVarianceRatio property.
+    pub cumulative_explained_variance_ratio: Option<f64>,
+    /// explainedVariance property.
+    pub explained_variance: Option<f64>,
+    /// explainedVarianceRatio property.
+    pub explained_variance_ratio: Option<f64>,
+    /// principalComponentId property.
+    pub principal_component_id: Option<String>,
+}
+
+/// `IndexPruningStats` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IndexPruningStats {
+    /// baseTable property.
+    pub base_table: Option<TableReference>,
+    /// indexId property.
+    pub index_id: Option<String>,
+    /// postIndexPruningParallelInputCount property.
+    pub post_index_pruning_parallel_input_count: Option<String>,
+    /// preIndexPruningParallelInputCount property.
+    pub pre_index_pruning_parallel_input_count: Option<String>,
+}
+
+/// `ArimaResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ArimaResult {
+    /// arimaModelInfo property.
+    pub arima_model_info: Option<Vec<ArimaModelInfo>>,
+    /// seasonalPeriods property.
+    pub seasonal_periods: Option<Vec<String>>,
+}
+
+/// `ScriptStackFrame` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ScriptStackFrame {
+    /// endColumn property.
+    pub end_column: Option<i64>,
+    /// endLine property.
+    pub end_line: Option<i64>,
+    /// procedureId property.
+    pub procedure_id: Option<String>,
+    /// startColumn property.
+    pub start_column: Option<i64>,
+    /// startLine property.
+    pub start_line: Option<i64>,
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `GenAiFunctionCostOptimizationStats` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GenAiFunctionCostOptimizationStats {
+    /// message property.
+    pub message: Option<String>,
+    /// numCostOptimizedRows property.
+    pub num_cost_optimized_rows: Option<String>,
+}
+
+/// `SkewSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SkewSource {
+    /// stageId property.
+    pub stage_id: Option<String>,
+}
+
+/// `DatasetReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatasetReference {
+    /// datasetId property.
+    pub dataset_id: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+}
+
+/// `BinaryClassificationMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BinaryClassificationMetrics {
     /// aggregateClassificationMetrics property.
     pub aggregate_classification_metrics: Option<AggregateClassificationMetrics>,
-    /// confusionMatrixList property.
-    pub confusion_matrix_list: Option<Vec<ConfusionMatrix>>,
+    /// binaryConfusionMatrixList property.
+    pub binary_confusion_matrix_list: Option<Vec<BinaryConfusionMatrix>>,
+    /// negativeLabel property.
+    pub negative_label: Option<String>,
+    /// positiveLabel property.
+    pub positive_label: Option<String>,
 }
 
-/// `ArimaOrder` type.
+/// `ScriptStatistics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArimaOrder {
-    /// d property.
-    pub d: Option<String>,
-    /// p property.
-    pub p: Option<String>,
-    /// q property.
-    pub q: Option<String>,
+pub struct ScriptStatistics {
+    /// evaluationKind property.
+    pub evaluation_kind: Option<String>,
+    /// stackFrames property.
+    pub stack_frames: Option<Vec<ScriptStackFrame>>,
 }
 
-/// `SessionInfo` type.
+/// `JobReference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SessionInfo {
-    /// sessionId property.
-    pub session_id: Option<String>,
+pub struct JobReference {
+    /// jobId property.
+    pub job_id: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+}
+
+/// `MetadataCacheStatistics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetadataCacheStatistics {
+    /// tableMetadataCacheUsage property.
+    pub table_metadata_cache_usage: Option<Vec<TableMetadataCacheUsage>>,
+}
+
+/// `GenAiFunctionErrorStats` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GenAiFunctionErrorStats {
+    /// errors property.
+    pub errors: Option<Vec<String>>,
+    /// numFailedRows property.
+    pub num_failed_rows: Option<String>,
+}
+
+/// `MaterializedView` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MaterializedView {
+    /// chosen property.
+    pub chosen: Option<bool>,
+    /// estimatedBytesSaved property.
+    pub estimated_bytes_saved: Option<String>,
+    /// rejectedReason property.
+    pub rejected_reason: Option<String>,
+    /// tableReference property.
+    pub table_reference: Option<TableReference>,
 }
 
 /// `ModelReference` type.
@@ -1559,13 +1868,6 @@ pub struct ModelReference {
     pub model_id: Option<String>,
     /// projectId property.
     pub project_id: Option<String>,
-}
-
-/// `Clustering` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Clustering {
-    /// fields property.
-    pub fields: Option<Vec<String>>,
 }
 
 /// `JobConfiguration` type.
@@ -1593,371 +1895,70 @@ pub struct JobConfiguration {
     pub reservation: Option<String>,
 }
 
-/// `HivePartitioningOptions` type.
+/// `BigQueryModelTraining` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HivePartitioningOptions {
-    /// fields property.
-    pub fields: Option<Vec<String>>,
-    /// mode property.
-    pub mode: Option<String>,
-    /// requirePartitionFilter property.
-    pub require_partition_filter: Option<bool>,
-    /// sourceUriPrefix property.
-    pub source_uri_prefix: Option<String>,
+pub struct BigQueryModelTraining {
+    /// currentIteration property.
+    pub current_iteration: Option<i64>,
+    /// expectedTotalIterations property.
+    pub expected_total_iterations: Option<String>,
 }
 
-/// `IndexUnusedReason` type.
+/// `QueryParameterValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IndexUnusedReason {
-    /// baseTable property.
-    pub base_table: Option<TableReference>,
-    /// code property.
-    pub code: Option<String>,
-    /// indexName property.
-    pub index_name: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `CategoryCount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CategoryCount {
-    /// category property.
-    pub category: Option<String>,
-    /// count property.
-    pub count: Option<String>,
-}
-
-/// `StagePerformanceStandaloneInsight` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StagePerformanceStandaloneInsight {
-    /// biEngineReasons property.
-    pub bi_engine_reasons: Option<Vec<BiEngineReason>>,
-    /// highCardinalityJoins property.
-    pub high_cardinality_joins: Option<Vec<HighCardinalityJoin>>,
-    /// insufficientShuffleQuota property.
-    pub insufficient_shuffle_quota: Option<bool>,
-    /// partitionSkew property.
-    pub partition_skew: Option<PartitionSkew>,
-    /// slotContention property.
-    pub slot_contention: Option<bool>,
-    /// stageId property.
-    pub stage_id: Option<String>,
-}
-
-/// `RoutineReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RoutineReference {
-    /// datasetId property.
-    pub dataset_id: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// routineId property.
-    pub routine_id: Option<String>,
-}
-
-/// `BinaryClassificationMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BinaryClassificationMetrics {
-    /// aggregateClassificationMetrics property.
-    pub aggregate_classification_metrics: Option<AggregateClassificationMetrics>,
-    /// binaryConfusionMatrixList property.
-    pub binary_confusion_matrix_list: Option<Vec<BinaryConfusionMatrix>>,
-    /// negativeLabel property.
-    pub negative_label: Option<String>,
-    /// positiveLabel property.
-    pub positive_label: Option<String>,
-}
-
-/// `FeatureValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FeatureValue {
-    /// categoricalValue property.
-    pub categorical_value: Option<CategoricalValue>,
-    /// featureColumn property.
-    pub feature_column: Option<String>,
-    /// numericalValue property.
-    pub numerical_value: Option<f64>,
-}
-
-/// `BinaryConfusionMatrix` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BinaryConfusionMatrix {
-    /// accuracy property.
-    pub accuracy: Option<f64>,
-    /// f1Score property.
-    pub f1_score: Option<f64>,
-    /// falseNegatives property.
-    pub false_negatives: Option<String>,
-    /// falsePositives property.
-    pub false_positives: Option<String>,
-    /// positiveClassThreshold property.
-    pub positive_class_threshold: Option<f64>,
-    /// precision property.
-    pub precision: Option<f64>,
-    /// recall property.
-    pub recall: Option<f64>,
-    /// trueNegatives property.
-    pub true_negatives: Option<String>,
-    /// truePositives property.
-    pub true_positives: Option<String>,
-}
-
-/// `JobCancelResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobCancelResponse {
-    /// job property.
-    pub job: Option<Job>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `QueryParameter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryParameter {
-    /// name property.
-    pub name: Option<String>,
-    /// parameterType property.
-    pub parameter_type: Option<QueryParameterType>,
-    /// parameterValue property.
-    pub parameter_value: Option<QueryParameterValue>,
-}
-
-/// `RangePartitioning` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RangePartitioning {
-    /// field property.
-    pub field: Option<String>,
-    /// range property.
-    pub range: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `JobCreationReason` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobCreationReason {
-    /// code property.
-    pub code: Option<String>,
-}
-
-/// `JobStatistics4` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobStatistics4 {
-    /// destinationUriFileCounts property.
-    pub destination_uri_file_counts: Option<Vec<String>>,
-    /// inputBytes property.
-    pub input_bytes: Option<String>,
-    /// timeline property.
-    pub timeline: Option<Vec<QueryTimelineSample>>,
-}
-
-/// `GeneratedExpressionInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeneratedExpressionInfo {
-    /// asynchronous property.
-    pub asynchronous: Option<bool>,
-    /// generationExpression property.
-    pub generation_expression: Option<String>,
-    /// stored property.
-    pub stored: Option<bool>,
-}
-
-/// `GenAiFunctionCostOptimizationStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GenAiFunctionCostOptimizationStats {
-    /// message property.
-    pub message: Option<String>,
-    /// numCostOptimizedRows property.
-    pub num_cost_optimized_rows: Option<String>,
-}
-
-/// `ConnectionProperty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionProperty {
-    /// key property.
-    pub key: Option<String>,
+pub struct QueryParameterValue {
+    /// arrayValues property.
+    pub array_values: Option<Vec<Box<QueryParameterValue>>>,
+    /// rangeValue property.
+    pub range_value: Option<Box<RangeValue>>,
+    /// structValues property.
+    pub struct_values: Option<serde_json::Value>,
     /// value property.
     pub value: Option<String>,
 }
 
-/// `RankingMetrics` type.
+/// `MultiClassClassificationMetrics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RankingMetrics {
-    /// averageRank property.
-    pub average_rank: Option<f64>,
-    /// meanAveragePrecision property.
-    pub mean_average_precision: Option<f64>,
-    /// meanSquaredError property.
-    pub mean_squared_error: Option<f64>,
-    /// normalizedDiscountedCumulativeGain property.
-    pub normalized_discounted_cumulative_gain: Option<f64>,
+pub struct MultiClassClassificationMetrics {
+    /// aggregateClassificationMetrics property.
+    pub aggregate_classification_metrics: Option<AggregateClassificationMetrics>,
+    /// confusionMatrixList property.
+    pub confusion_matrix_list: Option<Vec<ConfusionMatrix>>,
 }
 
-/// `ConfusionMatrix` type.
+/// `QueryTimelineSample` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfusionMatrix {
-    /// confidenceThreshold property.
-    pub confidence_threshold: Option<f64>,
-    /// rows property.
-    pub rows: Option<Vec<Row>>,
+pub struct QueryTimelineSample {
+    /// activeUnits property.
+    pub active_units: Option<String>,
+    /// completedUnits property.
+    pub completed_units: Option<String>,
+    /// elapsedMs property.
+    pub elapsed_ms: Option<String>,
+    /// estimatedRunnableUnits property.
+    pub estimated_runnable_units: Option<String>,
+    /// pendingUnits property.
+    pub pending_units: Option<String>,
+    /// shuffleRamUsageRatio property.
+    pub shuffle_ram_usage_ratio: Option<f64>,
+    /// totalSlotMs property.
+    pub total_slot_ms: Option<String>,
 }
 
-/// `EncryptionConfiguration` type.
+/// `Row` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionConfiguration {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
+pub struct Row {
+    /// actualLabel property.
+    pub actual_label: Option<String>,
+    /// entries property.
+    pub entries: Option<Vec<Entry>>,
 }
 
-/// `ArimaSingleModelForecastingMetrics` type.
+/// `InputDataChange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArimaSingleModelForecastingMetrics {
-    /// arimaFittingMetrics property.
-    pub arima_fitting_metrics: Option<ArimaFittingMetrics>,
-    /// hasDrift property.
-    pub has_drift: Option<bool>,
-    /// hasHolidayEffect property.
-    pub has_holiday_effect: Option<bool>,
-    /// hasSpikesAndDips property.
-    pub has_spikes_and_dips: Option<bool>,
-    /// hasStepChanges property.
-    pub has_step_changes: Option<bool>,
-    /// nonSeasonalOrder property.
-    pub non_seasonal_order: Option<ArimaOrder>,
-    /// seasonalPeriods property.
-    pub seasonal_periods: Option<Vec<String>>,
-    /// timeSeriesId property.
-    pub time_series_id: Option<String>,
-    /// timeSeriesIds property.
-    pub time_series_ids: Option<Vec<String>>,
-}
-
-/// `ExplainQueryStage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExplainQueryStage {
-    /// completedParallelInputs property.
-    pub completed_parallel_inputs: Option<String>,
-    /// computeMode property.
-    pub compute_mode: Option<String>,
-    /// computeMsAvg property.
-    pub compute_ms_avg: Option<String>,
-    /// computeMsMax property.
-    pub compute_ms_max: Option<String>,
-    /// computeRatioAvg property.
-    pub compute_ratio_avg: Option<f64>,
-    /// computeRatioMax property.
-    pub compute_ratio_max: Option<f64>,
-    /// endMs property.
-    pub end_ms: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// inputStages property.
-    pub input_stages: Option<Vec<String>>,
-    /// name property.
-    pub name: Option<String>,
-    /// parallelInputs property.
-    pub parallel_inputs: Option<String>,
-    /// readMsAvg property.
-    pub read_ms_avg: Option<String>,
-    /// readMsMax property.
-    pub read_ms_max: Option<String>,
-    /// readRatioAvg property.
-    pub read_ratio_avg: Option<f64>,
-    /// readRatioMax property.
-    pub read_ratio_max: Option<f64>,
-    /// recordsRead property.
-    pub records_read: Option<String>,
-    /// recordsWritten property.
-    pub records_written: Option<String>,
-    /// shuffleOutputBytes property.
-    pub shuffle_output_bytes: Option<String>,
-    /// shuffleOutputBytesSpilled property.
-    pub shuffle_output_bytes_spilled: Option<String>,
-    /// slotMs property.
-    pub slot_ms: Option<String>,
-    /// startMs property.
-    pub start_ms: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-    /// steps property.
-    pub steps: Option<Vec<ExplainQueryStep>>,
-    /// waitMsAvg property.
-    pub wait_ms_avg: Option<String>,
-    /// waitMsMax property.
-    pub wait_ms_max: Option<String>,
-    /// waitRatioAvg property.
-    pub wait_ratio_avg: Option<f64>,
-    /// waitRatioMax property.
-    pub wait_ratio_max: Option<f64>,
-    /// writeMsAvg property.
-    pub write_ms_avg: Option<String>,
-    /// writeMsMax property.
-    pub write_ms_max: Option<String>,
-    /// writeRatioAvg property.
-    pub write_ratio_avg: Option<f64>,
-    /// writeRatioMax property.
-    pub write_ratio_max: Option<f64>,
-}
-
-/// `HighCardinalityJoin` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HighCardinalityJoin {
-    /// leftRows property.
-    pub left_rows: Option<String>,
-    /// outputRows property.
-    pub output_rows: Option<String>,
-    /// rightRows property.
-    pub right_rows: Option<String>,
-    /// stepIndex property.
-    pub step_index: Option<i64>,
-}
-
-/// `PartitionSkew` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PartitionSkew {
-    /// skewSources property.
-    pub skew_sources: Option<Vec<SkewSource>>,
-}
-
-/// `Entry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Entry {
-    /// itemCount property.
-    pub item_count: Option<String>,
-    /// predictedLabel property.
-    pub predicted_label: Option<String>,
-}
-
-/// `PruningStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PruningStats {
-    /// postCmetaPruningParallelInputCount property.
-    pub post_cmeta_pruning_parallel_input_count: Option<String>,
-    /// postCmetaPruningPartitionCount property.
-    pub post_cmeta_pruning_partition_count: Option<String>,
-    /// preCmetaPruningParallelInputCount property.
-    pub pre_cmeta_pruning_parallel_input_count: Option<String>,
-}
-
-/// `JobStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobStatus {
-    /// errorResult property.
-    pub error_result: Option<ErrorProto>,
-    /// errors property.
-    pub errors: Option<Vec<ErrorProto>>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `JobReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobReference {
-    /// jobId property.
-    pub job_id: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
+pub struct InputDataChange {
+    /// recordsReadDiffPercentage property.
+    pub records_read_diff_percentage: Option<f64>,
 }
 
 // =============================================================================

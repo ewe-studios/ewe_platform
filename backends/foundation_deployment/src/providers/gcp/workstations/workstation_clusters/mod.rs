@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,29 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GatewayConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GatewayConfig {
+    /// http2Enabled property.
+    pub http2_enabled: Option<bool>,
+}
 
 /// `ListWorkstationClustersResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -38,15 +57,11 @@ pub struct ListWorkstationClustersResponse {
     pub workstation_clusters: Option<Vec<WorkstationCluster>>,
 }
 
-/// `Status` type.
+/// `DomainConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct DomainConfig {
+    /// domain property.
+    pub domain: Option<String>,
 }
 
 /// `PrivateClusterConfig` type.
@@ -103,20 +118,6 @@ pub struct WorkstationCluster {
     pub uid: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `DomainConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DomainConfig {
-    /// domain property.
-    pub domain: Option<String>,
-}
-
-/// `GatewayConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GatewayConfig {
-    /// http2Enabled property.
-    pub http2_enabled: Option<bool>,
 }
 
 // =============================================================================

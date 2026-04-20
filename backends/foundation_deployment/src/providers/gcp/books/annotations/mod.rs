@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,23 +22,43 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `BooksAnnotationsRange` type.
+/// `Volumeannotation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BooksAnnotationsRange {
-    /// endOffset property.
-    pub end_offset: Option<String>,
-    /// endPosition property.
-    pub end_position: Option<String>,
-    /// startOffset property.
-    pub start_offset: Option<String>,
-    /// startPosition property.
-    pub start_position: Option<String>,
+pub struct Volumeannotation {
+    /// annotationDataId property.
+    pub annotation_data_id: Option<String>,
+    /// annotationDataLink property.
+    pub annotation_data_link: Option<String>,
+    /// annotationType property.
+    pub annotation_type: Option<String>,
+    /// contentRanges property.
+    pub content_ranges: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// data property.
+    pub data: Option<String>,
+    /// deleted property.
+    pub deleted: Option<bool>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// layerId property.
+    pub layer_id: Option<String>,
+    /// pageIds property.
+    pub page_ids: Option<Vec<String>>,
+    /// selectedText property.
+    pub selected_text: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// updated property.
+    pub updated: Option<String>,
+    /// volumeId property.
+    pub volume_id: Option<String>,
 }
 
 /// `Annotation` type.
@@ -92,37 +113,17 @@ pub struct Annotations {
     pub total_items: Option<i64>,
 }
 
-/// `Volumeannotation` type.
+/// `BooksAnnotationsRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Volumeannotation {
-    /// annotationDataId property.
-    pub annotation_data_id: Option<String>,
-    /// annotationDataLink property.
-    pub annotation_data_link: Option<String>,
-    /// annotationType property.
-    pub annotation_type: Option<String>,
-    /// contentRanges property.
-    pub content_ranges: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// data property.
-    pub data: Option<String>,
-    /// deleted property.
-    pub deleted: Option<bool>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// layerId property.
-    pub layer_id: Option<String>,
-    /// pageIds property.
-    pub page_ids: Option<Vec<String>>,
-    /// selectedText property.
-    pub selected_text: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// updated property.
-    pub updated: Option<String>,
-    /// volumeId property.
-    pub volume_id: Option<String>,
+pub struct BooksAnnotationsRange {
+    /// endOffset property.
+    pub end_offset: Option<String>,
+    /// endPosition property.
+    pub end_position: Option<String>,
+    /// startOffset property.
+    pub start_offset: Option<String>,
+    /// startPosition property.
+    pub start_position: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,140 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `FileSearchTool` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FileSearchTool {
-    /// corpusType property.
-    pub corpus_type: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// fileCorpus property.
-    pub file_corpus: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `ServiceAccountAuthConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceAccountAuthConfig {
-    /// scopes property.
-    pub scopes: Option<Vec<String>>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-}
-
-/// `ApiAuthentication` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApiAuthentication {
-    /// apiKeyConfig property.
-    pub api_key_config: Option<ApiKeyConfig>,
-    /// bearerTokenConfig property.
-    pub bearer_token_config: Option<BearerTokenConfig>,
-    /// oauthConfig property.
-    pub oauth_config: Option<OAuthConfig>,
-    /// serviceAccountAuthConfig property.
-    pub service_account_auth_config: Option<ServiceAccountAuthConfig>,
-    /// serviceAgentIdTokenAuthConfig property.
-    pub service_agent_id_token_auth_config: Option<ServiceAgentIdTokenAuthConfig>,
-}
-
-/// `ServiceAgentIdTokenAuthConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceAgentIdTokenAuthConfig {}
-
-/// `CodeBlock` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CodeBlock {
-    /// pythonCode property.
-    pub python_code: Option<String>,
-}
-
-/// `GoogleSearchTool` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleSearchTool {
-    /// contextUrls property.
-    pub context_urls: Option<Vec<String>>,
-    /// description property.
-    pub description: Option<String>,
-    /// excludeDomains property.
-    pub exclude_domains: Option<Vec<String>>,
-    /// name property.
-    pub name: Option<String>,
-    /// preferredDomains property.
-    pub preferred_domains: Option<Vec<String>>,
-    /// promptConfig property.
-    pub prompt_config: Option<GoogleSearchToolPromptConfig>,
-}
-
-/// `BearerTokenConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BearerTokenConfig {
-    /// token property.
-    pub token: Option<String>,
-}
-
-/// `DataStoreToolBoostSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataStoreToolBoostSpec {
-    /// conditionBoostSpecs property.
-    pub condition_boost_specs: Option<Vec<DataStoreToolBoostSpecConditionBoostSpec>>,
-}
-
-/// `DataStoreToolBoostSpecConditionBoostSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataStoreToolBoostSpecConditionBoostSpec {
-    /// boost property.
-    pub boost: Option<f64>,
-    /// boostControlSpec property.
-    pub boost_control_spec: Option<DataStoreToolBoostSpecConditionBoostSpecBoostControlSpec>,
-    /// condition property.
-    pub condition: Option<String>,
-}
-
-/// `DataStoreConnectorConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataStoreConnectorConfig {
-    /// collection property.
-    pub collection: Option<String>,
-    /// collectionDisplayName property.
-    pub collection_display_name: Option<String>,
-    /// dataSource property.
-    pub data_source: Option<String>,
-}
-
-/// `DataStoreToolModalityConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataStoreToolModalityConfig {
-    /// groundingConfig property.
-    pub grounding_config: Option<DataStoreToolGroundingConfig>,
-    /// modalityType property.
-    pub modality_type: Option<String>,
-    /// rewriterConfig property.
-    pub rewriter_config: Option<DataStoreToolRewriterConfig>,
-    /// summarizationConfig property.
-    pub summarization_config: Option<DataStoreToolSummarizationConfig>,
-}
-
-/// `ConnectorTool` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectorTool {
-    /// action property.
-    pub action: Option<Action>,
-    /// authConfig property.
-    pub auth_config: Option<EndUserAuthConfig>,
-    /// connection property.
-    pub connection: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
 
 /// `Action` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -169,117 +41,20 @@ pub struct Action {
     pub output_fields: Option<Vec<String>>,
 }
 
-/// `DataStoreToolEngineSource` type.
+/// `ToolFakeConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataStoreToolEngineSource {
-    /// dataStoreSources property.
-    pub data_store_sources: Option<Vec<DataStoreToolDataStoreSource>>,
-    /// engine property.
-    pub engine: Option<String>,
-    /// filter property.
-    pub filter: Option<String>,
+pub struct ToolFakeConfig {
+    /// codeBlock property.
+    pub code_block: Option<CodeBlock>,
+    /// enableFakeMode property.
+    pub enable_fake_mode: Option<bool>,
 }
 
-/// `DataStoreToolRewriterConfig` type.
+/// `BearerTokenConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataStoreToolRewriterConfig {
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// modelSettings property.
-    pub model_settings: Option<ModelSettings>,
-    /// prompt property.
-    pub prompt: Option<String>,
-}
-
-/// `DataStoreToolBoostSpecConditionBoostSpecBoostControlSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataStoreToolBoostSpecConditionBoostSpecBoostControlSpec {
-    /// attributeType property.
-    pub attribute_type: Option<String>,
-    /// controlPoints property.
-    pub control_points:
-        Option<Vec<DataStoreToolBoostSpecConditionBoostSpecBoostControlSpecControlPoint>>,
-    /// fieldName property.
-    pub field_name: Option<String>,
-    /// interpolationType property.
-    pub interpolation_type: Option<String>,
-}
-
-/// `EndUserAuthConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndUserAuthConfig {
-    /// oauth2AuthCodeConfig property.
-    pub oauth2_auth_code_config: Option<EndUserAuthConfigOauth2AuthCodeConfig>,
-    /// oauth2JwtBearerConfig property.
-    pub oauth2_jwt_bearer_config: Option<EndUserAuthConfigOauth2JwtBearerConfig>,
-}
-
-/// `EndUserAuthConfigOauth2AuthCodeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndUserAuthConfigOauth2AuthCodeConfig {
-    /// oauthToken property.
-    pub oauth_token: Option<String>,
-}
-
-/// `OpenApiTool` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OpenApiTool {
-    /// apiAuthentication property.
-    pub api_authentication: Option<ApiAuthentication>,
-    /// description property.
-    pub description: Option<String>,
-    /// ignoreUnknownFields property.
-    pub ignore_unknown_fields: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-    /// openApiSchema property.
-    pub open_api_schema: Option<String>,
-    /// serviceDirectoryConfig property.
-    pub service_directory_config: Option<ServiceDirectoryConfig>,
-    /// tlsConfig property.
-    pub tls_config: Option<TlsConfig>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `WidgetToolDataMapping` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WidgetToolDataMapping {
-    /// fieldMappings property.
-    pub field_mappings: Option<serde_json::Value>,
-    /// mode property.
-    pub mode: Option<String>,
-    /// pythonFunction property.
-    pub python_function: Option<PythonFunction>,
-    /// pythonScript property.
-    pub python_script: Option<String>,
-    /// sourceToolName property.
-    pub source_tool_name: Option<String>,
-}
-
-/// `TlsConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TlsConfig {
-    /// caCerts property.
-    pub ca_certs: Option<Vec<TlsConfigCaCert>>,
-}
-
-/// `DataStoreToolBoostSpecs` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataStoreToolBoostSpecs {
-    /// dataStores property.
-    pub data_stores: Option<Vec<String>>,
-    /// spec property.
-    pub spec: Option<Vec<DataStoreToolBoostSpec>>,
-}
-
-/// `DataStoreToolGroundingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataStoreToolGroundingConfig {
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// groundingLevel property.
-    pub grounding_level: Option<f64>,
+pub struct BearerTokenConfig {
+    /// token property.
+    pub token: Option<String>,
 }
 
 /// `ClientFunction` type.
@@ -290,20 +65,18 @@ pub struct ClientFunction {
     /// name property.
     pub name: Option<String>,
     /// parameters property.
-    pub parameters: Option<Schema>,
+    pub parameters: Option<Box<Schema>>,
     /// response property.
-    pub response: Option<Schema>,
+    pub response: Option<Box<Schema>>,
 }
 
-/// `ApiKeyConfig` type.
+/// `DataStoreToolBoostSpecs` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApiKeyConfig {
-    /// apiKeySecretVersion property.
-    pub api_key_secret_version: Option<String>,
-    /// keyName property.
-    pub key_name: Option<String>,
-    /// requestLocation property.
-    pub request_location: Option<String>,
+pub struct DataStoreToolBoostSpecs {
+    /// dataStores property.
+    pub data_stores: Option<Vec<String>>,
+    /// spec property.
+    pub spec: Option<Vec<DataStoreToolBoostSpec>>,
 }
 
 /// `McpToolset` type.
@@ -321,164 +94,11 @@ pub struct McpToolset {
     pub tls_config: Option<TlsConfig>,
 }
 
-/// `OpenApiToolset` type.
+/// `RetrieveToolsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OpenApiToolset {
-    /// apiAuthentication property.
-    pub api_authentication: Option<ApiAuthentication>,
-    /// ignoreUnknownFields property.
-    pub ignore_unknown_fields: Option<bool>,
-    /// openApiSchema property.
-    pub open_api_schema: Option<String>,
-    /// serviceDirectoryConfig property.
-    pub service_directory_config: Option<ServiceDirectoryConfig>,
-    /// tlsConfig property.
-    pub tls_config: Option<TlsConfig>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `EndUserAuthConfigOauth2JwtBearerConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndUserAuthConfigOauth2JwtBearerConfig {
-    /// clientKey property.
-    pub client_key: Option<String>,
-    /// issuer property.
-    pub issuer: Option<String>,
-    /// subject property.
-    pub subject: Option<String>,
-}
-
-/// `Schema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Schema {
-    /// additionalProperties property.
-    pub additional_properties: Option<Schema>,
-    /// anyOf property.
-    pub any_of: Option<Vec<Schema>>,
-    /// default property.
-    pub default: Option<serde_json::Value>,
-    /// defs property.
-    pub defs: Option<serde_json::Value>,
-    /// description property.
-    pub description: Option<String>,
-    /// enum property.
-    pub r#enum: Option<Vec<String>>,
-    /// items property.
-    pub items: Option<Schema>,
-    /// maxItems property.
-    pub max_items: Option<String>,
-    /// maximum property.
-    pub maximum: Option<f64>,
-    /// minItems property.
-    pub min_items: Option<String>,
-    /// minimum property.
-    pub minimum: Option<f64>,
-    /// nullable property.
-    pub nullable: Option<bool>,
-    /// prefixItems property.
-    pub prefix_items: Option<Vec<Schema>>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
-    /// ref property.
-    pub r#ref: Option<String>,
-    /// required property.
-    pub required: Option<Vec<String>>,
-    /// title property.
-    pub title: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// uniqueItems property.
-    pub unique_items: Option<bool>,
-}
-
-/// `ActionEntityOperation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActionEntityOperation {
-    /// entityId property.
-    pub entity_id: Option<String>,
-    /// operation property.
-    pub operation: Option<String>,
-}
-
-/// `DataStoreToolDataStoreSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataStoreToolDataStoreSource {
-    /// dataStore property.
-    pub data_store: Option<DataStore>,
-    /// filter property.
-    pub filter: Option<String>,
-}
-
-/// `ConnectorToolset` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectorToolset {
-    /// authConfig property.
-    pub auth_config: Option<EndUserAuthConfig>,
-    /// connection property.
-    pub connection: Option<String>,
-    /// connectorActions property.
-    pub connector_actions: Option<Vec<Action>>,
-}
-
-/// `Toolset` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Toolset {
-    /// connectorToolset property.
-    pub connector_toolset: Option<ConnectorToolset>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// executionType property.
-    pub execution_type: Option<String>,
-    /// mcpToolset property.
-    pub mcp_toolset: Option<McpToolset>,
-    /// name property.
-    pub name: Option<String>,
-    /// openApiToolset property.
-    pub open_api_toolset: Option<OpenApiToolset>,
-    /// toolFakeConfig property.
-    pub tool_fake_config: Option<ToolFakeConfig>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `OAuthConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OAuthConfig {
-    /// clientId property.
-    pub client_id: Option<String>,
-    /// clientSecretVersion property.
-    pub client_secret_version: Option<String>,
-    /// oauthGrantType property.
-    pub oauth_grant_type: Option<String>,
-    /// scopes property.
-    pub scopes: Option<Vec<String>>,
-    /// tokenEndpoint property.
-    pub token_endpoint: Option<String>,
-}
-
-/// `ModelSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ModelSettings {
-    /// model property.
-    pub model: Option<String>,
-    /// temperature property.
-    pub temperature: Option<f64>,
-}
-
-/// `GoogleSearchToolPromptConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleSearchToolPromptConfig {
-    /// textPrompt property.
-    pub text_prompt: Option<String>,
-    /// voicePrompt property.
-    pub voice_prompt: Option<String>,
+pub struct RetrieveToolsResponse {
+    /// tools property.
+    pub tools: Option<Vec<Tool>>,
 }
 
 /// `ServiceDirectoryConfig` type.
@@ -488,128 +108,17 @@ pub struct ServiceDirectoryConfig {
     pub service: Option<String>,
 }
 
-/// `AgentTool` type.
+/// `DataStoreToolModalityConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AgentTool {
-    /// description property.
-    pub description: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// rootAgent property.
-    pub root_agent: Option<String>,
-}
-
-/// `DataStore` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataStore {
-    /// connectorConfig property.
-    pub connector_config: Option<DataStoreConnectorConfig>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// documentProcessingMode property.
-    pub document_processing_mode: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `DataStoreToolBoostSpecConditionBoostSpecBoostControlSpecControlPoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataStoreToolBoostSpecConditionBoostSpecBoostControlSpecControlPoint {
-    /// attributeValue property.
-    pub attribute_value: Option<String>,
-    /// boostAmount property.
-    pub boost_amount: Option<f64>,
-}
-
-/// `ToolFakeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ToolFakeConfig {
-    /// codeBlock property.
-    pub code_block: Option<CodeBlock>,
-    /// enableFakeMode property.
-    pub enable_fake_mode: Option<bool>,
-}
-
-/// `TlsConfigCaCert` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TlsConfigCaCert {
-    /// cert property.
-    pub cert: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-}
-
-/// `DataStoreTool` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataStoreTool {
-    /// boostSpecs property.
-    pub boost_specs: Option<Vec<DataStoreToolBoostSpecs>>,
-    /// dataStoreSource property.
-    pub data_store_source: Option<DataStoreToolDataStoreSource>,
-    /// description property.
-    pub description: Option<String>,
-    /// engineSource property.
-    pub engine_source: Option<DataStoreToolEngineSource>,
-    /// filterParameterBehavior property.
-    pub filter_parameter_behavior: Option<String>,
-    /// modalityConfigs property.
-    pub modality_configs: Option<Vec<DataStoreToolModalityConfig>>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `McpTool` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct McpTool {
-    /// apiAuthentication property.
-    pub api_authentication: Option<ApiAuthentication>,
-    /// customHeaders property.
-    pub custom_headers: Option<serde_json::Value>,
-    /// description property.
-    pub description: Option<String>,
-    /// inputSchema property.
-    pub input_schema: Option<Schema>,
-    /// name property.
-    pub name: Option<String>,
-    /// outputSchema property.
-    pub output_schema: Option<Schema>,
-    /// serverAddress property.
-    pub server_address: Option<String>,
-    /// serviceDirectoryConfig property.
-    pub service_directory_config: Option<ServiceDirectoryConfig>,
-    /// tlsConfig property.
-    pub tls_config: Option<TlsConfig>,
-}
-
-/// `RetrieveToolsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RetrieveToolsResponse {
-    /// tools property.
-    pub tools: Option<Vec<Tool>>,
-}
-
-/// `PythonFunction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PythonFunction {
-    /// description property.
-    pub description: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// pythonCode property.
-    pub python_code: Option<String>,
-}
-
-/// `SystemTool` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SystemTool {
-    /// description property.
-    pub description: Option<String>,
-    /// name property.
-    pub name: Option<String>,
+pub struct DataStoreToolModalityConfig {
+    /// groundingConfig property.
+    pub grounding_config: Option<DataStoreToolGroundingConfig>,
+    /// modalityType property.
+    pub modality_type: Option<String>,
+    /// rewriterConfig property.
+    pub rewriter_config: Option<DataStoreToolRewriterConfig>,
+    /// summarizationConfig property.
+    pub summarization_config: Option<DataStoreToolSummarizationConfig>,
 }
 
 /// `WidgetTool` type.
@@ -622,7 +131,7 @@ pub struct WidgetTool {
     /// name property.
     pub name: Option<String>,
     /// parameters property.
-    pub parameters: Option<Schema>,
+    pub parameters: Option<Box<Schema>>,
     /// uiConfig property.
     pub ui_config: Option<serde_json::Value>,
     /// widgetType property.
@@ -672,6 +181,153 @@ pub struct Tool {
     pub widget_tool: Option<WidgetTool>,
 }
 
+/// `AgentTool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AgentTool {
+    /// description property.
+    pub description: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// rootAgent property.
+    pub root_agent: Option<String>,
+}
+
+/// `DataStoreToolRewriterConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataStoreToolRewriterConfig {
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// modelSettings property.
+    pub model_settings: Option<ModelSettings>,
+    /// prompt property.
+    pub prompt: Option<String>,
+}
+
+/// `DataStoreToolEngineSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataStoreToolEngineSource {
+    /// dataStoreSources property.
+    pub data_store_sources: Option<Vec<DataStoreToolDataStoreSource>>,
+    /// engine property.
+    pub engine: Option<String>,
+    /// filter property.
+    pub filter: Option<String>,
+}
+
+/// `WidgetToolDataMapping` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WidgetToolDataMapping {
+    /// fieldMappings property.
+    pub field_mappings: Option<serde_json::Value>,
+    /// mode property.
+    pub mode: Option<String>,
+    /// pythonFunction property.
+    pub python_function: Option<PythonFunction>,
+    /// pythonScript property.
+    pub python_script: Option<String>,
+    /// sourceToolName property.
+    pub source_tool_name: Option<String>,
+}
+
+/// `EndUserAuthConfigOauth2JwtBearerConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EndUserAuthConfigOauth2JwtBearerConfig {
+    /// clientKey property.
+    pub client_key: Option<String>,
+    /// issuer property.
+    pub issuer: Option<String>,
+    /// subject property.
+    pub subject: Option<String>,
+}
+
+/// `McpTool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct McpTool {
+    /// apiAuthentication property.
+    pub api_authentication: Option<ApiAuthentication>,
+    /// customHeaders property.
+    pub custom_headers: Option<serde_json::Value>,
+    /// description property.
+    pub description: Option<String>,
+    /// inputSchema property.
+    pub input_schema: Option<Box<Schema>>,
+    /// name property.
+    pub name: Option<String>,
+    /// outputSchema property.
+    pub output_schema: Option<Box<Schema>>,
+    /// serverAddress property.
+    pub server_address: Option<String>,
+    /// serviceDirectoryConfig property.
+    pub service_directory_config: Option<ServiceDirectoryConfig>,
+    /// tlsConfig property.
+    pub tls_config: Option<TlsConfig>,
+}
+
+/// `PythonFunction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PythonFunction {
+    /// description property.
+    pub description: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// pythonCode property.
+    pub python_code: Option<String>,
+}
+
+/// `CodeBlock` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CodeBlock {
+    /// pythonCode property.
+    pub python_code: Option<String>,
+}
+
+/// `ApiKeyConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiKeyConfig {
+    /// apiKeySecretVersion property.
+    pub api_key_secret_version: Option<String>,
+    /// keyName property.
+    pub key_name: Option<String>,
+    /// requestLocation property.
+    pub request_location: Option<String>,
+}
+
+/// `DataStoreTool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataStoreTool {
+    /// boostSpecs property.
+    pub boost_specs: Option<Vec<DataStoreToolBoostSpecs>>,
+    /// dataStoreSource property.
+    pub data_store_source: Option<DataStoreToolDataStoreSource>,
+    /// description property.
+    pub description: Option<String>,
+    /// engineSource property.
+    pub engine_source: Option<DataStoreToolEngineSource>,
+    /// filterParameterBehavior property.
+    pub filter_parameter_behavior: Option<String>,
+    /// modalityConfigs property.
+    pub modality_configs: Option<Vec<DataStoreToolModalityConfig>>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GoogleSearchTool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleSearchTool {
+    /// contextUrls property.
+    pub context_urls: Option<Vec<String>>,
+    /// description property.
+    pub description: Option<String>,
+    /// excludeDomains property.
+    pub exclude_domains: Option<Vec<String>>,
+    /// name property.
+    pub name: Option<String>,
+    /// preferredDomains property.
+    pub preferred_domains: Option<Vec<String>>,
+    /// promptConfig property.
+    pub prompt_config: Option<GoogleSearchToolPromptConfig>,
+}
+
 /// `DataStoreToolSummarizationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataStoreToolSummarizationConfig {
@@ -683,6 +339,288 @@ pub struct DataStoreToolSummarizationConfig {
     pub prompt: Option<String>,
 }
 
+/// `DataStore` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataStore {
+    /// connectorConfig property.
+    pub connector_config: Option<DataStoreConnectorConfig>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// documentProcessingMode property.
+    pub document_processing_mode: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `DataStoreToolBoostSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataStoreToolBoostSpec {
+    /// conditionBoostSpecs property.
+    pub condition_boost_specs: Option<Vec<DataStoreToolBoostSpecConditionBoostSpec>>,
+}
+
+/// `ActionEntityOperation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActionEntityOperation {
+    /// entityId property.
+    pub entity_id: Option<String>,
+    /// operation property.
+    pub operation: Option<String>,
+}
+
+/// `ApiAuthentication` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiAuthentication {
+    /// apiKeyConfig property.
+    pub api_key_config: Option<ApiKeyConfig>,
+    /// bearerTokenConfig property.
+    pub bearer_token_config: Option<BearerTokenConfig>,
+    /// oauthConfig property.
+    pub oauth_config: Option<OAuthConfig>,
+    /// serviceAccountAuthConfig property.
+    pub service_account_auth_config: Option<ServiceAccountAuthConfig>,
+    /// serviceAgentIdTokenAuthConfig property.
+    pub service_agent_id_token_auth_config: Option<ServiceAgentIdTokenAuthConfig>,
+}
+
+/// `FileSearchTool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FileSearchTool {
+    /// corpusType property.
+    pub corpus_type: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// fileCorpus property.
+    pub file_corpus: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `ServiceAgentIdTokenAuthConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceAgentIdTokenAuthConfig {}
+
+/// `OpenApiToolset` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OpenApiToolset {
+    /// apiAuthentication property.
+    pub api_authentication: Option<ApiAuthentication>,
+    /// ignoreUnknownFields property.
+    pub ignore_unknown_fields: Option<bool>,
+    /// openApiSchema property.
+    pub open_api_schema: Option<String>,
+    /// serviceDirectoryConfig property.
+    pub service_directory_config: Option<ServiceDirectoryConfig>,
+    /// tlsConfig property.
+    pub tls_config: Option<TlsConfig>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `Toolset` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Toolset {
+    /// connectorToolset property.
+    pub connector_toolset: Option<ConnectorToolset>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// executionType property.
+    pub execution_type: Option<String>,
+    /// mcpToolset property.
+    pub mcp_toolset: Option<McpToolset>,
+    /// name property.
+    pub name: Option<String>,
+    /// openApiToolset property.
+    pub open_api_toolset: Option<OpenApiToolset>,
+    /// toolFakeConfig property.
+    pub tool_fake_config: Option<ToolFakeConfig>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `EndUserAuthConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EndUserAuthConfig {
+    /// oauth2AuthCodeConfig property.
+    pub oauth2_auth_code_config: Option<EndUserAuthConfigOauth2AuthCodeConfig>,
+    /// oauth2JwtBearerConfig property.
+    pub oauth2_jwt_bearer_config: Option<EndUserAuthConfigOauth2JwtBearerConfig>,
+}
+
+/// `ServiceAccountAuthConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceAccountAuthConfig {
+    /// scopes property.
+    pub scopes: Option<Vec<String>>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+}
+
+/// `TlsConfigCaCert` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TlsConfigCaCert {
+    /// cert property.
+    pub cert: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+}
+
+/// `ConnectorToolset` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectorToolset {
+    /// authConfig property.
+    pub auth_config: Option<EndUserAuthConfig>,
+    /// connection property.
+    pub connection: Option<String>,
+    /// connectorActions property.
+    pub connector_actions: Option<Vec<Action>>,
+}
+
+/// `EndUserAuthConfigOauth2AuthCodeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EndUserAuthConfigOauth2AuthCodeConfig {
+    /// oauthToken property.
+    pub oauth_token: Option<String>,
+}
+
+/// `ConnectorTool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectorTool {
+    /// action property.
+    pub action: Option<Action>,
+    /// authConfig property.
+    pub auth_config: Option<EndUserAuthConfig>,
+    /// connection property.
+    pub connection: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `Schema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Schema {
+    /// additionalProperties property.
+    pub additional_properties: Option<Box<Schema>>,
+    /// anyOf property.
+    pub any_of: Option<Vec<Box<Schema>>>,
+    /// default property.
+    pub default: Option<serde_json::Value>,
+    /// defs property.
+    pub defs: Option<serde_json::Value>,
+    /// description property.
+    pub description: Option<String>,
+    /// enum property.
+    pub r#enum: Option<Vec<String>>,
+    /// items property.
+    pub items: Option<Box<Schema>>,
+    /// maxItems property.
+    pub max_items: Option<String>,
+    /// maximum property.
+    pub maximum: Option<f64>,
+    /// minItems property.
+    pub min_items: Option<String>,
+    /// minimum property.
+    pub minimum: Option<f64>,
+    /// nullable property.
+    pub nullable: Option<bool>,
+    /// prefixItems property.
+    pub prefix_items: Option<Vec<Box<Schema>>>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
+    /// ref property.
+    pub r#ref: Option<String>,
+    /// required property.
+    pub required: Option<Vec<String>>,
+    /// title property.
+    pub title: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// uniqueItems property.
+    pub unique_items: Option<bool>,
+}
+
+/// `DataStoreToolDataStoreSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataStoreToolDataStoreSource {
+    /// dataStore property.
+    pub data_store: Option<DataStore>,
+    /// filter property.
+    pub filter: Option<String>,
+}
+
+/// `ModelSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ModelSettings {
+    /// model property.
+    pub model: Option<String>,
+    /// temperature property.
+    pub temperature: Option<f64>,
+}
+
+/// `TlsConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TlsConfig {
+    /// caCerts property.
+    pub ca_certs: Option<Vec<TlsConfigCaCert>>,
+}
+
+/// `DataStoreConnectorConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataStoreConnectorConfig {
+    /// collection property.
+    pub collection: Option<String>,
+    /// collectionDisplayName property.
+    pub collection_display_name: Option<String>,
+    /// dataSource property.
+    pub data_source: Option<String>,
+}
+
+/// `DataStoreToolBoostSpecConditionBoostSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataStoreToolBoostSpecConditionBoostSpec {
+    /// boost property.
+    pub boost: Option<f64>,
+    /// boostControlSpec property.
+    pub boost_control_spec: Option<DataStoreToolBoostSpecConditionBoostSpecBoostControlSpec>,
+    /// condition property.
+    pub condition: Option<String>,
+}
+
+/// `DataStoreToolBoostSpecConditionBoostSpecBoostControlSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataStoreToolBoostSpecConditionBoostSpecBoostControlSpec {
+    /// attributeType property.
+    pub attribute_type: Option<String>,
+    /// controlPoints property.
+    pub control_points:
+        Option<Vec<DataStoreToolBoostSpecConditionBoostSpecBoostControlSpecControlPoint>>,
+    /// fieldName property.
+    pub field_name: Option<String>,
+    /// interpolationType property.
+    pub interpolation_type: Option<String>,
+}
+
+/// `DataStoreToolBoostSpecConditionBoostSpecBoostControlSpecControlPoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataStoreToolBoostSpecConditionBoostSpecBoostControlSpecControlPoint {
+    /// attributeValue property.
+    pub attribute_value: Option<String>,
+    /// boostAmount property.
+    pub boost_amount: Option<f64>,
+}
+
 /// `ListToolsetsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListToolsetsResponse {
@@ -690,6 +628,69 @@ pub struct ListToolsetsResponse {
     pub next_page_token: Option<String>,
     /// toolsets property.
     pub toolsets: Option<Vec<Toolset>>,
+}
+
+/// `SystemTool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SystemTool {
+    /// description property.
+    pub description: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `DataStoreToolGroundingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataStoreToolGroundingConfig {
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// groundingLevel property.
+    pub grounding_level: Option<f64>,
+}
+
+/// `OpenApiTool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OpenApiTool {
+    /// apiAuthentication property.
+    pub api_authentication: Option<ApiAuthentication>,
+    /// description property.
+    pub description: Option<String>,
+    /// ignoreUnknownFields property.
+    pub ignore_unknown_fields: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+    /// openApiSchema property.
+    pub open_api_schema: Option<String>,
+    /// serviceDirectoryConfig property.
+    pub service_directory_config: Option<ServiceDirectoryConfig>,
+    /// tlsConfig property.
+    pub tls_config: Option<TlsConfig>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `GoogleSearchToolPromptConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleSearchToolPromptConfig {
+    /// textPrompt property.
+    pub text_prompt: Option<String>,
+    /// voicePrompt property.
+    pub voice_prompt: Option<String>,
+}
+
+/// `OAuthConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OAuthConfig {
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// clientSecretVersion property.
+    pub client_secret_version: Option<String>,
+    /// oauthGrantType property.
+    pub oauth_grant_type: Option<String>,
+    /// scopes property.
+    pub scopes: Option<Vec<String>>,
+    /// tokenEndpoint property.
+    pub token_endpoint: Option<String>,
 }
 
 // =============================================================================

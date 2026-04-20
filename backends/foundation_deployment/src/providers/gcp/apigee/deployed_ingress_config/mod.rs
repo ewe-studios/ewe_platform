@@ -12,17 +12,52 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudApigeeV1IngressConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1IngressConfig {
+    /// environmentGroups property.
+    pub environment_groups: Option<Vec<GoogleCloudApigeeV1EnvironmentGroupConfig>>,
+    /// name property.
+    pub name: Option<String>,
+    /// revisionCreateTime property.
+    pub revision_create_time: Option<String>,
+    /// revisionId property.
+    pub revision_id: Option<String>,
+    /// uid property.
+    pub uid: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1RoutingRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1RoutingRule {
+    /// basepath property.
+    pub basepath: Option<String>,
+    /// deploymentGroup property.
+    pub deployment_group: Option<String>,
+    /// envGroupRevision property.
+    pub env_group_revision: Option<String>,
+    /// environment property.
+    pub environment: Option<String>,
+    /// otherTargets property.
+    pub other_targets: Option<Vec<String>>,
+    /// receiver property.
+    pub receiver: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
 
 /// `GoogleCloudApigeeV1EnvironmentGroupConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -50,40 +85,6 @@ pub struct GoogleCloudApigeeV1EndpointChainingRule {
     pub deployment_group: Option<String>,
     /// proxyIds property.
     pub proxy_ids: Option<Vec<String>>,
-}
-
-/// `GoogleCloudApigeeV1RoutingRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1RoutingRule {
-    /// basepath property.
-    pub basepath: Option<String>,
-    /// deploymentGroup property.
-    pub deployment_group: Option<String>,
-    /// envGroupRevision property.
-    pub env_group_revision: Option<String>,
-    /// environment property.
-    pub environment: Option<String>,
-    /// otherTargets property.
-    pub other_targets: Option<Vec<String>>,
-    /// receiver property.
-    pub receiver: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1IngressConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1IngressConfig {
-    /// environmentGroups property.
-    pub environment_groups: Option<Vec<GoogleCloudApigeeV1EnvironmentGroupConfig>>,
-    /// name property.
-    pub name: Option<String>,
-    /// revisionCreateTime property.
-    pub revision_create_time: Option<String>,
-    /// revisionId property.
-    pub revision_id: Option<String>,
-    /// uid property.
-    pub uid: Option<String>,
 }
 
 // =============================================================================

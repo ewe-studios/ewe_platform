@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -24,20 +25,11 @@ use super::shared::GoogleIamV1TestIamPermissionsResponse;
 use super::shared::GoogleLongrunningOperation;
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudApigeeV1Property` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1Property {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
 
 /// `GoogleCloudApigeeV1Score` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -50,6 +42,44 @@ pub struct GoogleCloudApigeeV1Score {
     pub time_range: Option<GoogleTypeInterval>,
 }
 
+/// `GoogleIamV1AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1ScoreComponentRecommendation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ScoreComponentRecommendation {
+    /// actions property.
+    pub actions: Option<Vec<GoogleCloudApigeeV1ScoreComponentRecommendationAction>>,
+    /// description property.
+    pub description: Option<String>,
+    /// impact property.
+    pub impact: Option<i64>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1Property` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1Property {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1ScoreComponentRecommendationActionActionContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ScoreComponentRecommendationActionActionContext {
+    /// documentationLink property.
+    pub documentation_link: Option<String>,
+}
+
 /// `GoogleCloudApigeeV1ComputeEnvironmentScoresResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ComputeEnvironmentScoresResponse {
@@ -57,6 +87,138 @@ pub struct GoogleCloudApigeeV1ComputeEnvironmentScoresResponse {
     pub next_page_token: Option<String>,
     /// scores property.
     pub scores: Option<Vec<GoogleCloudApigeeV1Score>>,
+}
+
+/// `GoogleCloudApigeeV1ScoreComponentRecommendationAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ScoreComponentRecommendationAction {
+    /// actionContext property.
+    pub action_context: Option<GoogleCloudApigeeV1ScoreComponentRecommendationActionActionContext>,
+    /// description property.
+    pub description: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1EnvironmentClientIPResolutionConfigHeaderIndexAlgorithm` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1EnvironmentClientIPResolutionConfigHeaderIndexAlgorithm {
+    /// ipHeaderIndex property.
+    pub ip_header_index: Option<i64>,
+    /// ipHeaderName property.
+    pub ip_header_name: Option<String>,
+}
+
+/// `GoogleIamV1Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1Binding {
+    /// condition property.
+    pub condition: Option<GoogleTypeExpr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `GoogleIamV1AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1ScoreComponent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ScoreComponent {
+    /// calculateTime property.
+    pub calculate_time: Option<String>,
+    /// dataCaptureTime property.
+    pub data_capture_time: Option<String>,
+    /// drilldownPaths property.
+    pub drilldown_paths: Option<Vec<String>>,
+    /// recommendations property.
+    pub recommendations: Option<Vec<GoogleCloudApigeeV1ScoreComponentRecommendation>>,
+    /// score property.
+    pub score: Option<i64>,
+    /// scorePath property.
+    pub score_path: Option<String>,
+}
+
+/// `GoogleTypeExpr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeExpr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleTypeInterval` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeInterval {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1NodeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1NodeConfig {
+    /// currentAggregateNodeCount property.
+    pub current_aggregate_node_count: Option<String>,
+    /// maxNodeCount property.
+    pub max_node_count: Option<String>,
+    /// minNodeCount property.
+    pub min_node_count: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1EnvironmentClientIPResolutionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1EnvironmentClientIPResolutionConfig {
+    /// headerIndexAlgorithm property.
+    pub header_index_algorithm:
+        Option<GoogleCloudApigeeV1EnvironmentClientIPResolutionConfigHeaderIndexAlgorithm>,
+}
+
+/// `GoogleCloudApigeeV1SecurityProfileEnvironmentAssociation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1SecurityProfileEnvironmentAssociation {
+    /// attachTime property.
+    pub attach_time: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// securityProfileRevisionId property.
+    pub security_profile_revision_id: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1Properties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1Properties {
+    /// property property.
+    pub property: Option<Vec<GoogleCloudApigeeV1Property>>,
+}
+
+/// `GoogleCloudApigeeV1Subscription` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1Subscription {
+    /// name property.
+    pub name: Option<String>,
 }
 
 /// `GoogleCloudApigeeV1Environment` type.
@@ -90,167 +252,6 @@ pub struct GoogleCloudApigeeV1Environment {
     pub state: Option<String>,
     /// type property.
     pub r#type: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1EnvironmentClientIPResolutionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1EnvironmentClientIPResolutionConfig {
-    /// headerIndexAlgorithm property.
-    pub header_index_algorithm:
-        Option<GoogleCloudApigeeV1EnvironmentClientIPResolutionConfigHeaderIndexAlgorithm>,
-}
-
-/// `GoogleCloudApigeeV1Subscription` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1Subscription {
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GoogleIamV1AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `GoogleIamV1Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Binding {
-    /// condition property.
-    pub condition: Option<GoogleTypeExpr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1Properties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1Properties {
-    /// property property.
-    pub property: Option<Vec<GoogleCloudApigeeV1Property>>,
-}
-
-/// `GoogleCloudApigeeV1EnvironmentClientIPResolutionConfigHeaderIndexAlgorithm` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1EnvironmentClientIPResolutionConfigHeaderIndexAlgorithm {
-    /// ipHeaderIndex property.
-    pub ip_header_index: Option<i64>,
-    /// ipHeaderName property.
-    pub ip_header_name: Option<String>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleTypeInterval` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeInterval {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1NodeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1NodeConfig {
-    /// currentAggregateNodeCount property.
-    pub current_aggregate_node_count: Option<String>,
-    /// maxNodeCount property.
-    pub max_node_count: Option<String>,
-    /// minNodeCount property.
-    pub min_node_count: Option<String>,
-}
-
-/// `GoogleTypeExpr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeExpr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1SecurityProfileEnvironmentAssociation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1SecurityProfileEnvironmentAssociation {
-    /// attachTime property.
-    pub attach_time: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// securityProfileRevisionId property.
-    pub security_profile_revision_id: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1ScoreComponentRecommendationAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ScoreComponentRecommendationAction {
-    /// actionContext property.
-    pub action_context: Option<GoogleCloudApigeeV1ScoreComponentRecommendationActionActionContext>,
-    /// description property.
-    pub description: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1ScoreComponentRecommendation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ScoreComponentRecommendation {
-    /// actions property.
-    pub actions: Option<Vec<GoogleCloudApigeeV1ScoreComponentRecommendationAction>>,
-    /// description property.
-    pub description: Option<String>,
-    /// impact property.
-    pub impact: Option<i64>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1ScoreComponentRecommendationActionActionContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ScoreComponentRecommendationActionActionContext {
-    /// documentationLink property.
-    pub documentation_link: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1ScoreComponent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ScoreComponent {
-    /// calculateTime property.
-    pub calculate_time: Option<String>,
-    /// dataCaptureTime property.
-    pub data_capture_time: Option<String>,
-    /// drilldownPaths property.
-    pub drilldown_paths: Option<Vec<String>>,
-    /// recommendations property.
-    pub recommendations: Option<Vec<GoogleCloudApigeeV1ScoreComponentRecommendation>>,
-    /// score property.
-    pub score: Option<i64>,
-    /// scorePath property.
-    pub score_path: Option<String>,
-}
-
-/// `GoogleIamV1AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
 }
 
 // =============================================================================

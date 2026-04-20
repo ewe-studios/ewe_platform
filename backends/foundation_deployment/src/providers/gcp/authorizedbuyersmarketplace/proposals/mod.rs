@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,18 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Proposal;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `PrivateData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrivateData {
-    /// referenceId property.
-    pub reference_id: Option<String>,
-}
 
 /// `Contact` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -43,13 +37,11 @@ pub struct Contact {
     pub email: Option<String>,
 }
 
-/// `ListProposalsResponse` type.
+/// `PrivateData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListProposalsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// proposals property.
-    pub proposals: Option<Vec<Proposal>>,
+pub struct PrivateData {
+    /// referenceId property.
+    pub reference_id: Option<String>,
 }
 
 /// `Note` type.
@@ -61,6 +53,15 @@ pub struct Note {
     pub creator_role: Option<String>,
     /// note property.
     pub note: Option<String>,
+}
+
+/// `ListProposalsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListProposalsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// proposals property.
+    pub proposals: Option<Vec<Proposal>>,
 }
 
 // =============================================================================

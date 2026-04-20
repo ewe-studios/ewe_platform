@@ -12,44 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudApigeeV1ApiDocDocumentation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ApiDocDocumentation {
-    /// asyncApiDocumentation property.
-    pub async_api_documentation: Option<GoogleCloudApigeeV1AsyncApiDocumentation>,
-    /// graphqlDocumentation property.
-    pub graphql_documentation: Option<GoogleCloudApigeeV1GraphqlDocumentation>,
-    /// oasDocumentation property.
-    pub oas_documentation: Option<GoogleCloudApigeeV1OASDocumentation>,
-}
-
-/// `GoogleCloudApigeeV1DocumentationFile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1DocumentationFile {
-    /// contents property.
-    pub contents: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1AsyncApiDocumentation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1AsyncApiDocumentation {
-    /// spec property.
-    pub spec: Option<GoogleCloudApigeeV1DocumentationFile>,
-}
 
 /// `GoogleCloudApigeeV1ApiDocDocumentationResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -75,6 +49,13 @@ pub struct GoogleCloudApigeeV1GraphqlDocumentation {
     pub schema: Option<GoogleCloudApigeeV1DocumentationFile>,
 }
 
+/// `GoogleCloudApigeeV1AsyncApiDocumentation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1AsyncApiDocumentation {
+    /// spec property.
+    pub spec: Option<GoogleCloudApigeeV1DocumentationFile>,
+}
+
 /// `GoogleCloudApigeeV1OASDocumentation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1OASDocumentation {
@@ -82,6 +63,26 @@ pub struct GoogleCloudApigeeV1OASDocumentation {
     pub format: Option<String>,
     /// spec property.
     pub spec: Option<GoogleCloudApigeeV1DocumentationFile>,
+}
+
+/// `GoogleCloudApigeeV1DocumentationFile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1DocumentationFile {
+    /// contents property.
+    pub contents: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1ApiDocDocumentation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ApiDocDocumentation {
+    /// asyncApiDocumentation property.
+    pub async_api_documentation: Option<GoogleCloudApigeeV1AsyncApiDocumentation>,
+    /// graphqlDocumentation property.
+    pub graphql_documentation: Option<GoogleCloudApigeeV1GraphqlDocumentation>,
+    /// oasDocumentation property.
+    pub oas_documentation: Option<GoogleCloudApigeeV1OASDocumentation>,
 }
 
 // =============================================================================

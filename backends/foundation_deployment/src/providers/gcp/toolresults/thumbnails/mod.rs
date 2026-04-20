@@ -12,17 +12,40 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListStepThumbnailsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListStepThumbnailsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// thumbnails property.
+    pub thumbnails: Option<Vec<Image>>,
+}
+
+/// `Thumbnail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Thumbnail {
+    /// contentType property.
+    pub content_type: Option<String>,
+    /// data property.
+    pub data: Option<String>,
+    /// heightPx property.
+    pub height_px: Option<i64>,
+    /// widthPx property.
+    pub width_px: Option<i64>,
+}
 
 /// `FileReference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,41 +63,6 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
-}
-
-/// `ListStepThumbnailsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListStepThumbnailsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// thumbnails property.
-    pub thumbnails: Option<Vec<Image>>,
-}
-
-/// `Image` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Image {
-    /// error property.
-    pub error: Option<Status>,
-    /// sourceImage property.
-    pub source_image: Option<ToolOutputReference>,
-    /// stepId property.
-    pub step_id: Option<String>,
-    /// thumbnail property.
-    pub thumbnail: Option<Thumbnail>,
-}
-
-/// `Thumbnail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Thumbnail {
-    /// contentType property.
-    pub content_type: Option<String>,
-    /// data property.
-    pub data: Option<String>,
-    /// heightPx property.
-    pub height_px: Option<i64>,
-    /// widthPx property.
-    pub width_px: Option<i64>,
 }
 
 /// `TestCaseReference` type.
@@ -106,6 +94,19 @@ pub struct ToolOutputReference {
     pub output: Option<FileReference>,
     /// testCase property.
     pub test_case: Option<TestCaseReference>,
+}
+
+/// `Image` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Image {
+    /// error property.
+    pub error: Option<Status>,
+    /// sourceImage property.
+    pub source_image: Option<ToolOutputReference>,
+    /// stepId property.
+    pub step_id: Option<String>,
+    /// thumbnail property.
+    pub thumbnail: Option<Thumbnail>,
 }
 
 // =============================================================================

@@ -12,39 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ExecuteToolResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExecuteToolResponse {
-    /// _meta property.
-    pub meta: Option<serde_json::Value>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// result property.
-    pub result: Option<serde_json::Value>,
-}
-
-/// `ListToolsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListToolsResponse {
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// tools property.
-    pub tools: Option<Vec<Tool>>,
-}
 
 /// `Tool` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -58,11 +37,22 @@ pub struct Tool {
     /// description property.
     pub description: Option<String>,
     /// inputSchema property.
-    pub input_schema: Option<JsonSchema>,
+    pub input_schema: Option<Box<JsonSchema>>,
     /// name property.
     pub name: Option<String>,
     /// outputSchema property.
-    pub output_schema: Option<JsonSchema>,
+    pub output_schema: Option<Box<JsonSchema>>,
+}
+
+/// `ExecuteToolResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExecuteToolResponse {
+    /// _meta property.
+    pub meta: Option<serde_json::Value>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// result property.
+    pub result: Option<serde_json::Value>,
 }
 
 /// `ToolAnnotations` type.
@@ -78,6 +68,17 @@ pub struct ToolAnnotations {
     pub read_only_hint: Option<bool>,
     /// title property.
     pub title: Option<String>,
+}
+
+/// `ListToolsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListToolsResponse {
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// tools property.
+    pub tools: Option<Vec<Tool>>,
 }
 
 /// `JsonSchema` type.
@@ -98,7 +99,7 @@ pub struct JsonSchema {
     /// format property.
     pub format: Option<String>,
     /// items property.
-    pub items: Option<JsonSchema>,
+    pub items: Option<Box<JsonSchema>>,
     /// jdbcType property.
     pub jdbc_type: Option<String>,
     /// maxItems property.

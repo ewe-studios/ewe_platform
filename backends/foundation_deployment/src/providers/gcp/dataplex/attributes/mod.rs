@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,7 +24,7 @@ use super::shared::GoogleIamV1Policy;
 use super::shared::GoogleIamV1TestIamPermissionsResponse;
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -40,17 +41,6 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `GoogleIamV1Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Binding {
-    /// condition property.
-    pub condition: Option<GoogleTypeExpr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
 /// `GoogleCloudDataplexV1ResourceAccessSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ResourceAccessSpec {
@@ -60,6 +50,17 @@ pub struct GoogleCloudDataplexV1ResourceAccessSpec {
     pub readers: Option<Vec<String>>,
     /// writers property.
     pub writers: Option<Vec<String>>,
+}
+
+/// `GoogleIamV1Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1Binding {
+    /// condition property.
+    pub condition: Option<GoogleTypeExpr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `GoogleCloudDataplexV1DataAttribute` type.
@@ -91,24 +92,20 @@ pub struct GoogleCloudDataplexV1DataAttribute {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudDataplexV1ListDataAttributesResponse` type.
+/// `GoogleIamV1AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1ListDataAttributesResponse {
-    /// dataAttributes property.
-    pub data_attributes: Option<Vec<GoogleCloudDataplexV1DataAttribute>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachableLocations property.
-    pub unreachable_locations: Option<Vec<String>>,
+pub struct GoogleIamV1AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
-/// `GoogleIamV1AuditConfig` type.
+/// `GoogleCloudDataplexV1DataAccessSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
+pub struct GoogleCloudDataplexV1DataAccessSpec {
+    /// readers property.
+    pub readers: Option<Vec<String>>,
 }
 
 /// `GoogleTypeExpr` type.
@@ -124,20 +121,24 @@ pub struct GoogleTypeExpr {
     pub title: Option<String>,
 }
 
-/// `GoogleIamV1AuditLogConfig` type.
+/// `GoogleIamV1AuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
+pub struct GoogleIamV1AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
 }
 
-/// `GoogleCloudDataplexV1DataAccessSpec` type.
+/// `GoogleCloudDataplexV1ListDataAttributesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataAccessSpec {
-    /// readers property.
-    pub readers: Option<Vec<String>>,
+pub struct GoogleCloudDataplexV1ListDataAttributesResponse {
+    /// dataAttributes property.
+    pub data_attributes: Option<Vec<GoogleCloudDataplexV1DataAttribute>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachableLocations property.
+    pub unreachable_locations: Option<Vec<String>>,
 }
 
 // =============================================================================

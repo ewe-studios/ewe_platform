@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,17 +22,27 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GetVersionOperationMetadata` type.
+/// `HealthCheckList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadata {
-    /// inlineSbomInfo property.
-    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+pub struct HealthCheckList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<HealthCheck>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `HelpLink` type.
@@ -43,83 +54,15 @@ pub struct HelpLink {
     pub url: Option<String>,
 }
 
-/// `HealthChecksAggregatedList` type.
+/// `ErrorInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HealthChecksAggregatedList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<serde_json::Value>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// unreachables property.
-    pub unreachables: Option<Vec<String>>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `InstancesBulkInsertOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
-}
-
-/// `GetVersionOperationMetadataSbomInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
-}
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `QuotaExceededInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotaExceededInfo {
-    /// dimensions property.
-    pub dimensions: Option<serde_json::Value>,
-    /// futureLimit property.
-    pub future_limit: Option<f64>,
-    /// limit property.
-    pub limit: Option<f64>,
-    /// limitName property.
-    pub limit_name: Option<String>,
-    /// metricName property.
-    pub metric_name: Option<String>,
-    /// rolloutStatus property.
-    pub rollout_status: Option<String>,
-}
-
-/// `HealthCheckLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HealthCheckLogConfig {
-    /// enable property.
-    pub enable: Option<bool>,
-}
-
-/// `GRPCTLSHealthCheck` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GRPCTLSHealthCheck {
-    /// grpcServiceName property.
-    pub grpc_service_name: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
-    /// portSpecification property.
-    pub port_specification: Option<String>,
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
 }
 
 /// `HTTPHealthCheck` type.
@@ -141,6 +84,15 @@ pub struct HTTPHealthCheck {
     pub response: Option<String>,
 }
 
+/// `LocalizedMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
 /// `SSLHealthCheck` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SSLHealthCheck {
@@ -156,22 +108,6 @@ pub struct SSLHealthCheck {
     pub request: Option<String>,
     /// response property.
     pub response: Option<String>,
-}
-
-/// `SetCommonInstanceMetadataOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetCommonInstanceMetadataOperationMetadata {
-    /// clientOperationId property.
-    pub client_operation_id: Option<String>,
-    /// perLocationOperations property.
-    pub per_location_operations: Option<serde_json::Value>,
-}
-
-/// `Help` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
 }
 
 /// `GRPCHealthCheck` type.
@@ -204,6 +140,118 @@ pub struct HTTP2HealthCheck {
     pub request_path: Option<String>,
     /// response property.
     pub response: Option<String>,
+}
+
+/// `TCPHealthCheck` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TCPHealthCheck {
+    /// port property.
+    pub port: Option<i64>,
+    /// portName property.
+    pub port_name: Option<String>,
+    /// portSpecification property.
+    pub port_specification: Option<String>,
+    /// proxyHeader property.
+    pub proxy_header: Option<String>,
+    /// request property.
+    pub request: Option<String>,
+    /// response property.
+    pub response: Option<String>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `SetCommonInstanceMetadataOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetCommonInstanceMetadataOperationMetadata {
+    /// clientOperationId property.
+    pub client_operation_id: Option<String>,
+    /// perLocationOperations property.
+    pub per_location_operations: Option<serde_json::Value>,
+}
+
+/// `HealthChecksAggregatedList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HealthChecksAggregatedList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<serde_json::Value>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// unreachables property.
+    pub unreachables: Option<Vec<String>>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `HTTPSHealthCheck` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HTTPSHealthCheck {
+    /// host property.
+    pub host: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
+    /// portName property.
+    pub port_name: Option<String>,
+    /// portSpecification property.
+    pub port_specification: Option<String>,
+    /// proxyHeader property.
+    pub proxy_header: Option<String>,
+    /// requestPath property.
+    pub request_path: Option<String>,
+    /// response property.
+    pub response: Option<String>,
+}
+
+/// `GetVersionOperationMetadataSbomInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
+}
+
+/// `GRPCTLSHealthCheck` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GRPCTLSHealthCheck {
+    /// grpcServiceName property.
+    pub grpc_service_name: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
+    /// portSpecification property.
+    pub port_specification: Option<String>,
+}
+
+/// `HealthCheckLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HealthCheckLogConfig {
+    /// enable property.
+    pub enable: Option<bool>,
+}
+
+/// `GetVersionOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadata {
+    /// inlineSbomInfo property.
+    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+}
+
+/// `Help` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
 }
 
 /// `HealthCheck` type.
@@ -253,68 +301,21 @@ pub struct HealthCheck {
     pub unhealthy_threshold: Option<i64>,
 }
 
-/// `HealthCheckList` type.
+/// `QuotaExceededInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HealthCheckList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<HealthCheck>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `ErrorInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `TCPHealthCheck` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TCPHealthCheck {
-    /// port property.
-    pub port: Option<i64>,
-    /// portName property.
-    pub port_name: Option<String>,
-    /// portSpecification property.
-    pub port_specification: Option<String>,
-    /// proxyHeader property.
-    pub proxy_header: Option<String>,
-    /// request property.
-    pub request: Option<String>,
-    /// response property.
-    pub response: Option<String>,
-}
-
-/// `HTTPSHealthCheck` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HTTPSHealthCheck {
-    /// host property.
-    pub host: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
-    /// portName property.
-    pub port_name: Option<String>,
-    /// portSpecification property.
-    pub port_specification: Option<String>,
-    /// proxyHeader property.
-    pub proxy_header: Option<String>,
-    /// requestPath property.
-    pub request_path: Option<String>,
-    /// response property.
-    pub response: Option<String>,
+pub struct QuotaExceededInfo {
+    /// dimensions property.
+    pub dimensions: Option<serde_json::Value>,
+    /// futureLimit property.
+    pub future_limit: Option<f64>,
+    /// limit property.
+    pub limit: Option<f64>,
+    /// limitName property.
+    pub limit_name: Option<String>,
+    /// metricName property.
+    pub metric_name: Option<String>,
+    /// rolloutStatus property.
+    pub rollout_status: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,19 +24,30 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `StretchedClusterConfig` type.
+/// `AuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StretchedClusterConfig {
-    /// preferredLocation property.
-    pub preferred_location: Option<String>,
-    /// secondaryLocation property.
-    pub secondary_location: Option<String>,
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `ManagementCluster` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagementCluster {
+    /// clusterId property.
+    pub cluster_id: Option<String>,
+    /// nodeTypeConfigs property.
+    pub node_type_configs: Option<serde_json::Value>,
+    /// stretchedClusterConfig property.
+    pub stretched_cluster_config: Option<StretchedClusterConfig>,
 }
 
 /// `Binding` type.
@@ -47,6 +59,19 @@ pub struct Binding {
     pub members: Option<Vec<String>>,
     /// role property.
     pub role: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 /// `NetworkConfig` type.
@@ -75,35 +100,37 @@ pub struct ListPrivateCloudsResponse {
     pub unreachable: Option<Vec<String>>,
 }
 
-/// `AuditLogConfig` type.
+/// `Vcenter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
+pub struct Vcenter {
+    /// fqdn property.
+    pub fqdn: Option<String>,
+    /// internalIp property.
+    pub internal_ip: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
-/// `Credentials` type.
+/// `StretchedClusterConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Credentials {
-    /// password property.
-    pub password: Option<String>,
-    /// username property.
-    pub username: Option<String>,
+pub struct StretchedClusterConfig {
+    /// preferredLocation property.
+    pub preferred_location: Option<String>,
+    /// secondaryLocation property.
+    pub secondary_location: Option<String>,
 }
 
-/// `Expr` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `Nsx` type.
@@ -119,24 +146,13 @@ pub struct Nsx {
     pub version: Option<String>,
 }
 
-/// `Status` type.
+/// `Credentials` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
+pub struct Credentials {
+    /// password property.
+    pub password: Option<String>,
+    /// username property.
+    pub username: Option<String>,
 }
 
 /// `PrivateCloud` type.
@@ -172,17 +188,13 @@ pub struct PrivateCloud {
     pub vcenter: Option<Vcenter>,
 }
 
-/// `Vcenter` type.
+/// `AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Vcenter {
-    /// fqdn property.
-    pub fqdn: Option<String>,
-    /// internalIp property.
-    pub internal_ip: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// version property.
-    pub version: Option<String>,
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
 /// `Hcx` type.
@@ -196,17 +208,6 @@ pub struct Hcx {
     pub state: Option<String>,
     /// version property.
     pub version: Option<String>,
-}
-
-/// `ManagementCluster` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagementCluster {
-    /// clusterId property.
-    pub cluster_id: Option<String>,
-    /// nodeTypeConfigs property.
-    pub node_type_configs: Option<serde_json::Value>,
-    /// stretchedClusterConfig property.
-    pub stretched_cluster_config: Option<StretchedClusterConfig>,
 }
 
 // =============================================================================

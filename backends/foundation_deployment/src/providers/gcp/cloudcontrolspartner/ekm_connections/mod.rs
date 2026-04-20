@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `EkmConnections` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EkmConnections {
+    /// ekmConnections property.
+    pub ekm_connections: Option<Vec<EkmConnection>>,
+    /// name property.
+    pub name: Option<String>,
+}
 
 /// `EkmConnection` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -33,15 +43,6 @@ pub struct EkmConnection {
     pub connection_name: Option<String>,
     /// connectionState property.
     pub connection_state: Option<String>,
-}
-
-/// `EkmConnections` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EkmConnections {
-    /// ekmConnections property.
-    pub ekm_connections: Option<Vec<EkmConnection>>,
-    /// name property.
-    pub name: Option<String>,
 }
 
 /// `ConnectionError` type.

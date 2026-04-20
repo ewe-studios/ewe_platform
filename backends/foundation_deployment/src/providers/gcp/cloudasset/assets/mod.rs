@@ -12,27 +12,78 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleIdentityAccesscontextmanagerV1IngressTo` type.
+/// `GoogleIdentityAccesscontextmanagerV1IngressPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIdentityAccesscontextmanagerV1IngressTo {
-    /// operations property.
-    pub operations: Option<Vec<GoogleIdentityAccesscontextmanagerV1ApiOperation>>,
-    /// resources property.
-    pub resources: Option<Vec<String>>,
-    /// roles property.
-    pub roles: Option<Vec<String>>,
+pub struct GoogleIdentityAccesscontextmanagerV1IngressPolicy {
+    /// ingressFrom property.
+    pub ingress_from: Option<GoogleIdentityAccesscontextmanagerV1IngressFrom>,
+    /// ingressTo property.
+    pub ingress_to: Option<GoogleIdentityAccesscontextmanagerV1IngressTo>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `RelatedAssets` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RelatedAssets {
+    /// assets property.
+    pub assets: Option<Vec<RelatedAsset>>,
+    /// relationshipAttributes property.
+    pub relationship_attributes: Option<RelationshipAttributes>,
+}
+
+/// `GoogleIdentityAccesscontextmanagerV1ApiOperation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIdentityAccesscontextmanagerV1ApiOperation {
+    /// methodSelectors property.
+    pub method_selectors: Option<Vec<GoogleIdentityAccesscontextmanagerV1MethodSelector>>,
+    /// serviceName property.
+    pub service_name: Option<String>,
+}
+
+/// `Inventory` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Inventory {
+    /// items property.
+    pub items: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// osInfo property.
+    pub os_info: Option<OsInfo>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `GoogleIdentityAccesscontextmanagerV1Condition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIdentityAccesscontextmanagerV1Condition {
+    /// devicePolicy property.
+    pub device_policy: Option<GoogleIdentityAccesscontextmanagerV1DevicePolicy>,
+    /// ipSubnetworks property.
+    pub ip_subnetworks: Option<Vec<String>>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// negate property.
+    pub negate: Option<bool>,
+    /// regions property.
+    pub regions: Option<Vec<String>>,
+    /// requiredAccessLevels property.
+    pub required_access_levels: Option<Vec<String>>,
+    /// vpcNetworkSources property.
+    pub vpc_network_sources: Option<Vec<GoogleIdentityAccesscontextmanagerV1VpcNetworkSource>>,
 }
 
 /// `GoogleIdentityAccesscontextmanagerV1AccessLevel` type.
@@ -50,107 +101,6 @@ pub struct GoogleIdentityAccesscontextmanagerV1AccessLevel {
     pub title: Option<String>,
 }
 
-/// `AssetException` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AssetException {
-    /// details property.
-    pub details: Option<String>,
-    /// exceptionType property.
-    pub exception_type: Option<String>,
-}
-
-/// `Inventory` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Inventory {
-    /// items property.
-    pub items: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// osInfo property.
-    pub os_info: Option<OsInfo>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `Policy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Policy {
-    /// auditConfigs property.
-    pub audit_configs: Option<Vec<AuditConfig>>,
-    /// bindings property.
-    pub bindings: Option<Vec<Binding>>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// version property.
-    pub version: Option<i64>,
-}
-
-/// `GoogleIdentityAccesscontextmanagerV1EgressFrom` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIdentityAccesscontextmanagerV1EgressFrom {
-    /// identities property.
-    pub identities: Option<Vec<String>>,
-    /// identityType property.
-    pub identity_type: Option<String>,
-    /// sourceRestriction property.
-    pub source_restriction: Option<String>,
-    /// sources property.
-    pub sources: Option<Vec<GoogleIdentityAccesscontextmanagerV1EgressSource>>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `GoogleIdentityAccesscontextmanagerV1MethodSelector` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIdentityAccesscontextmanagerV1MethodSelector {
-    /// method property.
-    pub method: Option<String>,
-    /// permission property.
-    pub permission: Option<String>,
-}
-
-/// `GoogleIdentityAccesscontextmanagerV1DevicePolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIdentityAccesscontextmanagerV1DevicePolicy {
-    /// allowedDeviceManagementLevels property.
-    pub allowed_device_management_levels: Option<Vec<String>>,
-    /// allowedEncryptionStatuses property.
-    pub allowed_encryption_statuses: Option<Vec<String>>,
-    /// osConstraints property.
-    pub os_constraints: Option<Vec<GoogleIdentityAccesscontextmanagerV1OsConstraint>>,
-    /// requireAdminApproval property.
-    pub require_admin_approval: Option<bool>,
-    /// requireCorpOwned property.
-    pub require_corp_owned: Option<bool>,
-    /// requireScreenlock property.
-    pub require_screenlock: Option<bool>,
-}
-
-/// `GoogleIdentityAccesscontextmanagerV1IngressSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIdentityAccesscontextmanagerV1IngressSource {
-    /// accessLevel property.
-    pub access_level: Option<String>,
-    /// resource property.
-    pub resource: Option<String>,
-}
-
-/// `GoogleIdentityAccesscontextmanagerV1EgressSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIdentityAccesscontextmanagerV1EgressSource {
-    /// accessLevel property.
-    pub access_level: Option<String>,
-    /// resource property.
-    pub resource: Option<String>,
-}
-
 /// `GoogleIdentityAccesscontextmanagerV1AccessPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1AccessPolicy {
@@ -164,71 +114,6 @@ pub struct GoogleIdentityAccesscontextmanagerV1AccessPolicy {
     pub scopes: Option<Vec<String>>,
     /// title property.
     pub title: Option<String>,
-}
-
-/// `GoogleIdentityAccesscontextmanagerV1ServicePerimeter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIdentityAccesscontextmanagerV1ServicePerimeter {
-    /// description property.
-    pub description: Option<String>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// perimeterType property.
-    pub perimeter_type: Option<String>,
-    /// spec property.
-    pub spec: Option<GoogleIdentityAccesscontextmanagerV1ServicePerimeterConfig>,
-    /// status property.
-    pub status: Option<GoogleIdentityAccesscontextmanagerV1ServicePerimeterConfig>,
-    /// title property.
-    pub title: Option<String>,
-    /// useExplicitDryRunSpec property.
-    pub use_explicit_dry_run_spec: Option<bool>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `GoogleCloudOrgpolicyV1ListPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudOrgpolicyV1ListPolicy {
-    /// allValues property.
-    pub all_values: Option<String>,
-    /// allowedValues property.
-    pub allowed_values: Option<Vec<String>>,
-    /// deniedValues property.
-    pub denied_values: Option<Vec<String>>,
-    /// inheritFromParent property.
-    pub inherit_from_parent: Option<bool>,
-    /// suggestedValue property.
-    pub suggested_value: Option<String>,
-}
-
-/// `GoogleIdentityAccesscontextmanagerV1EgressPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIdentityAccesscontextmanagerV1EgressPolicy {
-    /// egressFrom property.
-    pub egress_from: Option<GoogleIdentityAccesscontextmanagerV1EgressFrom>,
-    /// egressTo property.
-    pub egress_to: Option<GoogleIdentityAccesscontextmanagerV1EgressTo>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleIdentityAccesscontextmanagerV1BasicLevel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIdentityAccesscontextmanagerV1BasicLevel {
-    /// combiningFunction property.
-    pub combining_function: Option<String>,
-    /// conditions property.
-    pub conditions: Option<Vec<GoogleIdentityAccesscontextmanagerV1Condition>>,
 }
 
 /// `Asset` type.
@@ -264,77 +149,17 @@ pub struct Asset {
     pub update_time: Option<String>,
 }
 
-/// `RelatedAssets` type.
+/// `GoogleIdentityAccesscontextmanagerV1EgressTo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RelatedAssets {
-    /// assets property.
-    pub assets: Option<Vec<RelatedAsset>>,
-    /// relationshipAttributes property.
-    pub relationship_attributes: Option<RelationshipAttributes>,
-}
-
-/// `ListAssetsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAssetsResponse {
-    /// assets property.
-    pub assets: Option<Vec<Asset>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// readTime property.
-    pub read_time: Option<String>,
-}
-
-/// `GoogleIdentityAccesscontextmanagerV1CustomLevel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIdentityAccesscontextmanagerV1CustomLevel {
-    /// expr property.
-    pub expr: Option<Expr>,
-}
-
-/// `GoogleIdentityAccesscontextmanagerV1ServicePerimeterConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIdentityAccesscontextmanagerV1ServicePerimeterConfig {
-    /// accessLevels property.
-    pub access_levels: Option<Vec<String>>,
-    /// egressPolicies property.
-    pub egress_policies: Option<Vec<GoogleIdentityAccesscontextmanagerV1EgressPolicy>>,
-    /// ingressPolicies property.
-    pub ingress_policies: Option<Vec<GoogleIdentityAccesscontextmanagerV1IngressPolicy>>,
+pub struct GoogleIdentityAccesscontextmanagerV1EgressTo {
+    /// externalResources property.
+    pub external_resources: Option<Vec<String>>,
+    /// operations property.
+    pub operations: Option<Vec<GoogleIdentityAccesscontextmanagerV1ApiOperation>>,
     /// resources property.
     pub resources: Option<Vec<String>>,
-    /// restrictedServices property.
-    pub restricted_services: Option<Vec<String>>,
-    /// vpcAccessibleServices property.
-    pub vpc_accessible_services: Option<GoogleIdentityAccesscontextmanagerV1VpcAccessibleServices>,
-}
-
-/// `GoogleIdentityAccesscontextmanagerV1VpcAccessibleServices` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIdentityAccesscontextmanagerV1VpcAccessibleServices {
-    /// allowedServices property.
-    pub allowed_services: Option<Vec<String>>,
-    /// enableRestriction property.
-    pub enable_restriction: Option<bool>,
-}
-
-/// `GoogleIdentityAccesscontextmanagerV1ApiOperation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIdentityAccesscontextmanagerV1ApiOperation {
-    /// methodSelectors property.
-    pub method_selectors: Option<Vec<GoogleIdentityAccesscontextmanagerV1MethodSelector>>,
-    /// serviceName property.
-    pub service_name: Option<String>,
-}
-
-/// `GoogleIdentityAccesscontextmanagerV1OsConstraint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIdentityAccesscontextmanagerV1OsConstraint {
-    /// minimumVersion property.
-    pub minimum_version: Option<String>,
-    /// osType property.
-    pub os_type: Option<String>,
-    /// requireVerifiedChromeOs property.
-    pub require_verified_chrome_os: Option<bool>,
+    /// roles property.
+    pub roles: Option<Vec<String>>,
 }
 
 /// `Resource` type.
@@ -356,39 +181,39 @@ pub struct Resource {
     pub version: Option<String>,
 }
 
-/// `GoogleIdentityAccesscontextmanagerV1EgressTo` type.
+/// `ListAssetsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIdentityAccesscontextmanagerV1EgressTo {
-    /// externalResources property.
-    pub external_resources: Option<Vec<String>>,
-    /// operations property.
-    pub operations: Option<Vec<GoogleIdentityAccesscontextmanagerV1ApiOperation>>,
-    /// resources property.
-    pub resources: Option<Vec<String>>,
-    /// roles property.
-    pub roles: Option<Vec<String>>,
+pub struct ListAssetsResponse {
+    /// assets property.
+    pub assets: Option<Vec<Asset>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// readTime property.
+    pub read_time: Option<String>,
 }
 
-/// `GoogleCloudOrgpolicyV1RestoreDefault` type.
+/// `Policy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudOrgpolicyV1RestoreDefault {}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct Policy {
+    /// auditConfigs property.
+    pub audit_configs: Option<Vec<AuditConfig>>,
+    /// bindings property.
+    pub bindings: Option<Vec<Binding>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// version property.
+    pub version: Option<i64>,
 }
 
-/// `GoogleCloudOrgpolicyV1BooleanPolicy` type.
+/// `GoogleIdentityAccesscontextmanagerV1IngressFrom` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudOrgpolicyV1BooleanPolicy {
-    /// enforced property.
-    pub enforced: Option<bool>,
+pub struct GoogleIdentityAccesscontextmanagerV1IngressFrom {
+    /// identities property.
+    pub identities: Option<Vec<String>>,
+    /// identityType property.
+    pub identity_type: Option<String>,
+    /// sources property.
+    pub sources: Option<Vec<GoogleIdentityAccesscontextmanagerV1IngressSource>>,
 }
 
 /// `RelatedAsset` type.
@@ -404,17 +229,24 @@ pub struct RelatedAsset {
     pub relationship_type: Option<String>,
 }
 
-/// `RelationshipAttributes` type.
+/// `GoogleIdentityAccesscontextmanagerV1VpcNetworkSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RelationshipAttributes {
-    /// action property.
-    pub action: Option<String>,
-    /// sourceResourceType property.
-    pub source_resource_type: Option<String>,
-    /// targetResourceType property.
-    pub target_resource_type: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct GoogleIdentityAccesscontextmanagerV1VpcNetworkSource {
+    /// vpcSubnetwork property.
+    pub vpc_subnetwork: Option<GoogleIdentityAccesscontextmanagerV1VpcSubNetwork>,
+}
+
+/// `GoogleIdentityAccesscontextmanagerV1EgressFrom` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIdentityAccesscontextmanagerV1EgressFrom {
+    /// identities property.
+    pub identities: Option<Vec<String>>,
+    /// identityType property.
+    pub identity_type: Option<String>,
+    /// sourceRestriction property.
+    pub source_restriction: Option<String>,
+    /// sources property.
+    pub sources: Option<Vec<GoogleIdentityAccesscontextmanagerV1EgressSource>>,
 }
 
 /// `Expr` type.
@@ -426,28 +258,6 @@ pub struct Expr {
     pub expression: Option<String>,
     /// location property.
     pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleIdentityAccesscontextmanagerV1IngressFrom` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIdentityAccesscontextmanagerV1IngressFrom {
-    /// identities property.
-    pub identities: Option<Vec<String>>,
-    /// identityType property.
-    pub identity_type: Option<String>,
-    /// sources property.
-    pub sources: Option<Vec<GoogleIdentityAccesscontextmanagerV1IngressSource>>,
-}
-
-/// `GoogleIdentityAccesscontextmanagerV1IngressPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIdentityAccesscontextmanagerV1IngressPolicy {
-    /// ingressFrom property.
-    pub ingress_from: Option<GoogleIdentityAccesscontextmanagerV1IngressFrom>,
-    /// ingressTo property.
-    pub ingress_to: Option<GoogleIdentityAccesscontextmanagerV1IngressTo>,
     /// title property.
     pub title: Option<String>,
 }
@@ -473,6 +283,60 @@ pub struct OsInfo {
     pub version: Option<String>,
 }
 
+/// `GoogleIdentityAccesscontextmanagerV1ServicePerimeterConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIdentityAccesscontextmanagerV1ServicePerimeterConfig {
+    /// accessLevels property.
+    pub access_levels: Option<Vec<String>>,
+    /// egressPolicies property.
+    pub egress_policies: Option<Vec<GoogleIdentityAccesscontextmanagerV1EgressPolicy>>,
+    /// ingressPolicies property.
+    pub ingress_policies: Option<Vec<GoogleIdentityAccesscontextmanagerV1IngressPolicy>>,
+    /// resources property.
+    pub resources: Option<Vec<String>>,
+    /// restrictedServices property.
+    pub restricted_services: Option<Vec<String>>,
+    /// vpcAccessibleServices property.
+    pub vpc_accessible_services: Option<GoogleIdentityAccesscontextmanagerV1VpcAccessibleServices>,
+}
+
+/// `GoogleIdentityAccesscontextmanagerV1ServicePerimeter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIdentityAccesscontextmanagerV1ServicePerimeter {
+    /// description property.
+    pub description: Option<String>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// perimeterType property.
+    pub perimeter_type: Option<String>,
+    /// spec property.
+    pub spec: Option<GoogleIdentityAccesscontextmanagerV1ServicePerimeterConfig>,
+    /// status property.
+    pub status: Option<GoogleIdentityAccesscontextmanagerV1ServicePerimeterConfig>,
+    /// title property.
+    pub title: Option<String>,
+    /// useExplicitDryRunSpec property.
+    pub use_explicit_dry_run_spec: Option<bool>,
+}
+
+/// `GoogleIdentityAccesscontextmanagerV1EgressSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIdentityAccesscontextmanagerV1EgressSource {
+    /// accessLevel property.
+    pub access_level: Option<String>,
+    /// resource property.
+    pub resource: Option<String>,
+}
+
+/// `GoogleCloudOrgpolicyV1BooleanPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudOrgpolicyV1BooleanPolicy {
+    /// enforced property.
+    pub enforced: Option<bool>,
+}
+
 /// `GoogleCloudOrgpolicyV1Policy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV1Policy {
@@ -492,30 +356,117 @@ pub struct GoogleCloudOrgpolicyV1Policy {
     pub version: Option<i64>,
 }
 
-/// `GoogleIdentityAccesscontextmanagerV1VpcNetworkSource` type.
+/// `AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIdentityAccesscontextmanagerV1VpcNetworkSource {
-    /// vpcSubnetwork property.
-    pub vpc_subnetwork: Option<GoogleIdentityAccesscontextmanagerV1VpcSubNetwork>,
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
-/// `GoogleIdentityAccesscontextmanagerV1Condition` type.
+/// `GoogleCloudOrgpolicyV1RestoreDefault` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIdentityAccesscontextmanagerV1Condition {
-    /// devicePolicy property.
-    pub device_policy: Option<GoogleIdentityAccesscontextmanagerV1DevicePolicy>,
-    /// ipSubnetworks property.
-    pub ip_subnetworks: Option<Vec<String>>,
+pub struct GoogleCloudOrgpolicyV1RestoreDefault {}
+
+/// `GoogleIdentityAccesscontextmanagerV1BasicLevel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIdentityAccesscontextmanagerV1BasicLevel {
+    /// combiningFunction property.
+    pub combining_function: Option<String>,
+    /// conditions property.
+    pub conditions: Option<Vec<GoogleIdentityAccesscontextmanagerV1Condition>>,
+}
+
+/// `GoogleCloudOrgpolicyV1ListPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudOrgpolicyV1ListPolicy {
+    /// allValues property.
+    pub all_values: Option<String>,
+    /// allowedValues property.
+    pub allowed_values: Option<Vec<String>>,
+    /// deniedValues property.
+    pub denied_values: Option<Vec<String>>,
+    /// inheritFromParent property.
+    pub inherit_from_parent: Option<bool>,
+    /// suggestedValue property.
+    pub suggested_value: Option<String>,
+}
+
+/// `GoogleIdentityAccesscontextmanagerV1CustomLevel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIdentityAccesscontextmanagerV1CustomLevel {
+    /// expr property.
+    pub expr: Option<Expr>,
+}
+
+/// `GoogleIdentityAccesscontextmanagerV1VpcAccessibleServices` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIdentityAccesscontextmanagerV1VpcAccessibleServices {
+    /// allowedServices property.
+    pub allowed_services: Option<Vec<String>>,
+    /// enableRestriction property.
+    pub enable_restriction: Option<bool>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
     /// members property.
     pub members: Option<Vec<String>>,
-    /// negate property.
-    pub negate: Option<bool>,
-    /// regions property.
-    pub regions: Option<Vec<String>>,
-    /// requiredAccessLevels property.
-    pub required_access_levels: Option<Vec<String>>,
-    /// vpcNetworkSources property.
-    pub vpc_network_sources: Option<Vec<GoogleIdentityAccesscontextmanagerV1VpcNetworkSource>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `GoogleIdentityAccesscontextmanagerV1IngressSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIdentityAccesscontextmanagerV1IngressSource {
+    /// accessLevel property.
+    pub access_level: Option<String>,
+    /// resource property.
+    pub resource: Option<String>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `GoogleIdentityAccesscontextmanagerV1IngressTo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIdentityAccesscontextmanagerV1IngressTo {
+    /// operations property.
+    pub operations: Option<Vec<GoogleIdentityAccesscontextmanagerV1ApiOperation>>,
+    /// resources property.
+    pub resources: Option<Vec<String>>,
+    /// roles property.
+    pub roles: Option<Vec<String>>,
+}
+
+/// `AssetException` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AssetException {
+    /// details property.
+    pub details: Option<String>,
+    /// exceptionType property.
+    pub exception_type: Option<String>,
+}
+
+/// `GoogleIdentityAccesscontextmanagerV1EgressPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIdentityAccesscontextmanagerV1EgressPolicy {
+    /// egressFrom property.
+    pub egress_from: Option<GoogleIdentityAccesscontextmanagerV1EgressFrom>,
+    /// egressTo property.
+    pub egress_to: Option<GoogleIdentityAccesscontextmanagerV1EgressTo>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 /// `GoogleIdentityAccesscontextmanagerV1VpcSubNetwork` type.
@@ -525,6 +476,56 @@ pub struct GoogleIdentityAccesscontextmanagerV1VpcSubNetwork {
     pub network: Option<String>,
     /// vpcIpSubnetworks property.
     pub vpc_ip_subnetworks: Option<Vec<String>>,
+}
+
+/// `GoogleIdentityAccesscontextmanagerV1DevicePolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIdentityAccesscontextmanagerV1DevicePolicy {
+    /// allowedDeviceManagementLevels property.
+    pub allowed_device_management_levels: Option<Vec<String>>,
+    /// allowedEncryptionStatuses property.
+    pub allowed_encryption_statuses: Option<Vec<String>>,
+    /// osConstraints property.
+    pub os_constraints: Option<Vec<GoogleIdentityAccesscontextmanagerV1OsConstraint>>,
+    /// requireAdminApproval property.
+    pub require_admin_approval: Option<bool>,
+    /// requireCorpOwned property.
+    pub require_corp_owned: Option<bool>,
+    /// requireScreenlock property.
+    pub require_screenlock: Option<bool>,
+}
+
+/// `GoogleIdentityAccesscontextmanagerV1MethodSelector` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIdentityAccesscontextmanagerV1MethodSelector {
+    /// method property.
+    pub method: Option<String>,
+    /// permission property.
+    pub permission: Option<String>,
+}
+
+/// `GoogleIdentityAccesscontextmanagerV1OsConstraint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIdentityAccesscontextmanagerV1OsConstraint {
+    /// minimumVersion property.
+    pub minimum_version: Option<String>,
+    /// osType property.
+    pub os_type: Option<String>,
+    /// requireVerifiedChromeOs property.
+    pub require_verified_chrome_os: Option<bool>,
+}
+
+/// `RelationshipAttributes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RelationshipAttributes {
+    /// action property.
+    pub action: Option<String>,
+    /// sourceResourceType property.
+    pub source_resource_type: Option<String>,
+    /// targetResourceType property.
+    pub target_resource_type: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 // =============================================================================

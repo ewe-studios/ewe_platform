@@ -12,17 +12,25 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `BatchEditTagsApiObservationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BatchEditTagsApiObservationsResponse {
+    /// apiObservations property.
+    pub api_observations: Option<Vec<ApiObservation>>,
+}
 
 /// `ApiObservation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -47,13 +55,6 @@ pub struct ApiObservation {
     pub tags: Option<Vec<String>>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `BatchEditTagsApiObservationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BatchEditTagsApiObservationsResponse {
-    /// apiObservations property.
-    pub api_observations: Option<Vec<ApiObservation>>,
 }
 
 // =============================================================================

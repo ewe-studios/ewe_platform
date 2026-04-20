@@ -12,30 +12,31 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Identity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Identity {
+    /// principal property.
+    pub principal: Option<String>,
+}
 
 /// `FunctionalType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FunctionalType {
     /// type property.
     pub r#type: Option<String>,
-}
-
-/// `LookupDiscoveredWorkloadResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LookupDiscoveredWorkloadResponse {
-    /// discoveredWorkload property.
-    pub discovered_workload: Option<DiscoveredWorkload>,
 }
 
 /// `DiscoveredWorkload` type.
@@ -66,18 +67,18 @@ pub struct WorkloadProperties {
     pub zone: Option<String>,
 }
 
-/// `Identity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Identity {
-    /// principal property.
-    pub principal: Option<String>,
-}
-
 /// `WorkloadReference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkloadReference {
     /// uri property.
     pub uri: Option<String>,
+}
+
+/// `LookupDiscoveredWorkloadResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LookupDiscoveredWorkloadResponse {
+    /// discoveredWorkload property.
+    pub discovered_workload: Option<DiscoveredWorkload>,
 }
 
 // =============================================================================

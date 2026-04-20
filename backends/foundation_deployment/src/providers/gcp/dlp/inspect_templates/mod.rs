@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,57 +22,84 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GooglePrivacyDlpV2Proximity` type.
+/// `GooglePrivacyDlpV2Dictionary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Proximity {
-    /// windowAfter property.
-    pub window_after: Option<i64>,
-    /// windowBefore property.
-    pub window_before: Option<i64>,
+pub struct GooglePrivacyDlpV2Dictionary {
+    /// cloudStoragePath property.
+    pub cloud_storage_path: Option<GooglePrivacyDlpV2CloudStoragePath>,
+    /// wordList property.
+    pub word_list: Option<GooglePrivacyDlpV2WordList>,
 }
 
-/// `GooglePrivacyDlpV2FindingLimits` type.
+/// `GooglePrivacyDlpV2InspectionRuleSet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2FindingLimits {
-    /// maxFindingsPerInfoType property.
-    pub max_findings_per_info_type: Option<Vec<GooglePrivacyDlpV2InfoTypeLimit>>,
-    /// maxFindingsPerItem property.
-    pub max_findings_per_item: Option<i64>,
-    /// maxFindingsPerRequest property.
-    pub max_findings_per_request: Option<i64>,
+pub struct GooglePrivacyDlpV2InspectionRuleSet {
+    /// infoTypes property.
+    pub info_types: Option<Vec<GooglePrivacyDlpV2InfoType>>,
+    /// rules property.
+    pub rules: Option<Vec<GooglePrivacyDlpV2InspectionRule>>,
 }
 
-/// `GooglePrivacyDlpV2HotwordRule` type.
+/// `GooglePrivacyDlpV2ExcludeByHotword` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2HotwordRule {
+pub struct GooglePrivacyDlpV2ExcludeByHotword {
     /// hotwordRegex property.
     pub hotword_regex: Option<GooglePrivacyDlpV2Regex>,
-    /// likelihoodAdjustment property.
-    pub likelihood_adjustment: Option<GooglePrivacyDlpV2LikelihoodAdjustment>,
     /// proximity property.
     pub proximity: Option<GooglePrivacyDlpV2Proximity>,
 }
 
-/// `GooglePrivacyDlpV2DetectionRule` type.
+/// `GooglePrivacyDlpV2ExcludeByImageFindings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DetectionRule {
-    /// hotwordRule property.
-    pub hotword_rule: Option<GooglePrivacyDlpV2HotwordRule>,
+pub struct GooglePrivacyDlpV2ExcludeByImageFindings {
+    /// imageContainmentType property.
+    pub image_containment_type: Option<GooglePrivacyDlpV2ImageContainmentType>,
+    /// infoTypes property.
+    pub info_types: Option<Vec<GooglePrivacyDlpV2InfoType>>,
 }
 
-/// `GooglePrivacyDlpV2Regex` type.
+/// `GooglePrivacyDlpV2Encloses` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Regex {
-    /// groupIndexes property.
-    pub group_indexes: Option<Vec<i64>>,
-    /// pattern property.
-    pub pattern: Option<String>,
+pub struct GooglePrivacyDlpV2Encloses {}
+
+/// `GooglePrivacyDlpV2StoredType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2StoredType {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2WordList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2WordList {
+    /// words property.
+    pub words: Option<Vec<String>>,
+}
+
+/// `GooglePrivacyDlpV2LikelihoodAdjustment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2LikelihoodAdjustment {
+    /// fixedLikelihood property.
+    pub fixed_likelihood: Option<String>,
+    /// relativeLikelihood property.
+    pub relative_likelihood: Option<i64>,
+}
+
+/// `GooglePrivacyDlpV2InfoTypeLikelihood` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2InfoTypeLikelihood {
+    /// infoType property.
+    pub info_type: Option<GooglePrivacyDlpV2InfoType>,
+    /// minLikelihood property.
+    pub min_likelihood: Option<String>,
 }
 
 /// `GooglePrivacyDlpV2CustomInfoType` type.
@@ -99,59 +127,15 @@ pub struct GooglePrivacyDlpV2CustomInfoType {
     pub surrogate_type: Option<GooglePrivacyDlpV2SurrogateType>,
 }
 
-/// `GooglePrivacyDlpV2InspectionRuleSet` type.
+/// `GooglePrivacyDlpV2InspectionRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2InspectionRuleSet {
-    /// infoTypes property.
-    pub info_types: Option<Vec<GooglePrivacyDlpV2InfoType>>,
-    /// rules property.
-    pub rules: Option<Vec<GooglePrivacyDlpV2InspectionRule>>,
-}
-
-/// `GooglePrivacyDlpV2Encloses` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Encloses {}
-
-/// `GooglePrivacyDlpV2LikelihoodAdjustment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2LikelihoodAdjustment {
-    /// fixedLikelihood property.
-    pub fixed_likelihood: Option<String>,
-    /// relativeLikelihood property.
-    pub relative_likelihood: Option<i64>,
-}
-
-/// `GooglePrivacyDlpV2InfoTypeLikelihood` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2InfoTypeLikelihood {
-    /// infoType property.
-    pub info_type: Option<GooglePrivacyDlpV2InfoType>,
-    /// minLikelihood property.
-    pub min_likelihood: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2SurrogateType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2SurrogateType {}
-
-/// `GooglePrivacyDlpV2AdjustmentRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2AdjustmentRule {
-    /// adjustByImageFindings property.
-    pub adjust_by_image_findings: Option<GooglePrivacyDlpV2AdjustByImageFindings>,
-    /// adjustByMatchingInfoTypes property.
-    pub adjust_by_matching_info_types: Option<GooglePrivacyDlpV2AdjustByMatchingInfoTypes>,
-    /// likelihoodAdjustment property.
-    pub likelihood_adjustment: Option<GooglePrivacyDlpV2LikelihoodAdjustment>,
-}
-
-/// `GooglePrivacyDlpV2InfoTypeLimit` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2InfoTypeLimit {
-    /// infoType property.
-    pub info_type: Option<GooglePrivacyDlpV2InfoType>,
-    /// maxFindings property.
-    pub max_findings: Option<i64>,
+pub struct GooglePrivacyDlpV2InspectionRule {
+    /// adjustmentRule property.
+    pub adjustment_rule: Option<GooglePrivacyDlpV2AdjustmentRule>,
+    /// exclusionRule property.
+    pub exclusion_rule: Option<GooglePrivacyDlpV2ExclusionRule>,
+    /// hotwordRule property.
+    pub hotword_rule: Option<GooglePrivacyDlpV2HotwordRule>,
 }
 
 /// `GooglePrivacyDlpV2InspectTemplate` type.
@@ -171,50 +155,6 @@ pub struct GooglePrivacyDlpV2InspectTemplate {
     pub update_time: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2ImageContainmentType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ImageContainmentType {
-    /// encloses property.
-    pub encloses: Option<GooglePrivacyDlpV2Encloses>,
-    /// fullyInside property.
-    pub fully_inside: Option<GooglePrivacyDlpV2FullyInside>,
-    /// overlaps property.
-    pub overlaps: Option<GooglePrivacyDlpV2Overlap>,
-}
-
-/// `GooglePrivacyDlpV2AdjustByMatchingInfoTypes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2AdjustByMatchingInfoTypes {
-    /// infoTypes property.
-    pub info_types: Option<Vec<GooglePrivacyDlpV2InfoType>>,
-    /// matchingType property.
-    pub matching_type: Option<String>,
-    /// minLikelihood property.
-    pub min_likelihood: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2InfoType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2InfoType {
-    /// name property.
-    pub name: Option<String>,
-    /// sensitivityScore property.
-    pub sensitivity_score: Option<GooglePrivacyDlpV2SensitivityScore>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2Overlap` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Overlap {}
-
-/// `GooglePrivacyDlpV2WordList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2WordList {
-    /// words property.
-    pub words: Option<Vec<String>>,
-}
-
 /// `GooglePrivacyDlpV2ExclusionRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ExclusionRule {
@@ -232,30 +172,9 @@ pub struct GooglePrivacyDlpV2ExclusionRule {
     pub regex: Option<GooglePrivacyDlpV2Regex>,
 }
 
-/// `GooglePrivacyDlpV2CloudStoragePath` type.
+/// `GooglePrivacyDlpV2Overlap` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2CloudStoragePath {
-    /// path property.
-    pub path: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2ExcludeInfoTypes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ExcludeInfoTypes {
-    /// infoTypes property.
-    pub info_types: Option<Vec<GooglePrivacyDlpV2InfoType>>,
-}
-
-/// `GooglePrivacyDlpV2InspectionRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2InspectionRule {
-    /// adjustmentRule property.
-    pub adjustment_rule: Option<GooglePrivacyDlpV2AdjustmentRule>,
-    /// exclusionRule property.
-    pub exclusion_rule: Option<GooglePrivacyDlpV2ExclusionRule>,
-    /// hotwordRule property.
-    pub hotword_rule: Option<GooglePrivacyDlpV2HotwordRule>,
-}
+pub struct GooglePrivacyDlpV2Overlap {}
 
 /// `GooglePrivacyDlpV2ListInspectTemplatesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -266,35 +185,57 @@ pub struct GooglePrivacyDlpV2ListInspectTemplatesResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2StoredType` type.
+/// `GooglePrivacyDlpV2SurrogateType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2StoredType {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// name property.
-    pub name: Option<String>,
+pub struct GooglePrivacyDlpV2SurrogateType {}
+
+/// `GooglePrivacyDlpV2DetectionRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DetectionRule {
+    /// hotwordRule property.
+    pub hotword_rule: Option<GooglePrivacyDlpV2HotwordRule>,
+}
+
+/// `GooglePrivacyDlpV2ExcludeInfoTypes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2ExcludeInfoTypes {
+    /// infoTypes property.
+    pub info_types: Option<Vec<GooglePrivacyDlpV2InfoType>>,
+}
+
+/// `GooglePrivacyDlpV2HotwordRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2HotwordRule {
+    /// hotwordRegex property.
+    pub hotword_regex: Option<GooglePrivacyDlpV2Regex>,
+    /// likelihoodAdjustment property.
+    pub likelihood_adjustment: Option<GooglePrivacyDlpV2LikelihoodAdjustment>,
+    /// proximity property.
+    pub proximity: Option<GooglePrivacyDlpV2Proximity>,
 }
 
 /// `GooglePrivacyDlpV2FullyInside` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2FullyInside {}
 
-/// `GooglePrivacyDlpV2Dictionary` type.
+/// `GooglePrivacyDlpV2InfoType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Dictionary {
-    /// cloudStoragePath property.
-    pub cloud_storage_path: Option<GooglePrivacyDlpV2CloudStoragePath>,
-    /// wordList property.
-    pub word_list: Option<GooglePrivacyDlpV2WordList>,
+pub struct GooglePrivacyDlpV2InfoType {
+    /// name property.
+    pub name: Option<String>,
+    /// sensitivityScore property.
+    pub sensitivity_score: Option<GooglePrivacyDlpV2SensitivityScore>,
+    /// version property.
+    pub version: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2AdjustByImageFindings` type.
+/// `GooglePrivacyDlpV2AdjustByMatchingInfoTypes` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2AdjustByImageFindings {
-    /// imageContainmentType property.
-    pub image_containment_type: Option<GooglePrivacyDlpV2ImageContainmentType>,
+pub struct GooglePrivacyDlpV2AdjustByMatchingInfoTypes {
     /// infoTypes property.
     pub info_types: Option<Vec<GooglePrivacyDlpV2InfoType>>,
+    /// matchingType property.
+    pub matching_type: Option<String>,
     /// minLikelihood property.
     pub min_likelihood: Option<String>,
 }
@@ -304,6 +245,33 @@ pub struct GooglePrivacyDlpV2AdjustByImageFindings {
 pub struct GooglePrivacyDlpV2SensitivityScore {
     /// score property.
     pub score: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2CloudStoragePath` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2CloudStoragePath {
+    /// path property.
+    pub path: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2InfoTypeLimit` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2InfoTypeLimit {
+    /// infoType property.
+    pub info_type: Option<GooglePrivacyDlpV2InfoType>,
+    /// maxFindings property.
+    pub max_findings: Option<i64>,
+}
+
+/// `GooglePrivacyDlpV2AdjustmentRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2AdjustmentRule {
+    /// adjustByImageFindings property.
+    pub adjust_by_image_findings: Option<GooglePrivacyDlpV2AdjustByImageFindings>,
+    /// adjustByMatchingInfoTypes property.
+    pub adjust_by_matching_info_types: Option<GooglePrivacyDlpV2AdjustByMatchingInfoTypes>,
+    /// likelihoodAdjustment property.
+    pub likelihood_adjustment: Option<GooglePrivacyDlpV2LikelihoodAdjustment>,
 }
 
 /// `GooglePrivacyDlpV2InspectConfig` type.
@@ -329,13 +297,55 @@ pub struct GooglePrivacyDlpV2InspectConfig {
     pub rule_set: Option<Vec<GooglePrivacyDlpV2InspectionRuleSet>>,
 }
 
-/// `GooglePrivacyDlpV2ExcludeByImageFindings` type.
+/// `GooglePrivacyDlpV2AdjustByImageFindings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ExcludeByImageFindings {
+pub struct GooglePrivacyDlpV2AdjustByImageFindings {
     /// imageContainmentType property.
     pub image_containment_type: Option<GooglePrivacyDlpV2ImageContainmentType>,
     /// infoTypes property.
     pub info_types: Option<Vec<GooglePrivacyDlpV2InfoType>>,
+    /// minLikelihood property.
+    pub min_likelihood: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2Proximity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Proximity {
+    /// windowAfter property.
+    pub window_after: Option<i64>,
+    /// windowBefore property.
+    pub window_before: Option<i64>,
+}
+
+/// `GooglePrivacyDlpV2FindingLimits` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2FindingLimits {
+    /// maxFindingsPerInfoType property.
+    pub max_findings_per_info_type: Option<Vec<GooglePrivacyDlpV2InfoTypeLimit>>,
+    /// maxFindingsPerItem property.
+    pub max_findings_per_item: Option<i64>,
+    /// maxFindingsPerRequest property.
+    pub max_findings_per_request: Option<i64>,
+}
+
+/// `GooglePrivacyDlpV2ImageContainmentType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2ImageContainmentType {
+    /// encloses property.
+    pub encloses: Option<GooglePrivacyDlpV2Encloses>,
+    /// fullyInside property.
+    pub fully_inside: Option<GooglePrivacyDlpV2FullyInside>,
+    /// overlaps property.
+    pub overlaps: Option<GooglePrivacyDlpV2Overlap>,
+}
+
+/// `GooglePrivacyDlpV2Regex` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Regex {
+    /// groupIndexes property.
+    pub group_indexes: Option<Vec<i64>>,
+    /// pattern property.
+    pub pattern: Option<String>,
 }
 
 /// `GooglePrivacyDlpV2MetadataKeyValueExpression` type.
@@ -345,15 +355,6 @@ pub struct GooglePrivacyDlpV2MetadataKeyValueExpression {
     pub key_regex: Option<String>,
     /// valueRegex property.
     pub value_regex: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2ExcludeByHotword` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ExcludeByHotword {
-    /// hotwordRegex property.
-    pub hotword_regex: Option<GooglePrivacyDlpV2Regex>,
-    /// proximity property.
-    pub proximity: Option<GooglePrivacyDlpV2Proximity>,
 }
 
 // =============================================================================

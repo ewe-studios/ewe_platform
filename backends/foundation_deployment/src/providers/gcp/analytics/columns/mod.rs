@@ -12,17 +12,29 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Column` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Column {
+    /// attributes property.
+    pub attributes: Option<serde_json::Value>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+}
 
 /// `Columns` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -37,17 +49,6 @@ pub struct Columns {
     pub kind: Option<String>,
     /// totalResults property.
     pub total_results: Option<i64>,
-}
-
-/// `Column` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Column {
-    /// attributes property.
-    pub attributes: Option<serde_json::Value>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
 }
 
 // =============================================================================

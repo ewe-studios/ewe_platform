@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,28 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleAnalyticsAdminV1betaListCustomDimensionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAnalyticsAdminV1betaListCustomDimensionsResponse {
-    /// customDimensions property.
-    pub custom_dimensions: Option<Vec<GoogleAnalyticsAdminV1BetaCustomDimension>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleAnalyticsAdminV1BetaCustomDimension` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAnalyticsAdminV1BetaCustomDimension {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
 
 /// `GoogleAnalyticsAdminV1betaCustomDimension` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -59,6 +43,23 @@ pub struct GoogleAnalyticsAdminV1betaCustomDimension {
     pub parameter_name: Option<String>,
     /// scope property.
     pub scope: Option<String>,
+}
+
+/// `GoogleAnalyticsAdminV1betaListCustomDimensionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAnalyticsAdminV1betaListCustomDimensionsResponse {
+    /// customDimensions property.
+    pub custom_dimensions: Option<Vec<GoogleAnalyticsAdminV1BetaCustomDimension>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleAnalyticsAdminV1BetaCustomDimension` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAnalyticsAdminV1BetaCustomDimension {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 // =============================================================================

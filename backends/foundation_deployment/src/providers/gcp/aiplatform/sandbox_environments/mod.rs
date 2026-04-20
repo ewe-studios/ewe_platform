@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,21 +22,17 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudAiplatformV1SandboxEnvironmentConnectionInfo` type.
+/// `GoogleCloudAiplatformV1Metadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SandboxEnvironmentConnectionInfo {
-    /// loadBalancerHostname property.
-    pub load_balancer_hostname: Option<String>,
-    /// loadBalancerIp property.
-    pub load_balancer_ip: Option<String>,
-    /// sandboxInternalIp property.
-    pub sandbox_internal_ip: Option<String>,
+pub struct GoogleCloudAiplatformV1Metadata {
+    /// attributes property.
+    pub attributes: Option<serde_json::Value>,
 }
 
 /// `GoogleCloudAiplatformV1SandboxEnvironmentSpec` type.
@@ -44,6 +41,13 @@ pub struct GoogleCloudAiplatformV1SandboxEnvironmentSpec {
     /// codeExecutionEnvironment property.
     pub code_execution_environment:
         Option<GoogleCloudAiplatformV1SandboxEnvironmentSpecCodeExecutionEnvironment>,
+}
+
+/// `GoogleCloudAiplatformV1ExecuteSandboxEnvironmentResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ExecuteSandboxEnvironmentResponse {
+    /// outputs property.
+    pub outputs: Option<Vec<GoogleCloudAiplatformV1Chunk>>,
 }
 
 /// `GoogleCloudAiplatformV1Chunk` type.
@@ -57,20 +61,15 @@ pub struct GoogleCloudAiplatformV1Chunk {
     pub mime_type: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1Metadata` type.
+/// `GoogleCloudAiplatformV1SandboxEnvironmentConnectionInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Metadata {
-    /// attributes property.
-    pub attributes: Option<serde_json::Value>,
-}
-
-/// `GoogleCloudAiplatformV1SandboxEnvironmentSpecCodeExecutionEnvironment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SandboxEnvironmentSpecCodeExecutionEnvironment {
-    /// codeLanguage property.
-    pub code_language: Option<String>,
-    /// machineConfig property.
-    pub machine_config: Option<String>,
+pub struct GoogleCloudAiplatformV1SandboxEnvironmentConnectionInfo {
+    /// loadBalancerHostname property.
+    pub load_balancer_hostname: Option<String>,
+    /// loadBalancerIp property.
+    pub load_balancer_ip: Option<String>,
+    /// sandboxInternalIp property.
+    pub sandbox_internal_ip: Option<String>,
 }
 
 /// `GoogleRpcStatus` type.
@@ -84,11 +83,13 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1ExecuteSandboxEnvironmentResponse` type.
+/// `GoogleCloudAiplatformV1SandboxEnvironmentSpecCodeExecutionEnvironment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ExecuteSandboxEnvironmentResponse {
-    /// outputs property.
-    pub outputs: Option<Vec<GoogleCloudAiplatformV1Chunk>>,
+pub struct GoogleCloudAiplatformV1SandboxEnvironmentSpecCodeExecutionEnvironment {
+    /// codeLanguage property.
+    pub code_language: Option<String>,
+    /// machineConfig property.
+    pub machine_config: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1SandboxEnvironment` type.

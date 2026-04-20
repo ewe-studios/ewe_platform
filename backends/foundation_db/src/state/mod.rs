@@ -17,6 +17,7 @@ pub mod hash;
 pub mod helpers;
 #[cfg(feature = "libsql")]
 pub mod libsql_state;
+pub mod namespaced;
 pub mod r2;
 pub mod resource_identifier;
 #[cfg(feature = "libsql")]
@@ -35,6 +36,7 @@ pub use hash::config_hash;
 pub use helpers::{collect_all, collect_first, drive_to_completion};
 #[cfg(feature = "libsql")]
 pub use libsql_state::LibSQLStateStore;
+pub use namespaced::NamespacedStore;
 pub use r2::R2StateStore;
 #[cfg(feature = "libsql")]
 pub use sqlite::SqliteStateStore;

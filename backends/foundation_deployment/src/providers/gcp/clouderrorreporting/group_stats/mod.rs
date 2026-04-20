@@ -12,23 +12,119 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `SourceLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SourceLocation {
+    /// filePath property.
+    pub file_path: Option<String>,
+    /// functionName property.
+    pub function_name: Option<String>,
+    /// lineNumber property.
+    pub line_number: Option<i64>,
+}
+
+/// `ErrorEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorEvent {
+    /// context property.
+    pub context: Option<ErrorContext>,
+    /// eventTime property.
+    pub event_time: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// serviceContext property.
+    pub service_context: Option<ServiceContext>,
+}
+
+/// `SourceReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SourceReference {
+    /// repository property.
+    pub repository: Option<String>,
+    /// revisionId property.
+    pub revision_id: Option<String>,
+}
 
 /// `TrackingIssue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TrackingIssue {
     /// url property.
     pub url: Option<String>,
+}
+
+/// `ListGroupStatsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListGroupStatsResponse {
+    /// errorGroupStats property.
+    pub error_group_stats: Option<Vec<ErrorGroupStats>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// timeRangeBegin property.
+    pub time_range_begin: Option<String>,
+}
+
+/// `ErrorGroupStats` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorGroupStats {
+    /// affectedServices property.
+    pub affected_services: Option<Vec<ServiceContext>>,
+    /// affectedUsersCount property.
+    pub affected_users_count: Option<String>,
+    /// count property.
+    pub count: Option<String>,
+    /// firstSeenTime property.
+    pub first_seen_time: Option<String>,
+    /// group property.
+    pub group: Option<ErrorGroup>,
+    /// lastSeenTime property.
+    pub last_seen_time: Option<String>,
+    /// numAffectedServices property.
+    pub num_affected_services: Option<i64>,
+    /// representative property.
+    pub representative: Option<ErrorEvent>,
+    /// timedCounts property.
+    pub timed_counts: Option<Vec<TimedCount>>,
+}
+
+/// `ServiceContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceContext {
+    /// resourceType property.
+    pub resource_type: Option<String>,
+    /// service property.
+    pub service: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `HttpRequestContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRequestContext {
+    /// method property.
+    pub method: Option<String>,
+    /// referrer property.
+    pub referrer: Option<String>,
+    /// remoteIp property.
+    pub remote_ip: Option<String>,
+    /// responseStatusCode property.
+    pub response_status_code: Option<i64>,
+    /// url property.
+    pub url: Option<String>,
+    /// userAgent property.
+    pub user_agent: Option<String>,
 }
 
 /// `ErrorContext` type.
@@ -66,101 +162,6 @@ pub struct TimedCount {
     pub end_time: Option<String>,
     /// startTime property.
     pub start_time: Option<String>,
-}
-
-/// `ServiceContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceContext {
-    /// resourceType property.
-    pub resource_type: Option<String>,
-    /// service property.
-    pub service: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `HttpRequestContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRequestContext {
-    /// method property.
-    pub method: Option<String>,
-    /// referrer property.
-    pub referrer: Option<String>,
-    /// remoteIp property.
-    pub remote_ip: Option<String>,
-    /// responseStatusCode property.
-    pub response_status_code: Option<i64>,
-    /// url property.
-    pub url: Option<String>,
-    /// userAgent property.
-    pub user_agent: Option<String>,
-}
-
-/// `SourceReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceReference {
-    /// repository property.
-    pub repository: Option<String>,
-    /// revisionId property.
-    pub revision_id: Option<String>,
-}
-
-/// `SourceLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceLocation {
-    /// filePath property.
-    pub file_path: Option<String>,
-    /// functionName property.
-    pub function_name: Option<String>,
-    /// lineNumber property.
-    pub line_number: Option<i64>,
-}
-
-/// `ListGroupStatsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListGroupStatsResponse {
-    /// errorGroupStats property.
-    pub error_group_stats: Option<Vec<ErrorGroupStats>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// timeRangeBegin property.
-    pub time_range_begin: Option<String>,
-}
-
-/// `ErrorEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorEvent {
-    /// context property.
-    pub context: Option<ErrorContext>,
-    /// eventTime property.
-    pub event_time: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// serviceContext property.
-    pub service_context: Option<ServiceContext>,
-}
-
-/// `ErrorGroupStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorGroupStats {
-    /// affectedServices property.
-    pub affected_services: Option<Vec<ServiceContext>>,
-    /// affectedUsersCount property.
-    pub affected_users_count: Option<String>,
-    /// count property.
-    pub count: Option<String>,
-    /// firstSeenTime property.
-    pub first_seen_time: Option<String>,
-    /// group property.
-    pub group: Option<ErrorGroup>,
-    /// lastSeenTime property.
-    pub last_seen_time: Option<String>,
-    /// numAffectedServices property.
-    pub num_affected_services: Option<i64>,
-    /// representative property.
-    pub representative: Option<ErrorEvent>,
-    /// timedCounts property.
-    pub timed_counts: Option<Vec<TimedCount>>,
 }
 
 // =============================================================================

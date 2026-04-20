@@ -12,18 +12,20 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
 use super::shared::GoogleCloudDialogflowCxV3AgentValidationResult;
+use super::shared::GoogleCloudDialogflowCxV3FlowValidationResult;
 use super::shared::GoogleLongrunningOperation;
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -42,28 +44,27 @@ pub struct GoogleCloudDialogflowCxV3AdvancedSettingsSpeechSettings {
     pub use_timeout_based_endpointing: Option<bool>,
 }
 
-/// `GoogleCloudDialogflowCxV3ValidationMessage` type.
+/// `GoogleCloudDialogflowCxV3AgentPersonalizationSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ValidationMessage {
-    /// detail property.
-    pub detail: Option<String>,
-    /// resourceNames property.
-    pub resource_names: Option<Vec<GoogleCloudDialogflowCxV3ResourceName>>,
-    /// resourceType property.
-    pub resource_type: Option<String>,
-    /// resources property.
-    pub resources: Option<Vec<String>>,
-    /// severity property.
-    pub severity: Option<String>,
+pub struct GoogleCloudDialogflowCxV3AgentPersonalizationSettings {
+    /// defaultEndUserMetadata property.
+    pub default_end_user_metadata: Option<serde_json::Value>,
 }
 
-/// `GoogleCloudDialogflowCxV3ResourceName` type.
+/// `GoogleCloudDialogflowCxV3AgentGenAppBuilderSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ResourceName {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
+pub struct GoogleCloudDialogflowCxV3AgentGenAppBuilderSettings {
+    /// engine property.
+    pub engine: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3ListAgentsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ListAgentsResponse {
+    /// agents property.
+    pub agents: Option<Vec<GoogleCloudDialogflowCxV3Agent>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `GoogleCloudDialogflowCxV3Agent` type.
@@ -120,13 +121,6 @@ pub struct GoogleCloudDialogflowCxV3Agent {
     pub time_zone: Option<String>,
 }
 
-/// `GoogleCloudDialogflowCxV3AgentAnswerFeedbackSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3AgentAnswerFeedbackSettings {
-    /// enableAnswerFeedback property.
-    pub enable_answer_feedback: Option<bool>,
-}
-
 /// `GoogleCloudDialogflowCxV3AdvancedSettingsDtmfSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDialogflowCxV3AdvancedSettingsDtmfSettings {
@@ -142,31 +136,29 @@ pub struct GoogleCloudDialogflowCxV3AdvancedSettingsDtmfSettings {
     pub max_digits: Option<i64>,
 }
 
-/// `GoogleCloudDialogflowCxV3AgentClientCertificateSettings` type.
+/// `GoogleCloudDialogflowCxV3TextToSpeechSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3AgentClientCertificateSettings {
-    /// passphrase property.
-    pub passphrase: Option<String>,
-    /// privateKey property.
-    pub private_key: Option<String>,
-    /// sslCertificate property.
-    pub ssl_certificate: Option<String>,
+pub struct GoogleCloudDialogflowCxV3TextToSpeechSettings {
+    /// synthesizeSpeechConfigs property.
+    pub synthesize_speech_configs: Option<serde_json::Value>,
 }
 
-/// `GoogleCloudDialogflowCxV3GcsDestination` type.
+/// `GoogleCloudDialogflowCxV3AgentGitIntegrationSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3GcsDestination {
-    /// uri property.
-    pub uri: Option<String>,
+pub struct GoogleCloudDialogflowCxV3AgentGitIntegrationSettings {
+    /// githubSettings property.
+    pub github_settings: Option<GoogleCloudDialogflowCxV3AgentGitIntegrationSettingsGithubSettings>,
 }
 
-/// `GoogleCloudDialogflowCxV3ListAgentsResponse` type.
+/// `GoogleCloudDialogflowCxV3AdvancedSettingsLoggingSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ListAgentsResponse {
-    /// agents property.
-    pub agents: Option<Vec<GoogleCloudDialogflowCxV3Agent>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct GoogleCloudDialogflowCxV3AdvancedSettingsLoggingSettings {
+    /// enableConsentBasedRedaction property.
+    pub enable_consent_based_redaction: Option<bool>,
+    /// enableInteractionLogging property.
+    pub enable_interaction_logging: Option<bool>,
+    /// enableStackdriverLogging property.
+    pub enable_stackdriver_logging: Option<bool>,
 }
 
 /// `GoogleRpcStatus` type.
@@ -178,6 +170,55 @@ pub struct GoogleRpcStatus {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3ResourceName` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ResourceName {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3ValidationMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ValidationMessage {
+    /// detail property.
+    pub detail: Option<String>,
+    /// resourceNames property.
+    pub resource_names: Option<Vec<GoogleCloudDialogflowCxV3ResourceName>>,
+    /// resourceType property.
+    pub resource_type: Option<String>,
+    /// resources property.
+    pub resources: Option<Vec<String>>,
+    /// severity property.
+    pub severity: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3SpeechToTextSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3SpeechToTextSettings {
+    /// enableSpeechAdaptation property.
+    pub enable_speech_adaptation: Option<bool>,
+}
+
+/// `GoogleCloudDialogflowCxV3AgentAnswerFeedbackSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3AgentAnswerFeedbackSettings {
+    /// enableAnswerFeedback property.
+    pub enable_answer_feedback: Option<bool>,
+}
+
+/// `GoogleCloudDialogflowCxV3AgentClientCertificateSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3AgentClientCertificateSettings {
+    /// passphrase property.
+    pub passphrase: Option<String>,
+    /// privateKey property.
+    pub private_key: Option<String>,
+    /// sslCertificate property.
+    pub ssl_certificate: Option<String>,
 }
 
 /// `GoogleCloudDialogflowCxV3AgentGitIntegrationSettingsGithubSettings` type.
@@ -195,32 +236,11 @@ pub struct GoogleCloudDialogflowCxV3AgentGitIntegrationSettingsGithubSettings {
     pub tracking_branch: Option<String>,
 }
 
-/// `GoogleCloudDialogflowCxV3AgentGenAppBuilderSettings` type.
+/// `GoogleCloudDialogflowCxV3GcsDestination` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3AgentGenAppBuilderSettings {
-    /// engine property.
-    pub engine: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3SpeechToTextSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3SpeechToTextSettings {
-    /// enableSpeechAdaptation property.
-    pub enable_speech_adaptation: Option<bool>,
-}
-
-/// `GoogleCloudDialogflowCxV3AgentGitIntegrationSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3AgentGitIntegrationSettings {
-    /// githubSettings property.
-    pub github_settings: Option<GoogleCloudDialogflowCxV3AgentGitIntegrationSettingsGithubSettings>,
-}
-
-/// `GoogleCloudDialogflowCxV3TextToSpeechSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3TextToSpeechSettings {
-    /// synthesizeSpeechConfigs property.
-    pub synthesize_speech_configs: Option<serde_json::Value>,
+pub struct GoogleCloudDialogflowCxV3GcsDestination {
+    /// uri property.
+    pub uri: Option<String>,
 }
 
 /// `GoogleCloudDialogflowCxV3AdvancedSettings` type.
@@ -234,24 +254,6 @@ pub struct GoogleCloudDialogflowCxV3AdvancedSettings {
     pub logging_settings: Option<GoogleCloudDialogflowCxV3AdvancedSettingsLoggingSettings>,
     /// speechSettings property.
     pub speech_settings: Option<GoogleCloudDialogflowCxV3AdvancedSettingsSpeechSettings>,
-}
-
-/// `GoogleCloudDialogflowCxV3AdvancedSettingsLoggingSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3AdvancedSettingsLoggingSettings {
-    /// enableConsentBasedRedaction property.
-    pub enable_consent_based_redaction: Option<bool>,
-    /// enableInteractionLogging property.
-    pub enable_interaction_logging: Option<bool>,
-    /// enableStackdriverLogging property.
-    pub enable_stackdriver_logging: Option<bool>,
-}
-
-/// `GoogleCloudDialogflowCxV3AgentPersonalizationSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3AgentPersonalizationSettings {
-    /// defaultEndUserMetadata property.
-    pub default_end_user_metadata: Option<serde_json::Value>,
 }
 
 // =============================================================================

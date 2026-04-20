@@ -12,37 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Date` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `GradingPeriodSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GradingPeriodSettings {
-    /// applyToExistingCoursework property.
-    pub apply_to_existing_coursework: Option<bool>,
-    /// gradingPeriods property.
-    pub grading_periods: Option<Vec<GradingPeriod>>,
-}
 
 /// `GradingPeriod` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -55,6 +36,26 @@ pub struct GradingPeriod {
     pub start_date: Option<Date>,
     /// title property.
     pub title: Option<String>,
+}
+
+/// `GradingPeriodSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GradingPeriodSettings {
+    /// applyToExistingCoursework property.
+    pub apply_to_existing_coursework: Option<bool>,
+    /// gradingPeriods property.
+    pub grading_periods: Option<Vec<GradingPeriod>>,
+}
+
+/// `Date` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
 }
 
 // =============================================================================

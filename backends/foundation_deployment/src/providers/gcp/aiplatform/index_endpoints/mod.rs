@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,47 +22,18 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudAiplatformV1IndexDatapointNumericRestriction` type.
+/// `GoogleCloudAiplatformV1FindNeighborsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1IndexDatapointNumericRestriction {
-    /// namespace property.
-    pub namespace: Option<String>,
-    /// op property.
-    pub op: Option<String>,
-    /// valueDouble property.
-    pub value_double: Option<f64>,
-    /// valueFloat property.
-    pub value_float: Option<f64>,
-    /// valueInt property.
-    pub value_int: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1IndexDatapointRestriction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1IndexDatapointRestriction {
-    /// allowList property.
-    pub allow_list: Option<Vec<String>>,
-    /// denyList property.
-    pub deny_list: Option<Vec<String>>,
-    /// namespace property.
-    pub namespace: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1PscAutomatedEndpoints` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PscAutomatedEndpoints {
-    /// matchAddress property.
-    pub match_address: Option<String>,
-    /// network property.
-    pub network: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
+pub struct GoogleCloudAiplatformV1FindNeighborsResponse {
+    /// nearestNeighbors property.
+    pub nearest_neighbors:
+        Option<Vec<GoogleCloudAiplatformV1FindNeighborsResponseNearestNeighbors>>,
 }
 
 /// `GoogleCloudAiplatformV1IndexDatapointCrowdingTag` type.
@@ -69,6 +41,13 @@ pub struct GoogleCloudAiplatformV1PscAutomatedEndpoints {
 pub struct GoogleCloudAiplatformV1IndexDatapointCrowdingTag {
     /// crowdingAttribute property.
     pub crowding_attribute: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1EncryptionSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1EncryptionSpec {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1AutomaticResources` type.
@@ -80,11 +59,22 @@ pub struct GoogleCloudAiplatformV1AutomaticResources {
     pub min_replica_count: Option<i64>,
 }
 
-/// `GoogleCloudAiplatformV1EncryptionSpec` type.
+/// `GoogleCloudAiplatformV1DeployedIndexAuthConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EncryptionSpec {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
+pub struct GoogleCloudAiplatformV1DeployedIndexAuthConfig {
+    /// authProvider property.
+    pub auth_provider: Option<GoogleCloudAiplatformV1DeployedIndexAuthConfigAuthProvider>,
+}
+
+/// `GoogleCloudAiplatformV1IndexPrivateEndpoints` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1IndexPrivateEndpoints {
+    /// matchGrpcAddress property.
+    pub match_grpc_address: Option<String>,
+    /// pscAutomatedEndpoints property.
+    pub psc_automated_endpoints: Option<Vec<GoogleCloudAiplatformV1PscAutomatedEndpoints>>,
+    /// serviceAttachment property.
+    pub service_attachment: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1ListIndexEndpointsResponse` type.
@@ -96,45 +86,15 @@ pub struct GoogleCloudAiplatformV1ListIndexEndpointsResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1PrivateServiceConnectConfig` type.
+/// `GoogleCloudAiplatformV1PscAutomatedEndpoints` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PrivateServiceConnectConfig {
-    /// enablePrivateServiceConnect property.
-    pub enable_private_service_connect: Option<bool>,
-    /// projectAllowlist property.
-    pub project_allowlist: Option<Vec<String>>,
-    /// pscAutomationConfigs property.
-    pub psc_automation_configs: Option<Vec<GoogleCloudAiplatformV1PSCAutomationConfig>>,
-    /// serviceAttachment property.
-    pub service_attachment: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1DedicatedResources` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DedicatedResources {
-    /// autoscalingMetricSpecs property.
-    pub autoscaling_metric_specs: Option<Vec<GoogleCloudAiplatformV1AutoscalingMetricSpec>>,
-    /// machineSpec property.
-    pub machine_spec: Option<GoogleCloudAiplatformV1MachineSpec>,
-    /// maxReplicaCount property.
-    pub max_replica_count: Option<i64>,
-    /// minReplicaCount property.
-    pub min_replica_count: Option<i64>,
-    /// requiredReplicaCount property.
-    pub required_replica_count: Option<i64>,
-    /// spot property.
-    pub spot: Option<bool>,
-}
-
-/// `GoogleCloudAiplatformV1FindNeighborsResponseNeighbor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FindNeighborsResponseNeighbor {
-    /// datapoint property.
-    pub datapoint: Option<GoogleCloudAiplatformV1IndexDatapoint>,
-    /// distance property.
-    pub distance: Option<f64>,
-    /// sparseDistance property.
-    pub sparse_distance: Option<f64>,
+pub struct GoogleCloudAiplatformV1PscAutomatedEndpoints {
+    /// matchAddress property.
+    pub match_address: Option<String>,
+    /// network property.
+    pub network: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1MachineSpec` type.
@@ -154,6 +114,77 @@ pub struct GoogleCloudAiplatformV1MachineSpec {
     pub tpu_topology: Option<String>,
 }
 
+/// `GoogleCloudAiplatformV1FindNeighborsResponseNeighbor` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FindNeighborsResponseNeighbor {
+    /// datapoint property.
+    pub datapoint: Option<GoogleCloudAiplatformV1IndexDatapoint>,
+    /// distance property.
+    pub distance: Option<f64>,
+    /// sparseDistance property.
+    pub sparse_distance: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1IndexDatapoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1IndexDatapoint {
+    /// crowdingTag property.
+    pub crowding_tag: Option<GoogleCloudAiplatformV1IndexDatapointCrowdingTag>,
+    /// datapointId property.
+    pub datapoint_id: Option<String>,
+    /// embeddingMetadata property.
+    pub embedding_metadata: Option<serde_json::Value>,
+    /// featureVector property.
+    pub feature_vector: Option<Vec<f64>>,
+    /// numericRestricts property.
+    pub numeric_restricts: Option<Vec<GoogleCloudAiplatformV1IndexDatapointNumericRestriction>>,
+    /// restricts property.
+    pub restricts: Option<Vec<GoogleCloudAiplatformV1IndexDatapointRestriction>>,
+    /// sparseEmbedding property.
+    pub sparse_embedding: Option<GoogleCloudAiplatformV1IndexDatapointSparseEmbedding>,
+}
+
+/// `GoogleCloudAiplatformV1PSCAutomationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PSCAutomationConfig {
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// forwardingRule property.
+    pub forwarding_rule: Option<String>,
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// network property.
+    pub network: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1DeployedIndexAuthConfigAuthProvider` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1DeployedIndexAuthConfigAuthProvider {
+    /// allowedIssuers property.
+    pub allowed_issuers: Option<Vec<String>>,
+    /// audiences property.
+    pub audiences: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAiplatformV1IndexDatapointNumericRestriction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1IndexDatapointNumericRestriction {
+    /// namespace property.
+    pub namespace: Option<String>,
+    /// op property.
+    pub op: Option<String>,
+    /// valueDouble property.
+    pub value_double: Option<f64>,
+    /// valueFloat property.
+    pub value_float: Option<f64>,
+    /// valueInt property.
+    pub value_int: Option<String>,
+}
+
 /// `GoogleCloudAiplatformV1ReadIndexDatapointsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReadIndexDatapointsResponse {
@@ -161,59 +192,13 @@ pub struct GoogleCloudAiplatformV1ReadIndexDatapointsResponse {
     pub datapoints: Option<Vec<GoogleCloudAiplatformV1IndexDatapoint>>,
 }
 
-/// `GoogleCloudAiplatformV1FindNeighborsResponseNearestNeighbors` type.
+/// `GoogleCloudAiplatformV1IndexDatapointSparseEmbedding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FindNeighborsResponseNearestNeighbors {
-    /// id property.
-    pub id: Option<String>,
-    /// neighbors property.
-    pub neighbors: Option<Vec<GoogleCloudAiplatformV1FindNeighborsResponseNeighbor>>,
-}
-
-/// `GoogleCloudAiplatformV1DeployedIndex` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DeployedIndex {
-    /// automaticResources property.
-    pub automatic_resources: Option<GoogleCloudAiplatformV1AutomaticResources>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// dedicatedResources property.
-    pub dedicated_resources: Option<GoogleCloudAiplatformV1DedicatedResources>,
-    /// deployedIndexAuthConfig property.
-    pub deployed_index_auth_config: Option<GoogleCloudAiplatformV1DeployedIndexAuthConfig>,
-    /// deploymentGroup property.
-    pub deployment_group: Option<String>,
-    /// deploymentTier property.
-    pub deployment_tier: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// enableAccessLogging property.
-    pub enable_access_logging: Option<bool>,
-    /// enableDatapointUpsertLogging property.
-    pub enable_datapoint_upsert_logging: Option<bool>,
-    /// id property.
-    pub id: Option<String>,
-    /// index property.
-    pub index: Option<String>,
-    /// indexSyncTime property.
-    pub index_sync_time: Option<String>,
-    /// privateEndpoints property.
-    pub private_endpoints: Option<GoogleCloudAiplatformV1IndexPrivateEndpoints>,
-    /// pscAutomationConfigs property.
-    pub psc_automation_configs: Option<Vec<GoogleCloudAiplatformV1PSCAutomationConfig>>,
-    /// reservedIpRanges property.
-    pub reserved_ip_ranges: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAiplatformV1IndexPrivateEndpoints` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1IndexPrivateEndpoints {
-    /// matchGrpcAddress property.
-    pub match_grpc_address: Option<String>,
-    /// pscAutomatedEndpoints property.
-    pub psc_automated_endpoints: Option<Vec<GoogleCloudAiplatformV1PscAutomatedEndpoints>>,
-    /// serviceAttachment property.
-    pub service_attachment: Option<String>,
+pub struct GoogleCloudAiplatformV1IndexDatapointSparseEmbedding {
+    /// dimensions property.
+    pub dimensions: Option<Vec<String>>,
+    /// values property.
+    pub values: Option<Vec<f64>>,
 }
 
 /// `GoogleCloudAiplatformV1IndexEndpoint` type.
@@ -253,24 +238,6 @@ pub struct GoogleCloudAiplatformV1IndexEndpoint {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1DeployedIndexAuthConfigAuthProvider` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DeployedIndexAuthConfigAuthProvider {
-    /// allowedIssuers property.
-    pub allowed_issuers: Option<Vec<String>>,
-    /// audiences property.
-    pub audiences: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAiplatformV1IndexDatapointSparseEmbedding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1IndexDatapointSparseEmbedding {
-    /// dimensions property.
-    pub dimensions: Option<Vec<String>>,
-    /// values property.
-    pub values: Option<Vec<f64>>,
-}
-
 /// `GoogleCloudAiplatformV1AutoscalingMetricSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AutoscalingMetricSpec {
@@ -280,51 +247,48 @@ pub struct GoogleCloudAiplatformV1AutoscalingMetricSpec {
     pub target: Option<i64>,
 }
 
-/// `GoogleCloudAiplatformV1ReservationAffinity` type.
+/// `GoogleCloudAiplatformV1DeployedIndex` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReservationAffinity {
-    /// key property.
-    pub key: Option<String>,
-    /// reservationAffinityType property.
-    pub reservation_affinity_type: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
+pub struct GoogleCloudAiplatformV1DeployedIndex {
+    /// automaticResources property.
+    pub automatic_resources: Option<GoogleCloudAiplatformV1AutomaticResources>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// dedicatedResources property.
+    pub dedicated_resources: Option<GoogleCloudAiplatformV1DedicatedResources>,
+    /// deployedIndexAuthConfig property.
+    pub deployed_index_auth_config: Option<GoogleCloudAiplatformV1DeployedIndexAuthConfig>,
+    /// deploymentGroup property.
+    pub deployment_group: Option<String>,
+    /// deploymentTier property.
+    pub deployment_tier: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// enableAccessLogging property.
+    pub enable_access_logging: Option<bool>,
+    /// enableDatapointUpsertLogging property.
+    pub enable_datapoint_upsert_logging: Option<bool>,
+    /// id property.
+    pub id: Option<String>,
+    /// index property.
+    pub index: Option<String>,
+    /// indexSyncTime property.
+    pub index_sync_time: Option<String>,
+    /// privateEndpoints property.
+    pub private_endpoints: Option<GoogleCloudAiplatformV1IndexPrivateEndpoints>,
+    /// pscAutomationConfigs property.
+    pub psc_automation_configs: Option<Vec<GoogleCloudAiplatformV1PSCAutomationConfig>>,
+    /// reservedIpRanges property.
+    pub reserved_ip_ranges: Option<Vec<String>>,
 }
 
-/// `GoogleCloudAiplatformV1IndexDatapoint` type.
+/// `GoogleCloudAiplatformV1FindNeighborsResponseNearestNeighbors` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1IndexDatapoint {
-    /// crowdingTag property.
-    pub crowding_tag: Option<GoogleCloudAiplatformV1IndexDatapointCrowdingTag>,
-    /// datapointId property.
-    pub datapoint_id: Option<String>,
-    /// embeddingMetadata property.
-    pub embedding_metadata: Option<serde_json::Value>,
-    /// featureVector property.
-    pub feature_vector: Option<Vec<f64>>,
-    /// numericRestricts property.
-    pub numeric_restricts: Option<Vec<GoogleCloudAiplatformV1IndexDatapointNumericRestriction>>,
-    /// restricts property.
-    pub restricts: Option<Vec<GoogleCloudAiplatformV1IndexDatapointRestriction>>,
-    /// sparseEmbedding property.
-    pub sparse_embedding: Option<GoogleCloudAiplatformV1IndexDatapointSparseEmbedding>,
-}
-
-/// `GoogleCloudAiplatformV1PSCAutomationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PSCAutomationConfig {
-    /// errorMessage property.
-    pub error_message: Option<String>,
-    /// forwardingRule property.
-    pub forwarding_rule: Option<String>,
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// network property.
-    pub network: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// state property.
-    pub state: Option<String>,
+pub struct GoogleCloudAiplatformV1FindNeighborsResponseNearestNeighbors {
+    /// id property.
+    pub id: Option<String>,
+    /// neighbors property.
+    pub neighbors: Option<Vec<GoogleCloudAiplatformV1FindNeighborsResponseNeighbor>>,
 }
 
 /// `GoogleRpcStatus` type.
@@ -338,19 +302,56 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1FindNeighborsResponse` type.
+/// `GoogleCloudAiplatformV1IndexDatapointRestriction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FindNeighborsResponse {
-    /// nearestNeighbors property.
-    pub nearest_neighbors:
-        Option<Vec<GoogleCloudAiplatformV1FindNeighborsResponseNearestNeighbors>>,
+pub struct GoogleCloudAiplatformV1IndexDatapointRestriction {
+    /// allowList property.
+    pub allow_list: Option<Vec<String>>,
+    /// denyList property.
+    pub deny_list: Option<Vec<String>>,
+    /// namespace property.
+    pub namespace: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1DeployedIndexAuthConfig` type.
+/// `GoogleCloudAiplatformV1DedicatedResources` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DeployedIndexAuthConfig {
-    /// authProvider property.
-    pub auth_provider: Option<GoogleCloudAiplatformV1DeployedIndexAuthConfigAuthProvider>,
+pub struct GoogleCloudAiplatformV1DedicatedResources {
+    /// autoscalingMetricSpecs property.
+    pub autoscaling_metric_specs: Option<Vec<GoogleCloudAiplatformV1AutoscalingMetricSpec>>,
+    /// machineSpec property.
+    pub machine_spec: Option<GoogleCloudAiplatformV1MachineSpec>,
+    /// maxReplicaCount property.
+    pub max_replica_count: Option<i64>,
+    /// minReplicaCount property.
+    pub min_replica_count: Option<i64>,
+    /// requiredReplicaCount property.
+    pub required_replica_count: Option<i64>,
+    /// spot property.
+    pub spot: Option<bool>,
+}
+
+/// `GoogleCloudAiplatformV1ReservationAffinity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ReservationAffinity {
+    /// key property.
+    pub key: Option<String>,
+    /// reservationAffinityType property.
+    pub reservation_affinity_type: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAiplatformV1PrivateServiceConnectConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PrivateServiceConnectConfig {
+    /// enablePrivateServiceConnect property.
+    pub enable_private_service_connect: Option<bool>,
+    /// projectAllowlist property.
+    pub project_allowlist: Option<Vec<String>>,
+    /// pscAutomationConfigs property.
+    pub psc_automation_configs: Option<Vec<GoogleCloudAiplatformV1PSCAutomationConfig>>,
+    /// serviceAttachment property.
+    pub service_attachment: Option<String>,
 }
 
 // =============================================================================

@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -24,13 +25,6 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `RegionsPostgresGetResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegionsPostgresGetResponse {
-    /// data property.
-    pub data: Vec<RegionsPostgres>,
-}
-
 /// `RegionsPostgres` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionsPostgres {
@@ -42,6 +36,13 @@ pub struct RegionsPostgres {
     pub status: String,
     /// type property.
     pub r#type: String,
+}
+
+/// `RegionsPostgresGetResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegionsPostgresGetResponse {
+    /// data property.
+    pub data: Vec<RegionsPostgres>,
 }
 
 // =============================================================================

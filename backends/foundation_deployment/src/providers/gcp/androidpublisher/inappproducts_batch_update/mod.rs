@@ -12,33 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Price` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Price {
-    /// currency property.
-    pub currency: Option<String>,
-    /// priceMicros property.
-    pub price_micros: Option<String>,
-}
-
-/// `InappproductsBatchUpdateResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InappproductsBatchUpdateResponse {
-    /// inappproducts property.
-    pub inappproducts: Option<Vec<InAppProduct>>,
-}
 
 /// `RegionalProductAgeRatingInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,19 +34,13 @@ pub struct RegionalProductAgeRatingInfo {
     pub region_code: Option<String>,
 }
 
-/// `ManagedProductTaxAndComplianceSettings` type.
+/// `Price` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedProductTaxAndComplianceSettings {
-    /// eeaWithdrawalRightType property.
-    pub eea_withdrawal_right_type: Option<String>,
-    /// isTokenizedDigitalAsset property.
-    pub is_tokenized_digital_asset: Option<bool>,
-    /// productTaxCategoryCode property.
-    pub product_tax_category_code: Option<String>,
-    /// regionalProductAgeRatingInfos property.
-    pub regional_product_age_rating_infos: Option<Vec<RegionalProductAgeRatingInfo>>,
-    /// taxRateInfoByRegionCode property.
-    pub tax_rate_info_by_region_code: Option<serde_json::Value>,
+pub struct Price {
+    /// currency property.
+    pub currency: Option<String>,
+    /// priceMicros property.
+    pub price_micros: Option<String>,
 }
 
 /// `InAppProduct` type.
@@ -94,6 +73,28 @@ pub struct InAppProduct {
     pub subscription_taxes_and_compliance_settings: Option<SubscriptionTaxAndComplianceSettings>,
     /// trialPeriod property.
     pub trial_period: Option<String>,
+}
+
+/// `InappproductsBatchUpdateResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InappproductsBatchUpdateResponse {
+    /// inappproducts property.
+    pub inappproducts: Option<Vec<InAppProduct>>,
+}
+
+/// `ManagedProductTaxAndComplianceSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedProductTaxAndComplianceSettings {
+    /// eeaWithdrawalRightType property.
+    pub eea_withdrawal_right_type: Option<String>,
+    /// isTokenizedDigitalAsset property.
+    pub is_tokenized_digital_asset: Option<bool>,
+    /// productTaxCategoryCode property.
+    pub product_tax_category_code: Option<String>,
+    /// regionalProductAgeRatingInfos property.
+    pub regional_product_age_rating_infos: Option<Vec<RegionalProductAgeRatingInfo>>,
+    /// taxRateInfoByRegionCode property.
+    pub tax_rate_info_by_region_code: Option<serde_json::Value>,
 }
 
 /// `SubscriptionTaxAndComplianceSettings` type.

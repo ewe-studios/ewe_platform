@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,32 +22,69 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListInstancesResponse` type.
+/// `ReservationAffinity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListInstancesResponse {
-    /// instances property.
-    pub instances: Option<Vec<Instance>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct ReservationAffinity {
+    /// consumeReservationType property.
+    pub consume_reservation_type: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
 }
 
-/// `Binding` type.
+/// `CheckInstanceUpgradabilityResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct CheckInstanceUpgradabilityResponse {
+    /// upgradeImage property.
+    pub upgrade_image: Option<String>,
+    /// upgradeInfo property.
+    pub upgrade_info: Option<String>,
+    /// upgradeVersion property.
+    pub upgrade_version: Option<String>,
+    /// upgradeable property.
+    pub upgradeable: Option<bool>,
+}
+
+/// `ConfidentialInstanceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfidentialInstanceConfig {
+    /// confidentialInstanceType property.
+    pub confidential_instance_type: Option<String>,
+}
+
+/// `GenerateAccessTokenResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GenerateAccessTokenResponse {
+    /// access_token property.
+    pub access_token: Option<String>,
+    /// expires_in property.
+    pub expires_in: Option<i64>,
+    /// scope property.
+    pub scope: Option<String>,
+    /// token_type property.
+    pub token_type: Option<String>,
+}
+
+/// `DataDisk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataDisk {
+    /// diskEncryption property.
+    pub disk_encryption: Option<String>,
+    /// diskSizeGb property.
+    pub disk_size_gb: Option<String>,
+    /// diskType property.
+    pub disk_type: Option<String>,
+    /// kmsKey property.
+    pub kms_key: Option<String>,
+    /// resourcePolicies property.
+    pub resource_policies: Option<Vec<String>>,
 }
 
 /// `GceSetup` type.
@@ -90,50 +128,28 @@ pub struct GceSetup {
     pub vm_image: Option<VmImage>,
 }
 
-/// `Expr` type.
+/// `ShieldedInstanceConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct ShieldedInstanceConfig {
+    /// enableIntegrityMonitoring property.
+    pub enable_integrity_monitoring: Option<bool>,
+    /// enableSecureBoot property.
+    pub enable_secure_boot: Option<bool>,
+    /// enableVtpm property.
+    pub enable_vtpm: Option<bool>,
 }
 
-/// `DataDisk` type.
+/// `NetworkInterface` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataDisk {
-    /// diskEncryption property.
-    pub disk_encryption: Option<String>,
-    /// diskSizeGb property.
-    pub disk_size_gb: Option<String>,
-    /// diskType property.
-    pub disk_type: Option<String>,
-    /// kmsKey property.
-    pub kms_key: Option<String>,
-    /// resourcePolicies property.
-    pub resource_policies: Option<Vec<String>>,
-}
-
-/// `ContainerImage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContainerImage {
-    /// repository property.
-    pub repository: Option<String>,
-    /// tag property.
-    pub tag: Option<String>,
-}
-
-/// `GPUDriverConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GPUDriverConfig {
-    /// customGpuDriverPath property.
-    pub custom_gpu_driver_path: Option<String>,
-    /// enableGpuDriver property.
-    pub enable_gpu_driver: Option<bool>,
+pub struct NetworkInterface {
+    /// accessConfigs property.
+    pub access_configs: Option<Vec<AccessConfig>>,
+    /// network property.
+    pub network: Option<String>,
+    /// nicType property.
+    pub nic_type: Option<String>,
+    /// subnet property.
+    pub subnet: Option<String>,
 }
 
 /// `CheckAuthorizationResponse` type.
@@ -147,15 +163,6 @@ pub struct CheckAuthorizationResponse {
     pub success: Option<bool>,
 }
 
-/// `ServiceAccount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceAccount {
-    /// email property.
-    pub email: Option<String>,
-    /// scopes property.
-    pub scopes: Option<Vec<String>>,
-}
-
 /// `Policy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
@@ -167,59 +174,11 @@ pub struct Policy {
     pub version: Option<i64>,
 }
 
-/// `ShieldedInstanceConfig` type.
+/// `TestIamPermissionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShieldedInstanceConfig {
-    /// enableIntegrityMonitoring property.
-    pub enable_integrity_monitoring: Option<bool>,
-    /// enableSecureBoot property.
-    pub enable_secure_boot: Option<bool>,
-    /// enableVtpm property.
-    pub enable_vtpm: Option<bool>,
-}
-
-/// `BootDisk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BootDisk {
-    /// diskEncryption property.
-    pub disk_encryption: Option<String>,
-    /// diskSizeGb property.
-    pub disk_size_gb: Option<String>,
-    /// diskType property.
-    pub disk_type: Option<String>,
-    /// kmsKey property.
-    pub kms_key: Option<String>,
-}
-
-/// `CheckInstanceUpgradabilityResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CheckInstanceUpgradabilityResponse {
-    /// upgradeImage property.
-    pub upgrade_image: Option<String>,
-    /// upgradeInfo property.
-    pub upgrade_info: Option<String>,
-    /// upgradeVersion property.
-    pub upgrade_version: Option<String>,
-    /// upgradeable property.
-    pub upgradeable: Option<bool>,
-}
-
-/// `AccessConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessConfig {
-    /// externalIp property.
-    pub external_ip: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct TestIamPermissionsResponse {
+    /// permissions property.
+    pub permissions: Option<Vec<String>>,
 }
 
 /// `UpgradeHistoryEntry` type.
@@ -245,28 +204,117 @@ pub struct UpgradeHistoryEntry {
     pub vm_image: Option<String>,
 }
 
-/// `GenerateAccessTokenResponse` type.
+/// `AccessConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GenerateAccessTokenResponse {
-    /// access_token property.
-    pub access_token: Option<String>,
-    /// expires_in property.
-    pub expires_in: Option<i64>,
-    /// scope property.
-    pub scope: Option<String>,
-    /// token_type property.
-    pub token_type: Option<String>,
+pub struct AccessConfig {
+    /// externalIp property.
+    pub external_ip: Option<String>,
 }
 
-/// `ReservationAffinity` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReservationAffinity {
-    /// consumeReservationType property.
-    pub consume_reservation_type: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `ContainerImage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContainerImage {
+    /// repository property.
+    pub repository: Option<String>,
+    /// tag property.
+    pub tag: Option<String>,
+}
+
+/// `ServiceAccount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceAccount {
+    /// email property.
+    pub email: Option<String>,
+    /// scopes property.
+    pub scopes: Option<Vec<String>>,
+}
+
+/// `GPUDriverConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GPUDriverConfig {
+    /// customGpuDriverPath property.
+    pub custom_gpu_driver_path: Option<String>,
+    /// enableGpuDriver property.
+    pub enable_gpu_driver: Option<bool>,
+}
+
+/// `ListInstancesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListInstancesResponse {
+    /// instances property.
+    pub instances: Option<Vec<Instance>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `AcceleratorConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AcceleratorConfig {
+    /// coreCount property.
+    pub core_count: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `BootDisk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BootDisk {
+    /// diskEncryption property.
+    pub disk_encryption: Option<String>,
+    /// diskSizeGb property.
+    pub disk_size_gb: Option<String>,
+    /// diskType property.
+    pub disk_type: Option<String>,
+    /// kmsKey property.
+    pub kms_key: Option<String>,
+}
+
+/// `VmImage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmImage {
+    /// family property.
+    pub family: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// project property.
+    pub project: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `Instance` type.
@@ -312,53 +360,6 @@ pub struct Instance {
     pub update_time: Option<String>,
     /// upgradeHistory property.
     pub upgrade_history: Option<Vec<UpgradeHistoryEntry>>,
-}
-
-/// `VmImage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmImage {
-    /// family property.
-    pub family: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// project property.
-    pub project: Option<String>,
-}
-
-/// `TestIamPermissionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestIamPermissionsResponse {
-    /// permissions property.
-    pub permissions: Option<Vec<String>>,
-}
-
-/// `AcceleratorConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcceleratorConfig {
-    /// coreCount property.
-    pub core_count: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `NetworkInterface` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkInterface {
-    /// accessConfigs property.
-    pub access_configs: Option<Vec<AccessConfig>>,
-    /// network property.
-    pub network: Option<String>,
-    /// nicType property.
-    pub nic_type: Option<String>,
-    /// subnet property.
-    pub subnet: Option<String>,
-}
-
-/// `ConfidentialInstanceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfidentialInstanceConfig {
-    /// confidentialInstanceType property.
-    pub confidential_instance_type: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,19 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `StatusCondition` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StatusCondition {
-    /// canonicalCode property.
-    pub canonical_code: Option<String>,
+pub struct Status {
     /// code property.
-    pub code: Option<String>,
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
 }
@@ -46,20 +47,9 @@ pub struct OperationProgress {
     /// name property.
     pub name: Option<String>,
     /// stages property.
-    pub stages: Option<Vec<OperationProgress>>,
+    pub stages: Option<Vec<Box<OperationProgress>>>,
     /// status property.
     pub status: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 /// `Metric` type.
@@ -73,6 +63,17 @@ pub struct Metric {
     pub name: Option<String>,
     /// stringValue property.
     pub string_value: Option<String>,
+}
+
+/// `StatusCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StatusCondition {
+    /// canonicalCode property.
+    pub canonical_code: Option<String>,
+    /// code property.
+    pub code: Option<String>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

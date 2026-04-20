@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,15 +24,181 @@ use super::shared::Empty;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `NoWrapper` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NoWrapper {
+    /// writeMetadata property.
+    pub write_metadata: Option<bool>,
+}
+
+/// `ExpirationPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExpirationPolicy {
+    /// ttl property.
+    pub ttl: Option<String>,
+}
+
+/// `CloudStorageConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudStorageConfig {
+    /// avroConfig property.
+    pub avro_config: Option<AvroConfig>,
+    /// bucket property.
+    pub bucket: Option<String>,
+    /// filenameDatetimeFormat property.
+    pub filename_datetime_format: Option<String>,
+    /// filenamePrefix property.
+    pub filename_prefix: Option<String>,
+    /// filenameSuffix property.
+    pub filename_suffix: Option<String>,
+    /// maxBytes property.
+    pub max_bytes: Option<String>,
+    /// maxDuration property.
+    pub max_duration: Option<String>,
+    /// maxMessages property.
+    pub max_messages: Option<String>,
+    /// serviceAccountEmail property.
+    pub service_account_email: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// textConfig property.
+    pub text_config: Option<TextConfig>,
+}
+
+/// `OidcToken` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OidcToken {
+    /// audience property.
+    pub audience: Option<String>,
+    /// serviceAccountEmail property.
+    pub service_account_email: Option<String>,
+}
+
+/// `ReceivedMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReceivedMessage {
+    /// ackId property.
+    pub ack_id: Option<String>,
+    /// deliveryAttempt property.
+    pub delivery_attempt: Option<i64>,
+    /// message property.
+    pub message: Option<PubsubMessage>,
+}
+
+/// `AvroConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AvroConfig {
+    /// useTopicSchema property.
+    pub use_topic_schema: Option<bool>,
+    /// writeMetadata property.
+    pub write_metadata: Option<bool>,
+}
+
+/// `JavaScriptUDF` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JavaScriptUDF {
+    /// code property.
+    pub code: Option<String>,
+    /// functionName property.
+    pub function_name: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `BigtableConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BigtableConfig {
+    /// appProfileId property.
+    pub app_profile_id: Option<String>,
+    /// serviceAccountEmail property.
+    pub service_account_email: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// table property.
+    pub table: Option<String>,
+    /// writeMetadata property.
+    pub write_metadata: Option<bool>,
+}
+
+/// `DeadLetterPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeadLetterPolicy {
+    /// deadLetterTopic property.
+    pub dead_letter_topic: Option<String>,
+    /// maxDeliveryAttempts property.
+    pub max_delivery_attempts: Option<i64>,
+}
+
 /// `SeekResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SeekResponse {}
+
+/// `ListSubscriptionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListSubscriptionsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// subscriptions property.
+    pub subscriptions: Option<Vec<Subscription>>,
+}
+
+/// `AIInference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AIInference {
+    /// endpoint property.
+    pub endpoint: Option<String>,
+    /// serviceAccountEmail property.
+    pub service_account_email: Option<String>,
+    /// unstructuredInference property.
+    pub unstructured_inference: Option<UnstructuredInference>,
+}
+
+/// `MessageTransform` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MessageTransform {
+    /// aiInference property.
+    pub ai_inference: Option<AIInference>,
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// javascriptUdf property.
+    pub javascript_udf: Option<JavaScriptUDF>,
+}
+
+/// `BigQueryConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BigQueryConfig {
+    /// dropUnknownFields property.
+    pub drop_unknown_fields: Option<bool>,
+    /// serviceAccountEmail property.
+    pub service_account_email: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// table property.
+    pub table: Option<String>,
+    /// useTableSchema property.
+    pub use_table_schema: Option<bool>,
+    /// useTopicSchema property.
+    pub use_topic_schema: Option<bool>,
+    /// writeMetadata property.
+    pub write_metadata: Option<bool>,
+}
 
 /// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -46,59 +213,6 @@ pub struct Expr {
     pub title: Option<String>,
 }
 
-/// `ExpirationPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExpirationPolicy {
-    /// ttl property.
-    pub ttl: Option<String>,
-}
-
-/// `PushConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PushConfig {
-    /// attributes property.
-    pub attributes: Option<serde_json::Value>,
-    /// noWrapper property.
-    pub no_wrapper: Option<NoWrapper>,
-    /// oidcToken property.
-    pub oidc_token: Option<OidcToken>,
-    /// pubsubWrapper property.
-    pub pubsub_wrapper: Option<PubsubWrapper>,
-    /// pushEndpoint property.
-    pub push_endpoint: Option<String>,
-}
-
-/// `AnalyticsHubSubscriptionInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AnalyticsHubSubscriptionInfo {
-    /// listing property.
-    pub listing: Option<String>,
-    /// subscription property.
-    pub subscription: Option<String>,
-}
-
-/// `UnstructuredInference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UnstructuredInference {
-    /// parameters property.
-    pub parameters: Option<serde_json::Value>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `TextConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextConfig {}
-
 /// `ListTopicSubscriptionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTopicSubscriptionsResponse {
@@ -108,29 +222,11 @@ pub struct ListTopicSubscriptionsResponse {
     pub subscriptions: Option<Vec<String>>,
 }
 
-/// `AvroConfig` type.
+/// `UnstructuredInference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AvroConfig {
-    /// useTopicSchema property.
-    pub use_topic_schema: Option<bool>,
-    /// writeMetadata property.
-    pub write_metadata: Option<bool>,
-}
-
-/// `PullResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PullResponse {
-    /// receivedMessages property.
-    pub received_messages: Option<Vec<ReceivedMessage>>,
-}
-
-/// `OidcToken` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OidcToken {
-    /// audience property.
-    pub audience: Option<String>,
-    /// serviceAccountEmail property.
-    pub service_account_email: Option<String>,
+pub struct UnstructuredInference {
+    /// parameters property.
+    pub parameters: Option<serde_json::Value>,
 }
 
 /// `Subscription` type.
@@ -182,41 +278,30 @@ pub struct Subscription {
     pub topic_message_retention_duration: Option<String>,
 }
 
-/// `BigtableConfig` type.
+/// `PushConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BigtableConfig {
-    /// appProfileId property.
-    pub app_profile_id: Option<String>,
-    /// serviceAccountEmail property.
-    pub service_account_email: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// table property.
-    pub table: Option<String>,
-    /// writeMetadata property.
-    pub write_metadata: Option<bool>,
+pub struct PushConfig {
+    /// attributes property.
+    pub attributes: Option<serde_json::Value>,
+    /// noWrapper property.
+    pub no_wrapper: Option<NoWrapper>,
+    /// oidcToken property.
+    pub oidc_token: Option<OidcToken>,
+    /// pubsubWrapper property.
+    pub pubsub_wrapper: Option<PubsubWrapper>,
+    /// pushEndpoint property.
+    pub push_endpoint: Option<String>,
 }
 
-/// `JavaScriptUDF` type.
+/// `DetachSubscriptionResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JavaScriptUDF {
-    /// code property.
-    pub code: Option<String>,
-    /// functionName property.
-    pub function_name: Option<String>,
-}
+pub struct DetachSubscriptionResponse {}
 
-/// `MessageTransform` type.
+/// `PullResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MessageTransform {
-    /// aiInference property.
-    pub ai_inference: Option<AIInference>,
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// javascriptUdf property.
-    pub javascript_udf: Option<JavaScriptUDF>,
+pub struct PullResponse {
+    /// receivedMessages property.
+    pub received_messages: Option<Vec<ReceivedMessage>>,
 }
 
 /// `RetryPolicy` type.
@@ -228,36 +313,9 @@ pub struct RetryPolicy {
     pub minimum_backoff: Option<String>,
 }
 
-/// `ReceivedMessage` type.
+/// `TextConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReceivedMessage {
-    /// ackId property.
-    pub ack_id: Option<String>,
-    /// deliveryAttempt property.
-    pub delivery_attempt: Option<i64>,
-    /// message property.
-    pub message: Option<PubsubMessage>,
-}
-
-/// `AIInference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AIInference {
-    /// endpoint property.
-    pub endpoint: Option<String>,
-    /// serviceAccountEmail property.
-    pub service_account_email: Option<String>,
-    /// unstructuredInference property.
-    pub unstructured_inference: Option<UnstructuredInference>,
-}
-
-/// `ListSubscriptionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSubscriptionsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// subscriptions property.
-    pub subscriptions: Option<Vec<Subscription>>,
-}
+pub struct TextConfig {}
 
 /// `PubsubWrapper` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -278,70 +336,13 @@ pub struct PubsubMessage {
     pub publish_time: Option<String>,
 }
 
-/// `DetachSubscriptionResponse` type.
+/// `AnalyticsHubSubscriptionInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DetachSubscriptionResponse {}
-
-/// `BigQueryConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BigQueryConfig {
-    /// dropUnknownFields property.
-    pub drop_unknown_fields: Option<bool>,
-    /// serviceAccountEmail property.
-    pub service_account_email: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// table property.
-    pub table: Option<String>,
-    /// useTableSchema property.
-    pub use_table_schema: Option<bool>,
-    /// useTopicSchema property.
-    pub use_topic_schema: Option<bool>,
-    /// writeMetadata property.
-    pub write_metadata: Option<bool>,
-}
-
-/// `DeadLetterPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeadLetterPolicy {
-    /// deadLetterTopic property.
-    pub dead_letter_topic: Option<String>,
-    /// maxDeliveryAttempts property.
-    pub max_delivery_attempts: Option<i64>,
-}
-
-/// `NoWrapper` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NoWrapper {
-    /// writeMetadata property.
-    pub write_metadata: Option<bool>,
-}
-
-/// `CloudStorageConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudStorageConfig {
-    /// avroConfig property.
-    pub avro_config: Option<AvroConfig>,
-    /// bucket property.
-    pub bucket: Option<String>,
-    /// filenameDatetimeFormat property.
-    pub filename_datetime_format: Option<String>,
-    /// filenamePrefix property.
-    pub filename_prefix: Option<String>,
-    /// filenameSuffix property.
-    pub filename_suffix: Option<String>,
-    /// maxBytes property.
-    pub max_bytes: Option<String>,
-    /// maxDuration property.
-    pub max_duration: Option<String>,
-    /// maxMessages property.
-    pub max_messages: Option<String>,
-    /// serviceAccountEmail property.
-    pub service_account_email: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// textConfig property.
-    pub text_config: Option<TextConfig>,
+pub struct AnalyticsHubSubscriptionInfo {
+    /// listing property.
+    pub listing: Option<String>,
+    /// subscription property.
+    pub subscription: Option<String>,
 }
 
 // =============================================================================

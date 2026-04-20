@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,11 +24,68 @@ use super::shared::GoogleIamV1Policy;
 use super::shared::GoogleIamV1TestIamPermissionsResponse;
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudAiplatformV1FeatureOnlineStoreBigtableBigtableMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FeatureOnlineStoreBigtableBigtableMetadata {
+    /// instanceId property.
+    pub instance_id: Option<String>,
+    /// tableId property.
+    pub table_id: Option<String>,
+    /// tenantProjectId property.
+    pub tenant_project_id: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1FeatureOnlineStoreOptimized` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FeatureOnlineStoreOptimized {}
+
+/// `GoogleCloudAiplatformV1FeatureOnlineStoreDedicatedServingEndpoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FeatureOnlineStoreDedicatedServingEndpoint {
+    /// privateServiceConnectConfig property.
+    pub private_service_connect_config: Option<GoogleCloudAiplatformV1PrivateServiceConnectConfig>,
+    /// publicEndpointDomainName property.
+    pub public_endpoint_domain_name: Option<String>,
+    /// serviceAttachment property.
+    pub service_attachment: Option<String>,
+}
+
+/// `GoogleIamV1Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1Binding {
+    /// condition property.
+    pub condition: Option<GoogleTypeExpr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ListFeatureOnlineStoresResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ListFeatureOnlineStoresResponse {
+    /// featureOnlineStores property.
+    pub feature_online_stores: Option<Vec<GoogleCloudAiplatformV1FeatureOnlineStore>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `GoogleTypeExpr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,6 +98,50 @@ pub struct GoogleTypeExpr {
     pub location: Option<String>,
     /// title property.
     pub title: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1PrivateServiceConnectConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PrivateServiceConnectConfig {
+    /// enablePrivateServiceConnect property.
+    pub enable_private_service_connect: Option<bool>,
+    /// projectAllowlist property.
+    pub project_allowlist: Option<Vec<String>>,
+    /// pscAutomationConfigs property.
+    pub psc_automation_configs: Option<Vec<GoogleCloudAiplatformV1PSCAutomationConfig>>,
+    /// serviceAttachment property.
+    pub service_attachment: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1FeatureOnlineStoreBigtable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FeatureOnlineStoreBigtable {
+    /// autoScaling property.
+    pub auto_scaling: Option<GoogleCloudAiplatformV1FeatureOnlineStoreBigtableAutoScaling>,
+    /// bigtableMetadata property.
+    pub bigtable_metadata:
+        Option<GoogleCloudAiplatformV1FeatureOnlineStoreBigtableBigtableMetadata>,
+    /// enableDirectBigtableAccess property.
+    pub enable_direct_bigtable_access: Option<bool>,
+    /// zone property.
+    pub zone: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1PSCAutomationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PSCAutomationConfig {
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// forwardingRule property.
+    pub forwarding_rule: Option<String>,
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// network property.
+    pub network: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// state property.
+    pub state: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1FeatureOnlineStore` type.
@@ -72,114 +174,6 @@ pub struct GoogleCloudAiplatformV1FeatureOnlineStore {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1FeatureOnlineStoreDedicatedServingEndpoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureOnlineStoreDedicatedServingEndpoint {
-    /// privateServiceConnectConfig property.
-    pub private_service_connect_config: Option<GoogleCloudAiplatformV1PrivateServiceConnectConfig>,
-    /// publicEndpointDomainName property.
-    pub public_endpoint_domain_name: Option<String>,
-    /// serviceAttachment property.
-    pub service_attachment: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ListFeatureOnlineStoresResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListFeatureOnlineStoresResponse {
-    /// featureOnlineStores property.
-    pub feature_online_stores: Option<Vec<GoogleCloudAiplatformV1FeatureOnlineStore>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1FeatureOnlineStoreBigtableBigtableMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureOnlineStoreBigtableBigtableMetadata {
-    /// instanceId property.
-    pub instance_id: Option<String>,
-    /// tableId property.
-    pub table_id: Option<String>,
-    /// tenantProjectId property.
-    pub tenant_project_id: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1FeatureOnlineStoreBigtable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureOnlineStoreBigtable {
-    /// autoScaling property.
-    pub auto_scaling: Option<GoogleCloudAiplatformV1FeatureOnlineStoreBigtableAutoScaling>,
-    /// bigtableMetadata property.
-    pub bigtable_metadata:
-        Option<GoogleCloudAiplatformV1FeatureOnlineStoreBigtableBigtableMetadata>,
-    /// enableDirectBigtableAccess property.
-    pub enable_direct_bigtable_access: Option<bool>,
-    /// zone property.
-    pub zone: Option<String>,
-}
-
-/// `GoogleIamV1Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Binding {
-    /// condition property.
-    pub condition: Option<GoogleTypeExpr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1PrivateServiceConnectConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PrivateServiceConnectConfig {
-    /// enablePrivateServiceConnect property.
-    pub enable_private_service_connect: Option<bool>,
-    /// projectAllowlist property.
-    pub project_allowlist: Option<Vec<String>>,
-    /// pscAutomationConfigs property.
-    pub psc_automation_configs: Option<Vec<GoogleCloudAiplatformV1PSCAutomationConfig>>,
-    /// serviceAttachment property.
-    pub service_attachment: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1PSCAutomationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PSCAutomationConfig {
-    /// errorMessage property.
-    pub error_message: Option<String>,
-    /// forwardingRule property.
-    pub forwarding_rule: Option<String>,
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// network property.
-    pub network: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1FeatureOnlineStoreOptimized` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureOnlineStoreOptimized {}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1EncryptionSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EncryptionSpec {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-}
-
 /// `GoogleCloudAiplatformV1FeatureOnlineStoreBigtableAutoScaling` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureOnlineStoreBigtableAutoScaling {
@@ -189,6 +183,13 @@ pub struct GoogleCloudAiplatformV1FeatureOnlineStoreBigtableAutoScaling {
     pub max_node_count: Option<i64>,
     /// minNodeCount property.
     pub min_node_count: Option<i64>,
+}
+
+/// `GoogleCloudAiplatformV1EncryptionSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1EncryptionSpec {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
 }
 
 // =============================================================================

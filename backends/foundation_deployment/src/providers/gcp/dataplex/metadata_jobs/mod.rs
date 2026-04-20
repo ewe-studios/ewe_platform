@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,7 +23,7 @@ use serde::{Deserialize, Serialize};
 use super::shared::Empty;
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -37,15 +38,6 @@ pub struct GoogleCloudDataplexV1ListMetadataJobsResponse {
     pub next_page_token: Option<String>,
     /// unreachableLocations property.
     pub unreachable_locations: Option<Vec<String>>,
-}
-
-/// `GoogleCloudDataplexV1MetadataJobExportJobSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1MetadataJobExportJobSpec {
-    /// outputPath property.
-    pub output_path: Option<String>,
-    /// scope property.
-    pub scope: Option<GoogleCloudDataplexV1MetadataJobExportJobSpecExportJobScope>,
 }
 
 /// `GoogleCloudDataplexV1MetadataJob` type.
@@ -75,6 +67,26 @@ pub struct GoogleCloudDataplexV1MetadataJob {
     pub update_time: Option<String>,
 }
 
+/// `GoogleCloudDataplexV1MetadataJobExportJobResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1MetadataJobExportJobResult {
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// exportedEntries property.
+    pub exported_entries: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
 /// `GoogleCloudDataplexV1MetadataJobImportJobResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1MetadataJobImportJobResult {
@@ -96,15 +108,6 @@ pub struct GoogleCloudDataplexV1MetadataJobImportJobResult {
     pub update_time: Option<String>,
     /// updatedEntries property.
     pub updated_entries: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1MetadataJobExportJobResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1MetadataJobExportJobResult {
-    /// errorMessage property.
-    pub error_message: Option<String>,
-    /// exportedEntries property.
-    pub exported_entries: Option<String>,
 }
 
 /// `GoogleCloudDataplexV1MetadataJobImportJobSpec` type.
@@ -154,6 +157,15 @@ pub struct GoogleCloudDataplexV1MetadataJobImportJobSpecImportJobScope {
     pub referenced_entry_scopes: Option<Vec<String>>,
 }
 
+/// `GoogleCloudDataplexV1MetadataJobExportJobSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1MetadataJobExportJobSpec {
+    /// outputPath property.
+    pub output_path: Option<String>,
+    /// scope property.
+    pub scope: Option<GoogleCloudDataplexV1MetadataJobExportJobSpecExportJobScope>,
+}
+
 /// `GoogleCloudDataplexV1MetadataJobExportJobSpecExportJobScope` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1MetadataJobExportJobSpecExportJobScope {
@@ -167,17 +179,6 @@ pub struct GoogleCloudDataplexV1MetadataJobExportJobSpecExportJobScope {
     pub organization_level: Option<bool>,
     /// projects property.
     pub projects: Option<Vec<String>>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 // =============================================================================

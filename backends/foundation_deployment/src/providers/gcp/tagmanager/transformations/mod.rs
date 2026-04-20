@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -29,6 +30,23 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 pub struct RevertTransformationResponse {
     /// transformation property.
     pub transformation: Option<Transformation>,
+}
+
+/// `Parameter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Parameter {
+    /// isWeakReference property.
+    pub is_weak_reference: Option<bool>,
+    /// key property.
+    pub key: Option<String>,
+    /// list property.
+    pub list: Option<Vec<Box<Parameter>>>,
+    /// map property.
+    pub map: Option<Vec<Box<Parameter>>>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
 /// `Transformation` type.
@@ -45,7 +63,7 @@ pub struct Transformation {
     /// notes property.
     pub notes: Option<String>,
     /// parameter property.
-    pub parameter: Option<Vec<Parameter>>,
+    pub parameter: Option<Vec<Box<Parameter>>>,
     /// parentFolderId property.
     pub parent_folder_id: Option<String>,
     /// path property.
@@ -58,23 +76,6 @@ pub struct Transformation {
     pub r#type: Option<String>,
     /// workspaceId property.
     pub workspace_id: Option<String>,
-}
-
-/// `Parameter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Parameter {
-    /// isWeakReference property.
-    pub is_weak_reference: Option<bool>,
-    /// key property.
-    pub key: Option<String>,
-    /// list property.
-    pub list: Option<Vec<Parameter>>,
-    /// map property.
-    pub map: Option<Vec<Parameter>>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
 }
 
 /// `ListTransformationsResponse` type.

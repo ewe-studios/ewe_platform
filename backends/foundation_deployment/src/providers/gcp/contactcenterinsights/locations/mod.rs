@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,21 +23,27 @@ use serde::{Deserialize, Serialize};
 use super::shared::GoogleCloudContactcenterinsightsV1ListAllFeedbackLabelsResponse;
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleRpcStatus` type.
+/// `GoogleCloudContactcenterinsightsV1FeedbackLabel` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct GoogleCloudContactcenterinsightsV1FeedbackLabel {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// label property.
+    pub label: Option<String>,
+    /// labeledResource property.
+    pub labeled_resource: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// qaAnswerLabel property.
+    pub qa_answer_label: Option<GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue>,
+    /// updateTime property.
+    pub update_time: Option<String>,
 }
 
 /// `GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue` type.
@@ -62,21 +69,15 @@ pub struct GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue {
     pub str_value: Option<String>,
 }
 
-/// `GoogleCloudContactcenterinsightsV1FeedbackLabel` type.
+/// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1FeedbackLabel {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// label property.
-    pub label: Option<String>,
-    /// labeledResource property.
-    pub labeled_resource: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// qaAnswerLabel property.
-    pub qa_answer_label: Option<GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue>,
-    /// updateTime property.
-    pub update_time: Option<String>,
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

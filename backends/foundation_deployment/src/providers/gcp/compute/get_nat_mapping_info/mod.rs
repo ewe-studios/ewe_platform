@@ -12,17 +12,37 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `VmEndpointNatMappingsInterfaceNatMappings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmEndpointNatMappingsInterfaceNatMappings {
+    /// drainNatIpPortRanges property.
+    pub drain_nat_ip_port_ranges: Option<Vec<String>>,
+    /// natIpPortRanges property.
+    pub nat_ip_port_ranges: Option<Vec<String>>,
+    /// numTotalDrainNatPorts property.
+    pub num_total_drain_nat_ports: Option<i64>,
+    /// numTotalNatPorts property.
+    pub num_total_nat_ports: Option<i64>,
+    /// ruleMappings property.
+    pub rule_mappings: Option<Vec<VmEndpointNatMappingsInterfaceNatMappingsNatRuleMappings>>,
+    /// sourceAliasIpRange property.
+    pub source_alias_ip_range: Option<String>,
+    /// sourceVirtualIp property.
+    pub source_virtual_ip: Option<String>,
+}
 
 /// `VmEndpointNatMappingsList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -48,25 +68,6 @@ pub struct VmEndpointNatMappings {
     pub instance_name: Option<String>,
     /// interfaceNatMappings property.
     pub interface_nat_mappings: Option<Vec<VmEndpointNatMappingsInterfaceNatMappings>>,
-}
-
-/// `VmEndpointNatMappingsInterfaceNatMappings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmEndpointNatMappingsInterfaceNatMappings {
-    /// drainNatIpPortRanges property.
-    pub drain_nat_ip_port_ranges: Option<Vec<String>>,
-    /// natIpPortRanges property.
-    pub nat_ip_port_ranges: Option<Vec<String>>,
-    /// numTotalDrainNatPorts property.
-    pub num_total_drain_nat_ports: Option<i64>,
-    /// numTotalNatPorts property.
-    pub num_total_nat_ports: Option<i64>,
-    /// ruleMappings property.
-    pub rule_mappings: Option<Vec<VmEndpointNatMappingsInterfaceNatMappingsNatRuleMappings>>,
-    /// sourceAliasIpRange property.
-    pub source_alias_ip_range: Option<String>,
-    /// sourceVirtualIp property.
-    pub source_virtual_ip: Option<String>,
 }
 
 /// `VmEndpointNatMappingsInterfaceNatMappingsNatRuleMappings` type.

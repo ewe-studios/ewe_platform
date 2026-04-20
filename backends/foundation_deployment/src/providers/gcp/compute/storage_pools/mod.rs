@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,80 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GetVersionOperationMetadataSbomInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
+}
+
+/// `LocalizedMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `StoragePoolExapoolProvisionedCapacityGb` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StoragePoolExapoolProvisionedCapacityGb {
+    /// capacityOptimized property.
+    pub capacity_optimized: Option<String>,
+    /// readOptimized property.
+    pub read_optimized: Option<String>,
+    /// writeOptimized property.
+    pub write_optimized: Option<String>,
+}
+
+/// `StoragePoolResourceStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StoragePoolResourceStatus {
+    /// diskCount property.
+    pub disk_count: Option<String>,
+    /// exapoolMaxReadIops property.
+    pub exapool_max_read_iops: Option<String>,
+    /// exapoolMaxReadThroughput property.
+    pub exapool_max_read_throughput: Option<String>,
+    /// exapoolMaxWriteIops property.
+    pub exapool_max_write_iops: Option<String>,
+    /// exapoolMaxWriteThroughput property.
+    pub exapool_max_write_throughput: Option<String>,
+    /// lastResizeTimestamp property.
+    pub last_resize_timestamp: Option<String>,
+    /// maxTotalProvisionedDiskCapacityGb property.
+    pub max_total_provisioned_disk_capacity_gb: Option<String>,
+    /// poolUsedCapacityBytes property.
+    pub pool_used_capacity_bytes: Option<String>,
+    /// poolUsedIops property.
+    pub pool_used_iops: Option<String>,
+    /// poolUsedThroughput property.
+    pub pool_used_throughput: Option<String>,
+    /// poolUserWrittenBytes property.
+    pub pool_user_written_bytes: Option<String>,
+    /// totalProvisionedDiskCapacityGb property.
+    pub total_provisioned_disk_capacity_gb: Option<String>,
+    /// totalProvisionedDiskIops property.
+    pub total_provisioned_disk_iops: Option<String>,
+    /// totalProvisionedDiskThroughput property.
+    pub total_provisioned_disk_throughput: Option<String>,
+}
 
 /// `ErrorInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -38,11 +108,95 @@ pub struct ErrorInfo {
     pub reason: Option<String>,
 }
 
+/// `SetCommonInstanceMetadataOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetCommonInstanceMetadataOperationMetadata {
+    /// clientOperationId property.
+    pub client_operation_id: Option<String>,
+    /// perLocationOperations property.
+    pub per_location_operations: Option<serde_json::Value>,
+}
+
+/// `StoragePoolList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StoragePoolList {
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<StoragePool>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// unreachables property.
+    pub unreachables: Option<Vec<String>>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `StoragePoolParams` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StoragePoolParams {
+    /// resourceManagerTags property.
+    pub resource_manager_tags: Option<serde_json::Value>,
+}
+
+/// `StoragePoolAggregatedList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StoragePoolAggregatedList {
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<serde_json::Value>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// unreachables property.
+    pub unreachables: Option<Vec<String>>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
 /// `Help` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Help {
     /// links property.
     pub links: Option<Vec<HelpLink>>,
+}
+
+/// `QuotaExceededInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuotaExceededInfo {
+    /// dimensions property.
+    pub dimensions: Option<serde_json::Value>,
+    /// futureLimit property.
+    pub future_limit: Option<f64>,
+    /// limit property.
+    pub limit: Option<f64>,
+    /// limitName property.
+    pub limit_name: Option<String>,
+    /// metricName property.
+    pub metric_name: Option<String>,
+    /// rolloutStatus property.
+    pub rollout_status: Option<String>,
+}
+
+/// `HelpLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
 }
 
 /// `StoragePool` type.
@@ -92,164 +246,11 @@ pub struct StoragePool {
     pub zone: Option<String>,
 }
 
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `QuotaExceededInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotaExceededInfo {
-    /// dimensions property.
-    pub dimensions: Option<serde_json::Value>,
-    /// futureLimit property.
-    pub future_limit: Option<f64>,
-    /// limit property.
-    pub limit: Option<f64>,
-    /// limitName property.
-    pub limit_name: Option<String>,
-    /// metricName property.
-    pub metric_name: Option<String>,
-    /// rolloutStatus property.
-    pub rollout_status: Option<String>,
-}
-
-/// `StoragePoolParams` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StoragePoolParams {
-    /// resourceManagerTags property.
-    pub resource_manager_tags: Option<serde_json::Value>,
-}
-
 /// `GetVersionOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetVersionOperationMetadata {
     /// inlineSbomInfo property.
     pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
-}
-
-/// `StoragePoolAggregatedList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StoragePoolAggregatedList {
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<serde_json::Value>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// unreachables property.
-    pub unreachables: Option<Vec<String>>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `StoragePoolExapoolProvisionedCapacityGb` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StoragePoolExapoolProvisionedCapacityGb {
-    /// capacityOptimized property.
-    pub capacity_optimized: Option<String>,
-    /// readOptimized property.
-    pub read_optimized: Option<String>,
-    /// writeOptimized property.
-    pub write_optimized: Option<String>,
-}
-
-/// `InstancesBulkInsertOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
-}
-
-/// `GetVersionOperationMetadataSbomInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
-}
-
-/// `StoragePoolList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StoragePoolList {
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<StoragePool>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// unreachables property.
-    pub unreachables: Option<Vec<String>>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `HelpLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `SetCommonInstanceMetadataOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetCommonInstanceMetadataOperationMetadata {
-    /// clientOperationId property.
-    pub client_operation_id: Option<String>,
-    /// perLocationOperations property.
-    pub per_location_operations: Option<serde_json::Value>,
-}
-
-/// `StoragePoolResourceStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StoragePoolResourceStatus {
-    /// diskCount property.
-    pub disk_count: Option<String>,
-    /// exapoolMaxReadIops property.
-    pub exapool_max_read_iops: Option<String>,
-    /// exapoolMaxReadThroughput property.
-    pub exapool_max_read_throughput: Option<String>,
-    /// exapoolMaxWriteIops property.
-    pub exapool_max_write_iops: Option<String>,
-    /// exapoolMaxWriteThroughput property.
-    pub exapool_max_write_throughput: Option<String>,
-    /// lastResizeTimestamp property.
-    pub last_resize_timestamp: Option<String>,
-    /// maxTotalProvisionedDiskCapacityGb property.
-    pub max_total_provisioned_disk_capacity_gb: Option<String>,
-    /// poolUsedCapacityBytes property.
-    pub pool_used_capacity_bytes: Option<String>,
-    /// poolUsedIops property.
-    pub pool_used_iops: Option<String>,
-    /// poolUsedThroughput property.
-    pub pool_used_throughput: Option<String>,
-    /// poolUserWrittenBytes property.
-    pub pool_user_written_bytes: Option<String>,
-    /// totalProvisionedDiskCapacityGb property.
-    pub total_provisioned_disk_capacity_gb: Option<String>,
-    /// totalProvisionedDiskIops property.
-    pub total_provisioned_disk_iops: Option<String>,
-    /// totalProvisionedDiskThroughput property.
-    pub total_provisioned_disk_throughput: Option<String>,
 }
 
 // =============================================================================

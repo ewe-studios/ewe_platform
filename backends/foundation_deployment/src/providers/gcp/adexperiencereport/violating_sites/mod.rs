@@ -12,35 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ViolatingSitesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ViolatingSitesResponse {
-    /// violatingSites property.
-    pub violating_sites: Option<Vec<SiteSummaryResponse>>,
-}
-
-/// `SiteSummaryResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SiteSummaryResponse {
-    /// desktopSummary property.
-    pub desktop_summary: Option<PlatformSummary>,
-    /// mobileSummary property.
-    pub mobile_summary: Option<PlatformSummary>,
-    /// reviewedSite property.
-    pub reviewed_site: Option<String>,
-}
 
 /// `PlatformSummary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -59,6 +42,24 @@ pub struct PlatformSummary {
     pub report_url: Option<String>,
     /// underReview property.
     pub under_review: Option<bool>,
+}
+
+/// `ViolatingSitesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ViolatingSitesResponse {
+    /// violatingSites property.
+    pub violating_sites: Option<Vec<SiteSummaryResponse>>,
+}
+
+/// `SiteSummaryResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SiteSummaryResponse {
+    /// desktopSummary property.
+    pub desktop_summary: Option<PlatformSummary>,
+    /// mobileSummary property.
+    pub mobile_summary: Option<PlatformSummary>,
+    /// reviewedSite property.
+    pub reviewed_site: Option<String>,
 }
 
 // =============================================================================

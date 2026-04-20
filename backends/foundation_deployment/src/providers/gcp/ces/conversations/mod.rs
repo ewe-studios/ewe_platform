@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -34,6 +35,71 @@ pub struct Image {
     pub data: Option<String>,
     /// mimeType property.
     pub mime_type: Option<String>,
+}
+
+/// `Span` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Span {
+    /// attributes property.
+    pub attributes: Option<serde_json::Value>,
+    /// childSpans property.
+    pub child_spans: Option<Vec<Box<Span>>>,
+    /// duration property.
+    pub duration: Option<String>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `ListConversationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListConversationsResponse {
+    /// conversations property.
+    pub conversations: Option<Vec<Conversation>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `ConversationTurn` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConversationTurn {
+    /// messages property.
+    pub messages: Option<Vec<Message>>,
+    /// rootSpan property.
+    pub root_span: Option<Box<Span>>,
+}
+
+/// `ToolCall` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ToolCall {
+    /// args property.
+    pub args: Option<serde_json::Value>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// tool property.
+    pub tool: Option<String>,
+    /// toolsetTool property.
+    pub toolset_tool: Option<ToolsetTool>,
+}
+
+/// `ToolResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ToolResponse {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// response property.
+    pub response: Option<serde_json::Value>,
+    /// tool property.
+    pub tool: Option<String>,
+    /// toolsetTool property.
+    pub toolset_tool: Option<ToolsetTool>,
 }
 
 /// `Conversation` type.
@@ -67,15 +133,6 @@ pub struct Conversation {
     pub turns: Option<Vec<ConversationTurn>>,
 }
 
-/// `ListConversationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListConversationsResponse {
-    /// conversations property.
-    pub conversations: Option<Vec<Conversation>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
 /// `Blob` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Blob {
@@ -83,76 +140,6 @@ pub struct Blob {
     pub data: Option<String>,
     /// mimeType property.
     pub mime_type: Option<String>,
-}
-
-/// `ToolCall` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ToolCall {
-    /// args property.
-    pub args: Option<serde_json::Value>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// tool property.
-    pub tool: Option<String>,
-    /// toolsetTool property.
-    pub toolset_tool: Option<ToolsetTool>,
-}
-
-/// `AgentTransfer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AgentTransfer {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// targetAgent property.
-    pub target_agent: Option<String>,
-}
-
-/// `ConversationTurn` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConversationTurn {
-    /// messages property.
-    pub messages: Option<Vec<Message>>,
-    /// rootSpan property.
-    pub root_span: Option<Span>,
-}
-
-/// `Span` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Span {
-    /// attributes property.
-    pub attributes: Option<serde_json::Value>,
-    /// childSpans property.
-    pub child_spans: Option<Vec<Span>>,
-    /// duration property.
-    pub duration: Option<String>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `ToolsetTool` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ToolsetTool {
-    /// toolId property.
-    pub tool_id: Option<String>,
-    /// toolset property.
-    pub toolset: Option<String>,
-}
-
-/// `Message` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Message {
-    /// chunks property.
-    pub chunks: Option<Vec<Chunk>>,
-    /// eventTime property.
-    pub event_time: Option<String>,
-    /// role property.
-    pub role: Option<String>,
 }
 
 /// `Chunk` type.
@@ -180,19 +167,33 @@ pub struct Chunk {
     pub updated_variables: Option<serde_json::Value>,
 }
 
-/// `ToolResponse` type.
+/// `Message` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ToolResponse {
+pub struct Message {
+    /// chunks property.
+    pub chunks: Option<Vec<Chunk>>,
+    /// eventTime property.
+    pub event_time: Option<String>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `AgentTransfer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AgentTransfer {
     /// displayName property.
     pub display_name: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// response property.
-    pub response: Option<serde_json::Value>,
-    /// tool property.
-    pub tool: Option<String>,
-    /// toolsetTool property.
-    pub toolset_tool: Option<ToolsetTool>,
+    /// targetAgent property.
+    pub target_agent: Option<String>,
+}
+
+/// `ToolsetTool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ToolsetTool {
+    /// toolId property.
+    pub tool_id: Option<String>,
+    /// toolset property.
+    pub toolset: Option<String>,
 }
 
 // =============================================================================

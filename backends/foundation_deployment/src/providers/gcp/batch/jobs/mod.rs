@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,140 +22,44 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Accelerator` type.
+/// `TaskGroup` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Accelerator {
-    /// count property.
-    pub count: Option<String>,
-    /// driverVersion property.
-    pub driver_version: Option<String>,
-    /// installGpuDrivers property.
-    pub install_gpu_drivers: Option<bool>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `PlacementPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlacementPolicy {
-    /// collocation property.
-    pub collocation: Option<String>,
-    /// maxDistance property.
-    pub max_distance: Option<String>,
-}
-
-/// `Environment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Environment {
-    /// encryptedVariables property.
-    pub encrypted_variables: Option<KMSEnvMap>,
-    /// secretVariables property.
-    pub secret_variables: Option<serde_json::Value>,
-    /// variables property.
-    pub variables: Option<serde_json::Value>,
-}
-
-/// `Barrier` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Barrier {
+pub struct TaskGroup {
     /// name property.
     pub name: Option<String>,
+    /// parallelism property.
+    pub parallelism: Option<String>,
+    /// permissiveSsh property.
+    pub permissive_ssh: Option<bool>,
+    /// requireHostsFile property.
+    pub require_hosts_file: Option<bool>,
+    /// runAsNonRoot property.
+    pub run_as_non_root: Option<bool>,
+    /// schedulingPolicy property.
+    pub scheduling_policy: Option<String>,
+    /// taskCount property.
+    pub task_count: Option<String>,
+    /// taskCountPerNode property.
+    pub task_count_per_node: Option<String>,
+    /// taskEnvironments property.
+    pub task_environments: Option<Vec<Environment>>,
+    /// taskSpec property.
+    pub task_spec: Option<TaskSpec>,
 }
 
-/// `ComputeResource` type.
+/// `Script` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeResource {
-    /// bootDiskMib property.
-    pub boot_disk_mib: Option<String>,
-    /// cpuMilli property.
-    pub cpu_milli: Option<String>,
-    /// memoryMib property.
-    pub memory_mib: Option<String>,
-}
-
-/// `InstancePolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancePolicy {
-    /// accelerators property.
-    pub accelerators: Option<Vec<Accelerator>>,
-    /// bootDisk property.
-    pub boot_disk: Option<Disk>,
-    /// disks property.
-    pub disks: Option<Vec<AttachedDisk>>,
-    /// machineType property.
-    pub machine_type: Option<String>,
-    /// minCpuPlatform property.
-    pub min_cpu_platform: Option<String>,
-    /// provisioningModel property.
-    pub provisioning_model: Option<String>,
-    /// reservation property.
-    pub reservation: Option<String>,
-}
-
-/// `LifecyclePolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LifecyclePolicy {
-    /// action property.
-    pub action: Option<String>,
-    /// actionCondition property.
-    pub action_condition: Option<ActionCondition>,
-}
-
-/// `AllocationPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AllocationPolicy {
-    /// instances property.
-    pub instances: Option<Vec<InstancePolicyOrTemplate>>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// location property.
-    pub location: Option<LocationPolicy>,
-    /// network property.
-    pub network: Option<NetworkPolicy>,
-    /// placement property.
-    pub placement: Option<PlacementPolicy>,
-    /// serviceAccount property.
-    pub service_account: Option<ServiceAccount>,
-    /// tags property.
-    pub tags: Option<Vec<String>>,
-}
-
-/// `GCS` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GCS {
-    /// remotePath property.
-    pub remote_path: Option<String>,
-}
-
-/// `NetworkPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkPolicy {
-    /// networkInterfaces property.
-    pub network_interfaces: Option<Vec<NetworkInterface>>,
-}
-
-/// `TaskExecution` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TaskExecution {
-    /// exitCode property.
-    pub exit_code: Option<i64>,
+pub struct Script {
+    /// path property.
+    pub path: Option<String>,
+    /// text property.
+    pub text: Option<String>,
 }
 
 /// `Runnable` type.
@@ -182,107 +87,34 @@ pub struct Runnable {
     pub timeout: Option<String>,
 }
 
-/// `ActionCondition` type.
+/// `Volume` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActionCondition {
-    /// exitCodes property.
-    pub exit_codes: Option<Vec<i64>>,
+pub struct Volume {
+    /// deviceName property.
+    pub device_name: Option<String>,
+    /// gcs property.
+    pub gcs: Option<GCS>,
+    /// mountOptions property.
+    pub mount_options: Option<Vec<String>>,
+    /// mountPath property.
+    pub mount_path: Option<String>,
+    /// nfs property.
+    pub nfs: Option<NFS>,
 }
 
-/// `NetworkInterface` type.
+/// `InstancePolicyOrTemplate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkInterface {
-    /// network property.
-    pub network: Option<String>,
-    /// noExternalIpAddress property.
-    pub no_external_ip_address: Option<bool>,
-    /// subnetwork property.
-    pub subnetwork: Option<String>,
-}
-
-/// `Message` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Message {
-    /// newJobState property.
-    pub new_job_state: Option<String>,
-    /// newTaskState property.
-    pub new_task_state: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `JobStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobStatus {
-    /// runDuration property.
-    pub run_duration: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// statusEvents property.
-    pub status_events: Option<Vec<StatusEvent>>,
-    /// taskGroups property.
-    pub task_groups: Option<serde_json::Value>,
-}
-
-/// `Script` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Script {
-    /// path property.
-    pub path: Option<String>,
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `TaskGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TaskGroup {
-    /// name property.
-    pub name: Option<String>,
-    /// parallelism property.
-    pub parallelism: Option<String>,
-    /// permissiveSsh property.
-    pub permissive_ssh: Option<bool>,
-    /// requireHostsFile property.
-    pub require_hosts_file: Option<bool>,
-    /// runAsNonRoot property.
-    pub run_as_non_root: Option<bool>,
-    /// schedulingPolicy property.
-    pub scheduling_policy: Option<String>,
-    /// taskCount property.
-    pub task_count: Option<String>,
-    /// taskCountPerNode property.
-    pub task_count_per_node: Option<String>,
-    /// taskEnvironments property.
-    pub task_environments: Option<Vec<Environment>>,
-    /// taskSpec property.
-    pub task_spec: Option<TaskSpec>,
-}
-
-/// `LocationPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocationPolicy {
-    /// allowedLocations property.
-    pub allowed_locations: Option<Vec<String>>,
-}
-
-/// `ListJobsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListJobsResponse {
-    /// jobs property.
-    pub jobs: Option<Vec<Job>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `ServiceAccount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceAccount {
-    /// email property.
-    pub email: Option<String>,
-    /// scopes property.
-    pub scopes: Option<Vec<String>>,
+pub struct InstancePolicyOrTemplate {
+    /// blockProjectSshKeys property.
+    pub block_project_ssh_keys: Option<bool>,
+    /// installGpuDrivers property.
+    pub install_gpu_drivers: Option<bool>,
+    /// installOpsAgent property.
+    pub install_ops_agent: Option<bool>,
+    /// instanceTemplate property.
+    pub instance_template: Option<String>,
+    /// policy property.
+    pub policy: Option<InstancePolicy>,
 }
 
 /// `Disk` type.
@@ -300,19 +132,318 @@ pub struct Disk {
     pub r#type: Option<String>,
 }
 
-/// `Volume` type.
+/// `AttachedDisk` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Volume {
+pub struct AttachedDisk {
     /// deviceName property.
     pub device_name: Option<String>,
-    /// gcs property.
-    pub gcs: Option<GCS>,
-    /// mountOptions property.
-    pub mount_options: Option<Vec<String>>,
-    /// mountPath property.
-    pub mount_path: Option<String>,
-    /// nfs property.
-    pub nfs: Option<NFS>,
+    /// existingDisk property.
+    pub existing_disk: Option<String>,
+    /// newDisk property.
+    pub new_disk: Option<Disk>,
+}
+
+/// `GCS` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GCS {
+    /// remotePath property.
+    pub remote_path: Option<String>,
+}
+
+/// `JobStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JobStatus {
+    /// runDuration property.
+    pub run_duration: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// statusEvents property.
+    pub status_events: Option<Vec<StatusEvent>>,
+    /// taskGroups property.
+    pub task_groups: Option<serde_json::Value>,
+}
+
+/// `AllocationPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AllocationPolicy {
+    /// instances property.
+    pub instances: Option<Vec<InstancePolicyOrTemplate>>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// location property.
+    pub location: Option<LocationPolicy>,
+    /// network property.
+    pub network: Option<NetworkPolicy>,
+    /// placement property.
+    pub placement: Option<PlacementPolicy>,
+    /// serviceAccount property.
+    pub service_account: Option<ServiceAccount>,
+    /// tags property.
+    pub tags: Option<Vec<String>>,
+}
+
+/// `Container` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Container {
+    /// blockExternalNetwork property.
+    pub block_external_network: Option<bool>,
+    /// commands property.
+    pub commands: Option<Vec<String>>,
+    /// enableImageStreaming property.
+    pub enable_image_streaming: Option<bool>,
+    /// entrypoint property.
+    pub entrypoint: Option<String>,
+    /// imageUri property.
+    pub image_uri: Option<String>,
+    /// options property.
+    pub options: Option<String>,
+    /// password property.
+    pub password: Option<String>,
+    /// username property.
+    pub username: Option<String>,
+    /// volumes property.
+    pub volumes: Option<Vec<String>>,
+}
+
+/// `NetworkInterface` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkInterface {
+    /// network property.
+    pub network: Option<String>,
+    /// noExternalIpAddress property.
+    pub no_external_ip_address: Option<bool>,
+    /// subnetwork property.
+    pub subnetwork: Option<String>,
+}
+
+/// `NetworkPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkPolicy {
+    /// networkInterfaces property.
+    pub network_interfaces: Option<Vec<NetworkInterface>>,
+}
+
+/// `TaskExecution` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TaskExecution {
+    /// exitCode property.
+    pub exit_code: Option<i64>,
+}
+
+/// `ActionCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActionCondition {
+    /// exitCodes property.
+    pub exit_codes: Option<Vec<i64>>,
+}
+
+/// `LogsPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogsPolicy {
+    /// cloudLoggingOption property.
+    pub cloud_logging_option: Option<CloudLoggingOption>,
+    /// destination property.
+    pub destination: Option<String>,
+    /// logsPath property.
+    pub logs_path: Option<String>,
+}
+
+/// `Barrier` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Barrier {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `LocationPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocationPolicy {
+    /// allowedLocations property.
+    pub allowed_locations: Option<Vec<String>>,
+}
+
+/// `TaskSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TaskSpec {
+    /// computeResource property.
+    pub compute_resource: Option<ComputeResource>,
+    /// environment property.
+    pub environment: Option<Environment>,
+    /// environments property.
+    pub environments: Option<serde_json::Value>,
+    /// lifecyclePolicies property.
+    pub lifecycle_policies: Option<Vec<LifecyclePolicy>>,
+    /// maxRetryCount property.
+    pub max_retry_count: Option<i64>,
+    /// maxRunDuration property.
+    pub max_run_duration: Option<String>,
+    /// runnables property.
+    pub runnables: Option<Vec<Runnable>>,
+    /// volumes property.
+    pub volumes: Option<Vec<Volume>>,
+}
+
+/// `PlacementPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlacementPolicy {
+    /// collocation property.
+    pub collocation: Option<String>,
+    /// maxDistance property.
+    pub max_distance: Option<String>,
+}
+
+/// `ServiceAccount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceAccount {
+    /// email property.
+    pub email: Option<String>,
+    /// scopes property.
+    pub scopes: Option<Vec<String>>,
+}
+
+/// `Environment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Environment {
+    /// encryptedVariables property.
+    pub encrypted_variables: Option<KMSEnvMap>,
+    /// secretVariables property.
+    pub secret_variables: Option<serde_json::Value>,
+    /// variables property.
+    pub variables: Option<serde_json::Value>,
+}
+
+/// `JobNotification` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JobNotification {
+    /// message property.
+    pub message: Option<Message>,
+    /// pubsubTopic property.
+    pub pubsub_topic: Option<String>,
+}
+
+/// `KMSEnvMap` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KMSEnvMap {
+    /// cipherText property.
+    pub cipher_text: Option<String>,
+    /// keyName property.
+    pub key_name: Option<String>,
+}
+
+/// `CloudLoggingOption` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudLoggingOption {
+    /// useGenericTaskMonitoredResource property.
+    pub use_generic_task_monitored_resource: Option<bool>,
+}
+
+/// `StatusEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StatusEvent {
+    /// description property.
+    pub description: Option<String>,
+    /// eventTime property.
+    pub event_time: Option<String>,
+    /// taskExecution property.
+    pub task_execution: Option<TaskExecution>,
+    /// taskState property.
+    pub task_state: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `Message` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Message {
+    /// newJobState property.
+    pub new_job_state: Option<String>,
+    /// newTaskState property.
+    pub new_task_state: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `LifecyclePolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LifecyclePolicy {
+    /// action property.
+    pub action: Option<String>,
+    /// actionCondition property.
+    pub action_condition: Option<ActionCondition>,
+}
+
+/// `InstancePolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancePolicy {
+    /// accelerators property.
+    pub accelerators: Option<Vec<Accelerator>>,
+    /// bootDisk property.
+    pub boot_disk: Option<Disk>,
+    /// disks property.
+    pub disks: Option<Vec<AttachedDisk>>,
+    /// machineType property.
+    pub machine_type: Option<String>,
+    /// minCpuPlatform property.
+    pub min_cpu_platform: Option<String>,
+    /// provisioningModel property.
+    pub provisioning_model: Option<String>,
+    /// reservation property.
+    pub reservation: Option<String>,
+}
+
+/// `Accelerator` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Accelerator {
+    /// count property.
+    pub count: Option<String>,
+    /// driverVersion property.
+    pub driver_version: Option<String>,
+    /// installGpuDrivers property.
+    pub install_gpu_drivers: Option<bool>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `NFS` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NFS {
+    /// remotePath property.
+    pub remote_path: Option<String>,
+    /// server property.
+    pub server: Option<String>,
+}
+
+/// `ComputeResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeResource {
+    /// bootDiskMib property.
+    pub boot_disk_mib: Option<String>,
+    /// cpuMilli property.
+    pub cpu_milli: Option<String>,
+    /// memoryMib property.
+    pub memory_mib: Option<String>,
+}
+
+/// `ListJobsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListJobsResponse {
+    /// jobs property.
+    pub jobs: Option<Vec<Job>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `Job` type.
@@ -340,136 +471,6 @@ pub struct Job {
     pub uid: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `AttachedDisk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AttachedDisk {
-    /// deviceName property.
-    pub device_name: Option<String>,
-    /// existingDisk property.
-    pub existing_disk: Option<String>,
-    /// newDisk property.
-    pub new_disk: Option<Disk>,
-}
-
-/// `TaskSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TaskSpec {
-    /// computeResource property.
-    pub compute_resource: Option<ComputeResource>,
-    /// environment property.
-    pub environment: Option<Environment>,
-    /// environments property.
-    pub environments: Option<serde_json::Value>,
-    /// lifecyclePolicies property.
-    pub lifecycle_policies: Option<Vec<LifecyclePolicy>>,
-    /// maxRetryCount property.
-    pub max_retry_count: Option<i64>,
-    /// maxRunDuration property.
-    pub max_run_duration: Option<String>,
-    /// runnables property.
-    pub runnables: Option<Vec<Runnable>>,
-    /// volumes property.
-    pub volumes: Option<Vec<Volume>>,
-}
-
-/// `InstancePolicyOrTemplate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancePolicyOrTemplate {
-    /// blockProjectSshKeys property.
-    pub block_project_ssh_keys: Option<bool>,
-    /// installGpuDrivers property.
-    pub install_gpu_drivers: Option<bool>,
-    /// installOpsAgent property.
-    pub install_ops_agent: Option<bool>,
-    /// instanceTemplate property.
-    pub instance_template: Option<String>,
-    /// policy property.
-    pub policy: Option<InstancePolicy>,
-}
-
-/// `NFS` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NFS {
-    /// remotePath property.
-    pub remote_path: Option<String>,
-    /// server property.
-    pub server: Option<String>,
-}
-
-/// `CloudLoggingOption` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudLoggingOption {
-    /// useGenericTaskMonitoredResource property.
-    pub use_generic_task_monitored_resource: Option<bool>,
-}
-
-/// `StatusEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StatusEvent {
-    /// description property.
-    pub description: Option<String>,
-    /// eventTime property.
-    pub event_time: Option<String>,
-    /// taskExecution property.
-    pub task_execution: Option<TaskExecution>,
-    /// taskState property.
-    pub task_state: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `Container` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Container {
-    /// blockExternalNetwork property.
-    pub block_external_network: Option<bool>,
-    /// commands property.
-    pub commands: Option<Vec<String>>,
-    /// enableImageStreaming property.
-    pub enable_image_streaming: Option<bool>,
-    /// entrypoint property.
-    pub entrypoint: Option<String>,
-    /// imageUri property.
-    pub image_uri: Option<String>,
-    /// options property.
-    pub options: Option<String>,
-    /// password property.
-    pub password: Option<String>,
-    /// username property.
-    pub username: Option<String>,
-    /// volumes property.
-    pub volumes: Option<Vec<String>>,
-}
-
-/// `KMSEnvMap` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KMSEnvMap {
-    /// cipherText property.
-    pub cipher_text: Option<String>,
-    /// keyName property.
-    pub key_name: Option<String>,
-}
-
-/// `LogsPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LogsPolicy {
-    /// cloudLoggingOption property.
-    pub cloud_logging_option: Option<CloudLoggingOption>,
-    /// destination property.
-    pub destination: Option<String>,
-    /// logsPath property.
-    pub logs_path: Option<String>,
-}
-
-/// `JobNotification` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobNotification {
-    /// message property.
-    pub message: Option<Message>,
-    /// pubsubTopic property.
-    pub pubsub_topic: Option<String>,
 }
 
 // =============================================================================

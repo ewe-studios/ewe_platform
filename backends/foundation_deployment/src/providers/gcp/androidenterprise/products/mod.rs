@@ -12,58 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `AppRestrictionsSchemaRestriction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppRestrictionsSchemaRestriction {
-    /// defaultValue property.
-    pub default_value: Option<AppRestrictionsSchemaRestrictionRestrictionValue>,
-    /// description property.
-    pub description: Option<String>,
-    /// entry property.
-    pub entry: Option<Vec<String>>,
-    /// entryValue property.
-    pub entry_value: Option<Vec<String>>,
-    /// key property.
-    pub key: Option<String>,
-    /// nestedRestriction property.
-    pub nested_restriction: Option<Vec<AppRestrictionsSchemaRestriction>>,
-    /// restrictionType property.
-    pub restriction_type: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `ProductSigningCertificate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductSigningCertificate {
-    /// certificateHashSha1 property.
-    pub certificate_hash_sha1: Option<String>,
-    /// certificateHashSha256 property.
-    pub certificate_hash_sha256: Option<String>,
-}
-
-/// `PageInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PageInfo {
-    /// resultPerPage property.
-    pub result_per_page: Option<i64>,
-    /// startIndex property.
-    pub start_index: Option<i64>,
-    /// totalResults property.
-    pub total_results: Option<i64>,
-}
 
 /// `Product` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -122,6 +82,33 @@ pub struct Product {
     pub work_details_url: Option<String>,
 }
 
+/// `ProductSigningCertificate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductSigningCertificate {
+    /// certificateHashSha1 property.
+    pub certificate_hash_sha1: Option<String>,
+    /// certificateHashSha256 property.
+    pub certificate_hash_sha256: Option<String>,
+}
+
+/// `AppRestrictionsSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppRestrictionsSchema {
+    /// kind property.
+    pub kind: Option<String>,
+    /// restrictions property.
+    pub restrictions: Option<Vec<Box<AppRestrictionsSchemaRestriction>>>,
+}
+
+/// `TrackInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TrackInfo {
+    /// trackAlias property.
+    pub track_alias: Option<String>,
+    /// trackId property.
+    pub track_id: Option<String>,
+}
+
 /// `ProductPermission` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductPermission {
@@ -129,6 +116,38 @@ pub struct ProductPermission {
     pub permission_id: Option<String>,
     /// state property.
     pub state: Option<String>,
+}
+
+/// `PageInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PageInfo {
+    /// resultPerPage property.
+    pub result_per_page: Option<i64>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+    /// totalResults property.
+    pub total_results: Option<i64>,
+}
+
+/// `AppRestrictionsSchemaRestriction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppRestrictionsSchemaRestriction {
+    /// defaultValue property.
+    pub default_value: Option<AppRestrictionsSchemaRestrictionRestrictionValue>,
+    /// description property.
+    pub description: Option<String>,
+    /// entry property.
+    pub entry: Option<Vec<String>>,
+    /// entryValue property.
+    pub entry_value: Option<Vec<String>>,
+    /// key property.
+    pub key: Option<String>,
+    /// nestedRestriction property.
+    pub nested_restriction: Option<Vec<Box<AppRestrictionsSchemaRestriction>>>,
+    /// restrictionType property.
+    pub restriction_type: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 /// `AppVersion` type.
@@ -148,44 +167,6 @@ pub struct AppVersion {
     pub version_string: Option<String>,
 }
 
-/// `ProductsListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductsListResponse {
-    /// pageInfo property.
-    pub page_info: Option<PageInfo>,
-    /// product property.
-    pub product: Option<Vec<Product>>,
-    /// tokenPagination property.
-    pub token_pagination: Option<TokenPagination>,
-}
-
-/// `AppRestrictionsSchema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppRestrictionsSchema {
-    /// kind property.
-    pub kind: Option<String>,
-    /// restrictions property.
-    pub restrictions: Option<Vec<AppRestrictionsSchemaRestriction>>,
-}
-
-/// `TokenPagination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TokenPagination {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// previousPageToken property.
-    pub previous_page_token: Option<String>,
-}
-
-/// `TrackInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TrackInfo {
-    /// trackAlias property.
-    pub track_alias: Option<String>,
-    /// trackId property.
-    pub track_id: Option<String>,
-}
-
 /// `AppRestrictionsSchemaRestrictionRestrictionValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppRestrictionsSchemaRestrictionRestrictionValue {
@@ -199,6 +180,26 @@ pub struct AppRestrictionsSchemaRestrictionRestrictionValue {
     pub value_multiselect: Option<Vec<String>>,
     /// valueString property.
     pub value_string: Option<String>,
+}
+
+/// `TokenPagination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TokenPagination {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// previousPageToken property.
+    pub previous_page_token: Option<String>,
+}
+
+/// `ProductsListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductsListResponse {
+    /// pageInfo property.
+    pub page_info: Option<PageInfo>,
+    /// product property.
+    pub product: Option<Vec<Product>>,
+    /// tokenPagination property.
+    pub token_pagination: Option<TokenPagination>,
 }
 
 // =============================================================================

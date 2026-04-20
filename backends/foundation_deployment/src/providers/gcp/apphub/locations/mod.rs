@@ -12,17 +12,40 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Location` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Location {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// locationId property.
+    pub location_id: Option<String>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `LookupServiceProjectAttachmentResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LookupServiceProjectAttachmentResponse {
+    /// serviceProjectAttachment property.
+    pub service_project_attachment: Option<ServiceProjectAttachment>,
+}
 
 /// `ServiceProjectAttachment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -39,6 +62,10 @@ pub struct ServiceProjectAttachment {
     pub uid: Option<String>,
 }
 
+/// `DetachServiceProjectAttachmentResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DetachServiceProjectAttachmentResponse {}
+
 /// `ListLocationsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
@@ -46,32 +73,6 @@ pub struct ListLocationsResponse {
     pub locations: Option<Vec<Location>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-}
-
-/// `LookupServiceProjectAttachmentResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LookupServiceProjectAttachmentResponse {
-    /// serviceProjectAttachment property.
-    pub service_project_attachment: Option<ServiceProjectAttachment>,
-}
-
-/// `DetachServiceProjectAttachmentResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DetachServiceProjectAttachmentResponse {}
-
-/// `Location` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Location {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// locationId property.
-    pub location_id: Option<String>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
 }
 
 // =============================================================================

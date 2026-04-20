@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,66 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `AllConnectionStrings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AllConnectionStrings {
+    /// high property.
+    pub high: Option<String>,
+    /// low property.
+    pub low: Option<String>,
+    /// medium property.
+    pub medium: Option<String>,
+}
+
+/// `AutonomousDatabaseConnectionStrings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutonomousDatabaseConnectionStrings {
+    /// allConnectionStrings property.
+    pub all_connection_strings: Option<AllConnectionStrings>,
+    /// dedicated property.
+    pub dedicated: Option<String>,
+    /// high property.
+    pub high: Option<String>,
+    /// low property.
+    pub low: Option<String>,
+    /// medium property.
+    pub medium: Option<String>,
+    /// profiles property.
+    pub profiles: Option<Vec<DatabaseConnectionStringProfile>>,
+}
+
+/// `CustomerContact` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomerContact {
+    /// email property.
+    pub email: Option<String>,
+}
+
+/// `ListAutonomousDatabasesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAutonomousDatabasesResponse {
+    /// autonomousDatabases property.
+    pub autonomous_databases: Option<Vec<AutonomousDatabase>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
 
 /// `DatabaseConnectionStringProfile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -48,6 +104,65 @@ pub struct DatabaseConnectionStringProfile {
     pub tls_authentication: Option<String>,
     /// value property.
     pub value: Option<String>,
+}
+
+/// `EncryptionKeyHistoryEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EncryptionKeyHistoryEntry {
+    /// activationTime property.
+    pub activation_time: Option<String>,
+    /// encryptionKey property.
+    pub encryption_key: Option<EncryptionKey>,
+}
+
+/// `TimeOfDay` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeOfDay {
+    /// hours property.
+    pub hours: Option<i64>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<i64>,
+}
+
+/// `AutonomousDatabase` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutonomousDatabase {
+    /// adminPassword property.
+    pub admin_password: Option<String>,
+    /// adminPasswordSecretVersion property.
+    pub admin_password_secret_version: Option<String>,
+    /// cidr property.
+    pub cidr: Option<String>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// database property.
+    pub database: Option<String>,
+    /// disasterRecoverySupportedLocations property.
+    pub disaster_recovery_supported_locations: Option<Vec<String>>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// entitlementId property.
+    pub entitlement_id: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// network property.
+    pub network: Option<String>,
+    /// odbNetwork property.
+    pub odb_network: Option<String>,
+    /// odbSubnet property.
+    pub odb_subnet: Option<String>,
+    /// peerAutonomousDatabases property.
+    pub peer_autonomous_databases: Option<Vec<String>>,
+    /// properties property.
+    pub properties: Option<AutonomousDatabaseProperties>,
+    /// sourceConfig property.
+    pub source_config: Option<SourceConfig>,
 }
 
 /// `AutonomousDatabaseProperties` type.
@@ -185,6 +300,15 @@ pub struct AutonomousDatabaseProperties {
     pub vault_id: Option<String>,
 }
 
+/// `SourceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SourceConfig {
+    /// automaticBackupsReplicationEnabled property.
+    pub automatic_backups_replication_enabled: Option<bool>,
+    /// autonomousDatabase property.
+    pub autonomous_database: Option<String>,
+}
+
 /// `AutonomousDatabaseConnectionUrls` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutonomousDatabaseConnectionUrls {
@@ -204,116 +328,6 @@ pub struct AutonomousDatabaseConnectionUrls {
     pub ords_uri: Option<String>,
     /// sqlDevWebUri property.
     pub sql_dev_web_uri: Option<String>,
-}
-
-/// `CustomerContact` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerContact {
-    /// email property.
-    pub email: Option<String>,
-}
-
-/// `EncryptionKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionKey {
-    /// kmsKey property.
-    pub kms_key: Option<String>,
-    /// provider property.
-    pub provider: Option<String>,
-}
-
-/// `EncryptionKeyHistoryEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionKeyHistoryEntry {
-    /// activationTime property.
-    pub activation_time: Option<String>,
-    /// encryptionKey property.
-    pub encryption_key: Option<EncryptionKey>,
-}
-
-/// `TimeOfDay` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeOfDay {
-    /// hours property.
-    pub hours: Option<i64>,
-    /// minutes property.
-    pub minutes: Option<i64>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<i64>,
-}
-
-/// `AutonomousDatabase` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutonomousDatabase {
-    /// adminPassword property.
-    pub admin_password: Option<String>,
-    /// adminPasswordSecretVersion property.
-    pub admin_password_secret_version: Option<String>,
-    /// cidr property.
-    pub cidr: Option<String>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// database property.
-    pub database: Option<String>,
-    /// disasterRecoverySupportedLocations property.
-    pub disaster_recovery_supported_locations: Option<Vec<String>>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// entitlementId property.
-    pub entitlement_id: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// network property.
-    pub network: Option<String>,
-    /// odbNetwork property.
-    pub odb_network: Option<String>,
-    /// odbSubnet property.
-    pub odb_subnet: Option<String>,
-    /// peerAutonomousDatabases property.
-    pub peer_autonomous_databases: Option<Vec<String>>,
-    /// properties property.
-    pub properties: Option<AutonomousDatabaseProperties>,
-    /// sourceConfig property.
-    pub source_config: Option<SourceConfig>,
-}
-
-/// `AutonomousDatabaseConnectionStrings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutonomousDatabaseConnectionStrings {
-    /// allConnectionStrings property.
-    pub all_connection_strings: Option<AllConnectionStrings>,
-    /// dedicated property.
-    pub dedicated: Option<String>,
-    /// high property.
-    pub high: Option<String>,
-    /// low property.
-    pub low: Option<String>,
-    /// medium property.
-    pub medium: Option<String>,
-    /// profiles property.
-    pub profiles: Option<Vec<DatabaseConnectionStringProfile>>,
-}
-
-/// `AutonomousDatabaseApex` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutonomousDatabaseApex {
-    /// apexVersion property.
-    pub apex_version: Option<String>,
-    /// ordsVersion property.
-    pub ords_version: Option<String>,
-}
-
-/// `SourceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceConfig {
-    /// automaticBackupsReplicationEnabled property.
-    pub automatic_backups_replication_enabled: Option<bool>,
-    /// autonomousDatabase property.
-    pub autonomous_database: Option<String>,
 }
 
 /// `AutonomousDatabaseStandbySummary` type.
@@ -349,35 +363,22 @@ pub struct ScheduledOperationDetails {
     pub stop_time: Option<TimeOfDay>,
 }
 
-/// `Status` type.
+/// `AutonomousDatabaseApex` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct AutonomousDatabaseApex {
+    /// apexVersion property.
+    pub apex_version: Option<String>,
+    /// ordsVersion property.
+    pub ords_version: Option<String>,
 }
 
-/// `AllConnectionStrings` type.
+/// `EncryptionKey` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AllConnectionStrings {
-    /// high property.
-    pub high: Option<String>,
-    /// low property.
-    pub low: Option<String>,
-    /// medium property.
-    pub medium: Option<String>,
-}
-
-/// `ListAutonomousDatabasesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAutonomousDatabasesResponse {
-    /// autonomousDatabases property.
-    pub autonomous_databases: Option<Vec<AutonomousDatabase>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct EncryptionKey {
+    /// kmsKey property.
+    pub kms_key: Option<String>,
+    /// provider property.
+    pub provider: Option<String>,
 }
 
 // =============================================================================

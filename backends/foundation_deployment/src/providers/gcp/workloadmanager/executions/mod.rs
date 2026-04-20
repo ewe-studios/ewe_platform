@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,72 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListExecutionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListExecutionsResponse {
-    /// executions property.
-    pub executions: Option<Vec<Execution>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `ExternalDataSources` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExternalDataSources {
-    /// assetType property.
-    pub asset_type: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `RuleExecutionResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RuleExecutionResult {
-    /// message property.
-    pub message: Option<String>,
-    /// resultCount property.
-    pub result_count: Option<String>,
-    /// rule property.
-    pub rule: Option<String>,
-    /// scannedResourceCount property.
-    pub scanned_resource_count: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `Summary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Summary {
-    /// failures property.
-    pub failures: Option<String>,
-    /// newFailures property.
-    pub new_failures: Option<String>,
-    /// newFixes property.
-    pub new_fixes: Option<String>,
-}
 
 /// `Execution` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -119,11 +59,72 @@ pub struct Execution {
     pub state: Option<String>,
 }
 
+/// `ListExecutionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListExecutionsResponse {
+    /// executions property.
+    pub executions: Option<Vec<Execution>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `RuleExecutionResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RuleExecutionResult {
+    /// message property.
+    pub message: Option<String>,
+    /// resultCount property.
+    pub result_count: Option<String>,
+    /// rule property.
+    pub rule: Option<String>,
+    /// scannedResourceCount property.
+    pub scanned_resource_count: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `ExternalDataSources` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExternalDataSources {
+    /// assetType property.
+    pub asset_type: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
 /// `Notice` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Notice {
     /// message property.
     pub message: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `Summary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Summary {
+    /// failures property.
+    pub failures: Option<String>,
+    /// newFailures property.
+    pub new_failures: Option<String>,
+    /// newFixes property.
+    pub new_fixes: Option<String>,
 }
 
 // =============================================================================

@@ -12,61 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ContactInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContactInfo {
-    /// countryCode property.
-    pub country_code: Option<String>,
-    /// hashedEmails property.
-    pub hashed_emails: Option<Vec<String>>,
-    /// hashedFirstName property.
-    pub hashed_first_name: Option<String>,
-    /// hashedLastName property.
-    pub hashed_last_name: Option<String>,
-    /// hashedPhoneNumbers property.
-    pub hashed_phone_numbers: Option<Vec<String>>,
-    /// zipCodes property.
-    pub zip_codes: Option<Vec<String>>,
-}
-
-/// `ContactInfoList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContactInfoList {
-    /// consent property.
-    pub consent: Option<Consent>,
-    /// contactInfos property.
-    pub contact_infos: Option<Vec<ContactInfo>>,
-}
-
-/// `Consent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Consent {
-    /// adPersonalization property.
-    pub ad_personalization: Option<String>,
-    /// adUserData property.
-    pub ad_user_data: Option<String>,
-}
-
-/// `ListFirstPartyAndPartnerAudiencesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListFirstPartyAndPartnerAudiencesResponse {
-    /// firstPartyAndPartnerAudiences property.
-    pub first_party_and_partner_audiences: Option<Vec<FirstPartyAndPartnerAudience>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `FirstPartyAndPartnerAudience` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -118,11 +75,55 @@ pub struct MobileDeviceIdList {
     pub mobile_device_ids: Option<Vec<String>>,
 }
 
+/// `ListFirstPartyAndPartnerAudiencesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListFirstPartyAndPartnerAudiencesResponse {
+    /// firstPartyAndPartnerAudiences property.
+    pub first_party_and_partner_audiences: Option<Vec<FirstPartyAndPartnerAudience>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
 /// `EditCustomerMatchMembersResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EditCustomerMatchMembersResponse {
     /// firstPartyAndPartnerAudienceId property.
     pub first_party_and_partner_audience_id: Option<String>,
+}
+
+/// `Consent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Consent {
+    /// adPersonalization property.
+    pub ad_personalization: Option<String>,
+    /// adUserData property.
+    pub ad_user_data: Option<String>,
+}
+
+/// `ContactInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContactInfo {
+    /// countryCode property.
+    pub country_code: Option<String>,
+    /// hashedEmails property.
+    pub hashed_emails: Option<Vec<String>>,
+    /// hashedFirstName property.
+    pub hashed_first_name: Option<String>,
+    /// hashedLastName property.
+    pub hashed_last_name: Option<String>,
+    /// hashedPhoneNumbers property.
+    pub hashed_phone_numbers: Option<Vec<String>>,
+    /// zipCodes property.
+    pub zip_codes: Option<Vec<String>>,
+}
+
+/// `ContactInfoList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContactInfoList {
+    /// consent property.
+    pub consent: Option<Consent>,
+    /// contactInfos property.
+    pub contact_infos: Option<Vec<ContactInfo>>,
 }
 
 // =============================================================================

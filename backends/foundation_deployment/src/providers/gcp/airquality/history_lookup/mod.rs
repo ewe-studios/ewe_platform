@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `AdditionalInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdditionalInfo {
-    /// effects property.
-    pub effects: Option<String>,
-    /// sources property.
-    pub sources: Option<String>,
-}
 
 /// `AirQualityIndex` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -52,19 +44,6 @@ pub struct AirQualityIndex {
     pub dominant_pollutant: Option<String>,
 }
 
-/// `Color` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Color {
-    /// alpha property.
-    pub alpha: Option<f64>,
-    /// blue property.
-    pub blue: Option<f64>,
-    /// green property.
-    pub green: Option<f64>,
-    /// red property.
-    pub red: Option<f64>,
-}
-
 /// `LookupHistoryResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LookupHistoryResponse {
@@ -74,6 +53,34 @@ pub struct LookupHistoryResponse {
     pub next_page_token: Option<String>,
     /// regionCode property.
     pub region_code: Option<String>,
+}
+
+/// `Pollutant` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Pollutant {
+    /// additionalInfo property.
+    pub additional_info: Option<AdditionalInfo>,
+    /// code property.
+    pub code: Option<String>,
+    /// concentration property.
+    pub concentration: Option<Concentration>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// fullName property.
+    pub full_name: Option<String>,
+}
+
+/// `HourInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HourInfo {
+    /// dateTime property.
+    pub date_time: Option<String>,
+    /// healthRecommendations property.
+    pub health_recommendations: Option<HealthRecommendations>,
+    /// indexes property.
+    pub indexes: Option<Vec<AirQualityIndex>>,
+    /// pollutants property.
+    pub pollutants: Option<Vec<Pollutant>>,
 }
 
 /// `HealthRecommendations` type.
@@ -95,6 +102,15 @@ pub struct HealthRecommendations {
     pub pregnant_women: Option<String>,
 }
 
+/// `AdditionalInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdditionalInfo {
+    /// effects property.
+    pub effects: Option<String>,
+    /// sources property.
+    pub sources: Option<String>,
+}
+
 /// `Concentration` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Concentration {
@@ -104,32 +120,17 @@ pub struct Concentration {
     pub value: Option<f64>,
 }
 
-/// `HourInfo` type.
+/// `Color` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HourInfo {
-    /// dateTime property.
-    pub date_time: Option<String>,
-    /// healthRecommendations property.
-    pub health_recommendations: Option<HealthRecommendations>,
-    /// indexes property.
-    pub indexes: Option<Vec<AirQualityIndex>>,
-    /// pollutants property.
-    pub pollutants: Option<Vec<Pollutant>>,
-}
-
-/// `Pollutant` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Pollutant {
-    /// additionalInfo property.
-    pub additional_info: Option<AdditionalInfo>,
-    /// code property.
-    pub code: Option<String>,
-    /// concentration property.
-    pub concentration: Option<Concentration>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// fullName property.
-    pub full_name: Option<String>,
+pub struct Color {
+    /// alpha property.
+    pub alpha: Option<f64>,
+    /// blue property.
+    pub blue: Option<f64>,
+    /// green property.
+    pub green: Option<f64>,
+    /// red property.
+    pub red: Option<f64>,
 }
 
 // =============================================================================

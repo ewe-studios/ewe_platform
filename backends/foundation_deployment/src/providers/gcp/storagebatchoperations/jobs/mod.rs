@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,58 +23,19 @@ use serde::{Deserialize, Serialize};
 use super::shared::Empty;
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `PutMetadata` type.
+/// `LoggingConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PutMetadata {
-    /// cacheControl property.
-    pub cache_control: Option<String>,
-    /// contentDisposition property.
-    pub content_disposition: Option<String>,
-    /// contentEncoding property.
-    pub content_encoding: Option<String>,
-    /// contentLanguage property.
-    pub content_language: Option<String>,
-    /// contentType property.
-    pub content_type: Option<String>,
-    /// customMetadata property.
-    pub custom_metadata: Option<serde_json::Value>,
-    /// customTime property.
-    pub custom_time: Option<String>,
-    /// objectRetention property.
-    pub object_retention: Option<ObjectRetention>,
-}
-
-/// `ObjectRetention` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObjectRetention {
-    /// retainUntilTime property.
-    pub retain_until_time: Option<String>,
-    /// retentionMode property.
-    pub retention_mode: Option<String>,
-}
-
-/// `Bucket` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Bucket {
-    /// bucket property.
-    pub bucket: Option<String>,
-    /// manifest property.
-    pub manifest: Option<Manifest>,
-    /// prefixList property.
-    pub prefix_list: Option<PrefixList>,
-}
-
-/// `Manifest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Manifest {
-    /// manifestLocation property.
-    pub manifest_location: Option<String>,
+pub struct LoggingConfig {
+    /// logActionStates property.
+    pub log_action_states: Option<Vec<String>>,
+    /// logActions property.
+    pub log_actions: Option<Vec<String>>,
 }
 
 /// `Status` type.
@@ -87,6 +49,63 @@ pub struct Status {
     pub message: Option<String>,
 }
 
+/// `CustomContextUpdates` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomContextUpdates {
+    /// keysToClear property.
+    pub keys_to_clear: Option<Vec<String>>,
+    /// updates property.
+    pub updates: Option<serde_json::Value>,
+}
+
+/// `ListJobsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListJobsResponse {
+    /// jobs property.
+    pub jobs: Option<Vec<Job>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `Bucket` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Bucket {
+    /// bucket property.
+    pub bucket: Option<String>,
+    /// manifest property.
+    pub manifest: Option<Manifest>,
+    /// prefixList property.
+    pub prefix_list: Option<PrefixList>,
+}
+
+/// `BucketList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BucketList {
+    /// buckets property.
+    pub buckets: Option<Vec<Bucket>>,
+}
+
+/// `Counters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Counters {
+    /// failedObjectCount property.
+    pub failed_object_count: Option<String>,
+    /// objectCustomContextsCreated property.
+    pub object_custom_contexts_created: Option<String>,
+    /// objectCustomContextsDeleted property.
+    pub object_custom_contexts_deleted: Option<String>,
+    /// objectCustomContextsUpdated property.
+    pub object_custom_contexts_updated: Option<String>,
+    /// succeededObjectCount property.
+    pub succeeded_object_count: Option<String>,
+    /// totalBytesFound property.
+    pub total_bytes_found: Option<String>,
+    /// totalObjectCount property.
+    pub total_object_count: Option<String>,
+}
+
 /// `DeleteObject` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteObject {
@@ -94,11 +113,38 @@ pub struct DeleteObject {
     pub permanent_object_deletion_enabled: Option<bool>,
 }
 
-/// `RewriteObject` type.
+/// `ErrorSummary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RewriteObject {
-    /// kmsKey property.
-    pub kms_key: Option<String>,
+pub struct ErrorSummary {
+    /// errorCode property.
+    pub error_code: Option<String>,
+    /// errorCount property.
+    pub error_count: Option<String>,
+    /// errorLogEntries property.
+    pub error_log_entries: Option<Vec<ErrorLogEntry>>,
+}
+
+/// `Manifest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Manifest {
+    /// manifestLocation property.
+    pub manifest_location: Option<String>,
+}
+
+/// `PrefixList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrefixList {
+    /// includedObjectPrefixes property.
+    pub included_object_prefixes: Option<Vec<String>>,
+}
+
+/// `PutObjectHold` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PutObjectHold {
+    /// eventBasedHold property.
+    pub event_based_hold: Option<String>,
+    /// temporaryHold property.
+    pub temporary_hold: Option<String>,
 }
 
 /// `Job` type.
@@ -140,48 +186,11 @@ pub struct Job {
     pub update_object_custom_context: Option<UpdateObjectCustomContext>,
 }
 
-/// `BucketList` type.
+/// `RewriteObject` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BucketList {
-    /// buckets property.
-    pub buckets: Option<Vec<Bucket>>,
-}
-
-/// `PrefixList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrefixList {
-    /// includedObjectPrefixes property.
-    pub included_object_prefixes: Option<Vec<String>>,
-}
-
-/// `ErrorSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorSummary {
-    /// errorCode property.
-    pub error_code: Option<String>,
-    /// errorCount property.
-    pub error_count: Option<String>,
-    /// errorLogEntries property.
-    pub error_log_entries: Option<Vec<ErrorLogEntry>>,
-}
-
-/// `Counters` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Counters {
-    /// failedObjectCount property.
-    pub failed_object_count: Option<String>,
-    /// objectCustomContextsCreated property.
-    pub object_custom_contexts_created: Option<String>,
-    /// objectCustomContextsDeleted property.
-    pub object_custom_contexts_deleted: Option<String>,
-    /// objectCustomContextsUpdated property.
-    pub object_custom_contexts_updated: Option<String>,
-    /// succeededObjectCount property.
-    pub succeeded_object_count: Option<String>,
-    /// totalBytesFound property.
-    pub total_bytes_found: Option<String>,
-    /// totalObjectCount property.
-    pub total_object_count: Option<String>,
+pub struct RewriteObject {
+    /// kmsKey property.
+    pub kms_key: Option<String>,
 }
 
 /// `UpdateObjectCustomContext` type.
@@ -193,19 +202,6 @@ pub struct UpdateObjectCustomContext {
     pub custom_context_updates: Option<CustomContextUpdates>,
 }
 
-/// `CancelJobResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelJobResponse {}
-
-/// `CustomContextUpdates` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomContextUpdates {
-    /// keysToClear property.
-    pub keys_to_clear: Option<Vec<String>>,
-    /// updates property.
-    pub updates: Option<serde_json::Value>,
-}
-
 /// `ErrorLogEntry` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorLogEntry {
@@ -215,33 +211,38 @@ pub struct ErrorLogEntry {
     pub object_uri: Option<String>,
 }
 
-/// `LoggingConfig` type.
+/// `PutMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoggingConfig {
-    /// logActionStates property.
-    pub log_action_states: Option<Vec<String>>,
-    /// logActions property.
-    pub log_actions: Option<Vec<String>>,
+pub struct PutMetadata {
+    /// cacheControl property.
+    pub cache_control: Option<String>,
+    /// contentDisposition property.
+    pub content_disposition: Option<String>,
+    /// contentEncoding property.
+    pub content_encoding: Option<String>,
+    /// contentLanguage property.
+    pub content_language: Option<String>,
+    /// contentType property.
+    pub content_type: Option<String>,
+    /// customMetadata property.
+    pub custom_metadata: Option<serde_json::Value>,
+    /// customTime property.
+    pub custom_time: Option<String>,
+    /// objectRetention property.
+    pub object_retention: Option<ObjectRetention>,
 }
 
-/// `PutObjectHold` type.
+/// `CancelJobResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PutObjectHold {
-    /// eventBasedHold property.
-    pub event_based_hold: Option<String>,
-    /// temporaryHold property.
-    pub temporary_hold: Option<String>,
-}
+pub struct CancelJobResponse {}
 
-/// `ListJobsResponse` type.
+/// `ObjectRetention` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListJobsResponse {
-    /// jobs property.
-    pub jobs: Option<Vec<Job>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct ObjectRetention {
+    /// retainUntilTime property.
+    pub retain_until_time: Option<String>,
+    /// retentionMode property.
+    pub retention_mode: Option<String>,
 }
 
 // =============================================================================

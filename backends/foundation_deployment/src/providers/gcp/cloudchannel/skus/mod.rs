@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudChannelV1Product` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1Product {
-    /// marketingInfo property.
-    pub marketing_info: Option<GoogleCloudChannelV1MarketingInfo>,
-    /// name property.
-    pub name: Option<String>,
-}
 
 /// `GoogleCloudChannelV1Sku` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,13 +36,24 @@ pub struct GoogleCloudChannelV1Sku {
     pub product: Option<GoogleCloudChannelV1Product>,
 }
 
-/// `GoogleCloudChannelV1ListSkusResponse` type.
+/// `GoogleCloudChannelV1Product` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1ListSkusResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// skus property.
-    pub skus: Option<Vec<GoogleCloudChannelV1Sku>>,
+pub struct GoogleCloudChannelV1Product {
+    /// marketingInfo property.
+    pub marketing_info: Option<GoogleCloudChannelV1MarketingInfo>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GoogleCloudChannelV1Media` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1Media {
+    /// content property.
+    pub content: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `GoogleCloudChannelV1MarketingInfo` type.
@@ -64,15 +67,13 @@ pub struct GoogleCloudChannelV1MarketingInfo {
     pub display_name: Option<String>,
 }
 
-/// `GoogleCloudChannelV1Media` type.
+/// `GoogleCloudChannelV1ListSkusResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1Media {
-    /// content property.
-    pub content: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct GoogleCloudChannelV1ListSkusResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// skus property.
+    pub skus: Option<Vec<GoogleCloudChannelV1Sku>>,
 }
 
 // =============================================================================

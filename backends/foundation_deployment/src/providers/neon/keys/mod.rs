@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -23,27 +24,6 @@ use super::shared::ApiResponse;
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `OrgApiKeyCreateRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OrgApiKeyCreateRequest {
-    /// `project_id` property.
-    pub project_id: Option<String>,
-}
-
-/// `OrgApiKeyCreateResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OrgApiKeyCreateResponse {
-    /// `project_id` property.
-    pub project_id: Option<String>,
-}
-
-/// `OrgApiKeyRevokeResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OrgApiKeyRevokeResponse {
-    /// `project_id` property.
-    pub project_id: Option<String>,
-}
 
 /// `ApiKeyRevokeResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -64,11 +44,18 @@ pub struct ApiKeyRevokeResponse {
     pub revoked: bool,
 }
 
-/// `ApiKeyCreateRequest` type.
+/// `OrgApiKeyRevokeResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApiKeyCreateRequest {
-    /// key_name property.
-    pub key_name: String,
+pub struct OrgApiKeyRevokeResponse {
+    /// `project_id` property.
+    pub project_id: Option<String>,
+}
+
+/// `OrgApiKeyCreateResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OrgApiKeyCreateResponse {
+    /// `project_id` property.
+    pub project_id: Option<String>,
 }
 
 /// `ApiKeyCreateResponse` type.
@@ -84,6 +71,20 @@ pub struct ApiKeyCreateResponse {
     pub key: String,
     /// name property.
     pub name: String,
+}
+
+/// `OrgApiKeyCreateRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OrgApiKeyCreateRequest {
+    /// `project_id` property.
+    pub project_id: Option<String>,
+}
+
+/// `ApiKeyCreateRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiKeyCreateRequest {
+    /// key_name property.
+    pub key_name: String,
 }
 
 // =============================================================================

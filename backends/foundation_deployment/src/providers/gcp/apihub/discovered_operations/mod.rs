@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -49,20 +50,20 @@ pub struct GoogleCloudApihubV1DiscoveredApiOperation {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudApihubV1PathParam` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1PathParam {
-    /// dataType property.
-    pub data_type: Option<String>,
-    /// position property.
-    pub position: Option<i64>,
-}
-
 /// `GoogleCloudApihubV1MatchResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1MatchResult {
     /// name property.
     pub name: Option<String>,
+}
+
+/// `GoogleCloudApihubV1PluginInstanceActionSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1PluginInstanceActionSource {
+    /// actionId property.
+    pub action_id: Option<String>,
+    /// pluginInstance property.
+    pub plugin_instance: Option<String>,
 }
 
 /// `GoogleCloudApihubV1Path` type.
@@ -74,19 +75,22 @@ pub struct GoogleCloudApihubV1Path {
     pub path: Option<String>,
 }
 
-/// `GoogleCloudApihubV1HttpOperationDetails` type.
+/// `GoogleCloudApihubV1HttpResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1HttpOperationDetails {
-    /// httpOperation property.
-    pub http_operation: Option<GoogleCloudApihubV1HttpOperation>,
-    /// pathParams property.
-    pub path_params: Option<Vec<GoogleCloudApihubV1PathParam>>,
-    /// queryParams property.
-    pub query_params: Option<serde_json::Value>,
-    /// request property.
-    pub request: Option<GoogleCloudApihubV1HttpRequest>,
-    /// response property.
-    pub response: Option<GoogleCloudApihubV1HttpResponse>,
+pub struct GoogleCloudApihubV1HttpResponse {
+    /// headers property.
+    pub headers: Option<serde_json::Value>,
+    /// responseCodes property.
+    pub response_codes: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudApihubV1ListDiscoveredApiOperationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1ListDiscoveredApiOperationsResponse {
+    /// discoveredApiOperations property.
+    pub discovered_api_operations: Option<Vec<GoogleCloudApihubV1DiscoveredApiOperation>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `GoogleCloudApihubV1SourceMetadata` type.
@@ -104,6 +108,21 @@ pub struct GoogleCloudApihubV1SourceMetadata {
     pub source_type: Option<String>,
 }
 
+/// `GoogleCloudApihubV1HttpOperationDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1HttpOperationDetails {
+    /// httpOperation property.
+    pub http_operation: Option<GoogleCloudApihubV1HttpOperation>,
+    /// pathParams property.
+    pub path_params: Option<Vec<GoogleCloudApihubV1PathParam>>,
+    /// queryParams property.
+    pub query_params: Option<serde_json::Value>,
+    /// request property.
+    pub request: Option<GoogleCloudApihubV1HttpRequest>,
+    /// response property.
+    pub response: Option<GoogleCloudApihubV1HttpResponse>,
+}
+
 /// `GoogleCloudApihubV1HttpOperation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1HttpOperation {
@@ -113,38 +132,20 @@ pub struct GoogleCloudApihubV1HttpOperation {
     pub path: Option<GoogleCloudApihubV1Path>,
 }
 
+/// `GoogleCloudApihubV1PathParam` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1PathParam {
+    /// dataType property.
+    pub data_type: Option<String>,
+    /// position property.
+    pub position: Option<i64>,
+}
+
 /// `GoogleCloudApihubV1HttpRequest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1HttpRequest {
     /// headers property.
     pub headers: Option<serde_json::Value>,
-}
-
-/// `GoogleCloudApihubV1ListDiscoveredApiOperationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1ListDiscoveredApiOperationsResponse {
-    /// discoveredApiOperations property.
-    pub discovered_api_operations: Option<Vec<GoogleCloudApihubV1DiscoveredApiOperation>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudApihubV1PluginInstanceActionSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1PluginInstanceActionSource {
-    /// actionId property.
-    pub action_id: Option<String>,
-    /// pluginInstance property.
-    pub plugin_instance: Option<String>,
-}
-
-/// `GoogleCloudApihubV1HttpResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1HttpResponse {
-    /// headers property.
-    pub headers: Option<serde_json::Value>,
-    /// responseCodes property.
-    pub response_codes: Option<serde_json::Value>,
 }
 
 // =============================================================================

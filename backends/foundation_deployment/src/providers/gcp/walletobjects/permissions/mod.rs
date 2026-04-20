@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Permissions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Permissions {
-    /// issuerId property.
-    pub issuer_id: Option<String>,
-    /// permissions property.
-    pub permissions: Option<Vec<Permission>>,
-}
 
 /// `Permission` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,6 +32,15 @@ pub struct Permission {
     pub email_address: Option<String>,
     /// role property.
     pub role: Option<String>,
+}
+
+/// `Permissions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Permissions {
+    /// issuerId property.
+    pub issuer_id: Option<String>,
+    /// permissions property.
+    pub permissions: Option<Vec<Permission>>,
 }
 
 // =============================================================================

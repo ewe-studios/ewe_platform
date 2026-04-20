@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,83 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudDialogflowCxV3FlowInvocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3FlowInvocation {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// flow property.
+    pub flow: Option<String>,
+    /// flowState property.
+    pub flow_state: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3UserUtterance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3UserUtterance {
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3AgentUtterance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3AgentUtterance {
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3ToolUse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ToolUse {
+    /// action property.
+    pub action: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// inputActionParameters property.
+    pub input_action_parameters: Option<serde_json::Value>,
+    /// outputActionParameters property.
+    pub output_action_parameters: Option<serde_json::Value>,
+    /// tool property.
+    pub tool: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3ListExamplesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ListExamplesResponse {
+    /// examples property.
+    pub examples: Option<Vec<GoogleCloudDialogflowCxV3Example>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3PlaybookInput` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3PlaybookInput {
+    /// precedingConversationSummary property.
+    pub preceding_conversation_summary: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3PlaybookOutput` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3PlaybookOutput {
+    /// executionSummary property.
+    pub execution_summary: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3PlaybookTransition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3PlaybookTransition {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// playbook property.
+    pub playbook: Option<String>,
+}
 
 /// `GoogleCloudDialogflowCxV3Example` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -54,24 +127,23 @@ pub struct GoogleCloudDialogflowCxV3Example {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudDialogflowCxV3ListExamplesResponse` type.
+/// `GoogleCloudDialogflowCxV3Action` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ListExamplesResponse {
-    /// examples property.
-    pub examples: Option<Vec<GoogleCloudDialogflowCxV3Example>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3FlowInvocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3FlowInvocation {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// flow property.
-    pub flow: Option<String>,
-    /// flowState property.
-    pub flow_state: Option<String>,
+pub struct GoogleCloudDialogflowCxV3Action {
+    /// agentUtterance property.
+    pub agent_utterance: Option<GoogleCloudDialogflowCxV3AgentUtterance>,
+    /// flowInvocation property.
+    pub flow_invocation: Option<GoogleCloudDialogflowCxV3FlowInvocation>,
+    /// flowTransition property.
+    pub flow_transition: Option<GoogleCloudDialogflowCxV3FlowTransition>,
+    /// playbookInvocation property.
+    pub playbook_invocation: Option<GoogleCloudDialogflowCxV3PlaybookInvocation>,
+    /// playbookTransition property.
+    pub playbook_transition: Option<GoogleCloudDialogflowCxV3PlaybookTransition>,
+    /// toolUse property.
+    pub tool_use: Option<GoogleCloudDialogflowCxV3ToolUse>,
+    /// userUtterance property.
+    pub user_utterance: Option<GoogleCloudDialogflowCxV3UserUtterance>,
 }
 
 /// `GoogleCloudDialogflowCxV3PlaybookInvocation` type.
@@ -96,77 +168,6 @@ pub struct GoogleCloudDialogflowCxV3FlowTransition {
     pub display_name: Option<String>,
     /// flow property.
     pub flow: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3ToolUse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ToolUse {
-    /// action property.
-    pub action: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// inputActionParameters property.
-    pub input_action_parameters: Option<serde_json::Value>,
-    /// outputActionParameters property.
-    pub output_action_parameters: Option<serde_json::Value>,
-    /// tool property.
-    pub tool: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3UserUtterance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3UserUtterance {
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3PlaybookTransition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3PlaybookTransition {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// playbook property.
-    pub playbook: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3PlaybookOutput` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3PlaybookOutput {
-    /// executionSummary property.
-    pub execution_summary: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3AgentUtterance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3AgentUtterance {
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3PlaybookInput` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3PlaybookInput {
-    /// precedingConversationSummary property.
-    pub preceding_conversation_summary: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3Action` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3Action {
-    /// agentUtterance property.
-    pub agent_utterance: Option<GoogleCloudDialogflowCxV3AgentUtterance>,
-    /// flowInvocation property.
-    pub flow_invocation: Option<GoogleCloudDialogflowCxV3FlowInvocation>,
-    /// flowTransition property.
-    pub flow_transition: Option<GoogleCloudDialogflowCxV3FlowTransition>,
-    /// playbookInvocation property.
-    pub playbook_invocation: Option<GoogleCloudDialogflowCxV3PlaybookInvocation>,
-    /// playbookTransition property.
-    pub playbook_transition: Option<GoogleCloudDialogflowCxV3PlaybookTransition>,
-    /// toolUse property.
-    pub tool_use: Option<GoogleCloudDialogflowCxV3ToolUse>,
-    /// userUtterance property.
-    pub user_utterance: Option<GoogleCloudDialogflowCxV3UserUtterance>,
 }
 
 // =============================================================================

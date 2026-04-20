@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,20 +24,11 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `CheckMigrationPermissionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CheckMigrationPermissionResponse {
-    /// onpremDomains property.
-    pub onprem_domains: Option<Vec<OnPremDomainSIDDetails>>,
-    /// state property.
-    pub state: Option<String>,
-}
 
 /// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,40 +41,17 @@ pub struct Binding {
     pub role: Option<String>,
 }
 
-/// `OnPremDomainSIDDetails` type.
+/// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OnPremDomainSIDDetails {
-    /// name property.
-    pub name: Option<String>,
-    /// sidFilteringState property.
-    pub sid_filtering_state: Option<String>,
-}
-
-/// `Trust` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Trust {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// lastTrustHeartbeatTime property.
-    pub last_trust_heartbeat_time: Option<String>,
-    /// selectiveAuthentication property.
-    pub selective_authentication: Option<bool>,
-    /// state property.
-    pub state: Option<String>,
-    /// stateDescription property.
-    pub state_description: Option<String>,
-    /// targetDnsIpAddresses property.
-    pub target_dns_ip_addresses: Option<Vec<String>>,
-    /// targetDomainName property.
-    pub target_domain_name: Option<String>,
-    /// trustDirection property.
-    pub trust_direction: Option<String>,
-    /// trustHandshakeSecret property.
-    pub trust_handshake_secret: Option<String>,
-    /// trustType property.
-    pub trust_type: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 /// `Domain` type.
@@ -116,22 +85,31 @@ pub struct Domain {
     pub update_time: Option<String>,
 }
 
-/// `DomainJoinMachineResponse` type.
+/// `Trust` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DomainJoinMachineResponse {
-    /// domainJoinBlob property.
-    pub domain_join_blob: Option<String>,
-}
-
-/// `ListDomainsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDomainsResponse {
-    /// domains property.
-    pub domains: Option<Vec<Domain>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct Trust {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// lastTrustHeartbeatTime property.
+    pub last_trust_heartbeat_time: Option<String>,
+    /// selectiveAuthentication property.
+    pub selective_authentication: Option<bool>,
+    /// state property.
+    pub state: Option<String>,
+    /// stateDescription property.
+    pub state_description: Option<String>,
+    /// targetDnsIpAddresses property.
+    pub target_dns_ip_addresses: Option<Vec<String>>,
+    /// targetDomainName property.
+    pub target_domain_name: Option<String>,
+    /// trustDirection property.
+    pub trust_direction: Option<String>,
+    /// trustHandshakeSecret property.
+    pub trust_handshake_secret: Option<String>,
+    /// trustType property.
+    pub trust_type: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
 }
 
 /// `Status` type.
@@ -145,6 +123,15 @@ pub struct Status {
     pub message: Option<String>,
 }
 
+/// `CheckMigrationPermissionResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CheckMigrationPermissionResponse {
+    /// onpremDomains property.
+    pub onprem_domains: Option<Vec<OnPremDomainSIDDetails>>,
+    /// state property.
+    pub state: Option<String>,
+}
+
 /// `ResetAdminPasswordResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResetAdminPasswordResponse {
@@ -152,17 +139,31 @@ pub struct ResetAdminPasswordResponse {
     pub password: Option<String>,
 }
 
-/// `Expr` type.
+/// `OnPremDomainSIDDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct OnPremDomainSIDDetails {
+    /// name property.
+    pub name: Option<String>,
+    /// sidFilteringState property.
+    pub sid_filtering_state: Option<String>,
+}
+
+/// `ListDomainsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDomainsResponse {
+    /// domains property.
+    pub domains: Option<Vec<Domain>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `DomainJoinMachineResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DomainJoinMachineResponse {
+    /// domainJoinBlob property.
+    pub domain_join_blob: Option<String>,
 }
 
 // =============================================================================

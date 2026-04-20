@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,48 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `IpConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IpConfig {
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// ports property.
-    pub ports: Option<Vec<i64>>,
-}
-
-/// `CertificateMap` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CertificateMap {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// gclbTargets property.
-    pub gclb_targets: Option<Vec<GclbTarget>>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `GclbTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GclbTarget {
-    /// ipConfigs property.
-    pub ip_configs: Option<Vec<IpConfig>>,
-    /// targetHttpsProxy property.
-    pub target_https_proxy: Option<String>,
-    /// targetSslProxy property.
-    pub target_ssl_proxy: Option<String>,
-}
 
 /// `ListCertificateMapsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -84,6 +48,43 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
+}
+
+/// `CertificateMap` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CertificateMap {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// gclbTargets property.
+    pub gclb_targets: Option<Vec<GclbTarget>>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `IpConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IpConfig {
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// ports property.
+    pub ports: Option<Vec<i64>>,
+}
+
+/// `GclbTarget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GclbTarget {
+    /// ipConfigs property.
+    pub ip_configs: Option<Vec<IpConfig>>,
+    /// targetHttpsProxy property.
+    pub target_https_proxy: Option<String>,
+    /// targetSslProxy property.
+    pub target_ssl_proxy: Option<String>,
 }
 
 // =============================================================================

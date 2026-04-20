@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -23,13 +24,6 @@ use super::shared::ApiResponse;
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ActiveRegionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActiveRegionsResponse {
-    /// regions property.
-    pub regions: Vec<RegionResponse>,
-}
 
 /// `RegionResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,6 +38,13 @@ pub struct RegionResponse {
     pub name: String,
     /// region_id property.
     pub region_id: String,
+}
+
+/// `ActiveRegionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActiveRegionsResponse {
+    /// regions property.
+    pub regions: Vec<RegionResponse>,
 }
 
 // =============================================================================

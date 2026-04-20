@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,23 +22,28 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `WeeklySchedule` type.
+/// `PscSetting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WeeklySchedule {
-    /// days property.
-    pub days: Option<Vec<String>>,
-    /// duration property.
-    pub duration: Option<String>,
-    /// endTime property.
-    pub end_time: Option<TimeOfDay>,
-    /// startTime property.
-    pub start_time: Option<TimeOfDay>,
+pub struct PscSetting {
+    /// allowedConsumerProjectIds property.
+    pub allowed_consumer_project_ids: Option<Vec<String>>,
+    /// producerProjectIds property.
+    pub producer_project_ids: Option<Vec<String>>,
+}
+
+/// `Component` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Component {
+    /// name property.
+    pub name: Option<String>,
+    /// serviceAttachmentNames property.
+    pub service_attachment_names: Option<Vec<String>>,
 }
 
 /// `Status` type.
@@ -51,45 +57,6 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `AdminUser` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdminUser {
-    /// familyName property.
-    pub family_name: Option<String>,
-    /// givenName property.
-    pub given_name: Option<String>,
-}
-
-/// `PscSetting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PscSetting {
-    /// allowedConsumerProjectIds property.
-    pub allowed_consumer_project_ids: Option<Vec<String>>,
-    /// producerProjectIds property.
-    pub producer_project_ids: Option<Vec<String>>,
-}
-
-/// `SAMLParams` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SAMLParams {
-    /// authenticationContexts property.
-    pub authentication_contexts: Option<Vec<String>>,
-    /// certificate property.
-    pub certificate: Option<String>,
-    /// emailMapping property.
-    pub email_mapping: Option<String>,
-    /// entityId property.
-    pub entity_id: Option<String>,
-    /// ssoUri property.
-    pub sso_uri: Option<String>,
-    /// userEmail property.
-    pub user_email: Option<String>,
-}
-
-/// `Early` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Early {}
-
 /// `PrivateAccess` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrivateAccess {
@@ -101,17 +68,24 @@ pub struct PrivateAccess {
     pub psc_setting: Option<PscSetting>,
 }
 
-/// `TimeOfDay` type.
+/// `InstanceConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeOfDay {
-    /// hours property.
-    pub hours: Option<i64>,
-    /// minutes property.
-    pub minutes: Option<i64>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<i64>,
+pub struct InstanceConfig {
+    /// instanceSize property.
+    pub instance_size: Option<String>,
+}
+
+/// `URIs` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct URIs {
+    /// chatBotUri property.
+    pub chat_bot_uri: Option<String>,
+    /// mediaUri property.
+    pub media_uri: Option<String>,
+    /// rootUri property.
+    pub root_uri: Option<String>,
+    /// virtualAgentStreamingServiceUri property.
+    pub virtual_agent_streaming_service_uri: Option<String>,
 }
 
 /// `ContactCenter` type.
@@ -169,15 +143,6 @@ pub struct ContactCenter {
     pub user_email: Option<String>,
 }
 
-/// `Component` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Component {
-    /// name property.
-    pub name: Option<String>,
-    /// serviceAttachmentNames property.
-    pub service_attachment_names: Option<Vec<String>>,
-}
-
 /// `ListContactCentersResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListContactCentersResponse {
@@ -189,17 +154,11 @@ pub struct ListContactCentersResponse {
     pub unreachable: Option<Vec<String>>,
 }
 
-/// `URIs` type.
+/// `Critical` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct URIs {
-    /// chatBotUri property.
-    pub chat_bot_uri: Option<String>,
-    /// mediaUri property.
-    pub media_uri: Option<String>,
-    /// rootUri property.
-    pub root_uri: Option<String>,
-    /// virtualAgentStreamingServiceUri property.
-    pub virtual_agent_streaming_service_uri: Option<String>,
+pub struct Critical {
+    /// peakHours property.
+    pub peak_hours: Option<Vec<WeeklySchedule>>,
 }
 
 /// `FeatureConfig` type.
@@ -213,18 +172,60 @@ pub struct FeatureConfig {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Normal {}
 
-/// `InstanceConfig` type.
+/// `AdminUser` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceConfig {
-    /// instanceSize property.
-    pub instance_size: Option<String>,
+pub struct AdminUser {
+    /// familyName property.
+    pub family_name: Option<String>,
+    /// givenName property.
+    pub given_name: Option<String>,
 }
 
-/// `Critical` type.
+/// `WeeklySchedule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Critical {
-    /// peakHours property.
-    pub peak_hours: Option<Vec<WeeklySchedule>>,
+pub struct WeeklySchedule {
+    /// days property.
+    pub days: Option<Vec<String>>,
+    /// duration property.
+    pub duration: Option<String>,
+    /// endTime property.
+    pub end_time: Option<TimeOfDay>,
+    /// startTime property.
+    pub start_time: Option<TimeOfDay>,
+}
+
+/// `Early` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Early {}
+
+/// `SAMLParams` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SAMLParams {
+    /// authenticationContexts property.
+    pub authentication_contexts: Option<Vec<String>>,
+    /// certificate property.
+    pub certificate: Option<String>,
+    /// emailMapping property.
+    pub email_mapping: Option<String>,
+    /// entityId property.
+    pub entity_id: Option<String>,
+    /// ssoUri property.
+    pub sso_uri: Option<String>,
+    /// userEmail property.
+    pub user_email: Option<String>,
+}
+
+/// `TimeOfDay` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeOfDay {
+    /// hours property.
+    pub hours: Option<i64>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<i64>,
 }
 
 // =============================================================================

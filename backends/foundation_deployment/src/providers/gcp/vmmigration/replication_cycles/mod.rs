@@ -12,27 +12,32 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Status` type.
+/// `MigrationWarning` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
+pub struct MigrationWarning {
+    /// actionItem property.
+    pub action_item: Option<LocalizedMessage>,
     /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+    pub code: Option<String>,
+    /// helpLinks property.
+    pub help_links: Option<Vec<Link>>,
+    /// warningMessage property.
+    pub warning_message: Option<LocalizedMessage>,
+    /// warningTime property.
+    pub warning_time: Option<String>,
 }
 
 /// `ListReplicationCyclesResponse` type.
@@ -46,38 +51,33 @@ pub struct ListReplicationCyclesResponse {
     pub unreachable: Option<Vec<String>>,
 }
 
-/// `ReplicationCycle` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReplicationCycle {
-    /// cycleNumber property.
-    pub cycle_number: Option<i64>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// error property.
-    pub error: Option<Status>,
-    /// name property.
-    pub name: Option<String>,
-    /// progressPercent property.
-    pub progress_percent: Option<i64>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// steps property.
-    pub steps: Option<Vec<CycleStep>>,
-    /// totalPauseDuration property.
-    pub total_pause_duration: Option<String>,
-    /// warnings property.
-    pub warnings: Option<Vec<MigrationWarning>>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
-/// `PostProcessingStep` type.
+/// `LocalizedMessage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostProcessingStep {}
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
 
 /// `InitializingReplicationStep` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InitializingReplicationStep {}
+
+/// `PostProcessingStep` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostProcessingStep {}
 
 /// `ReplicatingStep` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -90,15 +90,6 @@ pub struct ReplicatingStep {
     pub replicated_bytes: Option<String>,
     /// totalBytes property.
     pub total_bytes: Option<String>,
-}
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 /// `CycleStep` type.
@@ -125,19 +116,29 @@ pub struct Link {
     pub url: Option<String>,
 }
 
-/// `MigrationWarning` type.
+/// `ReplicationCycle` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MigrationWarning {
-    /// actionItem property.
-    pub action_item: Option<LocalizedMessage>,
-    /// code property.
-    pub code: Option<String>,
-    /// helpLinks property.
-    pub help_links: Option<Vec<Link>>,
-    /// warningMessage property.
-    pub warning_message: Option<LocalizedMessage>,
-    /// warningTime property.
-    pub warning_time: Option<String>,
+pub struct ReplicationCycle {
+    /// cycleNumber property.
+    pub cycle_number: Option<i64>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// error property.
+    pub error: Option<Status>,
+    /// name property.
+    pub name: Option<String>,
+    /// progressPercent property.
+    pub progress_percent: Option<i64>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// steps property.
+    pub steps: Option<Vec<CycleStep>>,
+    /// totalPauseDuration property.
+    pub total_pause_duration: Option<String>,
+    /// warnings property.
+    pub warnings: Option<Vec<MigrationWarning>>,
 }
 
 // =============================================================================

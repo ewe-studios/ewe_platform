@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,21 +22,21 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudDiscoveryengineV1ListTargetSitesResponse` type.
+/// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ListTargetSitesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// targetSites property.
-    pub target_sites: Option<Vec<GoogleCloudDiscoveryengineV1TargetSite>>,
-    /// totalSize property.
-    pub total_size: Option<i64>,
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `GoogleCloudDiscoveryengineV1TargetSiteFailureReason` type.
@@ -70,17 +71,6 @@ pub struct GoogleCloudDiscoveryengineV1TargetSite {
     pub update_time: Option<String>,
 }
 
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
 /// `GoogleCloudDiscoveryengineV1SiteVerificationInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SiteVerificationInfo {
@@ -88,6 +78,17 @@ pub struct GoogleCloudDiscoveryengineV1SiteVerificationInfo {
     pub site_verification_state: Option<String>,
     /// verifyTime property.
     pub verify_time: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1ListTargetSitesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1ListTargetSitesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// targetSites property.
+    pub target_sites: Option<Vec<GoogleCloudDiscoveryengineV1TargetSite>>,
+    /// totalSize property.
+    pub total_size: Option<i64>,
 }
 
 /// `GoogleCloudDiscoveryengineV1TargetSiteFailureReasonQuotaFailure` type.

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -54,37 +55,6 @@ pub struct PrivateConnection {
     pub vpc_peering_config: Option<VpcPeeringConfig>,
 }
 
-/// `Error` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Error {
-    /// details property.
-    pub details: Option<serde_json::Value>,
-    /// errorTime property.
-    pub error_time: Option<String>,
-    /// errorUuid property.
-    pub error_uuid: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `VpcPeeringConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VpcPeeringConfig {
-    /// subnet property.
-    pub subnet: Option<String>,
-    /// vpc property.
-    pub vpc: Option<String>,
-}
-
-/// `PscInterfaceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PscInterfaceConfig {
-    /// networkAttachment property.
-    pub network_attachment: Option<String>,
-}
-
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
@@ -105,6 +75,37 @@ pub struct ListPrivateConnectionsResponse {
     pub private_connections: Option<Vec<PrivateConnection>>,
     /// unreachable property.
     pub unreachable: Option<Vec<String>>,
+}
+
+/// `Error` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Error {
+    /// details property.
+    pub details: Option<serde_json::Value>,
+    /// errorTime property.
+    pub error_time: Option<String>,
+    /// errorUuid property.
+    pub error_uuid: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `PscInterfaceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PscInterfaceConfig {
+    /// networkAttachment property.
+    pub network_attachment: Option<String>,
+}
+
+/// `VpcPeeringConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VpcPeeringConfig {
+    /// subnet property.
+    pub subnet: Option<String>,
+    /// vpc property.
+    pub vpc: Option<String>,
 }
 
 // =============================================================================

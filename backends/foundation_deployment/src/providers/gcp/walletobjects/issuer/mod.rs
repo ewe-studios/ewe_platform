@@ -12,17 +12,35 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Issuer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Issuer {
+    /// callbackOptions property.
+    pub callback_options: Option<CallbackOptions>,
+    /// contactInfo property.
+    pub contact_info: Option<IssuerContactInfo>,
+    /// homepageUrl property.
+    pub homepage_url: Option<String>,
+    /// issuerId property.
+    pub issuer_id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// smartTapMerchantData property.
+    pub smart_tap_merchant_data: Option<SmartTapMerchantData>,
+}
 
 /// `IssuerListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,15 +62,6 @@ pub struct IssuerContactInfo {
     pub phone: Option<String>,
 }
 
-/// `AuthenticationKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthenticationKey {
-    /// id property.
-    pub id: Option<i64>,
-    /// publicKeyPem property.
-    pub public_key_pem: Option<String>,
-}
-
 /// `SmartTapMerchantData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SmartTapMerchantData {
@@ -62,23 +71,6 @@ pub struct SmartTapMerchantData {
     pub smart_tap_merchant_id: Option<String>,
 }
 
-/// `Issuer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Issuer {
-    /// callbackOptions property.
-    pub callback_options: Option<CallbackOptions>,
-    /// contactInfo property.
-    pub contact_info: Option<IssuerContactInfo>,
-    /// homepageUrl property.
-    pub homepage_url: Option<String>,
-    /// issuerId property.
-    pub issuer_id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// smartTapMerchantData property.
-    pub smart_tap_merchant_data: Option<SmartTapMerchantData>,
-}
-
 /// `CallbackOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CallbackOptions {
@@ -86,6 +78,15 @@ pub struct CallbackOptions {
     pub update_request_url: Option<String>,
     /// url property.
     pub url: Option<String>,
+}
+
+/// `AuthenticationKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthenticationKey {
+    /// id property.
+    pub id: Option<i64>,
+    /// publicKeyPem property.
+    pub public_key_pem: Option<String>,
 }
 
 // =============================================================================

@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Setting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Setting {
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<serde_json::Value>,
-}
 
 /// `Policy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -48,15 +40,6 @@ pub struct Policy {
     pub r#type: Option<String>,
 }
 
-/// `ListPoliciesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListPoliciesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// policies property.
-    pub policies: Option<Vec<Policy>>,
-}
-
 /// `PolicyQuery` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyQuery {
@@ -68,6 +51,24 @@ pub struct PolicyQuery {
     pub query: Option<String>,
     /// sortOrder property.
     pub sort_order: Option<f64>,
+}
+
+/// `ListPoliciesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListPoliciesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// policies property.
+    pub policies: Option<Vec<Policy>>,
+}
+
+/// `Setting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Setting {
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<serde_json::Value>,
 }
 
 // =============================================================================

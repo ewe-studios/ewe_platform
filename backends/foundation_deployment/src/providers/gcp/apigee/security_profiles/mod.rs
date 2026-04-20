@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,20 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudApigeeV1ListSecurityProfilesV2Response` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ListSecurityProfilesV2Response {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// securityProfilesV2 property.
-    pub security_profiles_v2: Option<Vec<GoogleCloudApigeeV1SecurityProfileV2>>,
-}
 
 /// `GoogleCloudApigeeV1SecurityProfileV2` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -53,6 +45,15 @@ pub struct GoogleCloudApigeeV1SecurityProfileV2 {
     pub risk_assessment_type: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1ListSecurityProfilesV2Response` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ListSecurityProfilesV2Response {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// securityProfilesV2 property.
+    pub security_profiles_v2: Option<Vec<GoogleCloudApigeeV1SecurityProfileV2>>,
 }
 
 // =============================================================================

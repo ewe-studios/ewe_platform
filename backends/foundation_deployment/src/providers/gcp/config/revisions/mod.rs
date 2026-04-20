@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,53 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Statefile;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `TerraformError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TerraformError {
+    /// error property.
+    pub error: Option<Status>,
+    /// errorDescription property.
+    pub error_description: Option<String>,
+    /// httpResponseCode property.
+    pub http_response_code: Option<i64>,
+    /// resourceAddress property.
+    pub resource_address: Option<String>,
+}
+
+/// `ProviderConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProviderConfig {
+    /// sourceType property.
+    pub source_type: Option<String>,
+}
+
+/// `GitSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GitSource {
+    /// directory property.
+    pub directory: Option<String>,
+    /// ref property.
+    pub r#ref: Option<String>,
+    /// repo property.
+    pub repo: Option<String>,
+}
+
+/// `ApplyResults` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApplyResults {
+    /// artifacts property.
+    pub artifacts: Option<String>,
+    /// content property.
+    pub content: Option<String>,
+    /// outputs property.
+    pub outputs: Option<serde_json::Value>,
+}
 
 /// `DeploymentUnit` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -36,17 +79,6 @@ pub struct DeploymentUnit {
     pub deployment: Option<String>,
     /// id property.
     pub id: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 /// `DeploymentGroupRevision` type.
@@ -62,26 +94,37 @@ pub struct DeploymentGroupRevision {
     pub snapshot: Option<DeploymentGroup>,
 }
 
-/// `ApplyResults` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApplyResults {
-    /// artifacts property.
-    pub artifacts: Option<String>,
-    /// content property.
-    pub content: Option<String>,
-    /// outputs property.
-    pub outputs: Option<serde_json::Value>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
-/// `GitSource` type.
+/// `ListDeploymentGroupRevisionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GitSource {
-    /// directory property.
-    pub directory: Option<String>,
-    /// ref property.
-    pub r#ref: Option<String>,
-    /// repo property.
-    pub repo: Option<String>,
+pub struct ListDeploymentGroupRevisionsResponse {
+    /// deploymentGroupRevisions property.
+    pub deployment_group_revisions: Option<Vec<DeploymentGroupRevision>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `ListRevisionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListRevisionsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// revisions property.
+    pub revisions: Option<Vec<Revision>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `DeploymentGroup` type.
@@ -111,15 +154,17 @@ pub struct DeploymentGroup {
     pub update_time: Option<String>,
 }
 
-/// `ListDeploymentGroupRevisionsResponse` type.
+/// `TerraformBlueprint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDeploymentGroupRevisionsResponse {
-    /// deploymentGroupRevisions property.
-    pub deployment_group_revisions: Option<Vec<DeploymentGroupRevision>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct TerraformBlueprint {
+    /// externalValues property.
+    pub external_values: Option<serde_json::Value>,
+    /// gcsSource property.
+    pub gcs_source: Option<String>,
+    /// gitSource property.
+    pub git_source: Option<GitSource>,
+    /// inputValues property.
+    pub input_values: Option<serde_json::Value>,
 }
 
 /// `Revision` type.
@@ -167,50 +212,6 @@ pub struct Revision {
     pub update_time: Option<String>,
     /// workerPool property.
     pub worker_pool: Option<String>,
-}
-
-/// `ListRevisionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListRevisionsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// revisions property.
-    pub revisions: Option<Vec<Revision>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `TerraformBlueprint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TerraformBlueprint {
-    /// externalValues property.
-    pub external_values: Option<serde_json::Value>,
-    /// gcsSource property.
-    pub gcs_source: Option<String>,
-    /// gitSource property.
-    pub git_source: Option<GitSource>,
-    /// inputValues property.
-    pub input_values: Option<serde_json::Value>,
-}
-
-/// `TerraformError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TerraformError {
-    /// error property.
-    pub error: Option<Status>,
-    /// errorDescription property.
-    pub error_description: Option<String>,
-    /// httpResponseCode property.
-    pub http_response_code: Option<i64>,
-    /// resourceAddress property.
-    pub resource_address: Option<String>,
-}
-
-/// `ProviderConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProviderConfig {
-    /// sourceType property.
-    pub source_type: Option<String>,
 }
 
 // =============================================================================

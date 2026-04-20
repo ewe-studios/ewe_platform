@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,55 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `VmwareUpgradeComponent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareUpgradeComponent {
-    /// componentType property.
-    pub component_type: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `Constraints` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Constraints {
-    /// disallowedIntervals property.
-    pub disallowed_intervals: Option<Vec<WeeklyTimeInterval>>,
-    /// minHoursDay property.
-    pub min_hours_day: Option<i64>,
-    /// minHoursWeek property.
-    pub min_hours_week: Option<i64>,
-    /// rescheduleDateRange property.
-    pub reschedule_date_range: Option<Interval>,
-}
-
-/// `WeeklyTimeInterval` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WeeklyTimeInterval {
-    /// endDay property.
-    pub end_day: Option<String>,
-    /// endTime property.
-    pub end_time: Option<TimeOfDay>,
-    /// startDay property.
-    pub start_day: Option<String>,
-    /// startTime property.
-    pub start_time: Option<TimeOfDay>,
-}
-
-/// `Interval` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Interval {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
 
 /// `TimeWindow` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -93,17 +50,6 @@ pub struct TimeOfDay {
     pub nanos: Option<i64>,
     /// seconds property.
     pub seconds: Option<i64>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 /// `Upgrade` type.
@@ -141,6 +87,63 @@ pub struct Upgrade {
     pub version: Option<String>,
 }
 
+/// `WeeklyTimeInterval` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WeeklyTimeInterval {
+    /// endDay property.
+    pub end_day: Option<String>,
+    /// endTime property.
+    pub end_time: Option<TimeOfDay>,
+    /// startDay property.
+    pub start_day: Option<String>,
+    /// startTime property.
+    pub start_time: Option<TimeOfDay>,
+}
+
+/// `Constraints` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Constraints {
+    /// disallowedIntervals property.
+    pub disallowed_intervals: Option<Vec<WeeklyTimeInterval>>,
+    /// minHoursDay property.
+    pub min_hours_day: Option<i64>,
+    /// minHoursWeek property.
+    pub min_hours_week: Option<i64>,
+    /// rescheduleDateRange property.
+    pub reschedule_date_range: Option<Interval>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ListUpgradesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListUpgradesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+    /// upgrades property.
+    pub upgrades: Option<Vec<Upgrade>>,
+}
+
+/// `VmwareUpgradeComponent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmwareUpgradeComponent {
+    /// componentType property.
+    pub component_type: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
 /// `Schedule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Schedule {
@@ -156,15 +159,13 @@ pub struct Schedule {
     pub weekly_windows: Option<Vec<TimeWindow>>,
 }
 
-/// `ListUpgradesResponse` type.
+/// `Interval` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListUpgradesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-    /// upgrades property.
-    pub upgrades: Option<Vec<Upgrade>>,
+pub struct Interval {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
 }
 
 // =============================================================================

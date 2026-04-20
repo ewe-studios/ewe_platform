@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GamePlayerToken` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GamePlayerToken {
+    /// applicationId property.
+    pub application_id: Option<String>,
+    /// recallToken property.
+    pub recall_token: Option<RecallToken>,
+}
 
 /// `RetrieveDeveloperGamesLastPlayerTokenResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,15 +50,6 @@ pub struct RecallToken {
     pub multi_player_persona: Option<bool>,
     /// token property.
     pub token: Option<String>,
-}
-
-/// `GamePlayerToken` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GamePlayerToken {
-    /// applicationId property.
-    pub application_id: Option<String>,
-    /// recallToken property.
-    pub recall_token: Option<RecallToken>,
 }
 
 // =============================================================================

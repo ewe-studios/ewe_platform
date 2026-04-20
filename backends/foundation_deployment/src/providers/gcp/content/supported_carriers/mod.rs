@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ShippingsettingsGetSupportedCarriersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShippingsettingsGetSupportedCarriersResponse {
-    /// carriers property.
-    pub carriers: Option<Vec<CarriersCarrier>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
 
 /// `CarriersCarrier` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,6 +36,15 @@ pub struct CarriersCarrier {
     pub name: Option<String>,
     /// services property.
     pub services: Option<Vec<String>>,
+}
+
+/// `ShippingsettingsGetSupportedCarriersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShippingsettingsGetSupportedCarriersResponse {
+    /// carriers property.
+    pub carriers: Option<Vec<CarriersCarrier>>,
+    /// kind property.
+    pub kind: Option<String>,
 }
 
 // =============================================================================

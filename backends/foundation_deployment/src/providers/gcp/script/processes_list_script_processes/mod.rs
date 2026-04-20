@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListScriptProcessesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListScriptProcessesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// processes property.
-    pub processes: Option<Vec<GoogleAppsScriptTypeProcess>>,
-}
 
 /// `GoogleAppsScriptTypeProcess` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -52,6 +44,15 @@ pub struct GoogleAppsScriptTypeProcess {
     pub start_time: Option<String>,
     /// userAccessLevel property.
     pub user_access_level: Option<String>,
+}
+
+/// `ListScriptProcessesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListScriptProcessesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// processes property.
+    pub processes: Option<Vec<GoogleAppsScriptTypeProcess>>,
 }
 
 // =============================================================================

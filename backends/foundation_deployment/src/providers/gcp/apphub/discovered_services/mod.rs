@@ -12,23 +12,24 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ServiceReference` type.
+/// `Identity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceReference {
-    /// uri property.
-    pub uri: Option<String>,
+pub struct Identity {
+    /// principal property.
+    pub principal: Option<String>,
 }
 
 /// `DiscoveredService` type.
@@ -42,11 +43,11 @@ pub struct DiscoveredService {
     pub service_reference: Option<ServiceReference>,
 }
 
-/// `Identity` type.
+/// `ServiceReference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Identity {
-    /// principal property.
-    pub principal: Option<String>,
+pub struct ServiceReference {
+    /// uri property.
+    pub uri: Option<String>,
 }
 
 /// `FunctionalType` type.
@@ -54,24 +55,6 @@ pub struct Identity {
 pub struct FunctionalType {
     /// type property.
     pub r#type: Option<String>,
-}
-
-/// `RegistrationType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegistrationType {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `ListDiscoveredServicesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDiscoveredServicesResponse {
-    /// discoveredServices property.
-    pub discovered_services: Option<Vec<DiscoveredService>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
 }
 
 /// `ServiceProperties` type.
@@ -91,6 +74,24 @@ pub struct ServiceProperties {
     pub registration_type: Option<RegistrationType>,
     /// zone property.
     pub zone: Option<String>,
+}
+
+/// `RegistrationType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegistrationType {
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ListDiscoveredServicesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDiscoveredServicesResponse {
+    /// discoveredServices property.
+    pub discovered_services: Option<Vec<DiscoveredService>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 // =============================================================================

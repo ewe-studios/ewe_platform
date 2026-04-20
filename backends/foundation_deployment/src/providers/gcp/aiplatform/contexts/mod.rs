@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,39 +23,40 @@ use serde::{Deserialize, Serialize};
 use super::shared::GoogleCloudAiplatformV1LineageSubgraph;
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleRpcStatus` type.
+/// `GoogleCloudAiplatformV1Artifact` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct GoogleCloudAiplatformV1Artifact {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// schemaTitle property.
+    pub schema_title: Option<String>,
+    /// schemaVersion property.
+    pub schema_version: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
 }
-
-/// `GoogleCloudAiplatformV1RemoveContextChildrenResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RemoveContextChildrenResponse {}
-
-/// `GoogleCloudAiplatformV1ListContextsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListContextsResponse {
-    /// contexts property.
-    pub contexts: Option<Vec<GoogleCloudAiplatformV1Context>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1AddContextArtifactsAndExecutionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1AddContextArtifactsAndExecutionsResponse {}
 
 /// `GoogleCloudAiplatformV1Event` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -102,34 +104,33 @@ pub struct GoogleCloudAiplatformV1Execution {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1Artifact` type.
+/// `GoogleCloudAiplatformV1ListContextsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Artifact {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// schemaTitle property.
-    pub schema_title: Option<String>,
-    /// schemaVersion property.
-    pub schema_version: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
+pub struct GoogleCloudAiplatformV1ListContextsResponse {
+    /// contexts property.
+    pub contexts: Option<Vec<GoogleCloudAiplatformV1Context>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
+
+/// `GoogleCloudAiplatformV1AddContextArtifactsAndExecutionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1AddContextArtifactsAndExecutionsResponse {}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1RemoveContextChildrenResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RemoveContextChildrenResponse {}
 
 /// `GoogleCloudAiplatformV1Context` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

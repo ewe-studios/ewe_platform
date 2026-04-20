@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -28,9 +29,17 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `SourceTransaction` response type.
+/// `SourceMandateNotification` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceTransaction {
+pub struct SourceMandateNotification {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `Source` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Source {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -44,25 +53,17 @@ pub struct IssuingCardholder {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
+/// `SourceTransaction` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SourceTransaction {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `IssuingCard` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCard {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SourceMandateNotification` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceMandateNotification {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `Source` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Source {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

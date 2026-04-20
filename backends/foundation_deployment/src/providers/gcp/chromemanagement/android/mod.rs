@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,24 +22,28 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleChromeManagementV1AppDetails;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleChromeManagementV1ChromeAppSiteAccess` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1ChromeAppSiteAccess {
-    /// hostMatch property.
-    pub host_match: Option<String>,
-}
 
 /// `GoogleChromeManagementV1AndroidAppPermission` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1AndroidAppPermission {
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `GoogleChromeManagementV1ChromeAppPermission` type.
@@ -50,6 +55,20 @@ pub struct GoogleChromeManagementV1ChromeAppPermission {
     pub documentation_uri: Option<String>,
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `GoogleChromeManagementV1ChromeAppSiteAccess` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1ChromeAppSiteAccess {
+    /// hostMatch property.
+    pub host_match: Option<String>,
+}
+
+/// `GoogleChromeManagementV1AndroidAppInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1AndroidAppInfo {
+    /// permissions property.
+    pub permissions: Option<Vec<GoogleChromeManagementV1AndroidAppPermission>>,
 }
 
 /// `GoogleChromeManagementV1ChromeAppInfo` type.
@@ -79,24 +98,6 @@ pub struct GoogleChromeManagementV1ChromeAppInfo {
     pub support_enabled: Option<bool>,
     /// type property.
     pub r#type: Option<String>,
-}
-
-/// `GoogleChromeManagementV1AndroidAppInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1AndroidAppInfo {
-    /// permissions property.
-    pub permissions: Option<Vec<GoogleChromeManagementV1AndroidAppPermission>>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 // =============================================================================

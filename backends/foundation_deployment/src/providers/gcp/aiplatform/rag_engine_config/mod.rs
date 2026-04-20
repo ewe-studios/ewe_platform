@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,19 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudAiplatformV1RagManagedDbConfigBasic` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RagManagedDbConfigBasic {}
-
-/// `GoogleCloudAiplatformV1RagManagedDbConfigScaled` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RagManagedDbConfigScaled {}
 
 /// `GoogleCloudAiplatformV1RagManagedDbConfigSpanner` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -46,13 +39,9 @@ pub struct GoogleCloudAiplatformV1RagManagedDbConfigSpanner {
     pub unprovisioned: Option<GoogleCloudAiplatformV1RagManagedDbConfigUnprovisioned>,
 }
 
-/// `GoogleCloudAiplatformV1RagManagedDbConfigUnprovisioned` type.
+/// `GoogleCloudAiplatformV1RagManagedDbConfigBasic` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RagManagedDbConfigUnprovisioned {}
-
-/// `GoogleCloudAiplatformV1RagManagedDbConfigServerless` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RagManagedDbConfigServerless {}
+pub struct GoogleCloudAiplatformV1RagManagedDbConfigBasic {}
 
 /// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -64,6 +53,23 @@ pub struct GoogleRpcStatus {
     /// message property.
     pub message: Option<String>,
 }
+
+/// `GoogleCloudAiplatformV1RagManagedDbConfigServerless` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RagManagedDbConfigServerless {}
+
+/// `GoogleCloudAiplatformV1RagEngineConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RagEngineConfig {
+    /// name property.
+    pub name: Option<String>,
+    /// ragManagedDbConfig property.
+    pub rag_managed_db_config: Option<GoogleCloudAiplatformV1RagManagedDbConfig>,
+}
+
+/// `GoogleCloudAiplatformV1RagManagedDbConfigUnprovisioned` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RagManagedDbConfigUnprovisioned {}
 
 /// `GoogleCloudAiplatformV1RagManagedDbConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -80,14 +86,9 @@ pub struct GoogleCloudAiplatformV1RagManagedDbConfig {
     pub unprovisioned: Option<GoogleCloudAiplatformV1RagManagedDbConfigUnprovisioned>,
 }
 
-/// `GoogleCloudAiplatformV1RagEngineConfig` type.
+/// `GoogleCloudAiplatformV1RagManagedDbConfigScaled` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RagEngineConfig {
-    /// name property.
-    pub name: Option<String>,
-    /// ragManagedDbConfig property.
-    pub rag_managed_db_config: Option<GoogleCloudAiplatformV1RagManagedDbConfig>,
-}
+pub struct GoogleCloudAiplatformV1RagManagedDbConfigScaled {}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

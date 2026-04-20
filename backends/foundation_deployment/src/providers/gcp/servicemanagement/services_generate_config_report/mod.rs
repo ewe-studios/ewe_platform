@@ -12,35 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Advice` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Advice {
-    /// description property.
-    pub description: Option<String>,
-}
-
-/// `Diagnostic` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Diagnostic {
-    /// kind property.
-    pub kind: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
 
 /// `GenerateConfigReportResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -53,6 +36,17 @@ pub struct GenerateConfigReportResponse {
     pub id: Option<String>,
     /// serviceName property.
     pub service_name: Option<String>,
+}
+
+/// `Diagnostic` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Diagnostic {
+    /// kind property.
+    pub kind: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `ConfigChange` type.
@@ -75,6 +69,13 @@ pub struct ConfigChange {
 pub struct ChangeReport {
     /// configChanges property.
     pub config_changes: Option<Vec<ConfigChange>>,
+}
+
+/// `Advice` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Advice {
+    /// description property.
+    pub description: Option<String>,
 }
 
 // =============================================================================

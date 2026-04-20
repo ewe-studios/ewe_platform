@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,29 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListResourceValueConfigsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListResourceValueConfigsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// resourceValueConfigs property.
-    pub resource_value_configs: Option<Vec<GoogleCloudSecuritycenterV1ResourceValueConfig>>,
-}
-
-/// `GoogleCloudSecuritycenterV1SensitiveDataProtectionMapping` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudSecuritycenterV1SensitiveDataProtectionMapping {
-    /// highSensitivityMapping property.
-    pub high_sensitivity_mapping: Option<String>,
-    /// mediumSensitivityMapping property.
-    pub medium_sensitivity_mapping: Option<String>,
-}
 
 /// `GoogleCloudSecuritycenterV1ResourceValueConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -71,6 +54,24 @@ pub struct GoogleCloudSecuritycenterV1ResourceValueConfig {
     pub tag_values: Option<Vec<String>>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `ListResourceValueConfigsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListResourceValueConfigsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// resourceValueConfigs property.
+    pub resource_value_configs: Option<Vec<GoogleCloudSecuritycenterV1ResourceValueConfig>>,
+}
+
+/// `GoogleCloudSecuritycenterV1SensitiveDataProtectionMapping` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudSecuritycenterV1SensitiveDataProtectionMapping {
+    /// highSensitivityMapping property.
+    pub high_sensitivity_mapping: Option<String>,
+    /// mediumSensitivityMapping property.
+    pub medium_sensitivity_mapping: Option<String>,
 }
 
 // =============================================================================

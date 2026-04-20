@@ -12,17 +12,29 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `BasicPerfSampleSeries` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BasicPerfSampleSeries {
+    /// perfMetricType property.
+    pub perf_metric_type: Option<String>,
+    /// perfUnit property.
+    pub perf_unit: Option<String>,
+    /// sampleSeriesLabel property.
+    pub sample_series_label: Option<String>,
+}
 
 /// `PerfSampleSeries` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -39,17 +51,6 @@ pub struct PerfSampleSeries {
     pub sample_series_id: Option<String>,
     /// stepId property.
     pub step_id: Option<String>,
-}
-
-/// `BasicPerfSampleSeries` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BasicPerfSampleSeries {
-    /// perfMetricType property.
-    pub perf_metric_type: Option<String>,
-    /// perfUnit property.
-    pub perf_unit: Option<String>,
-    /// sampleSeriesLabel property.
-    pub sample_series_label: Option<String>,
 }
 
 /// `ListPerfSampleSeriesResponse` type.

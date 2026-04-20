@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,137 +24,11 @@ use super::shared::Empty;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ImageNote` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImageNote {
-    /// fingerprint property.
-    pub fingerprint: Option<Fingerprint>,
-    /// resourceUrl property.
-    pub resource_url: Option<String>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `Distribution` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Distribution {
-    /// architecture property.
-    pub architecture: Option<String>,
-    /// cpeUri property.
-    pub cpe_uri: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// latestVersion property.
-    pub latest_version: Option<Version>,
-    /// maintainer property.
-    pub maintainer: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `UpgradeNote` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpgradeNote {
-    /// distributions property.
-    pub distributions: Option<Vec<UpgradeDistribution>>,
-    /// package property.
-    pub package: Option<String>,
-    /// version property.
-    pub version: Option<Version>,
-    /// windowsUpdate property.
-    pub windows_update: Option<WindowsUpdate>,
-}
-
-/// `VulnerabilityNote` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VulnerabilityNote {
-    /// advisoryPublishTime property.
-    pub advisory_publish_time: Option<String>,
-    /// cvssScore property.
-    pub cvss_score: Option<f64>,
-    /// cvssV2 property.
-    pub cvss_v2: Option<CVSS>,
-    /// cvssV3 property.
-    pub cvss_v3: Option<CVSSv3>,
-    /// cvssVersion property.
-    pub cvss_version: Option<String>,
-    /// details property.
-    pub details: Option<Vec<Detail>>,
-    /// severity property.
-    pub severity: Option<String>,
-    /// sourceUpdateTime property.
-    pub source_update_time: Option<String>,
-    /// windowsDetails property.
-    pub windows_details: Option<Vec<WindowsDetail>>,
-}
-
-/// `Hint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Hint {
-    /// humanReadableName property.
-    pub human_readable_name: Option<String>,
-}
-
-/// `Category` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Category {
-    /// categoryId property.
-    pub category_id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `Publisher` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Publisher {
-    /// issuingAuthority property.
-    pub issuing_authority: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// publisherNamespace property.
-    pub publisher_namespace: Option<String>,
-}
-
-/// `Remediation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Remediation {
-    /// details property.
-    pub details: Option<String>,
-    /// remediationType property.
-    pub remediation_type: Option<String>,
-    /// remediationUri property.
-    pub remediation_uri: Option<RelatedUrl>,
-}
-
-/// `UpgradeDistribution` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpgradeDistribution {
-    /// classification property.
-    pub classification: Option<String>,
-    /// cpeUri property.
-    pub cpe_uri: Option<String>,
-    /// cve property.
-    pub cve: Option<Vec<String>>,
-    /// severity property.
-    pub severity: Option<String>,
-}
 
 /// `Note` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -204,97 +79,24 @@ pub struct Note {
     pub vulnerability_assessment: Option<VulnerabilityAssessmentNote>,
 }
 
-/// `PackageNote` type.
+/// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PackageNote {
-    /// architecture property.
-    pub architecture: Option<String>,
-    /// cpeUri property.
-    pub cpe_uri: Option<String>,
+pub struct Expr {
     /// description property.
     pub description: Option<String>,
-    /// digest property.
-    pub digest: Option<Vec<Digest>>,
-    /// distribution property.
-    pub distribution: Option<Vec<Distribution>>,
-    /// license property.
-    pub license: Option<License>,
-    /// maintainer property.
-    pub maintainer: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// packageType property.
-    pub package_type: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-    /// version property.
-    pub version: Option<Version>,
-}
-
-/// `AttestationNote` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AttestationNote {
-    /// hint property.
-    pub hint: Option<Hint>,
-}
-
-/// `ComplianceNote` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComplianceNote {
-    /// cisBenchmark property.
-    pub cis_benchmark: Option<CisBenchmark>,
-    /// description property.
-    pub description: Option<String>,
-    /// impact property.
-    pub impact: Option<String>,
-    /// rationale property.
-    pub rationale: Option<String>,
-    /// remediation property.
-    pub remediation: Option<String>,
-    /// scanInstructions property.
-    pub scan_instructions: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
     /// title property.
     pub title: Option<String>,
-    /// version property.
-    pub version: Option<Vec<ComplianceVersion>>,
 }
 
-/// `SBOMReferenceNote` type.
+/// `DeploymentNote` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SBOMReferenceNote {
-    /// format property.
-    pub format: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `CVSS` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CVSS {
-    /// attackComplexity property.
-    pub attack_complexity: Option<String>,
-    /// attackVector property.
-    pub attack_vector: Option<String>,
-    /// authentication property.
-    pub authentication: Option<String>,
-    /// availabilityImpact property.
-    pub availability_impact: Option<String>,
-    /// baseScore property.
-    pub base_score: Option<f64>,
-    /// confidentialityImpact property.
-    pub confidentiality_impact: Option<String>,
-    /// exploitabilityScore property.
-    pub exploitability_score: Option<f64>,
-    /// impactScore property.
-    pub impact_score: Option<f64>,
-    /// integrityImpact property.
-    pub integrity_impact: Option<String>,
-    /// privilegesRequired property.
-    pub privileges_required: Option<String>,
-    /// scope property.
-    pub scope: Option<String>,
-    /// userInteraction property.
-    pub user_interaction: Option<String>,
+pub struct DeploymentNote {
+    /// resourceUri property.
+    pub resource_uri: Option<Vec<String>>,
 }
 
 /// `Binding` type.
@@ -308,35 +110,22 @@ pub struct Binding {
     pub role: Option<String>,
 }
 
-/// `BuildNote` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BuildNote {
-    /// builderVersion property.
-    pub builder_version: Option<String>,
-}
-
-/// `VulnerabilityAssessmentNote` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VulnerabilityAssessmentNote {
-    /// assessment property.
-    pub assessment: Option<Assessment>,
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// longDescription property.
-    pub long_description: Option<String>,
-    /// product property.
-    pub product: Option<Product>,
-    /// publisher property.
-    pub publisher: Option<Publisher>,
-    /// shortDescription property.
-    pub short_description: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
 /// `SecretNote` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretNote {}
+
+/// `UpgradeNote` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpgradeNote {
+    /// distributions property.
+    pub distributions: Option<Vec<UpgradeDistribution>>,
+    /// package property.
+    pub package: Option<String>,
+    /// version property.
+    pub version: Option<Version>,
+    /// windowsUpdate property.
+    pub windows_update: Option<WindowsUpdate>,
+}
 
 /// `WindowsUpdate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -357,60 +146,24 @@ pub struct WindowsUpdate {
     pub title: Option<String>,
 }
 
-/// `DiscoveryNote` type.
+/// `Category` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiscoveryNote {
-    /// analysisKind property.
-    pub analysis_kind: Option<String>,
+pub struct Category {
+    /// categoryId property.
+    pub category_id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
 }
 
-/// `ListNotesResponse` type.
+/// `Fingerprint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListNotesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// notes property.
-    pub notes: Option<Vec<Note>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `ComplianceVersion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComplianceVersion {
-    /// benchmarkDocument property.
-    pub benchmark_document: Option<String>,
-    /// cpeUri property.
-    pub cpe_uri: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `Digest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Digest {
-    /// algo property.
-    pub algo: Option<String>,
-    /// digestBytes property.
-    pub digest_bytes: Option<String>,
-}
-
-/// `Justification` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Justification {
-    /// details property.
-    pub details: Option<String>,
-    /// justificationType property.
-    pub justification_type: Option<String>,
-}
-
-/// `RelatedUrl` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RelatedUrl {
-    /// label property.
-    pub label: Option<String>,
-    /// url property.
-    pub url: Option<String>,
+pub struct Fingerprint {
+    /// v1Name property.
+    pub v1_name: Option<String>,
+    /// v2Blob property.
+    pub v2_blob: Option<Vec<String>>,
+    /// v2Name property.
+    pub v2_name: Option<String>,
 }
 
 /// `CVSSv3` type.
@@ -440,15 +193,23 @@ pub struct CVSSv3 {
     pub user_interaction: Option<String>,
 }
 
-/// `Product` type.
+/// `VulnerabilityAssessmentNote` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Product {
-    /// genericUri property.
-    pub generic_uri: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
+pub struct VulnerabilityAssessmentNote {
+    /// assessment property.
+    pub assessment: Option<Assessment>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// longDescription property.
+    pub long_description: Option<String>,
+    /// product property.
+    pub product: Option<Product>,
+    /// publisher property.
+    pub publisher: Option<Publisher>,
+    /// shortDescription property.
+    pub short_description: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 /// `WindowsDetail` type.
@@ -481,25 +242,20 @@ pub struct Version {
     pub revision: Option<String>,
 }
 
-/// `DSSEHint` type.
+/// `DiscoveryNote` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DSSEHint {
-    /// humanReadableName property.
-    pub human_readable_name: Option<String>,
+pub struct DiscoveryNote {
+    /// analysisKind property.
+    pub analysis_kind: Option<String>,
 }
 
-/// `DSSEAttestationNote` type.
+/// `ImageNote` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DSSEAttestationNote {
-    /// hint property.
-    pub hint: Option<DSSEHint>,
-}
-
-/// `DeploymentNote` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeploymentNote {
-    /// resourceUri property.
-    pub resource_uri: Option<Vec<String>>,
+pub struct ImageNote {
+    /// fingerprint property.
+    pub fingerprint: Option<Fingerprint>,
+    /// resourceUrl property.
+    pub resource_url: Option<String>,
 }
 
 /// `License` type.
@@ -511,24 +267,77 @@ pub struct License {
     pub expression: Option<String>,
 }
 
-/// `Fingerprint` type.
+/// `ComplianceVersion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Fingerprint {
-    /// v1Name property.
-    pub v1_name: Option<String>,
-    /// v2Blob property.
-    pub v2_blob: Option<Vec<String>>,
-    /// v2Name property.
-    pub v2_name: Option<String>,
+pub struct ComplianceVersion {
+    /// benchmarkDocument property.
+    pub benchmark_document: Option<String>,
+    /// cpeUri property.
+    pub cpe_uri: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
-/// `CisBenchmark` type.
+/// `KnowledgeBase` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CisBenchmark {
-    /// profileLevel property.
-    pub profile_level: Option<i64>,
+pub struct KnowledgeBase {
+    /// name property.
+    pub name: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `UpgradeDistribution` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpgradeDistribution {
+    /// classification property.
+    pub classification: Option<String>,
+    /// cpeUri property.
+    pub cpe_uri: Option<String>,
+    /// cve property.
+    pub cve: Option<Vec<String>>,
     /// severity property.
     pub severity: Option<String>,
+}
+
+/// `SBOMReferenceNote` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SBOMReferenceNote {
+    /// format property.
+    pub format: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `BuildNote` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BuildNote {
+    /// builderVersion property.
+    pub builder_version: Option<String>,
+}
+
+/// `Distribution` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Distribution {
+    /// architecture property.
+    pub architecture: Option<String>,
+    /// cpeUri property.
+    pub cpe_uri: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// latestVersion property.
+    pub latest_version: Option<Version>,
+    /// maintainer property.
+    pub maintainer: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `Hint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Hint {
+    /// humanReadableName property.
+    pub human_readable_name: Option<String>,
 }
 
 /// `Detail` type.
@@ -564,6 +373,15 @@ pub struct Detail {
     pub vendor: Option<String>,
 }
 
+/// `RelatedUrl` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RelatedUrl {
+    /// label property.
+    pub label: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
 /// `Identity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Identity {
@@ -573,13 +391,43 @@ pub struct Identity {
     pub update_id: Option<String>,
 }
 
-/// `KnowledgeBase` type.
+/// `AttestationNote` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KnowledgeBase {
+pub struct AttestationNote {
+    /// hint property.
+    pub hint: Option<Hint>,
+}
+
+/// `ComplianceNote` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComplianceNote {
+    /// cisBenchmark property.
+    pub cis_benchmark: Option<CisBenchmark>,
+    /// description property.
+    pub description: Option<String>,
+    /// impact property.
+    pub impact: Option<String>,
+    /// rationale property.
+    pub rationale: Option<String>,
+    /// remediation property.
+    pub remediation: Option<String>,
+    /// scanInstructions property.
+    pub scan_instructions: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// version property.
+    pub version: Option<Vec<ComplianceVersion>>,
+}
+
+/// `Product` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Product {
+    /// genericUri property.
+    pub generic_uri: Option<String>,
+    /// id property.
+    pub id: Option<String>,
     /// name property.
     pub name: Option<String>,
-    /// url property.
-    pub url: Option<String>,
 }
 
 /// `Assessment` type.
@@ -603,6 +451,159 @@ pub struct Assessment {
     pub state: Option<String>,
     /// vulnerabilityId property.
     pub vulnerability_id: Option<String>,
+}
+
+/// `VulnerabilityNote` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VulnerabilityNote {
+    /// advisoryPublishTime property.
+    pub advisory_publish_time: Option<String>,
+    /// cvssScore property.
+    pub cvss_score: Option<f64>,
+    /// cvssV2 property.
+    pub cvss_v2: Option<CVSS>,
+    /// cvssV3 property.
+    pub cvss_v3: Option<CVSSv3>,
+    /// cvssVersion property.
+    pub cvss_version: Option<String>,
+    /// details property.
+    pub details: Option<Vec<Detail>>,
+    /// severity property.
+    pub severity: Option<String>,
+    /// sourceUpdateTime property.
+    pub source_update_time: Option<String>,
+    /// windowsDetails property.
+    pub windows_details: Option<Vec<WindowsDetail>>,
+}
+
+/// `DSSEHint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DSSEHint {
+    /// humanReadableName property.
+    pub human_readable_name: Option<String>,
+}
+
+/// `PackageNote` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PackageNote {
+    /// architecture property.
+    pub architecture: Option<String>,
+    /// cpeUri property.
+    pub cpe_uri: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// digest property.
+    pub digest: Option<Vec<Digest>>,
+    /// distribution property.
+    pub distribution: Option<Vec<Distribution>>,
+    /// license property.
+    pub license: Option<License>,
+    /// maintainer property.
+    pub maintainer: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// packageType property.
+    pub package_type: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+    /// version property.
+    pub version: Option<Version>,
+}
+
+/// `Publisher` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Publisher {
+    /// issuingAuthority property.
+    pub issuing_authority: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// publisherNamespace property.
+    pub publisher_namespace: Option<String>,
+}
+
+/// `Justification` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Justification {
+    /// details property.
+    pub details: Option<String>,
+    /// justificationType property.
+    pub justification_type: Option<String>,
+}
+
+/// `DSSEAttestationNote` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DSSEAttestationNote {
+    /// hint property.
+    pub hint: Option<DSSEHint>,
+}
+
+/// `ListNotesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListNotesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// notes property.
+    pub notes: Option<Vec<Note>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `Digest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Digest {
+    /// algo property.
+    pub algo: Option<String>,
+    /// digestBytes property.
+    pub digest_bytes: Option<String>,
+}
+
+/// `Remediation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Remediation {
+    /// details property.
+    pub details: Option<String>,
+    /// remediationType property.
+    pub remediation_type: Option<String>,
+    /// remediationUri property.
+    pub remediation_uri: Option<RelatedUrl>,
+}
+
+/// `CVSS` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CVSS {
+    /// attackComplexity property.
+    pub attack_complexity: Option<String>,
+    /// attackVector property.
+    pub attack_vector: Option<String>,
+    /// authentication property.
+    pub authentication: Option<String>,
+    /// availabilityImpact property.
+    pub availability_impact: Option<String>,
+    /// baseScore property.
+    pub base_score: Option<f64>,
+    /// confidentialityImpact property.
+    pub confidentiality_impact: Option<String>,
+    /// exploitabilityScore property.
+    pub exploitability_score: Option<f64>,
+    /// impactScore property.
+    pub impact_score: Option<f64>,
+    /// integrityImpact property.
+    pub integrity_impact: Option<String>,
+    /// privilegesRequired property.
+    pub privileges_required: Option<String>,
+    /// scope property.
+    pub scope: Option<String>,
+    /// userInteraction property.
+    pub user_interaction: Option<String>,
+}
+
+/// `CisBenchmark` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CisBenchmark {
+    /// profileLevel property.
+    pub profile_level: Option<i64>,
+    /// severity property.
+    pub severity: Option<String>,
 }
 
 // =============================================================================

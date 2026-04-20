@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -49,15 +50,6 @@ pub struct Account {
     pub vetted_state: Option<String>,
 }
 
-/// `ListAccountsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAccountsResponse {
-    /// accounts property.
-    pub accounts: Option<Vec<Account>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
 /// `PostalAddress` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostalAddress {
@@ -83,6 +75,15 @@ pub struct PostalAddress {
     pub sorting_code: Option<String>,
     /// sublocality property.
     pub sublocality: Option<String>,
+}
+
+/// `ListAccountsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAccountsResponse {
+    /// accounts property.
+    pub accounts: Option<Vec<Account>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `OrganizationInfo` type.

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,56 +22,23 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GradeHistory` type.
+/// `Attachment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GradeHistory {
-    /// actorUserId property.
-    pub actor_user_id: Option<String>,
-    /// gradeChangeType property.
-    pub grade_change_type: Option<String>,
-    /// gradeTimestamp property.
-    pub grade_timestamp: Option<String>,
-    /// maxPoints property.
-    pub max_points: Option<f64>,
-    /// pointsEarned property.
-    pub points_earned: Option<f64>,
-}
-
-/// `DriveFile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DriveFile {
-    /// alternateLink property.
-    pub alternate_link: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// thumbnailUrl property.
-    pub thumbnail_url: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `Link` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Link {
-    /// thumbnailUrl property.
-    pub thumbnail_url: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `MultipleChoiceSubmission` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MultipleChoiceSubmission {
-    /// answer property.
-    pub answer: Option<String>,
+pub struct Attachment {
+    /// driveFile property.
+    pub drive_file: Option<DriveFile>,
+    /// form property.
+    pub form: Option<Form>,
+    /// link property.
+    pub link: Option<Link>,
+    /// youTubeVideo property.
+    pub you_tube_video: Option<YouTubeVideo>,
 }
 
 /// `StudentSubmission` type.
@@ -116,42 +84,11 @@ pub struct StudentSubmission {
     pub user_id: Option<String>,
 }
 
-/// `AssignmentSubmission` type.
+/// `MultipleChoiceSubmission` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AssignmentSubmission {
-    /// attachments property.
-    pub attachments: Option<Vec<Attachment>>,
-}
-
-/// `SubmissionHistory` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubmissionHistory {
-    /// gradeHistory property.
-    pub grade_history: Option<GradeHistory>,
-    /// stateHistory property.
-    pub state_history: Option<StateHistory>,
-}
-
-/// `ListStudentSubmissionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListStudentSubmissionsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// studentSubmissions property.
-    pub student_submissions: Option<Vec<StudentSubmission>>,
-}
-
-/// `Form` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Form {
-    /// formUrl property.
-    pub form_url: Option<String>,
-    /// responseUrl property.
-    pub response_url: Option<String>,
-    /// thumbnailUrl property.
-    pub thumbnail_url: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct MultipleChoiceSubmission {
+    /// answer property.
+    pub answer: Option<String>,
 }
 
 /// `YouTubeVideo` type.
@@ -165,6 +102,22 @@ pub struct YouTubeVideo {
     pub thumbnail_url: Option<String>,
     /// title property.
     pub title: Option<String>,
+}
+
+/// `ShortAnswerSubmission` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShortAnswerSubmission {
+    /// answer property.
+    pub answer: Option<String>,
+}
+
+/// `SubmissionHistory` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SubmissionHistory {
+    /// gradeHistory property.
+    pub grade_history: Option<GradeHistory>,
+    /// stateHistory property.
+    pub state_history: Option<StateHistory>,
 }
 
 /// `AddOnAttachmentStudentSubmission` type.
@@ -189,24 +142,72 @@ pub struct StateHistory {
     pub state_timestamp: Option<String>,
 }
 
-/// `Attachment` type.
+/// `Form` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Attachment {
-    /// driveFile property.
-    pub drive_file: Option<DriveFile>,
-    /// form property.
-    pub form: Option<Form>,
-    /// link property.
-    pub link: Option<Link>,
-    /// youTubeVideo property.
-    pub you_tube_video: Option<YouTubeVideo>,
+pub struct Form {
+    /// formUrl property.
+    pub form_url: Option<String>,
+    /// responseUrl property.
+    pub response_url: Option<String>,
+    /// thumbnailUrl property.
+    pub thumbnail_url: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
-/// `ShortAnswerSubmission` type.
+/// `ListStudentSubmissionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShortAnswerSubmission {
-    /// answer property.
-    pub answer: Option<String>,
+pub struct ListStudentSubmissionsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// studentSubmissions property.
+    pub student_submissions: Option<Vec<StudentSubmission>>,
+}
+
+/// `AssignmentSubmission` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AssignmentSubmission {
+    /// attachments property.
+    pub attachments: Option<Vec<Attachment>>,
+}
+
+/// `GradeHistory` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GradeHistory {
+    /// actorUserId property.
+    pub actor_user_id: Option<String>,
+    /// gradeChangeType property.
+    pub grade_change_type: Option<String>,
+    /// gradeTimestamp property.
+    pub grade_timestamp: Option<String>,
+    /// maxPoints property.
+    pub max_points: Option<f64>,
+    /// pointsEarned property.
+    pub points_earned: Option<f64>,
+}
+
+/// `DriveFile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DriveFile {
+    /// alternateLink property.
+    pub alternate_link: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// thumbnailUrl property.
+    pub thumbnail_url: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `Link` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Link {
+    /// thumbnailUrl property.
+    pub thumbnail_url: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// url property.
+    pub url: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,17 +24,131 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `SearchBackgroundJobsResponse` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchBackgroundJobsResponse {
-    /// jobs property.
-    pub jobs: Option<Vec<BackgroundJobLogEntry>>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `DatabaseEntity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseEntity {
+    /// database property.
+    pub database: Option<DatabaseInstanceEntity>,
+    /// databaseFunction property.
+    pub database_function: Option<FunctionEntity>,
+    /// databasePackage property.
+    pub database_package: Option<PackageEntity>,
+    /// entityDdl property.
+    pub entity_ddl: Option<Vec<EntityDdl>>,
+    /// entityType property.
+    pub entity_type: Option<String>,
+    /// issues property.
+    pub issues: Option<Vec<EntityIssue>>,
+    /// mappings property.
+    pub mappings: Option<Vec<EntityMapping>>,
+    /// materializedView property.
+    pub materialized_view: Option<MaterializedViewEntity>,
+    /// parentEntity property.
+    pub parent_entity: Option<String>,
+    /// schema property.
+    pub schema: Option<SchemaEntity>,
+    /// sequence property.
+    pub sequence: Option<SequenceEntity>,
+    /// shortName property.
+    pub short_name: Option<String>,
+    /// storedProcedure property.
+    pub stored_procedure: Option<StoredProcedureEntity>,
+    /// synonym property.
+    pub synonym: Option<SynonymEntity>,
+    /// table property.
+    pub table: Option<TableEntity>,
+    /// tree property.
+    pub tree: Option<String>,
+    /// udt property.
+    pub udt: Option<UDTEntity>,
+    /// view property.
+    pub view: Option<ViewEntity>,
+}
+
+/// `UDTEntity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UDTEntity {
+    /// customFeatures property.
+    pub custom_features: Option<serde_json::Value>,
+    /// udtBody property.
+    pub udt_body: Option<String>,
+    /// udtSqlCode property.
+    pub udt_sql_code: Option<String>,
+}
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `EntityMappingLogEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EntityMappingLogEntry {
+    /// mappingComment property.
+    pub mapping_comment: Option<String>,
+    /// ruleId property.
+    pub rule_id: Option<String>,
+    /// ruleRevisionId property.
+    pub rule_revision_id: Option<String>,
+}
+
+/// `EntityDdl` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EntityDdl {
+    /// ddl property.
+    pub ddl: Option<String>,
+    /// ddlKind property.
+    pub ddl_kind: Option<String>,
+    /// ddlType property.
+    pub ddl_type: Option<String>,
+    /// editedDdlKind property.
+    pub edited_ddl_kind: Option<String>,
+    /// entity property.
+    pub entity: Option<String>,
+    /// entityType property.
+    pub entity_type: Option<String>,
+    /// issueId property.
+    pub issue_id: Option<Vec<String>>,
+}
+
+/// `SequenceEntity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SequenceEntity {
+    /// cache property.
+    pub cache: Option<String>,
+    /// customFeatures property.
+    pub custom_features: Option<serde_json::Value>,
+    /// cycle property.
+    pub cycle: Option<bool>,
+    /// increment property.
+    pub increment: Option<String>,
+    /// maxValue property.
+    pub max_value: Option<String>,
+    /// minValue property.
+    pub min_value: Option<String>,
+    /// startValue property.
+    pub start_value: Option<String>,
 }
 
 /// `SynonymEntity` type.
@@ -41,6 +156,48 @@ pub struct SearchBackgroundJobsResponse {
 pub struct SynonymEntity {
     /// customFeatures property.
     pub custom_features: Option<serde_json::Value>,
+    /// sourceEntity property.
+    pub source_entity: Option<String>,
+    /// sourceType property.
+    pub source_type: Option<String>,
+}
+
+/// `ListConversionWorkspacesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListConversionWorkspacesResponse {
+    /// conversionWorkspaces property.
+    pub conversion_workspaces: Option<Vec<ConversionWorkspace>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `DatabaseInstanceEntity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseInstanceEntity {
+    /// customFeatures property.
+    pub custom_features: Option<serde_json::Value>,
+}
+
+/// `FunctionEntity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FunctionEntity {
+    /// customFeatures property.
+    pub custom_features: Option<serde_json::Value>,
+    /// sqlCode property.
+    pub sql_code: Option<String>,
+}
+
+/// `EntityMapping` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EntityMapping {
+    /// draftEntity property.
+    pub draft_entity: Option<String>,
+    /// draftType property.
+    pub draft_type: Option<String>,
+    /// mappingLog property.
+    pub mapping_log: Option<Vec<EntityMappingLogEntry>>,
     /// sourceEntity property.
     pub source_entity: Option<String>,
     /// sourceType property.
@@ -62,6 +219,121 @@ pub struct TriggerEntity {
     pub triggering_events: Option<Vec<String>>,
 }
 
+/// `DescribeDatabaseEntitiesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DescribeDatabaseEntitiesResponse {
+    /// databaseEntities property.
+    pub database_entities: Option<Vec<DatabaseEntity>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `ConversionWorkspace` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConversionWorkspace {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// destination property.
+    pub destination: Option<DatabaseEngineInfo>,
+    /// destinationProvider property.
+    pub destination_provider: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// globalSettings property.
+    pub global_settings: Option<serde_json::Value>,
+    /// hasUncommittedChanges property.
+    pub has_uncommitted_changes: Option<bool>,
+    /// latestCommitId property.
+    pub latest_commit_id: Option<String>,
+    /// latestCommitTime property.
+    pub latest_commit_time: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// source property.
+    pub source: Option<DatabaseEngineInfo>,
+    /// sourceProvider property.
+    pub source_provider: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `SchemaEntity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SchemaEntity {
+    /// customFeatures property.
+    pub custom_features: Option<serde_json::Value>,
+}
+
+/// `PackageEntity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PackageEntity {
+    /// customFeatures property.
+    pub custom_features: Option<serde_json::Value>,
+    /// packageBody property.
+    pub package_body: Option<String>,
+    /// packageSqlCode property.
+    pub package_sql_code: Option<String>,
+}
+
+/// `ApplyJobDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApplyJobDetails {
+    /// connectionProfile property.
+    pub connection_profile: Option<String>,
+    /// filter property.
+    pub filter: Option<String>,
+}
+
+/// `StoredProcedureEntity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StoredProcedureEntity {
+    /// customFeatures property.
+    pub custom_features: Option<serde_json::Value>,
+    /// sqlCode property.
+    pub sql_code: Option<String>,
+}
+
+/// `EntityIssue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EntityIssue {
+    /// code property.
+    pub code: Option<String>,
+    /// ddl property.
+    pub ddl: Option<String>,
+    /// entityType property.
+    pub entity_type: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// position property.
+    pub position: Option<Position>,
+    /// severity property.
+    pub severity: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `Position` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Position {
+    /// column property.
+    pub column: Option<i64>,
+    /// length property.
+    pub length: Option<i64>,
+    /// line property.
+    pub line: Option<i64>,
+    /// offset property.
+    pub offset: Option<i64>,
+}
+
+/// `DescribeConversionWorkspaceRevisionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DescribeConversionWorkspaceRevisionsResponse {
+    /// revisions property.
+    pub revisions: Option<Vec<ConversionWorkspace>>,
+}
+
 /// `ImportRulesJobDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportRulesJobDetails {
@@ -69,6 +341,111 @@ pub struct ImportRulesJobDetails {
     pub file_format: Option<String>,
     /// files property.
     pub files: Option<Vec<String>>,
+}
+
+/// `DatabaseEngineInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseEngineInfo {
+    /// engine property.
+    pub engine: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `TableEntity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableEntity {
+    /// columns property.
+    pub columns: Option<Vec<ColumnEntity>>,
+    /// comment property.
+    pub comment: Option<String>,
+    /// constraints property.
+    pub constraints: Option<Vec<ConstraintEntity>>,
+    /// customFeatures property.
+    pub custom_features: Option<serde_json::Value>,
+    /// indices property.
+    pub indices: Option<Vec<IndexEntity>>,
+    /// triggers property.
+    pub triggers: Option<Vec<TriggerEntity>>,
+}
+
+/// `ConstraintEntity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConstraintEntity {
+    /// customFeatures property.
+    pub custom_features: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// referenceColumns property.
+    pub reference_columns: Option<Vec<String>>,
+    /// referenceTable property.
+    pub reference_table: Option<String>,
+    /// tableColumns property.
+    pub table_columns: Option<Vec<String>>,
+    /// tableName property.
+    pub table_name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `SearchBackgroundJobsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchBackgroundJobsResponse {
+    /// jobs property.
+    pub jobs: Option<Vec<BackgroundJobLogEntry>>,
+}
+
+/// `BackgroundJobLogEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackgroundJobLogEntry {
+    /// applyJobDetails property.
+    pub apply_job_details: Option<ApplyJobDetails>,
+    /// completionComment property.
+    pub completion_comment: Option<String>,
+    /// completionState property.
+    pub completion_state: Option<String>,
+    /// convertJobDetails property.
+    pub convert_job_details: Option<ConvertJobDetails>,
+    /// finishTime property.
+    pub finish_time: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// importRulesJobDetails property.
+    pub import_rules_job_details: Option<ImportRulesJobDetails>,
+    /// jobType property.
+    pub job_type: Option<String>,
+    /// requestAutocommit property.
+    pub request_autocommit: Option<bool>,
+    /// seedJobDetails property.
+    pub seed_job_details: Option<SeedJobDetails>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `IndexEntity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IndexEntity {
+    /// customFeatures property.
+    pub custom_features: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// tableColumns property.
+    pub table_columns: Option<Vec<String>>,
+    /// tableColumnsDescending property.
+    pub table_columns_descending: Option<Vec<bool>>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// unique property.
+    pub unique: Option<bool>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
 }
 
 /// `ColumnEntity` type.
@@ -114,90 +491,6 @@ pub struct ColumnEntity {
     pub udt: Option<bool>,
 }
 
-/// `ConstraintEntity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConstraintEntity {
-    /// customFeatures property.
-    pub custom_features: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// referenceColumns property.
-    pub reference_columns: Option<Vec<String>>,
-    /// referenceTable property.
-    pub reference_table: Option<String>,
-    /// tableColumns property.
-    pub table_columns: Option<Vec<String>>,
-    /// tableName property.
-    pub table_name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `EntityDdl` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EntityDdl {
-    /// ddl property.
-    pub ddl: Option<String>,
-    /// ddlKind property.
-    pub ddl_kind: Option<String>,
-    /// ddlType property.
-    pub ddl_type: Option<String>,
-    /// editedDdlKind property.
-    pub edited_ddl_kind: Option<String>,
-    /// entity property.
-    pub entity: Option<String>,
-    /// entityType property.
-    pub entity_type: Option<String>,
-    /// issueId property.
-    pub issue_id: Option<Vec<String>>,
-}
-
-/// `DatabaseInstanceEntity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseInstanceEntity {
-    /// customFeatures property.
-    pub custom_features: Option<serde_json::Value>,
-}
-
-/// `PackageEntity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PackageEntity {
-    /// customFeatures property.
-    pub custom_features: Option<serde_json::Value>,
-    /// packageBody property.
-    pub package_body: Option<String>,
-    /// packageSqlCode property.
-    pub package_sql_code: Option<String>,
-}
-
-/// `ApplyJobDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApplyJobDetails {
-    /// connectionProfile property.
-    pub connection_profile: Option<String>,
-    /// filter property.
-    pub filter: Option<String>,
-}
-
-/// `SequenceEntity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SequenceEntity {
-    /// cache property.
-    pub cache: Option<String>,
-    /// customFeatures property.
-    pub custom_features: Option<serde_json::Value>,
-    /// cycle property.
-    pub cycle: Option<bool>,
-    /// increment property.
-    pub increment: Option<String>,
-    /// maxValue property.
-    pub max_value: Option<String>,
-    /// minValue property.
-    pub min_value: Option<String>,
-    /// startValue property.
-    pub start_value: Option<String>,
-}
-
 /// `ViewEntity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ViewEntity {
@@ -209,188 +502,15 @@ pub struct ViewEntity {
     pub sql_code: Option<String>,
 }
 
-/// `StoredProcedureEntity` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StoredProcedureEntity {
-    /// customFeatures property.
-    pub custom_features: Option<serde_json::Value>,
-    /// sqlCode property.
-    pub sql_code: Option<String>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `EntityMappingLogEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EntityMappingLogEntry {
-    /// mappingComment property.
-    pub mapping_comment: Option<String>,
-    /// ruleId property.
-    pub rule_id: Option<String>,
-    /// ruleRevisionId property.
-    pub rule_revision_id: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `SeedJobDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SeedJobDetails {
-    /// connectionProfile property.
-    pub connection_profile: Option<String>,
-}
-
-/// `TableEntity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableEntity {
-    /// columns property.
-    pub columns: Option<Vec<ColumnEntity>>,
-    /// comment property.
-    pub comment: Option<String>,
-    /// constraints property.
-    pub constraints: Option<Vec<ConstraintEntity>>,
-    /// customFeatures property.
-    pub custom_features: Option<serde_json::Value>,
-    /// indices property.
-    pub indices: Option<Vec<IndexEntity>>,
-    /// triggers property.
-    pub triggers: Option<Vec<TriggerEntity>>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `SchemaEntity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SchemaEntity {
-    /// customFeatures property.
-    pub custom_features: Option<serde_json::Value>,
-}
-
-/// `ConvertJobDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConvertJobDetails {
-    /// filter property.
-    pub filter: Option<String>,
-}
-
-/// `FunctionEntity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FunctionEntity {
-    /// customFeatures property.
-    pub custom_features: Option<serde_json::Value>,
-    /// sqlCode property.
-    pub sql_code: Option<String>,
-}
-
-/// `ConversionWorkspace` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConversionWorkspace {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// destination property.
-    pub destination: Option<DatabaseEngineInfo>,
-    /// destinationProvider property.
-    pub destination_provider: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// globalSettings property.
-    pub global_settings: Option<serde_json::Value>,
-    /// hasUncommittedChanges property.
-    pub has_uncommitted_changes: Option<bool>,
-    /// latestCommitId property.
-    pub latest_commit_id: Option<String>,
-    /// latestCommitTime property.
-    pub latest_commit_time: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// source property.
-    pub source: Option<DatabaseEngineInfo>,
-    /// sourceProvider property.
-    pub source_provider: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `DescribeConversionWorkspaceRevisionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DescribeConversionWorkspaceRevisionsResponse {
-    /// revisions property.
-    pub revisions: Option<Vec<ConversionWorkspace>>,
-}
-
-/// `ListConversionWorkspacesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListConversionWorkspacesResponse {
-    /// conversionWorkspaces property.
-    pub conversion_workspaces: Option<Vec<ConversionWorkspace>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `UDTEntity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UDTEntity {
-    /// customFeatures property.
-    pub custom_features: Option<serde_json::Value>,
-    /// udtBody property.
-    pub udt_body: Option<String>,
-    /// udtSqlCode property.
-    pub udt_sql_code: Option<String>,
-}
-
-/// `IndexEntity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IndexEntity {
-    /// customFeatures property.
-    pub custom_features: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// tableColumns property.
-    pub table_columns: Option<Vec<String>>,
-    /// tableColumnsDescending property.
-    pub table_columns_descending: Option<Vec<bool>>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// unique property.
-    pub unique: Option<bool>,
-}
-
-/// `Position` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Position {
-    /// column property.
-    pub column: Option<i64>,
-    /// length property.
-    pub length: Option<i64>,
-    /// line property.
-    pub line: Option<i64>,
-    /// offset property.
-    pub offset: Option<i64>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `Expr` type.
@@ -406,122 +526,18 @@ pub struct Expr {
     pub title: Option<String>,
 }
 
-/// `EntityIssue` type.
+/// `SeedJobDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EntityIssue {
-    /// code property.
-    pub code: Option<String>,
-    /// ddl property.
-    pub ddl: Option<String>,
-    /// entityType property.
-    pub entity_type: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// position property.
-    pub position: Option<Position>,
-    /// severity property.
-    pub severity: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct SeedJobDetails {
+    /// connectionProfile property.
+    pub connection_profile: Option<String>,
 }
 
-/// `DatabaseEngineInfo` type.
+/// `ConvertJobDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseEngineInfo {
-    /// engine property.
-    pub engine: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `BackgroundJobLogEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackgroundJobLogEntry {
-    /// applyJobDetails property.
-    pub apply_job_details: Option<ApplyJobDetails>,
-    /// completionComment property.
-    pub completion_comment: Option<String>,
-    /// completionState property.
-    pub completion_state: Option<String>,
-    /// convertJobDetails property.
-    pub convert_job_details: Option<ConvertJobDetails>,
-    /// finishTime property.
-    pub finish_time: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// importRulesJobDetails property.
-    pub import_rules_job_details: Option<ImportRulesJobDetails>,
-    /// jobType property.
-    pub job_type: Option<String>,
-    /// requestAutocommit property.
-    pub request_autocommit: Option<bool>,
-    /// seedJobDetails property.
-    pub seed_job_details: Option<SeedJobDetails>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `DatabaseEntity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseEntity {
-    /// database property.
-    pub database: Option<DatabaseInstanceEntity>,
-    /// databaseFunction property.
-    pub database_function: Option<FunctionEntity>,
-    /// databasePackage property.
-    pub database_package: Option<PackageEntity>,
-    /// entityDdl property.
-    pub entity_ddl: Option<Vec<EntityDdl>>,
-    /// entityType property.
-    pub entity_type: Option<String>,
-    /// issues property.
-    pub issues: Option<Vec<EntityIssue>>,
-    /// mappings property.
-    pub mappings: Option<Vec<EntityMapping>>,
-    /// materializedView property.
-    pub materialized_view: Option<MaterializedViewEntity>,
-    /// parentEntity property.
-    pub parent_entity: Option<String>,
-    /// schema property.
-    pub schema: Option<SchemaEntity>,
-    /// sequence property.
-    pub sequence: Option<SequenceEntity>,
-    /// shortName property.
-    pub short_name: Option<String>,
-    /// storedProcedure property.
-    pub stored_procedure: Option<StoredProcedureEntity>,
-    /// synonym property.
-    pub synonym: Option<SynonymEntity>,
-    /// table property.
-    pub table: Option<TableEntity>,
-    /// tree property.
-    pub tree: Option<String>,
-    /// udt property.
-    pub udt: Option<UDTEntity>,
-    /// view property.
-    pub view: Option<ViewEntity>,
-}
-
-/// `DescribeDatabaseEntitiesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DescribeDatabaseEntitiesResponse {
-    /// databaseEntities property.
-    pub database_entities: Option<Vec<DatabaseEntity>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct ConvertJobDetails {
+    /// filter property.
+    pub filter: Option<String>,
 }
 
 /// `MaterializedViewEntity` type.
@@ -533,21 +549,6 @@ pub struct MaterializedViewEntity {
     pub indices: Option<Vec<IndexEntity>>,
     /// sqlCode property.
     pub sql_code: Option<String>,
-}
-
-/// `EntityMapping` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EntityMapping {
-    /// draftEntity property.
-    pub draft_entity: Option<String>,
-    /// draftType property.
-    pub draft_type: Option<String>,
-    /// mappingLog property.
-    pub mapping_log: Option<Vec<EntityMappingLogEntry>>,
-    /// sourceEntity property.
-    pub source_entity: Option<String>,
-    /// sourceType property.
-    pub source_type: Option<String>,
 }
 
 // =============================================================================

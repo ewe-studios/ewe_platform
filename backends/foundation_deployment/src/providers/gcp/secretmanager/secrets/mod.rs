@@ -12,109 +12,30 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
+use super::shared::Empty;
 use super::shared::SecretVersion;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Binding` type.
+/// `ReplicaStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `UserManagedStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserManagedStatus {
-    /// replicas property.
-    pub replicas: Option<Vec<ReplicaStatus>>,
-}
-
-/// `Replica` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Replica {
-    /// customerManagedEncryption property.
-    pub customer_managed_encryption: Option<CustomerManagedEncryption>,
-    /// location property.
-    pub location: Option<String>,
-}
-
-/// `CustomerManagedEncryptionStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerManagedEncryptionStatus {
-    /// kmsKeyVersionName property.
-    pub kms_key_version_name: Option<String>,
-}
-
-/// `Empty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
-
-/// `Replication` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Replication {
-    /// automatic property.
-    pub automatic: Option<Automatic>,
-    /// userManaged property.
-    pub user_managed: Option<UserManaged>,
-}
-
-/// `Rotation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Rotation {
-    /// nextRotationTime property.
-    pub next_rotation_time: Option<String>,
-    /// rotationPeriod property.
-    pub rotation_period: Option<String>,
-}
-
-/// `CustomerManagedEncryption` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerManagedEncryption {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `AutomaticStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutomaticStatus {
+pub struct ReplicaStatus {
     /// customerManagedEncryption property.
     pub customer_managed_encryption: Option<CustomerManagedEncryptionStatus>,
-}
-
-/// `UserManaged` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserManaged {
-    /// replicas property.
-    pub replicas: Option<Vec<Replica>>,
+    /// location property.
+    pub location: Option<String>,
 }
 
 /// `Topic` type.
@@ -122,53 +43,6 @@ pub struct UserManaged {
 pub struct Topic {
     /// name property.
     pub name: Option<String>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `Automatic` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Automatic {
-    /// customerManagedEncryption property.
-    pub customer_managed_encryption: Option<CustomerManagedEncryption>,
-}
-
-/// `Policy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Policy {
-    /// auditConfigs property.
-    pub audit_configs: Option<Vec<AuditConfig>>,
-    /// bindings property.
-    pub bindings: Option<Vec<Binding>>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// version property.
-    pub version: Option<i64>,
-}
-
-/// `ListSecretsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSecretsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// secrets property.
-    pub secrets: Option<Vec<Secret>>,
-    /// totalSize property.
-    pub total_size: Option<i64>,
-}
-
-/// `TestIamPermissionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestIamPermissionsResponse {
-    /// permissions property.
-    pub permissions: Option<Vec<String>>,
 }
 
 /// `Secret` type.
@@ -204,22 +78,60 @@ pub struct Secret {
     pub version_destroy_ttl: Option<String>,
 }
 
-/// `ReplicationStatus` type.
+/// `CustomerManagedEncryptionStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReplicationStatus {
-    /// automatic property.
-    pub automatic: Option<AutomaticStatus>,
-    /// userManaged property.
-    pub user_managed: Option<UserManagedStatus>,
+pub struct CustomerManagedEncryptionStatus {
+    /// kmsKeyVersionName property.
+    pub kms_key_version_name: Option<String>,
 }
 
-/// `ReplicaStatus` type.
+/// `Policy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReplicaStatus {
-    /// customerManagedEncryption property.
-    pub customer_managed_encryption: Option<CustomerManagedEncryptionStatus>,
+pub struct Policy {
+    /// auditConfigs property.
+    pub audit_configs: Option<Vec<AuditConfig>>,
+    /// bindings property.
+    pub bindings: Option<Vec<Binding>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// version property.
+    pub version: Option<i64>,
+}
+
+/// `UserManagedStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UserManagedStatus {
+    /// replicas property.
+    pub replicas: Option<Vec<ReplicaStatus>>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
     /// location property.
     pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `Replication` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Replication {
+    /// automatic property.
+    pub automatic: Option<Automatic>,
+    /// userManaged property.
+    pub user_managed: Option<UserManaged>,
+}
+
+/// `AutomaticStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutomaticStatus {
+    /// customerManagedEncryption property.
+    pub customer_managed_encryption: Option<CustomerManagedEncryptionStatus>,
 }
 
 /// `AuditConfig` type.
@@ -229,6 +141,92 @@ pub struct AuditConfig {
     pub audit_log_configs: Option<Vec<AuditLogConfig>>,
     /// service property.
     pub service: Option<String>,
+}
+
+/// `ListSecretsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListSecretsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// secrets property.
+    pub secrets: Option<Vec<Secret>>,
+    /// totalSize property.
+    pub total_size: Option<i64>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `UserManaged` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UserManaged {
+    /// replicas property.
+    pub replicas: Option<Vec<Replica>>,
+}
+
+/// `Automatic` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Automatic {
+    /// customerManagedEncryption property.
+    pub customer_managed_encryption: Option<CustomerManagedEncryption>,
+}
+
+/// `CustomerManagedEncryption` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomerManagedEncryption {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+}
+
+/// `Replica` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Replica {
+    /// customerManagedEncryption property.
+    pub customer_managed_encryption: Option<CustomerManagedEncryption>,
+    /// location property.
+    pub location: Option<String>,
+}
+
+/// `Rotation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Rotation {
+    /// nextRotationTime property.
+    pub next_rotation_time: Option<String>,
+    /// rotationPeriod property.
+    pub rotation_period: Option<String>,
+}
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `TestIamPermissionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TestIamPermissionsResponse {
+    /// permissions property.
+    pub permissions: Option<Vec<String>>,
+}
+
+/// `ReplicationStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReplicationStatus {
+    /// automatic property.
+    pub automatic: Option<AutomaticStatus>,
+    /// userManaged property.
+    pub user_managed: Option<UserManagedStatus>,
 }
 
 // =============================================================================

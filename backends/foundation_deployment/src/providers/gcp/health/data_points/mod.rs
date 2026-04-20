@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,32 +22,80 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Date` type.
+/// `DailyHeartRateVariability` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
+pub struct DailyHeartRateVariability {
+    /// averageHeartRateVariabilityMilliseconds property.
+    pub average_heart_rate_variability_milliseconds: Option<f64>,
+    /// date property.
+    pub date: Option<Date>,
+    /// deepSleepRootMeanSquareOfSuccessiveDifferencesMilliseconds property.
+    pub deep_sleep_root_mean_square_of_successive_differences_milliseconds: Option<f64>,
+    /// entropy property.
+    pub entropy: Option<f64>,
+    /// nonRemHeartRateBeatsPerMinute property.
+    pub non_rem_heart_rate_beats_per_minute: Option<String>,
 }
 
-/// `ObservationSampleTime` type.
+/// `DailyHeartRateZones` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObservationSampleTime {
-    /// civilTime property.
-    pub civil_time: Option<CivilDateTime>,
-    /// physicalTime property.
-    pub physical_time: Option<String>,
-    /// utcOffset property.
-    pub utc_offset: Option<String>,
+pub struct DailyHeartRateZones {
+    /// date property.
+    pub date: Option<Date>,
+    /// heartRateZones property.
+    pub heart_rate_zones: Option<Vec<HeartRateZone>>,
+}
+
+/// `CivilDateTime` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CivilDateTime {
+    /// date property.
+    pub date: Option<Date>,
+    /// time property.
+    pub time: Option<TimeOfDay>,
+}
+
+/// `ExerciseMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExerciseMetadata {
+    /// hasGps property.
+    pub has_gps: Option<bool>,
+    /// poolLengthMillimeters property.
+    pub pool_length_millimeters: Option<String>,
+}
+
+/// `Sleep` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Sleep {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// interval property.
+    pub interval: Option<SessionTimeInterval>,
+    /// metadata property.
+    pub metadata: Option<SleepMetadata>,
+    /// outOfBedSegments property.
+    pub out_of_bed_segments: Option<Vec<OutOfBedSegment>>,
+    /// stages property.
+    pub stages: Option<Vec<SleepStage>>,
+    /// summary property.
+    pub summary: Option<SleepSummary>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `SedentaryPeriod` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SedentaryPeriod {
+    /// interval property.
+    pub interval: Option<ObservationTimeInterval>,
 }
 
 /// `SleepStage` type.
@@ -68,55 +117,6 @@ pub struct SleepStage {
     pub update_time: Option<String>,
 }
 
-/// `DailyRestingHeartRateMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DailyRestingHeartRateMetadata {
-    /// calculationMethod property.
-    pub calculation_method: Option<String>,
-}
-
-/// `TimeOfDay` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeOfDay {
-    /// hours property.
-    pub hours: Option<i64>,
-    /// minutes property.
-    pub minutes: Option<i64>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<i64>,
-}
-
-/// `BodyFat` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BodyFat {
-    /// percentage property.
-    pub percentage: Option<f64>,
-    /// sampleTime property.
-    pub sample_time: Option<ObservationSampleTime>,
-}
-
-/// `ActiveMinutesByActivityLevel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActiveMinutesByActivityLevel {
-    /// activeMinutes property.
-    pub active_minutes: Option<String>,
-    /// activityLevel property.
-    pub activity_level: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
 /// `SessionTimeInterval` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SessionTimeInterval {
@@ -134,42 +134,99 @@ pub struct SessionTimeInterval {
     pub start_utc_offset: Option<String>,
 }
 
-/// `ListDataPointsResponse` type.
+/// `RespiratoryRateSleepSummary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDataPointsResponse {
-    /// dataPoints property.
-    pub data_points: Option<Vec<DataPoint>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct RespiratoryRateSleepSummary {
+    /// deepSleepStats property.
+    pub deep_sleep_stats: Option<RespiratoryRateSleepSummaryStatistics>,
+    /// fullSleepStats property.
+    pub full_sleep_stats: Option<RespiratoryRateSleepSummaryStatistics>,
+    /// lightSleepStats property.
+    pub light_sleep_stats: Option<RespiratoryRateSleepSummaryStatistics>,
+    /// remSleepStats property.
+    pub rem_sleep_stats: Option<RespiratoryRateSleepSummaryStatistics>,
+    /// sampleTime property.
+    pub sample_time: Option<ObservationSampleTime>,
 }
 
-/// `SedentaryPeriod` type.
+/// `Steps` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SedentaryPeriod {
-    /// interval property.
-    pub interval: Option<ObservationTimeInterval>,
-}
-
-/// `TimeInHeartRateZones` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeInHeartRateZones {
-    /// lightTime property.
-    pub light_time: Option<String>,
-    /// moderateTime property.
-    pub moderate_time: Option<String>,
-    /// peakTime property.
-    pub peak_time: Option<String>,
-    /// vigorousTime property.
-    pub vigorous_time: Option<String>,
-}
-
-/// `Floors` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Floors {
+pub struct Steps {
     /// count property.
     pub count: Option<String>,
     /// interval property.
     pub interval: Option<ObservationTimeInterval>,
+}
+
+/// `Date` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `DailyRespiratoryRate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DailyRespiratoryRate {
+    /// breathsPerMinute property.
+    pub breaths_per_minute: Option<f64>,
+    /// date property.
+    pub date: Option<Date>,
+}
+
+/// `HeartRateZone` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HeartRateZone {
+    /// heartRateZoneType property.
+    pub heart_rate_zone_type: Option<String>,
+    /// maxBeatsPerMinute property.
+    pub max_beats_per_minute: Option<String>,
+    /// minBeatsPerMinute property.
+    pub min_beats_per_minute: Option<String>,
+}
+
+/// `Weight` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Weight {
+    /// notes property.
+    pub notes: Option<String>,
+    /// sampleTime property.
+    pub sample_time: Option<ObservationSampleTime>,
+    /// weightGrams property.
+    pub weight_grams: Option<f64>,
+}
+
+/// `ActivityLevel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActivityLevel {
+    /// activityLevelType property.
+    pub activity_level_type: Option<String>,
+    /// interval property.
+    pub interval: Option<ObservationTimeInterval>,
+}
+
+/// `RunVO2Max` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RunVO2Max {
+    /// runVo2Max property.
+    pub run_vo2_max: Option<f64>,
+    /// sampleTime property.
+    pub sample_time: Option<ObservationSampleTime>,
+}
+
+/// `StageSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StageSummary {
+    /// count property.
+    pub count: Option<String>,
+    /// minutes property.
+    pub minutes: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `MobilityMetrics` type.
@@ -187,124 +244,67 @@ pub struct MobilityMetrics {
     pub avg_vertical_ratio: Option<f64>,
 }
 
-/// `DailyHeartRateVariability` type.
+/// `DailyRestingHeartRate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DailyHeartRateVariability {
-    /// averageHeartRateVariabilityMilliseconds property.
-    pub average_heart_rate_variability_milliseconds: Option<f64>,
+pub struct DailyRestingHeartRate {
+    /// beatsPerMinute property.
+    pub beats_per_minute: Option<String>,
+    /// dailyRestingHeartRateMetadata property.
+    pub daily_resting_heart_rate_metadata: Option<DailyRestingHeartRateMetadata>,
     /// date property.
     pub date: Option<Date>,
-    /// deepSleepRootMeanSquareOfSuccessiveDifferencesMilliseconds property.
-    pub deep_sleep_root_mean_square_of_successive_differences_milliseconds: Option<f64>,
-    /// entropy property.
-    pub entropy: Option<f64>,
-    /// nonRemHeartRateBeatsPerMinute property.
-    pub non_rem_heart_rate_beats_per_minute: Option<String>,
 }
 
-/// `HeartRateVariability` type.
+/// `Altitude` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HeartRateVariability {
-    /// rootMeanSquareOfSuccessiveDifferencesMilliseconds property.
-    pub root_mean_square_of_successive_differences_milliseconds: Option<f64>,
-    /// sampleTime property.
-    pub sample_time: Option<ObservationSampleTime>,
-    /// standardDeviationMilliseconds property.
-    pub standard_deviation_milliseconds: Option<f64>,
+pub struct Altitude {
+    /// gainMillimeters property.
+    pub gain_millimeters: Option<String>,
+    /// interval property.
+    pub interval: Option<ObservationTimeInterval>,
 }
 
-/// `ExerciseMetadata` type.
+/// `ObservationTimeInterval` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExerciseMetadata {
-    /// hasGps property.
-    pub has_gps: Option<bool>,
-    /// poolLengthMillimeters property.
-    pub pool_length_millimeters: Option<String>,
-}
-
-/// `SplitSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SplitSummary {
-    /// activeDuration property.
-    pub active_duration: Option<String>,
+pub struct ObservationTimeInterval {
+    /// civilEndTime property.
+    pub civil_end_time: Option<CivilDateTime>,
+    /// civilStartTime property.
+    pub civil_start_time: Option<CivilDateTime>,
     /// endTime property.
     pub end_time: Option<String>,
     /// endUtcOffset property.
     pub end_utc_offset: Option<String>,
-    /// metricsSummary property.
-    pub metrics_summary: Option<MetricsSummary>,
-    /// splitType property.
-    pub split_type: Option<String>,
     /// startTime property.
     pub start_time: Option<String>,
     /// startUtcOffset property.
     pub start_utc_offset: Option<String>,
 }
 
-/// `Application` type.
+/// `TimeInHeartRateZones` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Application {
-    /// googleWebClientId property.
-    pub google_web_client_id: Option<String>,
-    /// packageName property.
-    pub package_name: Option<String>,
-    /// webClientId property.
-    pub web_client_id: Option<String>,
+pub struct TimeInHeartRateZones {
+    /// lightTime property.
+    pub light_time: Option<String>,
+    /// moderateTime property.
+    pub moderate_time: Option<String>,
+    /// peakTime property.
+    pub peak_time: Option<String>,
+    /// vigorousTime property.
+    pub vigorous_time: Option<String>,
 }
 
-/// `RespiratoryRateSleepSummary` type.
+/// `DataSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RespiratoryRateSleepSummary {
-    /// deepSleepStats property.
-    pub deep_sleep_stats: Option<RespiratoryRateSleepSummaryStatistics>,
-    /// fullSleepStats property.
-    pub full_sleep_stats: Option<RespiratoryRateSleepSummaryStatistics>,
-    /// lightSleepStats property.
-    pub light_sleep_stats: Option<RespiratoryRateSleepSummaryStatistics>,
-    /// remSleepStats property.
-    pub rem_sleep_stats: Option<RespiratoryRateSleepSummaryStatistics>,
-    /// sampleTime property.
-    pub sample_time: Option<ObservationSampleTime>,
-}
-
-/// `VO2Max` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VO2Max {
-    /// measurementMethod property.
-    pub measurement_method: Option<String>,
-    /// sampleTime property.
-    pub sample_time: Option<ObservationSampleTime>,
-    /// vo2Max property.
-    pub vo2_max: Option<f64>,
-}
-
-/// `TimeInHeartRateZone` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeInHeartRateZone {
-    /// heartRateZoneType property.
-    pub heart_rate_zone_type: Option<String>,
-    /// interval property.
-    pub interval: Option<ObservationTimeInterval>,
-}
-
-/// `HeartRateMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HeartRateMetadata {
-    /// motionContext property.
-    pub motion_context: Option<String>,
-    /// sensorLocation property.
-    pub sensor_location: Option<String>,
-}
-
-/// `Weight` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Weight {
-    /// notes property.
-    pub notes: Option<String>,
-    /// sampleTime property.
-    pub sample_time: Option<ObservationSampleTime>,
-    /// weightGrams property.
-    pub weight_grams: Option<f64>,
+pub struct DataSource {
+    /// application property.
+    pub application: Option<Application>,
+    /// device property.
+    pub device: Option<Device>,
+    /// platform property.
+    pub platform: Option<String>,
+    /// recordingMethod property.
+    pub recording_method: Option<String>,
 }
 
 /// `DailyOxygenSaturation` type.
@@ -322,26 +322,113 @@ pub struct DailyOxygenSaturation {
     pub upper_bound_percentage: Option<f64>,
 }
 
-/// `DailyHeartRateZones` type.
+/// `SleepSummary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DailyHeartRateZones {
-    /// date property.
-    pub date: Option<Date>,
-    /// heartRateZones property.
-    pub heart_rate_zones: Option<Vec<HeartRateZone>>,
+pub struct SleepSummary {
+    /// minutesAfterWakeUp property.
+    pub minutes_after_wake_up: Option<String>,
+    /// minutesAsleep property.
+    pub minutes_asleep: Option<String>,
+    /// minutesAwake property.
+    pub minutes_awake: Option<String>,
+    /// minutesInSleepPeriod property.
+    pub minutes_in_sleep_period: Option<String>,
+    /// minutesToFallAsleep property.
+    pub minutes_to_fall_asleep: Option<String>,
+    /// stagesSummary property.
+    pub stages_summary: Option<Vec<StageSummary>>,
 }
 
-/// `DataSource` type.
+/// `TimeOfDay` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSource {
-    /// application property.
-    pub application: Option<Application>,
-    /// device property.
-    pub device: Option<Device>,
-    /// platform property.
-    pub platform: Option<String>,
-    /// recordingMethod property.
-    pub recording_method: Option<String>,
+pub struct TimeOfDay {
+    /// hours property.
+    pub hours: Option<i64>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<i64>,
+}
+
+/// `OutOfBedSegment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OutOfBedSegment {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// endUtcOffset property.
+    pub end_utc_offset: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// startUtcOffset property.
+    pub start_utc_offset: Option<String>,
+}
+
+/// `Application` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Application {
+    /// googleWebClientId property.
+    pub google_web_client_id: Option<String>,
+    /// packageName property.
+    pub package_name: Option<String>,
+    /// webClientId property.
+    pub web_client_id: Option<String>,
+}
+
+/// `VolumeQuantity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VolumeQuantity {
+    /// milliliters property.
+    pub milliliters: Option<f64>,
+    /// userProvidedUnit property.
+    pub user_provided_unit: Option<String>,
+}
+
+/// `ExerciseEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExerciseEvent {
+    /// eventTime property.
+    pub event_time: Option<String>,
+    /// eventUtcOffset property.
+    pub event_utc_offset: Option<String>,
+    /// exerciseEventType property.
+    pub exercise_event_type: Option<String>,
+}
+
+/// `OxygenSaturation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OxygenSaturation {
+    /// percentage property.
+    pub percentage: Option<f64>,
+    /// sampleTime property.
+    pub sample_time: Option<ObservationSampleTime>,
+}
+
+/// `ObservationSampleTime` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ObservationSampleTime {
+    /// civilTime property.
+    pub civil_time: Option<CivilDateTime>,
+    /// physicalTime property.
+    pub physical_time: Option<String>,
+    /// utcOffset property.
+    pub utc_offset: Option<String>,
+}
+
+/// `DailyVO2Max` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DailyVO2Max {
+    /// cardioFitnessLevel property.
+    pub cardio_fitness_level: Option<String>,
+    /// date property.
+    pub date: Option<Date>,
+    /// estimated property.
+    pub estimated: Option<bool>,
+    /// vo2Max property.
+    pub vo2_max: Option<f64>,
+    /// vo2MaxCovariance property.
+    pub vo2_max_covariance: Option<f64>,
 }
 
 /// `ExportExerciseTcxResponse` type.
@@ -351,15 +438,68 @@ pub struct ExportExerciseTcxResponse {
     pub tcx_data: Option<String>,
 }
 
-/// `DailyRestingHeartRate` type.
+/// `SleepMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DailyRestingHeartRate {
-    /// beatsPerMinute property.
-    pub beats_per_minute: Option<String>,
-    /// dailyRestingHeartRateMetadata property.
-    pub daily_resting_heart_rate_metadata: Option<DailyRestingHeartRateMetadata>,
+pub struct SleepMetadata {
+    /// externalId property.
+    pub external_id: Option<String>,
+    /// manuallyEdited property.
+    pub manually_edited: Option<bool>,
+    /// nap property.
+    pub nap: Option<bool>,
+    /// processed property.
+    pub processed: Option<bool>,
+    /// stagesStatus property.
+    pub stages_status: Option<String>,
+}
+
+/// `HydrationLog` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HydrationLog {
+    /// amountConsumed property.
+    pub amount_consumed: Option<VolumeQuantity>,
+    /// interval property.
+    pub interval: Option<SessionTimeInterval>,
+}
+
+/// `VO2Max` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VO2Max {
+    /// measurementMethod property.
+    pub measurement_method: Option<String>,
+    /// sampleTime property.
+    pub sample_time: Option<ObservationSampleTime>,
+    /// vo2Max property.
+    pub vo2_max: Option<f64>,
+}
+
+/// `DailySleepTemperatureDerivations` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DailySleepTemperatureDerivations {
+    /// baselineTemperatureCelsius property.
+    pub baseline_temperature_celsius: Option<f64>,
     /// date property.
     pub date: Option<Date>,
+    /// nightlyTemperatureCelsius property.
+    pub nightly_temperature_celsius: Option<f64>,
+    /// relativeNightlyStddev30dCelsius property.
+    pub relative_nightly_stddev30d_celsius: Option<f64>,
+}
+
+/// `Distance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Distance {
+    /// interval property.
+    pub interval: Option<ObservationTimeInterval>,
+    /// millimeters property.
+    pub millimeters: Option<String>,
+}
+
+/// `DailyRestingHeartRateMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DailyRestingHeartRateMetadata {
+    /// calculationMethod property.
+    pub calculation_method: Option<String>,
 }
 
 /// `Exercise` type.
@@ -391,61 +531,24 @@ pub struct Exercise {
     pub update_time: Option<String>,
 }
 
-/// `SleepMetadata` type.
+/// `ActiveMinutesByActivityLevel` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SleepMetadata {
-    /// externalId property.
-    pub external_id: Option<String>,
-    /// manuallyEdited property.
-    pub manually_edited: Option<bool>,
-    /// nap property.
-    pub nap: Option<bool>,
-    /// processed property.
-    pub processed: Option<bool>,
-    /// stagesStatus property.
-    pub stages_status: Option<String>,
+pub struct ActiveMinutesByActivityLevel {
+    /// activeMinutes property.
+    pub active_minutes: Option<String>,
+    /// activityLevel property.
+    pub activity_level: Option<String>,
 }
 
-/// `HeartRateZone` type.
+/// `HeartRateVariability` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HeartRateZone {
-    /// heartRateZoneType property.
-    pub heart_rate_zone_type: Option<String>,
-    /// maxBeatsPerMinute property.
-    pub max_beats_per_minute: Option<String>,
-    /// minBeatsPerMinute property.
-    pub min_beats_per_minute: Option<String>,
-}
-
-/// `HeartRate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HeartRate {
-    /// beatsPerMinute property.
-    pub beats_per_minute: Option<String>,
-    /// metadata property.
-    pub metadata: Option<HeartRateMetadata>,
+pub struct HeartRateVariability {
+    /// rootMeanSquareOfSuccessiveDifferencesMilliseconds property.
+    pub root_mean_square_of_successive_differences_milliseconds: Option<f64>,
     /// sampleTime property.
     pub sample_time: Option<ObservationSampleTime>,
-}
-
-/// `StageSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StageSummary {
-    /// count property.
-    pub count: Option<String>,
-    /// minutes property.
-    pub minutes: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `HydrationLog` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HydrationLog {
-    /// amountConsumed property.
-    pub amount_consumed: Option<VolumeQuantity>,
-    /// interval property.
-    pub interval: Option<SessionTimeInterval>,
+    /// standardDeviationMilliseconds property.
+    pub standard_deviation_milliseconds: Option<f64>,
 }
 
 /// `MetricsSummary` type.
@@ -477,71 +580,15 @@ pub struct MetricsSummary {
     pub total_swim_lengths: Option<f64>,
 }
 
-/// `Sleep` type.
+/// `Device` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Sleep {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// interval property.
-    pub interval: Option<SessionTimeInterval>,
-    /// metadata property.
-    pub metadata: Option<SleepMetadata>,
-    /// outOfBedSegments property.
-    pub out_of_bed_segments: Option<Vec<OutOfBedSegment>>,
-    /// stages property.
-    pub stages: Option<Vec<SleepStage>>,
-    /// summary property.
-    pub summary: Option<SleepSummary>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `VolumeQuantity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VolumeQuantity {
-    /// milliliters property.
-    pub milliliters: Option<f64>,
-    /// userProvidedUnit property.
-    pub user_provided_unit: Option<String>,
-}
-
-/// `ObservationTimeInterval` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObservationTimeInterval {
-    /// civilEndTime property.
-    pub civil_end_time: Option<CivilDateTime>,
-    /// civilStartTime property.
-    pub civil_start_time: Option<CivilDateTime>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// endUtcOffset property.
-    pub end_utc_offset: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// startUtcOffset property.
-    pub start_utc_offset: Option<String>,
-}
-
-/// `ActiveZoneMinutes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActiveZoneMinutes {
-    /// activeZoneMinutes property.
-    pub active_zone_minutes: Option<String>,
-    /// heartRateZone property.
-    pub heart_rate_zone: Option<String>,
-    /// interval property.
-    pub interval: Option<ObservationTimeInterval>,
-}
-
-/// `Altitude` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Altitude {
-    /// gainMillimeters property.
-    pub gain_millimeters: Option<String>,
-    /// interval property.
-    pub interval: Option<ObservationTimeInterval>,
+pub struct Device {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// formFactor property.
+    pub form_factor: Option<String>,
+    /// manufacturer property.
+    pub manufacturer: Option<String>,
 }
 
 /// `DataPoint` type.
@@ -607,6 +654,26 @@ pub struct DataPoint {
     pub weight: Option<Weight>,
 }
 
+/// `BodyFat` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BodyFat {
+    /// percentage property.
+    pub percentage: Option<f64>,
+    /// sampleTime property.
+    pub sample_time: Option<ObservationSampleTime>,
+}
+
+/// `ActiveZoneMinutes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActiveZoneMinutes {
+    /// activeZoneMinutes property.
+    pub active_zone_minutes: Option<String>,
+    /// heartRateZone property.
+    pub heart_rate_zone: Option<String>,
+    /// interval property.
+    pub interval: Option<ObservationTimeInterval>,
+}
+
 /// `RespiratoryRateSleepSummaryStatistics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RespiratoryRateSleepSummaryStatistics {
@@ -618,88 +685,72 @@ pub struct RespiratoryRateSleepSummaryStatistics {
     pub standard_deviation: Option<f64>,
 }
 
-/// `RunVO2Max` type.
+/// `HeartRateMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RunVO2Max {
-    /// runVo2Max property.
-    pub run_vo2_max: Option<f64>,
-    /// sampleTime property.
-    pub sample_time: Option<ObservationSampleTime>,
+pub struct HeartRateMetadata {
+    /// motionContext property.
+    pub motion_context: Option<String>,
+    /// sensorLocation property.
+    pub sensor_location: Option<String>,
 }
 
-/// `CivilDateTime` type.
+/// `SplitSummary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CivilDateTime {
-    /// date property.
-    pub date: Option<Date>,
-    /// time property.
-    pub time: Option<TimeOfDay>,
-}
-
-/// `Steps` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Steps {
-    /// count property.
-    pub count: Option<String>,
-    /// interval property.
-    pub interval: Option<ObservationTimeInterval>,
-}
-
-/// `DailyRespiratoryRate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DailyRespiratoryRate {
-    /// breathsPerMinute property.
-    pub breaths_per_minute: Option<f64>,
-    /// date property.
-    pub date: Option<Date>,
-}
-
-/// `DailyVO2Max` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DailyVO2Max {
-    /// cardioFitnessLevel property.
-    pub cardio_fitness_level: Option<String>,
-    /// date property.
-    pub date: Option<Date>,
-    /// estimated property.
-    pub estimated: Option<bool>,
-    /// vo2Max property.
-    pub vo2_max: Option<f64>,
-    /// vo2MaxCovariance property.
-    pub vo2_max_covariance: Option<f64>,
-}
-
-/// `OxygenSaturation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OxygenSaturation {
-    /// percentage property.
-    pub percentage: Option<f64>,
-    /// sampleTime property.
-    pub sample_time: Option<ObservationSampleTime>,
-}
-
-/// `OutOfBedSegment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OutOfBedSegment {
+pub struct SplitSummary {
+    /// activeDuration property.
+    pub active_duration: Option<String>,
     /// endTime property.
     pub end_time: Option<String>,
     /// endUtcOffset property.
     pub end_utc_offset: Option<String>,
+    /// metricsSummary property.
+    pub metrics_summary: Option<MetricsSummary>,
+    /// splitType property.
+    pub split_type: Option<String>,
     /// startTime property.
     pub start_time: Option<String>,
     /// startUtcOffset property.
     pub start_utc_offset: Option<String>,
 }
 
-/// `Device` type.
+/// `HeartRate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Device {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// formFactor property.
-    pub form_factor: Option<String>,
-    /// manufacturer property.
-    pub manufacturer: Option<String>,
+pub struct HeartRate {
+    /// beatsPerMinute property.
+    pub beats_per_minute: Option<String>,
+    /// metadata property.
+    pub metadata: Option<HeartRateMetadata>,
+    /// sampleTime property.
+    pub sample_time: Option<ObservationSampleTime>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `TimeInHeartRateZone` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeInHeartRateZone {
+    /// heartRateZoneType property.
+    pub heart_rate_zone_type: Option<String>,
+    /// interval property.
+    pub interval: Option<ObservationTimeInterval>,
+}
+
+/// `ListDataPointsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDataPointsResponse {
+    /// dataPoints property.
+    pub data_points: Option<Vec<DataPoint>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `ActiveMinutes` type.
@@ -711,63 +762,13 @@ pub struct ActiveMinutes {
     pub interval: Option<ObservationTimeInterval>,
 }
 
-/// `SleepSummary` type.
+/// `Floors` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SleepSummary {
-    /// minutesAfterWakeUp property.
-    pub minutes_after_wake_up: Option<String>,
-    /// minutesAsleep property.
-    pub minutes_asleep: Option<String>,
-    /// minutesAwake property.
-    pub minutes_awake: Option<String>,
-    /// minutesInSleepPeriod property.
-    pub minutes_in_sleep_period: Option<String>,
-    /// minutesToFallAsleep property.
-    pub minutes_to_fall_asleep: Option<String>,
-    /// stagesSummary property.
-    pub stages_summary: Option<Vec<StageSummary>>,
-}
-
-/// `ActivityLevel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActivityLevel {
-    /// activityLevelType property.
-    pub activity_level_type: Option<String>,
+pub struct Floors {
+    /// count property.
+    pub count: Option<String>,
     /// interval property.
     pub interval: Option<ObservationTimeInterval>,
-}
-
-/// `Distance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Distance {
-    /// interval property.
-    pub interval: Option<ObservationTimeInterval>,
-    /// millimeters property.
-    pub millimeters: Option<String>,
-}
-
-/// `ExerciseEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExerciseEvent {
-    /// eventTime property.
-    pub event_time: Option<String>,
-    /// eventUtcOffset property.
-    pub event_utc_offset: Option<String>,
-    /// exerciseEventType property.
-    pub exercise_event_type: Option<String>,
-}
-
-/// `DailySleepTemperatureDerivations` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DailySleepTemperatureDerivations {
-    /// baselineTemperatureCelsius property.
-    pub baseline_temperature_celsius: Option<f64>,
-    /// date property.
-    pub date: Option<Date>,
-    /// nightlyTemperatureCelsius property.
-    pub nightly_temperature_celsius: Option<f64>,
-    /// relativeNightlyStddev30dCelsius property.
-    pub relative_nightly_stddev30d_celsius: Option<f64>,
 }
 
 // =============================================================================

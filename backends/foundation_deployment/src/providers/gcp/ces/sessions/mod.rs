@@ -12,46 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `CitationsCitedChunk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CitationsCitedChunk {
-    /// text property.
-    pub text: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `AgentTransfer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AgentTransfer {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// targetAgent property.
-    pub target_agent: Option<String>,
-}
-
-/// `SessionOutputDiagnosticInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SessionOutputDiagnosticInfo {
-    /// messages property.
-    pub messages: Option<Vec<Message>>,
-    /// rootSpan property.
-    pub root_span: Option<Span>,
-}
 
 /// `GenerateChatTokenResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -62,11 +34,28 @@ pub struct GenerateChatTokenResponse {
     pub expire_time: Option<String>,
 }
 
-/// `RunSessionResponse` type.
+/// `ToolCall` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RunSessionResponse {
-    /// outputs property.
-    pub outputs: Option<Vec<SessionOutput>>,
+pub struct ToolCall {
+    /// args property.
+    pub args: Option<serde_json::Value>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// tool property.
+    pub tool: Option<String>,
+    /// toolsetTool property.
+    pub toolset_tool: Option<ToolsetTool>,
+}
+
+/// `ToolsetTool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ToolsetTool {
+    /// toolId property.
+    pub tool_id: Option<String>,
+    /// toolset property.
+    pub toolset: Option<String>,
 }
 
 /// `SessionOutput` type.
@@ -94,46 +83,22 @@ pub struct SessionOutput {
     pub turn_index: Option<i64>,
 }
 
-/// `Span` type.
+/// `RunSessionResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Span {
-    /// attributes property.
-    pub attributes: Option<serde_json::Value>,
-    /// childSpans property.
-    pub child_spans: Option<Vec<Span>>,
-    /// duration property.
-    pub duration: Option<String>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
+pub struct RunSessionResponse {
+    /// outputs property.
+    pub outputs: Option<Vec<SessionOutput>>,
 }
 
-/// `EndSession` type.
+/// `Message` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndSession {
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-}
-
-/// `GoogleSearchSuggestions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleSearchSuggestions {
-    /// htmls property.
-    pub htmls: Option<Vec<String>>,
-    /// webSearchQueries property.
-    pub web_search_queries: Option<Vec<WebSearchQuery>>,
-}
-
-/// `ToolsetTool` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ToolsetTool {
-    /// toolId property.
-    pub tool_id: Option<String>,
-    /// toolset property.
-    pub toolset: Option<String>,
+pub struct Message {
+    /// chunks property.
+    pub chunks: Option<Vec<Chunk>>,
+    /// eventTime property.
+    pub event_time: Option<String>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `Blob` type.
@@ -143,6 +108,33 @@ pub struct Blob {
     pub data: Option<String>,
     /// mimeType property.
     pub mime_type: Option<String>,
+}
+
+/// `EndSession` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EndSession {
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+}
+
+/// `CitationsCitedChunk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CitationsCitedChunk {
+    /// text property.
+    pub text: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `WebSearchQuery` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WebSearchQuery {
+    /// query property.
+    pub query: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
 }
 
 /// `Chunk` type.
@@ -170,22 +162,13 @@ pub struct Chunk {
     pub updated_variables: Option<serde_json::Value>,
 }
 
-/// `Image` type.
+/// `SessionOutputDiagnosticInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Image {
-    /// data property.
-    pub data: Option<String>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-}
-
-/// `WebSearchQuery` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WebSearchQuery {
-    /// query property.
-    pub query: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
+pub struct SessionOutputDiagnosticInfo {
+    /// messages property.
+    pub messages: Option<Vec<Message>>,
+    /// rootSpan property.
+    pub root_span: Option<Box<Span>>,
 }
 
 /// `Citations` type.
@@ -195,37 +178,39 @@ pub struct Citations {
     pub cited_chunks: Option<Vec<CitationsCitedChunk>>,
 }
 
-/// `Message` type.
+/// `Span` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Message {
-    /// chunks property.
-    pub chunks: Option<Vec<Chunk>>,
-    /// eventTime property.
-    pub event_time: Option<String>,
-    /// role property.
-    pub role: Option<String>,
+pub struct Span {
+    /// attributes property.
+    pub attributes: Option<serde_json::Value>,
+    /// childSpans property.
+    pub child_spans: Option<Vec<Box<Span>>>,
+    /// duration property.
+    pub duration: Option<String>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
 }
 
-/// `ToolCall` type.
+/// `AgentTransfer` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ToolCall {
-    /// args property.
-    pub args: Option<serde_json::Value>,
+pub struct AgentTransfer {
     /// displayName property.
     pub display_name: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// tool property.
-    pub tool: Option<String>,
-    /// toolsetTool property.
-    pub toolset_tool: Option<ToolsetTool>,
+    /// targetAgent property.
+    pub target_agent: Option<String>,
 }
 
-/// `ToolCalls` type.
+/// `Image` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ToolCalls {
-    /// toolCalls property.
-    pub tool_calls: Option<Vec<ToolCall>>,
+pub struct Image {
+    /// data property.
+    pub data: Option<String>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
 }
 
 /// `ToolResponse` type.
@@ -241,6 +226,22 @@ pub struct ToolResponse {
     pub tool: Option<String>,
     /// toolsetTool property.
     pub toolset_tool: Option<ToolsetTool>,
+}
+
+/// `GoogleSearchSuggestions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleSearchSuggestions {
+    /// htmls property.
+    pub htmls: Option<Vec<String>>,
+    /// webSearchQueries property.
+    pub web_search_queries: Option<Vec<WebSearchQuery>>,
+}
+
+/// `ToolCalls` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ToolCalls {
+    /// toolCalls property.
+    pub tool_calls: Option<Vec<ToolCall>>,
 }
 
 // =============================================================================

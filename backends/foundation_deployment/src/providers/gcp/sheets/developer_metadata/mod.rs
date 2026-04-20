@@ -12,29 +12,32 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DimensionRange` type.
+/// `DeveloperMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DimensionRange {
-    /// dimension property.
-    pub dimension: Option<String>,
-    /// endIndex property.
-    pub end_index: Option<i64>,
-    /// sheetId property.
-    pub sheet_id: Option<i64>,
-    /// startIndex property.
-    pub start_index: Option<i64>,
+pub struct DeveloperMetadata {
+    /// location property.
+    pub location: Option<DeveloperMetadataLocation>,
+    /// metadataId property.
+    pub metadata_id: Option<i64>,
+    /// metadataKey property.
+    pub metadata_key: Option<String>,
+    /// metadataValue property.
+    pub metadata_value: Option<String>,
+    /// visibility property.
+    pub visibility: Option<String>,
 }
 
 /// `DeveloperMetadataLocation` type.
@@ -50,19 +53,17 @@ pub struct DeveloperMetadataLocation {
     pub spreadsheet: Option<bool>,
 }
 
-/// `DeveloperMetadata` type.
+/// `DimensionRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeveloperMetadata {
-    /// location property.
-    pub location: Option<DeveloperMetadataLocation>,
-    /// metadataId property.
-    pub metadata_id: Option<i64>,
-    /// metadataKey property.
-    pub metadata_key: Option<String>,
-    /// metadataValue property.
-    pub metadata_value: Option<String>,
-    /// visibility property.
-    pub visibility: Option<String>,
+pub struct DimensionRange {
+    /// dimension property.
+    pub dimension: Option<String>,
+    /// endIndex property.
+    pub end_index: Option<i64>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
 }
 
 // =============================================================================

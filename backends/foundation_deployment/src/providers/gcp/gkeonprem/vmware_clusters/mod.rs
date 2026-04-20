@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,92 +24,32 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `VmwareAddressPool` type.
+/// `VmwareControlPlaneNodeConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareAddressPool {
-    /// addresses property.
-    pub addresses: Option<Vec<String>>,
-    /// avoidBuggyIps property.
-    pub avoid_buggy_ips: Option<bool>,
-    /// manualAssign property.
-    pub manual_assign: Option<bool>,
-    /// pool property.
-    pub pool: Option<String>,
+pub struct VmwareControlPlaneNodeConfig {
+    /// autoResizeConfig property.
+    pub auto_resize_config: Option<VmwareAutoResizeConfig>,
+    /// cpus property.
+    pub cpus: Option<String>,
+    /// memory property.
+    pub memory: Option<String>,
+    /// replicas property.
+    pub replicas: Option<String>,
+    /// vsphereConfig property.
+    pub vsphere_config: Option<VmwareControlPlaneVsphereConfig>,
 }
 
-/// `VmwareIpBlock` type.
+/// `VmwareDhcpIpConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareIpBlock {
-    /// gateway property.
-    pub gateway: Option<String>,
-    /// ips property.
-    pub ips: Option<Vec<VmwareHostIp>>,
-    /// netmask property.
-    pub netmask: Option<String>,
-}
-
-/// `VmwareVCenterConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareVCenterConfig {
-    /// address property.
-    pub address: Option<String>,
-    /// caCertData property.
-    pub ca_cert_data: Option<String>,
-    /// cluster property.
-    pub cluster: Option<String>,
-    /// datacenter property.
-    pub datacenter: Option<String>,
-    /// datastore property.
-    pub datastore: Option<String>,
-    /// folder property.
-    pub folder: Option<String>,
-    /// resourcePool property.
-    pub resource_pool: Option<String>,
-    /// storagePolicyName property.
-    pub storage_policy_name: Option<String>,
-}
-
-/// `VmwareAAGConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareAAGConfig {
-    /// aagConfigDisabled property.
-    pub aag_config_disabled: Option<bool>,
-}
-
-/// `BinaryAuthorization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BinaryAuthorization {
-    /// evaluationMode property.
-    pub evaluation_mode: Option<String>,
-}
-
-/// `ValidationCheckStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValidationCheckStatus {
-    /// result property.
-    pub result: Option<Vec<ValidationCheckResult>>,
-}
-
-/// `VmwareMetalLbConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareMetalLbConfig {
-    /// addressPools property.
-    pub address_pools: Option<Vec<VmwareAddressPool>>,
-}
-
-/// `VmwareVipConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareVipConfig {
-    /// controlPlaneVip property.
-    pub control_plane_vip: Option<String>,
-    /// ingressVip property.
-    pub ingress_vip: Option<String>,
+pub struct VmwareDhcpIpConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
 }
 
 /// `ListVmwareClustersResponse` type.
@@ -122,56 +63,70 @@ pub struct ListVmwareClustersResponse {
     pub vmware_clusters: Option<Vec<VmwareCluster>>,
 }
 
-/// `VmwareHostIp` type.
+/// `VmwareManualLbConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareHostIp {
-    /// hostname property.
-    pub hostname: Option<String>,
-    /// ip property.
-    pub ip: Option<String>,
+pub struct VmwareManualLbConfig {
+    /// controlPlaneNodePort property.
+    pub control_plane_node_port: Option<i64>,
+    /// ingressHttpNodePort property.
+    pub ingress_http_node_port: Option<i64>,
+    /// ingressHttpsNodePort property.
+    pub ingress_https_node_port: Option<i64>,
+    /// konnectivityServerNodePort property.
+    pub konnectivity_server_node_port: Option<i64>,
 }
 
-/// `ClusterUser` type.
+/// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterUser {
-    /// username property.
-    pub username: Option<String>,
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
-/// `VmwareF5BigIpConfig` type.
+/// `VmwareClusterUpgradePolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareF5BigIpConfig {
-    /// address property.
-    pub address: Option<String>,
-    /// partition property.
-    pub partition: Option<String>,
-    /// snatPool property.
-    pub snat_pool: Option<String>,
+pub struct VmwareClusterUpgradePolicy {
+    /// controlPlaneOnly property.
+    pub control_plane_only: Option<bool>,
 }
 
-/// `VmwareStorageConfig` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareStorageConfig {
-    /// vsphereCsiDisabled property.
-    pub vsphere_csi_disabled: Option<bool>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
-/// `Binding` type.
+/// `Versions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct Versions {
+    /// versions property.
+    pub versions: Option<Vec<Version>>,
 }
 
-/// `VmwareDhcpIpConfig` type.
+/// `ValidationCheckResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareDhcpIpConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
+pub struct ValidationCheckResult {
+    /// category property.
+    pub category: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// details property.
+    pub details: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+    /// state property.
+    pub state: Option<String>,
 }
 
 /// `VmwareCluster` type.
@@ -245,125 +200,6 @@ pub struct VmwareCluster {
     pub vm_tracking_enabled: Option<bool>,
 }
 
-/// `VmwareAutoRepairConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareAutoRepairConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `VmwareHostConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareHostConfig {
-    /// dnsSearchDomains property.
-    pub dns_search_domains: Option<Vec<String>>,
-    /// dnsServers property.
-    pub dns_servers: Option<Vec<String>>,
-    /// ntpServers property.
-    pub ntp_servers: Option<Vec<String>>,
-}
-
-/// `VmwareStaticIpConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareStaticIpConfig {
-    /// ipBlocks property.
-    pub ip_blocks: Option<Vec<VmwareIpBlock>>,
-}
-
-/// `VmwareControlPlaneNodeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareControlPlaneNodeConfig {
-    /// autoResizeConfig property.
-    pub auto_resize_config: Option<VmwareAutoResizeConfig>,
-    /// cpus property.
-    pub cpus: Option<String>,
-    /// memory property.
-    pub memory: Option<String>,
-    /// replicas property.
-    pub replicas: Option<String>,
-    /// vsphereConfig property.
-    pub vsphere_config: Option<VmwareControlPlaneVsphereConfig>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `VmwareClusterUpgradePolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareClusterUpgradePolicy {
-    /// controlPlaneOnly property.
-    pub control_plane_only: Option<bool>,
-}
-
-/// `VmwareLoadBalancerConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareLoadBalancerConfig {
-    /// f5Config property.
-    pub f5_config: Option<VmwareF5BigIpConfig>,
-    /// manualLbConfig property.
-    pub manual_lb_config: Option<VmwareManualLbConfig>,
-    /// metalLbConfig property.
-    pub metal_lb_config: Option<VmwareMetalLbConfig>,
-    /// seesawConfig property.
-    pub seesaw_config: Option<VmwareSeesawConfig>,
-    /// vipConfig property.
-    pub vip_config: Option<VmwareVipConfig>,
-}
-
-/// `VmwareControlPlaneVsphereConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareControlPlaneVsphereConfig {
-    /// datastore property.
-    pub datastore: Option<String>,
-    /// storagePolicyName property.
-    pub storage_policy_name: Option<String>,
-}
-
-/// `VmwareControlPlaneV2Config` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareControlPlaneV2Config {
-    /// controlPlaneIpBlock property.
-    pub control_plane_ip_block: Option<VmwareIpBlock>,
-}
-
-/// `VmwareManualLbConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareManualLbConfig {
-    /// controlPlaneNodePort property.
-    pub control_plane_node_port: Option<i64>,
-    /// ingressHttpNodePort property.
-    pub ingress_http_node_port: Option<i64>,
-    /// ingressHttpsNodePort property.
-    pub ingress_https_node_port: Option<i64>,
-    /// konnectivityServerNodePort property.
-    pub konnectivity_server_node_port: Option<i64>,
-}
-
-/// `VmwareSeesawConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareSeesawConfig {
-    /// enableHa property.
-    pub enable_ha: Option<bool>,
-    /// group property.
-    pub group: Option<String>,
-    /// ipBlocks property.
-    pub ip_blocks: Option<Vec<VmwareIpBlock>>,
-    /// masterIp property.
-    pub master_ip: Option<String>,
-    /// stackdriverName property.
-    pub stackdriver_name: Option<String>,
-    /// vms property.
-    pub vms: Option<Vec<String>>,
-}
-
 /// `ResourceCondition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceCondition {
@@ -386,48 +222,6 @@ pub struct Authorization {
     pub admin_users: Option<Vec<ClusterUser>>,
 }
 
-/// `ValidationCheckResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValidationCheckResult {
-    /// category property.
-    pub category: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// details property.
-    pub details: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `Versions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Versions {
-    /// versions property.
-    pub versions: Option<Vec<Version>>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `VmwareAutoResizeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareAutoResizeConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
 /// `ValidationCheck` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValidationCheck {
@@ -439,11 +233,161 @@ pub struct ValidationCheck {
     pub status: Option<ValidationCheckStatus>,
 }
 
-/// `Fleet` type.
+/// `VmwareControlPlaneV2Config` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Fleet {
-    /// membership property.
-    pub membership: Option<String>,
+pub struct VmwareControlPlaneV2Config {
+    /// controlPlaneIpBlock property.
+    pub control_plane_ip_block: Option<VmwareIpBlock>,
+}
+
+/// `VmwareLoadBalancerConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmwareLoadBalancerConfig {
+    /// f5Config property.
+    pub f5_config: Option<VmwareF5BigIpConfig>,
+    /// manualLbConfig property.
+    pub manual_lb_config: Option<VmwareManualLbConfig>,
+    /// metalLbConfig property.
+    pub metal_lb_config: Option<VmwareMetalLbConfig>,
+    /// seesawConfig property.
+    pub seesaw_config: Option<VmwareSeesawConfig>,
+    /// vipConfig property.
+    pub vip_config: Option<VmwareVipConfig>,
+}
+
+/// `ResourceStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceStatus {
+    /// conditions property.
+    pub conditions: Option<Vec<ResourceCondition>>,
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+    /// versions property.
+    pub versions: Option<Versions>,
+}
+
+/// `VmwareAAGConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmwareAAGConfig {
+    /// aagConfigDisabled property.
+    pub aag_config_disabled: Option<bool>,
+}
+
+/// `BinaryAuthorization` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BinaryAuthorization {
+    /// evaluationMode property.
+    pub evaluation_mode: Option<String>,
+}
+
+/// `VmwareF5BigIpConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmwareF5BigIpConfig {
+    /// address property.
+    pub address: Option<String>,
+    /// partition property.
+    pub partition: Option<String>,
+    /// snatPool property.
+    pub snat_pool: Option<String>,
+}
+
+/// `VmwareVCenterConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmwareVCenterConfig {
+    /// address property.
+    pub address: Option<String>,
+    /// caCertData property.
+    pub ca_cert_data: Option<String>,
+    /// cluster property.
+    pub cluster: Option<String>,
+    /// datacenter property.
+    pub datacenter: Option<String>,
+    /// datastore property.
+    pub datastore: Option<String>,
+    /// folder property.
+    pub folder: Option<String>,
+    /// resourcePool property.
+    pub resource_pool: Option<String>,
+    /// storagePolicyName property.
+    pub storage_policy_name: Option<String>,
+}
+
+/// `VmwareStorageConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmwareStorageConfig {
+    /// vsphereCsiDisabled property.
+    pub vsphere_csi_disabled: Option<bool>,
+}
+
+/// `Version` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Version {
+    /// count property.
+    pub count: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `VmwareHostConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmwareHostConfig {
+    /// dnsSearchDomains property.
+    pub dns_search_domains: Option<Vec<String>>,
+    /// dnsServers property.
+    pub dns_servers: Option<Vec<String>>,
+    /// ntpServers property.
+    pub ntp_servers: Option<Vec<String>>,
+}
+
+/// `VmwareMetalLbConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmwareMetalLbConfig {
+    /// addressPools property.
+    pub address_pools: Option<Vec<VmwareAddressPool>>,
+}
+
+/// `VmwareAddressPool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmwareAddressPool {
+    /// addresses property.
+    pub addresses: Option<Vec<String>>,
+    /// avoidBuggyIps property.
+    pub avoid_buggy_ips: Option<bool>,
+    /// manualAssign property.
+    pub manual_assign: Option<bool>,
+    /// pool property.
+    pub pool: Option<String>,
+}
+
+/// `VmwareControlPlaneVsphereConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmwareControlPlaneVsphereConfig {
+    /// datastore property.
+    pub datastore: Option<String>,
+    /// storagePolicyName property.
+    pub storage_policy_name: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `VmwareHostIp` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmwareHostIp {
+    /// hostname property.
+    pub hostname: Option<String>,
+    /// ip property.
+    pub ip: Option<String>,
 }
 
 /// `VmwareNetworkConfig` type.
@@ -465,26 +409,65 @@ pub struct VmwareNetworkConfig {
     pub vcenter_network: Option<String>,
 }
 
-/// `Version` type.
+/// `VmwareStaticIpConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Version {
-    /// count property.
-    pub count: Option<String>,
-    /// version property.
-    pub version: Option<String>,
+pub struct VmwareStaticIpConfig {
+    /// ipBlocks property.
+    pub ip_blocks: Option<Vec<VmwareIpBlock>>,
 }
 
-/// `ResourceStatus` type.
+/// `VmwareSeesawConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceStatus {
-    /// conditions property.
-    pub conditions: Option<Vec<ResourceCondition>>,
-    /// errorMessage property.
-    pub error_message: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-    /// versions property.
-    pub versions: Option<Versions>,
+pub struct VmwareSeesawConfig {
+    /// enableHa property.
+    pub enable_ha: Option<bool>,
+    /// group property.
+    pub group: Option<String>,
+    /// ipBlocks property.
+    pub ip_blocks: Option<Vec<VmwareIpBlock>>,
+    /// masterIp property.
+    pub master_ip: Option<String>,
+    /// stackdriverName property.
+    pub stackdriver_name: Option<String>,
+    /// vms property.
+    pub vms: Option<Vec<String>>,
+}
+
+/// `VmwareAutoResizeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmwareAutoResizeConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `ClusterUser` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterUser {
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `Fleet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Fleet {
+    /// membership property.
+    pub membership: Option<String>,
+}
+
+/// `VmwareVipConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmwareVipConfig {
+    /// controlPlaneVip property.
+    pub control_plane_vip: Option<String>,
+    /// ingressVip property.
+    pub ingress_vip: Option<String>,
+}
+
+/// `ValidationCheckStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ValidationCheckStatus {
+    /// result property.
+    pub result: Option<Vec<ValidationCheckResult>>,
 }
 
 /// `VmwareDataplaneV2Config` type.
@@ -498,6 +481,24 @@ pub struct VmwareDataplaneV2Config {
     pub forward_mode: Option<String>,
     /// windowsDataplaneV2Enabled property.
     pub windows_dataplane_v2_enabled: Option<bool>,
+}
+
+/// `VmwareAutoRepairConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmwareAutoRepairConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `VmwareIpBlock` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmwareIpBlock {
+    /// gateway property.
+    pub gateway: Option<String>,
+    /// ips property.
+    pub ips: Option<Vec<VmwareHostIp>>,
+    /// netmask property.
+    pub netmask: Option<String>,
 }
 
 // =============================================================================

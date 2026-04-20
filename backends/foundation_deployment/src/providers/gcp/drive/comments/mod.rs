@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -39,6 +40,39 @@ pub struct User {
     pub permission_id: Option<String>,
     /// photoLink property.
     pub photo_link: Option<String>,
+}
+
+/// `Comment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Comment {
+    /// anchor property.
+    pub anchor: Option<String>,
+    /// assigneeEmailAddress property.
+    pub assignee_email_address: Option<String>,
+    /// author property.
+    pub author: Option<User>,
+    /// content property.
+    pub content: Option<String>,
+    /// createdTime property.
+    pub created_time: Option<String>,
+    /// deleted property.
+    pub deleted: Option<bool>,
+    /// htmlContent property.
+    pub html_content: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// mentionedEmailAddresses property.
+    pub mentioned_email_addresses: Option<Vec<String>>,
+    /// modifiedTime property.
+    pub modified_time: Option<String>,
+    /// quotedFileContent property.
+    pub quoted_file_content: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// replies property.
+    pub replies: Option<Vec<Reply>>,
+    /// resolved property.
+    pub resolved: Option<bool>,
 }
 
 /// `CommentList` type.
@@ -77,39 +111,6 @@ pub struct Reply {
     pub mentioned_email_addresses: Option<Vec<String>>,
     /// modifiedTime property.
     pub modified_time: Option<String>,
-}
-
-/// `Comment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Comment {
-    /// anchor property.
-    pub anchor: Option<String>,
-    /// assigneeEmailAddress property.
-    pub assignee_email_address: Option<String>,
-    /// author property.
-    pub author: Option<User>,
-    /// content property.
-    pub content: Option<String>,
-    /// createdTime property.
-    pub created_time: Option<String>,
-    /// deleted property.
-    pub deleted: Option<bool>,
-    /// htmlContent property.
-    pub html_content: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// mentionedEmailAddresses property.
-    pub mentioned_email_addresses: Option<Vec<String>>,
-    /// modifiedTime property.
-    pub modified_time: Option<String>,
-    /// quotedFileContent property.
-    pub quoted_file_content: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// replies property.
-    pub replies: Option<Vec<Reply>>,
-    /// resolved property.
-    pub resolved: Option<bool>,
 }
 
 // =============================================================================

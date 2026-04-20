@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -33,6 +34,15 @@ pub struct CaseClassification {
     pub id: Option<String>,
 }
 
+/// `SearchCasesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchCasesResponse {
+    /// cases property.
+    pub cases: Option<Vec<Case>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
 /// `Actor` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Actor {
@@ -44,15 +54,6 @@ pub struct Actor {
     pub google_support: Option<bool>,
     /// username property.
     pub username: Option<String>,
-}
-
-/// `SearchCasesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchCasesResponse {
-    /// cases property.
-    pub cases: Option<Vec<Case>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 /// `Case` type.

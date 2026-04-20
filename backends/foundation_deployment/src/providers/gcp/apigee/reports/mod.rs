@@ -12,23 +12,42 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudApigeeV1ListCustomReportsResponse` type.
+/// `GoogleCloudApigeeV1DeleteCustomReportResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ListCustomReportsResponse {
-    /// qualifier property.
-    pub qualifier: Option<Vec<GoogleCloudApigeeV1CustomReport>>,
+pub struct GoogleCloudApigeeV1DeleteCustomReportResponse {
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1Attribute` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1Attribute {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1CustomReportMetric` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1CustomReportMetric {
+    /// function property.
+    pub function: Option<String>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 /// `GoogleCloudApigeeV1CustomReport` type.
@@ -80,22 +99,6 @@ pub struct GoogleCloudApigeeV1CustomReport {
     pub topk: Option<String>,
 }
 
-/// `GoogleCloudApigeeV1DeleteCustomReportResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1DeleteCustomReportResponse {
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1CustomReportMetric` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1CustomReportMetric {
-    /// function property.
-    pub function: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
 /// `GoogleCloudApigeeV1ReportProperty` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ReportProperty {
@@ -105,13 +108,11 @@ pub struct GoogleCloudApigeeV1ReportProperty {
     pub value: Option<Vec<GoogleCloudApigeeV1Attribute>>,
 }
 
-/// `GoogleCloudApigeeV1Attribute` type.
+/// `GoogleCloudApigeeV1ListCustomReportsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1Attribute {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct GoogleCloudApigeeV1ListCustomReportsResponse {
+    /// qualifier property.
+    pub qualifier: Option<Vec<GoogleCloudApigeeV1CustomReport>>,
 }
 
 // =============================================================================

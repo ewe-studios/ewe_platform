@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -27,16 +28,9 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `BulkUpdateFunctionResponse` type.
+/// `FunctionResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BulkUpdateFunctionResponse {
-    /// functions property.
-    pub functions: Vec<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `FunctionSlugResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FunctionSlugResponse {
+pub struct FunctionResponse {
     /// created_at property.
     pub created_at: i64,
     /// entrypoint_path property.
@@ -92,9 +86,24 @@ pub struct DeployFunctionResponse {
     pub version: i64,
 }
 
-/// `FunctionResponse` type.
+/// `V1UpdateFunctionBody` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FunctionResponse {
+pub struct V1UpdateFunctionBody {
+    /// body property.
+    pub body: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// verify_jwt property.
+    pub verify_jwt: Option<bool>,
+}
+
+/// `StreamableFile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StreamableFile {}
+
+/// `FunctionSlugResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FunctionSlugResponse {
     /// created_at property.
     pub created_at: i64,
     /// entrypoint_path property.
@@ -121,19 +130,11 @@ pub struct FunctionResponse {
     pub version: i64,
 }
 
-/// `StreamableFile` type.
+/// `BulkUpdateFunctionResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StreamableFile {}
-
-/// `V1UpdateFunctionBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1UpdateFunctionBody {
-    /// body property.
-    pub body: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// verify_jwt property.
-    pub verify_jwt: Option<bool>,
+pub struct BulkUpdateFunctionResponse {
+    /// functions property.
+    pub functions: Vec<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 // =============================================================================

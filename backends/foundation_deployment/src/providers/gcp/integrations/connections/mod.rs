@@ -12,32 +12,59 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudConnectorsV1BillingConfig` type.
+/// `GoogleCloudConnectorsV1HPAConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1BillingConfig {
-    /// billingCategory property.
-    pub billing_category: Option<String>,
+pub struct GoogleCloudConnectorsV1HPAConfig {
+    /// cpuUtilizationThreshold property.
+    pub cpu_utilization_threshold: Option<String>,
+    /// memoryUtilizationThreshold property.
+    pub memory_utilization_threshold: Option<String>,
 }
 
-/// `GoogleCloudConnectorsV1LockConfig` type.
+/// `GoogleCloudConnectorsV1EventingStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1LockConfig {
-    /// locked property.
-    pub locked: Option<bool>,
-    /// reason property.
-    pub reason: Option<String>,
+pub struct GoogleCloudConnectorsV1EventingStatus {
+    /// description property.
+    pub description: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1AuthConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1AuthConfig {
+    /// additionalVariables property.
+    pub additional_variables: Option<Vec<GoogleCloudConnectorsV1ConfigVariable>>,
+    /// authKey property.
+    pub auth_key: Option<String>,
+    /// authType property.
+    pub auth_type: Option<String>,
+    /// oauth2AuthCodeFlow property.
+    pub oauth2_auth_code_flow: Option<GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlow>,
+    /// oauth2AuthCodeFlowGoogleManaged property.
+    pub oauth2_auth_code_flow_google_managed:
+        Option<GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlowGoogleManaged>,
+    /// oauth2ClientCredentials property.
+    pub oauth2_client_credentials: Option<GoogleCloudConnectorsV1AuthConfigOauth2ClientCredentials>,
+    /// oauth2JwtBearer property.
+    pub oauth2_jwt_bearer: Option<GoogleCloudConnectorsV1AuthConfigOauth2JwtBearer>,
+    /// sshPublicKey property.
+    pub ssh_public_key: Option<GoogleCloudConnectorsV1AuthConfigSshPublicKey>,
+    /// userPassword property.
+    pub user_password: Option<GoogleCloudConnectorsV1AuthConfigUserPassword>,
 }
 
 /// `GoogleCloudConnectorsV1EventingConfigDeadLetterConfig` type.
@@ -47,6 +74,34 @@ pub struct GoogleCloudConnectorsV1EventingConfigDeadLetterConfig {
     pub project_id: Option<String>,
     /// topic property.
     pub topic: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlow {
+    /// authCode property.
+    pub auth_code: Option<String>,
+    /// authUri property.
+    pub auth_uri: Option<String>,
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// clientSecret property.
+    pub client_secret: Option<GoogleCloudConnectorsV1Secret>,
+    /// enablePkce property.
+    pub enable_pkce: Option<bool>,
+    /// pkceVerifier property.
+    pub pkce_verifier: Option<String>,
+    /// redirectUri property.
+    pub redirect_uri: Option<String>,
+    /// scopes property.
+    pub scopes: Option<Vec<String>>,
+}
+
+/// `GoogleCloudConnectorsV1BillingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1BillingConfig {
+    /// billingCategory property.
+    pub billing_category: Option<String>,
 }
 
 /// `GoogleCloudConnectorsV1AuthConfigOauth2JwtBearerJwtClaims` type.
@@ -60,11 +115,142 @@ pub struct GoogleCloudConnectorsV1AuthConfigOauth2JwtBearerJwtClaims {
     pub subject: Option<String>,
 }
 
-/// `GoogleCloudConnectorsV1Secret` type.
+/// `GoogleCloudConnectorsV1EventingRuntimeDataWebhookSubscriptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1Secret {
-    /// secretVersion property.
-    pub secret_version: Option<String>,
+pub struct GoogleCloudConnectorsV1EventingRuntimeDataWebhookSubscriptions {
+    /// webhookData property.
+    pub webhook_data: Option<Vec<GoogleCloudConnectorsV1EventingRuntimeDataWebhookData>>,
+}
+
+/// `GoogleCloudConnectorsV1DestinationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1DestinationConfig {
+    /// destinations property.
+    pub destinations: Option<Vec<GoogleCloudConnectorsV1Destination>>,
+    /// key property.
+    pub key: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlowGoogleManaged` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlowGoogleManaged {
+    /// authCode property.
+    pub auth_code: Option<String>,
+    /// redirectUri property.
+    pub redirect_uri: Option<String>,
+    /// scopes property.
+    pub scopes: Option<Vec<String>>,
+}
+
+/// `GoogleCloudConnectorsV1EventingRuntimeDataWebhookData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1EventingRuntimeDataWebhookData {
+    /// additionalVariables property.
+    pub additional_variables: Option<Vec<GoogleCloudConnectorsV1ConfigVariable>>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// nextRefreshTime property.
+    pub next_refresh_time: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1AuthConfigSshPublicKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1AuthConfigSshPublicKey {
+    /// certType property.
+    pub cert_type: Option<String>,
+    /// sshClientCert property.
+    pub ssh_client_cert: Option<GoogleCloudConnectorsV1Secret>,
+    /// sshClientCertPass property.
+    pub ssh_client_cert_pass: Option<GoogleCloudConnectorsV1Secret>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1ResourceRequests` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1ResourceRequests {
+    /// cpu property.
+    pub cpu: Option<String>,
+    /// memory property.
+    pub memory: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1TrafficShapingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1TrafficShapingConfig {
+    /// duration property.
+    pub duration: Option<String>,
+    /// quotaLimit property.
+    pub quota_limit: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1LockConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1LockConfig {
+    /// locked property.
+    pub locked: Option<bool>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1Destination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1Destination {
+    /// host property.
+    pub host: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
+    /// serviceAttachment property.
+    pub service_attachment: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1EncryptionKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1EncryptionKey {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1NodeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1NodeConfig {
+    /// maxNodeCount property.
+    pub max_node_count: Option<i64>,
+    /// minNodeCount property.
+    pub min_node_count: Option<i64>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaListConnectionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaListConnectionsResponse {
+    /// connections property.
+    pub connections: Option<Vec<GoogleCloudConnectorsV1Connection>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1LogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1LogConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// level property.
+    pub level: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1EnrichmentConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1EnrichmentConfig {
+    /// appendAcl property.
+    pub append_acl: Option<bool>,
 }
 
 /// `GoogleCloudConnectorsV1EventingConfig` type.
@@ -98,13 +284,83 @@ pub struct GoogleCloudConnectorsV1EventingConfig {
     pub ssl_config: Option<GoogleCloudConnectorsV1SslConfig>,
 }
 
-/// `GoogleCloudConnectorsV1HPAConfig` type.
+/// `GoogleCloudConnectorsV1ResourceLimits` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1HPAConfig {
-    /// cpuUtilizationThreshold property.
-    pub cpu_utilization_threshold: Option<String>,
-    /// memoryUtilizationThreshold property.
-    pub memory_utilization_threshold: Option<String>,
+pub struct GoogleCloudConnectorsV1ResourceLimits {
+    /// cpu property.
+    pub cpu: Option<String>,
+    /// memory property.
+    pub memory: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1SslConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1SslConfig {
+    /// additionalVariables property.
+    pub additional_variables: Option<Vec<GoogleCloudConnectorsV1ConfigVariable>>,
+    /// clientCertType property.
+    pub client_cert_type: Option<String>,
+    /// clientCertificate property.
+    pub client_certificate: Option<GoogleCloudConnectorsV1Secret>,
+    /// clientPrivateKey property.
+    pub client_private_key: Option<GoogleCloudConnectorsV1Secret>,
+    /// clientPrivateKeyPass property.
+    pub client_private_key_pass: Option<GoogleCloudConnectorsV1Secret>,
+    /// privateServerCertificate property.
+    pub private_server_certificate: Option<GoogleCloudConnectorsV1Secret>,
+    /// serverCertType property.
+    pub server_cert_type: Option<String>,
+    /// trustModel property.
+    pub trust_model: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// useSsl property.
+    pub use_ssl: Option<bool>,
+}
+
+/// `GoogleCloudConnectorsV1AuthConfigOauth2ClientCredentials` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1AuthConfigOauth2ClientCredentials {
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// clientSecret property.
+    pub client_secret: Option<GoogleCloudConnectorsV1Secret>,
+}
+
+/// `GoogleCloudConnectorsV1AuthConfigUserPassword` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1AuthConfigUserPassword {
+    /// password property.
+    pub password: Option<GoogleCloudConnectorsV1Secret>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1ConnectionStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1ConnectionStatus {
+    /// description property.
+    pub description: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+}
+
+/// `GoogleCloudConnectorsV1EventingRuntimeData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudConnectorsV1EventingRuntimeData {
+    /// eventsListenerEndpoint property.
+    pub events_listener_endpoint: Option<String>,
+    /// eventsListenerPscSa property.
+    pub events_listener_psc_sa: Option<String>,
+    /// status property.
+    pub status: Option<GoogleCloudConnectorsV1EventingStatus>,
+    /// webhookData property.
+    pub webhook_data: Option<GoogleCloudConnectorsV1EventingRuntimeDataWebhookData>,
+    /// webhookSubscriptions property.
+    pub webhook_subscriptions:
+        Option<GoogleCloudConnectorsV1EventingRuntimeDataWebhookSubscriptions>,
 }
 
 /// `GoogleCloudConnectorsV1ConnectorVersionInfraConfig` type.
@@ -134,92 +390,37 @@ pub struct GoogleCloudConnectorsV1ConnectorVersionInfraConfig {
     pub tls_migration_state: Option<String>,
 }
 
-/// `GoogleCloudConnectorsV1AuthConfigSshPublicKey` type.
+/// `GoogleCloudConnectorsV1AuthConfigOauth2JwtBearer` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1AuthConfigSshPublicKey {
-    /// certType property.
-    pub cert_type: Option<String>,
-    /// sshClientCert property.
-    pub ssh_client_cert: Option<GoogleCloudConnectorsV1Secret>,
-    /// sshClientCertPass property.
-    pub ssh_client_cert_pass: Option<GoogleCloudConnectorsV1Secret>,
-    /// username property.
-    pub username: Option<String>,
+pub struct GoogleCloudConnectorsV1AuthConfigOauth2JwtBearer {
+    /// clientKey property.
+    pub client_key: Option<GoogleCloudConnectorsV1Secret>,
+    /// jwtClaims property.
+    pub jwt_claims: Option<GoogleCloudConnectorsV1AuthConfigOauth2JwtBearerJwtClaims>,
 }
 
-/// `GoogleCloudConnectorsV1Destination` type.
+/// `GoogleCloudConnectorsV1ConfigVariable` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1Destination {
-    /// host property.
-    pub host: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
-    /// serviceAttachment property.
-    pub service_attachment: Option<String>,
+pub struct GoogleCloudConnectorsV1ConfigVariable {
+    /// boolValue property.
+    pub bool_value: Option<bool>,
+    /// encryptionKeyValue property.
+    pub encryption_key_value: Option<GoogleCloudConnectorsV1EncryptionKey>,
+    /// intValue property.
+    pub int_value: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// secretValue property.
+    pub secret_value: Option<GoogleCloudConnectorsV1Secret>,
+    /// stringValue property.
+    pub string_value: Option<String>,
 }
 
-/// `GoogleCloudConnectorsV1AuthConfigUserPassword` type.
+/// `GoogleCloudConnectorsV1Secret` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1AuthConfigUserPassword {
-    /// password property.
-    pub password: Option<GoogleCloudConnectorsV1Secret>,
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `GoogleCloudIntegrationsV1alphaListConnectionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1alphaListConnectionsResponse {
-    /// connections property.
-    pub connections: Option<Vec<GoogleCloudConnectorsV1Connection>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudConnectorsV1EventingRuntimeDataWebhookData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1EventingRuntimeDataWebhookData {
-    /// additionalVariables property.
-    pub additional_variables: Option<Vec<GoogleCloudConnectorsV1ConfigVariable>>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// nextRefreshTime property.
-    pub next_refresh_time: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlowGoogleManaged` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlowGoogleManaged {
-    /// authCode property.
-    pub auth_code: Option<String>,
-    /// redirectUri property.
-    pub redirect_uri: Option<String>,
-    /// scopes property.
-    pub scopes: Option<Vec<String>>,
-}
-
-/// `GoogleCloudConnectorsV1AuthConfigOauth2ClientCredentials` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1AuthConfigOauth2ClientCredentials {
-    /// clientId property.
-    pub client_id: Option<String>,
-    /// clientSecret property.
-    pub client_secret: Option<GoogleCloudConnectorsV1Secret>,
-}
-
-/// `GoogleCloudConnectorsV1NodeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1NodeConfig {
-    /// maxNodeCount property.
-    pub max_node_count: Option<i64>,
-    /// minNodeCount property.
-    pub min_node_count: Option<i64>,
+pub struct GoogleCloudConnectorsV1Secret {
+    /// secretVersion property.
+    pub secret_version: Option<String>,
 }
 
 /// `GoogleCloudConnectorsV1Connection` type.
@@ -295,206 +496,6 @@ pub struct GoogleCloudConnectorsV1Connection {
     pub traffic_shaping_configs: Option<Vec<GoogleCloudConnectorsV1TrafficShapingConfig>>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `GoogleCloudConnectorsV1EventingRuntimeData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1EventingRuntimeData {
-    /// eventsListenerEndpoint property.
-    pub events_listener_endpoint: Option<String>,
-    /// eventsListenerPscSa property.
-    pub events_listener_psc_sa: Option<String>,
-    /// status property.
-    pub status: Option<GoogleCloudConnectorsV1EventingStatus>,
-    /// webhookData property.
-    pub webhook_data: Option<GoogleCloudConnectorsV1EventingRuntimeDataWebhookData>,
-    /// webhookSubscriptions property.
-    pub webhook_subscriptions:
-        Option<GoogleCloudConnectorsV1EventingRuntimeDataWebhookSubscriptions>,
-}
-
-/// `GoogleCloudConnectorsV1TrafficShapingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1TrafficShapingConfig {
-    /// duration property.
-    pub duration: Option<String>,
-    /// quotaLimit property.
-    pub quota_limit: Option<String>,
-}
-
-/// `GoogleCloudConnectorsV1DestinationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1DestinationConfig {
-    /// destinations property.
-    pub destinations: Option<Vec<GoogleCloudConnectorsV1Destination>>,
-    /// key property.
-    pub key: Option<String>,
-}
-
-/// `GoogleCloudConnectorsV1ConfigVariable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1ConfigVariable {
-    /// boolValue property.
-    pub bool_value: Option<bool>,
-    /// encryptionKeyValue property.
-    pub encryption_key_value: Option<GoogleCloudConnectorsV1EncryptionKey>,
-    /// intValue property.
-    pub int_value: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// secretValue property.
-    pub secret_value: Option<GoogleCloudConnectorsV1Secret>,
-    /// stringValue property.
-    pub string_value: Option<String>,
-}
-
-/// `GoogleCloudConnectorsV1SslConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1SslConfig {
-    /// additionalVariables property.
-    pub additional_variables: Option<Vec<GoogleCloudConnectorsV1ConfigVariable>>,
-    /// clientCertType property.
-    pub client_cert_type: Option<String>,
-    /// clientCertificate property.
-    pub client_certificate: Option<GoogleCloudConnectorsV1Secret>,
-    /// clientPrivateKey property.
-    pub client_private_key: Option<GoogleCloudConnectorsV1Secret>,
-    /// clientPrivateKeyPass property.
-    pub client_private_key_pass: Option<GoogleCloudConnectorsV1Secret>,
-    /// privateServerCertificate property.
-    pub private_server_certificate: Option<GoogleCloudConnectorsV1Secret>,
-    /// serverCertType property.
-    pub server_cert_type: Option<String>,
-    /// trustModel property.
-    pub trust_model: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// useSsl property.
-    pub use_ssl: Option<bool>,
-}
-
-/// `GoogleCloudConnectorsV1EventingRuntimeDataWebhookSubscriptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1EventingRuntimeDataWebhookSubscriptions {
-    /// webhookData property.
-    pub webhook_data: Option<Vec<GoogleCloudConnectorsV1EventingRuntimeDataWebhookData>>,
-}
-
-/// `GoogleCloudConnectorsV1EventingStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1EventingStatus {
-    /// description property.
-    pub description: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `GoogleCloudConnectorsV1AuthConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1AuthConfig {
-    /// additionalVariables property.
-    pub additional_variables: Option<Vec<GoogleCloudConnectorsV1ConfigVariable>>,
-    /// authKey property.
-    pub auth_key: Option<String>,
-    /// authType property.
-    pub auth_type: Option<String>,
-    /// oauth2AuthCodeFlow property.
-    pub oauth2_auth_code_flow: Option<GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlow>,
-    /// oauth2AuthCodeFlowGoogleManaged property.
-    pub oauth2_auth_code_flow_google_managed:
-        Option<GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlowGoogleManaged>,
-    /// oauth2ClientCredentials property.
-    pub oauth2_client_credentials: Option<GoogleCloudConnectorsV1AuthConfigOauth2ClientCredentials>,
-    /// oauth2JwtBearer property.
-    pub oauth2_jwt_bearer: Option<GoogleCloudConnectorsV1AuthConfigOauth2JwtBearer>,
-    /// sshPublicKey property.
-    pub ssh_public_key: Option<GoogleCloudConnectorsV1AuthConfigSshPublicKey>,
-    /// userPassword property.
-    pub user_password: Option<GoogleCloudConnectorsV1AuthConfigUserPassword>,
-}
-
-/// `GoogleCloudConnectorsV1ResourceRequests` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1ResourceRequests {
-    /// cpu property.
-    pub cpu: Option<String>,
-    /// memory property.
-    pub memory: Option<String>,
-}
-
-/// `GoogleCloudConnectorsV1ResourceLimits` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1ResourceLimits {
-    /// cpu property.
-    pub cpu: Option<String>,
-    /// memory property.
-    pub memory: Option<String>,
-}
-
-/// `GoogleCloudConnectorsV1EncryptionKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1EncryptionKey {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleCloudConnectorsV1EnrichmentConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1EnrichmentConfig {
-    /// appendAcl property.
-    pub append_acl: Option<bool>,
-}
-
-/// `GoogleCloudConnectorsV1AuthConfigOauth2JwtBearer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1AuthConfigOauth2JwtBearer {
-    /// clientKey property.
-    pub client_key: Option<GoogleCloudConnectorsV1Secret>,
-    /// jwtClaims property.
-    pub jwt_claims: Option<GoogleCloudConnectorsV1AuthConfigOauth2JwtBearerJwtClaims>,
-}
-
-/// `GoogleCloudConnectorsV1ConnectionStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1ConnectionStatus {
-    /// description property.
-    pub description: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-}
-
-/// `GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlow {
-    /// authCode property.
-    pub auth_code: Option<String>,
-    /// authUri property.
-    pub auth_uri: Option<String>,
-    /// clientId property.
-    pub client_id: Option<String>,
-    /// clientSecret property.
-    pub client_secret: Option<GoogleCloudConnectorsV1Secret>,
-    /// enablePkce property.
-    pub enable_pkce: Option<bool>,
-    /// pkceVerifier property.
-    pub pkce_verifier: Option<String>,
-    /// redirectUri property.
-    pub redirect_uri: Option<String>,
-    /// scopes property.
-    pub scopes: Option<Vec<String>>,
-}
-
-/// `GoogleCloudConnectorsV1LogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudConnectorsV1LogConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// level property.
-    pub level: Option<String>,
 }
 
 // =============================================================================

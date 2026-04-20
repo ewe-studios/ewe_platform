@@ -12,24 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `MultiDailyMetricTimeSeries` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MultiDailyMetricTimeSeries {
-    /// dailyMetricTimeSeries property.
-    pub daily_metric_time_series: Option<Vec<DailyMetricTimeSeries>>,
-}
 
 /// `FetchMultiDailyMetricsTimeSeriesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,17 +43,6 @@ pub struct DailyMetricTimeSeries {
     pub time_series: Option<TimeSeries>,
 }
 
-/// `Date` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
 /// `DatedValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatedValue {
@@ -67,22 +50,6 @@ pub struct DatedValue {
     pub date: Option<Date>,
     /// value property.
     pub value: Option<String>,
-}
-
-/// `DailySubEntityType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DailySubEntityType {
-    /// dayOfWeek property.
-    pub day_of_week: Option<String>,
-    /// timeOfDay property.
-    pub time_of_day: Option<TimeOfDay>,
-}
-
-/// `TimeSeries` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeSeries {
-    /// datedValues property.
-    pub dated_values: Option<Vec<DatedValue>>,
 }
 
 /// `GetDailyMetricsTimeSeriesResponse` type.
@@ -103,6 +70,40 @@ pub struct TimeOfDay {
     pub nanos: Option<i64>,
     /// seconds property.
     pub seconds: Option<i64>,
+}
+
+/// `TimeSeries` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeSeries {
+    /// datedValues property.
+    pub dated_values: Option<Vec<DatedValue>>,
+}
+
+/// `DailySubEntityType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DailySubEntityType {
+    /// dayOfWeek property.
+    pub day_of_week: Option<String>,
+    /// timeOfDay property.
+    pub time_of_day: Option<TimeOfDay>,
+}
+
+/// `Date` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `MultiDailyMetricTimeSeries` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MultiDailyMetricTimeSeries {
+    /// dailyMetricTimeSeries property.
+    pub daily_metric_time_series: Option<Vec<DailyMetricTimeSeries>>,
 }
 
 // =============================================================================

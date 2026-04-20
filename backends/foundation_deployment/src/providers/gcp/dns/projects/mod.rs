@@ -12,29 +12,30 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Project` type.
+/// `DnsKeySpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Project {
-    /// id property.
-    pub id: Option<String>,
+pub struct DnsKeySpec {
+    /// algorithm property.
+    pub algorithm: Option<String>,
+    /// keyLength property.
+    pub key_length: Option<i64>,
+    /// keyType property.
+    pub key_type: Option<String>,
     /// kind property.
     pub kind: Option<String>,
-    /// number property.
-    pub number: Option<String>,
-    /// quota property.
-    pub quota: Option<Quota>,
 }
 
 /// `Quota` type.
@@ -94,17 +95,17 @@ pub struct Quota {
     pub whitelisted_key_specs: Option<Vec<DnsKeySpec>>,
 }
 
-/// `DnsKeySpec` type.
+/// `Project` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsKeySpec {
-    /// algorithm property.
-    pub algorithm: Option<String>,
-    /// keyLength property.
-    pub key_length: Option<i64>,
-    /// keyType property.
-    pub key_type: Option<String>,
+pub struct Project {
+    /// id property.
+    pub id: Option<String>,
     /// kind property.
     pub kind: Option<String>,
+    /// number property.
+    pub number: Option<String>,
+    /// quota property.
+    pub quota: Option<Quota>,
 }
 
 // =============================================================================

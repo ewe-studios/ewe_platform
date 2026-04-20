@@ -12,32 +12,41 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `CalendarNotification` type.
+/// `EventReminder` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CalendarNotification {
+pub struct EventReminder {
     /// method property.
     pub method: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+    /// minutes property.
+    pub minutes: Option<i64>,
 }
 
-/// `ConferenceProperties` type.
+/// `CalendarList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConferenceProperties {
-    /// allowedConferenceSolutionTypes property.
-    pub allowed_conference_solution_types: Option<Vec<String>>,
+pub struct CalendarList {
+    /// etag property.
+    pub etag: Option<String>,
+    /// items property.
+    pub items: Option<Vec<CalendarListEntry>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// nextSyncToken property.
+    pub next_sync_token: Option<String>,
 }
 
 /// `CalendarListEntry` type.
@@ -87,28 +96,20 @@ pub struct CalendarListEntry {
     pub time_zone: Option<String>,
 }
 
-/// `EventReminder` type.
+/// `ConferenceProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventReminder {
-    /// method property.
-    pub method: Option<String>,
-    /// minutes property.
-    pub minutes: Option<i64>,
+pub struct ConferenceProperties {
+    /// allowedConferenceSolutionTypes property.
+    pub allowed_conference_solution_types: Option<Vec<String>>,
 }
 
-/// `CalendarList` type.
+/// `CalendarNotification` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CalendarList {
-    /// etag property.
-    pub etag: Option<String>,
-    /// items property.
-    pub items: Option<Vec<CalendarListEntry>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// nextSyncToken property.
-    pub next_sync_token: Option<String>,
+pub struct CalendarNotification {
+    /// method property.
+    pub method: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 // =============================================================================

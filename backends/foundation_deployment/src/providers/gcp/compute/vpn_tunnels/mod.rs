@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,58 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `VpnTunnelPhase1Algorithms` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VpnTunnelPhase1Algorithms {
+    /// dh property.
+    pub dh: Option<Vec<String>>,
+    /// encryption property.
+    pub encryption: Option<Vec<String>>,
+    /// integrity property.
+    pub integrity: Option<Vec<String>>,
+    /// prf property.
+    pub prf: Option<Vec<String>>,
+}
+
+/// `VpnTunnelParams` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VpnTunnelParams {
+    /// resourceManagerTags property.
+    pub resource_manager_tags: Option<serde_json::Value>,
+}
+
+/// `VpnTunnelPhase2Algorithms` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VpnTunnelPhase2Algorithms {
+    /// encryption property.
+    pub encryption: Option<Vec<String>>,
+    /// integrity property.
+    pub integrity: Option<Vec<String>>,
+    /// pfs property.
+    pub pfs: Option<Vec<String>>,
+}
+
+/// `LocalizedMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GetVersionOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadata {
+    /// inlineSbomInfo property.
+    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+}
 
 /// `QuotaExceededInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,47 +92,6 @@ pub struct QuotaExceededInfo {
     pub rollout_status: Option<String>,
 }
 
-/// `GetVersionOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadata {
-    /// inlineSbomInfo property.
-    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
-}
-
-/// `ErrorInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `HelpLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `VpnTunnelParams` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VpnTunnelParams {
-    /// resourceManagerTags property.
-    pub resource_manager_tags: Option<serde_json::Value>,
-}
-
-/// `Help` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
-}
-
 /// `SetCommonInstanceMetadataOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetCommonInstanceMetadataOperationMetadata {
@@ -94,13 +101,13 @@ pub struct SetCommonInstanceMetadataOperationMetadata {
     pub per_location_operations: Option<serde_json::Value>,
 }
 
-/// `LocalizedMessage` type.
+/// `HelpLink` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
 }
 
 /// `VpnTunnelAggregatedList` type.
@@ -122,28 +129,13 @@ pub struct VpnTunnelAggregatedList {
     pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `VpnTunnelList` type.
+/// `VpnTunnelCipherSuite` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VpnTunnelList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<VpnTunnel>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `InstancesBulkInsertOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
+pub struct VpnTunnelCipherSuite {
+    /// phase1 property.
+    pub phase1: Option<VpnTunnelPhase1Algorithms>,
+    /// phase2 property.
+    pub phase2: Option<VpnTunnelPhase2Algorithms>,
 }
 
 /// `VpnTunnel` type.
@@ -203,24 +195,35 @@ pub struct VpnTunnel {
     pub vpn_gateway_interface: Option<i64>,
 }
 
-/// `VpnTunnelCipherSuite` type.
+/// `VpnTunnelList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VpnTunnelCipherSuite {
-    /// phase1 property.
-    pub phase1: Option<VpnTunnelPhase1Algorithms>,
-    /// phase2 property.
-    pub phase2: Option<VpnTunnelPhase2Algorithms>,
+pub struct VpnTunnelList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<VpnTunnel>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `VpnTunnelPhase2Algorithms` type.
+/// `InstancesBulkInsertOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VpnTunnelPhase2Algorithms {
-    /// encryption property.
-    pub encryption: Option<Vec<String>>,
-    /// integrity property.
-    pub integrity: Option<Vec<String>>,
-    /// pfs property.
-    pub pfs: Option<Vec<String>>,
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `Help` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
 }
 
 /// `GetVersionOperationMetadataSbomInfo` type.
@@ -232,17 +235,15 @@ pub struct GetVersionOperationMetadataSbomInfo {
     pub target_component_versions: Option<serde_json::Value>,
 }
 
-/// `VpnTunnelPhase1Algorithms` type.
+/// `ErrorInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VpnTunnelPhase1Algorithms {
-    /// dh property.
-    pub dh: Option<Vec<String>>,
-    /// encryption property.
-    pub encryption: Option<Vec<String>>,
-    /// integrity property.
-    pub integrity: Option<Vec<String>>,
-    /// prf property.
-    pub prf: Option<Vec<String>>,
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
 }
 
 // =============================================================================

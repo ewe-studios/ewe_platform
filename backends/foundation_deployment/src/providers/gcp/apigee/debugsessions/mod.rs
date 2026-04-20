@@ -12,17 +12,36 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudApigeeV1ListApiDebugSessionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ListApiDebugSessionsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// sessions property.
+    pub sessions: Option<Vec<GoogleCloudApigeeV1ApiDebugSession>>,
+}
+
+/// `GoogleCloudApigeeV1ListDebugSessionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ListDebugSessionsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// sessions property.
+    pub sessions: Option<Vec<GoogleCloudApigeeV1Session>>,
+}
 
 /// `GoogleCloudApigeeV1DebugSession` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -43,33 +62,6 @@ pub struct GoogleCloudApigeeV1DebugSession {
     pub validity: Option<i64>,
 }
 
-/// `GoogleCloudApigeeV1ListApiDebugSessionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ListApiDebugSessionsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// sessions property.
-    pub sessions: Option<Vec<GoogleCloudApigeeV1ApiDebugSession>>,
-}
-
-/// `GoogleCloudApigeeV1Session` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1Session {
-    /// id property.
-    pub id: Option<String>,
-    /// timestampMs property.
-    pub timestamp_ms: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1ListDebugSessionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ListDebugSessionsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// sessions property.
-    pub sessions: Option<Vec<GoogleCloudApigeeV1Session>>,
-}
-
 /// `GoogleCloudApigeeV1ApiDebugSession` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ApiDebugSession {
@@ -81,6 +73,15 @@ pub struct GoogleCloudApigeeV1ApiDebugSession {
     pub environment_id: Option<String>,
     /// id property.
     pub id: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1Session` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1Session {
+    /// id property.
+    pub id: Option<String>,
+    /// timestampMs property.
+    pub timestamp_ms: Option<String>,
 }
 
 // =============================================================================

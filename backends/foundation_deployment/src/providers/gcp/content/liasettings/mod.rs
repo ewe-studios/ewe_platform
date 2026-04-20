@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -31,6 +32,15 @@ pub struct LiaPosDataProvider {
     pub pos_data_provider_id: Option<String>,
     /// posExternalAccountId property.
     pub pos_external_account_id: Option<String>,
+}
+
+/// `LiaAboutPageSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiaAboutPageSettings {
+    /// status property.
+    pub status: Option<String>,
+    /// url property.
+    pub url: Option<String>,
 }
 
 /// `LiaOnDisplayToOrderSettings` type.
@@ -51,47 +61,6 @@ pub struct LiaOmnichannelExperience {
     pub lsf_type: Option<String>,
     /// pickupTypes property.
     pub pickup_types: Option<Vec<String>>,
-}
-
-/// `LiaCountrySettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiaCountrySettings {
-    /// about property.
-    pub about: Option<LiaAboutPageSettings>,
-    /// country property.
-    pub country: Option<String>,
-    /// hostedLocalStorefrontActive property.
-    pub hosted_local_storefront_active: Option<bool>,
-    /// inventory property.
-    pub inventory: Option<LiaInventorySettings>,
-    /// omnichannelExperience property.
-    pub omnichannel_experience: Option<LiaOmnichannelExperience>,
-    /// onDisplayToOrder property.
-    pub on_display_to_order: Option<LiaOnDisplayToOrderSettings>,
-    /// posDataProvider property.
-    pub pos_data_provider: Option<LiaPosDataProvider>,
-    /// storePickupActive property.
-    pub store_pickup_active: Option<bool>,
-}
-
-/// `LiaAboutPageSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiaAboutPageSettings {
-    /// status property.
-    pub status: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `LiaSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiaSettings {
-    /// accountId property.
-    pub account_id: Option<String>,
-    /// countrySettings property.
-    pub country_settings: Option<Vec<LiaCountrySettings>>,
-    /// kind property.
-    pub kind: Option<String>,
 }
 
 /// `LiasettingsListResponse` type.
@@ -116,6 +85,38 @@ pub struct LiaInventorySettings {
     pub inventory_verification_contact_status: Option<String>,
     /// status property.
     pub status: Option<String>,
+}
+
+/// `LiaSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiaSettings {
+    /// accountId property.
+    pub account_id: Option<String>,
+    /// countrySettings property.
+    pub country_settings: Option<Vec<LiaCountrySettings>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `LiaCountrySettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiaCountrySettings {
+    /// about property.
+    pub about: Option<LiaAboutPageSettings>,
+    /// country property.
+    pub country: Option<String>,
+    /// hostedLocalStorefrontActive property.
+    pub hosted_local_storefront_active: Option<bool>,
+    /// inventory property.
+    pub inventory: Option<LiaInventorySettings>,
+    /// omnichannelExperience property.
+    pub omnichannel_experience: Option<LiaOmnichannelExperience>,
+    /// onDisplayToOrder property.
+    pub on_display_to_order: Option<LiaOnDisplayToOrderSettings>,
+    /// posDataProvider property.
+    pub pos_data_provider: Option<LiaPosDataProvider>,
+    /// storePickupActive property.
+    pub store_pickup_active: Option<bool>,
 }
 
 // =============================================================================

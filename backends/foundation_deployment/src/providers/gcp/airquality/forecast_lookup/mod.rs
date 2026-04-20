@@ -12,29 +12,66 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Color` type.
+/// `AirQualityIndex` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Color {
-    /// alpha property.
-    pub alpha: Option<f64>,
-    /// blue property.
-    pub blue: Option<f64>,
-    /// green property.
-    pub green: Option<f64>,
-    /// red property.
-    pub red: Option<f64>,
+pub struct AirQualityIndex {
+    /// aqi property.
+    pub aqi: Option<i64>,
+    /// aqiDisplay property.
+    pub aqi_display: Option<String>,
+    /// category property.
+    pub category: Option<String>,
+    /// code property.
+    pub code: Option<String>,
+    /// color property.
+    pub color: Option<Color>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// dominantPollutant property.
+    pub dominant_pollutant: Option<String>,
+}
+
+/// `LookupForecastResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LookupForecastResponse {
+    /// hourlyForecasts property.
+    pub hourly_forecasts: Option<Vec<HourlyForecast>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+}
+
+/// `HealthRecommendations` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HealthRecommendations {
+    /// athletes property.
+    pub athletes: Option<String>,
+    /// children property.
+    pub children: Option<String>,
+    /// elderly property.
+    pub elderly: Option<String>,
+    /// generalPopulation property.
+    pub general_population: Option<String>,
+    /// heartDiseasePopulation property.
+    pub heart_disease_population: Option<String>,
+    /// lungDiseasePopulation property.
+    pub lung_disease_population: Option<String>,
+    /// pregnantWomen property.
+    pub pregnant_women: Option<String>,
 }
 
 /// `Pollutant` type.
@@ -65,34 +102,13 @@ pub struct HourlyForecast {
     pub pollutants: Option<Vec<Pollutant>>,
 }
 
-/// `HealthRecommendations` type.
+/// `Concentration` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HealthRecommendations {
-    /// athletes property.
-    pub athletes: Option<String>,
-    /// children property.
-    pub children: Option<String>,
-    /// elderly property.
-    pub elderly: Option<String>,
-    /// generalPopulation property.
-    pub general_population: Option<String>,
-    /// heartDiseasePopulation property.
-    pub heart_disease_population: Option<String>,
-    /// lungDiseasePopulation property.
-    pub lung_disease_population: Option<String>,
-    /// pregnantWomen property.
-    pub pregnant_women: Option<String>,
-}
-
-/// `LookupForecastResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LookupForecastResponse {
-    /// hourlyForecasts property.
-    pub hourly_forecasts: Option<Vec<HourlyForecast>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// regionCode property.
-    pub region_code: Option<String>,
+pub struct Concentration {
+    /// units property.
+    pub units: Option<String>,
+    /// value property.
+    pub value: Option<f64>,
 }
 
 /// `AdditionalInfo` type.
@@ -104,32 +120,17 @@ pub struct AdditionalInfo {
     pub sources: Option<String>,
 }
 
-/// `Concentration` type.
+/// `Color` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Concentration {
-    /// units property.
-    pub units: Option<String>,
-    /// value property.
-    pub value: Option<f64>,
-}
-
-/// `AirQualityIndex` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AirQualityIndex {
-    /// aqi property.
-    pub aqi: Option<i64>,
-    /// aqiDisplay property.
-    pub aqi_display: Option<String>,
-    /// category property.
-    pub category: Option<String>,
-    /// code property.
-    pub code: Option<String>,
-    /// color property.
-    pub color: Option<Color>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// dominantPollutant property.
-    pub dominant_pollutant: Option<String>,
+pub struct Color {
+    /// alpha property.
+    pub alpha: Option<f64>,
+    /// blue property.
+    pub blue: Option<f64>,
+    /// green property.
+    pub green: Option<f64>,
+    /// red property.
+    pub red: Option<f64>,
 }
 
 // =============================================================================

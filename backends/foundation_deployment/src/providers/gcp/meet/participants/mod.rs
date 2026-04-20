@@ -12,32 +12,22 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListParticipantsResponse` type.
+/// `PhoneUser` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListParticipantsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// participants property.
-    pub participants: Option<Vec<Participant>>,
-    /// totalSize property.
-    pub total_size: Option<i64>,
-}
-
-/// `AnonymousUser` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AnonymousUser {
+pub struct PhoneUser {
     /// displayName property.
     pub display_name: Option<String>,
 }
@@ -49,13 +39,6 @@ pub struct SignedinUser {
     pub display_name: Option<String>,
     /// user property.
     pub user: Option<String>,
-}
-
-/// `PhoneUser` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PhoneUser {
-    /// displayName property.
-    pub display_name: Option<String>,
 }
 
 /// `Participant` type.
@@ -73,6 +56,24 @@ pub struct Participant {
     pub phone_user: Option<PhoneUser>,
     /// signedinUser property.
     pub signedin_user: Option<SignedinUser>,
+}
+
+/// `AnonymousUser` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AnonymousUser {
+    /// displayName property.
+    pub display_name: Option<String>,
+}
+
+/// `ListParticipantsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListParticipantsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// participants property.
+    pub participants: Option<Vec<Participant>>,
+    /// totalSize property.
+    pub total_size: Option<i64>,
 }
 
 // =============================================================================

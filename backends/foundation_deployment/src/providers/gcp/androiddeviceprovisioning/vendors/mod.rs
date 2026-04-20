@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleWorkspaceAccount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleWorkspaceAccount {
-    /// customerId property.
-    pub customer_id: Option<String>,
-    /// preProvisioningTokens property.
-    pub pre_provisioning_tokens: Option<Vec<String>>,
-}
 
 /// `ListVendorsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -65,6 +57,15 @@ pub struct Company {
     pub skip_welcome_email: Option<bool>,
     /// termsStatus property.
     pub terms_status: Option<String>,
+}
+
+/// `GoogleWorkspaceAccount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleWorkspaceAccount {
+    /// customerId property.
+    pub customer_id: Option<String>,
+    /// preProvisioningTokens property.
+    pub pre_provisioning_tokens: Option<Vec<String>>,
 }
 
 // =============================================================================

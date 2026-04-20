@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListGoogleAudiencesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListGoogleAudiencesResponse {
-    /// googleAudiences property.
-    pub google_audiences: Option<Vec<GoogleAudience>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `GoogleAudience` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,6 +36,15 @@ pub struct GoogleAudience {
     pub google_audience_type: Option<String>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `ListGoogleAudiencesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListGoogleAudiencesResponse {
+    /// googleAudiences property.
+    pub google_audiences: Option<Vec<GoogleAudience>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

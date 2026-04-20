@@ -12,106 +12,31 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DistanceRollupValue` type.
+/// `TimeInHeartRateZoneRollupValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DistanceRollupValue {
-    /// millimetersSum property.
-    pub millimeters_sum: Option<String>,
+pub struct TimeInHeartRateZoneRollupValue {
+    /// timeInHeartRateZones property.
+    pub time_in_heart_rate_zones: Option<Vec<TimeInHeartRateZoneValue>>,
 }
 
-/// `HeartRateRollupValue` type.
+/// `SedentaryPeriodRollupValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HeartRateRollupValue {
-    /// beatsPerMinuteAvg property.
-    pub beats_per_minute_avg: Option<f64>,
-    /// beatsPerMinuteMax property.
-    pub beats_per_minute_max: Option<f64>,
-    /// beatsPerMinuteMin property.
-    pub beats_per_minute_min: Option<f64>,
-}
-
-/// `HydrationLogRollupValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HydrationLogRollupValue {
-    /// amountConsumed property.
-    pub amount_consumed: Option<VolumeQuantityRollup>,
-}
-
-/// `RollUpDataPointsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RollUpDataPointsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// rollupDataPoints property.
-    pub rollup_data_points: Option<Vec<RollupDataPoint>>,
-}
-
-/// `StepsRollupValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StepsRollupValue {
-    /// countSum property.
-    pub count_sum: Option<String>,
-}
-
-/// `WeightRollupValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WeightRollupValue {
-    /// weightGramsAvg property.
-    pub weight_grams_avg: Option<f64>,
-}
-
-/// `VolumeQuantityRollup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VolumeQuantityRollup {
-    /// millilitersSum property.
-    pub milliliters_sum: Option<f64>,
-    /// userProvidedUnitLast property.
-    pub user_provided_unit_last: Option<String>,
-}
-
-/// `TotalCaloriesRollupValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TotalCaloriesRollupValue {
-    /// kcalSum property.
-    pub kcal_sum: Option<f64>,
-}
-
-/// `ActivityLevelRollupValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActivityLevelRollupValue {
-    /// activityLevelRollupsByActivityLevelType property.
-    pub activity_level_rollups_by_activity_level_type:
-        Option<Vec<ActivityLevelRollupByActivityLevelType>>,
-}
-
-/// `RunVO2MaxRollupValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RunVO2MaxRollupValue {
-    /// rateAvg property.
-    pub rate_avg: Option<f64>,
-    /// rateMax property.
-    pub rate_max: Option<f64>,
-    /// rateMin property.
-    pub rate_min: Option<f64>,
-}
-
-/// `CaloriesInHeartRateZoneRollupValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CaloriesInHeartRateZoneRollupValue {
-    /// caloriesInHeartRateZones property.
-    pub calories_in_heart_rate_zones: Option<Vec<CaloriesInHeartRateZoneValue>>,
+pub struct SedentaryPeriodRollupValue {
+    /// durationSum property.
+    pub duration_sum: Option<String>,
 }
 
 /// `ActiveZoneMinutesRollupValue` type.
@@ -125,11 +50,13 @@ pub struct ActiveZoneMinutesRollupValue {
     pub sum_in_peak_heart_zone: Option<String>,
 }
 
-/// `FloorsRollupValue` type.
+/// `VolumeQuantityRollup` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FloorsRollupValue {
-    /// countSum property.
-    pub count_sum: Option<String>,
+pub struct VolumeQuantityRollup {
+    /// millilitersSum property.
+    pub milliliters_sum: Option<f64>,
+    /// userProvidedUnitLast property.
+    pub user_provided_unit_last: Option<String>,
 }
 
 /// `CaloriesInHeartRateZoneValue` type.
@@ -141,41 +68,53 @@ pub struct CaloriesInHeartRateZoneValue {
     pub kcal: Option<f64>,
 }
 
-/// `ActiveMinutesRollupValue` type.
+/// `ActiveMinutesRollupByActivityLevel` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActiveMinutesRollupValue {
-    /// activeMinutesRollupByActivityLevel property.
-    pub active_minutes_rollup_by_activity_level: Option<Vec<ActiveMinutesRollupByActivityLevel>>,
+pub struct ActiveMinutesRollupByActivityLevel {
+    /// activeMinutesSum property.
+    pub active_minutes_sum: Option<String>,
+    /// activityLevel property.
+    pub activity_level: Option<String>,
 }
 
-/// `BodyFatRollupValue` type.
+/// `ActivityLevelRollupValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BodyFatRollupValue {
-    /// bodyFatPercentageAvg property.
-    pub body_fat_percentage_avg: Option<f64>,
+pub struct ActivityLevelRollupValue {
+    /// activityLevelRollupsByActivityLevelType property.
+    pub activity_level_rollups_by_activity_level_type:
+        Option<Vec<ActivityLevelRollupByActivityLevelType>>,
 }
 
-/// `AltitudeRollupValue` type.
+/// `StepsRollupValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AltitudeRollupValue {
-    /// gainMillimetersSum property.
-    pub gain_millimeters_sum: Option<String>,
+pub struct StepsRollupValue {
+    /// countSum property.
+    pub count_sum: Option<String>,
 }
 
-/// `TimeInHeartRateZoneRollupValue` type.
+/// `CaloriesInHeartRateZoneRollupValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeInHeartRateZoneRollupValue {
-    /// timeInHeartRateZones property.
-    pub time_in_heart_rate_zones: Option<Vec<TimeInHeartRateZoneValue>>,
+pub struct CaloriesInHeartRateZoneRollupValue {
+    /// caloriesInHeartRateZones property.
+    pub calories_in_heart_rate_zones: Option<Vec<CaloriesInHeartRateZoneValue>>,
 }
 
-/// `TimeInHeartRateZoneValue` type.
+/// `WeightRollupValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeInHeartRateZoneValue {
-    /// duration property.
-    pub duration: Option<String>,
-    /// heartRateZone property.
-    pub heart_rate_zone: Option<String>,
+pub struct WeightRollupValue {
+    /// weightGramsAvg property.
+    pub weight_grams_avg: Option<f64>,
+}
+
+/// `RunVO2MaxRollupValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RunVO2MaxRollupValue {
+    /// rateAvg property.
+    pub rate_avg: Option<f64>,
+    /// rateMax property.
+    pub rate_max: Option<f64>,
+    /// rateMin property.
+    pub rate_min: Option<f64>,
 }
 
 /// `RollupDataPoint` type.
@@ -219,6 +158,59 @@ pub struct RollupDataPoint {
     pub weight: Option<WeightRollupValue>,
 }
 
+/// `HydrationLogRollupValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HydrationLogRollupValue {
+    /// amountConsumed property.
+    pub amount_consumed: Option<VolumeQuantityRollup>,
+}
+
+/// `AltitudeRollupValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AltitudeRollupValue {
+    /// gainMillimetersSum property.
+    pub gain_millimeters_sum: Option<String>,
+}
+
+/// `ActiveMinutesRollupValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActiveMinutesRollupValue {
+    /// activeMinutesRollupByActivityLevel property.
+    pub active_minutes_rollup_by_activity_level: Option<Vec<ActiveMinutesRollupByActivityLevel>>,
+}
+
+/// `RollUpDataPointsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RollUpDataPointsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// rollupDataPoints property.
+    pub rollup_data_points: Option<Vec<RollupDataPoint>>,
+}
+
+/// `BodyFatRollupValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BodyFatRollupValue {
+    /// bodyFatPercentageAvg property.
+    pub body_fat_percentage_avg: Option<f64>,
+}
+
+/// `TotalCaloriesRollupValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TotalCaloriesRollupValue {
+    /// kcalSum property.
+    pub kcal_sum: Option<f64>,
+}
+
+/// `TimeInHeartRateZoneValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeInHeartRateZoneValue {
+    /// duration property.
+    pub duration: Option<String>,
+    /// heartRateZone property.
+    pub heart_rate_zone: Option<String>,
+}
+
 /// `ActivityLevelRollupByActivityLevelType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivityLevelRollupByActivityLevelType {
@@ -228,20 +220,29 @@ pub struct ActivityLevelRollupByActivityLevelType {
     pub total_duration: Option<String>,
 }
 
-/// `ActiveMinutesRollupByActivityLevel` type.
+/// `HeartRateRollupValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActiveMinutesRollupByActivityLevel {
-    /// activeMinutesSum property.
-    pub active_minutes_sum: Option<String>,
-    /// activityLevel property.
-    pub activity_level: Option<String>,
+pub struct HeartRateRollupValue {
+    /// beatsPerMinuteAvg property.
+    pub beats_per_minute_avg: Option<f64>,
+    /// beatsPerMinuteMax property.
+    pub beats_per_minute_max: Option<f64>,
+    /// beatsPerMinuteMin property.
+    pub beats_per_minute_min: Option<f64>,
 }
 
-/// `SedentaryPeriodRollupValue` type.
+/// `DistanceRollupValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SedentaryPeriodRollupValue {
-    /// durationSum property.
-    pub duration_sum: Option<String>,
+pub struct DistanceRollupValue {
+    /// millimetersSum property.
+    pub millimeters_sum: Option<String>,
+}
+
+/// `FloorsRollupValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FloorsRollupValue {
+    /// countSum property.
+    pub count_sum: Option<String>,
 }
 
 // =============================================================================

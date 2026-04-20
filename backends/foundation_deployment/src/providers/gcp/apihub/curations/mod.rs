@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,46 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudApihubV1ApplicationIntegrationEndpointDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1ApplicationIntegrationEndpointDetails {
-    /// triggerId property.
-    pub trigger_id: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `GoogleCloudApihubV1ListCurationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1ListCurationsResponse {
-    /// curations property.
-    pub curations: Option<Vec<GoogleCloudApihubV1Curation>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudApihubV1Endpoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1Endpoint {
-    /// applicationIntegrationEndpointDetails property.
-    pub application_integration_endpoint_details:
-        Option<GoogleCloudApihubV1ApplicationIntegrationEndpointDetails>,
-}
-
-/// `GoogleCloudApihubV1PluginInstanceActionID` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1PluginInstanceActionID {
-    /// actionId property.
-    pub action_id: Option<String>,
-    /// pluginInstance property.
-    pub plugin_instance: Option<String>,
-}
 
 /// `GoogleCloudApihubV1Curation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -85,6 +51,41 @@ pub struct GoogleCloudApihubV1Curation {
     pub plugin_instance_actions: Option<Vec<GoogleCloudApihubV1PluginInstanceActionID>>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `GoogleCloudApihubV1ListCurationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1ListCurationsResponse {
+    /// curations property.
+    pub curations: Option<Vec<GoogleCloudApihubV1Curation>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudApihubV1PluginInstanceActionID` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1PluginInstanceActionID {
+    /// actionId property.
+    pub action_id: Option<String>,
+    /// pluginInstance property.
+    pub plugin_instance: Option<String>,
+}
+
+/// `GoogleCloudApihubV1ApplicationIntegrationEndpointDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1ApplicationIntegrationEndpointDetails {
+    /// triggerId property.
+    pub trigger_id: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `GoogleCloudApihubV1Endpoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1Endpoint {
+    /// applicationIntegrationEndpointDetails property.
+    pub application_integration_endpoint_details:
+        Option<GoogleCloudApihubV1ApplicationIntegrationEndpointDetails>,
 }
 
 // =============================================================================

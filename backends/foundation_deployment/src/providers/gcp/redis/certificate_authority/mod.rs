@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `CertificateAuthority` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CertificateAuthority {
+    /// managedServerCa property.
+    pub managed_server_ca: Option<ManagedCertificateAuthority>,
+    /// name property.
+    pub name: Option<String>,
+}
 
 /// `ManagedCertificateAuthority` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -36,15 +46,6 @@ pub struct ManagedCertificateAuthority {
 pub struct CertChain {
     /// certificates property.
     pub certificates: Option<Vec<String>>,
-}
-
-/// `CertificateAuthority` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CertificateAuthority {
-    /// managedServerCa property.
-    pub managed_server_ca: Option<ManagedCertificateAuthority>,
-    /// name property.
-    pub name: Option<String>,
 }
 
 // =============================================================================

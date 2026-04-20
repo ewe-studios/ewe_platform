@@ -12,63 +12,141 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
 use super::shared::Empty;
+use super::shared::Space;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Attachment` type.
+/// `GoogleAppsCardV1Suggestions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Attachment {
-    /// attachmentDataRef property.
-    pub attachment_data_ref: Option<AttachmentDataRef>,
-    /// contentName property.
-    pub content_name: Option<String>,
-    /// contentType property.
-    pub content_type: Option<String>,
-    /// downloadUri property.
-    pub download_uri: Option<String>,
-    /// driveDataRef property.
-    pub drive_data_ref: Option<DriveDataRef>,
+pub struct GoogleAppsCardV1Suggestions {
+    /// items property.
+    pub items: Option<Vec<GoogleAppsCardV1SuggestionItem>>,
+}
+
+/// `User` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct User {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// domainId property.
+    pub domain_id: Option<String>,
+    /// isAnonymous property.
+    pub is_anonymous: Option<bool>,
     /// name property.
     pub name: Option<String>,
-    /// source property.
-    pub source: Option<String>,
-    /// thumbnailUri property.
-    pub thumbnail_uri: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
-/// `GoogleAppsCardV1ExpressionDataCondition` type.
+/// `Dialog` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1ExpressionDataCondition {
-    /// conditionType property.
-    pub condition_type: Option<String>,
+pub struct Dialog {
+    /// body property.
+    pub body: Option<Box<GoogleAppsCardV1Card>>,
 }
 
-/// `DriveDataRef` type.
+/// `ActionParameter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DriveDataRef {
-    /// driveFileId property.
-    pub drive_file_id: Option<String>,
+pub struct ActionParameter {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
-/// `UpdatedWidget` type.
+/// `GoogleAppsCardV1SuggestionItem` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdatedWidget {
-    /// suggestions property.
-    pub suggestions: Option<SelectionItems>,
-    /// widget property.
-    pub widget: Option<String>,
+pub struct GoogleAppsCardV1SuggestionItem {
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `PermissionSetting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PermissionSetting {
+    /// assistantManagersAllowed property.
+    pub assistant_managers_allowed: Option<bool>,
+    /// managersAllowed property.
+    pub managers_allowed: Option<bool>,
+    /// membersAllowed property.
+    pub members_allowed: Option<bool>,
+}
+
+/// `GoogleAppsCardV1ActionParameter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1ActionParameter {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `FormAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FormAction {
+    /// actionMethodName property.
+    pub action_method_name: Option<String>,
+    /// parameters property.
+    pub parameters: Option<Vec<ActionParameter>>,
+}
+
+/// `GoogleAppsCardV1EventAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1EventAction {
+    /// actionRuleId property.
+    pub action_rule_id: Option<String>,
+    /// commonWidgetAction property.
+    pub common_widget_action: Option<GoogleAppsCardV1CommonWidgetAction>,
+    /// postEventTriggers property.
+    pub post_event_triggers: Option<Vec<GoogleAppsCardV1Trigger>>,
+}
+
+/// `RichLinkMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RichLinkMetadata {
+    /// calendarEventLinkData property.
+    pub calendar_event_link_data: Option<CalendarEventLinkData>,
+    /// chatSpaceLinkData property.
+    pub chat_space_link_data: Option<ChatSpaceLinkData>,
+    /// driveLinkData property.
+    pub drive_link_data: Option<DriveLinkData>,
+    /// meetSpaceLinkData property.
+    pub meet_space_link_data: Option<MeetSpaceLinkData>,
+    /// richLinkType property.
+    pub rich_link_type: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `GoogleAppsCardV1TextParagraph` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1TextParagraph {
+    /// maxLines property.
+    pub max_lines: Option<i64>,
+    /// text property.
+    pub text: Option<String>,
+    /// textSyntax property.
+    pub text_syntax: Option<String>,
+}
+
+/// `SelectionItems` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SelectionItems {
+    /// items property.
+    pub items: Option<Vec<GoogleAppsCardV1SelectionItem>>,
 }
 
 /// `Annotation` type.
@@ -90,40 +168,77 @@ pub struct Annotation {
     pub user_mention: Option<UserMentionMetadata>,
 }
 
-/// `HostAppDataSourceMarkup` type.
+/// `MatchedUrl` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HostAppDataSourceMarkup {
-    /// chatDataSource property.
-    pub chat_data_source: Option<ChatClientDataSourceMarkup>,
-    /// workflowDataSource property.
-    pub workflow_data_source: Option<WorkflowDataSourceMarkup>,
+pub struct MatchedUrl {
+    /// url property.
+    pub url: Option<String>,
 }
 
-/// `GoogleAppsCardV1CommonWidgetAction` type.
+/// `GoogleAppsCardV1ImageComponent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1CommonWidgetAction {
-    /// updateVisibilityAction property.
-    pub update_visibility_action: Option<GoogleAppsCardV1UpdateVisibilityAction>,
+pub struct GoogleAppsCardV1ImageComponent {
+    /// altText property.
+    pub alt_text: Option<String>,
+    /// borderStyle property.
+    pub border_style: Option<GoogleAppsCardV1BorderStyle>,
+    /// cropStyle property.
+    pub crop_style: Option<GoogleAppsCardV1ImageCropStyle>,
+    /// imageUri property.
+    pub image_uri: Option<String>,
 }
 
-/// `AttachmentDataRef` type.
+/// `GoogleAppsCardV1OverflowMenuItem` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AttachmentDataRef {
-    /// attachmentUploadToken property.
-    pub attachment_upload_token: Option<String>,
-    /// resourceName property.
-    pub resource_name: Option<String>,
+pub struct GoogleAppsCardV1OverflowMenuItem {
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// onClick property.
+    pub on_click: Option<Box<GoogleAppsCardV1OnClick>>,
+    /// startIcon property.
+    pub start_icon: Option<GoogleAppsCardV1Icon>,
+    /// text property.
+    pub text: Option<String>,
 }
 
-/// `GoogleAppsCardV1DataSourceConfig` type.
+/// `GoogleAppsCardV1Condition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1DataSourceConfig {
-    /// minCharactersTrigger property.
-    pub min_characters_trigger: Option<i64>,
-    /// platformDataSource property.
-    pub platform_data_source: Option<GoogleAppsCardV1PlatformDataSource>,
-    /// remoteDataSource property.
-    pub remote_data_source: Option<GoogleAppsCardV1Action>,
+pub struct GoogleAppsCardV1Condition {
+    /// actionRuleId property.
+    pub action_rule_id: Option<String>,
+    /// expressionDataCondition property.
+    pub expression_data_condition: Option<GoogleAppsCardV1ExpressionDataCondition>,
+}
+
+/// `GoogleAppsCardV1Column` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1Column {
+    /// horizontalAlignment property.
+    pub horizontal_alignment: Option<String>,
+    /// horizontalSizeStyle property.
+    pub horizontal_size_style: Option<String>,
+    /// verticalAlignment property.
+    pub vertical_alignment: Option<String>,
+    /// widgets property.
+    pub widgets: Option<Vec<Box<GoogleAppsCardV1Widgets>>>,
+}
+
+/// `CardWithId` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CardWithId {
+    /// card property.
+    pub card: Option<Box<GoogleAppsCardV1Card>>,
+    /// cardId property.
+    pub card_id: Option<String>,
+}
+
+/// `EmojiReactionSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EmojiReactionSummary {
+    /// emoji property.
+    pub emoji: Option<Emoji>,
+    /// reactionCount property.
+    pub reaction_count: Option<i64>,
 }
 
 /// `SpaceDataSource` type.
@@ -146,138 +261,18 @@ pub struct ImageButton {
     pub on_click: Option<OnClick>,
 }
 
-/// `GoogleAppsCardV1ChipList` type.
+/// `GoogleAppsCardV1Trigger` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1ChipList {
-    /// chips property.
-    pub chips: Option<Vec<GoogleAppsCardV1Chip>>,
-    /// layout property.
-    pub layout: Option<String>,
+pub struct GoogleAppsCardV1Trigger {
+    /// actionRuleId property.
+    pub action_rule_id: Option<String>,
 }
 
-/// `CustomEmoji` type.
+/// `DriveDataRef` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomEmoji {
-    /// emojiName property.
-    pub emoji_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// payload property.
-    pub payload: Option<CustomEmojiPayload>,
-    /// temporaryImageUri property.
-    pub temporary_image_uri: Option<String>,
-    /// uid property.
-    pub uid: Option<String>,
-}
-
-/// `GoogleAppsCardV1CarouselCard` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1CarouselCard {
-    /// footerWidgets property.
-    pub footer_widgets: Option<Vec<GoogleAppsCardV1NestedWidget>>,
-    /// widgets property.
-    pub widgets: Option<Vec<GoogleAppsCardV1NestedWidget>>,
-}
-
-/// `CustomEmojiPayload` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomEmojiPayload {
-    /// fileContent property.
-    pub file_content: Option<String>,
-    /// filename property.
-    pub filename: Option<String>,
-}
-
-/// `GoogleAppsCardV1PlatformDataSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1PlatformDataSource {
-    /// commonDataSource property.
-    pub common_data_source: Option<String>,
-    /// hostAppDataSource property.
-    pub host_app_data_source: Option<HostAppDataSourceMarkup>,
-}
-
-/// `EmojiReactionSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EmojiReactionSummary {
-    /// emoji property.
-    pub emoji: Option<Emoji>,
-    /// reactionCount property.
-    pub reaction_count: Option<i64>,
-}
-
-/// `GoogleAppsCardV1TextParagraph` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1TextParagraph {
-    /// maxLines property.
-    pub max_lines: Option<i64>,
-    /// text property.
-    pub text: Option<String>,
-    /// textSyntax property.
-    pub text_syntax: Option<String>,
-}
-
-/// `GoogleAppsCardV1Column` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1Column {
-    /// horizontalAlignment property.
-    pub horizontal_alignment: Option<String>,
-    /// horizontalSizeStyle property.
-    pub horizontal_size_style: Option<String>,
-    /// verticalAlignment property.
-    pub vertical_alignment: Option<String>,
-    /// widgets property.
-    pub widgets: Option<Vec<GoogleAppsCardV1Widgets>>,
-}
-
-/// `GoogleAppsCardV1OverflowMenuItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1OverflowMenuItem {
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// onClick property.
-    pub on_click: Option<GoogleAppsCardV1OnClick>,
-    /// startIcon property.
-    pub start_icon: Option<GoogleAppsCardV1Icon>,
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `QuotedMessageSnapshot` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotedMessageSnapshot {
-    /// annotations property.
-    pub annotations: Option<Vec<Annotation>>,
-    /// attachments property.
-    pub attachments: Option<Vec<Attachment>>,
-    /// formattedText property.
-    pub formatted_text: Option<String>,
-    /// sender property.
-    pub sender: Option<String>,
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `FormAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FormAction {
-    /// actionMethodName property.
-    pub action_method_name: Option<String>,
-    /// parameters property.
-    pub parameters: Option<Vec<ActionParameter>>,
-}
-
-/// `GoogleAppsCardV1ImageComponent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1ImageComponent {
-    /// altText property.
-    pub alt_text: Option<String>,
-    /// borderStyle property.
-    pub border_style: Option<GoogleAppsCardV1BorderStyle>,
-    /// cropStyle property.
-    pub crop_style: Option<GoogleAppsCardV1ImageCropStyle>,
-    /// imageUri property.
-    pub image_uri: Option<String>,
+pub struct DriveDataRef {
+    /// driveFileId property.
+    pub drive_file_id: Option<String>,
 }
 
 /// `SlashCommandMetadata` type.
@@ -295,45 +290,149 @@ pub struct SlashCommandMetadata {
     pub r#type: Option<String>,
 }
 
-/// `GoogleAppsCardV1MaterialIcon` type.
+/// `Attachment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1MaterialIcon {
-    /// fill property.
-    pub fill: Option<bool>,
-    /// grade property.
-    pub grade: Option<i64>,
+pub struct Attachment {
+    /// attachmentDataRef property.
+    pub attachment_data_ref: Option<AttachmentDataRef>,
+    /// contentName property.
+    pub content_name: Option<String>,
+    /// contentType property.
+    pub content_type: Option<String>,
+    /// downloadUri property.
+    pub download_uri: Option<String>,
+    /// driveDataRef property.
+    pub drive_data_ref: Option<DriveDataRef>,
     /// name property.
     pub name: Option<String>,
-    /// weight property.
-    pub weight: Option<i64>,
+    /// source property.
+    pub source: Option<String>,
+    /// thumbnailUri property.
+    pub thumbnail_uri: Option<String>,
 }
 
-/// `ForwardedMetadata` type.
+/// `DriveLinkData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ForwardedMetadata {
-    /// space property.
-    pub space: Option<String>,
-    /// spaceDisplayName property.
-    pub space_display_name: Option<String>,
+pub struct DriveLinkData {
+    /// driveDataRef property.
+    pub drive_data_ref: Option<DriveDataRef>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
 }
 
-/// `GoogleAppsCardV1Button` type.
+/// `GoogleAppsCardV1PlatformDataSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1Button {
-    /// altText property.
-    pub alt_text: Option<String>,
-    /// color property.
-    pub color: Option<Color>,
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// icon property.
-    pub icon: Option<GoogleAppsCardV1Icon>,
-    /// onClick property.
-    pub on_click: Option<GoogleAppsCardV1OnClick>,
-    /// text property.
-    pub text: Option<String>,
+pub struct GoogleAppsCardV1PlatformDataSource {
+    /// commonDataSource property.
+    pub common_data_source: Option<String>,
+    /// hostAppDataSource property.
+    pub host_app_data_source: Option<HostAppDataSourceMarkup>,
+}
+
+/// `GoogleAppsCardV1NestedWidget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1NestedWidget {
+    /// buttonList property.
+    pub button_list: Option<Box<GoogleAppsCardV1ButtonList>>,
+    /// image property.
+    pub image: Option<Box<GoogleAppsCardV1Image>>,
+    /// textParagraph property.
+    pub text_paragraph: Option<GoogleAppsCardV1TextParagraph>,
+}
+
+/// `AccessSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessSettings {
+    /// accessState property.
+    pub access_state: Option<String>,
+    /// audience property.
+    pub audience: Option<String>,
+}
+
+/// `ActionStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActionStatus {
+    /// statusCode property.
+    pub status_code: Option<String>,
+    /// userFacingMessage property.
+    pub user_facing_message: Option<String>,
+}
+
+/// `UpdatedWidget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdatedWidget {
+    /// suggestions property.
+    pub suggestions: Option<SelectionItems>,
+    /// widget property.
+    pub widget: Option<String>,
+}
+
+/// `GoogleAppsCardV1Columns` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1Columns {
+    /// columnItems property.
+    pub column_items: Option<Vec<Box<GoogleAppsCardV1Column>>>,
+}
+
+/// `CustomEmoji` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomEmoji {
+    /// emojiName property.
+    pub emoji_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// payload property.
+    pub payload: Option<CustomEmojiPayload>,
+    /// temporaryImageUri property.
+    pub temporary_image_uri: Option<String>,
+    /// uid property.
+    pub uid: Option<String>,
+}
+
+/// `GoogleAppsCardV1DateTimePicker` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1DateTimePicker {
+    /// hostAppDataSource property.
+    pub host_app_data_source: Option<HostAppDataSourceMarkup>,
+    /// label property.
+    pub label: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// onChangeAction property.
+    pub on_change_action: Option<GoogleAppsCardV1Action>,
+    /// timezoneOffsetDate property.
+    pub timezone_offset_date: Option<i64>,
     /// type property.
     pub r#type: Option<String>,
+    /// valueMsEpoch property.
+    pub value_ms_epoch: Option<String>,
+}
+
+/// `GoogleAppsCardV1CollapseControl` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1CollapseControl {
+    /// collapseButton property.
+    pub collapse_button: Option<Box<GoogleAppsCardV1Button>>,
+    /// expandButton property.
+    pub expand_button: Option<Box<GoogleAppsCardV1Button>>,
+    /// horizontalAlignment property.
+    pub horizontal_alignment: Option<String>,
+}
+
+/// `TextParagraph` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextParagraph {
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `GoogleAppsCardV1CardAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1CardAction {
+    /// actionLabel property.
+    pub action_label: Option<String>,
+    /// onClick property.
+    pub on_click: Option<Box<GoogleAppsCardV1OnClick>>,
 }
 
 /// `KeyValue` type.
@@ -357,6 +456,342 @@ pub struct KeyValue {
     pub top_label: Option<String>,
 }
 
+/// `CardHeader` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CardHeader {
+    /// imageStyle property.
+    pub image_style: Option<String>,
+    /// imageUrl property.
+    pub image_url: Option<String>,
+    /// subtitle property.
+    pub subtitle: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `AttachmentDataRef` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AttachmentDataRef {
+    /// attachmentUploadToken property.
+    pub attachment_upload_token: Option<String>,
+    /// resourceName property.
+    pub resource_name: Option<String>,
+}
+
+/// `CustomEmojiPayload` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomEmojiPayload {
+    /// fileContent property.
+    pub file_content: Option<String>,
+    /// filename property.
+    pub filename: Option<String>,
+}
+
+/// `Button` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Button {
+    /// imageButton property.
+    pub image_button: Option<ImageButton>,
+    /// textButton property.
+    pub text_button: Option<TextButton>,
+}
+
+/// `Emoji` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Emoji {
+    /// customEmoji property.
+    pub custom_emoji: Option<CustomEmoji>,
+    /// unicode property.
+    pub unicode: Option<String>,
+}
+
+/// `Card` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Card {
+    /// cardActions property.
+    pub card_actions: Option<Vec<CardAction>>,
+    /// header property.
+    pub header: Option<CardHeader>,
+    /// name property.
+    pub name: Option<String>,
+    /// sections property.
+    pub sections: Option<Vec<Section>>,
+}
+
+/// `GoogleAppsCardV1SelectionItem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1SelectionItem {
+    /// bottomText property.
+    pub bottom_text: Option<String>,
+    /// selected property.
+    pub selected: Option<bool>,
+    /// startIconUri property.
+    pub start_icon_uri: Option<String>,
+    /// text property.
+    pub text: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GoogleAppsCardV1ImageCropStyle` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1ImageCropStyle {
+    /// aspectRatio property.
+    pub aspect_ratio: Option<f64>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `CustomEmojiMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomEmojiMetadata {
+    /// customEmoji property.
+    pub custom_emoji: Option<CustomEmoji>,
+}
+
+/// `OpenLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OpenLink {
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `HostAppDataSourceMarkup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HostAppDataSourceMarkup {
+    /// chatDataSource property.
+    pub chat_data_source: Option<ChatClientDataSourceMarkup>,
+    /// workflowDataSource property.
+    pub workflow_data_source: Option<WorkflowDataSourceMarkup>,
+}
+
+/// `CalendarEventLinkData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CalendarEventLinkData {
+    /// calendarId property.
+    pub calendar_id: Option<String>,
+    /// eventId property.
+    pub event_id: Option<String>,
+}
+
+/// `CardAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CardAction {
+    /// actionLabel property.
+    pub action_label: Option<String>,
+    /// onClick property.
+    pub on_click: Option<OnClick>,
+}
+
+/// `GoogleAppsCardV1TextInput` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1TextInput {
+    /// autoCompleteAction property.
+    pub auto_complete_action: Option<GoogleAppsCardV1Action>,
+    /// hintText property.
+    pub hint_text: Option<String>,
+    /// hostAppDataSource property.
+    pub host_app_data_source: Option<HostAppDataSourceMarkup>,
+    /// initialSuggestions property.
+    pub initial_suggestions: Option<GoogleAppsCardV1Suggestions>,
+    /// label property.
+    pub label: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// onChangeAction property.
+    pub on_change_action: Option<GoogleAppsCardV1Action>,
+    /// placeholderText property.
+    pub placeholder_text: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// validation property.
+    pub validation: Option<GoogleAppsCardV1Validation>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `ChatClientDataSourceMarkup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChatClientDataSourceMarkup {
+    /// spaceDataSource property.
+    pub space_data_source: Option<SpaceDataSource>,
+}
+
+/// `GoogleAppsCardV1Image` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1Image {
+    /// altText property.
+    pub alt_text: Option<String>,
+    /// imageUrl property.
+    pub image_url: Option<String>,
+    /// onClick property.
+    pub on_click: Option<Box<GoogleAppsCardV1OnClick>>,
+}
+
+/// `GoogleAppsCardV1Section` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1Section {
+    /// collapseControl property.
+    pub collapse_control: Option<Box<GoogleAppsCardV1CollapseControl>>,
+    /// collapsible property.
+    pub collapsible: Option<bool>,
+    /// header property.
+    pub header: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// uncollapsibleWidgetsCount property.
+    pub uncollapsible_widgets_count: Option<i64>,
+    /// widgets property.
+    pub widgets: Option<Vec<Box<GoogleAppsCardV1Widget>>>,
+}
+
+/// `GoogleAppsCardV1Validation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1Validation {
+    /// characterLimit property.
+    pub character_limit: Option<i64>,
+    /// inputType property.
+    pub input_type: Option<String>,
+}
+
+/// `WorkflowDataSourceMarkup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkflowDataSourceMarkup {
+    /// includeVariables property.
+    pub include_variables: Option<bool>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `MembershipCount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MembershipCount {
+    /// joinedDirectHumanUserCount property.
+    pub joined_direct_human_user_count: Option<i64>,
+    /// joinedGroupCount property.
+    pub joined_group_count: Option<i64>,
+}
+
+/// `QuotedMessageSnapshot` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuotedMessageSnapshot {
+    /// annotations property.
+    pub annotations: Option<Vec<Annotation>>,
+    /// attachments property.
+    pub attachments: Option<Vec<Attachment>>,
+    /// formattedText property.
+    pub formatted_text: Option<String>,
+    /// sender property.
+    pub sender: Option<String>,
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `WidgetMarkup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WidgetMarkup {
+    /// buttons property.
+    pub buttons: Option<Vec<Button>>,
+    /// image property.
+    pub image: Option<Image>,
+    /// keyValue property.
+    pub key_value: Option<KeyValue>,
+    /// textParagraph property.
+    pub text_paragraph: Option<TextParagraph>,
+}
+
+/// `ListMessagesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListMessagesResponse {
+    /// messages property.
+    pub messages: Option<Vec<Message>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleAppsCardV1SwitchControl` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1SwitchControl {
+    /// controlType property.
+    pub control_type: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// onChangeAction property.
+    pub on_change_action: Option<GoogleAppsCardV1Action>,
+    /// selected property.
+    pub selected: Option<bool>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `TextButton` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextButton {
+    /// onClick property.
+    pub on_click: Option<OnClick>,
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `MeetSpaceLinkData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MeetSpaceLinkData {
+    /// huddleStatus property.
+    pub huddle_status: Option<String>,
+    /// meetingCode property.
+    pub meeting_code: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleAppsCardV1Grid` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1Grid {
+    /// borderStyle property.
+    pub border_style: Option<GoogleAppsCardV1BorderStyle>,
+    /// columnCount property.
+    pub column_count: Option<i64>,
+    /// items property.
+    pub items: Option<Vec<GoogleAppsCardV1GridItem>>,
+    /// onClick property.
+    pub on_click: Option<Box<GoogleAppsCardV1OnClick>>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleAppsCardV1CarouselCard` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1CarouselCard {
+    /// footerWidgets property.
+    pub footer_widgets: Option<Vec<Box<GoogleAppsCardV1NestedWidget>>>,
+    /// widgets property.
+    pub widgets: Option<Vec<Box<GoogleAppsCardV1NestedWidget>>>,
+}
+
+/// `Section` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Section {
+    /// header property.
+    pub header: Option<String>,
+    /// widgets property.
+    pub widgets: Option<Vec<WidgetMarkup>>,
+}
+
+/// `GoogleAppsCardV1GridItem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1GridItem {
+    /// id property.
+    pub id: Option<String>,
+    /// image property.
+    pub image: Option<GoogleAppsCardV1ImageComponent>,
+    /// layout property.
+    pub layout: Option<String>,
+    /// subtitle property.
+    pub subtitle: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
 /// `GoogleAppsCardV1DecoratedText` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1DecoratedText {
@@ -365,7 +800,7 @@ pub struct GoogleAppsCardV1DecoratedText {
     /// bottomLabelText property.
     pub bottom_label_text: Option<GoogleAppsCardV1TextParagraph>,
     /// button property.
-    pub button: Option<GoogleAppsCardV1Button>,
+    pub button: Option<Box<GoogleAppsCardV1Button>>,
     /// contentText property.
     pub content_text: Option<GoogleAppsCardV1TextParagraph>,
     /// endIcon property.
@@ -373,7 +808,7 @@ pub struct GoogleAppsCardV1DecoratedText {
     /// icon property.
     pub icon: Option<GoogleAppsCardV1Icon>,
     /// onClick property.
-    pub on_click: Option<GoogleAppsCardV1OnClick>,
+    pub on_click: Option<Box<GoogleAppsCardV1OnClick>>,
     /// startIcon property.
     pub start_icon: Option<GoogleAppsCardV1Icon>,
     /// startIconVerticalAlignment property.
@@ -390,17 +825,39 @@ pub struct GoogleAppsCardV1DecoratedText {
     pub wrap_text: Option<bool>,
 }
 
+/// `GoogleAppsCardV1Divider` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1Divider {}
+
+/// `ChatSpaceLinkData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChatSpaceLinkData {
+    /// message property.
+    pub message: Option<String>,
+    /// space property.
+    pub space: Option<String>,
+    /// thread property.
+    pub thread: Option<String>,
+}
+
+/// `AccessoryWidget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessoryWidget {
+    /// buttonList property.
+    pub button_list: Option<Box<GoogleAppsCardV1ButtonList>>,
+}
+
 /// `GoogleAppsCardV1Card` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1Card {
     /// cardActions property.
-    pub card_actions: Option<Vec<GoogleAppsCardV1CardAction>>,
+    pub card_actions: Option<Vec<Box<GoogleAppsCardV1CardAction>>>,
     /// displayStyle property.
     pub display_style: Option<String>,
     /// expressionData property.
     pub expression_data: Option<Vec<GoogleAppsCardV1ExpressionData>>,
     /// fixedFooter property.
-    pub fixed_footer: Option<GoogleAppsCardV1CardFixedFooter>,
+    pub fixed_footer: Option<Box<GoogleAppsCardV1CardFixedFooter>>,
     /// header property.
     pub header: Option<GoogleAppsCardV1CardHeader>,
     /// name property.
@@ -410,7 +867,221 @@ pub struct GoogleAppsCardV1Card {
     /// sectionDividerStyle property.
     pub section_divider_style: Option<String>,
     /// sections property.
-    pub sections: Option<Vec<GoogleAppsCardV1Section>>,
+    pub sections: Option<Vec<Box<GoogleAppsCardV1Section>>>,
+}
+
+/// `GoogleAppsCardV1OnClick` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1OnClick {
+    /// action property.
+    pub action: Option<GoogleAppsCardV1Action>,
+    /// card property.
+    pub card: Option<Box<GoogleAppsCardV1Card>>,
+    /// openDynamicLinkAction property.
+    pub open_dynamic_link_action: Option<GoogleAppsCardV1Action>,
+    /// openLink property.
+    pub open_link: Option<GoogleAppsCardV1OpenLink>,
+    /// overflowMenu property.
+    pub overflow_menu: Option<Box<GoogleAppsCardV1OverflowMenu>>,
+}
+
+/// `GoogleAppsCardV1OverflowMenu` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1OverflowMenu {
+    /// items property.
+    pub items: Option<Vec<Box<GoogleAppsCardV1OverflowMenuItem>>>,
+}
+
+/// `GoogleAppsCardV1SelectionInput` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1SelectionInput {
+    /// dataSourceConfigs property.
+    pub data_source_configs: Option<Vec<GoogleAppsCardV1DataSourceConfig>>,
+    /// externalDataSource property.
+    pub external_data_source: Option<GoogleAppsCardV1Action>,
+    /// hintText property.
+    pub hint_text: Option<String>,
+    /// items property.
+    pub items: Option<Vec<GoogleAppsCardV1SelectionItem>>,
+    /// label property.
+    pub label: Option<String>,
+    /// multiSelectMaxSelectedItems property.
+    pub multi_select_max_selected_items: Option<i64>,
+    /// multiSelectMinQueryLength property.
+    pub multi_select_min_query_length: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// onChangeAction property.
+    pub on_change_action: Option<GoogleAppsCardV1Action>,
+    /// platformDataSource property.
+    pub platform_data_source: Option<GoogleAppsCardV1PlatformDataSource>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleAppsCardV1CardHeader` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1CardHeader {
+    /// imageAltText property.
+    pub image_alt_text: Option<String>,
+    /// imageType property.
+    pub image_type: Option<String>,
+    /// imageUrl property.
+    pub image_url: Option<String>,
+    /// subtitle property.
+    pub subtitle: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleAppsCardV1Button` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1Button {
+    /// altText property.
+    pub alt_text: Option<String>,
+    /// color property.
+    pub color: Option<Color>,
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// icon property.
+    pub icon: Option<GoogleAppsCardV1Icon>,
+    /// onClick property.
+    pub on_click: Option<Box<GoogleAppsCardV1OnClick>>,
+    /// text property.
+    pub text: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleAppsCardV1CommonWidgetAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1CommonWidgetAction {
+    /// updateVisibilityAction property.
+    pub update_visibility_action: Option<GoogleAppsCardV1UpdateVisibilityAction>,
+}
+
+/// `Thread` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Thread {
+    /// name property.
+    pub name: Option<String>,
+    /// threadKey property.
+    pub thread_key: Option<String>,
+}
+
+/// `GoogleAppsCardV1DataSourceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1DataSourceConfig {
+    /// minCharactersTrigger property.
+    pub min_characters_trigger: Option<i64>,
+    /// platformDataSource property.
+    pub platform_data_source: Option<GoogleAppsCardV1PlatformDataSource>,
+    /// remoteDataSource property.
+    pub remote_data_source: Option<GoogleAppsCardV1Action>,
+}
+
+/// `GoogleAppsCardV1Carousel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1Carousel {
+    /// carouselCards property.
+    pub carousel_cards: Option<Vec<Box<GoogleAppsCardV1CarouselCard>>>,
+}
+
+/// `GoogleAppsCardV1Widget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1Widget {
+    /// buttonList property.
+    pub button_list: Option<Box<GoogleAppsCardV1ButtonList>>,
+    /// carousel property.
+    pub carousel: Option<Box<GoogleAppsCardV1Carousel>>,
+    /// chipList property.
+    pub chip_list: Option<Box<GoogleAppsCardV1ChipList>>,
+    /// columns property.
+    pub columns: Option<Box<GoogleAppsCardV1Columns>>,
+    /// dateTimePicker property.
+    pub date_time_picker: Option<GoogleAppsCardV1DateTimePicker>,
+    /// decoratedText property.
+    pub decorated_text: Option<Box<GoogleAppsCardV1DecoratedText>>,
+    /// divider property.
+    pub divider: Option<GoogleAppsCardV1Divider>,
+    /// eventActions property.
+    pub event_actions: Option<Vec<GoogleAppsCardV1EventAction>>,
+    /// grid property.
+    pub grid: Option<Box<GoogleAppsCardV1Grid>>,
+    /// horizontalAlignment property.
+    pub horizontal_alignment: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// image property.
+    pub image: Option<Box<GoogleAppsCardV1Image>>,
+    /// selectionInput property.
+    pub selection_input: Option<GoogleAppsCardV1SelectionInput>,
+    /// textInput property.
+    pub text_input: Option<GoogleAppsCardV1TextInput>,
+    /// textParagraph property.
+    pub text_paragraph: Option<GoogleAppsCardV1TextParagraph>,
+    /// visibility property.
+    pub visibility: Option<String>,
+}
+
+/// `GoogleAppsCardV1Icon` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1Icon {
+    /// altText property.
+    pub alt_text: Option<String>,
+    /// iconUrl property.
+    pub icon_url: Option<String>,
+    /// imageType property.
+    pub image_type: Option<String>,
+    /// knownIcon property.
+    pub known_icon: Option<String>,
+    /// materialIcon property.
+    pub material_icon: Option<GoogleAppsCardV1MaterialIcon>,
+}
+
+/// `GoogleAppsCardV1ExpressionDataCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1ExpressionDataCondition {
+    /// conditionType property.
+    pub condition_type: Option<String>,
+}
+
+/// `GoogleAppsCardV1Chip` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1Chip {
+    /// altText property.
+    pub alt_text: Option<String>,
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// icon property.
+    pub icon: Option<GoogleAppsCardV1Icon>,
+    /// label property.
+    pub label: Option<String>,
+    /// onClick property.
+    pub on_click: Option<Box<GoogleAppsCardV1OnClick>>,
+}
+
+/// `GoogleAppsCardV1Widgets` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1Widgets {
+    /// buttonList property.
+    pub button_list: Option<Box<GoogleAppsCardV1ButtonList>>,
+    /// chipList property.
+    pub chip_list: Option<Box<GoogleAppsCardV1ChipList>>,
+    /// dateTimePicker property.
+    pub date_time_picker: Option<GoogleAppsCardV1DateTimePicker>,
+    /// decoratedText property.
+    pub decorated_text: Option<Box<GoogleAppsCardV1DecoratedText>>,
+    /// image property.
+    pub image: Option<Box<GoogleAppsCardV1Image>>,
+    /// selectionInput property.
+    pub selection_input: Option<GoogleAppsCardV1SelectionInput>,
+    /// textInput property.
+    pub text_input: Option<GoogleAppsCardV1TextInput>,
+    /// textParagraph property.
+    pub text_paragraph: Option<GoogleAppsCardV1TextParagraph>,
 }
 
 /// `GoogleAppsCardV1Action` type.
@@ -443,56 +1114,53 @@ pub struct Image {
     pub on_click: Option<OnClick>,
 }
 
-/// `Card` type.
+/// `GoogleAppsCardV1BorderStyle` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Card {
-    /// cardActions property.
-    pub card_actions: Option<Vec<CardAction>>,
-    /// header property.
-    pub header: Option<CardHeader>,
-    /// name property.
-    pub name: Option<String>,
-    /// sections property.
-    pub sections: Option<Vec<Section>>,
+pub struct GoogleAppsCardV1BorderStyle {
+    /// cornerRadius property.
+    pub corner_radius: Option<i64>,
+    /// strokeColor property.
+    pub stroke_color: Option<Color>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
-/// `GoogleAppsCardV1SwitchControl` type.
+/// `UserMentionMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1SwitchControl {
-    /// controlType property.
-    pub control_type: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// onChangeAction property.
-    pub on_change_action: Option<GoogleAppsCardV1Action>,
-    /// selected property.
-    pub selected: Option<bool>,
-    /// value property.
-    pub value: Option<String>,
+pub struct UserMentionMetadata {
+    /// type property.
+    pub r#type: Option<String>,
+    /// user property.
+    pub user: Option<User>,
 }
 
-/// `GoogleAppsCardV1Chip` type.
+/// `ActionResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1Chip {
-    /// altText property.
-    pub alt_text: Option<String>,
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// icon property.
-    pub icon: Option<GoogleAppsCardV1Icon>,
-    /// label property.
-    pub label: Option<String>,
-    /// onClick property.
-    pub on_click: Option<GoogleAppsCardV1OnClick>,
+pub struct ActionResponse {
+    /// dialogAction property.
+    pub dialog_action: Option<DialogAction>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// updatedWidget property.
+    pub updated_widget: Option<UpdatedWidget>,
+    /// url property.
+    pub url: Option<String>,
 }
 
-/// `TextParagraph` type.
+/// `SlashCommand` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextParagraph {
-    /// text property.
-    pub text: Option<String>,
+pub struct SlashCommand {
+    /// commandId property.
+    pub command_id: Option<String>,
+}
+
+/// `ForwardedMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ForwardedMetadata {
+    /// space property.
+    pub space: Option<String>,
+    /// spaceDisplayName property.
+    pub space_display_name: Option<String>,
 }
 
 /// `PermissionSettings` type.
@@ -514,688 +1182,6 @@ pub struct PermissionSettings {
     pub toggle_history: Option<PermissionSetting>,
     /// useAtMentionAll property.
     pub use_at_mention_all: Option<PermissionSetting>,
-}
-
-/// `MeetSpaceLinkData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MeetSpaceLinkData {
-    /// huddleStatus property.
-    pub huddle_status: Option<String>,
-    /// meetingCode property.
-    pub meeting_code: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleAppsCardV1UpdateVisibilityAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1UpdateVisibilityAction {
-    /// visibility property.
-    pub visibility: Option<String>,
-}
-
-/// `TextButton` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextButton {
-    /// onClick property.
-    pub on_click: Option<OnClick>,
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `GoogleAppsCardV1Divider` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1Divider {}
-
-/// `OnClick` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OnClick {
-    /// action property.
-    pub action: Option<FormAction>,
-    /// openLink property.
-    pub open_link: Option<OpenLink>,
-}
-
-/// `GoogleAppsCardV1OpenLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1OpenLink {
-    /// onClose property.
-    pub on_close: Option<String>,
-    /// openAs property.
-    pub open_as: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `RichLinkMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RichLinkMetadata {
-    /// calendarEventLinkData property.
-    pub calendar_event_link_data: Option<CalendarEventLinkData>,
-    /// chatSpaceLinkData property.
-    pub chat_space_link_data: Option<ChatSpaceLinkData>,
-    /// driveLinkData property.
-    pub drive_link_data: Option<DriveLinkData>,
-    /// meetSpaceLinkData property.
-    pub meet_space_link_data: Option<MeetSpaceLinkData>,
-    /// richLinkType property.
-    pub rich_link_type: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `GoogleAppsCardV1Condition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1Condition {
-    /// actionRuleId property.
-    pub action_rule_id: Option<String>,
-    /// expressionDataCondition property.
-    pub expression_data_condition: Option<GoogleAppsCardV1ExpressionDataCondition>,
-}
-
-/// `GoogleAppsCardV1GridItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1GridItem {
-    /// id property.
-    pub id: Option<String>,
-    /// image property.
-    pub image: Option<GoogleAppsCardV1ImageComponent>,
-    /// layout property.
-    pub layout: Option<String>,
-    /// subtitle property.
-    pub subtitle: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `CardWithId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CardWithId {
-    /// card property.
-    pub card: Option<GoogleAppsCardV1Card>,
-    /// cardId property.
-    pub card_id: Option<String>,
-}
-
-/// `GoogleAppsCardV1Image` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1Image {
-    /// altText property.
-    pub alt_text: Option<String>,
-    /// imageUrl property.
-    pub image_url: Option<String>,
-    /// onClick property.
-    pub on_click: Option<GoogleAppsCardV1OnClick>,
-}
-
-/// `GoogleAppsCardV1Icon` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1Icon {
-    /// altText property.
-    pub alt_text: Option<String>,
-    /// iconUrl property.
-    pub icon_url: Option<String>,
-    /// imageType property.
-    pub image_type: Option<String>,
-    /// knownIcon property.
-    pub known_icon: Option<String>,
-    /// materialIcon property.
-    pub material_icon: Option<GoogleAppsCardV1MaterialIcon>,
-}
-
-/// `SelectionItems` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SelectionItems {
-    /// items property.
-    pub items: Option<Vec<GoogleAppsCardV1SelectionItem>>,
-}
-
-/// `GoogleAppsCardV1SelectionInput` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1SelectionInput {
-    /// dataSourceConfigs property.
-    pub data_source_configs: Option<Vec<GoogleAppsCardV1DataSourceConfig>>,
-    /// externalDataSource property.
-    pub external_data_source: Option<GoogleAppsCardV1Action>,
-    /// hintText property.
-    pub hint_text: Option<String>,
-    /// items property.
-    pub items: Option<Vec<GoogleAppsCardV1SelectionItem>>,
-    /// label property.
-    pub label: Option<String>,
-    /// multiSelectMaxSelectedItems property.
-    pub multi_select_max_selected_items: Option<i64>,
-    /// multiSelectMinQueryLength property.
-    pub multi_select_min_query_length: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-    /// onChangeAction property.
-    pub on_change_action: Option<GoogleAppsCardV1Action>,
-    /// platformDataSource property.
-    pub platform_data_source: Option<GoogleAppsCardV1PlatformDataSource>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `AccessSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessSettings {
-    /// accessState property.
-    pub access_state: Option<String>,
-    /// audience property.
-    pub audience: Option<String>,
-}
-
-/// `Button` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Button {
-    /// imageButton property.
-    pub image_button: Option<ImageButton>,
-    /// textButton property.
-    pub text_button: Option<TextButton>,
-}
-
-/// `DriveLinkData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DriveLinkData {
-    /// driveDataRef property.
-    pub drive_data_ref: Option<DriveDataRef>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-}
-
-/// `GoogleAppsCardV1ButtonList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1ButtonList {
-    /// buttons property.
-    pub buttons: Option<Vec<GoogleAppsCardV1Button>>,
-}
-
-/// `GoogleAppsCardV1BorderStyle` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1BorderStyle {
-    /// cornerRadius property.
-    pub corner_radius: Option<i64>,
-    /// strokeColor property.
-    pub stroke_color: Option<Color>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleAppsCardV1ExpressionData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1ExpressionData {
-    /// conditions property.
-    pub conditions: Option<Vec<GoogleAppsCardV1Condition>>,
-    /// eventActions property.
-    pub event_actions: Option<Vec<GoogleAppsCardV1EventAction>>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-}
-
-/// `GoogleAppsCardV1Carousel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1Carousel {
-    /// carouselCards property.
-    pub carousel_cards: Option<Vec<GoogleAppsCardV1CarouselCard>>,
-}
-
-/// `GoogleAppsCardV1Widget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1Widget {
-    /// buttonList property.
-    pub button_list: Option<GoogleAppsCardV1ButtonList>,
-    /// carousel property.
-    pub carousel: Option<GoogleAppsCardV1Carousel>,
-    /// chipList property.
-    pub chip_list: Option<GoogleAppsCardV1ChipList>,
-    /// columns property.
-    pub columns: Option<GoogleAppsCardV1Columns>,
-    /// dateTimePicker property.
-    pub date_time_picker: Option<GoogleAppsCardV1DateTimePicker>,
-    /// decoratedText property.
-    pub decorated_text: Option<GoogleAppsCardV1DecoratedText>,
-    /// divider property.
-    pub divider: Option<GoogleAppsCardV1Divider>,
-    /// eventActions property.
-    pub event_actions: Option<Vec<GoogleAppsCardV1EventAction>>,
-    /// grid property.
-    pub grid: Option<GoogleAppsCardV1Grid>,
-    /// horizontalAlignment property.
-    pub horizontal_alignment: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// image property.
-    pub image: Option<GoogleAppsCardV1Image>,
-    /// selectionInput property.
-    pub selection_input: Option<GoogleAppsCardV1SelectionInput>,
-    /// textInput property.
-    pub text_input: Option<GoogleAppsCardV1TextInput>,
-    /// textParagraph property.
-    pub text_paragraph: Option<GoogleAppsCardV1TextParagraph>,
-    /// visibility property.
-    pub visibility: Option<String>,
-}
-
-/// `ChatSpaceLinkData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChatSpaceLinkData {
-    /// message property.
-    pub message: Option<String>,
-    /// space property.
-    pub space: Option<String>,
-    /// thread property.
-    pub thread: Option<String>,
-}
-
-/// `GoogleAppsCardV1TextInput` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1TextInput {
-    /// autoCompleteAction property.
-    pub auto_complete_action: Option<GoogleAppsCardV1Action>,
-    /// hintText property.
-    pub hint_text: Option<String>,
-    /// hostAppDataSource property.
-    pub host_app_data_source: Option<HostAppDataSourceMarkup>,
-    /// initialSuggestions property.
-    pub initial_suggestions: Option<GoogleAppsCardV1Suggestions>,
-    /// label property.
-    pub label: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// onChangeAction property.
-    pub on_change_action: Option<GoogleAppsCardV1Action>,
-    /// placeholderText property.
-    pub placeholder_text: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// validation property.
-    pub validation: Option<GoogleAppsCardV1Validation>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `CardHeader` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CardHeader {
-    /// imageStyle property.
-    pub image_style: Option<String>,
-    /// imageUrl property.
-    pub image_url: Option<String>,
-    /// subtitle property.
-    pub subtitle: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `DeletionMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeletionMetadata {
-    /// deletionType property.
-    pub deletion_type: Option<String>,
-}
-
-/// `OpenLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OpenLink {
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `SlashCommand` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SlashCommand {
-    /// commandId property.
-    pub command_id: Option<String>,
-}
-
-/// `User` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct User {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// domainId property.
-    pub domain_id: Option<String>,
-    /// isAnonymous property.
-    pub is_anonymous: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `Section` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Section {
-    /// header property.
-    pub header: Option<String>,
-    /// widgets property.
-    pub widgets: Option<Vec<WidgetMarkup>>,
-}
-
-/// `WorkflowDataSourceMarkup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkflowDataSourceMarkup {
-    /// includeVariables property.
-    pub include_variables: Option<bool>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleAppsCardV1Validation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1Validation {
-    /// characterLimit property.
-    pub character_limit: Option<i64>,
-    /// inputType property.
-    pub input_type: Option<String>,
-}
-
-/// `GoogleAppsCardV1SuggestionItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1SuggestionItem {
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `UserMentionMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserMentionMetadata {
-    /// type property.
-    pub r#type: Option<String>,
-    /// user property.
-    pub user: Option<User>,
-}
-
-/// `Thread` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Thread {
-    /// name property.
-    pub name: Option<String>,
-    /// threadKey property.
-    pub thread_key: Option<String>,
-}
-
-/// `GoogleAppsCardV1EventAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1EventAction {
-    /// actionRuleId property.
-    pub action_rule_id: Option<String>,
-    /// commonWidgetAction property.
-    pub common_widget_action: Option<GoogleAppsCardV1CommonWidgetAction>,
-    /// postEventTriggers property.
-    pub post_event_triggers: Option<Vec<GoogleAppsCardV1Trigger>>,
-}
-
-/// `QuotedMessageMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotedMessageMetadata {
-    /// forwardedMetadata property.
-    pub forwarded_metadata: Option<ForwardedMetadata>,
-    /// lastUpdateTime property.
-    pub last_update_time: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// quoteType property.
-    pub quote_type: Option<String>,
-    /// quotedMessageSnapshot property.
-    pub quoted_message_snapshot: Option<QuotedMessageSnapshot>,
-}
-
-/// `MatchedUrl` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MatchedUrl {
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `GoogleAppsCardV1Trigger` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1Trigger {
-    /// actionRuleId property.
-    pub action_rule_id: Option<String>,
-}
-
-/// `MembershipCount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MembershipCount {
-    /// joinedDirectHumanUserCount property.
-    pub joined_direct_human_user_count: Option<i64>,
-    /// joinedGroupCount property.
-    pub joined_group_count: Option<i64>,
-}
-
-/// `GoogleAppsCardV1ActionParameter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1ActionParameter {
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Dialog` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Dialog {
-    /// body property.
-    pub body: Option<GoogleAppsCardV1Card>,
-}
-
-/// `CardAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CardAction {
-    /// actionLabel property.
-    pub action_label: Option<String>,
-    /// onClick property.
-    pub on_click: Option<OnClick>,
-}
-
-/// `GoogleAppsCardV1Columns` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1Columns {
-    /// columnItems property.
-    pub column_items: Option<Vec<GoogleAppsCardV1Column>>,
-}
-
-/// `GoogleAppsCardV1OnClick` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1OnClick {
-    /// action property.
-    pub action: Option<GoogleAppsCardV1Action>,
-    /// card property.
-    pub card: Option<GoogleAppsCardV1Card>,
-    /// openDynamicLinkAction property.
-    pub open_dynamic_link_action: Option<GoogleAppsCardV1Action>,
-    /// openLink property.
-    pub open_link: Option<GoogleAppsCardV1OpenLink>,
-    /// overflowMenu property.
-    pub overflow_menu: Option<GoogleAppsCardV1OverflowMenu>,
-}
-
-/// `AttachedGif` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AttachedGif {
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `GoogleAppsCardV1OverflowMenu` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1OverflowMenu {
-    /// items property.
-    pub items: Option<Vec<GoogleAppsCardV1OverflowMenuItem>>,
-}
-
-/// `GoogleAppsCardV1Section` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1Section {
-    /// collapseControl property.
-    pub collapse_control: Option<GoogleAppsCardV1CollapseControl>,
-    /// collapsible property.
-    pub collapsible: Option<bool>,
-    /// header property.
-    pub header: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// uncollapsibleWidgetsCount property.
-    pub uncollapsible_widgets_count: Option<i64>,
-    /// widgets property.
-    pub widgets: Option<Vec<GoogleAppsCardV1Widget>>,
-}
-
-/// `GoogleAppsCardV1CardHeader` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1CardHeader {
-    /// imageAltText property.
-    pub image_alt_text: Option<String>,
-    /// imageType property.
-    pub image_type: Option<String>,
-    /// imageUrl property.
-    pub image_url: Option<String>,
-    /// subtitle property.
-    pub subtitle: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleAppsCardV1SelectionItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1SelectionItem {
-    /// bottomText property.
-    pub bottom_text: Option<String>,
-    /// selected property.
-    pub selected: Option<bool>,
-    /// startIconUri property.
-    pub start_icon_uri: Option<String>,
-    /// text property.
-    pub text: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `ActionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActionResponse {
-    /// dialogAction property.
-    pub dialog_action: Option<DialogAction>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// updatedWidget property.
-    pub updated_widget: Option<UpdatedWidget>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `GoogleAppsCardV1CardFixedFooter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1CardFixedFooter {
-    /// primaryButton property.
-    pub primary_button: Option<GoogleAppsCardV1Button>,
-    /// secondaryButton property.
-    pub secondary_button: Option<GoogleAppsCardV1Button>,
-}
-
-/// `GoogleAppsCardV1Grid` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1Grid {
-    /// borderStyle property.
-    pub border_style: Option<GoogleAppsCardV1BorderStyle>,
-    /// columnCount property.
-    pub column_count: Option<i64>,
-    /// items property.
-    pub items: Option<Vec<GoogleAppsCardV1GridItem>>,
-    /// onClick property.
-    pub on_click: Option<GoogleAppsCardV1OnClick>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `ChatClientDataSourceMarkup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChatClientDataSourceMarkup {
-    /// spaceDataSource property.
-    pub space_data_source: Option<SpaceDataSource>,
-}
-
-/// `AccessoryWidget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessoryWidget {
-    /// buttonList property.
-    pub button_list: Option<GoogleAppsCardV1ButtonList>,
-}
-
-/// `CalendarEventLinkData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CalendarEventLinkData {
-    /// calendarId property.
-    pub calendar_id: Option<String>,
-    /// eventId property.
-    pub event_id: Option<String>,
-}
-
-/// `ActionStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActionStatus {
-    /// statusCode property.
-    pub status_code: Option<String>,
-    /// userFacingMessage property.
-    pub user_facing_message: Option<String>,
-}
-
-/// `ListMessagesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListMessagesResponse {
-    /// messages property.
-    pub messages: Option<Vec<Message>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `SpaceDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpaceDetails {
-    /// description property.
-    pub description: Option<String>,
-    /// guidelines property.
-    pub guidelines: Option<String>,
-}
-
-/// `CustomEmojiMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomEmojiMetadata {
-    /// customEmoji property.
-    pub custom_emoji: Option<CustomEmoji>,
-}
-
-/// `ActionParameter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActionParameter {
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `GoogleAppsCardV1CollapseControl` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1CollapseControl {
-    /// collapseButton property.
-    pub collapse_button: Option<GoogleAppsCardV1Button>,
-    /// expandButton property.
-    pub expand_button: Option<GoogleAppsCardV1Button>,
-    /// horizontalAlignment property.
-    pub horizontal_alignment: Option<String>,
-}
-
-/// `GoogleAppsCardV1ImageCropStyle` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1ImageCropStyle {
-    /// aspectRatio property.
-    pub aspect_ratio: Option<f64>,
-    /// type property.
-    pub r#type: Option<String>,
 }
 
 /// `Message` type.
@@ -1255,15 +1241,64 @@ pub struct Message {
     pub thread_reply: Option<bool>,
 }
 
-/// `GoogleAppsCardV1NestedWidget` type.
+/// `GoogleAppsCardV1ExpressionData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1NestedWidget {
-    /// buttonList property.
-    pub button_list: Option<GoogleAppsCardV1ButtonList>,
-    /// image property.
-    pub image: Option<GoogleAppsCardV1Image>,
-    /// textParagraph property.
-    pub text_paragraph: Option<GoogleAppsCardV1TextParagraph>,
+pub struct GoogleAppsCardV1ExpressionData {
+    /// conditions property.
+    pub conditions: Option<Vec<GoogleAppsCardV1Condition>>,
+    /// eventActions property.
+    pub event_actions: Option<Vec<GoogleAppsCardV1EventAction>>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+}
+
+/// `GoogleAppsCardV1OpenLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1OpenLink {
+    /// onClose property.
+    pub on_close: Option<String>,
+    /// openAs property.
+    pub open_as: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `GoogleAppsCardV1MaterialIcon` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1MaterialIcon {
+    /// fill property.
+    pub fill: Option<bool>,
+    /// grade property.
+    pub grade: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// weight property.
+    pub weight: Option<i64>,
+}
+
+/// `GoogleAppsCardV1ButtonList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1ButtonList {
+    /// buttons property.
+    pub buttons: Option<Vec<Box<GoogleAppsCardV1Button>>>,
+}
+
+/// `OnClick` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OnClick {
+    /// action property.
+    pub action: Option<FormAction>,
+    /// openLink property.
+    pub open_link: Option<OpenLink>,
+}
+
+/// `DeletionMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeletionMetadata {
+    /// deletionType property.
+    pub deletion_type: Option<String>,
 }
 
 /// `DialogAction` type.
@@ -1275,60 +1310,53 @@ pub struct DialogAction {
     pub dialog: Option<Dialog>,
 }
 
-/// `GoogleAppsCardV1DateTimePicker` type.
+/// `GoogleAppsCardV1CardFixedFooter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1DateTimePicker {
-    /// hostAppDataSource property.
-    pub host_app_data_source: Option<HostAppDataSourceMarkup>,
-    /// label property.
-    pub label: Option<String>,
+pub struct GoogleAppsCardV1CardFixedFooter {
+    /// primaryButton property.
+    pub primary_button: Option<Box<GoogleAppsCardV1Button>>,
+    /// secondaryButton property.
+    pub secondary_button: Option<Box<GoogleAppsCardV1Button>>,
+}
+
+/// `GoogleAppsCardV1ChipList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1ChipList {
+    /// chips property.
+    pub chips: Option<Vec<Box<GoogleAppsCardV1Chip>>>,
+    /// layout property.
+    pub layout: Option<String>,
+}
+
+/// `GoogleAppsCardV1UpdateVisibilityAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1UpdateVisibilityAction {
+    /// visibility property.
+    pub visibility: Option<String>,
+}
+
+/// `QuotedMessageMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuotedMessageMetadata {
+    /// forwardedMetadata property.
+    pub forwarded_metadata: Option<ForwardedMetadata>,
+    /// lastUpdateTime property.
+    pub last_update_time: Option<String>,
     /// name property.
     pub name: Option<String>,
-    /// onChangeAction property.
-    pub on_change_action: Option<GoogleAppsCardV1Action>,
-    /// timezoneOffsetDate property.
-    pub timezone_offset_date: Option<i64>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// valueMsEpoch property.
-    pub value_ms_epoch: Option<String>,
+    /// quoteType property.
+    pub quote_type: Option<String>,
+    /// quotedMessageSnapshot property.
+    pub quoted_message_snapshot: Option<QuotedMessageSnapshot>,
 }
 
-/// `GoogleAppsCardV1Widgets` type.
+/// `SpaceDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1Widgets {
-    /// buttonList property.
-    pub button_list: Option<GoogleAppsCardV1ButtonList>,
-    /// chipList property.
-    pub chip_list: Option<GoogleAppsCardV1ChipList>,
-    /// dateTimePicker property.
-    pub date_time_picker: Option<GoogleAppsCardV1DateTimePicker>,
-    /// decoratedText property.
-    pub decorated_text: Option<GoogleAppsCardV1DecoratedText>,
-    /// image property.
-    pub image: Option<GoogleAppsCardV1Image>,
-    /// selectionInput property.
-    pub selection_input: Option<GoogleAppsCardV1SelectionInput>,
-    /// textInput property.
-    pub text_input: Option<GoogleAppsCardV1TextInput>,
-    /// textParagraph property.
-    pub text_paragraph: Option<GoogleAppsCardV1TextParagraph>,
-}
-
-/// `Emoji` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Emoji {
-    /// customEmoji property.
-    pub custom_emoji: Option<CustomEmoji>,
-    /// unicode property.
-    pub unicode: Option<String>,
-}
-
-/// `GoogleAppsCardV1Suggestions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1Suggestions {
-    /// items property.
-    pub items: Option<Vec<GoogleAppsCardV1SuggestionItem>>,
+pub struct SpaceDetails {
+    /// description property.
+    pub description: Option<String>,
+    /// guidelines property.
+    pub guidelines: Option<String>,
 }
 
 /// `Color` type.
@@ -1344,37 +1372,11 @@ pub struct Color {
     pub red: Option<f64>,
 }
 
-/// `PermissionSetting` type.
+/// `AttachedGif` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PermissionSetting {
-    /// assistantManagersAllowed property.
-    pub assistant_managers_allowed: Option<bool>,
-    /// managersAllowed property.
-    pub managers_allowed: Option<bool>,
-    /// membersAllowed property.
-    pub members_allowed: Option<bool>,
-}
-
-/// `WidgetMarkup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WidgetMarkup {
-    /// buttons property.
-    pub buttons: Option<Vec<Button>>,
-    /// image property.
-    pub image: Option<Image>,
-    /// keyValue property.
-    pub key_value: Option<KeyValue>,
-    /// textParagraph property.
-    pub text_paragraph: Option<TextParagraph>,
-}
-
-/// `GoogleAppsCardV1CardAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1CardAction {
-    /// actionLabel property.
-    pub action_label: Option<String>,
-    /// onClick property.
-    pub on_click: Option<GoogleAppsCardV1OnClick>,
+pub struct AttachedGif {
+    /// uri property.
+    pub uri: Option<String>,
 }
 
 // =============================================================================

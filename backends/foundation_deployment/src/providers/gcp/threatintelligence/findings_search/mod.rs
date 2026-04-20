@@ -12,17 +12,66 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `InsiderThreatFindingDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InsiderThreatFindingDetail {
+    /// documentId property.
+    pub document_id: Option<String>,
+    /// matchScore property.
+    pub match_score: Option<f64>,
+    /// severity property.
+    pub severity: Option<String>,
+}
+
+/// `SeverityAnalysis` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SeverityAnalysis {
+    /// confidence property.
+    pub confidence: Option<String>,
+    /// reasoning property.
+    pub reasoning: Option<String>,
+    /// severityLevel property.
+    pub severity_level: Option<String>,
+}
+
+/// `RelevanceAnalysis` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RelevanceAnalysis {
+    /// confidence property.
+    pub confidence: Option<String>,
+    /// evidence property.
+    pub evidence: Option<Evidence>,
+    /// reasoning property.
+    pub reasoning: Option<String>,
+    /// relevanceLevel property.
+    pub relevance_level: Option<String>,
+    /// relevant property.
+    pub relevant: Option<bool>,
+}
+
+/// `DataLeakFindingDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataLeakFindingDetail {
+    /// documentId property.
+    pub document_id: Option<String>,
+    /// matchScore property.
+    pub match_score: Option<f64>,
+    /// severity property.
+    pub severity: Option<String>,
+}
 
 /// `Finding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -53,28 +102,13 @@ pub struct Finding {
     pub severity_analysis: Option<SeverityAnalysis>,
 }
 
-/// `SeverityAnalysis` type.
+/// `Evidence` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SeverityAnalysis {
-    /// confidence property.
-    pub confidence: Option<String>,
-    /// reasoning property.
-    pub reasoning: Option<String>,
-    /// severityLevel property.
-    pub severity_level: Option<String>,
-}
-
-/// `FindingDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FindingDetail {
-    /// dataLeak property.
-    pub data_leak: Option<DataLeakFindingDetail>,
-    /// detailType property.
-    pub detail_type: Option<String>,
-    /// initialAccessBroker property.
-    pub initial_access_broker: Option<InitialAccessBrokerFindingDetail>,
-    /// insiderThreat property.
-    pub insider_threat: Option<InsiderThreatFindingDetail>,
+pub struct Evidence {
+    /// commonThemes property.
+    pub common_themes: Option<Vec<String>>,
+    /// distinctThemes property.
+    pub distinct_themes: Option<Vec<String>>,
 }
 
 /// `SearchFindingsResponse` type.
@@ -84,43 +118,6 @@ pub struct SearchFindingsResponse {
     pub findings: Option<Vec<Finding>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-}
-
-/// `InitialAccessBrokerFindingDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InitialAccessBrokerFindingDetail {
-    /// documentId property.
-    pub document_id: Option<String>,
-    /// matchScore property.
-    pub match_score: Option<f64>,
-    /// severity property.
-    pub severity: Option<String>,
-}
-
-/// `RelevanceAnalysis` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RelevanceAnalysis {
-    /// confidence property.
-    pub confidence: Option<String>,
-    /// evidence property.
-    pub evidence: Option<Evidence>,
-    /// reasoning property.
-    pub reasoning: Option<String>,
-    /// relevanceLevel property.
-    pub relevance_level: Option<String>,
-    /// relevant property.
-    pub relevant: Option<bool>,
-}
-
-/// `DataLeakFindingDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataLeakFindingDetail {
-    /// documentId property.
-    pub document_id: Option<String>,
-    /// matchScore property.
-    pub match_score: Option<f64>,
-    /// severity property.
-    pub severity: Option<String>,
 }
 
 /// `Audit` type.
@@ -136,24 +133,28 @@ pub struct Audit {
     pub updater: Option<String>,
 }
 
-/// `InsiderThreatFindingDetail` type.
+/// `FindingDetail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InsiderThreatFindingDetail {
+pub struct FindingDetail {
+    /// dataLeak property.
+    pub data_leak: Option<DataLeakFindingDetail>,
+    /// detailType property.
+    pub detail_type: Option<String>,
+    /// initialAccessBroker property.
+    pub initial_access_broker: Option<InitialAccessBrokerFindingDetail>,
+    /// insiderThreat property.
+    pub insider_threat: Option<InsiderThreatFindingDetail>,
+}
+
+/// `InitialAccessBrokerFindingDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InitialAccessBrokerFindingDetail {
     /// documentId property.
     pub document_id: Option<String>,
     /// matchScore property.
     pub match_score: Option<f64>,
     /// severity property.
     pub severity: Option<String>,
-}
-
-/// `Evidence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Evidence {
-    /// commonThemes property.
-    pub common_themes: Option<Vec<String>>,
-    /// distinctThemes property.
-    pub distinct_themes: Option<Vec<String>>,
 }
 
 // =============================================================================

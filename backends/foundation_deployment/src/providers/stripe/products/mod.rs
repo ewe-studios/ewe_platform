@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -24,9 +25,9 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DeletedProduct` response type.
+/// `Price` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeletedProduct {
+pub struct Price {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -40,9 +41,17 @@ pub struct Product {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `Price` response type.
+/// `ClimateProduct` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Price {
+pub struct ClimateProduct {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DeletedProduct` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeletedProduct {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -51,14 +60,6 @@ pub struct Price {
 /// `ProductFeature` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductFeature {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ClimateProduct` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClimateProduct {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

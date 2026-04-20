@@ -12,56 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Metric` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Metric {
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `CrossDimensionReachReportCompatibleFields` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CrossDimensionReachReportCompatibleFields {
-    /// breakdown property.
-    pub breakdown: Option<Vec<Dimension>>,
-    /// dimensionFilters property.
-    pub dimension_filters: Option<Vec<Dimension>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// metrics property.
-    pub metrics: Option<Vec<Metric>>,
-    /// overlapMetrics property.
-    pub overlap_metrics: Option<Vec<Metric>>,
-}
-
-/// `PathToConversionReportCompatibleFields` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PathToConversionReportCompatibleFields {
-    /// conversionDimensions property.
-    pub conversion_dimensions: Option<Vec<Dimension>>,
-    /// customFloodlightVariables property.
-    pub custom_floodlight_variables: Option<Vec<Dimension>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// metrics property.
-    pub metrics: Option<Vec<Metric>>,
-    /// perInteractionDimensions property.
-    pub per_interaction_dimensions: Option<Vec<Dimension>>,
-}
 
 /// `CompatibleFields` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -83,6 +45,73 @@ pub struct CompatibleFields {
     pub report_compatible_fields: Option<ReportCompatibleFields>,
 }
 
+/// `ReportCompatibleFields` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportCompatibleFields {
+    /// dimensionFilters property.
+    pub dimension_filters: Option<Vec<Dimension>>,
+    /// dimensions property.
+    pub dimensions: Option<Vec<Dimension>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// metrics property.
+    pub metrics: Option<Vec<Metric>>,
+    /// pivotedActivityMetrics property.
+    pub pivoted_activity_metrics: Option<Vec<Metric>>,
+}
+
+/// `Metric` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Metric {
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `PathToConversionReportCompatibleFields` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PathToConversionReportCompatibleFields {
+    /// conversionDimensions property.
+    pub conversion_dimensions: Option<Vec<Dimension>>,
+    /// customFloodlightVariables property.
+    pub custom_floodlight_variables: Option<Vec<Dimension>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// metrics property.
+    pub metrics: Option<Vec<Metric>>,
+    /// perInteractionDimensions property.
+    pub per_interaction_dimensions: Option<Vec<Dimension>>,
+}
+
+/// `CrossDimensionReachReportCompatibleFields` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CrossDimensionReachReportCompatibleFields {
+    /// breakdown property.
+    pub breakdown: Option<Vec<Dimension>>,
+    /// dimensionFilters property.
+    pub dimension_filters: Option<Vec<Dimension>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// metrics property.
+    pub metrics: Option<Vec<Metric>>,
+    /// overlapMetrics property.
+    pub overlap_metrics: Option<Vec<Metric>>,
+}
+
+/// `FloodlightReportCompatibleFields` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FloodlightReportCompatibleFields {
+    /// dimensionFilters property.
+    pub dimension_filters: Option<Vec<Dimension>>,
+    /// dimensions property.
+    pub dimensions: Option<Vec<Dimension>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// metrics property.
+    pub metrics: Option<Vec<Metric>>,
+}
+
 /// `ReachReportCompatibleFields` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReachReportCompatibleFields {
@@ -100,17 +129,26 @@ pub struct ReachReportCompatibleFields {
     pub reach_by_frequency_metrics: Option<Vec<Metric>>,
 }
 
-/// `DimensionValueList` type.
+/// `Dimension` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DimensionValueList {
-    /// etag property.
-    pub etag: Option<String>,
-    /// items property.
-    pub items: Option<Vec<DimensionValue>>,
+pub struct Dimension {
     /// kind property.
     pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `CrossMediaReachReportCompatibleFields` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CrossMediaReachReportCompatibleFields {
+    /// dimensionFilters property.
+    pub dimension_filters: Option<Vec<Dimension>>,
+    /// dimensions property.
+    pub dimensions: Option<Vec<Dimension>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// metrics property.
+    pub metrics: Option<Vec<Metric>>,
 }
 
 /// `DimensionValue` type.
@@ -130,54 +168,17 @@ pub struct DimensionValue {
     pub value: Option<String>,
 }
 
-/// `ReportCompatibleFields` type.
+/// `DimensionValueList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportCompatibleFields {
-    /// dimensionFilters property.
-    pub dimension_filters: Option<Vec<Dimension>>,
-    /// dimensions property.
-    pub dimensions: Option<Vec<Dimension>>,
+pub struct DimensionValueList {
+    /// etag property.
+    pub etag: Option<String>,
+    /// items property.
+    pub items: Option<Vec<DimensionValue>>,
     /// kind property.
     pub kind: Option<String>,
-    /// metrics property.
-    pub metrics: Option<Vec<Metric>>,
-    /// pivotedActivityMetrics property.
-    pub pivoted_activity_metrics: Option<Vec<Metric>>,
-}
-
-/// `CrossMediaReachReportCompatibleFields` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CrossMediaReachReportCompatibleFields {
-    /// dimensionFilters property.
-    pub dimension_filters: Option<Vec<Dimension>>,
-    /// dimensions property.
-    pub dimensions: Option<Vec<Dimension>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// metrics property.
-    pub metrics: Option<Vec<Metric>>,
-}
-
-/// `FloodlightReportCompatibleFields` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FloodlightReportCompatibleFields {
-    /// dimensionFilters property.
-    pub dimension_filters: Option<Vec<Dimension>>,
-    /// dimensions property.
-    pub dimensions: Option<Vec<Dimension>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// metrics property.
-    pub metrics: Option<Vec<Metric>>,
-}
-
-/// `Dimension` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Dimension {
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

@@ -12,17 +12,52 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudDialogflowCxV3SafetySettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3SafetySettings {
+    /// bannedPhrases property.
+    pub banned_phrases: Option<Vec<GoogleCloudDialogflowCxV3SafetySettingsPhrase>>,
+    /// defaultBannedPhraseMatchStrategy property.
+    pub default_banned_phrase_match_strategy: Option<String>,
+    /// defaultRaiSettings property.
+    pub default_rai_settings: Option<GoogleCloudDialogflowCxV3SafetySettingsRaiSettings>,
+    /// promptSecuritySettings property.
+    pub prompt_security_settings:
+        Option<GoogleCloudDialogflowCxV3SafetySettingsPromptSecuritySettings>,
+    /// raiSettings property.
+    pub rai_settings: Option<GoogleCloudDialogflowCxV3SafetySettingsRaiSettings>,
+}
+
+/// `GoogleCloudDialogflowCxV3LlmModelSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3LlmModelSettings {
+    /// model property.
+    pub model: Option<String>,
+    /// promptText property.
+    pub prompt_text: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3SafetySettingsRaiSettingsCategoryFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3SafetySettingsRaiSettingsCategoryFilter {
+    /// category property.
+    pub category: Option<String>,
+    /// filterLevel property.
+    pub filter_level: Option<String>,
+}
 
 /// `GoogleCloudDialogflowCxV3SafetySettingsPhrase` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -33,12 +68,40 @@ pub struct GoogleCloudDialogflowCxV3SafetySettingsPhrase {
     pub text: Option<String>,
 }
 
+/// `GoogleCloudDialogflowCxV3GenerativeSettingsFallbackSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3GenerativeSettingsFallbackSettings {
+    /// promptTemplates property.
+    pub prompt_templates:
+        Option<Vec<GoogleCloudDialogflowCxV3GenerativeSettingsFallbackSettingsPromptTemplate>>,
+    /// selectedPrompt property.
+    pub selected_prompt: Option<String>,
+}
+
 /// `GoogleCloudDialogflowCxV3SafetySettingsRaiSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDialogflowCxV3SafetySettingsRaiSettings {
     /// categoryFilters property.
     pub category_filters:
         Option<Vec<GoogleCloudDialogflowCxV3SafetySettingsRaiSettingsCategoryFilter>>,
+}
+
+/// `GoogleCloudDialogflowCxV3GenerativeSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3GenerativeSettings {
+    /// fallbackSettings property.
+    pub fallback_settings: Option<GoogleCloudDialogflowCxV3GenerativeSettingsFallbackSettings>,
+    /// generativeSafetySettings property.
+    pub generative_safety_settings: Option<GoogleCloudDialogflowCxV3SafetySettings>,
+    /// knowledgeConnectorSettings property.
+    pub knowledge_connector_settings:
+        Option<GoogleCloudDialogflowCxV3GenerativeSettingsKnowledgeConnectorSettings>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// llmModelSettings property.
+    pub llm_model_settings: Option<GoogleCloudDialogflowCxV3LlmModelSettings>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 /// `GoogleCloudDialogflowCxV3GenerativeSettingsKnowledgeConnectorSettings` type.
@@ -65,34 +128,6 @@ pub struct GoogleCloudDialogflowCxV3SafetySettingsPromptSecuritySettings {
     pub enable_prompt_security: Option<bool>,
 }
 
-/// `GoogleCloudDialogflowCxV3SafetySettingsRaiSettingsCategoryFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3SafetySettingsRaiSettingsCategoryFilter {
-    /// category property.
-    pub category: Option<String>,
-    /// filterLevel property.
-    pub filter_level: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3GenerativeSettingsFallbackSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3GenerativeSettingsFallbackSettings {
-    /// promptTemplates property.
-    pub prompt_templates:
-        Option<Vec<GoogleCloudDialogflowCxV3GenerativeSettingsFallbackSettingsPromptTemplate>>,
-    /// selectedPrompt property.
-    pub selected_prompt: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3LlmModelSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3LlmModelSettings {
-    /// model property.
-    pub model: Option<String>,
-    /// promptText property.
-    pub prompt_text: Option<String>,
-}
-
 /// `GoogleCloudDialogflowCxV3GenerativeSettingsFallbackSettingsPromptTemplate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDialogflowCxV3GenerativeSettingsFallbackSettingsPromptTemplate {
@@ -102,40 +137,6 @@ pub struct GoogleCloudDialogflowCxV3GenerativeSettingsFallbackSettingsPromptTemp
     pub frozen: Option<bool>,
     /// promptText property.
     pub prompt_text: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3SafetySettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3SafetySettings {
-    /// bannedPhrases property.
-    pub banned_phrases: Option<Vec<GoogleCloudDialogflowCxV3SafetySettingsPhrase>>,
-    /// defaultBannedPhraseMatchStrategy property.
-    pub default_banned_phrase_match_strategy: Option<String>,
-    /// defaultRaiSettings property.
-    pub default_rai_settings: Option<GoogleCloudDialogflowCxV3SafetySettingsRaiSettings>,
-    /// promptSecuritySettings property.
-    pub prompt_security_settings:
-        Option<GoogleCloudDialogflowCxV3SafetySettingsPromptSecuritySettings>,
-    /// raiSettings property.
-    pub rai_settings: Option<GoogleCloudDialogflowCxV3SafetySettingsRaiSettings>,
-}
-
-/// `GoogleCloudDialogflowCxV3GenerativeSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3GenerativeSettings {
-    /// fallbackSettings property.
-    pub fallback_settings: Option<GoogleCloudDialogflowCxV3GenerativeSettingsFallbackSettings>,
-    /// generativeSafetySettings property.
-    pub generative_safety_settings: Option<GoogleCloudDialogflowCxV3SafetySettings>,
-    /// knowledgeConnectorSettings property.
-    pub knowledge_connector_settings:
-        Option<GoogleCloudDialogflowCxV3GenerativeSettingsKnowledgeConnectorSettings>,
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// llmModelSettings property.
-    pub llm_model_settings: Option<GoogleCloudDialogflowCxV3LlmModelSettings>,
-    /// name property.
-    pub name: Option<String>,
 }
 
 // =============================================================================

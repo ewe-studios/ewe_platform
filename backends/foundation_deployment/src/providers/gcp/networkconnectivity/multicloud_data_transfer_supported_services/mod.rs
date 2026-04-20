@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ServiceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceConfig {
+    /// eligibilityCriteria property.
+    pub eligibility_criteria: Option<String>,
+    /// supportEndTime property.
+    pub support_end_time: Option<String>,
+}
 
 /// `MulticloudDataTransferSupportedService` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -41,15 +51,6 @@ pub struct ListMulticloudDataTransferSupportedServicesResponse {
         Option<Vec<MulticloudDataTransferSupportedService>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-}
-
-/// `ServiceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceConfig {
-    /// eligibilityCriteria property.
-    pub eligibility_criteria: Option<String>,
-    /// supportEndTime property.
-    pub support_end_time: Option<String>,
 }
 
 // =============================================================================

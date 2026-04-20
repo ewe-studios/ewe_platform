@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,17 +22,74 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Explicit` type.
+/// `MonitoredResourceMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Explicit {
-    /// bounds property.
-    pub bounds: Option<Vec<f64>>,
+pub struct MonitoredResourceMetadata {
+    /// systemLabels property.
+    pub system_labels: Option<serde_json::Value>,
+    /// userLabels property.
+    pub user_labels: Option<serde_json::Value>,
+}
+
+/// `Linear` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Linear {
+    /// numFiniteBuckets property.
+    pub num_finite_buckets: Option<i64>,
+    /// offset property.
+    pub offset: Option<f64>,
+    /// width property.
+    pub width: Option<f64>,
+}
+
+/// `Exponential` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Exponential {
+    /// growthFactor property.
+    pub growth_factor: Option<f64>,
+    /// numFiniteBuckets property.
+    pub num_finite_buckets: Option<i64>,
+    /// scale property.
+    pub scale: Option<f64>,
+}
+
+/// `Point` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Point {
+    /// interval property.
+    pub interval: Option<TimeInterval>,
+    /// value property.
+    pub value: Option<TypedValue>,
+}
+
+/// `MonitoredResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MonitoredResource {
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `TypedValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TypedValue {
+    /// boolValue property.
+    pub bool_value: Option<bool>,
+    /// distributionValue property.
+    pub distribution_value: Option<Distribution>,
+    /// doubleValue property.
+    pub double_value: Option<f64>,
+    /// int64Value property.
+    pub int64_value: Option<String>,
+    /// stringValue property.
+    pub string_value: Option<String>,
 }
 
 /// `Distribution` type.
@@ -53,24 +111,13 @@ pub struct Distribution {
     pub sum_of_squared_deviation: Option<f64>,
 }
 
-/// `Linear` type.
+/// `Metric` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Linear {
-    /// numFiniteBuckets property.
-    pub num_finite_buckets: Option<i64>,
-    /// offset property.
-    pub offset: Option<f64>,
-    /// width property.
-    pub width: Option<f64>,
-}
-
-/// `Point` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Point {
-    /// interval property.
-    pub interval: Option<TimeInterval>,
-    /// value property.
-    pub value: Option<TypedValue>,
+pub struct Metric {
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `BucketOptions` type.
@@ -105,13 +152,15 @@ pub struct TimeSeries {
     pub value_type: Option<String>,
 }
 
-/// `MonitoredResource` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MonitoredResource {
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `Exemplar` type.
@@ -125,22 +174,20 @@ pub struct Exemplar {
     pub value: Option<f64>,
 }
 
-/// `MonitoredResourceMetadata` type.
+/// `TimeInterval` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MonitoredResourceMetadata {
-    /// systemLabels property.
-    pub system_labels: Option<serde_json::Value>,
-    /// userLabels property.
-    pub user_labels: Option<serde_json::Value>,
+pub struct TimeInterval {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
 }
 
-/// `Metric` type.
+/// `Explicit` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Metric {
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct Explicit {
+    /// bounds property.
+    pub bounds: Option<Vec<f64>>,
 }
 
 /// `ListTimeSeriesResponse` type.
@@ -165,52 +212,6 @@ pub struct Range {
     pub max: Option<f64>,
     /// min property.
     pub min: Option<f64>,
-}
-
-/// `Exponential` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Exponential {
-    /// growthFactor property.
-    pub growth_factor: Option<f64>,
-    /// numFiniteBuckets property.
-    pub num_finite_buckets: Option<i64>,
-    /// scale property.
-    pub scale: Option<f64>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `TimeInterval` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeInterval {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `TypedValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TypedValue {
-    /// boolValue property.
-    pub bool_value: Option<bool>,
-    /// distributionValue property.
-    pub distribution_value: Option<Distribution>,
-    /// doubleValue property.
-    pub double_value: Option<f64>,
-    /// int64Value property.
-    pub int64_value: Option<String>,
-    /// stringValue property.
-    pub string_value: Option<String>,
 }
 
 // =============================================================================

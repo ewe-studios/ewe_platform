@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,20 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `VpcAccessConnector` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VpcAccessConnector {
+    /// egressSetting property.
+    pub egress_setting: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
 
 /// `LivenessCheck` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -38,103 +48,6 @@ pub struct LivenessCheck {
     pub host: Option<String>,
     /// initialDelay property.
     pub initial_delay: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-    /// successThreshold property.
-    pub success_threshold: Option<i64>,
-    /// timeout property.
-    pub timeout: Option<String>,
-}
-
-/// `Network` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Network {
-    /// forwardedPorts property.
-    pub forwarded_ports: Option<Vec<String>>,
-    /// instanceIpMode property.
-    pub instance_ip_mode: Option<String>,
-    /// instanceTag property.
-    pub instance_tag: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// sessionAffinity property.
-    pub session_affinity: Option<bool>,
-    /// subnetworkName property.
-    pub subnetwork_name: Option<String>,
-}
-
-/// `EndpointsApiService` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndpointsApiService {
-    /// configId property.
-    pub config_id: Option<String>,
-    /// disableTraceSampling property.
-    pub disable_trace_sampling: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-    /// rolloutStrategy property.
-    pub rollout_strategy: Option<String>,
-}
-
-/// `BasicScaling` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BasicScaling {
-    /// idleTimeout property.
-    pub idle_timeout: Option<String>,
-    /// maxInstances property.
-    pub max_instances: Option<i64>,
-}
-
-/// `HealthCheck` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HealthCheck {
-    /// checkInterval property.
-    pub check_interval: Option<String>,
-    /// disableHealthCheck property.
-    pub disable_health_check: Option<bool>,
-    /// healthyThreshold property.
-    pub healthy_threshold: Option<i64>,
-    /// host property.
-    pub host: Option<String>,
-    /// restartThreshold property.
-    pub restart_threshold: Option<i64>,
-    /// timeout property.
-    pub timeout: Option<String>,
-    /// unhealthyThreshold property.
-    pub unhealthy_threshold: Option<i64>,
-}
-
-/// `ApiEndpointHandler` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApiEndpointHandler {
-    /// scriptPath property.
-    pub script_path: Option<String>,
-}
-
-/// `Deployment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Deployment {
-    /// cloudBuildOptions property.
-    pub cloud_build_options: Option<CloudBuildOptions>,
-    /// container property.
-    pub container: Option<ContainerInfo>,
-    /// files property.
-    pub files: Option<serde_json::Value>,
-    /// zip property.
-    pub zip: Option<ZipInfo>,
-}
-
-/// `ReadinessCheck` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReadinessCheck {
-    /// appStartTimeout property.
-    pub app_start_timeout: Option<String>,
-    /// checkInterval property.
-    pub check_interval: Option<String>,
-    /// failureThreshold property.
-    pub failure_threshold: Option<i64>,
-    /// host property.
-    pub host: Option<String>,
     /// path property.
     pub path: Option<String>,
     /// successThreshold property.
@@ -156,25 +69,90 @@ pub struct NetworkUtilization {
     pub target_sent_packets_per_second: Option<i64>,
 }
 
-/// `UrlMap` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UrlMap {
-    /// apiEndpoint property.
-    pub api_endpoint: Option<ApiEndpointHandler>,
-    /// authFailAction property.
-    pub auth_fail_action: Option<String>,
-    /// login property.
-    pub login: Option<String>,
-    /// redirectHttpResponseCode property.
-    pub redirect_http_response_code: Option<String>,
-    /// script property.
-    pub script: Option<ScriptHandler>,
-    /// securityLevel property.
-    pub security_level: Option<String>,
-    /// staticFiles property.
-    pub static_files: Option<StaticFilesHandler>,
-    /// urlRegex property.
-    pub url_regex: Option<String>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ApiEndpointHandler` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiEndpointHandler {
+    /// scriptPath property.
+    pub script_path: Option<String>,
+}
+
+/// `StaticFilesHandler` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StaticFilesHandler {
+    /// applicationReadable property.
+    pub application_readable: Option<bool>,
+    /// expiration property.
+    pub expiration: Option<String>,
+    /// httpHeaders property.
+    pub http_headers: Option<serde_json::Value>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+    /// path property.
+    pub path: Option<String>,
+    /// requireMatchingFile property.
+    pub require_matching_file: Option<bool>,
+    /// uploadPathRegex property.
+    pub upload_path_regex: Option<String>,
+}
+
+/// `FlexibleRuntimeSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlexibleRuntimeSettings {
+    /// operatingSystem property.
+    pub operating_system: Option<String>,
+    /// runtimeVersion property.
+    pub runtime_version: Option<String>,
+}
+
+/// `DiskUtilization` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskUtilization {
+    /// targetReadBytesPerSecond property.
+    pub target_read_bytes_per_second: Option<i64>,
+    /// targetReadOpsPerSecond property.
+    pub target_read_ops_per_second: Option<i64>,
+    /// targetWriteBytesPerSecond property.
+    pub target_write_bytes_per_second: Option<i64>,
+    /// targetWriteOpsPerSecond property.
+    pub target_write_ops_per_second: Option<i64>,
+}
+
+/// `BasicScaling` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BasicScaling {
+    /// idleTimeout property.
+    pub idle_timeout: Option<String>,
+    /// maxInstances property.
+    pub max_instances: Option<i64>,
+}
+
+/// `ZipInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ZipInfo {
+    /// filesCount property.
+    pub files_count: Option<i64>,
+    /// sourceUrl property.
+    pub source_url: Option<String>,
+}
+
+/// `CpuUtilization` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CpuUtilization {
+    /// aggregationWindowLength property.
+    pub aggregation_window_length: Option<String>,
+    /// targetUtilization property.
+    pub target_utilization: Option<f64>,
 }
 
 /// `Version` type.
@@ -266,31 +244,37 @@ pub struct Version {
     pub zones: Option<Vec<String>>,
 }
 
-/// `ZipInfo` type.
+/// `Entrypoint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ZipInfo {
-    /// filesCount property.
-    pub files_count: Option<i64>,
-    /// sourceUrl property.
-    pub source_url: Option<String>,
+pub struct Entrypoint {
+    /// shell property.
+    pub shell: Option<String>,
 }
 
-/// `FlexibleRuntimeSettings` type.
+/// `ScriptHandler` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlexibleRuntimeSettings {
-    /// operatingSystem property.
-    pub operating_system: Option<String>,
-    /// runtimeVersion property.
-    pub runtime_version: Option<String>,
+pub struct ScriptHandler {
+    /// scriptPath property.
+    pub script_path: Option<String>,
 }
 
-/// `ListVersionsResponse` type.
+/// `ReadinessCheck` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListVersionsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// versions property.
-    pub versions: Option<Vec<Version>>,
+pub struct ReadinessCheck {
+    /// appStartTimeout property.
+    pub app_start_timeout: Option<String>,
+    /// checkInterval property.
+    pub check_interval: Option<String>,
+    /// failureThreshold property.
+    pub failure_threshold: Option<i64>,
+    /// host property.
+    pub host: Option<String>,
+    /// path property.
+    pub path: Option<String>,
+    /// successThreshold property.
+    pub success_threshold: Option<i64>,
+    /// timeout property.
+    pub timeout: Option<String>,
 }
 
 /// `Resources` type.
@@ -308,65 +292,33 @@ pub struct Resources {
     pub volumes: Option<Vec<Volume>>,
 }
 
-/// `StaticFilesHandler` type.
+/// `ListVersionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StaticFilesHandler {
-    /// applicationReadable property.
-    pub application_readable: Option<bool>,
-    /// expiration property.
-    pub expiration: Option<String>,
-    /// httpHeaders property.
-    pub http_headers: Option<serde_json::Value>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-    /// requireMatchingFile property.
-    pub require_matching_file: Option<bool>,
-    /// uploadPathRegex property.
-    pub upload_path_regex: Option<String>,
+pub struct ListVersionsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// versions property.
+    pub versions: Option<Vec<Version>>,
 }
 
-/// `CpuUtilization` type.
+/// `Deployment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CpuUtilization {
-    /// aggregationWindowLength property.
-    pub aggregation_window_length: Option<String>,
-    /// targetUtilization property.
-    pub target_utilization: Option<f64>,
+pub struct Deployment {
+    /// cloudBuildOptions property.
+    pub cloud_build_options: Option<CloudBuildOptions>,
+    /// container property.
+    pub container: Option<ContainerInfo>,
+    /// files property.
+    pub files: Option<serde_json::Value>,
+    /// zip property.
+    pub zip: Option<ZipInfo>,
 }
 
-/// `RequestUtilization` type.
+/// `ManualScaling` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RequestUtilization {
-    /// targetConcurrentRequests property.
-    pub target_concurrent_requests: Option<i64>,
-    /// targetRequestCountPerSecond property.
-    pub target_request_count_per_second: Option<i64>,
-}
-
-/// `ApiConfigHandler` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApiConfigHandler {
-    /// authFailAction property.
-    pub auth_fail_action: Option<String>,
-    /// login property.
-    pub login: Option<String>,
-    /// script property.
-    pub script: Option<String>,
-    /// securityLevel property.
-    pub security_level: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `VpcAccessConnector` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VpcAccessConnector {
-    /// egressSetting property.
-    pub egress_setting: Option<String>,
-    /// name property.
-    pub name: Option<String>,
+pub struct ManualScaling {
+    /// instances property.
+    pub instances: Option<i64>,
 }
 
 /// `AutomaticScaling` type.
@@ -400,74 +352,15 @@ pub struct AutomaticScaling {
     pub standard_scheduler_settings: Option<StandardSchedulerSettings>,
 }
 
-/// `CloudBuildOptions` type.
+/// `Volume` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudBuildOptions {
-    /// appYamlPath property.
-    pub app_yaml_path: Option<String>,
-    /// cloudBuildTimeout property.
-    pub cloud_build_timeout: Option<String>,
-}
-
-/// `ManualScaling` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManualScaling {
-    /// instances property.
-    pub instances: Option<i64>,
-}
-
-/// `ContainerInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContainerInfo {
-    /// image property.
-    pub image: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `DiskUtilization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskUtilization {
-    /// targetReadBytesPerSecond property.
-    pub target_read_bytes_per_second: Option<i64>,
-    /// targetReadOpsPerSecond property.
-    pub target_read_ops_per_second: Option<i64>,
-    /// targetWriteBytesPerSecond property.
-    pub target_write_bytes_per_second: Option<i64>,
-    /// targetWriteOpsPerSecond property.
-    pub target_write_ops_per_second: Option<i64>,
-}
-
-/// `ScriptHandler` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScriptHandler {
-    /// scriptPath property.
-    pub script_path: Option<String>,
-}
-
-/// `Library` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Library {
+pub struct Volume {
     /// name property.
     pub name: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `Entrypoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Entrypoint {
-    /// shell property.
-    pub shell: Option<String>,
+    /// sizeGb property.
+    pub size_gb: Option<f64>,
+    /// volumeType property.
+    pub volume_type: Option<String>,
 }
 
 /// `StandardSchedulerSettings` type.
@@ -483,15 +376,46 @@ pub struct StandardSchedulerSettings {
     pub target_throughput_utilization: Option<f64>,
 }
 
-/// `Volume` type.
+/// `RequestUtilization` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Volume {
+pub struct RequestUtilization {
+    /// targetConcurrentRequests property.
+    pub target_concurrent_requests: Option<i64>,
+    /// targetRequestCountPerSecond property.
+    pub target_request_count_per_second: Option<i64>,
+}
+
+/// `ContainerInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContainerInfo {
+    /// image property.
+    pub image: Option<String>,
+}
+
+/// `Network` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Network {
+    /// forwardedPorts property.
+    pub forwarded_ports: Option<Vec<String>>,
+    /// instanceIpMode property.
+    pub instance_ip_mode: Option<String>,
+    /// instanceTag property.
+    pub instance_tag: Option<String>,
     /// name property.
     pub name: Option<String>,
-    /// sizeGb property.
-    pub size_gb: Option<f64>,
-    /// volumeType property.
-    pub volume_type: Option<String>,
+    /// sessionAffinity property.
+    pub session_affinity: Option<bool>,
+    /// subnetworkName property.
+    pub subnetwork_name: Option<String>,
+}
+
+/// `CloudBuildOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudBuildOptions {
+    /// appYamlPath property.
+    pub app_yaml_path: Option<String>,
+    /// cloudBuildTimeout property.
+    pub cloud_build_timeout: Option<String>,
 }
 
 /// `ErrorHandler` type.
@@ -503,6 +427,83 @@ pub struct ErrorHandler {
     pub mime_type: Option<String>,
     /// staticFile property.
     pub static_file: Option<String>,
+}
+
+/// `UrlMap` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UrlMap {
+    /// apiEndpoint property.
+    pub api_endpoint: Option<ApiEndpointHandler>,
+    /// authFailAction property.
+    pub auth_fail_action: Option<String>,
+    /// login property.
+    pub login: Option<String>,
+    /// redirectHttpResponseCode property.
+    pub redirect_http_response_code: Option<String>,
+    /// script property.
+    pub script: Option<ScriptHandler>,
+    /// securityLevel property.
+    pub security_level: Option<String>,
+    /// staticFiles property.
+    pub static_files: Option<StaticFilesHandler>,
+    /// urlRegex property.
+    pub url_regex: Option<String>,
+}
+
+/// `HealthCheck` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HealthCheck {
+    /// checkInterval property.
+    pub check_interval: Option<String>,
+    /// disableHealthCheck property.
+    pub disable_health_check: Option<bool>,
+    /// healthyThreshold property.
+    pub healthy_threshold: Option<i64>,
+    /// host property.
+    pub host: Option<String>,
+    /// restartThreshold property.
+    pub restart_threshold: Option<i64>,
+    /// timeout property.
+    pub timeout: Option<String>,
+    /// unhealthyThreshold property.
+    pub unhealthy_threshold: Option<i64>,
+}
+
+/// `EndpointsApiService` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EndpointsApiService {
+    /// configId property.
+    pub config_id: Option<String>,
+    /// disableTraceSampling property.
+    pub disable_trace_sampling: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+    /// rolloutStrategy property.
+    pub rollout_strategy: Option<String>,
+}
+
+/// `ApiConfigHandler` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiConfigHandler {
+    /// authFailAction property.
+    pub auth_fail_action: Option<String>,
+    /// login property.
+    pub login: Option<String>,
+    /// script property.
+    pub script: Option<String>,
+    /// securityLevel property.
+    pub security_level: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `Library` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Library {
+    /// name property.
+    pub name: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
 // =============================================================================

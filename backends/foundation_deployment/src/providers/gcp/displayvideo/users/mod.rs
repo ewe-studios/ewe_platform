@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,18 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `BulkEditAssignedUserRolesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BulkEditAssignedUserRolesResponse {
-    /// createdAssignedUserRoles property.
-    pub created_assigned_user_roles: Option<Vec<AssignedUserRole>>,
-}
 
 /// `ListUsersResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -41,6 +35,19 @@ pub struct ListUsersResponse {
     pub next_page_token: Option<String>,
     /// users property.
     pub users: Option<Vec<User>>,
+}
+
+/// `AssignedUserRole` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AssignedUserRole {
+    /// advertiserId property.
+    pub advertiser_id: Option<String>,
+    /// assignedUserRoleId property.
+    pub assigned_user_role_id: Option<String>,
+    /// partnerId property.
+    pub partner_id: Option<String>,
+    /// userRole property.
+    pub user_role: Option<String>,
 }
 
 /// `User` type.
@@ -60,17 +67,11 @@ pub struct User {
     pub user_id: Option<String>,
 }
 
-/// `AssignedUserRole` type.
+/// `BulkEditAssignedUserRolesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AssignedUserRole {
-    /// advertiserId property.
-    pub advertiser_id: Option<String>,
-    /// assignedUserRoleId property.
-    pub assigned_user_role_id: Option<String>,
-    /// partnerId property.
-    pub partner_id: Option<String>,
-    /// userRole property.
-    pub user_role: Option<String>,
+pub struct BulkEditAssignedUserRolesResponse {
+    /// createdAssignedUserRoles property.
+    pub created_assigned_user_roles: Option<Vec<AssignedUserRole>>,
 }
 
 // =============================================================================

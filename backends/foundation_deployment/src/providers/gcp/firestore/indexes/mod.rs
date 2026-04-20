@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,18 +23,11 @@ use serde::{Deserialize, Serialize};
 use super::shared::Empty;
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleFirestoreAdminV1SearchGeoSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1SearchGeoSpec {
-    /// geoJsonIndexingDisabled property.
-    pub geo_json_indexing_disabled: Option<bool>,
-}
 
 /// `GoogleFirestoreAdminV1SearchTextSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -42,28 +36,13 @@ pub struct GoogleFirestoreAdminV1SearchTextSpec {
     pub index_specs: Option<Vec<GoogleFirestoreAdminV1SearchTextIndexSpec>>,
 }
 
-/// `GoogleFirestoreAdminV1IndexField` type.
+/// `GoogleFirestoreAdminV1VectorConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1IndexField {
-    /// arrayConfig property.
-    pub array_config: Option<String>,
-    /// fieldPath property.
-    pub field_path: Option<String>,
-    /// order property.
-    pub order: Option<String>,
-    /// searchConfig property.
-    pub search_config: Option<GoogleFirestoreAdminV1SearchConfig>,
-    /// vectorConfig property.
-    pub vector_config: Option<GoogleFirestoreAdminV1VectorConfig>,
-}
-
-/// `GoogleFirestoreAdminV1SearchConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1SearchConfig {
-    /// geoSpec property.
-    pub geo_spec: Option<GoogleFirestoreAdminV1SearchGeoSpec>,
-    /// textSpec property.
-    pub text_spec: Option<GoogleFirestoreAdminV1SearchTextSpec>,
+pub struct GoogleFirestoreAdminV1VectorConfig {
+    /// dimension property.
+    pub dimension: Option<i64>,
+    /// flat property.
+    pub flat: Option<GoogleFirestoreAdminV1FlatIndex>,
 }
 
 /// `GoogleFirestoreAdminV1Index` type.
@@ -102,18 +81,20 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `GoogleFirestoreAdminV1VectorConfig` type.
+/// `GoogleFirestoreAdminV1IndexField` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1VectorConfig {
-    /// dimension property.
-    pub dimension: Option<i64>,
-    /// flat property.
-    pub flat: Option<GoogleFirestoreAdminV1FlatIndex>,
+pub struct GoogleFirestoreAdminV1IndexField {
+    /// arrayConfig property.
+    pub array_config: Option<String>,
+    /// fieldPath property.
+    pub field_path: Option<String>,
+    /// order property.
+    pub order: Option<String>,
+    /// searchConfig property.
+    pub search_config: Option<GoogleFirestoreAdminV1SearchConfig>,
+    /// vectorConfig property.
+    pub vector_config: Option<GoogleFirestoreAdminV1VectorConfig>,
 }
-
-/// `GoogleFirestoreAdminV1FlatIndex` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1FlatIndex {}
 
 /// `GoogleFirestoreAdminV1SearchTextIndexSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -133,6 +114,17 @@ pub struct GoogleFirestoreAdminV1ListIndexesResponse {
     pub next_page_token: Option<String>,
 }
 
+/// `GoogleFirestoreAdminV1FlatIndex` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirestoreAdminV1FlatIndex {}
+
+/// `GoogleFirestoreAdminV1SearchGeoSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirestoreAdminV1SearchGeoSpec {
+    /// geoJsonIndexingDisabled property.
+    pub geo_json_indexing_disabled: Option<bool>,
+}
+
 /// `GoogleFirestoreAdminV1SearchIndexOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1SearchIndexOptions {
@@ -140,6 +132,15 @@ pub struct GoogleFirestoreAdminV1SearchIndexOptions {
     pub text_language: Option<String>,
     /// textLanguageOverrideFieldPath property.
     pub text_language_override_field_path: Option<String>,
+}
+
+/// `GoogleFirestoreAdminV1SearchConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirestoreAdminV1SearchConfig {
+    /// geoSpec property.
+    pub geo_spec: Option<GoogleFirestoreAdminV1SearchGeoSpec>,
+    /// textSpec property.
+    pub text_spec: Option<GoogleFirestoreAdminV1SearchTextSpec>,
 }
 
 // =============================================================================

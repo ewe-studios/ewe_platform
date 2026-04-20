@@ -12,36 +12,24 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `RegionInstanceGroupManagersListInstancesResponse` type.
+/// `Help` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegionInstanceGroupManagersListInstancesResponse {
-    /// managedInstances property.
-    pub managed_instances: Option<Vec<ManagedInstance>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `ErrorInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
 }
 
 /// `HelpLink` type.
@@ -53,36 +41,24 @@ pub struct HelpLink {
     pub url: Option<String>,
 }
 
-/// `InstanceGroupManagersListManagedInstancesResponse` type.
+/// `ManagedInstancePropertiesFromFlexibilityPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagersListManagedInstancesResponse {
-    /// managedInstances property.
-    pub managed_instances: Option<Vec<ManagedInstance>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct ManagedInstancePropertiesFromFlexibilityPolicy {
+    /// machineType property.
+    pub machine_type: Option<String>,
 }
 
-/// `Help` type.
+/// `PreservedState` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
-}
-
-/// `ManagedInstanceLastAttempt` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedInstanceLastAttempt {
-    /// errors property.
-    pub errors: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
+pub struct PreservedState {
+    /// disks property.
+    pub disks: Option<serde_json::Value>,
+    /// externalIPs property.
+    pub external_i_ps: Option<serde_json::Value>,
+    /// internalIPs property.
+    pub internal_i_ps: Option<serde_json::Value>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
 }
 
 /// `QuotaExceededInfo` type.
@@ -102,26 +78,33 @@ pub struct QuotaExceededInfo {
     pub rollout_status: Option<String>,
 }
 
-/// `ManagedInstanceVersion` type.
+/// `ErrorInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedInstanceVersion {
-    /// instanceTemplate property.
-    pub instance_template: Option<String>,
-    /// name property.
-    pub name: Option<String>,
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
 }
 
-/// `PreservedState` type.
+/// `InstanceGroupManagersListManagedInstancesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreservedState {
-    /// disks property.
-    pub disks: Option<serde_json::Value>,
-    /// externalIPs property.
-    pub external_i_ps: Option<serde_json::Value>,
-    /// internalIPs property.
-    pub internal_i_ps: Option<serde_json::Value>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
+pub struct InstanceGroupManagersListManagedInstancesResponse {
+    /// managedInstances property.
+    pub managed_instances: Option<Vec<ManagedInstance>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `LocalizedMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `ManagedInstanceInstanceHealth` type.
@@ -160,11 +143,29 @@ pub struct ManagedInstance {
     pub version: Option<ManagedInstanceVersion>,
 }
 
-/// `ManagedInstancePropertiesFromFlexibilityPolicy` type.
+/// `ManagedInstanceLastAttempt` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedInstancePropertiesFromFlexibilityPolicy {
-    /// machineType property.
-    pub machine_type: Option<String>,
+pub struct ManagedInstanceLastAttempt {
+    /// errors property.
+    pub errors: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `RegionInstanceGroupManagersListInstancesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegionInstanceGroupManagersListInstancesResponse {
+    /// managedInstances property.
+    pub managed_instances: Option<Vec<ManagedInstance>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `ManagedInstanceVersion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedInstanceVersion {
+    /// instanceTemplate property.
+    pub instance_template: Option<String>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 // =============================================================================

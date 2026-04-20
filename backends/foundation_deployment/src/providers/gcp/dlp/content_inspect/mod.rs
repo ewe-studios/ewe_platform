@@ -12,17 +12,70 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GooglePrivacyDlpV2Range` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Range {
+    /// end property.
+    pub end: Option<String>,
+    /// start property.
+    pub start: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2FieldId` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2FieldId {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2InspectContentResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2InspectContentResponse {
+    /// result property.
+    pub result: Option<GooglePrivacyDlpV2InspectResult>,
+}
+
+/// `GooglePrivacyDlpV2DocumentLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DocumentLocation {
+    /// fileOffset property.
+    pub file_offset: Option<String>,
+}
+
+/// `GoogleTypeDate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeDate {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `GooglePrivacyDlpV2InfoType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2InfoType {
+    /// name property.
+    pub name: Option<String>,
+    /// sensitivityScore property.
+    pub sensitivity_score: Option<GooglePrivacyDlpV2SensitivityScore>,
+    /// version property.
+    pub version: Option<String>,
+}
 
 /// `GooglePrivacyDlpV2PartitionId` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -31,6 +84,130 @@ pub struct GooglePrivacyDlpV2PartitionId {
     pub namespace_id: Option<String>,
     /// projectId property.
     pub project_id: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2DateTime` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DateTime {
+    /// date property.
+    pub date: Option<GoogleTypeDate>,
+    /// dayOfWeek property.
+    pub day_of_week: Option<String>,
+    /// time property.
+    pub time: Option<GoogleTypeTimeOfDay>,
+    /// timeZone property.
+    pub time_zone: Option<GooglePrivacyDlpV2TimeZone>,
+}
+
+/// `GooglePrivacyDlpV2RecordKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2RecordKey {
+    /// bigQueryKey property.
+    pub big_query_key: Option<GooglePrivacyDlpV2BigQueryKey>,
+    /// datastoreKey property.
+    pub datastore_key: Option<GooglePrivacyDlpV2DatastoreKey>,
+    /// idValues property.
+    pub id_values: Option<Vec<String>>,
+}
+
+/// `GooglePrivacyDlpV2InspectResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2InspectResult {
+    /// findings property.
+    pub findings: Option<Vec<GooglePrivacyDlpV2Finding>>,
+    /// findingsTruncated property.
+    pub findings_truncated: Option<bool>,
+}
+
+/// `GooglePrivacyDlpV2PathElement` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2PathElement {
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2KeyValueMetadataLabel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2KeyValueMetadataLabel {
+    /// key property.
+    pub key: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2MetadataLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2MetadataLocation {
+    /// keyValueMetadataLabel property.
+    pub key_value_metadata_label: Option<GooglePrivacyDlpV2KeyValueMetadataLabel>,
+    /// storageLabel property.
+    pub storage_label: Option<GooglePrivacyDlpV2StorageMetadataLabel>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2BoundingBox` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2BoundingBox {
+    /// height property.
+    pub height: Option<i64>,
+    /// left property.
+    pub left: Option<i64>,
+    /// top property.
+    pub top: Option<i64>,
+    /// width property.
+    pub width: Option<i64>,
+}
+
+/// `GooglePrivacyDlpV2BigQueryKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2BigQueryKey {
+    /// rowNumber property.
+    pub row_number: Option<String>,
+    /// tableReference property.
+    pub table_reference: Option<GooglePrivacyDlpV2BigQueryTable>,
+}
+
+/// `GooglePrivacyDlpV2DatastoreKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DatastoreKey {
+    /// entityKey property.
+    pub entity_key: Option<GooglePrivacyDlpV2Key>,
+}
+
+/// `GoogleTypeTimeOfDay` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeTimeOfDay {
+    /// hours property.
+    pub hours: Option<i64>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<i64>,
+}
+
+/// `GooglePrivacyDlpV2Location` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Location {
+    /// byteRange property.
+    pub byte_range: Option<GooglePrivacyDlpV2Range>,
+    /// codepointRange property.
+    pub codepoint_range: Option<GooglePrivacyDlpV2Range>,
+    /// container property.
+    pub container: Option<GooglePrivacyDlpV2Container>,
+    /// contentLocations property.
+    pub content_locations: Option<Vec<GooglePrivacyDlpV2ContentLocation>>,
+}
+
+/// `GooglePrivacyDlpV2SensitivityScore` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2SensitivityScore {
+    /// score property.
+    pub score: Option<String>,
 }
 
 /// `GooglePrivacyDlpV2Finding` type.
@@ -64,124 +241,18 @@ pub struct GooglePrivacyDlpV2Finding {
     pub trigger_name: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2DocumentLocation` type.
+/// `GooglePrivacyDlpV2TimeZone` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DocumentLocation {
-    /// fileOffset property.
-    pub file_offset: Option<String>,
+pub struct GooglePrivacyDlpV2TimeZone {
+    /// offsetMinutes property.
+    pub offset_minutes: Option<i64>,
 }
 
-/// `GooglePrivacyDlpV2SensitivityScore` type.
+/// `GooglePrivacyDlpV2ImageLocation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2SensitivityScore {
-    /// score property.
-    pub score: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2ContentLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ContentLocation {
-    /// containerName property.
-    pub container_name: Option<String>,
-    /// containerTimestamp property.
-    pub container_timestamp: Option<String>,
-    /// containerVersion property.
-    pub container_version: Option<String>,
-    /// documentLocation property.
-    pub document_location: Option<GooglePrivacyDlpV2DocumentLocation>,
-    /// imageLocation property.
-    pub image_location: Option<GooglePrivacyDlpV2ImageLocation>,
-    /// metadataLocation property.
-    pub metadata_location: Option<GooglePrivacyDlpV2MetadataLocation>,
-    /// recordLocation property.
-    pub record_location: Option<GooglePrivacyDlpV2RecordLocation>,
-}
-
-/// `GooglePrivacyDlpV2DateTime` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DateTime {
-    /// date property.
-    pub date: Option<GoogleTypeDate>,
-    /// dayOfWeek property.
-    pub day_of_week: Option<String>,
-    /// time property.
-    pub time: Option<GoogleTypeTimeOfDay>,
-    /// timeZone property.
-    pub time_zone: Option<GooglePrivacyDlpV2TimeZone>,
-}
-
-/// `GooglePrivacyDlpV2InspectResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2InspectResult {
-    /// findings property.
-    pub findings: Option<Vec<GooglePrivacyDlpV2Finding>>,
-    /// findingsTruncated property.
-    pub findings_truncated: Option<bool>,
-}
-
-/// `GooglePrivacyDlpV2DatastoreKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DatastoreKey {
-    /// entityKey property.
-    pub entity_key: Option<GooglePrivacyDlpV2Key>,
-}
-
-/// `GooglePrivacyDlpV2PathElement` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2PathElement {
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2StorageMetadataLabel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2StorageMetadataLabel {
-    /// key property.
-    pub key: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2Range` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Range {
-    /// end property.
-    pub end: Option<String>,
-    /// start property.
-    pub start: Option<String>,
-}
-
-/// `GoogleTypeDate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeDate {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `GooglePrivacyDlpV2MetadataLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2MetadataLocation {
-    /// keyValueMetadataLabel property.
-    pub key_value_metadata_label: Option<GooglePrivacyDlpV2KeyValueMetadataLabel>,
-    /// storageLabel property.
-    pub storage_label: Option<GooglePrivacyDlpV2StorageMetadataLabel>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2BigQueryKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2BigQueryKey {
-    /// rowNumber property.
-    pub row_number: Option<String>,
-    /// tableReference property.
-    pub table_reference: Option<GooglePrivacyDlpV2BigQueryTable>,
+pub struct GooglePrivacyDlpV2ImageLocation {
+    /// boundingBoxes property.
+    pub bounding_boxes: Option<Vec<GooglePrivacyDlpV2BoundingBox>>,
 }
 
 /// `GooglePrivacyDlpV2TableLocation` type.
@@ -191,60 +262,11 @@ pub struct GooglePrivacyDlpV2TableLocation {
     pub row_index: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2BigQueryTable` type.
+/// `GooglePrivacyDlpV2QuoteInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2BigQueryTable {
-    /// datasetId property.
-    pub dataset_id: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// tableId property.
-    pub table_id: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2RecordLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2RecordLocation {
-    /// fieldId property.
-    pub field_id: Option<GooglePrivacyDlpV2FieldId>,
-    /// recordKey property.
-    pub record_key: Option<GooglePrivacyDlpV2RecordKey>,
-    /// tableLocation property.
-    pub table_location: Option<GooglePrivacyDlpV2TableLocation>,
-}
-
-/// `GooglePrivacyDlpV2Key` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Key {
-    /// partitionId property.
-    pub partition_id: Option<GooglePrivacyDlpV2PartitionId>,
-    /// path property.
-    pub path: Option<Vec<GooglePrivacyDlpV2PathElement>>,
-}
-
-/// `GooglePrivacyDlpV2InfoType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2InfoType {
-    /// name property.
-    pub name: Option<String>,
-    /// sensitivityScore property.
-    pub sensitivity_score: Option<GooglePrivacyDlpV2SensitivityScore>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2InspectContentResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2InspectContentResponse {
-    /// result property.
-    pub result: Option<GooglePrivacyDlpV2InspectResult>,
-}
-
-/// `GooglePrivacyDlpV2FieldId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2FieldId {
-    /// name property.
-    pub name: Option<String>,
+pub struct GooglePrivacyDlpV2QuoteInfo {
+    /// dateTime property.
+    pub date_time: Option<GooglePrivacyDlpV2DateTime>,
 }
 
 /// `GooglePrivacyDlpV2Container` type.
@@ -266,82 +288,61 @@ pub struct GooglePrivacyDlpV2Container {
     pub version: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2ImageLocation` type.
+/// `GooglePrivacyDlpV2BigQueryTable` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ImageLocation {
-    /// boundingBoxes property.
-    pub bounding_boxes: Option<Vec<GooglePrivacyDlpV2BoundingBox>>,
+pub struct GooglePrivacyDlpV2BigQueryTable {
+    /// datasetId property.
+    pub dataset_id: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// tableId property.
+    pub table_id: Option<String>,
 }
 
-/// `GoogleTypeTimeOfDay` type.
+/// `GooglePrivacyDlpV2StorageMetadataLabel` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeTimeOfDay {
-    /// hours property.
-    pub hours: Option<i64>,
-    /// minutes property.
-    pub minutes: Option<i64>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<i64>,
-}
-
-/// `GooglePrivacyDlpV2Location` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Location {
-    /// byteRange property.
-    pub byte_range: Option<GooglePrivacyDlpV2Range>,
-    /// codepointRange property.
-    pub codepoint_range: Option<GooglePrivacyDlpV2Range>,
-    /// container property.
-    pub container: Option<GooglePrivacyDlpV2Container>,
-    /// contentLocations property.
-    pub content_locations: Option<Vec<GooglePrivacyDlpV2ContentLocation>>,
-}
-
-/// `GooglePrivacyDlpV2RecordKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2RecordKey {
-    /// bigQueryKey property.
-    pub big_query_key: Option<GooglePrivacyDlpV2BigQueryKey>,
-    /// datastoreKey property.
-    pub datastore_key: Option<GooglePrivacyDlpV2DatastoreKey>,
-    /// idValues property.
-    pub id_values: Option<Vec<String>>,
-}
-
-/// `GooglePrivacyDlpV2TimeZone` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2TimeZone {
-    /// offsetMinutes property.
-    pub offset_minutes: Option<i64>,
-}
-
-/// `GooglePrivacyDlpV2QuoteInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2QuoteInfo {
-    /// dateTime property.
-    pub date_time: Option<GooglePrivacyDlpV2DateTime>,
-}
-
-/// `GooglePrivacyDlpV2BoundingBox` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2BoundingBox {
-    /// height property.
-    pub height: Option<i64>,
-    /// left property.
-    pub left: Option<i64>,
-    /// top property.
-    pub top: Option<i64>,
-    /// width property.
-    pub width: Option<i64>,
-}
-
-/// `GooglePrivacyDlpV2KeyValueMetadataLabel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2KeyValueMetadataLabel {
+pub struct GooglePrivacyDlpV2StorageMetadataLabel {
     /// key property.
     pub key: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2ContentLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2ContentLocation {
+    /// containerName property.
+    pub container_name: Option<String>,
+    /// containerTimestamp property.
+    pub container_timestamp: Option<String>,
+    /// containerVersion property.
+    pub container_version: Option<String>,
+    /// documentLocation property.
+    pub document_location: Option<GooglePrivacyDlpV2DocumentLocation>,
+    /// imageLocation property.
+    pub image_location: Option<GooglePrivacyDlpV2ImageLocation>,
+    /// metadataLocation property.
+    pub metadata_location: Option<GooglePrivacyDlpV2MetadataLocation>,
+    /// recordLocation property.
+    pub record_location: Option<GooglePrivacyDlpV2RecordLocation>,
+}
+
+/// `GooglePrivacyDlpV2RecordLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2RecordLocation {
+    /// fieldId property.
+    pub field_id: Option<GooglePrivacyDlpV2FieldId>,
+    /// recordKey property.
+    pub record_key: Option<GooglePrivacyDlpV2RecordKey>,
+    /// tableLocation property.
+    pub table_location: Option<GooglePrivacyDlpV2TableLocation>,
+}
+
+/// `GooglePrivacyDlpV2Key` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Key {
+    /// partitionId property.
+    pub partition_id: Option<GooglePrivacyDlpV2PartitionId>,
+    /// path property.
+    pub path: Option<Vec<GooglePrivacyDlpV2PathElement>>,
 }
 
 // =============================================================================

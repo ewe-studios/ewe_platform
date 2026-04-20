@@ -12,28 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleFirebaseAppdistroV1TestCertificate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirebaseAppdistroV1TestCertificate {
-    /// hashMd5 property.
-    pub hash_md5: Option<String>,
-    /// hashSha1 property.
-    pub hash_sha1: Option<String>,
-    /// hashSha256 property.
-    pub hash_sha256: Option<String>,
-}
 
 /// `GoogleFirebaseAppdistroV1AabInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,6 +34,17 @@ pub struct GoogleFirebaseAppdistroV1AabInfo {
     pub name: Option<String>,
     /// testCertificate property.
     pub test_certificate: Option<GoogleFirebaseAppdistroV1TestCertificate>,
+}
+
+/// `GoogleFirebaseAppdistroV1TestCertificate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirebaseAppdistroV1TestCertificate {
+    /// hashMd5 property.
+    pub hash_md5: Option<String>,
+    /// hashSha1 property.
+    pub hash_sha1: Option<String>,
+    /// hashSha256 property.
+    pub hash_sha256: Option<String>,
 }
 
 // =============================================================================

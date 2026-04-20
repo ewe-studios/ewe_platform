@@ -12,44 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ThumbnailDetails` type.
+/// `PageInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ThumbnailDetails {
-    /// default property.
-    pub default: Option<Thumbnail>,
-    /// high property.
-    pub high: Option<Thumbnail>,
-    /// maxres property.
-    pub maxres: Option<Thumbnail>,
-    /// medium property.
-    pub medium: Option<Thumbnail>,
-    /// standard property.
-    pub standard: Option<Thumbnail>,
-}
-
-/// `SearchResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchResult {
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<ResourceId>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// snippet property.
-    pub snippet: Option<SearchResultSnippet>,
+pub struct PageInfo {
+    /// resultsPerPage property.
+    pub results_per_page: Option<i64>,
+    /// totalResults property.
+    pub total_results: Option<i64>,
 }
 
 /// `ResourceId` type.
@@ -63,25 +45,6 @@ pub struct ResourceId {
     pub playlist_id: Option<String>,
     /// videoId property.
     pub video_id: Option<String>,
-}
-
-/// `SearchResultSnippet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchResultSnippet {
-    /// channelId property.
-    pub channel_id: Option<String>,
-    /// channelTitle property.
-    pub channel_title: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// liveBroadcastContent property.
-    pub live_broadcast_content: Option<String>,
-    /// publishedAt property.
-    pub published_at: Option<String>,
-    /// thumbnails property.
-    pub thumbnails: Option<ThumbnailDetails>,
-    /// title property.
-    pub title: Option<String>,
 }
 
 /// `SearchListResponse` type.
@@ -109,6 +72,38 @@ pub struct SearchListResponse {
     pub visitor_id: Option<String>,
 }
 
+/// `ThumbnailDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ThumbnailDetails {
+    /// default property.
+    pub default: Option<Thumbnail>,
+    /// high property.
+    pub high: Option<Thumbnail>,
+    /// maxres property.
+    pub maxres: Option<Thumbnail>,
+    /// medium property.
+    pub medium: Option<Thumbnail>,
+    /// standard property.
+    pub standard: Option<Thumbnail>,
+}
+
+/// `TokenPagination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TokenPagination {}
+
+/// `SearchResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchResult {
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<ResourceId>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// snippet property.
+    pub snippet: Option<SearchResultSnippet>,
+}
+
 /// `Thumbnail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Thumbnail {
@@ -120,18 +115,24 @@ pub struct Thumbnail {
     pub width: Option<i64>,
 }
 
-/// `PageInfo` type.
+/// `SearchResultSnippet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PageInfo {
-    /// resultsPerPage property.
-    pub results_per_page: Option<i64>,
-    /// totalResults property.
-    pub total_results: Option<i64>,
+pub struct SearchResultSnippet {
+    /// channelId property.
+    pub channel_id: Option<String>,
+    /// channelTitle property.
+    pub channel_title: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// liveBroadcastContent property.
+    pub live_broadcast_content: Option<String>,
+    /// publishedAt property.
+    pub published_at: Option<String>,
+    /// thumbnails property.
+    pub thumbnails: Option<ThumbnailDetails>,
+    /// title property.
+    pub title: Option<String>,
 }
-
-/// `TokenPagination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TokenPagination {}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

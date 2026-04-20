@@ -12,17 +12,31 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `AbuseReport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AbuseReport {
+    /// abuseTypes property.
+    pub abuse_types: Option<Vec<AbuseType>>,
+    /// description property.
+    pub description: Option<String>,
+    /// relatedEntities property.
+    pub related_entities: Option<Vec<RelatedEntity>>,
+    /// subject property.
+    pub subject: Option<Entity>,
+}
 
 /// `Entity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -47,19 +61,6 @@ pub struct AbuseType {
 pub struct RelatedEntity {
     /// entity property.
     pub entity: Option<Entity>,
-}
-
-/// `AbuseReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AbuseReport {
-    /// abuseTypes property.
-    pub abuse_types: Option<Vec<AbuseType>>,
-    /// description property.
-    pub description: Option<String>,
-    /// relatedEntities property.
-    pub related_entities: Option<Vec<RelatedEntity>>,
-    /// subject property.
-    pub subject: Option<Entity>,
 }
 
 // =============================================================================

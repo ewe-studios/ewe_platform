@@ -12,40 +12,48 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponseQuerySuggestion` type.
+/// `GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponseQuerySuggestion {
-    /// completableFieldPaths property.
-    pub completable_field_paths: Option<Vec<String>>,
-    /// dataStore property.
-    pub data_store: Option<Vec<String>>,
+pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponse {
+    /// contentSuggestions property.
+    pub content_suggestions:
+        Option<Vec<GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponseContentSuggestion>>,
+    /// peopleSuggestions property.
+    pub people_suggestions:
+        Option<Vec<GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponsePersonSuggestion>>,
+    /// querySuggestions property.
+    pub query_suggestions:
+        Option<Vec<GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponseQuerySuggestion>>,
+    /// recentSearchSuggestions property.
+    pub recent_search_suggestions: Option<
+        Vec<GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponseRecentSearchSuggestion>,
+    >,
+    /// tailMatchTriggered property.
+    pub tail_match_triggered: Option<bool>,
+}
+
+/// `GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponseRecentSearchSuggestion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponseRecentSearchSuggestion {
+    /// recentSearchTime property.
+    pub recent_search_time: Option<String>,
     /// score property.
     pub score: Option<f64>,
     /// suggestion property.
     pub suggestion: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1Principal` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1Principal {
-    /// externalEntityId property.
-    pub external_entity_id: Option<String>,
-    /// groupId property.
-    pub group_id: Option<String>,
-    /// userId property.
-    pub user_id: Option<String>,
 }
 
 /// `GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponsePersonSuggestion` type.
@@ -67,22 +75,28 @@ pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponsePersonSugges
     pub suggestion: Option<String>,
 }
 
-/// `GoogleCloudDiscoveryengineV1DocumentAclInfo` type.
+/// `GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponseQuerySuggestion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DocumentAclInfo {
-    /// readers property.
-    pub readers: Option<Vec<GoogleCloudDiscoveryengineV1DocumentAclInfoAccessRestriction>>,
-}
-
-/// `GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponseRecentSearchSuggestion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponseRecentSearchSuggestion {
-    /// recentSearchTime property.
-    pub recent_search_time: Option<String>,
+pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponseQuerySuggestion {
+    /// completableFieldPaths property.
+    pub completable_field_paths: Option<Vec<String>>,
+    /// dataStore property.
+    pub data_store: Option<Vec<String>>,
     /// score property.
     pub score: Option<f64>,
     /// suggestion property.
     pub suggestion: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1DocumentContent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1DocumentContent {
+    /// mimeType property.
+    pub mime_type: Option<String>,
+    /// rawBytes property.
+    pub raw_bytes: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
 }
 
 /// `GoogleCloudDiscoveryengineV1Document` type.
@@ -112,6 +126,17 @@ pub struct GoogleCloudDiscoveryengineV1Document {
     pub struct_data: Option<serde_json::Value>,
 }
 
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
 /// `GoogleCloudDiscoveryengineV1DocumentAclInfoAccessRestriction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DocumentAclInfoAccessRestriction {
@@ -119,6 +144,17 @@ pub struct GoogleCloudDiscoveryengineV1DocumentAclInfoAccessRestriction {
     pub idp_wide: Option<bool>,
     /// principals property.
     pub principals: Option<Vec<GoogleCloudDiscoveryengineV1Principal>>,
+}
+
+/// `GoogleCloudDiscoveryengineV1Principal` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1Principal {
+    /// externalEntityId property.
+    pub external_entity_id: Option<String>,
+    /// groupId property.
+    pub group_id: Option<String>,
+    /// userId property.
+    pub user_id: Option<String>,
 }
 
 /// `GoogleCloudDiscoveryengineV1DocumentIndexStatus` type.
@@ -151,46 +187,11 @@ pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponseContentSugge
     pub suggestion: Option<String>,
 }
 
-/// `GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponse` type.
+/// `GoogleCloudDiscoveryengineV1DocumentAclInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponse {
-    /// contentSuggestions property.
-    pub content_suggestions:
-        Option<Vec<GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponseContentSuggestion>>,
-    /// peopleSuggestions property.
-    pub people_suggestions:
-        Option<Vec<GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponsePersonSuggestion>>,
-    /// querySuggestions property.
-    pub query_suggestions:
-        Option<Vec<GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponseQuerySuggestion>>,
-    /// recentSearchSuggestions property.
-    pub recent_search_suggestions: Option<
-        Vec<GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponseRecentSearchSuggestion>,
-    >,
-    /// tailMatchTriggered property.
-    pub tail_match_triggered: Option<bool>,
-}
-
-/// `GoogleCloudDiscoveryengineV1DocumentContent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DocumentContent {
-    /// mimeType property.
-    pub mime_type: Option<String>,
-    /// rawBytes property.
-    pub raw_bytes: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct GoogleCloudDiscoveryengineV1DocumentAclInfo {
+    /// readers property.
+    pub readers: Option<Vec<GoogleCloudDiscoveryengineV1DocumentAclInfoAccessRestriction>>,
 }
 
 // =============================================================================

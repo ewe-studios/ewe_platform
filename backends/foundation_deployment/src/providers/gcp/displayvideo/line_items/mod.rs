@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,19 +22,30 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `LineItemFlight` type.
+/// `TrackingFloodlightActivityConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LineItemFlight {
-    /// dateRange property.
-    pub date_range: Option<DateRange>,
-    /// flightDateType property.
-    pub flight_date_type: Option<String>,
+pub struct TrackingFloodlightActivityConfig {
+    /// floodlightActivityId property.
+    pub floodlight_activity_id: Option<String>,
+    /// postClickLookbackWindowDays property.
+    pub post_click_lookback_window_days: Option<i64>,
+    /// postViewLookbackWindowDays property.
+    pub post_view_lookback_window_days: Option<i64>,
+}
+
+/// `ListLineItemsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListLineItemsResponse {
+    /// lineItems property.
+    pub line_items: Option<Vec<LineItem>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `DemandGenSettings` type.
@@ -47,13 +59,88 @@ pub struct DemandGenSettings {
     pub third_party_measurement_configs: Option<ThirdPartyMeasurementConfigs>,
 }
 
-/// `ListLineItemsResponse` type.
+/// `PartnerRevenueModel` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListLineItemsResponse {
-    /// lineItems property.
-    pub line_items: Option<Vec<LineItem>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct PartnerRevenueModel {
+    /// markupAmount property.
+    pub markup_amount: Option<String>,
+    /// markupType property.
+    pub markup_type: Option<String>,
+}
+
+/// `FixedBidStrategy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FixedBidStrategy {
+    /// bidAmountMicros property.
+    pub bid_amount_micros: Option<String>,
+}
+
+/// `PartnerCost` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PartnerCost {
+    /// costType property.
+    pub cost_type: Option<String>,
+    /// feeAmount property.
+    pub fee_amount: Option<String>,
+    /// feePercentageMillis property.
+    pub fee_percentage_millis: Option<String>,
+    /// feeType property.
+    pub fee_type: Option<String>,
+    /// invoiceType property.
+    pub invoice_type: Option<String>,
+}
+
+/// `DateRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DateRange {
+    /// endDate property.
+    pub end_date: Option<Date>,
+    /// startDate property.
+    pub start_date: Option<Date>,
+}
+
+/// `IntegrationDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntegrationDetails {
+    /// details property.
+    pub details: Option<String>,
+    /// integrationCode property.
+    pub integration_code: Option<String>,
+}
+
+/// `YoutubeAndPartnersInventorySourceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct YoutubeAndPartnersInventorySourceConfig {
+    /// includeGoogleTv property.
+    pub include_google_tv: Option<bool>,
+    /// includeYoutube property.
+    pub include_youtube: Option<bool>,
+    /// includeYoutubeVideoPartners property.
+    pub include_youtube_video_partners: Option<bool>,
+}
+
+/// `VideoAdSequenceSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoAdSequenceSettings {
+    /// minimumDuration property.
+    pub minimum_duration: Option<String>,
+    /// steps property.
+    pub steps: Option<Vec<VideoAdSequenceStep>>,
+}
+
+/// `FrequencyCap` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FrequencyCap {
+    /// maxImpressions property.
+    pub max_impressions: Option<i64>,
+    /// maxViews property.
+    pub max_views: Option<i64>,
+    /// timeUnit property.
+    pub time_unit: Option<String>,
+    /// timeUnitCount property.
+    pub time_unit_count: Option<i64>,
+    /// unlimited property.
+    pub unlimited: Option<bool>,
 }
 
 /// `MaximizeSpendBidStrategy` type.
@@ -69,30 +156,15 @@ pub struct MaximizeSpendBidStrategy {
     pub raise_bid_for_deals: Option<bool>,
 }
 
-/// `DemandGenBiddingStrategy` type.
+/// `TargetFrequency` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DemandGenBiddingStrategy {
-    /// effectiveBiddingValue property.
-    pub effective_bidding_value: Option<String>,
-    /// effectiveBiddingValueSource property.
-    pub effective_bidding_value_source: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `VideoAdSequenceStep` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoAdSequenceStep {
-    /// adGroupId property.
-    pub ad_group_id: Option<String>,
-    /// interactionType property.
-    pub interaction_type: Option<String>,
-    /// previousStepId property.
-    pub previous_step_id: Option<String>,
-    /// stepId property.
-    pub step_id: Option<String>,
+pub struct TargetFrequency {
+    /// targetCount property.
+    pub target_count: Option<String>,
+    /// timeUnit property.
+    pub time_unit: Option<String>,
+    /// timeUnitCount property.
+    pub time_unit_count: Option<i64>,
 }
 
 /// `Pacing` type.
@@ -106,30 +178,6 @@ pub struct Pacing {
     pub pacing_period: Option<String>,
     /// pacingType property.
     pub pacing_type: Option<String>,
-}
-
-/// `ConversionCountingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConversionCountingConfig {
-    /// floodlightActivityConfigs property.
-    pub floodlight_activity_configs: Option<Vec<TrackingFloodlightActivityConfig>>,
-    /// postViewCountPercentageMillis property.
-    pub post_view_count_percentage_millis: Option<String>,
-    /// primaryAttributionModelId property.
-    pub primary_attribution_model_id: Option<String>,
-}
-
-/// `MobileApp` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MobileApp {
-    /// appId property.
-    pub app_id: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// platform property.
-    pub platform: Option<String>,
-    /// publisher property.
-    pub publisher: Option<String>,
 }
 
 /// `BiddingStrategy` type.
@@ -147,44 +195,6 @@ pub struct BiddingStrategy {
     pub youtube_and_partners_bid: Option<YoutubeAndPartnersBiddingStrategy>,
 }
 
-/// `PartnerRevenueModel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PartnerRevenueModel {
-    /// markupAmount property.
-    pub markup_amount: Option<String>,
-    /// markupType property.
-    pub markup_type: Option<String>,
-}
-
-/// `ThirdPartyVendorConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ThirdPartyVendorConfig {
-    /// placementId property.
-    pub placement_id: Option<String>,
-    /// vendor property.
-    pub vendor: Option<String>,
-}
-
-/// `DateRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DateRange {
-    /// endDate property.
-    pub end_date: Option<Date>,
-    /// startDate property.
-    pub start_date: Option<Date>,
-}
-
-/// `VideoAdInventoryControl` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoAdInventoryControl {
-    /// allowInFeed property.
-    pub allow_in_feed: Option<bool>,
-    /// allowInStream property.
-    pub allow_in_stream: Option<bool>,
-    /// allowShorts property.
-    pub allow_shorts: Option<bool>,
-}
-
 /// `YoutubeAndPartnersBiddingStrategy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YoutubeAndPartnersBiddingStrategy {
@@ -198,31 +208,43 @@ pub struct YoutubeAndPartnersBiddingStrategy {
     pub value: Option<String>,
 }
 
-/// `Date` type.
+/// `MobileApp` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
+pub struct MobileApp {
+    /// appId property.
+    pub app_id: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// platform property.
+    pub platform: Option<String>,
+    /// publisher property.
+    pub publisher: Option<String>,
 }
 
-/// `FixedBidStrategy` type.
+/// `VideoAdSequenceStep` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FixedBidStrategy {
-    /// bidAmountMicros property.
-    pub bid_amount_micros: Option<String>,
+pub struct VideoAdSequenceStep {
+    /// adGroupId property.
+    pub ad_group_id: Option<String>,
+    /// interactionType property.
+    pub interaction_type: Option<String>,
+    /// previousStepId property.
+    pub previous_step_id: Option<String>,
+    /// stepId property.
+    pub step_id: Option<String>,
 }
 
-/// `VideoAdSequenceSettings` type.
+/// `DemandGenBiddingStrategy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoAdSequenceSettings {
-    /// minimumDuration property.
-    pub minimum_duration: Option<String>,
-    /// steps property.
-    pub steps: Option<Vec<VideoAdSequenceStep>>,
+pub struct DemandGenBiddingStrategy {
+    /// effectiveBiddingValue property.
+    pub effective_bidding_value: Option<String>,
+    /// effectiveBiddingValueSource property.
+    pub effective_bidding_value_source: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
 /// `TargetingExpansionConfig` type.
@@ -236,6 +258,77 @@ pub struct TargetingExpansionConfig {
     pub enable_optimized_targeting: Option<bool>,
     /// excludeDemographicExpansion property.
     pub exclude_demographic_expansion: Option<bool>,
+}
+
+/// `ThirdPartyMeasurementConfigs` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ThirdPartyMeasurementConfigs {
+    /// brandLiftVendorConfigs property.
+    pub brand_lift_vendor_configs: Option<Vec<ThirdPartyVendorConfig>>,
+    /// brandSafetyVendorConfigs property.
+    pub brand_safety_vendor_configs: Option<Vec<ThirdPartyVendorConfig>>,
+    /// reachVendorConfigs property.
+    pub reach_vendor_configs: Option<Vec<ThirdPartyVendorConfig>>,
+    /// viewabilityVendorConfigs property.
+    pub viewability_vendor_configs: Option<Vec<ThirdPartyVendorConfig>>,
+}
+
+/// `LineItemBudget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LineItemBudget {
+    /// budgetAllocationType property.
+    pub budget_allocation_type: Option<String>,
+    /// budgetUnit property.
+    pub budget_unit: Option<String>,
+    /// maxAmount property.
+    pub max_amount: Option<String>,
+}
+
+/// `LineItemFlight` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LineItemFlight {
+    /// dateRange property.
+    pub date_range: Option<DateRange>,
+    /// flightDateType property.
+    pub flight_date_type: Option<String>,
+}
+
+/// `ThirdPartyVendorConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ThirdPartyVendorConfig {
+    /// placementId property.
+    pub placement_id: Option<String>,
+    /// vendor property.
+    pub vendor: Option<String>,
+}
+
+/// `ConversionCountingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConversionCountingConfig {
+    /// floodlightActivityConfigs property.
+    pub floodlight_activity_configs: Option<Vec<TrackingFloodlightActivityConfig>>,
+    /// postViewCountPercentageMillis property.
+    pub post_view_count_percentage_millis: Option<String>,
+    /// primaryAttributionModelId property.
+    pub primary_attribution_model_id: Option<String>,
+}
+
+/// `VideoAdInventoryControl` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoAdInventoryControl {
+    /// allowInFeed property.
+    pub allow_in_feed: Option<bool>,
+    /// allowInStream property.
+    pub allow_in_stream: Option<bool>,
+    /// allowShorts property.
+    pub allow_shorts: Option<bool>,
+}
+
+/// `DuplicateLineItemResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DuplicateLineItemResponse {
+    /// duplicateLineItemId property.
+    pub duplicate_line_item_id: Option<String>,
 }
 
 /// `LineItem` type.
@@ -297,61 +390,6 @@ pub struct LineItem {
     pub youtube_and_partners_settings: Option<YoutubeAndPartnersSettings>,
 }
 
-/// `PartnerCost` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PartnerCost {
-    /// costType property.
-    pub cost_type: Option<String>,
-    /// feeAmount property.
-    pub fee_amount: Option<String>,
-    /// feePercentageMillis property.
-    pub fee_percentage_millis: Option<String>,
-    /// feeType property.
-    pub fee_type: Option<String>,
-    /// invoiceType property.
-    pub invoice_type: Option<String>,
-}
-
-/// `YoutubeAndPartnersInventorySourceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct YoutubeAndPartnersInventorySourceConfig {
-    /// includeGoogleTv property.
-    pub include_google_tv: Option<bool>,
-    /// includeYoutube property.
-    pub include_youtube: Option<bool>,
-    /// includeYoutubeVideoPartners property.
-    pub include_youtube_video_partners: Option<bool>,
-}
-
-/// `TrackingFloodlightActivityConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TrackingFloodlightActivityConfig {
-    /// floodlightActivityId property.
-    pub floodlight_activity_id: Option<String>,
-    /// postClickLookbackWindowDays property.
-    pub post_click_lookback_window_days: Option<i64>,
-    /// postViewLookbackWindowDays property.
-    pub post_view_lookback_window_days: Option<i64>,
-}
-
-/// `DuplicateLineItemResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DuplicateLineItemResponse {
-    /// duplicateLineItemId property.
-    pub duplicate_line_item_id: Option<String>,
-}
-
-/// `TargetFrequency` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TargetFrequency {
-    /// targetCount property.
-    pub target_count: Option<String>,
-    /// timeUnit property.
-    pub time_unit: Option<String>,
-    /// timeUnitCount property.
-    pub time_unit_count: Option<i64>,
-}
-
 /// `PerformanceGoalBidStrategy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerformanceGoalBidStrategy {
@@ -365,43 +403,15 @@ pub struct PerformanceGoalBidStrategy {
     pub performance_goal_type: Option<String>,
 }
 
-/// `LineItemBudget` type.
+/// `Date` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LineItemBudget {
-    /// budgetAllocationType property.
-    pub budget_allocation_type: Option<String>,
-    /// budgetUnit property.
-    pub budget_unit: Option<String>,
-    /// maxAmount property.
-    pub max_amount: Option<String>,
-}
-
-/// `ThirdPartyMeasurementConfigs` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ThirdPartyMeasurementConfigs {
-    /// brandLiftVendorConfigs property.
-    pub brand_lift_vendor_configs: Option<Vec<ThirdPartyVendorConfig>>,
-    /// brandSafetyVendorConfigs property.
-    pub brand_safety_vendor_configs: Option<Vec<ThirdPartyVendorConfig>>,
-    /// reachVendorConfigs property.
-    pub reach_vendor_configs: Option<Vec<ThirdPartyVendorConfig>>,
-    /// viewabilityVendorConfigs property.
-    pub viewability_vendor_configs: Option<Vec<ThirdPartyVendorConfig>>,
-}
-
-/// `FrequencyCap` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FrequencyCap {
-    /// maxImpressions property.
-    pub max_impressions: Option<i64>,
-    /// maxViews property.
-    pub max_views: Option<i64>,
-    /// timeUnit property.
-    pub time_unit: Option<String>,
-    /// timeUnitCount property.
-    pub time_unit_count: Option<i64>,
-    /// unlimited property.
-    pub unlimited: Option<bool>,
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
 }
 
 /// `YoutubeAndPartnersSettings` type.
@@ -429,15 +439,6 @@ pub struct YoutubeAndPartnersSettings {
     pub video_ad_sequence_settings: Option<VideoAdSequenceSettings>,
     /// viewFrequencyCap property.
     pub view_frequency_cap: Option<FrequencyCap>,
-}
-
-/// `IntegrationDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntegrationDetails {
-    /// details property.
-    pub details: Option<String>,
-    /// integrationCode property.
-    pub integration_code: Option<String>,
 }
 
 // =============================================================================

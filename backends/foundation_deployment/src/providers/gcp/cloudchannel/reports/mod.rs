@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,22 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudChannelV1Column` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1Column {
+    /// columnId property.
+    pub column_id: Option<String>,
+    /// dataType property.
+    pub data_type: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+}
 
 /// `GoogleCloudChannelV1Report` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,26 +52,6 @@ pub struct GoogleCloudChannelV1Report {
     pub name: Option<String>,
 }
 
-/// `GoogleCloudChannelV1ListReportsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1ListReportsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// reports property.
-    pub reports: Option<Vec<GoogleCloudChannelV1Report>>,
-}
-
-/// `GoogleCloudChannelV1Column` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1Column {
-    /// columnId property.
-    pub column_id: Option<String>,
-    /// dataType property.
-    pub data_type: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-}
-
 /// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
@@ -69,6 +61,15 @@ pub struct GoogleRpcStatus {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
+}
+
+/// `GoogleCloudChannelV1ListReportsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1ListReportsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// reports property.
+    pub reports: Option<Vec<GoogleCloudChannelV1Report>>,
 }
 
 // =============================================================================

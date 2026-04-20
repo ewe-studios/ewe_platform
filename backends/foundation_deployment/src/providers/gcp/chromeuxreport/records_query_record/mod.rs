@@ -12,17 +12,47 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `QueryResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueryResponse {
+    /// record property.
+    pub record: Option<Record>,
+    /// urlNormalizationDetails property.
+    pub url_normalization_details: Option<UrlNormalization>,
+}
+
+/// `CollectionPeriod` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CollectionPeriod {
+    /// firstDate property.
+    pub first_date: Option<Date>,
+    /// lastDate property.
+    pub last_date: Option<Date>,
+}
+
+/// `Record` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Record {
+    /// collectionPeriod property.
+    pub collection_period: Option<CollectionPeriod>,
+    /// key property.
+    pub key: Option<Key>,
+    /// metrics property.
+    pub metrics: Option<serde_json::Value>,
+}
 
 /// `Key` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -37,35 +67,6 @@ pub struct Key {
     pub url: Option<String>,
 }
 
-/// `QueryResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryResponse {
-    /// record property.
-    pub record: Option<Record>,
-    /// urlNormalizationDetails property.
-    pub url_normalization_details: Option<UrlNormalization>,
-}
-
-/// `Record` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Record {
-    /// collectionPeriod property.
-    pub collection_period: Option<CollectionPeriod>,
-    /// key property.
-    pub key: Option<Key>,
-    /// metrics property.
-    pub metrics: Option<serde_json::Value>,
-}
-
-/// `UrlNormalization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UrlNormalization {
-    /// normalizedUrl property.
-    pub normalized_url: Option<String>,
-    /// originalUrl property.
-    pub original_url: Option<String>,
-}
-
 /// `Date` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
@@ -77,13 +78,13 @@ pub struct Date {
     pub year: Option<i64>,
 }
 
-/// `CollectionPeriod` type.
+/// `UrlNormalization` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CollectionPeriod {
-    /// firstDate property.
-    pub first_date: Option<Date>,
-    /// lastDate property.
-    pub last_date: Option<Date>,
+pub struct UrlNormalization {
+    /// normalizedUrl property.
+    pub normalized_url: Option<String>,
+    /// originalUrl property.
+    pub original_url: Option<String>,
 }
 
 // =============================================================================

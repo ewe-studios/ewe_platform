@@ -12,119 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudAiplatformV1RetrievalMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RetrievalMetadata {
-    /// googleSearchDynamicRetrievalScore property.
-    pub google_search_dynamic_retrieval_score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1GroundingChunkMaps` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GroundingChunkMaps {
-    /// placeAnswerSources property.
-    pub place_answer_sources: Option<GoogleCloudAiplatformV1GroundingChunkMapsPlaceAnswerSources>,
-    /// placeId property.
-    pub place_id: Option<String>,
-    /// route property.
-    pub route: Option<GoogleCloudAiplatformV1GroundingChunkMapsRoute>,
-    /// text property.
-    pub text: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1EventMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EventMetadata {
-    /// branch property.
-    pub branch: Option<String>,
-    /// customMetadata property.
-    pub custom_metadata: Option<serde_json::Value>,
-    /// groundingMetadata property.
-    pub grounding_metadata: Option<GoogleCloudAiplatformV1GroundingMetadata>,
-    /// inputTranscription property.
-    pub input_transcription: Option<GoogleCloudAiplatformV1Transcription>,
-    /// interrupted property.
-    pub interrupted: Option<bool>,
-    /// longRunningToolIds property.
-    pub long_running_tool_ids: Option<Vec<String>>,
-    /// outputTranscription property.
-    pub output_transcription: Option<GoogleCloudAiplatformV1Transcription>,
-    /// partial property.
-    pub partial: Option<bool>,
-    /// turnComplete property.
-    pub turn_complete: Option<bool>,
-}
-
-/// `GoogleCloudAiplatformV1GroundingChunkImage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GroundingChunkImage {
-    /// domain property.
-    pub domain: Option<String>,
-    /// imageUri property.
-    pub image_uri: Option<String>,
-    /// sourceUri property.
-    pub source_uri: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1GroundingChunkWeb` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GroundingChunkWeb {
-    /// domain property.
-    pub domain: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1FunctionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FunctionResponse {
-    /// name property.
-    pub name: Option<String>,
-    /// parts property.
-    pub parts: Option<Vec<GoogleCloudAiplatformV1FunctionResponsePart>>,
-    /// response property.
-    pub response: Option<serde_json::Value>,
-    /// scheduling property.
-    pub scheduling: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1Content` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Content {
-    /// parts property.
-    pub parts: Option<Vec<GoogleCloudAiplatformV1Part>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ExecutableCode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ExecutableCode {
-    /// code property.
-    pub code: Option<String>,
-    /// language property.
-    pub language: Option<String>,
-}
 
 /// `GoogleCloudAiplatformV1SessionEvent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -151,22 +50,128 @@ pub struct GoogleCloudAiplatformV1SessionEvent {
     pub timestamp: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1RagChunkPageSpan` type.
+/// `GoogleCloudAiplatformV1SearchEntryPoint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RagChunkPageSpan {
-    /// firstPage property.
-    pub first_page: Option<i64>,
-    /// lastPage property.
-    pub last_page: Option<i64>,
+pub struct GoogleCloudAiplatformV1SearchEntryPoint {
+    /// renderedContent property.
+    pub rendered_content: Option<String>,
+    /// sdkBlob property.
+    pub sdk_blob: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1FunctionResponseFileData` type.
+/// `GoogleCloudAiplatformV1GroundingChunkImage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FunctionResponseFileData {
+pub struct GoogleCloudAiplatformV1GroundingChunkImage {
+    /// domain property.
+    pub domain: Option<String>,
+    /// imageUri property.
+    pub image_uri: Option<String>,
+    /// sourceUri property.
+    pub source_uri: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1Transcription` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1Transcription {
+    /// finished property.
+    pub finished: Option<bool>,
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1GroundingChunkMapsRoute` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1GroundingChunkMapsRoute {
+    /// distanceMeters property.
+    pub distance_meters: Option<i64>,
+    /// duration property.
+    pub duration: Option<String>,
+    /// encodedPolyline property.
+    pub encoded_polyline: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1GroundingMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1GroundingMetadata {
+    /// googleMapsWidgetContextToken property.
+    pub google_maps_widget_context_token: Option<String>,
+    /// groundingChunks property.
+    pub grounding_chunks: Option<Vec<GoogleCloudAiplatformV1GroundingChunk>>,
+    /// groundingSupports property.
+    pub grounding_supports: Option<Vec<GoogleCloudAiplatformV1GroundingSupport>>,
+    /// imageSearchQueries property.
+    pub image_search_queries: Option<Vec<String>>,
+    /// retrievalMetadata property.
+    pub retrieval_metadata: Option<GoogleCloudAiplatformV1RetrievalMetadata>,
+    /// searchEntryPoint property.
+    pub search_entry_point: Option<GoogleCloudAiplatformV1SearchEntryPoint>,
+    /// sourceFlaggingUris property.
+    pub source_flagging_uris:
+        Option<Vec<GoogleCloudAiplatformV1GroundingMetadataSourceFlaggingUri>>,
+    /// webSearchQueries property.
+    pub web_search_queries: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAiplatformV1RagChunk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RagChunk {
+    /// pageSpan property.
+    pub page_span: Option<GoogleCloudAiplatformV1RagChunkPageSpan>,
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1Blob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1Blob {
+    /// data property.
+    pub data: Option<String>,
     /// displayName property.
     pub display_name: Option<String>,
-    /// fileUri property.
-    pub file_uri: Option<String>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1FunctionResponsePart` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FunctionResponsePart {
+    /// fileData property.
+    pub file_data: Option<GoogleCloudAiplatformV1FunctionResponseFileData>,
+    /// inlineData property.
+    pub inline_data: Option<GoogleCloudAiplatformV1FunctionResponseBlob>,
+}
+
+/// `GoogleCloudAiplatformV1GroundingChunkRetrievedContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1GroundingChunkRetrievedContext {
+    /// documentName property.
+    pub document_name: Option<String>,
+    /// ragChunk property.
+    pub rag_chunk: Option<GoogleCloudAiplatformV1RagChunk>,
+    /// text property.
+    pub text: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1PartMediaResolution` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PartMediaResolution {
+    /// level property.
+    pub level: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1FunctionResponseBlob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FunctionResponseBlob {
+    /// data property.
+    pub data: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
     /// mimeType property.
     pub mime_type: Option<String>,
 }
@@ -180,13 +185,15 @@ pub struct GoogleCloudAiplatformV1GroundingMetadataSourceFlaggingUri {
     pub source_id: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1ListEventsResponse` type.
+/// `GoogleCloudAiplatformV1FunctionResponseFileData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListEventsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// sessionEvents property.
-    pub session_events: Option<Vec<GoogleCloudAiplatformV1SessionEvent>>,
+pub struct GoogleCloudAiplatformV1FunctionResponseFileData {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// fileUri property.
+    pub file_uri: Option<String>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1Part` type.
@@ -216,24 +223,41 @@ pub struct GoogleCloudAiplatformV1Part {
     pub video_metadata: Option<GoogleCloudAiplatformV1VideoMetadata>,
 }
 
-/// `GoogleCloudAiplatformV1FunctionResponsePart` type.
+/// `GoogleCloudAiplatformV1EventActions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FunctionResponsePart {
-    /// fileData property.
-    pub file_data: Option<GoogleCloudAiplatformV1FunctionResponseFileData>,
-    /// inlineData property.
-    pub inline_data: Option<GoogleCloudAiplatformV1FunctionResponseBlob>,
+pub struct GoogleCloudAiplatformV1EventActions {
+    /// artifactDelta property.
+    pub artifact_delta: Option<serde_json::Value>,
+    /// escalate property.
+    pub escalate: Option<bool>,
+    /// requestedAuthConfigs property.
+    pub requested_auth_configs: Option<serde_json::Value>,
+    /// skipSummarization property.
+    pub skip_summarization: Option<bool>,
+    /// stateDelta property.
+    pub state_delta: Option<serde_json::Value>,
+    /// transferAgent property.
+    pub transfer_agent: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1GroundingChunkMapsRoute` type.
+/// `GoogleCloudAiplatformV1RetrievalMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GroundingChunkMapsRoute {
-    /// distanceMeters property.
-    pub distance_meters: Option<i64>,
-    /// duration property.
-    pub duration: Option<String>,
-    /// encodedPolyline property.
-    pub encoded_polyline: Option<String>,
+pub struct GoogleCloudAiplatformV1RetrievalMetadata {
+    /// googleSearchDynamicRetrievalScore property.
+    pub google_search_dynamic_retrieval_score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1FunctionCall` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FunctionCall {
+    /// args property.
+    pub args: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// partialArgs property.
+    pub partial_args: Option<Vec<GoogleCloudAiplatformV1PartialArg>>,
+    /// willContinue property.
+    pub will_continue: Option<bool>,
 }
 
 /// `GoogleCloudAiplatformV1PartialArg` type.
@@ -253,124 +277,13 @@ pub struct GoogleCloudAiplatformV1PartialArg {
     pub will_continue: Option<bool>,
 }
 
-/// `GoogleCloudAiplatformV1Blob` type.
+/// `GoogleCloudAiplatformV1ListEventsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Blob {
-    /// data property.
-    pub data: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1GroundingChunkRetrievedContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GroundingChunkRetrievedContext {
-    /// documentName property.
-    pub document_name: Option<String>,
-    /// ragChunk property.
-    pub rag_chunk: Option<GoogleCloudAiplatformV1RagChunk>,
-    /// text property.
-    pub text: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1FileData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FileData {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// fileUri property.
-    pub file_uri: Option<String>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1RagChunk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RagChunk {
-    /// pageSpan property.
-    pub page_span: Option<GoogleCloudAiplatformV1RagChunkPageSpan>,
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1Transcription` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Transcription {
-    /// finished property.
-    pub finished: Option<bool>,
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1GroundingChunkMapsPlaceAnswerSourcesReviewSnippet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GroundingChunkMapsPlaceAnswerSourcesReviewSnippet {
-    /// googleMapsUri property.
-    pub google_maps_uri: Option<String>,
-    /// reviewId property.
-    pub review_id: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1GroundingSupport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GroundingSupport {
-    /// confidenceScores property.
-    pub confidence_scores: Option<Vec<f64>>,
-    /// groundingChunkIndices property.
-    pub grounding_chunk_indices: Option<Vec<i64>>,
-    /// renderedParts property.
-    pub rendered_parts: Option<Vec<i64>>,
-    /// segment property.
-    pub segment: Option<GoogleCloudAiplatformV1Segment>,
-}
-
-/// `GoogleCloudAiplatformV1FunctionCall` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FunctionCall {
-    /// args property.
-    pub args: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// partialArgs property.
-    pub partial_args: Option<Vec<GoogleCloudAiplatformV1PartialArg>>,
-    /// willContinue property.
-    pub will_continue: Option<bool>,
-}
-
-/// `GoogleCloudAiplatformV1FunctionResponseBlob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FunctionResponseBlob {
-    /// data property.
-    pub data: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1EventActions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EventActions {
-    /// artifactDelta property.
-    pub artifact_delta: Option<serde_json::Value>,
-    /// escalate property.
-    pub escalate: Option<bool>,
-    /// requestedAuthConfigs property.
-    pub requested_auth_configs: Option<serde_json::Value>,
-    /// skipSummarization property.
-    pub skip_summarization: Option<bool>,
-    /// stateDelta property.
-    pub state_delta: Option<serde_json::Value>,
-    /// transferAgent property.
-    pub transfer_agent: Option<String>,
+pub struct GoogleCloudAiplatformV1ListEventsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// sessionEvents property.
+    pub session_events: Option<Vec<GoogleCloudAiplatformV1SessionEvent>>,
 }
 
 /// `GoogleCloudAiplatformV1Segment` type.
@@ -386,35 +299,41 @@ pub struct GoogleCloudAiplatformV1Segment {
     pub text: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1CodeExecutionResult` type.
+/// `GoogleCloudAiplatformV1GroundingChunkMaps` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1CodeExecutionResult {
-    /// outcome property.
-    pub outcome: Option<String>,
-    /// output property.
-    pub output: Option<String>,
+pub struct GoogleCloudAiplatformV1GroundingChunkMaps {
+    /// placeAnswerSources property.
+    pub place_answer_sources: Option<GoogleCloudAiplatformV1GroundingChunkMapsPlaceAnswerSources>,
+    /// placeId property.
+    pub place_id: Option<String>,
+    /// route property.
+    pub route: Option<GoogleCloudAiplatformV1GroundingChunkMapsRoute>,
+    /// text property.
+    pub text: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1GroundingMetadata` type.
+/// `GoogleCloudAiplatformV1GroundingChunkMapsPlaceAnswerSourcesReviewSnippet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GroundingMetadata {
-    /// googleMapsWidgetContextToken property.
-    pub google_maps_widget_context_token: Option<String>,
-    /// groundingChunks property.
-    pub grounding_chunks: Option<Vec<GoogleCloudAiplatformV1GroundingChunk>>,
-    /// groundingSupports property.
-    pub grounding_supports: Option<Vec<GoogleCloudAiplatformV1GroundingSupport>>,
-    /// imageSearchQueries property.
-    pub image_search_queries: Option<Vec<String>>,
-    /// retrievalMetadata property.
-    pub retrieval_metadata: Option<GoogleCloudAiplatformV1RetrievalMetadata>,
-    /// searchEntryPoint property.
-    pub search_entry_point: Option<GoogleCloudAiplatformV1SearchEntryPoint>,
-    /// sourceFlaggingUris property.
-    pub source_flagging_uris:
-        Option<Vec<GoogleCloudAiplatformV1GroundingMetadataSourceFlaggingUri>>,
-    /// webSearchQueries property.
-    pub web_search_queries: Option<Vec<String>>,
+pub struct GoogleCloudAiplatformV1GroundingChunkMapsPlaceAnswerSourcesReviewSnippet {
+    /// googleMapsUri property.
+    pub google_maps_uri: Option<String>,
+    /// reviewId property.
+    pub review_id: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ExecutableCode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ExecutableCode {
+    /// code property.
+    pub code: Option<String>,
+    /// language property.
+    pub language: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1GroundingChunk` type.
@@ -430,20 +349,101 @@ pub struct GoogleCloudAiplatformV1GroundingChunk {
     pub web: Option<GoogleCloudAiplatformV1GroundingChunkWeb>,
 }
 
-/// `GoogleCloudAiplatformV1PartMediaResolution` type.
+/// `GoogleCloudAiplatformV1GroundingSupport` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PartMediaResolution {
-    /// level property.
-    pub level: Option<String>,
+pub struct GoogleCloudAiplatformV1GroundingSupport {
+    /// confidenceScores property.
+    pub confidence_scores: Option<Vec<f64>>,
+    /// groundingChunkIndices property.
+    pub grounding_chunk_indices: Option<Vec<i64>>,
+    /// renderedParts property.
+    pub rendered_parts: Option<Vec<i64>>,
+    /// segment property.
+    pub segment: Option<GoogleCloudAiplatformV1Segment>,
 }
 
-/// `GoogleCloudAiplatformV1SearchEntryPoint` type.
+/// `GoogleCloudAiplatformV1GroundingChunkWeb` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SearchEntryPoint {
-    /// renderedContent property.
-    pub rendered_content: Option<String>,
-    /// sdkBlob property.
-    pub sdk_blob: Option<String>,
+pub struct GoogleCloudAiplatformV1GroundingChunkWeb {
+    /// domain property.
+    pub domain: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1RagChunkPageSpan` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RagChunkPageSpan {
+    /// firstPage property.
+    pub first_page: Option<i64>,
+    /// lastPage property.
+    pub last_page: Option<i64>,
+}
+
+/// `GoogleCloudAiplatformV1Content` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1Content {
+    /// parts property.
+    pub parts: Option<Vec<GoogleCloudAiplatformV1Part>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1GroundingChunkMapsPlaceAnswerSources` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1GroundingChunkMapsPlaceAnswerSources {
+    /// reviewSnippets property.
+    pub review_snippets:
+        Option<Vec<GoogleCloudAiplatformV1GroundingChunkMapsPlaceAnswerSourcesReviewSnippet>>,
+}
+
+/// `GoogleCloudAiplatformV1FileData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FileData {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// fileUri property.
+    pub file_uri: Option<String>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1FunctionResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FunctionResponse {
+    /// name property.
+    pub name: Option<String>,
+    /// parts property.
+    pub parts: Option<Vec<GoogleCloudAiplatformV1FunctionResponsePart>>,
+    /// response property.
+    pub response: Option<serde_json::Value>,
+    /// scheduling property.
+    pub scheduling: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1EventMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1EventMetadata {
+    /// branch property.
+    pub branch: Option<String>,
+    /// customMetadata property.
+    pub custom_metadata: Option<serde_json::Value>,
+    /// groundingMetadata property.
+    pub grounding_metadata: Option<GoogleCloudAiplatformV1GroundingMetadata>,
+    /// inputTranscription property.
+    pub input_transcription: Option<GoogleCloudAiplatformV1Transcription>,
+    /// interrupted property.
+    pub interrupted: Option<bool>,
+    /// longRunningToolIds property.
+    pub long_running_tool_ids: Option<Vec<String>>,
+    /// outputTranscription property.
+    pub output_transcription: Option<GoogleCloudAiplatformV1Transcription>,
+    /// partial property.
+    pub partial: Option<bool>,
+    /// turnComplete property.
+    pub turn_complete: Option<bool>,
 }
 
 /// `GoogleCloudAiplatformV1VideoMetadata` type.
@@ -457,12 +457,13 @@ pub struct GoogleCloudAiplatformV1VideoMetadata {
     pub start_offset: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1GroundingChunkMapsPlaceAnswerSources` type.
+/// `GoogleCloudAiplatformV1CodeExecutionResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GroundingChunkMapsPlaceAnswerSources {
-    /// reviewSnippets property.
-    pub review_snippets:
-        Option<Vec<GoogleCloudAiplatformV1GroundingChunkMapsPlaceAnswerSourcesReviewSnippet>>,
+pub struct GoogleCloudAiplatformV1CodeExecutionResult {
+    /// outcome property.
+    pub outcome: Option<String>,
+    /// output property.
+    pub output: Option<String>,
 }
 
 // =============================================================================

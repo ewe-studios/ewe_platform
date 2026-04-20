@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,97 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Encryption` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Encryption {
+    /// kmsKey property.
+    pub kms_key: Option<String>,
+}
+
+/// `InstantiatingMigratedVMStep` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstantiatingMigratedVMStep {}
+
+/// `ListCloneJobsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListCloneJobsResponse {
+    /// cloneJobs property.
+    pub clone_jobs: Option<Vec<CloneJob>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `PreparingVMDisksStep` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PreparingVMDisksStep {}
+
+/// `SchedulingNodeAffinity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SchedulingNodeAffinity {
+    /// key property.
+    pub key: Option<String>,
+    /// operator property.
+    pub operator: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `PersistentDisk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PersistentDisk {
+    /// diskUri property.
+    pub disk_uri: Option<String>,
+    /// sourceDiskNumber property.
+    pub source_disk_number: Option<i64>,
+}
+
+/// `ComputeEngineDisksTargetDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeEngineDisksTargetDetails {
+    /// disks property.
+    pub disks: Option<Vec<PersistentDisk>>,
+    /// disksTargetDetails property.
+    pub disks_target_details: Option<DisksMigrationDisksTargetDetails>,
+    /// vmTargetDetails property.
+    pub vm_target_details: Option<DisksMigrationVmTargetDetails>,
+}
+
+/// `AdaptationModifier` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdaptationModifier {
+    /// modifier property.
+    pub modifier: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `AppliedLicense` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppliedLicense {
+    /// osLicense property.
+    pub os_license: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
 
 /// `DisksMigrationVmTargetDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -33,6 +120,50 @@ pub struct DisksMigrationVmTargetDetails {
     /// vmUri property.
     pub vm_uri: Option<String>,
 }
+
+/// `AdaptingOSStep` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdaptingOSStep {}
+
+/// `CloneJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloneJob {
+    /// computeEngineDisksTargetDetails property.
+    pub compute_engine_disks_target_details: Option<ComputeEngineDisksTargetDetails>,
+    /// computeEngineTargetDetails property.
+    pub compute_engine_target_details: Option<ComputeEngineTargetDetails>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// error property.
+    pub error: Option<Status>,
+    /// name property.
+    pub name: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// stateTime property.
+    pub state_time: Option<String>,
+    /// steps property.
+    pub steps: Option<Vec<CloneStep>>,
+}
+
+/// `ComputeScheduling` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeScheduling {
+    /// minNodeCpus property.
+    pub min_node_cpus: Option<i64>,
+    /// nodeAffinities property.
+    pub node_affinities: Option<Vec<SchedulingNodeAffinity>>,
+    /// onHostMaintenance property.
+    pub on_host_maintenance: Option<String>,
+    /// restartType property.
+    pub restart_type: Option<String>,
+}
+
+/// `DisksMigrationDisksTargetDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DisksMigrationDisksTargetDetails {}
 
 /// `ComputeEngineTargetDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -89,40 +220,6 @@ pub struct ComputeEngineTargetDetails {
     pub zone: Option<String>,
 }
 
-/// `CloneJob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloneJob {
-    /// computeEngineDisksTargetDetails property.
-    pub compute_engine_disks_target_details: Option<ComputeEngineDisksTargetDetails>,
-    /// computeEngineTargetDetails property.
-    pub compute_engine_target_details: Option<ComputeEngineTargetDetails>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// error property.
-    pub error: Option<Status>,
-    /// name property.
-    pub name: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// stateTime property.
-    pub state_time: Option<String>,
-    /// steps property.
-    pub steps: Option<Vec<CloneStep>>,
-}
-
-/// `ListCloneJobsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCloneJobsResponse {
-    /// cloneJobs property.
-    pub clone_jobs: Option<Vec<CloneJob>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
 /// `CloneStep` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloneStep {
@@ -151,102 +248,6 @@ pub struct NetworkInterface {
     pub network_tier: Option<String>,
     /// subnetwork property.
     pub subnetwork: Option<String>,
-}
-
-/// `ComputeEngineDisksTargetDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeEngineDisksTargetDetails {
-    /// disks property.
-    pub disks: Option<Vec<PersistentDisk>>,
-    /// disksTargetDetails property.
-    pub disks_target_details: Option<DisksMigrationDisksTargetDetails>,
-    /// vmTargetDetails property.
-    pub vm_target_details: Option<DisksMigrationVmTargetDetails>,
-}
-
-/// `AdaptationModifier` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdaptationModifier {
-    /// modifier property.
-    pub modifier: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `SchedulingNodeAffinity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SchedulingNodeAffinity {
-    /// key property.
-    pub key: Option<String>,
-    /// operator property.
-    pub operator: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `AdaptingOSStep` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdaptingOSStep {}
-
-/// `Encryption` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Encryption {
-    /// kmsKey property.
-    pub kms_key: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `DisksMigrationDisksTargetDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DisksMigrationDisksTargetDetails {}
-
-/// `PersistentDisk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PersistentDisk {
-    /// diskUri property.
-    pub disk_uri: Option<String>,
-    /// sourceDiskNumber property.
-    pub source_disk_number: Option<i64>,
-}
-
-/// `AppliedLicense` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppliedLicense {
-    /// osLicense property.
-    pub os_license: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `InstantiatingMigratedVMStep` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstantiatingMigratedVMStep {}
-
-/// `PreparingVMDisksStep` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreparingVMDisksStep {}
-
-/// `ComputeScheduling` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeScheduling {
-    /// minNodeCpus property.
-    pub min_node_cpus: Option<i64>,
-    /// nodeAffinities property.
-    pub node_affinities: Option<Vec<SchedulingNodeAffinity>>,
-    /// onHostMaintenance property.
-    pub on_host_maintenance: Option<String>,
-    /// restartType property.
-    pub restart_type: Option<String>,
 }
 
 // =============================================================================

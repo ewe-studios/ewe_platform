@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,11 +24,22 @@ use super::shared::DetectLanguageResponse;
 use super::shared::RomanizeTextResponse;
 use super::shared::TranslateTextResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `TranslateTextGlossaryConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TranslateTextGlossaryConfig {
+    /// contextualTranslationEnabled property.
+    pub contextual_translation_enabled: Option<bool>,
+    /// glossary property.
+    pub glossary: Option<String>,
+    /// ignoreCase property.
+    pub ignore_case: Option<bool>,
+}
 
 /// `Romanization` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,17 +61,6 @@ pub struct Translation {
     pub model: Option<String>,
     /// translatedText property.
     pub translated_text: Option<String>,
-}
-
-/// `TranslateTextGlossaryConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TranslateTextGlossaryConfig {
-    /// contextualTranslationEnabled property.
-    pub contextual_translation_enabled: Option<bool>,
-    /// glossary property.
-    pub glossary: Option<String>,
-    /// ignoreCase property.
-    pub ignore_case: Option<bool>,
 }
 
 /// `DetectedLanguage` type.

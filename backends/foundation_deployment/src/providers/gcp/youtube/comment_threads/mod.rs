@@ -12,17 +12,106 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `CommentThreadListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CommentThreadListResponse {
+    /// etag property.
+    pub etag: Option<String>,
+    /// eventId property.
+    pub event_id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<CommentThread>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// pageInfo property.
+    pub page_info: Option<PageInfo>,
+    /// tokenPagination property.
+    pub token_pagination: Option<TokenPagination>,
+    /// visitorId property.
+    pub visitor_id: Option<String>,
+}
+
+/// `CommentThread` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CommentThread {
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// replies property.
+    pub replies: Option<CommentThreadReplies>,
+    /// snippet property.
+    pub snippet: Option<CommentThreadSnippet>,
+}
+
+/// `CommentThreadReplies` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CommentThreadReplies {
+    /// comments property.
+    pub comments: Option<Vec<Comment>>,
+}
+
+/// `Comment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Comment {
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// snippet property.
+    pub snippet: Option<CommentSnippet>,
+}
+
+/// `TokenPagination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TokenPagination {}
+
+/// `CommentThreadSnippet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CommentThreadSnippet {
+    /// canReply property.
+    pub can_reply: Option<bool>,
+    /// channelId property.
+    pub channel_id: Option<String>,
+    /// isPublic property.
+    pub is_public: Option<bool>,
+    /// postId property.
+    pub post_id: Option<String>,
+    /// topLevelComment property.
+    pub top_level_comment: Option<Comment>,
+    /// totalReplyCount property.
+    pub total_reply_count: Option<i64>,
+    /// videoId property.
+    pub video_id: Option<String>,
+}
+
+/// `PageInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PageInfo {
+    /// resultsPerPage property.
+    pub results_per_page: Option<i64>,
+    /// totalResults property.
+    pub total_results: Option<i64>,
+}
 
 /// `CommentSnippet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -61,99 +150,11 @@ pub struct CommentSnippet {
     pub viewer_rating: Option<String>,
 }
 
-/// `CommentThreadReplies` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CommentThreadReplies {
-    /// comments property.
-    pub comments: Option<Vec<Comment>>,
-}
-
-/// `PageInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PageInfo {
-    /// resultsPerPage property.
-    pub results_per_page: Option<i64>,
-    /// totalResults property.
-    pub total_results: Option<i64>,
-}
-
-/// `CommentThread` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CommentThread {
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// replies property.
-    pub replies: Option<CommentThreadReplies>,
-    /// snippet property.
-    pub snippet: Option<CommentThreadSnippet>,
-}
-
 /// `CommentSnippetAuthorChannelId` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommentSnippetAuthorChannelId {
     /// value property.
     pub value: Option<String>,
-}
-
-/// `Comment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Comment {
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// snippet property.
-    pub snippet: Option<CommentSnippet>,
-}
-
-/// `CommentThreadListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CommentThreadListResponse {
-    /// etag property.
-    pub etag: Option<String>,
-    /// eventId property.
-    pub event_id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<CommentThread>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// pageInfo property.
-    pub page_info: Option<PageInfo>,
-    /// tokenPagination property.
-    pub token_pagination: Option<TokenPagination>,
-    /// visitorId property.
-    pub visitor_id: Option<String>,
-}
-
-/// `TokenPagination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TokenPagination {}
-
-/// `CommentThreadSnippet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CommentThreadSnippet {
-    /// canReply property.
-    pub can_reply: Option<bool>,
-    /// channelId property.
-    pub channel_id: Option<String>,
-    /// isPublic property.
-    pub is_public: Option<bool>,
-    /// postId property.
-    pub post_id: Option<String>,
-    /// topLevelComment property.
-    pub top_level_comment: Option<Comment>,
-    /// totalReplyCount property.
-    pub total_reply_count: Option<i64>,
-    /// videoId property.
-    pub video_id: Option<String>,
 }
 
 // =============================================================================

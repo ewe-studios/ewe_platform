@@ -12,41 +12,36 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleAppsDriveLabelsV2TextLimits` type.
+/// `GoogleAppsDriveLabelsV2LabelLimits` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2TextLimits {
-    /// maxLength property.
-    pub max_length: Option<i64>,
-    /// minLength property.
-    pub min_length: Option<i64>,
-}
-
-/// `GoogleAppsDriveLabelsV2DateLimits` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2DateLimits {
-    /// maxValue property.
-    pub max_value: Option<GoogleTypeDate>,
-    /// minValue property.
-    pub min_value: Option<GoogleTypeDate>,
-}
-
-/// `GoogleAppsDriveLabelsV2ListLimits` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2ListLimits {
-    /// maxEntries property.
-    pub max_entries: Option<i64>,
+pub struct GoogleAppsDriveLabelsV2LabelLimits {
+    /// fieldLimits property.
+    pub field_limits: Option<GoogleAppsDriveLabelsV2FieldLimits>,
+    /// maxDeletedFields property.
+    pub max_deleted_fields: Option<i64>,
+    /// maxDescriptionLength property.
+    pub max_description_length: Option<i64>,
+    /// maxDraftRevisions property.
+    pub max_draft_revisions: Option<i64>,
+    /// maxFields property.
+    pub max_fields: Option<i64>,
+    /// maxTitleLength property.
+    pub max_title_length: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 /// `GoogleAppsDriveLabelsV2FieldLimits` type.
@@ -72,11 +67,36 @@ pub struct GoogleAppsDriveLabelsV2FieldLimits {
     pub user_limits: Option<GoogleAppsDriveLabelsV2UserLimits>,
 }
 
+/// `GoogleAppsDriveLabelsV2ListLimits` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2ListLimits {
+    /// maxEntries property.
+    pub max_entries: Option<i64>,
+}
+
+/// `GoogleAppsDriveLabelsV2TextLimits` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2TextLimits {
+    /// maxLength property.
+    pub max_length: Option<i64>,
+    /// minLength property.
+    pub min_length: Option<i64>,
+}
+
 /// `GoogleAppsDriveLabelsV2UserLimits` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2UserLimits {
     /// listLimits property.
     pub list_limits: Option<GoogleAppsDriveLabelsV2ListLimits>,
+}
+
+/// `GoogleAppsDriveLabelsV2IntegerLimits` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2IntegerLimits {
+    /// maxValue property.
+    pub max_value: Option<String>,
+    /// minValue property.
+    pub min_value: Option<String>,
 }
 
 /// `GoogleAppsDriveLabelsV2LongTextLimits` type.
@@ -86,6 +106,15 @@ pub struct GoogleAppsDriveLabelsV2LongTextLimits {
     pub max_length: Option<i64>,
     /// minLength property.
     pub min_length: Option<i64>,
+}
+
+/// `GoogleAppsDriveLabelsV2DateLimits` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2DateLimits {
+    /// maxValue property.
+    pub max_value: Option<GoogleTypeDate>,
+    /// minValue property.
+    pub min_value: Option<GoogleTypeDate>,
 }
 
 /// `GoogleTypeDate` type.
@@ -112,34 +141,6 @@ pub struct GoogleAppsDriveLabelsV2SelectionLimits {
     pub max_display_name_length: Option<i64>,
     /// maxIdLength property.
     pub max_id_length: Option<i64>,
-}
-
-/// `GoogleAppsDriveLabelsV2LabelLimits` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2LabelLimits {
-    /// fieldLimits property.
-    pub field_limits: Option<GoogleAppsDriveLabelsV2FieldLimits>,
-    /// maxDeletedFields property.
-    pub max_deleted_fields: Option<i64>,
-    /// maxDescriptionLength property.
-    pub max_description_length: Option<i64>,
-    /// maxDraftRevisions property.
-    pub max_draft_revisions: Option<i64>,
-    /// maxFields property.
-    pub max_fields: Option<i64>,
-    /// maxTitleLength property.
-    pub max_title_length: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GoogleAppsDriveLabelsV2IntegerLimits` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2IntegerLimits {
-    /// maxValue property.
-    pub max_value: Option<String>,
-    /// minValue property.
-    pub min_value: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -80,6 +81,15 @@ pub struct GoogleFirestoreAdminV1Database {
     pub version_retention_period: Option<String>,
 }
 
+/// `GoogleFirestoreAdminV1CmekConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirestoreAdminV1CmekConfig {
+    /// activeKeyVersion property.
+    pub active_key_version: Option<Vec<String>>,
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+}
+
 /// `GoogleFirestoreAdminV1ListDatabasesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1ListDatabasesResponse {
@@ -98,15 +108,6 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
-}
-
-/// `GoogleFirestoreAdminV1CmekConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1CmekConfig {
-    /// activeKeyVersion property.
-    pub active_key_version: Option<Vec<String>>,
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
 }
 
 /// `GoogleFirestoreAdminV1SourceInfo` type.

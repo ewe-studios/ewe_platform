@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,34 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `PscConnection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PscConnection {
+    /// address property.
+    pub address: Option<String>,
+    /// connectionType property.
+    pub connection_type: Option<String>,
+    /// forwardingRule property.
+    pub forwarding_rule: Option<String>,
+    /// network property.
+    pub network: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// pscConnectionId property.
+    pub psc_connection_id: Option<String>,
+    /// pscConnectionStatus property.
+    pub psc_connection_status: Option<String>,
+    /// serviceAttachment property.
+    pub service_attachment: Option<String>,
+}
 
 /// `EncryptionInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,58 +64,13 @@ pub struct EncryptionInfo {
     pub last_update_time: Option<String>,
 }
 
-/// `StateInfo` type.
+/// `ClusterMaintenanceSchedule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StateInfo {
-    /// updateInfo property.
-    pub update_info: Option<UpdateInfo>,
-}
-
-/// `ClusterPersistenceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterPersistenceConfig {
-    /// aofConfig property.
-    pub aof_config: Option<AOFConfig>,
-    /// mode property.
-    pub mode: Option<String>,
-    /// rdbConfig property.
-    pub rdb_config: Option<RDBConfig>,
-}
-
-/// `ConnectionDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionDetail {
-    /// pscAutoConnection property.
-    pub psc_auto_connection: Option<PscAutoConnection>,
-    /// pscConnection property.
-    pub psc_connection: Option<PscConnection>,
-}
-
-/// `DiscoveryEndpoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiscoveryEndpoint {
-    /// address property.
-    pub address: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
-    /// pscConfig property.
-    pub psc_config: Option<PscConfig>,
-}
-
-/// `AOFConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AOFConfig {
-    /// appendFsync property.
-    pub append_fsync: Option<String>,
-}
-
-/// `Membership` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Membership {
-    /// primaryCluster property.
-    pub primary_cluster: Option<RemoteCluster>,
-    /// secondaryClusters property.
-    pub secondary_clusters: Option<Vec<RemoteCluster>>,
+pub struct ClusterMaintenanceSchedule {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
 }
 
 /// `PscConfig` type.
@@ -101,59 +80,37 @@ pub struct PscConfig {
     pub network: Option<String>,
 }
 
-/// `FixedFrequencySchedule` type.
+/// `UpdateInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FixedFrequencySchedule {
+pub struct UpdateInfo {
+    /// targetNodeType property.
+    pub target_node_type: Option<String>,
+    /// targetReplicaCount property.
+    pub target_replica_count: Option<i64>,
+    /// targetShardCount property.
+    pub target_shard_count: Option<i64>,
+}
+
+/// `ClusterWeeklyMaintenanceWindow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterWeeklyMaintenanceWindow {
+    /// day property.
+    pub day: Option<String>,
     /// startTime property.
     pub start_time: Option<TimeOfDay>,
 }
 
-/// `PscAutoConnection` type.
+/// `TimeOfDay` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PscAutoConnection {
-    /// address property.
-    pub address: Option<String>,
-    /// connectionType property.
-    pub connection_type: Option<String>,
-    /// forwardingRule property.
-    pub forwarding_rule: Option<String>,
-    /// network property.
-    pub network: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// pscConnectionId property.
-    pub psc_connection_id: Option<String>,
-    /// pscConnectionStatus property.
-    pub psc_connection_status: Option<String>,
-    /// serviceAttachment property.
-    pub service_attachment: Option<String>,
-}
-
-/// `RDBConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RDBConfig {
-    /// rdbSnapshotPeriod property.
-    pub rdb_snapshot_period: Option<String>,
-    /// rdbSnapshotStartTime property.
-    pub rdb_snapshot_start_time: Option<String>,
-}
-
-/// `GcsBackupSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GcsBackupSource {
-    /// uris property.
-    pub uris: Option<Vec<String>>,
-}
-
-/// `ClusterMaintenancePolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterMaintenancePolicy {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-    /// weeklyMaintenanceWindow property.
-    pub weekly_maintenance_window: Option<Vec<ClusterWeeklyMaintenanceWindow>>,
+pub struct TimeOfDay {
+    /// hours property.
+    pub hours: Option<i64>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<i64>,
 }
 
 /// `CrossClusterReplicationConfig` type.
@@ -169,6 +126,141 @@ pub struct CrossClusterReplicationConfig {
     pub secondary_clusters: Option<Vec<RemoteCluster>>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `ManagedBackupSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedBackupSource {
+    /// backup property.
+    pub backup: Option<String>,
+}
+
+/// `AutomatedBackupConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutomatedBackupConfig {
+    /// automatedBackupMode property.
+    pub automated_backup_mode: Option<String>,
+    /// fixedFrequencySchedule property.
+    pub fixed_frequency_schedule: Option<FixedFrequencySchedule>,
+    /// retention property.
+    pub retention: Option<String>,
+}
+
+/// `PscServiceAttachment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PscServiceAttachment {
+    /// connectionType property.
+    pub connection_type: Option<String>,
+    /// serviceAttachment property.
+    pub service_attachment: Option<String>,
+}
+
+/// `RemoteCluster` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RemoteCluster {
+    /// cluster property.
+    pub cluster: Option<String>,
+    /// uid property.
+    pub uid: Option<String>,
+}
+
+/// `ClusterPersistenceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterPersistenceConfig {
+    /// aofConfig property.
+    pub aof_config: Option<AOFConfig>,
+    /// mode property.
+    pub mode: Option<String>,
+    /// rdbConfig property.
+    pub rdb_config: Option<RDBConfig>,
+}
+
+/// `DiscoveryEndpoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiscoveryEndpoint {
+    /// address property.
+    pub address: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
+    /// pscConfig property.
+    pub psc_config: Option<PscConfig>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ClusterMaintenancePolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterMaintenancePolicy {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+    /// weeklyMaintenanceWindow property.
+    pub weekly_maintenance_window: Option<Vec<ClusterWeeklyMaintenanceWindow>>,
+}
+
+/// `ConnectionDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectionDetail {
+    /// pscAutoConnection property.
+    pub psc_auto_connection: Option<PscAutoConnection>,
+    /// pscConnection property.
+    pub psc_connection: Option<PscConnection>,
+}
+
+/// `ClusterEndpoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterEndpoint {
+    /// connections property.
+    pub connections: Option<Vec<ConnectionDetail>>,
+}
+
+/// `GcsBackupSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GcsBackupSource {
+    /// uris property.
+    pub uris: Option<Vec<String>>,
+}
+
+/// `RDBConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RDBConfig {
+    /// rdbSnapshotPeriod property.
+    pub rdb_snapshot_period: Option<String>,
+    /// rdbSnapshotStartTime property.
+    pub rdb_snapshot_start_time: Option<String>,
+}
+
+/// `Membership` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Membership {
+    /// primaryCluster property.
+    pub primary_cluster: Option<RemoteCluster>,
+    /// secondaryClusters property.
+    pub secondary_clusters: Option<Vec<RemoteCluster>>,
+}
+
+/// `StateInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StateInfo {
+    /// updateInfo property.
+    pub update_info: Option<UpdateInfo>,
+}
+
+/// `FixedFrequencySchedule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FixedFrequencySchedule {
+    /// startTime property.
+    pub start_time: Option<TimeOfDay>,
 }
 
 /// `Cluster` type.
@@ -266,6 +358,15 @@ pub struct Cluster {
     pub zone_distribution_config: Option<ZoneDistributionConfig>,
 }
 
+/// `ZoneDistributionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ZoneDistributionConfig {
+    /// mode property.
+    pub mode: Option<String>,
+    /// zone property.
+    pub zone: Option<String>,
+}
+
 /// `ListClustersResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListClustersResponse {
@@ -277,114 +378,9 @@ pub struct ListClustersResponse {
     pub unreachable: Option<Vec<String>>,
 }
 
-/// `ZoneDistributionConfig` type.
+/// `PscAutoConnection` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ZoneDistributionConfig {
-    /// mode property.
-    pub mode: Option<String>,
-    /// zone property.
-    pub zone: Option<String>,
-}
-
-/// `UpdateInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateInfo {
-    /// targetNodeType property.
-    pub target_node_type: Option<String>,
-    /// targetReplicaCount property.
-    pub target_replica_count: Option<i64>,
-    /// targetShardCount property.
-    pub target_shard_count: Option<i64>,
-}
-
-/// `ClusterWeeklyMaintenanceWindow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterWeeklyMaintenanceWindow {
-    /// day property.
-    pub day: Option<String>,
-    /// startTime property.
-    pub start_time: Option<TimeOfDay>,
-}
-
-/// `AutomatedBackupConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutomatedBackupConfig {
-    /// automatedBackupMode property.
-    pub automated_backup_mode: Option<String>,
-    /// fixedFrequencySchedule property.
-    pub fixed_frequency_schedule: Option<FixedFrequencySchedule>,
-    /// retention property.
-    pub retention: Option<String>,
-}
-
-/// `RemoteCluster` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemoteCluster {
-    /// cluster property.
-    pub cluster: Option<String>,
-    /// uid property.
-    pub uid: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `ClusterEndpoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterEndpoint {
-    /// connections property.
-    pub connections: Option<Vec<ConnectionDetail>>,
-}
-
-/// `ClusterMaintenanceSchedule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterMaintenanceSchedule {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `ManagedBackupSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedBackupSource {
-    /// backup property.
-    pub backup: Option<String>,
-}
-
-/// `TimeOfDay` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeOfDay {
-    /// hours property.
-    pub hours: Option<i64>,
-    /// minutes property.
-    pub minutes: Option<i64>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<i64>,
-}
-
-/// `PscServiceAttachment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PscServiceAttachment {
-    /// connectionType property.
-    pub connection_type: Option<String>,
-    /// serviceAttachment property.
-    pub service_attachment: Option<String>,
-}
-
-/// `PscConnection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PscConnection {
+pub struct PscAutoConnection {
     /// address property.
     pub address: Option<String>,
     /// connectionType property.
@@ -393,8 +389,6 @@ pub struct PscConnection {
     pub forwarding_rule: Option<String>,
     /// network property.
     pub network: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
     /// projectId property.
     pub project_id: Option<String>,
     /// pscConnectionId property.
@@ -403,6 +397,13 @@ pub struct PscConnection {
     pub psc_connection_status: Option<String>,
     /// serviceAttachment property.
     pub service_attachment: Option<String>,
+}
+
+/// `AOFConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AOFConfig {
+    /// appendFsync property.
+    pub append_fsync: Option<String>,
 }
 
 // =============================================================================

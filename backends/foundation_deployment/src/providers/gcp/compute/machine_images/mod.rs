@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,25 +22,192 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `CustomerEncryptionKey` type.
+/// `GetVersionOperationMetadataSbomInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerEncryptionKey {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-    /// kmsKeyServiceAccount property.
-    pub kms_key_service_account: Option<String>,
-    /// rawKey property.
-    pub raw_key: Option<String>,
-    /// rsaEncryptedKey property.
-    pub rsa_encrypted_key: Option<String>,
-    /// sha256 property.
-    pub sha256: Option<String>,
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
+}
+
+/// `SchedulingOnInstanceStopAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SchedulingOnInstanceStopAction {
+    /// discardLocalSsd property.
+    pub discard_local_ssd: Option<bool>,
+}
+
+/// `MachineImage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MachineImage {
+    /// creationTimestamp property.
+    pub creation_timestamp: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// guestFlush property.
+    pub guest_flush: Option<bool>,
+    /// id property.
+    pub id: Option<String>,
+    /// instanceProperties property.
+    pub instance_properties: Option<InstanceProperties>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// labelFingerprint property.
+    pub label_fingerprint: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// machineImageEncryptionKey property.
+    pub machine_image_encryption_key: Option<CustomerEncryptionKey>,
+    /// name property.
+    pub name: Option<String>,
+    /// params property.
+    pub params: Option<MachineImageParams>,
+    /// satisfiesPzi property.
+    pub satisfies_pzi: Option<bool>,
+    /// satisfiesPzs property.
+    pub satisfies_pzs: Option<bool>,
+    /// savedDisks property.
+    pub saved_disks: Option<Vec<SavedDisk>>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// sourceDiskEncryptionKeys property.
+    pub source_disk_encryption_keys: Option<Vec<SourceDiskEncryptionKey>>,
+    /// sourceInstance property.
+    pub source_instance: Option<String>,
+    /// sourceInstanceProperties property.
+    pub source_instance_properties: Option<SourceInstanceProperties>,
+    /// status property.
+    pub status: Option<String>,
+    /// storageLocations property.
+    pub storage_locations: Option<Vec<String>>,
+    /// totalStorageBytes property.
+    pub total_storage_bytes: Option<String>,
+}
+
+/// `Metadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Metadata {
+    /// fingerprint property.
+    pub fingerprint: Option<String>,
+    /// items property.
+    pub items: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `LocalizedMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `Duration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Duration {
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<String>,
+}
+
+/// `ConfidentialInstanceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfidentialInstanceConfig {
+    /// confidentialInstanceType property.
+    pub confidential_instance_type: Option<String>,
+    /// enableConfidentialCompute property.
+    pub enable_confidential_compute: Option<bool>,
+}
+
+/// `SavedDisk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SavedDisk {
+    /// architecture property.
+    pub architecture: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// sourceDisk property.
+    pub source_disk: Option<String>,
+    /// storageBytes property.
+    pub storage_bytes: Option<String>,
+    /// storageBytesStatus property.
+    pub storage_bytes_status: Option<String>,
+}
+
+/// `SchedulingNodeAffinity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SchedulingNodeAffinity {
+    /// key property.
+    pub key: Option<String>,
+    /// operator property.
+    pub operator: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `SourceInstanceProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SourceInstanceProperties {
+    /// canIpForward property.
+    pub can_ip_forward: Option<bool>,
+    /// deletionProtection property.
+    pub deletion_protection: Option<bool>,
+    /// description property.
+    pub description: Option<String>,
+    /// disks property.
+    pub disks: Option<Vec<SavedAttachedDisk>>,
+    /// guestAccelerators property.
+    pub guest_accelerators: Option<Vec<AcceleratorConfig>>,
+    /// keyRevocationActionType property.
+    pub key_revocation_action_type: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// machineType property.
+    pub machine_type: Option<String>,
+    /// metadata property.
+    pub metadata: Option<Metadata>,
+    /// minCpuPlatform property.
+    pub min_cpu_platform: Option<String>,
+    /// networkInterfaces property.
+    pub network_interfaces: Option<Vec<NetworkInterface>>,
+    /// postKeyRevocationActionType property.
+    pub post_key_revocation_action_type: Option<String>,
+    /// scheduling property.
+    pub scheduling: Option<Scheduling>,
+    /// serviceAccounts property.
+    pub service_accounts: Option<Vec<ServiceAccount>>,
+    /// tags property.
+    pub tags: Option<Tags>,
+}
+
+/// `AliasIpRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AliasIpRange {
+    /// ipCidrRange property.
+    pub ip_cidr_range: Option<String>,
+    /// subnetworkRangeName property.
+    pub subnetwork_range_name: Option<String>,
+}
+
+/// `ErrorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
 }
 
 /// `SavedAttachedDisk` type.
@@ -77,180 +245,6 @@ pub struct SavedAttachedDisk {
     pub storage_bytes_status: Option<String>,
     /// type property.
     pub r#type: Option<String>,
-}
-
-/// `AccessConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessConfig {
-    /// externalIpv6 property.
-    pub external_ipv6: Option<String>,
-    /// externalIpv6PrefixLength property.
-    pub external_ipv6_prefix_length: Option<i64>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// natIP property.
-    pub nat_ip: Option<String>,
-    /// networkTier property.
-    pub network_tier: Option<String>,
-    /// publicPtrDomainName property.
-    pub public_ptr_domain_name: Option<String>,
-    /// securityPolicy property.
-    pub security_policy: Option<String>,
-    /// setPublicPtr property.
-    pub set_public_ptr: Option<bool>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `MachineImageParams` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MachineImageParams {
-    /// resourceManagerTags property.
-    pub resource_manager_tags: Option<serde_json::Value>,
-}
-
-/// `SourceDiskEncryptionKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceDiskEncryptionKey {
-    /// diskEncryptionKey property.
-    pub disk_encryption_key: Option<CustomerEncryptionKey>,
-    /// sourceDisk property.
-    pub source_disk: Option<String>,
-}
-
-/// `ErrorInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `Tags` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Tags {
-    /// fingerprint property.
-    pub fingerprint: Option<String>,
-    /// items property.
-    pub items: Option<Vec<String>>,
-}
-
-/// `GetVersionOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadata {
-    /// inlineSbomInfo property.
-    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
-}
-
-/// `SavedDisk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SavedDisk {
-    /// architecture property.
-    pub architecture: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// sourceDisk property.
-    pub source_disk: Option<String>,
-    /// storageBytes property.
-    pub storage_bytes: Option<String>,
-    /// storageBytesStatus property.
-    pub storage_bytes_status: Option<String>,
-}
-
-/// `QuotaExceededInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotaExceededInfo {
-    /// dimensions property.
-    pub dimensions: Option<serde_json::Value>,
-    /// futureLimit property.
-    pub future_limit: Option<f64>,
-    /// limit property.
-    pub limit: Option<f64>,
-    /// limitName property.
-    pub limit_name: Option<String>,
-    /// metricName property.
-    pub metric_name: Option<String>,
-    /// rolloutStatus property.
-    pub rollout_status: Option<String>,
-}
-
-/// `NetworkPerformanceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkPerformanceConfig {
-    /// totalEgressBandwidthTier property.
-    pub total_egress_bandwidth_tier: Option<String>,
-}
-
-/// `ServiceAccount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceAccount {
-    /// email property.
-    pub email: Option<String>,
-    /// scopes property.
-    pub scopes: Option<Vec<String>>,
-}
-
-/// `SetCommonInstanceMetadataOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetCommonInstanceMetadataOperationMetadata {
-    /// clientOperationId property.
-    pub client_operation_id: Option<String>,
-    /// perLocationOperations property.
-    pub per_location_operations: Option<serde_json::Value>,
-}
-
-/// `Metadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Metadata {
-    /// fingerprint property.
-    pub fingerprint: Option<String>,
-    /// items property.
-    pub items: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `AliasIpRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AliasIpRange {
-    /// ipCidrRange property.
-    pub ip_cidr_range: Option<String>,
-    /// subnetworkRangeName property.
-    pub subnetwork_range_name: Option<String>,
-}
-
-/// `ReservationAffinity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReservationAffinity {
-    /// consumeReservationType property.
-    pub consume_reservation_type: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `ConfidentialInstanceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfidentialInstanceConfig {
-    /// confidentialInstanceType property.
-    pub confidential_instance_type: Option<String>,
-    /// enableConfidentialCompute property.
-    pub enable_confidential_compute: Option<bool>,
-}
-
-/// `WorkloadIdentityConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkloadIdentityConfig {
-    /// identity property.
-    pub identity: Option<String>,
-    /// identityCertificateEnabled property.
-    pub identity_certificate_enabled: Option<bool>,
 }
 
 /// `InstanceProperties` type.
@@ -302,39 +296,144 @@ pub struct InstanceProperties {
     pub workload_identity_config: Option<WorkloadIdentityConfig>,
 }
 
-/// `Scheduling` type.
+/// `GetVersionOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Scheduling {
-    /// automaticRestart property.
-    pub automatic_restart: Option<bool>,
-    /// availabilityDomain property.
-    pub availability_domain: Option<i64>,
-    /// hostErrorTimeoutSeconds property.
-    pub host_error_timeout_seconds: Option<i64>,
-    /// instanceTerminationAction property.
-    pub instance_termination_action: Option<String>,
-    /// localSsdRecoveryTimeout property.
-    pub local_ssd_recovery_timeout: Option<Duration>,
-    /// locationHint property.
-    pub location_hint: Option<String>,
-    /// maxRunDuration property.
-    pub max_run_duration: Option<Duration>,
-    /// minNodeCpus property.
-    pub min_node_cpus: Option<i64>,
-    /// nodeAffinities property.
-    pub node_affinities: Option<Vec<SchedulingNodeAffinity>>,
-    /// onHostMaintenance property.
-    pub on_host_maintenance: Option<String>,
-    /// onInstanceStopAction property.
-    pub on_instance_stop_action: Option<SchedulingOnInstanceStopAction>,
-    /// preemptible property.
-    pub preemptible: Option<bool>,
-    /// provisioningModel property.
-    pub provisioning_model: Option<String>,
-    /// skipGuestOsShutdown property.
-    pub skip_guest_os_shutdown: Option<bool>,
-    /// terminationTime property.
-    pub termination_time: Option<String>,
+pub struct GetVersionOperationMetadata {
+    /// inlineSbomInfo property.
+    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+}
+
+/// `NetworkPerformanceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkPerformanceConfig {
+    /// totalEgressBandwidthTier property.
+    pub total_egress_bandwidth_tier: Option<String>,
+}
+
+/// `ServiceAccount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceAccount {
+    /// email property.
+    pub email: Option<String>,
+    /// scopes property.
+    pub scopes: Option<Vec<String>>,
+}
+
+/// `MachineImageList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MachineImageList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<MachineImage>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `HelpLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `ShieldedInstanceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShieldedInstanceConfig {
+    /// enableIntegrityMonitoring property.
+    pub enable_integrity_monitoring: Option<bool>,
+    /// enableSecureBoot property.
+    pub enable_secure_boot: Option<bool>,
+    /// enableVtpm property.
+    pub enable_vtpm: Option<bool>,
+}
+
+/// `WorkloadIdentityConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkloadIdentityConfig {
+    /// identity property.
+    pub identity: Option<String>,
+    /// identityCertificateEnabled property.
+    pub identity_certificate_enabled: Option<bool>,
+}
+
+/// `InitialStateConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InitialStateConfig {
+    /// dbs property.
+    pub dbs: Option<Vec<FileContentBuffer>>,
+    /// dbxs property.
+    pub dbxs: Option<Vec<FileContentBuffer>>,
+    /// keks property.
+    pub keks: Option<Vec<FileContentBuffer>>,
+    /// pk property.
+    pub pk: Option<FileContentBuffer>,
+}
+
+/// `MachineImageParams` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MachineImageParams {
+    /// resourceManagerTags property.
+    pub resource_manager_tags: Option<serde_json::Value>,
+}
+
+/// `AcceleratorConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AcceleratorConfig {
+    /// acceleratorCount property.
+    pub accelerator_count: Option<i64>,
+    /// acceleratorType property.
+    pub accelerator_type: Option<String>,
+}
+
+/// `Tags` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Tags {
+    /// fingerprint property.
+    pub fingerprint: Option<String>,
+    /// items property.
+    pub items: Option<Vec<String>>,
+}
+
+/// `ReservationAffinity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReservationAffinity {
+    /// consumeReservationType property.
+    pub consume_reservation_type: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `CustomerEncryptionKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomerEncryptionKey {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+    /// kmsKeyServiceAccount property.
+    pub kms_key_service_account: Option<String>,
+    /// rawKey property.
+    pub raw_key: Option<String>,
+    /// rsaEncryptedKey property.
+    pub rsa_encrypted_key: Option<String>,
+    /// sha256 property.
+    pub sha256: Option<String>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
 }
 
 /// `AdvancedMachineFeatures` type.
@@ -352,6 +451,31 @@ pub struct AdvancedMachineFeatures {
     pub turbo_mode: Option<String>,
     /// visibleCoreCount property.
     pub visible_core_count: Option<i64>,
+}
+
+/// `AccessConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessConfig {
+    /// externalIpv6 property.
+    pub external_ipv6: Option<String>,
+    /// externalIpv6PrefixLength property.
+    pub external_ipv6_prefix_length: Option<i64>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// natIP property.
+    pub nat_ip: Option<String>,
+    /// networkTier property.
+    pub network_tier: Option<String>,
+    /// publicPtrDomainName property.
+    pub public_ptr_domain_name: Option<String>,
+    /// securityPolicy property.
+    pub security_policy: Option<String>,
+    /// setPublicPtr property.
+    pub set_public_ptr: Option<bool>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `AttachedDisk` type.
@@ -395,32 +519,65 @@ pub struct AttachedDisk {
     pub r#type: Option<String>,
 }
 
-/// `MachineImageList` type.
+/// `AttachedDiskInitializeParams` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MachineImageList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<MachineImage>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+pub struct AttachedDiskInitializeParams {
+    /// architecture property.
+    pub architecture: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// diskName property.
+    pub disk_name: Option<String>,
+    /// diskSizeGb property.
+    pub disk_size_gb: Option<String>,
+    /// diskType property.
+    pub disk_type: Option<String>,
+    /// enableConfidentialCompute property.
+    pub enable_confidential_compute: Option<bool>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// licenses property.
+    pub licenses: Option<Vec<String>>,
+    /// onUpdateAction property.
+    pub on_update_action: Option<String>,
+    /// provisionedIops property.
+    pub provisioned_iops: Option<String>,
+    /// provisionedThroughput property.
+    pub provisioned_throughput: Option<String>,
+    /// replicaZones property.
+    pub replica_zones: Option<Vec<String>>,
+    /// resourceManagerTags property.
+    pub resource_manager_tags: Option<serde_json::Value>,
+    /// resourcePolicies property.
+    pub resource_policies: Option<Vec<String>>,
+    /// sourceImage property.
+    pub source_image: Option<String>,
+    /// sourceImageEncryptionKey property.
+    pub source_image_encryption_key: Option<CustomerEncryptionKey>,
+    /// sourceSnapshot property.
+    pub source_snapshot: Option<String>,
+    /// sourceSnapshotEncryptionKey property.
+    pub source_snapshot_encryption_key: Option<CustomerEncryptionKey>,
+    /// storagePool property.
+    pub storage_pool: Option<String>,
 }
 
-/// `SchedulingNodeAffinity` type.
+/// `SourceDiskEncryptionKey` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SchedulingNodeAffinity {
-    /// key property.
-    pub key: Option<String>,
-    /// operator property.
-    pub operator: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
+pub struct SourceDiskEncryptionKey {
+    /// diskEncryptionKey property.
+    pub disk_encryption_key: Option<CustomerEncryptionKey>,
+    /// sourceDisk property.
+    pub source_disk: Option<String>,
+}
+
+/// `FileContentBuffer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FileContentBuffer {
+    /// content property.
+    pub content: Option<String>,
+    /// fileType property.
+    pub file_type: Option<String>,
 }
 
 /// `Help` type.
@@ -428,6 +585,67 @@ pub struct SchedulingNodeAffinity {
 pub struct Help {
     /// links property.
     pub links: Option<Vec<HelpLink>>,
+}
+
+/// `QuotaExceededInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuotaExceededInfo {
+    /// dimensions property.
+    pub dimensions: Option<serde_json::Value>,
+    /// futureLimit property.
+    pub future_limit: Option<f64>,
+    /// limit property.
+    pub limit: Option<f64>,
+    /// limitName property.
+    pub limit_name: Option<String>,
+    /// metricName property.
+    pub metric_name: Option<String>,
+    /// rolloutStatus property.
+    pub rollout_status: Option<String>,
+}
+
+/// `Scheduling` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Scheduling {
+    /// automaticRestart property.
+    pub automatic_restart: Option<bool>,
+    /// availabilityDomain property.
+    pub availability_domain: Option<i64>,
+    /// hostErrorTimeoutSeconds property.
+    pub host_error_timeout_seconds: Option<i64>,
+    /// instanceTerminationAction property.
+    pub instance_termination_action: Option<String>,
+    /// localSsdRecoveryTimeout property.
+    pub local_ssd_recovery_timeout: Option<Duration>,
+    /// locationHint property.
+    pub location_hint: Option<String>,
+    /// maxRunDuration property.
+    pub max_run_duration: Option<Duration>,
+    /// minNodeCpus property.
+    pub min_node_cpus: Option<i64>,
+    /// nodeAffinities property.
+    pub node_affinities: Option<Vec<SchedulingNodeAffinity>>,
+    /// onHostMaintenance property.
+    pub on_host_maintenance: Option<String>,
+    /// onInstanceStopAction property.
+    pub on_instance_stop_action: Option<SchedulingOnInstanceStopAction>,
+    /// preemptible property.
+    pub preemptible: Option<bool>,
+    /// provisioningModel property.
+    pub provisioning_model: Option<String>,
+    /// skipGuestOsShutdown property.
+    pub skip_guest_os_shutdown: Option<bool>,
+    /// terminationTime property.
+    pub termination_time: Option<String>,
+}
+
+/// `SetCommonInstanceMetadataOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetCommonInstanceMetadataOperationMetadata {
+    /// clientOperationId property.
+    pub client_operation_id: Option<String>,
+    /// perLocationOperations property.
+    pub per_location_operations: Option<serde_json::Value>,
 }
 
 /// `NetworkInterface` type.
@@ -475,223 +693,6 @@ pub struct NetworkInterface {
     pub subnetwork: Option<String>,
     /// vlan property.
     pub vlan: Option<i64>,
-}
-
-/// `Duration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Duration {
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<String>,
-}
-
-/// `FileContentBuffer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FileContentBuffer {
-    /// content property.
-    pub content: Option<String>,
-    /// fileType property.
-    pub file_type: Option<String>,
-}
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `SchedulingOnInstanceStopAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SchedulingOnInstanceStopAction {
-    /// discardLocalSsd property.
-    pub discard_local_ssd: Option<bool>,
-}
-
-/// `InstancesBulkInsertOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
-}
-
-/// `HelpLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `GetVersionOperationMetadataSbomInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
-}
-
-/// `MachineImage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MachineImage {
-    /// creationTimestamp property.
-    pub creation_timestamp: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// guestFlush property.
-    pub guest_flush: Option<bool>,
-    /// id property.
-    pub id: Option<String>,
-    /// instanceProperties property.
-    pub instance_properties: Option<InstanceProperties>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// labelFingerprint property.
-    pub label_fingerprint: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// machineImageEncryptionKey property.
-    pub machine_image_encryption_key: Option<CustomerEncryptionKey>,
-    /// name property.
-    pub name: Option<String>,
-    /// params property.
-    pub params: Option<MachineImageParams>,
-    /// satisfiesPzi property.
-    pub satisfies_pzi: Option<bool>,
-    /// satisfiesPzs property.
-    pub satisfies_pzs: Option<bool>,
-    /// savedDisks property.
-    pub saved_disks: Option<Vec<SavedDisk>>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// sourceDiskEncryptionKeys property.
-    pub source_disk_encryption_keys: Option<Vec<SourceDiskEncryptionKey>>,
-    /// sourceInstance property.
-    pub source_instance: Option<String>,
-    /// sourceInstanceProperties property.
-    pub source_instance_properties: Option<SourceInstanceProperties>,
-    /// status property.
-    pub status: Option<String>,
-    /// storageLocations property.
-    pub storage_locations: Option<Vec<String>>,
-    /// totalStorageBytes property.
-    pub total_storage_bytes: Option<String>,
-}
-
-/// `SourceInstanceProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceInstanceProperties {
-    /// canIpForward property.
-    pub can_ip_forward: Option<bool>,
-    /// deletionProtection property.
-    pub deletion_protection: Option<bool>,
-    /// description property.
-    pub description: Option<String>,
-    /// disks property.
-    pub disks: Option<Vec<SavedAttachedDisk>>,
-    /// guestAccelerators property.
-    pub guest_accelerators: Option<Vec<AcceleratorConfig>>,
-    /// keyRevocationActionType property.
-    pub key_revocation_action_type: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// machineType property.
-    pub machine_type: Option<String>,
-    /// metadata property.
-    pub metadata: Option<Metadata>,
-    /// minCpuPlatform property.
-    pub min_cpu_platform: Option<String>,
-    /// networkInterfaces property.
-    pub network_interfaces: Option<Vec<NetworkInterface>>,
-    /// postKeyRevocationActionType property.
-    pub post_key_revocation_action_type: Option<String>,
-    /// scheduling property.
-    pub scheduling: Option<Scheduling>,
-    /// serviceAccounts property.
-    pub service_accounts: Option<Vec<ServiceAccount>>,
-    /// tags property.
-    pub tags: Option<Tags>,
-}
-
-/// `ShieldedInstanceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShieldedInstanceConfig {
-    /// enableIntegrityMonitoring property.
-    pub enable_integrity_monitoring: Option<bool>,
-    /// enableSecureBoot property.
-    pub enable_secure_boot: Option<bool>,
-    /// enableVtpm property.
-    pub enable_vtpm: Option<bool>,
-}
-
-/// `AttachedDiskInitializeParams` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AttachedDiskInitializeParams {
-    /// architecture property.
-    pub architecture: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// diskName property.
-    pub disk_name: Option<String>,
-    /// diskSizeGb property.
-    pub disk_size_gb: Option<String>,
-    /// diskType property.
-    pub disk_type: Option<String>,
-    /// enableConfidentialCompute property.
-    pub enable_confidential_compute: Option<bool>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// licenses property.
-    pub licenses: Option<Vec<String>>,
-    /// onUpdateAction property.
-    pub on_update_action: Option<String>,
-    /// provisionedIops property.
-    pub provisioned_iops: Option<String>,
-    /// provisionedThroughput property.
-    pub provisioned_throughput: Option<String>,
-    /// replicaZones property.
-    pub replica_zones: Option<Vec<String>>,
-    /// resourceManagerTags property.
-    pub resource_manager_tags: Option<serde_json::Value>,
-    /// resourcePolicies property.
-    pub resource_policies: Option<Vec<String>>,
-    /// sourceImage property.
-    pub source_image: Option<String>,
-    /// sourceImageEncryptionKey property.
-    pub source_image_encryption_key: Option<CustomerEncryptionKey>,
-    /// sourceSnapshot property.
-    pub source_snapshot: Option<String>,
-    /// sourceSnapshotEncryptionKey property.
-    pub source_snapshot_encryption_key: Option<CustomerEncryptionKey>,
-    /// storagePool property.
-    pub storage_pool: Option<String>,
-}
-
-/// `InitialStateConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InitialStateConfig {
-    /// dbs property.
-    pub dbs: Option<Vec<FileContentBuffer>>,
-    /// dbxs property.
-    pub dbxs: Option<Vec<FileContentBuffer>>,
-    /// keks property.
-    pub keks: Option<Vec<FileContentBuffer>>,
-    /// pk property.
-    pub pk: Option<FileContentBuffer>,
-}
-
-/// `AcceleratorConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcceleratorConfig {
-    /// acceleratorCount property.
-    pub accelerator_count: Option<i64>,
-    /// acceleratorType property.
-    pub accelerator_type: Option<String>,
 }
 
 /// `GuestOsFeature` type.

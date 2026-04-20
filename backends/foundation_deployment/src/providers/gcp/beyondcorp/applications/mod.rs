@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,22 +24,11 @@ use super::shared::GoogleIamV1Policy;
 use super::shared::GoogleIamV1TestIamPermissionsResponse;
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleIamV1Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Binding {
-    /// condition property.
-    pub condition: Option<GoogleTypeExpr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
 
 /// `GoogleIamV1AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,11 +39,40 @@ pub struct GoogleIamV1AuditLogConfig {
     pub log_type: Option<String>,
 }
 
-/// `GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeadersDelegatedGroupInfo` type.
+/// `GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeadersDelegatedDeviceInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeadersDelegatedGroupInfo {
+pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeadersDelegatedDeviceInfo {
     /// outputType property.
     pub output_type: Option<String>,
+}
+
+/// `GoogleTypeExpr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeExpr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeadersDelegatedUserInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeadersDelegatedUserInfo {
+    /// outputType property.
+    pub output_type: Option<String>,
+}
+
+/// `GoogleIamV1AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
 }
 
 /// `GoogleCloudBeyondcorpSecuritygatewaysV1Endpoint` type.
@@ -63,33 +82,6 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1Endpoint {
     pub hostname: Option<String>,
     /// port property.
     pub port: Option<i64>,
-}
-
-/// `GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeadersDelegatedDeviceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeadersDelegatedDeviceInfo {
-    /// outputType property.
-    pub output_type: Option<String>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudBeyondcorpSecuritygatewaysV1EndpointMatcher` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpSecuritygatewaysV1EndpointMatcher {
-    /// hostname property.
-    pub hostname: Option<String>,
-    /// ports property.
-    pub ports: Option<Vec<i64>>,
 }
 
 /// `GoogleCloudBeyondcorpSecuritygatewaysV1EgressPolicy` type.
@@ -106,39 +98,42 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ApplicationUpstreamNetwork {
     pub name: Option<String>,
 }
 
-/// `GoogleCloudBeyondcorpSecuritygatewaysV1ApplicationUpstreamExternal` type.
+/// `GoogleCloudBeyondcorpSecuritygatewaysV1EndpointMatcher` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ApplicationUpstreamExternal {
-    /// endpoints property.
-    pub endpoints: Option<Vec<GoogleCloudBeyondcorpSecuritygatewaysV1Endpoint>>,
+pub struct GoogleCloudBeyondcorpSecuritygatewaysV1EndpointMatcher {
+    /// hostname property.
+    pub hostname: Option<String>,
+    /// ports property.
+    pub ports: Option<Vec<i64>>,
 }
 
-/// `GoogleTypeExpr` type.
+/// `GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeadersDelegatedGroupInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeExpr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeadersDelegatedGroupInfo {
+    /// outputType property.
+    pub output_type: Option<String>,
 }
 
-/// `GoogleCloudBeyondcorpSecuritygatewaysV1ProxyProtocolConfig` type.
+/// `GoogleIamV1Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ProxyProtocolConfig {
-    /// allowedClientHeaders property.
-    pub allowed_client_headers: Option<Vec<String>>,
-    /// clientIp property.
-    pub client_ip: Option<bool>,
-    /// contextualHeaders property.
-    pub contextual_headers: Option<GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeaders>,
-    /// gatewayIdentity property.
-    pub gateway_identity: Option<String>,
-    /// metadataHeaders property.
-    pub metadata_headers: Option<serde_json::Value>,
+pub struct GoogleIamV1Binding {
+    /// condition property.
+    pub condition: Option<GoogleTypeExpr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeaders` type.
@@ -155,46 +150,6 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeaders {
     /// userInfo property.
     pub user_info:
         Option<GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeadersDelegatedUserInfo>,
-}
-
-/// `GoogleCloudBeyondcorpSecuritygatewaysV1ListApplicationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ListApplicationsResponse {
-    /// applications property.
-    pub applications: Option<Vec<GoogleCloudBeyondcorpSecuritygatewaysV1Application>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `GoogleIamV1AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `GoogleCloudBeyondcorpSecuritygatewaysV1ApplicationUpstream` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ApplicationUpstream {
-    /// egressPolicy property.
-    pub egress_policy: Option<GoogleCloudBeyondcorpSecuritygatewaysV1EgressPolicy>,
-    /// external property.
-    pub external: Option<GoogleCloudBeyondcorpSecuritygatewaysV1ApplicationUpstreamExternal>,
-    /// network property.
-    pub network: Option<GoogleCloudBeyondcorpSecuritygatewaysV1ApplicationUpstreamNetwork>,
-    /// proxyProtocol property.
-    pub proxy_protocol: Option<GoogleCloudBeyondcorpSecuritygatewaysV1ProxyProtocolConfig>,
-}
-
-/// `GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeadersDelegatedUserInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeadersDelegatedUserInfo {
-    /// outputType property.
-    pub output_type: Option<String>,
 }
 
 /// `GoogleCloudBeyondcorpSecuritygatewaysV1Application` type.
@@ -214,6 +169,52 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1Application {
     pub update_time: Option<String>,
     /// upstreams property.
     pub upstreams: Option<Vec<GoogleCloudBeyondcorpSecuritygatewaysV1ApplicationUpstream>>,
+}
+
+/// `GoogleCloudBeyondcorpSecuritygatewaysV1ProxyProtocolConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ProxyProtocolConfig {
+    /// allowedClientHeaders property.
+    pub allowed_client_headers: Option<Vec<String>>,
+    /// clientIp property.
+    pub client_ip: Option<bool>,
+    /// contextualHeaders property.
+    pub contextual_headers: Option<GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeaders>,
+    /// gatewayIdentity property.
+    pub gateway_identity: Option<String>,
+    /// metadataHeaders property.
+    pub metadata_headers: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudBeyondcorpSecuritygatewaysV1ApplicationUpstream` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ApplicationUpstream {
+    /// egressPolicy property.
+    pub egress_policy: Option<GoogleCloudBeyondcorpSecuritygatewaysV1EgressPolicy>,
+    /// external property.
+    pub external: Option<GoogleCloudBeyondcorpSecuritygatewaysV1ApplicationUpstreamExternal>,
+    /// network property.
+    pub network: Option<GoogleCloudBeyondcorpSecuritygatewaysV1ApplicationUpstreamNetwork>,
+    /// proxyProtocol property.
+    pub proxy_protocol: Option<GoogleCloudBeyondcorpSecuritygatewaysV1ProxyProtocolConfig>,
+}
+
+/// `GoogleCloudBeyondcorpSecuritygatewaysV1ListApplicationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ListApplicationsResponse {
+    /// applications property.
+    pub applications: Option<Vec<GoogleCloudBeyondcorpSecuritygatewaysV1Application>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `GoogleCloudBeyondcorpSecuritygatewaysV1ApplicationUpstreamExternal` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ApplicationUpstreamExternal {
+    /// endpoints property.
+    pub endpoints: Option<Vec<GoogleCloudBeyondcorpSecuritygatewaysV1Endpoint>>,
 }
 
 // =============================================================================

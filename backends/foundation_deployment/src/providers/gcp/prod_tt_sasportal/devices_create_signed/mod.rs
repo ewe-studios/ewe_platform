@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,49 +22,52 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::SasPortalDevice;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `SasPortalChannelWithScore` type.
+/// `SasPortalInstallationParams` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalChannelWithScore {
-    /// frequencyRange property.
-    pub frequency_range: Option<SasPortalFrequencyRange>,
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `SasPortalNrqzValidation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalNrqzValidation {
-    /// caseId property.
-    pub case_id: Option<String>,
-    /// cpiId property.
-    pub cpi_id: Option<String>,
+pub struct SasPortalInstallationParams {
+    /// antennaAzimuth property.
+    pub antenna_azimuth: Option<i64>,
+    /// antennaBeamwidth property.
+    pub antenna_beamwidth: Option<i64>,
+    /// antennaDowntilt property.
+    pub antenna_downtilt: Option<i64>,
+    /// antennaGain property.
+    pub antenna_gain: Option<f64>,
+    /// antennaModel property.
+    pub antenna_model: Option<String>,
+    /// cpeCbsdIndication property.
+    pub cpe_cbsd_indication: Option<bool>,
+    /// eirpCapability property.
+    pub eirp_capability: Option<i64>,
+    /// height property.
+    pub height: Option<f64>,
+    /// heightType property.
+    pub height_type: Option<String>,
+    /// horizontalAccuracy property.
+    pub horizontal_accuracy: Option<f64>,
+    /// indoorDeployment property.
+    pub indoor_deployment: Option<bool>,
     /// latitude property.
     pub latitude: Option<f64>,
     /// longitude property.
     pub longitude: Option<f64>,
-    /// state property.
-    pub state: Option<String>,
+    /// verticalAccuracy property.
+    pub vertical_accuracy: Option<f64>,
 }
 
-/// `SasPortalDeviceMetadata` type.
+/// `SasPortalFrequencyRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalDeviceMetadata {
-    /// antennaModel property.
-    pub antenna_model: Option<String>,
-    /// commonChannelGroup property.
-    pub common_channel_group: Option<String>,
-    /// interferenceCoordinationGroup property.
-    pub interference_coordination_group: Option<String>,
-    /// nrqzValidated property.
-    pub nrqz_validated: Option<bool>,
-    /// nrqzValidation property.
-    pub nrqz_validation: Option<SasPortalNrqzValidation>,
+pub struct SasPortalFrequencyRange {
+    /// highFrequencyMhz property.
+    pub high_frequency_mhz: Option<f64>,
+    /// lowFrequencyMhz property.
+    pub low_frequency_mhz: Option<f64>,
 }
 
 /// `SasPortalDeviceConfig` type.
@@ -100,30 +104,6 @@ pub struct SasPortalDeviceAirInterface {
     pub supported_spec: Option<String>,
 }
 
-/// `SasPortalFrequencyRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalFrequencyRange {
-    /// highFrequencyMhz property.
-    pub high_frequency_mhz: Option<f64>,
-    /// lowFrequencyMhz property.
-    pub low_frequency_mhz: Option<f64>,
-}
-
-/// `SasPortalDeviceModel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalDeviceModel {
-    /// firmwareVersion property.
-    pub firmware_version: Option<String>,
-    /// hardwareVersion property.
-    pub hardware_version: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// softwareVersion property.
-    pub software_version: Option<String>,
-    /// vendor property.
-    pub vendor: Option<String>,
-}
-
 /// `SasPortalDeviceGrant` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SasPortalDeviceGrant {
@@ -147,39 +127,6 @@ pub struct SasPortalDeviceGrant {
     pub suspension_reason: Option<Vec<String>>,
 }
 
-/// `SasPortalInstallationParams` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalInstallationParams {
-    /// antennaAzimuth property.
-    pub antenna_azimuth: Option<i64>,
-    /// antennaBeamwidth property.
-    pub antenna_beamwidth: Option<i64>,
-    /// antennaDowntilt property.
-    pub antenna_downtilt: Option<i64>,
-    /// antennaGain property.
-    pub antenna_gain: Option<f64>,
-    /// antennaModel property.
-    pub antenna_model: Option<String>,
-    /// cpeCbsdIndication property.
-    pub cpe_cbsd_indication: Option<bool>,
-    /// eirpCapability property.
-    pub eirp_capability: Option<i64>,
-    /// height property.
-    pub height: Option<f64>,
-    /// heightType property.
-    pub height_type: Option<String>,
-    /// horizontalAccuracy property.
-    pub horizontal_accuracy: Option<f64>,
-    /// indoorDeployment property.
-    pub indoor_deployment: Option<bool>,
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
-    /// verticalAccuracy property.
-    pub vertical_accuracy: Option<f64>,
-}
-
 /// `SasPortalDpaMoveList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SasPortalDpaMoveList {
@@ -187,6 +134,60 @@ pub struct SasPortalDpaMoveList {
     pub dpa_id: Option<String>,
     /// frequencyRange property.
     pub frequency_range: Option<SasPortalFrequencyRange>,
+}
+
+/// `SasPortalNrqzValidation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SasPortalNrqzValidation {
+    /// caseId property.
+    pub case_id: Option<String>,
+    /// cpiId property.
+    pub cpi_id: Option<String>,
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `SasPortalDeviceModel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SasPortalDeviceModel {
+    /// firmwareVersion property.
+    pub firmware_version: Option<String>,
+    /// hardwareVersion property.
+    pub hardware_version: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// softwareVersion property.
+    pub software_version: Option<String>,
+    /// vendor property.
+    pub vendor: Option<String>,
+}
+
+/// `SasPortalDeviceMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SasPortalDeviceMetadata {
+    /// antennaModel property.
+    pub antenna_model: Option<String>,
+    /// commonChannelGroup property.
+    pub common_channel_group: Option<String>,
+    /// interferenceCoordinationGroup property.
+    pub interference_coordination_group: Option<String>,
+    /// nrqzValidated property.
+    pub nrqz_validated: Option<bool>,
+    /// nrqzValidation property.
+    pub nrqz_validation: Option<SasPortalNrqzValidation>,
+}
+
+/// `SasPortalChannelWithScore` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SasPortalChannelWithScore {
+    /// frequencyRange property.
+    pub frequency_range: Option<SasPortalFrequencyRange>,
+    /// score property.
+    pub score: Option<f64>,
 }
 
 // =============================================================================

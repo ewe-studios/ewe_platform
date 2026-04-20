@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,54 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ExtensionChain` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExtensionChain {
+    /// extensions property.
+    pub extensions: Option<Vec<ExtensionChainExtension>>,
+    /// matchCondition property.
+    pub match_condition: Option<ExtensionChainMatchCondition>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `LbEdgeExtension` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LbEdgeExtension {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// extensionChains property.
+    pub extension_chains: Option<Vec<ExtensionChain>>,
+    /// forwardingRules property.
+    pub forwarding_rules: Option<Vec<String>>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// loadBalancingScheme property.
+    pub load_balancing_scheme: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `ListLbEdgeExtensionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListLbEdgeExtensionsResponse {
+    /// lbEdgeExtensions property.
+    pub lb_edge_extensions: Option<Vec<LbEdgeExtension>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
 
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -38,15 +82,11 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `ListLbEdgeExtensionsResponse` type.
+/// `ExtensionChainMatchCondition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListLbEdgeExtensionsResponse {
-    /// lbEdgeExtensions property.
-    pub lb_edge_extensions: Option<Vec<LbEdgeExtension>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct ExtensionChainMatchCondition {
+    /// celExpression property.
+    pub cel_expression: Option<String>,
 }
 
 /// `ExtensionChainExtension` type.
@@ -76,45 +116,6 @@ pub struct ExtensionChainExtension {
     pub supported_events: Option<Vec<String>>,
     /// timeout property.
     pub timeout: Option<String>,
-}
-
-/// `ExtensionChainMatchCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExtensionChainMatchCondition {
-    /// celExpression property.
-    pub cel_expression: Option<String>,
-}
-
-/// `LbEdgeExtension` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LbEdgeExtension {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// extensionChains property.
-    pub extension_chains: Option<Vec<ExtensionChain>>,
-    /// forwardingRules property.
-    pub forwarding_rules: Option<Vec<String>>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// loadBalancingScheme property.
-    pub load_balancing_scheme: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `ExtensionChain` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExtensionChain {
-    /// extensions property.
-    pub extensions: Option<Vec<ExtensionChainExtension>>,
-    /// matchCondition property.
-    pub match_condition: Option<ExtensionChainMatchCondition>,
-    /// name property.
-    pub name: Option<String>,
 }
 
 // =============================================================================

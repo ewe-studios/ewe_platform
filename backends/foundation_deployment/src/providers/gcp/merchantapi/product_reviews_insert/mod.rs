@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,18 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::ProductReview;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ProductReviewDestinationStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductReviewDestinationStatus {
+    /// reportingContext property.
+    pub reporting_context: Option<String>,
+}
 
 /// `ProductReviewItemLevelIssue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -48,20 +56,15 @@ pub struct ProductReviewItemLevelIssue {
     pub severity: Option<String>,
 }
 
-/// `ProductReviewDestinationStatus` type.
+/// `CustomAttribute` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductReviewDestinationStatus {
-    /// reportingContext property.
-    pub reporting_context: Option<String>,
-}
-
-/// `ReviewLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReviewLink {
-    /// link property.
-    pub link: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct CustomAttribute {
+    /// groupValues property.
+    pub group_values: Option<Vec<Box<CustomAttribute>>>,
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
 /// `ProductReviewStatus` type.
@@ -75,17 +78,6 @@ pub struct ProductReviewStatus {
     pub item_level_issues: Option<Vec<ProductReviewItemLevelIssue>>,
     /// lastUpdateTime property.
     pub last_update_time: Option<String>,
-}
-
-/// `CustomAttribute` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomAttribute {
-    /// groupValues property.
-    pub group_values: Option<Vec<CustomAttribute>>,
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
 }
 
 /// `ProductReviewAttributes` type.
@@ -153,6 +145,15 @@ pub struct ProductReviewAttributes {
     pub title: Option<String>,
     /// transactionId property.
     pub transaction_id: Option<String>,
+}
+
+/// `ReviewLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReviewLink {
+    /// link property.
+    pub link: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 // =============================================================================

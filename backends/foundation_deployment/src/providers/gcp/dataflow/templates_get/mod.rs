@@ -12,36 +12,39 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `SDKInfo` type.
+/// `GetTemplateResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SDKInfo {
-    /// language property.
-    pub language: Option<String>,
-    /// version property.
-    pub version: Option<String>,
+pub struct GetTemplateResponse {
+    /// metadata property.
+    pub metadata: Option<TemplateMetadata>,
+    /// runtimeMetadata property.
+    pub runtime_metadata: Option<RuntimeMetadata>,
+    /// status property.
+    pub status: Option<Status>,
+    /// templateType property.
+    pub template_type: Option<String>,
 }
 
-/// `ParameterMetadataEnumOption` type.
+/// `RuntimeMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ParameterMetadataEnumOption {
-    /// description property.
-    pub description: Option<String>,
-    /// label property.
-    pub label: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct RuntimeMetadata {
+    /// parameters property.
+    pub parameters: Option<Vec<ParameterMetadata>>,
+    /// sdkInfo property.
+    pub sdk_info: Option<SDKInfo>,
 }
 
 /// `TemplateMetadata` type.
@@ -65,13 +68,35 @@ pub struct TemplateMetadata {
     pub yaml_definition: Option<String>,
 }
 
-/// `RuntimeMetadata` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RuntimeMetadata {
-    /// parameters property.
-    pub parameters: Option<Vec<ParameterMetadata>>,
-    /// sdkInfo property.
-    pub sdk_info: Option<SDKInfo>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ParameterMetadataEnumOption` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ParameterMetadataEnumOption {
+    /// description property.
+    pub description: Option<String>,
+    /// label property.
+    pub label: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `SDKInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SDKInfo {
+    /// language property.
+    pub language: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
 /// `ParameterMetadata` type.
@@ -103,30 +128,6 @@ pub struct ParameterMetadata {
     pub parent_trigger_values: Option<Vec<String>>,
     /// regexes property.
     pub regexes: Option<Vec<String>>,
-}
-
-/// `GetTemplateResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetTemplateResponse {
-    /// metadata property.
-    pub metadata: Option<TemplateMetadata>,
-    /// runtimeMetadata property.
-    pub runtime_metadata: Option<RuntimeMetadata>,
-    /// status property.
-    pub status: Option<Status>,
-    /// templateType property.
-    pub template_type: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 // =============================================================================

@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `AttributionSettingsConversionType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AttributionSettingsConversionType {
+    /// includeInReporting property.
+    pub include_in_reporting: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+}
 
 /// `GoogleAnalyticsLink` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -57,13 +67,15 @@ pub struct MerchantCenterDestination {
     pub display_name: Option<String>,
 }
 
-/// `AttributionSettingsConversionType` type.
+/// `AttributionSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AttributionSettingsConversionType {
-    /// includeInReporting property.
-    pub include_in_reporting: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
+pub struct AttributionSettings {
+    /// attributionLookbackWindowInDays property.
+    pub attribution_lookback_window_in_days: Option<i64>,
+    /// attributionModel property.
+    pub attribution_model: Option<String>,
+    /// conversionType property.
+    pub conversion_type: Option<Vec<AttributionSettingsConversionType>>,
 }
 
 /// `ConversionSource` type.
@@ -79,17 +91,6 @@ pub struct ConversionSource {
     pub merchant_center_destination: Option<MerchantCenterDestination>,
     /// state property.
     pub state: Option<String>,
-}
-
-/// `AttributionSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AttributionSettings {
-    /// attributionLookbackWindowInDays property.
-    pub attribution_lookback_window_in_days: Option<i64>,
-    /// attributionModel property.
-    pub attribution_model: Option<String>,
-    /// conversionType property.
-    pub conversion_type: Option<Vec<AttributionSettingsConversionType>>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -24,150 +25,11 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GkeNodePoolAcceleratorConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GkeNodePoolAcceleratorConfig {
-    /// acceleratorCount property.
-    pub accelerator_count: Option<String>,
-    /// acceleratorType property.
-    pub accelerator_type: Option<String>,
-    /// gpuPartitionSize property.
-    pub gpu_partition_size: Option<String>,
-}
-
-/// `NodeGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeGroup {
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// nodeGroupConfig property.
-    pub node_group_config: Option<InstanceGroupConfig>,
-    /// roles property.
-    pub roles: Option<Vec<String>>,
-}
-
-/// `ValueValidation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValueValidation {
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `AuxiliaryNodeGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuxiliaryNodeGroup {
-    /// nodeGroup property.
-    pub node_group: Option<NodeGroup>,
-    /// nodeGroupId property.
-    pub node_group_id: Option<String>,
-}
-
-/// `InstanceReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceReference {
-    /// instanceId property.
-    pub instance_id: Option<String>,
-    /// instanceName property.
-    pub instance_name: Option<String>,
-    /// publicEciesKey property.
-    pub public_ecies_key: Option<String>,
-    /// publicKey property.
-    pub public_key: Option<String>,
-}
-
-/// `FlinkJob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlinkJob {
-    /// args property.
-    pub args: Option<Vec<String>>,
-    /// jarFileUris property.
-    pub jar_file_uris: Option<Vec<String>>,
-    /// loggingConfig property.
-    pub logging_config: Option<LoggingConfig>,
-    /// mainClass property.
-    pub main_class: Option<String>,
-    /// mainJarFileUri property.
-    pub main_jar_file_uri: Option<String>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
-    /// savepointUri property.
-    pub savepoint_uri: Option<String>,
-}
-
-/// `SoftwareConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SoftwareConfig {
-    /// imageVersion property.
-    pub image_version: Option<String>,
-    /// optionalComponents property.
-    pub optional_components: Option<Vec<String>>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
-}
-
-/// `TrinoJob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TrinoJob {
-    /// clientTags property.
-    pub client_tags: Option<Vec<String>>,
-    /// continueOnFailure property.
-    pub continue_on_failure: Option<bool>,
-    /// loggingConfig property.
-    pub logging_config: Option<LoggingConfig>,
-    /// outputFormat property.
-    pub output_format: Option<String>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
-    /// queryFileUri property.
-    pub query_file_uri: Option<String>,
-    /// queryList property.
-    pub query_list: Option<QueryList>,
-}
-
-/// `EndpointConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndpointConfig {
-    /// enableHttpPortAccess property.
-    pub enable_http_port_access: Option<bool>,
-    /// httpPorts property.
-    pub http_ports: Option<serde_json::Value>,
-}
-
-/// `ProvisioningModelMix` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProvisioningModelMix {
-    /// standardCapacityBase property.
-    pub standard_capacity_base: Option<i64>,
-    /// standardCapacityPercentAboveBase property.
-    pub standard_capacity_percent_above_base: Option<i64>,
-}
-
-/// `PrestoJob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrestoJob {
-    /// clientTags property.
-    pub client_tags: Option<Vec<String>>,
-    /// continueOnFailure property.
-    pub continue_on_failure: Option<bool>,
-    /// loggingConfig property.
-    pub logging_config: Option<LoggingConfig>,
-    /// outputFormat property.
-    pub output_format: Option<String>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
-    /// queryFileUri property.
-    pub query_file_uri: Option<String>,
-    /// queryList property.
-    pub query_list: Option<QueryList>,
-}
 
 /// `NamespacedGkeDeploymentTarget` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -176,6 +38,22 @@ pub struct NamespacedGkeDeploymentTarget {
     pub cluster_namespace: Option<String>,
     /// targetGkeCluster property.
     pub target_gke_cluster: Option<String>,
+}
+
+/// `InstanceSelection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceSelection {
+    /// machineTypes property.
+    pub machine_types: Option<Vec<String>>,
+    /// rank property.
+    pub rank: Option<i64>,
+}
+
+/// `GoogleCloudDataprocV1WorkflowTemplateEncryptionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataprocV1WorkflowTemplateEncryptionConfig {
+    /// kmsKey property.
+    pub kms_key: Option<String>,
 }
 
 /// `GkeNodePoolTarget` type.
@@ -189,199 +67,36 @@ pub struct GkeNodePoolTarget {
     pub roles: Option<Vec<String>>,
 }
 
-/// `InstanceGroupConfig` type.
+/// `GkeClusterConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupConfig {
-    /// accelerators property.
-    pub accelerators: Option<Vec<AcceleratorConfig>>,
-    /// diskConfig property.
-    pub disk_config: Option<DiskConfig>,
-    /// imageUri property.
-    pub image_uri: Option<String>,
-    /// instanceFlexibilityPolicy property.
-    pub instance_flexibility_policy: Option<InstanceFlexibilityPolicy>,
-    /// instanceNames property.
-    pub instance_names: Option<Vec<String>>,
-    /// instanceReferences property.
-    pub instance_references: Option<Vec<InstanceReference>>,
-    /// isPreemptible property.
-    pub is_preemptible: Option<bool>,
-    /// machineTypeUri property.
-    pub machine_type_uri: Option<String>,
-    /// managedGroupConfig property.
-    pub managed_group_config: Option<ManagedGroupConfig>,
-    /// minCpuPlatform property.
-    pub min_cpu_platform: Option<String>,
-    /// minNumInstances property.
-    pub min_num_instances: Option<i64>,
-    /// numInstances property.
-    pub num_instances: Option<i64>,
-    /// preemptibility property.
-    pub preemptibility: Option<String>,
-    /// startupConfig property.
-    pub startup_config: Option<StartupConfig>,
+pub struct GkeClusterConfig {
+    /// gkeClusterTarget property.
+    pub gke_cluster_target: Option<String>,
+    /// namespacedGkeDeploymentTarget property.
+    pub namespaced_gke_deployment_target: Option<NamespacedGkeDeploymentTarget>,
+    /// nodePoolTarget property.
+    pub node_pool_target: Option<Vec<GkeNodePoolTarget>>,
 }
 
-/// `SparkSqlJob` type.
+/// `HadoopJob` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkSqlJob {
-    /// jarFileUris property.
-    pub jar_file_uris: Option<Vec<String>>,
-    /// loggingConfig property.
-    pub logging_config: Option<LoggingConfig>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
-    /// queryFileUri property.
-    pub query_file_uri: Option<String>,
-    /// queryList property.
-    pub query_list: Option<QueryList>,
-    /// scriptVariables property.
-    pub script_variables: Option<serde_json::Value>,
-}
-
-/// `GkeNodePoolAutoscalingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GkeNodePoolAutoscalingConfig {
-    /// maxNodeCount property.
-    pub max_node_count: Option<i64>,
-    /// minNodeCount property.
-    pub min_node_count: Option<i64>,
-}
-
-/// `DiskConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskConfig {
-    /// attachedDiskConfigs property.
-    pub attached_disk_configs: Option<Vec<AttachedDiskConfig>>,
-    /// bootDiskProvisionedIops property.
-    pub boot_disk_provisioned_iops: Option<String>,
-    /// bootDiskProvisionedThroughput property.
-    pub boot_disk_provisioned_throughput: Option<String>,
-    /// bootDiskSizeGb property.
-    pub boot_disk_size_gb: Option<i64>,
-    /// bootDiskType property.
-    pub boot_disk_type: Option<String>,
-    /// localSsdInterface property.
-    pub local_ssd_interface: Option<String>,
-    /// numLocalSsds property.
-    pub num_local_ssds: Option<i64>,
-}
-
-/// `MetastoreConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetastoreConfig {
-    /// dataprocMetastoreService property.
-    pub dataproc_metastore_service: Option<String>,
-}
-
-/// `HiveJob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HiveJob {
-    /// continueOnFailure property.
-    pub continue_on_failure: Option<bool>,
-    /// jarFileUris property.
-    pub jar_file_uris: Option<Vec<String>>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
-    /// queryFileUri property.
-    pub query_file_uri: Option<String>,
-    /// queryList property.
-    pub query_list: Option<QueryList>,
-    /// scriptVariables property.
-    pub script_variables: Option<serde_json::Value>,
-}
-
-/// `SparkRJob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkRJob {
+pub struct HadoopJob {
     /// archiveUris property.
     pub archive_uris: Option<Vec<String>>,
     /// args property.
     pub args: Option<Vec<String>>,
     /// fileUris property.
     pub file_uris: Option<Vec<String>>,
+    /// jarFileUris property.
+    pub jar_file_uris: Option<Vec<String>>,
     /// loggingConfig property.
     pub logging_config: Option<LoggingConfig>,
-    /// mainRFileUri property.
-    pub main_r_file_uri: Option<String>,
+    /// mainClass property.
+    pub main_class: Option<String>,
+    /// mainJarFileUri property.
+    pub main_jar_file_uri: Option<String>,
     /// properties property.
     pub properties: Option<serde_json::Value>,
-}
-
-/// `SecurityConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityConfig {
-    /// identityConfig property.
-    pub identity_config: Option<IdentityConfig>,
-    /// kerberosConfig property.
-    pub kerberos_config: Option<KerberosConfig>,
-}
-
-/// `InstanceFlexibilityPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceFlexibilityPolicy {
-    /// instanceMachineTypes property.
-    pub instance_machine_types: Option<serde_json::Value>,
-    /// instanceSelectionList property.
-    pub instance_selection_list: Option<Vec<InstanceSelection>>,
-    /// instanceSelectionResults property.
-    pub instance_selection_results: Option<Vec<InstanceSelectionResult>>,
-    /// provisioningModelMix property.
-    pub provisioning_model_mix: Option<ProvisioningModelMix>,
-}
-
-/// `GoogleCloudDataprocV1WorkflowTemplateEncryptionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataprocV1WorkflowTemplateEncryptionConfig {
-    /// kmsKey property.
-    pub kms_key: Option<String>,
-}
-
-/// `ConfidentialInstanceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfidentialInstanceConfig {
-    /// enableConfidentialCompute property.
-    pub enable_confidential_compute: Option<bool>,
-}
-
-/// `ClusterSelector` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterSelector {
-    /// clusterLabels property.
-    pub cluster_labels: Option<serde_json::Value>,
-    /// zone property.
-    pub zone: Option<String>,
-}
-
-/// `IdentityConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdentityConfig {
-    /// userServiceAccountMapping property.
-    pub user_service_account_mapping: Option<serde_json::Value>,
-}
-
-/// `GkeNodePoolConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GkeNodePoolConfig {
-    /// autoscaling property.
-    pub autoscaling: Option<GkeNodePoolAutoscalingConfig>,
-    /// config property.
-    pub config: Option<GkeNodeConfig>,
-    /// locations property.
-    pub locations: Option<Vec<String>>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
 }
 
 /// `ParameterValidation` type.
@@ -393,121 +108,11 @@ pub struct ParameterValidation {
     pub values: Option<ValueValidation>,
 }
 
-/// `StartupConfig` type.
+/// `QueryList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StartupConfig {
-    /// requiredRegistrationFraction property.
-    pub required_registration_fraction: Option<f64>,
-}
-
-/// `OrderedJob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OrderedJob {
-    /// flinkJob property.
-    pub flink_job: Option<FlinkJob>,
-    /// hadoopJob property.
-    pub hadoop_job: Option<HadoopJob>,
-    /// hiveJob property.
-    pub hive_job: Option<HiveJob>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// pigJob property.
-    pub pig_job: Option<PigJob>,
-    /// prerequisiteStepIds property.
-    pub prerequisite_step_ids: Option<Vec<String>>,
-    /// prestoJob property.
-    pub presto_job: Option<PrestoJob>,
-    /// pysparkJob property.
-    pub pyspark_job: Option<PySparkJob>,
-    /// scheduling property.
-    pub scheduling: Option<JobScheduling>,
-    /// sparkJob property.
-    pub spark_job: Option<SparkJob>,
-    /// sparkRJob property.
-    pub spark_r_job: Option<SparkRJob>,
-    /// sparkSqlJob property.
-    pub spark_sql_job: Option<SparkSqlJob>,
-    /// stepId property.
-    pub step_id: Option<String>,
-    /// trinoJob property.
-    pub trino_job: Option<TrinoJob>,
-}
-
-/// `AttachedDiskConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AttachedDiskConfig {
-    /// diskSizeGb property.
-    pub disk_size_gb: Option<i64>,
-    /// diskType property.
-    pub disk_type: Option<String>,
-    /// provisionedIops property.
-    pub provisioned_iops: Option<String>,
-    /// provisionedThroughput property.
-    pub provisioned_throughput: Option<String>,
-}
-
-/// `AcceleratorConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcceleratorConfig {
-    /// acceleratorCount property.
-    pub accelerator_count: Option<i64>,
-    /// acceleratorTypeUri property.
-    pub accelerator_type_uri: Option<String>,
-}
-
-/// `ManagedGroupConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedGroupConfig {
-    /// instanceGroupManagerName property.
-    pub instance_group_manager_name: Option<String>,
-    /// instanceGroupManagerUri property.
-    pub instance_group_manager_uri: Option<String>,
-    /// instanceTemplateName property.
-    pub instance_template_name: Option<String>,
-}
-
-/// `ReservationAffinity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReservationAffinity {
-    /// consumeReservationType property.
-    pub consume_reservation_type: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `RegexValidation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegexValidation {
-    /// regexes property.
-    pub regexes: Option<Vec<String>>,
-}
-
-/// `LifecycleConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LifecycleConfig {
-    /// autoDeleteTime property.
-    pub auto_delete_time: Option<String>,
-    /// autoDeleteTtl property.
-    pub auto_delete_ttl: Option<String>,
-    /// autoStopTime property.
-    pub auto_stop_time: Option<String>,
-    /// autoStopTtl property.
-    pub auto_stop_ttl: Option<String>,
-    /// idleDeleteTtl property.
-    pub idle_delete_ttl: Option<String>,
-    /// idleStartTime property.
-    pub idle_start_time: Option<String>,
-    /// idleStopTtl property.
-    pub idle_stop_ttl: Option<String>,
-}
-
-/// `LoggingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoggingConfig {
-    /// driverLogLevels property.
-    pub driver_log_levels: Option<serde_json::Value>,
+pub struct QueryList {
+    /// queries property.
+    pub queries: Option<Vec<String>>,
 }
 
 /// `WorkflowTemplate` type.
@@ -537,55 +142,87 @@ pub struct WorkflowTemplate {
     pub version: Option<i64>,
 }
 
-/// `PigJob` type.
+/// `Metric` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PigJob {
-    /// continueOnFailure property.
-    pub continue_on_failure: Option<bool>,
-    /// jarFileUris property.
-    pub jar_file_uris: Option<Vec<String>>,
-    /// loggingConfig property.
-    pub logging_config: Option<LoggingConfig>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
-    /// queryFileUri property.
-    pub query_file_uri: Option<String>,
-    /// queryList property.
-    pub query_list: Option<QueryList>,
-    /// scriptVariables property.
-    pub script_variables: Option<serde_json::Value>,
+pub struct Metric {
+    /// metricOverrides property.
+    pub metric_overrides: Option<Vec<String>>,
+    /// metricSource property.
+    pub metric_source: Option<String>,
 }
 
-/// `SparkJob` type.
+/// `JobScheduling` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkJob {
+pub struct JobScheduling {
+    /// maxFailuresPerHour property.
+    pub max_failures_per_hour: Option<i64>,
+    /// maxFailuresTotal property.
+    pub max_failures_total: Option<i64>,
+}
+
+/// `ClusterSelector` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterSelector {
+    /// clusterLabels property.
+    pub cluster_labels: Option<serde_json::Value>,
+    /// zone property.
+    pub zone: Option<String>,
+}
+
+/// `SparkRJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkRJob {
     /// archiveUris property.
     pub archive_uris: Option<Vec<String>>,
     /// args property.
     pub args: Option<Vec<String>>,
     /// fileUris property.
     pub file_uris: Option<Vec<String>>,
-    /// jarFileUris property.
-    pub jar_file_uris: Option<Vec<String>>,
     /// loggingConfig property.
     pub logging_config: Option<LoggingConfig>,
-    /// mainClass property.
-    pub main_class: Option<String>,
-    /// mainJarFileUri property.
-    pub main_jar_file_uri: Option<String>,
+    /// mainRFileUri property.
+    pub main_r_file_uri: Option<String>,
     /// properties property.
     pub properties: Option<serde_json::Value>,
 }
 
-/// `Binding` type.
+/// `NodeInitializationAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct NodeInitializationAction {
+    /// executableFile property.
+    pub executable_file: Option<String>,
+    /// executionTimeout property.
+    pub execution_timeout: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `DiskConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskConfig {
+    /// attachedDiskConfigs property.
+    pub attached_disk_configs: Option<Vec<AttachedDiskConfig>>,
+    /// bootDiskProvisionedIops property.
+    pub boot_disk_provisioned_iops: Option<String>,
+    /// bootDiskProvisionedThroughput property.
+    pub boot_disk_provisioned_throughput: Option<String>,
+    /// bootDiskSizeGb property.
+    pub boot_disk_size_gb: Option<i64>,
+    /// bootDiskType property.
+    pub boot_disk_type: Option<String>,
+    /// localSsdInterface property.
+    pub local_ssd_interface: Option<String>,
+    /// numLocalSsds property.
+    pub num_local_ssds: Option<i64>,
 }
 
 /// `GceClusterConfig` type.
@@ -623,75 +260,24 @@ pub struct GceClusterConfig {
     pub zone_uri: Option<String>,
 }
 
-/// `ListWorkflowTemplatesResponse` type.
+/// `RegexValidation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListWorkflowTemplatesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// templates property.
-    pub templates: Option<Vec<WorkflowTemplate>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct RegexValidation {
+    /// regexes property.
+    pub regexes: Option<Vec<String>>,
 }
 
-/// `JobScheduling` type.
+/// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobScheduling {
-    /// maxFailuresPerHour property.
-    pub max_failures_per_hour: Option<i64>,
-    /// maxFailuresTotal property.
-    pub max_failures_total: Option<i64>,
-}
-
-/// `HadoopJob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HadoopJob {
-    /// archiveUris property.
-    pub archive_uris: Option<Vec<String>>,
-    /// args property.
-    pub args: Option<Vec<String>>,
-    /// fileUris property.
-    pub file_uris: Option<Vec<String>>,
-    /// jarFileUris property.
-    pub jar_file_uris: Option<Vec<String>>,
-    /// loggingConfig property.
-    pub logging_config: Option<LoggingConfig>,
-    /// mainClass property.
-    pub main_class: Option<String>,
-    /// mainJarFileUri property.
-    pub main_jar_file_uri: Option<String>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
-}
-
-/// `PySparkJob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PySparkJob {
-    /// archiveUris property.
-    pub archive_uris: Option<Vec<String>>,
-    /// args property.
-    pub args: Option<Vec<String>>,
-    /// fileUris property.
-    pub file_uris: Option<Vec<String>>,
-    /// jarFileUris property.
-    pub jar_file_uris: Option<Vec<String>>,
-    /// loggingConfig property.
-    pub logging_config: Option<LoggingConfig>,
-    /// mainPythonFileUri property.
-    pub main_python_file_uri: Option<String>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
-    /// pythonFileUris property.
-    pub python_file_uris: Option<Vec<String>>,
-}
-
-/// `Metric` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Metric {
-    /// metricOverrides property.
-    pub metric_overrides: Option<Vec<String>>,
-    /// metricSource property.
-    pub metric_source: Option<String>,
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 /// `DataprocMetricConfig` type.
@@ -701,66 +287,118 @@ pub struct DataprocMetricConfig {
     pub metrics: Option<Vec<Metric>>,
 }
 
-/// `KerberosConfig` type.
+/// `LifecycleConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KerberosConfig {
-    /// crossRealmTrustAdminServer property.
-    pub cross_realm_trust_admin_server: Option<String>,
-    /// crossRealmTrustKdc property.
-    pub cross_realm_trust_kdc: Option<String>,
-    /// crossRealmTrustRealm property.
-    pub cross_realm_trust_realm: Option<String>,
-    /// crossRealmTrustSharedPasswordUri property.
-    pub cross_realm_trust_shared_password_uri: Option<String>,
-    /// enableKerberos property.
-    pub enable_kerberos: Option<bool>,
-    /// kdcDbKeyUri property.
-    pub kdc_db_key_uri: Option<String>,
-    /// keyPasswordUri property.
-    pub key_password_uri: Option<String>,
-    /// keystorePasswordUri property.
-    pub keystore_password_uri: Option<String>,
-    /// keystoreUri property.
-    pub keystore_uri: Option<String>,
-    /// kmsKeyUri property.
-    pub kms_key_uri: Option<String>,
-    /// realm property.
-    pub realm: Option<String>,
-    /// rootPrincipalPasswordUri property.
-    pub root_principal_password_uri: Option<String>,
-    /// tgtLifetimeHours property.
-    pub tgt_lifetime_hours: Option<i64>,
-    /// truststorePasswordUri property.
-    pub truststore_password_uri: Option<String>,
-    /// truststoreUri property.
-    pub truststore_uri: Option<String>,
+pub struct LifecycleConfig {
+    /// autoDeleteTime property.
+    pub auto_delete_time: Option<String>,
+    /// autoDeleteTtl property.
+    pub auto_delete_ttl: Option<String>,
+    /// autoStopTime property.
+    pub auto_stop_time: Option<String>,
+    /// autoStopTtl property.
+    pub auto_stop_ttl: Option<String>,
+    /// idleDeleteTtl property.
+    pub idle_delete_ttl: Option<String>,
+    /// idleStartTime property.
+    pub idle_start_time: Option<String>,
+    /// idleStopTtl property.
+    pub idle_stop_ttl: Option<String>,
 }
 
-/// `QueryList` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryList {
-    /// queries property.
-    pub queries: Option<Vec<String>>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
-/// `GkeClusterConfig` type.
+/// `GkeNodePoolAcceleratorConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GkeClusterConfig {
-    /// gkeClusterTarget property.
-    pub gke_cluster_target: Option<String>,
-    /// namespacedGkeDeploymentTarget property.
-    pub namespaced_gke_deployment_target: Option<NamespacedGkeDeploymentTarget>,
-    /// nodePoolTarget property.
-    pub node_pool_target: Option<Vec<GkeNodePoolTarget>>,
+pub struct GkeNodePoolAcceleratorConfig {
+    /// acceleratorCount property.
+    pub accelerator_count: Option<String>,
+    /// acceleratorType property.
+    pub accelerator_type: Option<String>,
+    /// gpuPartitionSize property.
+    pub gpu_partition_size: Option<String>,
 }
 
-/// `WorkflowTemplatePlacement` type.
+/// `InstanceSelectionResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkflowTemplatePlacement {
-    /// clusterSelector property.
-    pub cluster_selector: Option<ClusterSelector>,
-    /// managedCluster property.
-    pub managed_cluster: Option<ManagedCluster>,
+pub struct InstanceSelectionResult {
+    /// machineType property.
+    pub machine_type: Option<String>,
+    /// vmCount property.
+    pub vm_count: Option<i64>,
+}
+
+/// `SparkSqlJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkSqlJob {
+    /// jarFileUris property.
+    pub jar_file_uris: Option<Vec<String>>,
+    /// loggingConfig property.
+    pub logging_config: Option<LoggingConfig>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
+    /// queryFileUri property.
+    pub query_file_uri: Option<String>,
+    /// queryList property.
+    pub query_list: Option<QueryList>,
+    /// scriptVariables property.
+    pub script_variables: Option<serde_json::Value>,
+}
+
+/// `NodeGroupAffinity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodeGroupAffinity {
+    /// nodeGroupUri property.
+    pub node_group_uri: Option<String>,
+}
+
+/// `ConfidentialInstanceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfidentialInstanceConfig {
+    /// enableConfidentialCompute property.
+    pub enable_confidential_compute: Option<bool>,
+}
+
+/// `AutoscalingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutoscalingConfig {
+    /// policyUri property.
+    pub policy_uri: Option<String>,
+}
+
+/// `HiveJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HiveJob {
+    /// continueOnFailure property.
+    pub continue_on_failure: Option<bool>,
+    /// jarFileUris property.
+    pub jar_file_uris: Option<Vec<String>>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
+    /// queryFileUri property.
+    pub query_file_uri: Option<String>,
+    /// queryList property.
+    pub query_list: Option<QueryList>,
+    /// scriptVariables property.
+    pub script_variables: Option<serde_json::Value>,
+}
+
+/// `ProvisioningModelMix` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProvisioningModelMix {
+    /// standardCapacityBase property.
+    pub standard_capacity_base: Option<i64>,
+    /// standardCapacityPercentAboveBase property.
+    pub standard_capacity_percent_above_base: Option<i64>,
 }
 
 /// `ClusterConfig` type.
@@ -810,20 +448,13 @@ pub struct ClusterConfig {
     pub worker_config: Option<InstanceGroupConfig>,
 }
 
-/// `NodeInitializationAction` type.
+/// `GkeNodePoolAutoscalingConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeInitializationAction {
-    /// executableFile property.
-    pub executable_file: Option<String>,
-    /// executionTimeout property.
-    pub execution_timeout: Option<String>,
-}
-
-/// `AutoscalingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoscalingConfig {
-    /// policyUri property.
-    pub policy_uri: Option<String>,
+pub struct GkeNodePoolAutoscalingConfig {
+    /// maxNodeCount property.
+    pub max_node_count: Option<i64>,
+    /// minNodeCount property.
+    pub min_node_count: Option<i64>,
 }
 
 /// `GkeNodeConfig` type.
@@ -845,11 +476,56 @@ pub struct GkeNodeConfig {
     pub spot: Option<bool>,
 }
 
-/// `NodeGroupAffinity` type.
+/// `ReservationAffinity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeGroupAffinity {
-    /// nodeGroupUri property.
-    pub node_group_uri: Option<String>,
+pub struct ReservationAffinity {
+    /// consumeReservationType property.
+    pub consume_reservation_type: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `ValueValidation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ValueValidation {
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `InstanceReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceReference {
+    /// instanceId property.
+    pub instance_id: Option<String>,
+    /// instanceName property.
+    pub instance_name: Option<String>,
+    /// publicEciesKey property.
+    pub public_ecies_key: Option<String>,
+    /// publicKey property.
+    pub public_key: Option<String>,
+}
+
+/// `SparkJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkJob {
+    /// archiveUris property.
+    pub archive_uris: Option<Vec<String>>,
+    /// args property.
+    pub args: Option<Vec<String>>,
+    /// fileUris property.
+    pub file_uris: Option<Vec<String>>,
+    /// jarFileUris property.
+    pub jar_file_uris: Option<Vec<String>>,
+    /// loggingConfig property.
+    pub logging_config: Option<LoggingConfig>,
+    /// mainClass property.
+    pub main_class: Option<String>,
+    /// mainJarFileUri property.
+    pub main_jar_file_uri: Option<String>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
 }
 
 /// `ShieldedInstanceConfig` type.
@@ -863,13 +539,271 @@ pub struct ShieldedInstanceConfig {
     pub enable_vtpm: Option<bool>,
 }
 
-/// `InstanceSelection` type.
+/// `PrestoJob` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceSelection {
-    /// machineTypes property.
-    pub machine_types: Option<Vec<String>>,
-    /// rank property.
-    pub rank: Option<i64>,
+pub struct PrestoJob {
+    /// clientTags property.
+    pub client_tags: Option<Vec<String>>,
+    /// continueOnFailure property.
+    pub continue_on_failure: Option<bool>,
+    /// loggingConfig property.
+    pub logging_config: Option<LoggingConfig>,
+    /// outputFormat property.
+    pub output_format: Option<String>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
+    /// queryFileUri property.
+    pub query_file_uri: Option<String>,
+    /// queryList property.
+    pub query_list: Option<QueryList>,
+}
+
+/// `InstanceGroupConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupConfig {
+    /// accelerators property.
+    pub accelerators: Option<Vec<AcceleratorConfig>>,
+    /// diskConfig property.
+    pub disk_config: Option<DiskConfig>,
+    /// imageUri property.
+    pub image_uri: Option<String>,
+    /// instanceFlexibilityPolicy property.
+    pub instance_flexibility_policy: Option<InstanceFlexibilityPolicy>,
+    /// instanceNames property.
+    pub instance_names: Option<Vec<String>>,
+    /// instanceReferences property.
+    pub instance_references: Option<Vec<InstanceReference>>,
+    /// isPreemptible property.
+    pub is_preemptible: Option<bool>,
+    /// machineTypeUri property.
+    pub machine_type_uri: Option<String>,
+    /// managedGroupConfig property.
+    pub managed_group_config: Option<ManagedGroupConfig>,
+    /// minCpuPlatform property.
+    pub min_cpu_platform: Option<String>,
+    /// minNumInstances property.
+    pub min_num_instances: Option<i64>,
+    /// numInstances property.
+    pub num_instances: Option<i64>,
+    /// preemptibility property.
+    pub preemptibility: Option<String>,
+    /// startupConfig property.
+    pub startup_config: Option<StartupConfig>,
+}
+
+/// `InstanceFlexibilityPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceFlexibilityPolicy {
+    /// instanceMachineTypes property.
+    pub instance_machine_types: Option<serde_json::Value>,
+    /// instanceSelectionList property.
+    pub instance_selection_list: Option<Vec<InstanceSelection>>,
+    /// instanceSelectionResults property.
+    pub instance_selection_results: Option<Vec<InstanceSelectionResult>>,
+    /// provisioningModelMix property.
+    pub provisioning_model_mix: Option<ProvisioningModelMix>,
+}
+
+/// `AttachedDiskConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AttachedDiskConfig {
+    /// diskSizeGb property.
+    pub disk_size_gb: Option<i64>,
+    /// diskType property.
+    pub disk_type: Option<String>,
+    /// provisionedIops property.
+    pub provisioned_iops: Option<String>,
+    /// provisionedThroughput property.
+    pub provisioned_throughput: Option<String>,
+}
+
+/// `StartupConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StartupConfig {
+    /// requiredRegistrationFraction property.
+    pub required_registration_fraction: Option<f64>,
+}
+
+/// `PigJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PigJob {
+    /// continueOnFailure property.
+    pub continue_on_failure: Option<bool>,
+    /// jarFileUris property.
+    pub jar_file_uris: Option<Vec<String>>,
+    /// loggingConfig property.
+    pub logging_config: Option<LoggingConfig>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
+    /// queryFileUri property.
+    pub query_file_uri: Option<String>,
+    /// queryList property.
+    pub query_list: Option<QueryList>,
+    /// scriptVariables property.
+    pub script_variables: Option<serde_json::Value>,
+}
+
+/// `SoftwareConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SoftwareConfig {
+    /// imageVersion property.
+    pub image_version: Option<String>,
+    /// optionalComponents property.
+    pub optional_components: Option<Vec<String>>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
+}
+
+/// `ManagedGroupConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedGroupConfig {
+    /// instanceGroupManagerName property.
+    pub instance_group_manager_name: Option<String>,
+    /// instanceGroupManagerUri property.
+    pub instance_group_manager_uri: Option<String>,
+    /// instanceTemplateName property.
+    pub instance_template_name: Option<String>,
+}
+
+/// `WorkflowTemplatePlacement` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkflowTemplatePlacement {
+    /// clusterSelector property.
+    pub cluster_selector: Option<ClusterSelector>,
+    /// managedCluster property.
+    pub managed_cluster: Option<ManagedCluster>,
+}
+
+/// `MetastoreConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetastoreConfig {
+    /// dataprocMetastoreService property.
+    pub dataproc_metastore_service: Option<String>,
+}
+
+/// `AuxiliaryNodeGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuxiliaryNodeGroup {
+    /// nodeGroup property.
+    pub node_group: Option<NodeGroup>,
+    /// nodeGroupId property.
+    pub node_group_id: Option<String>,
+}
+
+/// `IdentityConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IdentityConfig {
+    /// userServiceAccountMapping property.
+    pub user_service_account_mapping: Option<serde_json::Value>,
+}
+
+/// `LoggingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoggingConfig {
+    /// driverLogLevels property.
+    pub driver_log_levels: Option<serde_json::Value>,
+}
+
+/// `OrderedJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OrderedJob {
+    /// flinkJob property.
+    pub flink_job: Option<FlinkJob>,
+    /// hadoopJob property.
+    pub hadoop_job: Option<HadoopJob>,
+    /// hiveJob property.
+    pub hive_job: Option<HiveJob>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// pigJob property.
+    pub pig_job: Option<PigJob>,
+    /// prerequisiteStepIds property.
+    pub prerequisite_step_ids: Option<Vec<String>>,
+    /// prestoJob property.
+    pub presto_job: Option<PrestoJob>,
+    /// pysparkJob property.
+    pub pyspark_job: Option<PySparkJob>,
+    /// scheduling property.
+    pub scheduling: Option<JobScheduling>,
+    /// sparkJob property.
+    pub spark_job: Option<SparkJob>,
+    /// sparkRJob property.
+    pub spark_r_job: Option<SparkRJob>,
+    /// sparkSqlJob property.
+    pub spark_sql_job: Option<SparkSqlJob>,
+    /// stepId property.
+    pub step_id: Option<String>,
+    /// trinoJob property.
+    pub trino_job: Option<TrinoJob>,
+}
+
+/// `FlinkJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlinkJob {
+    /// args property.
+    pub args: Option<Vec<String>>,
+    /// jarFileUris property.
+    pub jar_file_uris: Option<Vec<String>>,
+    /// loggingConfig property.
+    pub logging_config: Option<LoggingConfig>,
+    /// mainClass property.
+    pub main_class: Option<String>,
+    /// mainJarFileUri property.
+    pub main_jar_file_uri: Option<String>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
+    /// savepointUri property.
+    pub savepoint_uri: Option<String>,
+}
+
+/// `AcceleratorConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AcceleratorConfig {
+    /// acceleratorCount property.
+    pub accelerator_count: Option<i64>,
+    /// acceleratorTypeUri property.
+    pub accelerator_type_uri: Option<String>,
+}
+
+/// `EndpointConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EndpointConfig {
+    /// enableHttpPortAccess property.
+    pub enable_http_port_access: Option<bool>,
+    /// httpPorts property.
+    pub http_ports: Option<serde_json::Value>,
+}
+
+/// `PySparkJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PySparkJob {
+    /// archiveUris property.
+    pub archive_uris: Option<Vec<String>>,
+    /// args property.
+    pub args: Option<Vec<String>>,
+    /// fileUris property.
+    pub file_uris: Option<Vec<String>>,
+    /// jarFileUris property.
+    pub jar_file_uris: Option<Vec<String>>,
+    /// loggingConfig property.
+    pub logging_config: Option<LoggingConfig>,
+    /// mainPythonFileUri property.
+    pub main_python_file_uri: Option<String>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
+    /// pythonFileUris property.
+    pub python_file_uris: Option<Vec<String>>,
+}
+
+/// `GkeNodePoolConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GkeNodePoolConfig {
+    /// autoscaling property.
+    pub autoscaling: Option<GkeNodePoolAutoscalingConfig>,
+    /// config property.
+    pub config: Option<GkeNodeConfig>,
+    /// locations property.
+    pub locations: Option<Vec<String>>,
 }
 
 /// `ManagedCluster` type.
@@ -883,26 +817,6 @@ pub struct ManagedCluster {
     pub labels: Option<serde_json::Value>,
 }
 
-/// `InstanceSelectionResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceSelectionResult {
-    /// machineType property.
-    pub machine_type: Option<String>,
-    /// vmCount property.
-    pub vm_count: Option<i64>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
 /// `EncryptionConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionConfig {
@@ -910,6 +824,28 @@ pub struct EncryptionConfig {
     pub gce_pd_kms_key_name: Option<String>,
     /// kmsKey property.
     pub kms_key: Option<String>,
+}
+
+/// `SecurityConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityConfig {
+    /// identityConfig property.
+    pub identity_config: Option<IdentityConfig>,
+    /// kerberosConfig property.
+    pub kerberos_config: Option<KerberosConfig>,
+}
+
+/// `NodeGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodeGroup {
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// nodeGroupConfig property.
+    pub node_group_config: Option<InstanceGroupConfig>,
+    /// roles property.
+    pub roles: Option<Vec<String>>,
 }
 
 /// `TemplateParameter` type.
@@ -923,6 +859,71 @@ pub struct TemplateParameter {
     pub name: Option<String>,
     /// validation property.
     pub validation: Option<ParameterValidation>,
+}
+
+/// `ListWorkflowTemplatesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListWorkflowTemplatesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// templates property.
+    pub templates: Option<Vec<WorkflowTemplate>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `TrinoJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TrinoJob {
+    /// clientTags property.
+    pub client_tags: Option<Vec<String>>,
+    /// continueOnFailure property.
+    pub continue_on_failure: Option<bool>,
+    /// loggingConfig property.
+    pub logging_config: Option<LoggingConfig>,
+    /// outputFormat property.
+    pub output_format: Option<String>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
+    /// queryFileUri property.
+    pub query_file_uri: Option<String>,
+    /// queryList property.
+    pub query_list: Option<QueryList>,
+}
+
+/// `KerberosConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KerberosConfig {
+    /// crossRealmTrustAdminServer property.
+    pub cross_realm_trust_admin_server: Option<String>,
+    /// crossRealmTrustKdc property.
+    pub cross_realm_trust_kdc: Option<String>,
+    /// crossRealmTrustRealm property.
+    pub cross_realm_trust_realm: Option<String>,
+    /// crossRealmTrustSharedPasswordUri property.
+    pub cross_realm_trust_shared_password_uri: Option<String>,
+    /// enableKerberos property.
+    pub enable_kerberos: Option<bool>,
+    /// kdcDbKeyUri property.
+    pub kdc_db_key_uri: Option<String>,
+    /// keyPasswordUri property.
+    pub key_password_uri: Option<String>,
+    /// keystorePasswordUri property.
+    pub keystore_password_uri: Option<String>,
+    /// keystoreUri property.
+    pub keystore_uri: Option<String>,
+    /// kmsKeyUri property.
+    pub kms_key_uri: Option<String>,
+    /// realm property.
+    pub realm: Option<String>,
+    /// rootPrincipalPasswordUri property.
+    pub root_principal_password_uri: Option<String>,
+    /// tgtLifetimeHours property.
+    pub tgt_lifetime_hours: Option<i64>,
+    /// truststorePasswordUri property.
+    pub truststore_password_uri: Option<String>,
+    /// truststoreUri property.
+    pub truststore_uri: Option<String>,
 }
 
 // =============================================================================

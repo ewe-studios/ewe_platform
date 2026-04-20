@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,22 +23,11 @@ use serde::{Deserialize, Serialize};
 use super::shared::GoogleLongrunningOperation;
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
 
 /// `GoogleCloudAiplatformV1ListTrialsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -46,17 +36,6 @@ pub struct GoogleCloudAiplatformV1ListTrialsResponse {
     pub next_page_token: Option<String>,
     /// trials property.
     pub trials: Option<Vec<GoogleCloudAiplatformV1Trial>>,
-}
-
-/// `GoogleCloudAiplatformV1Measurement` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Measurement {
-    /// elapsedDuration property.
-    pub elapsed_duration: Option<String>,
-    /// metrics property.
-    pub metrics: Option<Vec<GoogleCloudAiplatformV1MeasurementMetric>>,
-    /// stepCount property.
-    pub step_count: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1Trial` type.
@@ -95,6 +74,28 @@ pub struct GoogleCloudAiplatformV1TrialParameter {
     pub parameter_id: Option<String>,
     /// value property.
     pub value: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudAiplatformV1Measurement` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1Measurement {
+    /// elapsedDuration property.
+    pub elapsed_duration: Option<String>,
+    /// metrics property.
+    pub metrics: Option<Vec<GoogleCloudAiplatformV1MeasurementMetric>>,
+    /// stepCount property.
+    pub step_count: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1MeasurementMetric` type.

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,24 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::File;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `FileList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FileList {
-    /// etag property.
-    pub etag: Option<String>,
-    /// items property.
-    pub items: Option<Vec<File>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `DateRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -51,6 +39,19 @@ pub struct DateRange {
     pub relative_date_range: Option<String>,
     /// startDate property.
     pub start_date: Option<String>,
+}
+
+/// `FileList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FileList {
+    /// etag property.
+    pub etag: Option<String>,
+    /// items property.
+    pub items: Option<Vec<File>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,43 +22,30 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudDataplexV1ListEntitiesResponse` type.
+/// `GoogleCloudDataplexV1StorageFormatCsvOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1ListEntitiesResponse {
-    /// entities property.
-    pub entities: Option<Vec<GoogleCloudDataplexV1Entity>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct GoogleCloudDataplexV1StorageFormatCsvOptions {
+    /// delimiter property.
+    pub delimiter: Option<String>,
+    /// encoding property.
+    pub encoding: Option<String>,
+    /// headerRows property.
+    pub header_rows: Option<i64>,
+    /// quote property.
+    pub quote: Option<String>,
 }
 
-/// `GoogleCloudDataplexV1EntityCompatibilityStatus` type.
+/// `GoogleCloudDataplexV1StorageFormatJsonOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1EntityCompatibilityStatus {
-    /// bigquery property.
-    pub bigquery: Option<GoogleCloudDataplexV1EntityCompatibilityStatusCompatibility>,
-    /// hiveMetastore property.
-    pub hive_metastore: Option<GoogleCloudDataplexV1EntityCompatibilityStatusCompatibility>,
-}
-
-/// `GoogleCloudDataplexV1SchemaSchemaField` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1SchemaSchemaField {
-    /// description property.
-    pub description: Option<String>,
-    /// fields property.
-    pub fields: Option<Vec<GoogleCloudDataplexV1SchemaSchemaField>>,
-    /// mode property.
-    pub mode: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct GoogleCloudDataplexV1StorageFormatJsonOptions {
+    /// encoding property.
+    pub encoding: Option<String>,
 }
 
 /// `GoogleCloudDataplexV1EntityCompatibilityStatusCompatibility` type.
@@ -67,45 +55,6 @@ pub struct GoogleCloudDataplexV1EntityCompatibilityStatusCompatibility {
     pub compatible: Option<bool>,
     /// reason property.
     pub reason: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1SchemaPartitionField` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1SchemaPartitionField {
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1StorageFormat` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1StorageFormat {
-    /// compressionFormat property.
-    pub compression_format: Option<String>,
-    /// csv property.
-    pub csv: Option<GoogleCloudDataplexV1StorageFormatCsvOptions>,
-    /// format property.
-    pub format: Option<String>,
-    /// iceberg property.
-    pub iceberg: Option<GoogleCloudDataplexV1StorageFormatIcebergOptions>,
-    /// json property.
-    pub json: Option<GoogleCloudDataplexV1StorageFormatJsonOptions>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1Schema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1Schema {
-    /// fields property.
-    pub fields: Option<Vec<GoogleCloudDataplexV1SchemaSchemaField>>,
-    /// partitionFields property.
-    pub partition_fields: Option<Vec<GoogleCloudDataplexV1SchemaPartitionField>>,
-    /// partitionStyle property.
-    pub partition_style: Option<String>,
-    /// userManaged property.
-    pub user_managed: Option<bool>,
 }
 
 /// `GoogleCloudDataplexV1Entity` type.
@@ -149,11 +98,54 @@ pub struct GoogleCloudDataplexV1Entity {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudDataplexV1StorageAccess` type.
+/// `GoogleCloudDataplexV1EntityCompatibilityStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1StorageAccess {
-    /// read property.
-    pub read: Option<String>,
+pub struct GoogleCloudDataplexV1EntityCompatibilityStatus {
+    /// bigquery property.
+    pub bigquery: Option<GoogleCloudDataplexV1EntityCompatibilityStatusCompatibility>,
+    /// hiveMetastore property.
+    pub hive_metastore: Option<GoogleCloudDataplexV1EntityCompatibilityStatusCompatibility>,
+}
+
+/// `GoogleCloudDataplexV1StorageFormat` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1StorageFormat {
+    /// compressionFormat property.
+    pub compression_format: Option<String>,
+    /// csv property.
+    pub csv: Option<GoogleCloudDataplexV1StorageFormatCsvOptions>,
+    /// format property.
+    pub format: Option<String>,
+    /// iceberg property.
+    pub iceberg: Option<GoogleCloudDataplexV1StorageFormatIcebergOptions>,
+    /// json property.
+    pub json: Option<GoogleCloudDataplexV1StorageFormatJsonOptions>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1SchemaSchemaField` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1SchemaSchemaField {
+    /// description property.
+    pub description: Option<String>,
+    /// fields property.
+    pub fields: Option<Vec<Box<GoogleCloudDataplexV1SchemaSchemaField>>>,
+    /// mode property.
+    pub mode: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1SchemaPartitionField` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1SchemaPartitionField {
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `GoogleCloudDataplexV1StorageFormatIcebergOptions` type.
@@ -163,24 +155,33 @@ pub struct GoogleCloudDataplexV1StorageFormatIcebergOptions {
     pub metadata_location: Option<String>,
 }
 
-/// `GoogleCloudDataplexV1StorageFormatJsonOptions` type.
+/// `GoogleCloudDataplexV1Schema` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1StorageFormatJsonOptions {
-    /// encoding property.
-    pub encoding: Option<String>,
+pub struct GoogleCloudDataplexV1Schema {
+    /// fields property.
+    pub fields: Option<Vec<Box<GoogleCloudDataplexV1SchemaSchemaField>>>,
+    /// partitionFields property.
+    pub partition_fields: Option<Vec<GoogleCloudDataplexV1SchemaPartitionField>>,
+    /// partitionStyle property.
+    pub partition_style: Option<String>,
+    /// userManaged property.
+    pub user_managed: Option<bool>,
 }
 
-/// `GoogleCloudDataplexV1StorageFormatCsvOptions` type.
+/// `GoogleCloudDataplexV1ListEntitiesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1StorageFormatCsvOptions {
-    /// delimiter property.
-    pub delimiter: Option<String>,
-    /// encoding property.
-    pub encoding: Option<String>,
-    /// headerRows property.
-    pub header_rows: Option<i64>,
-    /// quote property.
-    pub quote: Option<String>,
+pub struct GoogleCloudDataplexV1ListEntitiesResponse {
+    /// entities property.
+    pub entities: Option<Vec<GoogleCloudDataplexV1Entity>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1StorageAccess` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1StorageAccess {
+    /// read property.
+    pub read: Option<String>,
 }
 
 // =============================================================================

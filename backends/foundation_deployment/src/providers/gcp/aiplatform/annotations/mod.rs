@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -45,6 +46,15 @@ pub struct GoogleCloudAiplatformV1Annotation {
     pub update_time: Option<String>,
 }
 
+/// `GoogleCloudAiplatformV1ListAnnotationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ListAnnotationsResponse {
+    /// annotations property.
+    pub annotations: Option<Vec<GoogleCloudAiplatformV1Annotation>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
 /// `GoogleCloudAiplatformV1UserActionReference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UserActionReference {
@@ -54,15 +64,6 @@ pub struct GoogleCloudAiplatformV1UserActionReference {
     pub method: Option<String>,
     /// operation property.
     pub operation: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ListAnnotationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListAnnotationsResponse {
-    /// annotations property.
-    pub annotations: Option<Vec<GoogleCloudAiplatformV1Annotation>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

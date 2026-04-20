@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,20 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `InterconnectAttachmentGroupLogicalStructureRegionMetroFacility` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectAttachmentGroupLogicalStructureRegionMetroFacility {
+    /// facility property.
+    pub facility: Option<String>,
+    /// zones property.
+    pub zones: Option<Vec<InterconnectAttachmentGroupLogicalStructureRegionMetroFacilityZone>>,
+}
 
 /// `InterconnectAttachmentGroupLogicalStructure` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -34,24 +44,76 @@ pub struct InterconnectAttachmentGroupLogicalStructure {
     pub regions: Option<Vec<InterconnectAttachmentGroupLogicalStructureRegion>>,
 }
 
-/// `ErrorInfo` type.
+/// `InterconnectAttachmentGroupConfiguredAvailabilitySLAIntendedSlaBlockers` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
+pub struct InterconnectAttachmentGroupConfiguredAvailabilitySLAIntendedSlaBlockers {
+    /// attachments property.
+    pub attachments: Option<Vec<String>>,
+    /// blockerType property.
+    pub blocker_type: Option<String>,
+    /// documentationLink property.
+    pub documentation_link: Option<String>,
+    /// explanation property.
+    pub explanation: Option<String>,
+    /// metros property.
+    pub metros: Option<Vec<String>>,
+    /// regions property.
+    pub regions: Option<Vec<String>>,
+    /// zones property.
+    pub zones: Option<Vec<String>>,
 }
 
-/// `InterconnectAttachmentGroupLogicalStructureRegionMetro` type.
+/// `GetVersionOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachmentGroupLogicalStructureRegionMetro {
-    /// facilities property.
-    pub facilities: Option<Vec<InterconnectAttachmentGroupLogicalStructureRegionMetroFacility>>,
-    /// metro property.
-    pub metro: Option<String>,
+pub struct GetVersionOperationMetadata {
+    /// inlineSbomInfo property.
+    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+}
+
+/// `Help` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
+}
+
+/// `GetVersionOperationMetadataSbomInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
+}
+
+/// `InterconnectAttachmentGroupLogicalStructureRegionMetroFacilityZone` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectAttachmentGroupLogicalStructureRegionMetroFacilityZone {
+    /// attachments property.
+    pub attachments: Option<Vec<String>>,
+    /// zone property.
+    pub zone: Option<String>,
+}
+
+/// `InterconnectAttachmentGroupsListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectAttachmentGroupsListResponse {
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<InterconnectAttachmentGroup>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// unreachables property.
+    pub unreachables: Option<Vec<String>>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `InterconnectAttachmentGroupLogicalStructureRegion` type.
@@ -63,22 +125,23 @@ pub struct InterconnectAttachmentGroupLogicalStructureRegion {
     pub region: Option<String>,
 }
 
-/// `SetCommonInstanceMetadataOperationMetadata` type.
+/// `InterconnectAttachmentGroupConfiguredAvailabilitySLA` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetCommonInstanceMetadataOperationMetadata {
-    /// clientOperationId property.
-    pub client_operation_id: Option<String>,
-    /// perLocationOperations property.
-    pub per_location_operations: Option<serde_json::Value>,
+pub struct InterconnectAttachmentGroupConfiguredAvailabilitySLA {
+    /// effectiveSla property.
+    pub effective_sla: Option<String>,
+    /// intendedSlaBlockers property.
+    pub intended_sla_blockers:
+        Option<Vec<InterconnectAttachmentGroupConfiguredAvailabilitySLAIntendedSlaBlockers>>,
 }
 
-/// `InterconnectAttachmentGroupLogicalStructureRegionMetroFacilityZone` type.
+/// `InterconnectAttachmentGroupLogicalStructureRegionMetro` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachmentGroupLogicalStructureRegionMetroFacilityZone {
-    /// attachments property.
-    pub attachments: Option<Vec<String>>,
-    /// zone property.
-    pub zone: Option<String>,
+pub struct InterconnectAttachmentGroupLogicalStructureRegionMetro {
+    /// facilities property.
+    pub facilities: Option<Vec<InterconnectAttachmentGroupLogicalStructureRegionMetroFacility>>,
+    /// metro property.
+    pub metro: Option<String>,
 }
 
 /// `InterconnectAttachmentGroup` type.
@@ -110,6 +173,65 @@ pub struct InterconnectAttachmentGroup {
     pub self_link: Option<String>,
 }
 
+/// `LocalizedMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `HelpLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `ErrorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `InterconnectAttachmentGroupIntent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectAttachmentGroupIntent {
+    /// availabilitySla property.
+    pub availability_sla: Option<String>,
+}
+
+/// `SetCommonInstanceMetadataOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetCommonInstanceMetadataOperationMetadata {
+    /// clientOperationId property.
+    pub client_operation_id: Option<String>,
+    /// perLocationOperations property.
+    pub per_location_operations: Option<serde_json::Value>,
+}
+
+/// `InterconnectAttachmentGroupConfigured` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectAttachmentGroupConfigured {
+    /// availabilitySla property.
+    pub availability_sla: Option<InterconnectAttachmentGroupConfiguredAvailabilitySLA>,
+}
+
 /// `QuotaExceededInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuotaExceededInfo {
@@ -125,127 +247,6 @@ pub struct QuotaExceededInfo {
     pub metric_name: Option<String>,
     /// rolloutStatus property.
     pub rollout_status: Option<String>,
-}
-
-/// `GetVersionOperationMetadataSbomInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
-}
-
-/// `InterconnectAttachmentGroupConfiguredAvailabilitySLAIntendedSlaBlockers` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachmentGroupConfiguredAvailabilitySLAIntendedSlaBlockers {
-    /// attachments property.
-    pub attachments: Option<Vec<String>>,
-    /// blockerType property.
-    pub blocker_type: Option<String>,
-    /// documentationLink property.
-    pub documentation_link: Option<String>,
-    /// explanation property.
-    pub explanation: Option<String>,
-    /// metros property.
-    pub metros: Option<Vec<String>>,
-    /// regions property.
-    pub regions: Option<Vec<String>>,
-    /// zones property.
-    pub zones: Option<Vec<String>>,
-}
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `HelpLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `Help` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
-}
-
-/// `InterconnectAttachmentGroupConfigured` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachmentGroupConfigured {
-    /// availabilitySla property.
-    pub availability_sla: Option<InterconnectAttachmentGroupConfiguredAvailabilitySLA>,
-}
-
-/// `InterconnectAttachmentGroupIntent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachmentGroupIntent {
-    /// availabilitySla property.
-    pub availability_sla: Option<String>,
-}
-
-/// `InstancesBulkInsertOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
-}
-
-/// `InterconnectAttachmentGroupLogicalStructureRegionMetroFacility` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachmentGroupLogicalStructureRegionMetroFacility {
-    /// facility property.
-    pub facility: Option<String>,
-    /// zones property.
-    pub zones: Option<Vec<InterconnectAttachmentGroupLogicalStructureRegionMetroFacilityZone>>,
-}
-
-/// `InterconnectAttachmentGroupConfiguredAvailabilitySLA` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachmentGroupConfiguredAvailabilitySLA {
-    /// effectiveSla property.
-    pub effective_sla: Option<String>,
-    /// intendedSlaBlockers property.
-    pub intended_sla_blockers:
-        Option<Vec<InterconnectAttachmentGroupConfiguredAvailabilitySLAIntendedSlaBlockers>>,
-}
-
-/// `GetVersionOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadata {
-    /// inlineSbomInfo property.
-    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
-}
-
-/// `InterconnectAttachmentGroupsListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachmentGroupsListResponse {
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<InterconnectAttachmentGroup>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// unreachables property.
-    pub unreachables: Option<Vec<String>>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 // =============================================================================

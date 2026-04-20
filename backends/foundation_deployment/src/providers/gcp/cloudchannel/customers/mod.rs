@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,11 +24,71 @@ use super::shared::GoogleCloudChannelV1Customer;
 use super::shared::GoogleLongrunningOperation;
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudChannelV1CustomerConstraints` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1CustomerConstraints {
+    /// allowedCustomerTypes property.
+    pub allowed_customer_types: Option<Vec<String>>,
+    /// allowedRegions property.
+    pub allowed_regions: Option<Vec<String>>,
+    /// promotionalOrderTypes property.
+    pub promotional_order_types: Option<Vec<String>>,
+}
+
+/// `GoogleCloudChannelV1Product` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1Product {
+    /// marketingInfo property.
+    pub marketing_info: Option<GoogleCloudChannelV1MarketingInfo>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GoogleCloudChannelV1PurchasableSku` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1PurchasableSku {
+    /// sku property.
+    pub sku: Option<GoogleCloudChannelV1Sku>,
+}
+
+/// `GoogleCloudChannelV1Plan` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1Plan {
+    /// billingAccount property.
+    pub billing_account: Option<String>,
+    /// paymentCycle property.
+    pub payment_cycle: Option<GoogleCloudChannelV1Period>,
+    /// paymentPlan property.
+    pub payment_plan: Option<String>,
+    /// paymentType property.
+    pub payment_type: Option<String>,
+    /// trialPeriod property.
+    pub trial_period: Option<GoogleCloudChannelV1Period>,
+}
+
+/// `GoogleCloudChannelV1QueryEligibleBillingAccountsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1QueryEligibleBillingAccountsResponse {
+    /// skuPurchaseGroups property.
+    pub sku_purchase_groups: Option<Vec<GoogleCloudChannelV1SkuPurchaseGroup>>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
 
 /// `GoogleCloudChannelV1ContactInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -46,48 +107,45 @@ pub struct GoogleCloudChannelV1ContactInfo {
     pub title: Option<String>,
 }
 
-/// `GoogleCloudChannelV1Value` type.
+/// `GoogleCloudChannelV1BillingAccount` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1Value {
-    /// boolValue property.
-    pub bool_value: Option<bool>,
-    /// doubleValue property.
-    pub double_value: Option<f64>,
-    /// int64Value property.
-    pub int64_value: Option<String>,
-    /// protoValue property.
-    pub proto_value: Option<serde_json::Value>,
-    /// stringValue property.
-    pub string_value: Option<String>,
-}
-
-/// `GoogleCloudChannelV1DiscountComponent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1DiscountComponent {
-    /// discountAbsolute property.
-    pub discount_absolute: Option<GoogleTypeMoney>,
-    /// discountPercentage property.
-    pub discount_percentage: Option<f64>,
-    /// discountType property.
-    pub discount_type: Option<String>,
-}
-
-/// `GoogleCloudChannelV1Product` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1Product {
-    /// marketingInfo property.
-    pub marketing_info: Option<GoogleCloudChannelV1MarketingInfo>,
+pub struct GoogleCloudChannelV1BillingAccount {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
     /// name property.
     pub name: Option<String>,
+    /// regionCode property.
+    pub region_code: Option<String>,
 }
 
-/// `GoogleCloudChannelV1SkuPurchaseGroup` type.
+/// `GoogleCloudChannelV1PricePhase` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1SkuPurchaseGroup {
-    /// billingAccountPurchaseInfos property.
-    pub billing_account_purchase_infos: Option<Vec<GoogleCloudChannelV1BillingAccountPurchaseInfo>>,
-    /// skus property.
-    pub skus: Option<Vec<String>>,
+pub struct GoogleCloudChannelV1PricePhase {
+    /// firstPeriod property.
+    pub first_period: Option<i64>,
+    /// lastPeriod property.
+    pub last_period: Option<i64>,
+    /// periodType property.
+    pub period_type: Option<String>,
+    /// price property.
+    pub price: Option<GoogleCloudChannelV1Price>,
+    /// priceTiers property.
+    pub price_tiers: Option<Vec<GoogleCloudChannelV1PriceTier>>,
+}
+
+/// `GoogleCloudChannelV1EduData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1EduData {
+    /// instituteSize property.
+    pub institute_size: Option<String>,
+    /// instituteType property.
+    pub institute_type: Option<String>,
+    /// website property.
+    pub website: Option<String>,
 }
 
 /// `GoogleTypeMoney` type.
@@ -101,36 +159,115 @@ pub struct GoogleTypeMoney {
     pub units: Option<String>,
 }
 
-/// `GoogleCloudChannelV1CustomerConstraints` type.
+/// `GoogleCloudChannelV1MarketingInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1CustomerConstraints {
-    /// allowedCustomerTypes property.
-    pub allowed_customer_types: Option<Vec<String>>,
-    /// allowedRegions property.
-    pub allowed_regions: Option<Vec<String>>,
-    /// promotionalOrderTypes property.
-    pub promotional_order_types: Option<Vec<String>>,
+pub struct GoogleCloudChannelV1MarketingInfo {
+    /// defaultLogo property.
+    pub default_logo: Option<GoogleCloudChannelV1Media>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
 }
 
-/// `GoogleCloudChannelV1CloudIdentityInfo` type.
+/// `GoogleCloudChannelV1ListCustomersResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1CloudIdentityInfo {
-    /// adminConsoleUri property.
-    pub admin_console_uri: Option<String>,
-    /// alternateEmail property.
-    pub alternate_email: Option<String>,
-    /// customerType property.
-    pub customer_type: Option<String>,
-    /// eduData property.
-    pub edu_data: Option<GoogleCloudChannelV1EduData>,
-    /// isDomainVerified property.
-    pub is_domain_verified: Option<bool>,
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// phoneNumber property.
-    pub phone_number: Option<String>,
-    /// primaryDomain property.
-    pub primary_domain: Option<String>,
+pub struct GoogleCloudChannelV1ListCustomersResponse {
+    /// customers property.
+    pub customers: Option<Vec<GoogleCloudChannelV1Customer>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudChannelV1ListPurchasableOffersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1ListPurchasableOffersResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// purchasableOffers property.
+    pub purchasable_offers: Option<Vec<GoogleCloudChannelV1PurchasableOffer>>,
+}
+
+/// `GoogleCloudChannelV1Media` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1Media {
+    /// content property.
+    pub content: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudChannelV1Offer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1Offer {
+    /// constraints property.
+    pub constraints: Option<GoogleCloudChannelV1Constraints>,
+    /// dealCode property.
+    pub deal_code: Option<String>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// marketingInfo property.
+    pub marketing_info: Option<GoogleCloudChannelV1MarketingInfo>,
+    /// name property.
+    pub name: Option<String>,
+    /// parameterDefinitions property.
+    pub parameter_definitions: Option<Vec<GoogleCloudChannelV1ParameterDefinition>>,
+    /// plan property.
+    pub plan: Option<GoogleCloudChannelV1Plan>,
+    /// priceByResources property.
+    pub price_by_resources: Option<Vec<GoogleCloudChannelV1PriceByResource>>,
+    /// sku property.
+    pub sku: Option<GoogleCloudChannelV1Sku>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `GoogleCloudChannelV1SkuPurchaseGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1SkuPurchaseGroup {
+    /// billingAccountPurchaseInfos property.
+    pub billing_account_purchase_infos: Option<Vec<GoogleCloudChannelV1BillingAccountPurchaseInfo>>,
+    /// skus property.
+    pub skus: Option<Vec<String>>,
+}
+
+/// `GoogleCloudChannelV1DiscountComponent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1DiscountComponent {
+    /// discountAbsolute property.
+    pub discount_absolute: Option<GoogleTypeMoney>,
+    /// discountPercentage property.
+    pub discount_percentage: Option<f64>,
+    /// discountType property.
+    pub discount_type: Option<String>,
+}
+
+/// `GoogleCloudChannelV1ListPurchasableSkusResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1ListPurchasableSkusResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// purchasableSkus property.
+    pub purchasable_skus: Option<Vec<GoogleCloudChannelV1PurchasableSku>>,
+}
+
+/// `GoogleCloudChannelV1ParameterDefinition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1ParameterDefinition {
+    /// allowedValues property.
+    pub allowed_values: Option<Vec<GoogleCloudChannelV1Value>>,
+    /// maxValue property.
+    pub max_value: Option<GoogleCloudChannelV1Value>,
+    /// minValue property.
+    pub min_value: Option<GoogleCloudChannelV1Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// optional property.
+    pub optional: Option<bool>,
+    /// parameterType property.
+    pub parameter_type: Option<String>,
 }
 
 /// `GoogleCloudChannelV1PriceTier` type.
@@ -142,23 +279,6 @@ pub struct GoogleCloudChannelV1PriceTier {
     pub last_resource: Option<i64>,
     /// price property.
     pub price: Option<GoogleCloudChannelV1Price>,
-}
-
-/// `GoogleCloudChannelV1Price` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1Price {
-    /// basePrice property.
-    pub base_price: Option<GoogleTypeMoney>,
-    /// discount property.
-    pub discount: Option<f64>,
-    /// discountComponents property.
-    pub discount_components: Option<Vec<GoogleCloudChannelV1DiscountComponent>>,
-    /// effectivePrice property.
-    pub effective_price: Option<GoogleTypeMoney>,
-    /// externalPriceUri property.
-    pub external_price_uri: Option<String>,
-    /// pricePeriod property.
-    pub price_period: Option<GoogleCloudChannelV1Period>,
 }
 
 /// `GoogleTypePostalAddress` type.
@@ -188,164 +308,25 @@ pub struct GoogleTypePostalAddress {
     pub sublocality: Option<String>,
 }
 
-/// `GoogleCloudChannelV1Media` type.
+/// `GoogleCloudChannelV1CloudIdentityInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1Media {
-    /// content property.
-    pub content: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleCloudChannelV1PurchasableSku` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1PurchasableSku {
-    /// sku property.
-    pub sku: Option<GoogleCloudChannelV1Sku>,
-}
-
-/// `GoogleCloudChannelV1Constraints` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1Constraints {
-    /// customerConstraints property.
-    pub customer_constraints: Option<GoogleCloudChannelV1CustomerConstraints>,
-}
-
-/// `GoogleCloudChannelV1ListCustomersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1ListCustomersResponse {
-    /// customers property.
-    pub customers: Option<Vec<GoogleCloudChannelV1Customer>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudChannelV1Offer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1Offer {
-    /// constraints property.
-    pub constraints: Option<GoogleCloudChannelV1Constraints>,
-    /// dealCode property.
-    pub deal_code: Option<String>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// marketingInfo property.
-    pub marketing_info: Option<GoogleCloudChannelV1MarketingInfo>,
-    /// name property.
-    pub name: Option<String>,
-    /// parameterDefinitions property.
-    pub parameter_definitions: Option<Vec<GoogleCloudChannelV1ParameterDefinition>>,
-    /// plan property.
-    pub plan: Option<GoogleCloudChannelV1Plan>,
-    /// priceByResources property.
-    pub price_by_resources: Option<Vec<GoogleCloudChannelV1PriceByResource>>,
-    /// sku property.
-    pub sku: Option<GoogleCloudChannelV1Sku>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `GoogleCloudChannelV1Period` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1Period {
-    /// duration property.
-    pub duration: Option<i64>,
-    /// periodType property.
-    pub period_type: Option<String>,
-}
-
-/// `GoogleCloudChannelV1EduData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1EduData {
-    /// instituteSize property.
-    pub institute_size: Option<String>,
-    /// instituteType property.
-    pub institute_type: Option<String>,
-    /// website property.
-    pub website: Option<String>,
-}
-
-/// `GoogleCloudChannelV1PriceByResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1PriceByResource {
-    /// price property.
-    pub price: Option<GoogleCloudChannelV1Price>,
-    /// pricePhases property.
-    pub price_phases: Option<Vec<GoogleCloudChannelV1PricePhase>>,
-    /// resourceType property.
-    pub resource_type: Option<String>,
-}
-
-/// `GoogleCloudChannelV1ParameterDefinition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1ParameterDefinition {
-    /// allowedValues property.
-    pub allowed_values: Option<Vec<GoogleCloudChannelV1Value>>,
-    /// maxValue property.
-    pub max_value: Option<GoogleCloudChannelV1Value>,
-    /// minValue property.
-    pub min_value: Option<GoogleCloudChannelV1Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// optional property.
-    pub optional: Option<bool>,
-    /// parameterType property.
-    pub parameter_type: Option<String>,
-}
-
-/// `GoogleCloudChannelV1Plan` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1Plan {
-    /// billingAccount property.
-    pub billing_account: Option<String>,
-    /// paymentCycle property.
-    pub payment_cycle: Option<GoogleCloudChannelV1Period>,
-    /// paymentPlan property.
-    pub payment_plan: Option<String>,
-    /// paymentType property.
-    pub payment_type: Option<String>,
-    /// trialPeriod property.
-    pub trial_period: Option<GoogleCloudChannelV1Period>,
-}
-
-/// `GoogleCloudChannelV1BillingAccountPurchaseInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1BillingAccountPurchaseInfo {
-    /// billingAccount property.
-    pub billing_account: Option<GoogleCloudChannelV1BillingAccount>,
-}
-
-/// `GoogleCloudChannelV1ListPurchasableOffersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1ListPurchasableOffersResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// purchasableOffers property.
-    pub purchasable_offers: Option<Vec<GoogleCloudChannelV1PurchasableOffer>>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudChannelV1MarketingInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1MarketingInfo {
-    /// defaultLogo property.
-    pub default_logo: Option<GoogleCloudChannelV1Media>,
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
+pub struct GoogleCloudChannelV1CloudIdentityInfo {
+    /// adminConsoleUri property.
+    pub admin_console_uri: Option<String>,
+    /// alternateEmail property.
+    pub alternate_email: Option<String>,
+    /// customerType property.
+    pub customer_type: Option<String>,
+    /// eduData property.
+    pub edu_data: Option<GoogleCloudChannelV1EduData>,
+    /// isDomainVerified property.
+    pub is_domain_verified: Option<bool>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// phoneNumber property.
+    pub phone_number: Option<String>,
+    /// primaryDomain property.
+    pub primary_domain: Option<String>,
 }
 
 /// `GoogleCloudChannelV1PurchasableOffer` type.
@@ -357,19 +338,42 @@ pub struct GoogleCloudChannelV1PurchasableOffer {
     pub price_reference_id: Option<String>,
 }
 
-/// `GoogleCloudChannelV1BillingAccount` type.
+/// `GoogleCloudChannelV1Period` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1BillingAccount {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// regionCode property.
-    pub region_code: Option<String>,
+pub struct GoogleCloudChannelV1Period {
+    /// duration property.
+    pub duration: Option<i64>,
+    /// periodType property.
+    pub period_type: Option<String>,
+}
+
+/// `GoogleCloudChannelV1Constraints` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1Constraints {
+    /// customerConstraints property.
+    pub customer_constraints: Option<GoogleCloudChannelV1CustomerConstraints>,
+}
+
+/// `GoogleCloudChannelV1Value` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1Value {
+    /// boolValue property.
+    pub bool_value: Option<bool>,
+    /// doubleValue property.
+    pub double_value: Option<f64>,
+    /// int64Value property.
+    pub int64_value: Option<String>,
+    /// protoValue property.
+    pub proto_value: Option<serde_json::Value>,
+    /// stringValue property.
+    pub string_value: Option<String>,
+}
+
+/// `GoogleCloudChannelV1BillingAccountPurchaseInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1BillingAccountPurchaseInfo {
+    /// billingAccount property.
+    pub billing_account: Option<GoogleCloudChannelV1BillingAccount>,
 }
 
 /// `GoogleCloudChannelV1Sku` type.
@@ -383,35 +387,32 @@ pub struct GoogleCloudChannelV1Sku {
     pub product: Option<GoogleCloudChannelV1Product>,
 }
 
-/// `GoogleCloudChannelV1ListPurchasableSkusResponse` type.
+/// `GoogleCloudChannelV1Price` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1ListPurchasableSkusResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// purchasableSkus property.
-    pub purchasable_skus: Option<Vec<GoogleCloudChannelV1PurchasableSku>>,
+pub struct GoogleCloudChannelV1Price {
+    /// basePrice property.
+    pub base_price: Option<GoogleTypeMoney>,
+    /// discount property.
+    pub discount: Option<f64>,
+    /// discountComponents property.
+    pub discount_components: Option<Vec<GoogleCloudChannelV1DiscountComponent>>,
+    /// effectivePrice property.
+    pub effective_price: Option<GoogleTypeMoney>,
+    /// externalPriceUri property.
+    pub external_price_uri: Option<String>,
+    /// pricePeriod property.
+    pub price_period: Option<GoogleCloudChannelV1Period>,
 }
 
-/// `GoogleCloudChannelV1QueryEligibleBillingAccountsResponse` type.
+/// `GoogleCloudChannelV1PriceByResource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1QueryEligibleBillingAccountsResponse {
-    /// skuPurchaseGroups property.
-    pub sku_purchase_groups: Option<Vec<GoogleCloudChannelV1SkuPurchaseGroup>>,
-}
-
-/// `GoogleCloudChannelV1PricePhase` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1PricePhase {
-    /// firstPeriod property.
-    pub first_period: Option<i64>,
-    /// lastPeriod property.
-    pub last_period: Option<i64>,
-    /// periodType property.
-    pub period_type: Option<String>,
+pub struct GoogleCloudChannelV1PriceByResource {
     /// price property.
     pub price: Option<GoogleCloudChannelV1Price>,
-    /// priceTiers property.
-    pub price_tiers: Option<Vec<GoogleCloudChannelV1PriceTier>>,
+    /// pricePhases property.
+    pub price_phases: Option<Vec<GoogleCloudChannelV1PricePhase>>,
+    /// resourceType property.
+    pub resource_type: Option<String>,
 }
 
 // =============================================================================

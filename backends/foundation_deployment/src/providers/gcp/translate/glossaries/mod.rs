@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,22 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
 
 /// `Glossary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -55,17 +67,6 @@ pub struct LanguageCodesSet {
     pub language_codes: Option<Vec<String>>,
 }
 
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
 /// `GlossaryInputConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GlossaryInputConfig {
@@ -73,11 +74,13 @@ pub struct GlossaryInputConfig {
     pub gcs_source: Option<GcsSource>,
 }
 
-/// `GcsSource` type.
+/// `LanguageCodePair` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GcsSource {
-    /// inputUri property.
-    pub input_uri: Option<String>,
+pub struct LanguageCodePair {
+    /// sourceLanguageCode property.
+    pub source_language_code: Option<String>,
+    /// targetLanguageCode property.
+    pub target_language_code: Option<String>,
 }
 
 /// `ListGlossariesResponse` type.
@@ -89,13 +92,11 @@ pub struct ListGlossariesResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `LanguageCodePair` type.
+/// `GcsSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LanguageCodePair {
-    /// sourceLanguageCode property.
-    pub source_language_code: Option<String>,
-    /// targetLanguageCode property.
-    pub target_language_code: Option<String>,
+pub struct GcsSource {
+    /// inputUri property.
+    pub input_uri: Option<String>,
 }
 
 // =============================================================================

@@ -12,37 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudRecaptchaenterpriseV1ChallengeMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1ChallengeMetrics {
-    /// failedCount property.
-    pub failed_count: Option<String>,
-    /// nocaptchaCount property.
-    pub nocaptcha_count: Option<String>,
-    /// pageloadCount property.
-    pub pageload_count: Option<String>,
-    /// passedCount property.
-    pub passed_count: Option<String>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1ScoreDistribution` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1ScoreDistribution {
-    /// scoreBuckets property.
-    pub score_buckets: Option<serde_json::Value>,
-}
 
 /// `GoogleCloudRecaptchaenterpriseV1ScoreMetrics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -64,6 +45,26 @@ pub struct GoogleCloudRecaptchaenterpriseV1Metrics {
     pub score_metrics: Option<Vec<GoogleCloudRecaptchaenterpriseV1ScoreMetrics>>,
     /// startTime property.
     pub start_time: Option<String>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1ScoreDistribution` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1ScoreDistribution {
+    /// scoreBuckets property.
+    pub score_buckets: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1ChallengeMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1ChallengeMetrics {
+    /// failedCount property.
+    pub failed_count: Option<String>,
+    /// nocaptchaCount property.
+    pub nocaptcha_count: Option<String>,
+    /// pageloadCount property.
+    pub pageload_count: Option<String>,
+    /// passedCount property.
+    pub passed_count: Option<String>,
 }
 
 // =============================================================================

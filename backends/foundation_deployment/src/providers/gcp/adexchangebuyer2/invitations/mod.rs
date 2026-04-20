@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListClientUserInvitationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListClientUserInvitationsResponse {
+    /// invitations property.
+    pub invitations: Option<Vec<ClientUserInvitation>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `ClientUserInvitation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -33,15 +43,6 @@ pub struct ClientUserInvitation {
     pub email: Option<String>,
     /// invitationId property.
     pub invitation_id: Option<String>,
-}
-
-/// `ListClientUserInvitationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListClientUserInvitationsResponse {
-    /// invitations property.
-    pub invitations: Option<Vec<ClientUserInvitation>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

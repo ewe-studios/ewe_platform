@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -31,15 +32,6 @@ pub struct Evidence {
     pub common_themes: Option<Vec<String>>,
     /// distinctThemes property.
     pub distinct_themes: Option<Vec<String>>,
-}
-
-/// `InitialAccessBrokerAlertDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InitialAccessBrokerAlertDetail {
-    /// discoveryDocumentIds property.
-    pub discovery_document_ids: Option<Vec<String>>,
-    /// severity property.
-    pub severity: Option<String>,
 }
 
 /// `Alert` type.
@@ -79,24 +71,6 @@ pub struct Alert {
     pub state: Option<String>,
 }
 
-/// `ListAlertsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAlertsResponse {
-    /// alerts property.
-    pub alerts: Option<Vec<Alert>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `DataLeakAlertDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataLeakAlertDetail {
-    /// discoveryDocumentIds property.
-    pub discovery_document_ids: Option<Vec<String>>,
-    /// severity property.
-    pub severity: Option<String>,
-}
-
 /// `AlertDetail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlertDetail {
@@ -110,15 +84,24 @@ pub struct AlertDetail {
     pub insider_threat: Option<InsiderThreatAlertDetail>,
 }
 
-/// `PriorityAnalysis` type.
+/// `SeverityAnalysis` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PriorityAnalysis {
+pub struct SeverityAnalysis {
     /// confidence property.
     pub confidence: Option<String>,
-    /// priorityLevel property.
-    pub priority_level: Option<String>,
     /// reasoning property.
     pub reasoning: Option<String>,
+    /// severityLevel property.
+    pub severity_level: Option<String>,
+}
+
+/// `DataLeakAlertDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataLeakAlertDetail {
+    /// discoveryDocumentIds property.
+    pub discovery_document_ids: Option<Vec<String>>,
+    /// severity property.
+    pub severity: Option<String>,
 }
 
 /// `RelevanceAnalysis` type.
@@ -134,6 +117,15 @@ pub struct RelevanceAnalysis {
     pub relevance_level: Option<String>,
     /// relevant property.
     pub relevant: Option<bool>,
+}
+
+/// `InitialAccessBrokerAlertDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InitialAccessBrokerAlertDetail {
+    /// discoveryDocumentIds property.
+    pub discovery_document_ids: Option<Vec<String>>,
+    /// severity property.
+    pub severity: Option<String>,
 }
 
 /// `InsiderThreatAlertDetail` type.
@@ -158,15 +150,24 @@ pub struct Audit {
     pub updater: Option<String>,
 }
 
-/// `SeverityAnalysis` type.
+/// `ListAlertsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SeverityAnalysis {
+pub struct ListAlertsResponse {
+    /// alerts property.
+    pub alerts: Option<Vec<Alert>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `PriorityAnalysis` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PriorityAnalysis {
     /// confidence property.
     pub confidence: Option<String>,
+    /// priorityLevel property.
+    pub priority_level: Option<String>,
     /// reasoning property.
     pub reasoning: Option<String>,
-    /// severityLevel property.
-    pub severity_level: Option<String>,
 }
 
 // =============================================================================

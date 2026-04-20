@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,72 +22,24 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleCloudAiplatformV1EvaluateInstancesResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudAiplatformV1TrajectoryRecallMetricValue` type.
+/// `GoogleCloudAiplatformV1TrajectoryInOrderMatchMetricValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1TrajectoryRecallMetricValue {
+pub struct GoogleCloudAiplatformV1TrajectoryInOrderMatchMetricValue {
     /// score property.
     pub score: Option<f64>,
 }
 
-/// `GoogleCloudAiplatformV1FluencyResult` type.
+/// `GoogleCloudAiplatformV1BleuResults` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FluencyResult {
-    /// confidence property.
-    pub confidence: Option<f64>,
-    /// explanation property.
-    pub explanation: Option<String>,
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1TrajectoryPrecisionResults` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1TrajectoryPrecisionResults {
-    /// trajectoryPrecisionMetricValues property.
-    pub trajectory_precision_metric_values:
-        Option<Vec<GoogleCloudAiplatformV1TrajectoryPrecisionMetricValue>>,
-}
-
-/// `GoogleCloudAiplatformV1TrajectoryPrecisionMetricValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1TrajectoryPrecisionMetricValue {
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1FulfillmentResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FulfillmentResult {
-    /// confidence property.
-    pub confidence: Option<f64>,
-    /// explanation property.
-    pub explanation: Option<String>,
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1CometResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1CometResult {
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1SummarizationHelpfulnessResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SummarizationHelpfulnessResult {
-    /// confidence property.
-    pub confidence: Option<f64>,
-    /// explanation property.
-    pub explanation: Option<String>,
-    /// score property.
-    pub score: Option<f64>,
+pub struct GoogleCloudAiplatformV1BleuResults {
+    /// bleuMetricValues property.
+    pub bleu_metric_values: Option<Vec<GoogleCloudAiplatformV1BleuMetricValue>>,
 }
 
 /// `GoogleCloudAiplatformV1TrajectoryExactMatchMetricValue` type.
@@ -96,19 +49,11 @@ pub struct GoogleCloudAiplatformV1TrajectoryExactMatchMetricValue {
     pub score: Option<f64>,
 }
 
-/// `GoogleCloudAiplatformV1TrajectoryAnyOrderMatchMetricValue` type.
+/// `GoogleCloudAiplatformV1ToolParameterKVMatchMetricValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1TrajectoryAnyOrderMatchMetricValue {
+pub struct GoogleCloudAiplatformV1ToolParameterKVMatchMetricValue {
     /// score property.
     pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1TrajectorySingleToolUseResults` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1TrajectorySingleToolUseResults {
-    /// trajectorySingleToolUseMetricValues property.
-    pub trajectory_single_tool_use_metric_values:
-        Option<Vec<GoogleCloudAiplatformV1TrajectorySingleToolUseMetricValue>>,
 }
 
 /// `GoogleCloudAiplatformV1RawOutput` type.
@@ -118,16 +63,17 @@ pub struct GoogleCloudAiplatformV1RawOutput {
     pub raw_output: Option<Vec<String>>,
 }
 
-/// `GoogleCloudAiplatformV1BleuMetricValue` type.
+/// `GoogleCloudAiplatformV1ToolParameterKeyMatchResults` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1BleuMetricValue {
-    /// score property.
-    pub score: Option<f64>,
+pub struct GoogleCloudAiplatformV1ToolParameterKeyMatchResults {
+    /// toolParameterKeyMatchMetricValues property.
+    pub tool_parameter_key_match_metric_values:
+        Option<Vec<GoogleCloudAiplatformV1ToolParameterKeyMatchMetricValue>>,
 }
 
-/// `GoogleCloudAiplatformV1QuestionAnsweringCorrectnessResult` type.
+/// `GoogleCloudAiplatformV1SummarizationVerbosityResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1QuestionAnsweringCorrectnessResult {
+pub struct GoogleCloudAiplatformV1SummarizationVerbosityResult {
     /// confidence property.
     pub confidence: Option<f64>,
     /// explanation property.
@@ -144,113 +90,6 @@ pub struct GoogleCloudAiplatformV1TrajectoryInOrderMatchResults {
         Option<Vec<GoogleCloudAiplatformV1TrajectoryInOrderMatchMetricValue>>,
 }
 
-/// `GoogleCloudAiplatformV1TrajectoryInOrderMatchMetricValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1TrajectoryInOrderMatchMetricValue {
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1TrajectoryExactMatchResults` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1TrajectoryExactMatchResults {
-    /// trajectoryExactMatchMetricValues property.
-    pub trajectory_exact_match_metric_values:
-        Option<Vec<GoogleCloudAiplatformV1TrajectoryExactMatchMetricValue>>,
-}
-
-/// `GoogleCloudAiplatformV1ToolCallValidResults` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ToolCallValidResults {
-    /// toolCallValidMetricValues property.
-    pub tool_call_valid_metric_values: Option<Vec<GoogleCloudAiplatformV1ToolCallValidMetricValue>>,
-}
-
-/// `GoogleCloudAiplatformV1ToolNameMatchResults` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ToolNameMatchResults {
-    /// toolNameMatchMetricValues property.
-    pub tool_name_match_metric_values: Option<Vec<GoogleCloudAiplatformV1ToolNameMatchMetricValue>>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1CoherenceResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1CoherenceResult {
-    /// confidence property.
-    pub confidence: Option<f64>,
-    /// explanation property.
-    pub explanation: Option<String>,
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1ToolCallValidMetricValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ToolCallValidMetricValue {
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1SummarizationVerbosityResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SummarizationVerbosityResult {
-    /// confidence property.
-    pub confidence: Option<f64>,
-    /// explanation property.
-    pub explanation: Option<String>,
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1ToolParameterKVMatchMetricValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ToolParameterKVMatchMetricValue {
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1QuestionAnsweringRelevanceResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1QuestionAnsweringRelevanceResult {
-    /// confidence property.
-    pub confidence: Option<f64>,
-    /// explanation property.
-    pub explanation: Option<String>,
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1MetricResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MetricResult {
-    /// error property.
-    pub error: Option<GoogleRpcStatus>,
-    /// explanation property.
-    pub explanation: Option<String>,
-    /// rubricVerdicts property.
-    pub rubric_verdicts: Option<Vec<GoogleCloudAiplatformV1RubricVerdict>>,
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1BleuResults` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1BleuResults {
-    /// bleuMetricValues property.
-    pub bleu_metric_values: Option<Vec<GoogleCloudAiplatformV1BleuMetricValue>>,
-}
-
 /// `GoogleCloudAiplatformV1Rubric` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Rubric {
@@ -264,31 +103,25 @@ pub struct GoogleCloudAiplatformV1Rubric {
     pub r#type: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1SummarizationQualityResult` type.
+/// `GoogleCloudAiplatformV1CometResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SummarizationQualityResult {
-    /// confidence property.
-    pub confidence: Option<f64>,
-    /// explanation property.
-    pub explanation: Option<String>,
+pub struct GoogleCloudAiplatformV1CometResult {
     /// score property.
     pub score: Option<f64>,
 }
 
-/// `GoogleCloudAiplatformV1SafetyResult` type.
+/// `GoogleCloudAiplatformV1ExactMatchResults` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SafetyResult {
-    /// confidence property.
-    pub confidence: Option<f64>,
-    /// explanation property.
-    pub explanation: Option<String>,
-    /// score property.
-    pub score: Option<f64>,
+pub struct GoogleCloudAiplatformV1ExactMatchResults {
+    /// exactMatchMetricValues property.
+    pub exact_match_metric_values: Option<Vec<GoogleCloudAiplatformV1ExactMatchMetricValue>>,
 }
 
-/// `GoogleCloudAiplatformV1RougeMetricValue` type.
+/// `GoogleCloudAiplatformV1RubricBasedInstructionFollowingResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RougeMetricValue {
+pub struct GoogleCloudAiplatformV1RubricBasedInstructionFollowingResult {
+    /// rubricCritiqueResults property.
+    pub rubric_critique_results: Option<Vec<GoogleCloudAiplatformV1RubricCritiqueResult>>,
     /// score property.
     pub score: Option<f64>,
 }
@@ -315,9 +148,66 @@ pub struct GoogleCloudAiplatformV1PairwiseMetricResult {
     pub pairwise_choice: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1QuestionAnsweringQualityResult` type.
+/// `GoogleCloudAiplatformV1TrajectorySingleToolUseResults` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1QuestionAnsweringQualityResult {
+pub struct GoogleCloudAiplatformV1TrajectorySingleToolUseResults {
+    /// trajectorySingleToolUseMetricValues property.
+    pub trajectory_single_tool_use_metric_values:
+        Option<Vec<GoogleCloudAiplatformV1TrajectorySingleToolUseMetricValue>>,
+}
+
+/// `GoogleCloudAiplatformV1RubricContent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RubricContent {
+    /// property property.
+    pub property: Option<GoogleCloudAiplatformV1RubricContentProperty>,
+}
+
+/// `GoogleCloudAiplatformV1RubricVerdict` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RubricVerdict {
+    /// evaluatedRubric property.
+    pub evaluated_rubric: Option<GoogleCloudAiplatformV1Rubric>,
+    /// reasoning property.
+    pub reasoning: Option<String>,
+    /// verdict property.
+    pub verdict: Option<bool>,
+}
+
+/// `GoogleCloudAiplatformV1TrajectoryAnyOrderMatchResults` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1TrajectoryAnyOrderMatchResults {
+    /// trajectoryAnyOrderMatchMetricValues property.
+    pub trajectory_any_order_match_metric_values:
+        Option<Vec<GoogleCloudAiplatformV1TrajectoryAnyOrderMatchMetricValue>>,
+}
+
+/// `GoogleCloudAiplatformV1TrajectorySingleToolUseMetricValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1TrajectorySingleToolUseMetricValue {
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1ToolCallValidMetricValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ToolCallValidMetricValue {
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1RubricCritiqueResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RubricCritiqueResult {
+    /// rubric property.
+    pub rubric: Option<String>,
+    /// verdict property.
+    pub verdict: Option<bool>,
+}
+
+/// `GoogleCloudAiplatformV1CoherenceResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1CoherenceResult {
     /// confidence property.
     pub confidence: Option<f64>,
     /// explanation property.
@@ -333,115 +223,15 @@ pub struct GoogleCloudAiplatformV1RougeResults {
     pub rouge_metric_values: Option<Vec<GoogleCloudAiplatformV1RougeMetricValue>>,
 }
 
-/// `GoogleCloudAiplatformV1TrajectorySingleToolUseMetricValue` type.
+/// `GoogleCloudAiplatformV1QuestionAnsweringRelevanceResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1TrajectorySingleToolUseMetricValue {
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1TrajectoryRecallResults` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1TrajectoryRecallResults {
-    /// trajectoryRecallMetricValues property.
-    pub trajectory_recall_metric_values:
-        Option<Vec<GoogleCloudAiplatformV1TrajectoryRecallMetricValue>>,
-}
-
-/// `GoogleCloudAiplatformV1ExactMatchResults` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ExactMatchResults {
-    /// exactMatchMetricValues property.
-    pub exact_match_metric_values: Option<Vec<GoogleCloudAiplatformV1ExactMatchMetricValue>>,
-}
-
-/// `GoogleCloudAiplatformV1ToolNameMatchMetricValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ToolNameMatchMetricValue {
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1PointwiseMetricResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PointwiseMetricResult {
-    /// customOutput property.
-    pub custom_output: Option<GoogleCloudAiplatformV1CustomOutput>,
+pub struct GoogleCloudAiplatformV1QuestionAnsweringRelevanceResult {
+    /// confidence property.
+    pub confidence: Option<f64>,
     /// explanation property.
     pub explanation: Option<String>,
     /// score property.
     pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1RubricVerdict` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RubricVerdict {
-    /// evaluatedRubric property.
-    pub evaluated_rubric: Option<GoogleCloudAiplatformV1Rubric>,
-    /// reasoning property.
-    pub reasoning: Option<String>,
-    /// verdict property.
-    pub verdict: Option<bool>,
-}
-
-/// `GoogleCloudAiplatformV1MetricxResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MetricxResult {
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1RubricContentProperty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RubricContentProperty {
-    /// description property.
-    pub description: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ExactMatchMetricValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ExactMatchMetricValue {
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1ToolParameterKeyMatchMetricValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ToolParameterKeyMatchMetricValue {
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1RubricContent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RubricContent {
-    /// property property.
-    pub property: Option<GoogleCloudAiplatformV1RubricContentProperty>,
-}
-
-/// `GoogleCloudAiplatformV1ToolParameterKeyMatchResults` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ToolParameterKeyMatchResults {
-    /// toolParameterKeyMatchMetricValues property.
-    pub tool_parameter_key_match_metric_values:
-        Option<Vec<GoogleCloudAiplatformV1ToolParameterKeyMatchMetricValue>>,
-}
-
-/// `GoogleCloudAiplatformV1ToolParameterKVMatchResults` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ToolParameterKVMatchResults {
-    /// toolParameterKvMatchMetricValues property.
-    pub tool_parameter_kv_match_metric_values:
-        Option<Vec<GoogleCloudAiplatformV1ToolParameterKVMatchMetricValue>>,
-}
-
-/// `GoogleCloudAiplatformV1RubricCritiqueResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RubricCritiqueResult {
-    /// rubric property.
-    pub rubric: Option<String>,
-    /// verdict property.
-    pub verdict: Option<bool>,
 }
 
 /// `GoogleCloudAiplatformV1GroundednessResult` type.
@@ -455,22 +245,110 @@ pub struct GoogleCloudAiplatformV1GroundednessResult {
     pub score: Option<f64>,
 }
 
-/// `GoogleCloudAiplatformV1PairwiseQuestionAnsweringQualityResult` type.
+/// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PairwiseQuestionAnsweringQualityResult {
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1SummarizationHelpfulnessResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1SummarizationHelpfulnessResult {
     /// confidence property.
     pub confidence: Option<f64>,
     /// explanation property.
     pub explanation: Option<String>,
-    /// pairwiseChoice property.
-    pub pairwise_choice: Option<String>,
+    /// score property.
+    pub score: Option<f64>,
 }
 
-/// `GoogleCloudAiplatformV1RubricBasedInstructionFollowingResult` type.
+/// `GoogleCloudAiplatformV1TrajectoryAnyOrderMatchMetricValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RubricBasedInstructionFollowingResult {
-    /// rubricCritiqueResults property.
-    pub rubric_critique_results: Option<Vec<GoogleCloudAiplatformV1RubricCritiqueResult>>,
+pub struct GoogleCloudAiplatformV1TrajectoryAnyOrderMatchMetricValue {
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1ToolParameterKeyMatchMetricValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ToolParameterKeyMatchMetricValue {
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1ToolNameMatchResults` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ToolNameMatchResults {
+    /// toolNameMatchMetricValues property.
+    pub tool_name_match_metric_values: Option<Vec<GoogleCloudAiplatformV1ToolNameMatchMetricValue>>,
+}
+
+/// `GoogleCloudAiplatformV1RougeMetricValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RougeMetricValue {
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1ExactMatchMetricValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ExactMatchMetricValue {
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1FluencyResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FluencyResult {
+    /// confidence property.
+    pub confidence: Option<f64>,
+    /// explanation property.
+    pub explanation: Option<String>,
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1MetricxResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1MetricxResult {
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1TrajectoryRecallResults` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1TrajectoryRecallResults {
+    /// trajectoryRecallMetricValues property.
+    pub trajectory_recall_metric_values:
+        Option<Vec<GoogleCloudAiplatformV1TrajectoryRecallMetricValue>>,
+}
+
+/// `GoogleCloudAiplatformV1CustomOutput` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1CustomOutput {
+    /// rawOutputs property.
+    pub raw_outputs: Option<GoogleCloudAiplatformV1RawOutput>,
+}
+
+/// `GoogleCloudAiplatformV1FulfillmentResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FulfillmentResult {
+    /// confidence property.
+    pub confidence: Option<f64>,
+    /// explanation property.
+    pub explanation: Option<String>,
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1BleuMetricValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1BleuMetricValue {
     /// score property.
     pub score: Option<f64>,
 }
@@ -486,19 +364,142 @@ pub struct GoogleCloudAiplatformV1PairwiseSummarizationQualityResult {
     pub pairwise_choice: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1TrajectoryAnyOrderMatchResults` type.
+/// `GoogleCloudAiplatformV1ToolNameMatchMetricValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1TrajectoryAnyOrderMatchResults {
-    /// trajectoryAnyOrderMatchMetricValues property.
-    pub trajectory_any_order_match_metric_values:
-        Option<Vec<GoogleCloudAiplatformV1TrajectoryAnyOrderMatchMetricValue>>,
+pub struct GoogleCloudAiplatformV1ToolNameMatchMetricValue {
+    /// score property.
+    pub score: Option<f64>,
 }
 
-/// `GoogleCloudAiplatformV1CustomOutput` type.
+/// `GoogleCloudAiplatformV1PairwiseQuestionAnsweringQualityResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1CustomOutput {
-    /// rawOutputs property.
-    pub raw_outputs: Option<GoogleCloudAiplatformV1RawOutput>,
+pub struct GoogleCloudAiplatformV1PairwiseQuestionAnsweringQualityResult {
+    /// confidence property.
+    pub confidence: Option<f64>,
+    /// explanation property.
+    pub explanation: Option<String>,
+    /// pairwiseChoice property.
+    pub pairwise_choice: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1RubricContentProperty` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RubricContentProperty {
+    /// description property.
+    pub description: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1SafetyResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1SafetyResult {
+    /// confidence property.
+    pub confidence: Option<f64>,
+    /// explanation property.
+    pub explanation: Option<String>,
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1MetricResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1MetricResult {
+    /// error property.
+    pub error: Option<GoogleRpcStatus>,
+    /// explanation property.
+    pub explanation: Option<String>,
+    /// rubricVerdicts property.
+    pub rubric_verdicts: Option<Vec<GoogleCloudAiplatformV1RubricVerdict>>,
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1ToolParameterKVMatchResults` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ToolParameterKVMatchResults {
+    /// toolParameterKvMatchMetricValues property.
+    pub tool_parameter_kv_match_metric_values:
+        Option<Vec<GoogleCloudAiplatformV1ToolParameterKVMatchMetricValue>>,
+}
+
+/// `GoogleCloudAiplatformV1ToolCallValidResults` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ToolCallValidResults {
+    /// toolCallValidMetricValues property.
+    pub tool_call_valid_metric_values: Option<Vec<GoogleCloudAiplatformV1ToolCallValidMetricValue>>,
+}
+
+/// `GoogleCloudAiplatformV1SummarizationQualityResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1SummarizationQualityResult {
+    /// confidence property.
+    pub confidence: Option<f64>,
+    /// explanation property.
+    pub explanation: Option<String>,
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1PointwiseMetricResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PointwiseMetricResult {
+    /// customOutput property.
+    pub custom_output: Option<GoogleCloudAiplatformV1CustomOutput>,
+    /// explanation property.
+    pub explanation: Option<String>,
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1TrajectoryExactMatchResults` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1TrajectoryExactMatchResults {
+    /// trajectoryExactMatchMetricValues property.
+    pub trajectory_exact_match_metric_values:
+        Option<Vec<GoogleCloudAiplatformV1TrajectoryExactMatchMetricValue>>,
+}
+
+/// `GoogleCloudAiplatformV1TrajectoryPrecisionResults` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1TrajectoryPrecisionResults {
+    /// trajectoryPrecisionMetricValues property.
+    pub trajectory_precision_metric_values:
+        Option<Vec<GoogleCloudAiplatformV1TrajectoryPrecisionMetricValue>>,
+}
+
+/// `GoogleCloudAiplatformV1TrajectoryPrecisionMetricValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1TrajectoryPrecisionMetricValue {
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1QuestionAnsweringQualityResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1QuestionAnsweringQualityResult {
+    /// confidence property.
+    pub confidence: Option<f64>,
+    /// explanation property.
+    pub explanation: Option<String>,
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1QuestionAnsweringCorrectnessResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1QuestionAnsweringCorrectnessResult {
+    /// confidence property.
+    pub confidence: Option<f64>,
+    /// explanation property.
+    pub explanation: Option<String>,
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1TrajectoryRecallMetricValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1TrajectoryRecallMetricValue {
+    /// score property.
+    pub score: Option<f64>,
 }
 
 // =============================================================================

@@ -12,42 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ProductDeliveryTime` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductDeliveryTime {
-    /// areaDeliveryTimes property.
-    pub area_delivery_times: Option<Vec<ProductDeliveryTimeAreaDeliveryTime>>,
-    /// productId property.
-    pub product_id: Option<ProductId>,
-}
-
-/// `DeliveryAreaPostalCodeRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeliveryAreaPostalCodeRange {
-    /// firstPostalCode property.
-    pub first_postal_code: Option<String>,
-    /// lastPostalCode property.
-    pub last_postal_code: Option<String>,
-}
-
-/// `ProductId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductId {
-    /// productId property.
-    pub product_id: Option<String>,
-}
 
 /// `DeliveryArea` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -80,6 +56,31 @@ pub struct ProductDeliveryTimeAreaDeliveryTime {
     pub delivery_area: Option<DeliveryArea>,
     /// deliveryTime property.
     pub delivery_time: Option<ProductDeliveryTimeAreaDeliveryTimeDeliveryTime>,
+}
+
+/// `ProductId` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductId {
+    /// productId property.
+    pub product_id: Option<String>,
+}
+
+/// `DeliveryAreaPostalCodeRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeliveryAreaPostalCodeRange {
+    /// firstPostalCode property.
+    pub first_postal_code: Option<String>,
+    /// lastPostalCode property.
+    pub last_postal_code: Option<String>,
+}
+
+/// `ProductDeliveryTime` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductDeliveryTime {
+    /// areaDeliveryTimes property.
+    pub area_delivery_times: Option<Vec<ProductDeliveryTimeAreaDeliveryTime>>,
+    /// productId property.
+    pub product_id: Option<ProductId>,
 }
 
 // =============================================================================

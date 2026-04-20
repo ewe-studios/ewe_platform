@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,11 +24,22 @@ use super::shared::GoogleIamV1Policy;
 use super::shared::GoogleIamV1TestIamPermissionsResponse;
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `MTLSPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MTLSPolicy {
+    /// clientValidationCa property.
+    pub client_validation_ca: Option<Vec<ValidationCA>>,
+    /// clientValidationMode property.
+    pub client_validation_mode: Option<String>,
+    /// clientValidationTrustConfig property.
+    pub client_validation_trust_config: Option<String>,
+}
 
 /// `GoogleCloudNetworksecurityV1CertificateProvider` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,59 +57,11 @@ pub struct CertificateProviderInstance {
     pub plugin_instance: Option<String>,
 }
 
-/// `GoogleIamV1Binding` type.
+/// `GoogleCloudNetworksecurityV1GrpcEndpoint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `ListServerTlsPoliciesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListServerTlsPoliciesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// serverTlsPolicies property.
-    pub server_tls_policies: Option<Vec<ServerTlsPolicy>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `ValidationCA` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValidationCA {
-    /// certificateProviderInstance property.
-    pub certificate_provider_instance: Option<CertificateProviderInstance>,
-    /// grpcEndpoint property.
-    pub grpc_endpoint: Option<GoogleCloudNetworksecurityV1GrpcEndpoint>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `MTLSPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MTLSPolicy {
-    /// clientValidationCa property.
-    pub client_validation_ca: Option<Vec<ValidationCA>>,
-    /// clientValidationMode property.
-    pub client_validation_mode: Option<String>,
-    /// clientValidationTrustConfig property.
-    pub client_validation_trust_config: Option<String>,
+pub struct GoogleCloudNetworksecurityV1GrpcEndpoint {
+    /// targetUri property.
+    pub target_uri: Option<String>,
 }
 
 /// `ServerTlsPolicy` type.
@@ -121,22 +85,37 @@ pub struct ServerTlsPolicy {
     pub update_time: Option<String>,
 }
 
-/// `Status` type.
+/// `GoogleIamV1AuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct GoogleIamV1AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
 }
 
-/// `GoogleCloudNetworksecurityV1GrpcEndpoint` type.
+/// `GoogleIamV1Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudNetworksecurityV1GrpcEndpoint {
-    /// targetUri property.
-    pub target_uri: Option<String>,
+pub struct GoogleIamV1Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 /// `GoogleIamV1AuditLogConfig` type.
@@ -148,13 +127,35 @@ pub struct GoogleIamV1AuditLogConfig {
     pub log_type: Option<String>,
 }
 
-/// `GoogleIamV1AuditConfig` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ListServerTlsPoliciesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListServerTlsPoliciesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// serverTlsPolicies property.
+    pub server_tls_policies: Option<Vec<ServerTlsPolicy>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `ValidationCA` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ValidationCA {
+    /// certificateProviderInstance property.
+    pub certificate_provider_instance: Option<CertificateProviderInstance>,
+    /// grpcEndpoint property.
+    pub grpc_endpoint: Option<GoogleCloudNetworksecurityV1GrpcEndpoint>,
 }
 
 // =============================================================================

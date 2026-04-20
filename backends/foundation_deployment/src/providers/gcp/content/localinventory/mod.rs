@@ -12,37 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Price` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Price {
-    /// currency property.
-    pub currency: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `CustomAttribute` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomAttribute {
-    /// groupValues property.
-    pub group_values: Option<Vec<CustomAttribute>>,
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
 
 /// `LocalInventory` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -50,7 +31,7 @@ pub struct LocalInventory {
     /// availability property.
     pub availability: Option<String>,
     /// customAttributes property.
-    pub custom_attributes: Option<Vec<CustomAttribute>>,
+    pub custom_attributes: Option<Vec<Box<CustomAttribute>>>,
     /// instoreProductLocation property.
     pub instore_product_location: Option<String>,
     /// kind property.
@@ -69,6 +50,26 @@ pub struct LocalInventory {
     pub sale_price_effective_date: Option<String>,
     /// storeCode property.
     pub store_code: Option<String>,
+}
+
+/// `Price` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Price {
+    /// currency property.
+    pub currency: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `CustomAttribute` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomAttribute {
+    /// groupValues property.
+    pub group_values: Option<Vec<Box<CustomAttribute>>>,
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
 // =============================================================================

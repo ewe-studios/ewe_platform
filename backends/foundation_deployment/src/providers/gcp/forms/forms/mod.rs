@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -35,95 +36,13 @@ pub struct Info {
     pub title: Option<String>,
 }
 
-/// `TextItem` type.
+/// `VideoLink` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextItem {}
-
-/// `QuizSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuizSettings {
-    /// isQuiz property.
-    pub is_quiz: Option<bool>,
-}
-
-/// `RowQuestion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RowQuestion {
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `TimeQuestion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeQuestion {
-    /// duration property.
-    pub duration: Option<bool>,
-}
-
-/// `Feedback` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Feedback {
-    /// material property.
-    pub material: Option<Vec<ExtraMaterial>>,
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `CreateItemResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateItemResponse {
-    /// itemId property.
-    pub item_id: Option<String>,
-    /// questionId property.
-    pub question_id: Option<Vec<String>>,
-}
-
-/// `Video` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Video {
-    /// properties property.
-    pub properties: Option<MediaProperties>,
+pub struct VideoLink {
+    /// displayText property.
+    pub display_text: Option<String>,
     /// youtubeUri property.
     pub youtube_uri: Option<String>,
-}
-
-/// `RatingQuestion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RatingQuestion {
-    /// iconType property.
-    pub icon_type: Option<String>,
-    /// ratingScaleLevel property.
-    pub rating_scale_level: Option<i64>,
-}
-
-/// `BatchUpdateFormResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BatchUpdateFormResponse {
-    /// form property.
-    pub form: Option<Form>,
-    /// replies property.
-    pub replies: Option<Vec<Response>>,
-    /// writeControl property.
-    pub write_control: Option<WriteControl>,
-}
-
-/// `OptionType` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OptionType {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `PageBreakItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PageBreakItem {}
-
-/// `TextQuestion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextQuestion {
-    /// paragraph property.
-    pub paragraph: Option<bool>,
 }
 
 /// `VideoItem` type.
@@ -135,98 +54,11 @@ pub struct VideoItem {
     pub video: Option<Video>,
 }
 
-/// `PublishState` type.
+/// `CorrectAnswer` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PublishState {
-    /// isAcceptingResponses property.
-    pub is_accepting_responses: Option<bool>,
-    /// isPublished property.
-    pub is_published: Option<bool>,
-}
-
-/// `TextLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextLink {
-    /// displayText property.
-    pub display_text: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `CorrectAnswers` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CorrectAnswers {
-    /// answers property.
-    pub answers: Option<Vec<CorrectAnswer>>,
-}
-
-/// `Form` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Form {
-    /// formId property.
-    pub form_id: Option<String>,
-    /// info property.
-    pub info: Option<Info>,
-    /// items property.
-    pub items: Option<Vec<Item>>,
-    /// linkedSheetId property.
-    pub linked_sheet_id: Option<String>,
-    /// publishSettings property.
-    pub publish_settings: Option<PublishSettings>,
-    /// responderUri property.
-    pub responder_uri: Option<String>,
-    /// revisionId property.
-    pub revision_id: Option<String>,
-    /// settings property.
-    pub settings: Option<FormSettings>,
-}
-
-/// `PublishSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PublishSettings {
-    /// publishState property.
-    pub publish_state: Option<PublishState>,
-}
-
-/// `Item` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Item {
-    /// description property.
-    pub description: Option<String>,
-    /// imageItem property.
-    pub image_item: Option<ImageItem>,
-    /// itemId property.
-    pub item_id: Option<String>,
-    /// pageBreakItem property.
-    pub page_break_item: Option<PageBreakItem>,
-    /// questionGroupItem property.
-    pub question_group_item: Option<QuestionGroupItem>,
-    /// questionItem property.
-    pub question_item: Option<QuestionItem>,
-    /// textItem property.
-    pub text_item: Option<TextItem>,
-    /// title property.
-    pub title: Option<String>,
-    /// videoItem property.
-    pub video_item: Option<VideoItem>,
-}
-
-/// `WriteControl` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WriteControl {
-    /// requiredRevisionId property.
-    pub required_revision_id: Option<String>,
-    /// targetRevisionId property.
-    pub target_revision_id: Option<String>,
-}
-
-/// `QuestionItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuestionItem {
-    /// image property.
-    pub image: Option<Image>,
-    /// question property.
-    pub question: Option<Question>,
+pub struct CorrectAnswer {
+    /// value property.
+    pub value: Option<String>,
 }
 
 /// `Image` type.
@@ -240,6 +72,127 @@ pub struct Image {
     pub properties: Option<MediaProperties>,
     /// sourceUri property.
     pub source_uri: Option<String>,
+}
+
+/// `QuizSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuizSettings {
+    /// isQuiz property.
+    pub is_quiz: Option<bool>,
+}
+
+/// `PublishState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PublishState {
+    /// isAcceptingResponses property.
+    pub is_accepting_responses: Option<bool>,
+    /// isPublished property.
+    pub is_published: Option<bool>,
+}
+
+/// `ImageItem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImageItem {
+    /// image property.
+    pub image: Option<Image>,
+}
+
+/// `TextLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextLink {
+    /// displayText property.
+    pub display_text: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `CreateItemResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateItemResponse {
+    /// itemId property.
+    pub item_id: Option<String>,
+    /// questionId property.
+    pub question_id: Option<Vec<String>>,
+}
+
+/// `FormSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FormSettings {
+    /// emailCollectionType property.
+    pub email_collection_type: Option<String>,
+    /// quizSettings property.
+    pub quiz_settings: Option<QuizSettings>,
+}
+
+/// `PageBreakItem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PageBreakItem {}
+
+/// `RatingQuestion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RatingQuestion {
+    /// iconType property.
+    pub icon_type: Option<String>,
+    /// ratingScaleLevel property.
+    pub rating_scale_level: Option<i64>,
+}
+
+/// `WriteControl` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WriteControl {
+    /// requiredRevisionId property.
+    pub required_revision_id: Option<String>,
+    /// targetRevisionId property.
+    pub target_revision_id: Option<String>,
+}
+
+/// `DateQuestion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DateQuestion {
+    /// includeTime property.
+    pub include_time: Option<bool>,
+    /// includeYear property.
+    pub include_year: Option<bool>,
+}
+
+/// `Grid` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Grid {
+    /// columns property.
+    pub columns: Option<ChoiceQuestion>,
+    /// shuffleQuestions property.
+    pub shuffle_questions: Option<bool>,
+}
+
+/// `Grading` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Grading {
+    /// correctAnswers property.
+    pub correct_answers: Option<CorrectAnswers>,
+    /// generalFeedback property.
+    pub general_feedback: Option<Feedback>,
+    /// pointValue property.
+    pub point_value: Option<i64>,
+    /// whenRight property.
+    pub when_right: Option<Feedback>,
+    /// whenWrong property.
+    pub when_wrong: Option<Feedback>,
+}
+
+/// `ExtraMaterial` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExtraMaterial {
+    /// link property.
+    pub link: Option<TextLink>,
+    /// video property.
+    pub video: Option<VideoLink>,
+}
+
+/// `PublishSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PublishSettings {
+    /// publishState property.
+    pub publish_state: Option<PublishState>,
 }
 
 /// `Question` type.
@@ -269,16 +222,32 @@ pub struct Question {
     pub time_question: Option<TimeQuestion>,
 }
 
-/// `QuestionGroupItem` type.
+/// `Item` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuestionGroupItem {
-    /// grid property.
-    pub grid: Option<Grid>,
-    /// image property.
-    pub image: Option<Image>,
-    /// questions property.
-    pub questions: Option<Vec<Question>>,
+pub struct Item {
+    /// description property.
+    pub description: Option<String>,
+    /// imageItem property.
+    pub image_item: Option<ImageItem>,
+    /// itemId property.
+    pub item_id: Option<String>,
+    /// pageBreakItem property.
+    pub page_break_item: Option<PageBreakItem>,
+    /// questionGroupItem property.
+    pub question_group_item: Option<QuestionGroupItem>,
+    /// questionItem property.
+    pub question_item: Option<QuestionItem>,
+    /// textItem property.
+    pub text_item: Option<TextItem>,
+    /// title property.
+    pub title: Option<String>,
+    /// videoItem property.
+    pub video_item: Option<VideoItem>,
 }
+
+/// `TextItem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextItem {}
 
 /// `MediaProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -289,24 +258,15 @@ pub struct MediaProperties {
     pub width: Option<i64>,
 }
 
-/// `ChoiceQuestion` type.
+/// `BatchUpdateFormResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChoiceQuestion {
-    /// options property.
-    pub options: Option<Vec<OptionType>>,
-    /// shuffle property.
-    pub shuffle: Option<bool>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `DateQuestion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DateQuestion {
-    /// includeTime property.
-    pub include_time: Option<bool>,
-    /// includeYear property.
-    pub include_year: Option<bool>,
+pub struct BatchUpdateFormResponse {
+    /// form property.
+    pub form: Option<Form>,
+    /// replies property.
+    pub replies: Option<Vec<Response>>,
+    /// writeControl property.
+    pub write_control: Option<WriteControl>,
 }
 
 /// `FileUploadQuestion` type.
@@ -322,35 +282,110 @@ pub struct FileUploadQuestion {
     pub types: Option<Vec<String>>,
 }
 
-/// `ScaleQuestion` type.
+/// `OptionType` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScaleQuestion {
-    /// high property.
-    pub high: Option<i64>,
-    /// highLabel property.
-    pub high_label: Option<String>,
-    /// low property.
-    pub low: Option<i64>,
-    /// lowLabel property.
-    pub low_label: Option<String>,
+pub struct OptionType {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `ExtraMaterial` type.
+/// `CorrectAnswers` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExtraMaterial {
-    /// link property.
-    pub link: Option<TextLink>,
-    /// video property.
-    pub video: Option<VideoLink>,
+pub struct CorrectAnswers {
+    /// answers property.
+    pub answers: Option<Vec<CorrectAnswer>>,
 }
 
-/// `VideoLink` type.
+/// `Feedback` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoLink {
-    /// displayText property.
-    pub display_text: Option<String>,
+pub struct Feedback {
+    /// material property.
+    pub material: Option<Vec<ExtraMaterial>>,
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `QuestionItem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuestionItem {
+    /// image property.
+    pub image: Option<Image>,
+    /// question property.
+    pub question: Option<Question>,
+}
+
+/// `RowQuestion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RowQuestion {
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `Response` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Response {
+    /// createItem property.
+    pub create_item: Option<CreateItemResponse>,
+}
+
+/// `Form` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Form {
+    /// formId property.
+    pub form_id: Option<String>,
+    /// info property.
+    pub info: Option<Info>,
+    /// items property.
+    pub items: Option<Vec<Item>>,
+    /// linkedSheetId property.
+    pub linked_sheet_id: Option<String>,
+    /// publishSettings property.
+    pub publish_settings: Option<PublishSettings>,
+    /// responderUri property.
+    pub responder_uri: Option<String>,
+    /// revisionId property.
+    pub revision_id: Option<String>,
+    /// settings property.
+    pub settings: Option<FormSettings>,
+}
+
+/// `Video` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Video {
+    /// properties property.
+    pub properties: Option<MediaProperties>,
     /// youtubeUri property.
     pub youtube_uri: Option<String>,
+}
+
+/// `TimeQuestion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeQuestion {
+    /// duration property.
+    pub duration: Option<bool>,
+}
+
+/// `ChoiceQuestion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChoiceQuestion {
+    /// options property.
+    pub options: Option<Vec<OptionType>>,
+    /// shuffle property.
+    pub shuffle: Option<bool>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `QuestionGroupItem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuestionGroupItem {
+    /// grid property.
+    pub grid: Option<Grid>,
+    /// image property.
+    pub image: Option<Image>,
+    /// questions property.
+    pub questions: Option<Vec<Question>>,
 }
 
 /// `SetPublishSettingsResponse` type.
@@ -362,58 +397,24 @@ pub struct SetPublishSettingsResponse {
     pub publish_settings: Option<PublishSettings>,
 }
 
-/// `Grid` type.
+/// `TextQuestion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Grid {
-    /// columns property.
-    pub columns: Option<ChoiceQuestion>,
-    /// shuffleQuestions property.
-    pub shuffle_questions: Option<bool>,
+pub struct TextQuestion {
+    /// paragraph property.
+    pub paragraph: Option<bool>,
 }
 
-/// `Response` type.
+/// `ScaleQuestion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Response {
-    /// createItem property.
-    pub create_item: Option<CreateItemResponse>,
-}
-
-/// `FormSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FormSettings {
-    /// emailCollectionType property.
-    pub email_collection_type: Option<String>,
-    /// quizSettings property.
-    pub quiz_settings: Option<QuizSettings>,
-}
-
-/// `Grading` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Grading {
-    /// correctAnswers property.
-    pub correct_answers: Option<CorrectAnswers>,
-    /// generalFeedback property.
-    pub general_feedback: Option<Feedback>,
-    /// pointValue property.
-    pub point_value: Option<i64>,
-    /// whenRight property.
-    pub when_right: Option<Feedback>,
-    /// whenWrong property.
-    pub when_wrong: Option<Feedback>,
-}
-
-/// `ImageItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImageItem {
-    /// image property.
-    pub image: Option<Image>,
-}
-
-/// `CorrectAnswer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CorrectAnswer {
-    /// value property.
-    pub value: Option<String>,
+pub struct ScaleQuestion {
+    /// high property.
+    pub high: Option<i64>,
+    /// highLabel property.
+    pub high_label: Option<String>,
+    /// low property.
+    pub low: Option<i64>,
+    /// lowLabel property.
+    pub low_label: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -24,11 +25,35 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `FreeInstanceMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FreeInstanceMetadata {
+    /// expireBehavior property.
+    pub expire_behavior: Option<String>,
+    /// expireTime property.
+    pub expire_time: Option<String>,
+    /// upgradeTime property.
+    pub upgrade_time: Option<String>,
+}
+
+/// `AutoscalingLimits` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutoscalingLimits {
+    /// maxNodes property.
+    pub max_nodes: Option<i64>,
+    /// maxProcessingUnits property.
+    pub max_processing_units: Option<i64>,
+    /// minNodes property.
+    pub min_nodes: Option<i64>,
+    /// minProcessingUnits property.
+    pub min_processing_units: Option<i64>,
+}
 
 /// `AutoscalingTargets` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -39,6 +64,61 @@ pub struct AutoscalingTargets {
     pub storage_utilization_percent: Option<i64>,
     /// totalCpuUtilizationPercent property.
     pub total_cpu_utilization_percent: Option<i64>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `AutoscalingConfigOverrides` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutoscalingConfigOverrides {
+    /// autoscalingLimits property.
+    pub autoscaling_limits: Option<AutoscalingLimits>,
+    /// autoscalingTargetHighPriorityCpuUtilizationPercent property.
+    pub autoscaling_target_high_priority_cpu_utilization_percent: Option<i64>,
+    /// autoscalingTargetTotalCpuUtilizationPercent property.
+    pub autoscaling_target_total_cpu_utilization_percent: Option<i64>,
+    /// disableHighPriorityCpuAutoscaling property.
+    pub disable_high_priority_cpu_autoscaling: Option<bool>,
+    /// disableTotalCpuAutoscaling property.
+    pub disable_total_cpu_autoscaling: Option<bool>,
+}
+
+/// `InstanceReplicaSelection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceReplicaSelection {
+    /// location property.
+    pub location: Option<String>,
+}
+
+/// `AutoscalingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutoscalingConfig {
+    /// asymmetricAutoscalingOptions property.
+    pub asymmetric_autoscaling_options: Option<Vec<AsymmetricAutoscalingOption>>,
+    /// autoscalingLimits property.
+    pub autoscaling_limits: Option<AutoscalingLimits>,
+    /// autoscalingTargets property.
+    pub autoscaling_targets: Option<AutoscalingTargets>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `Instance` type.
@@ -78,26 +158,24 @@ pub struct Instance {
     pub update_time: Option<String>,
 }
 
-/// `ListInstancesResponse` type.
+/// `ReplicaComputeCapacity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListInstancesResponse {
-    /// instances property.
-    pub instances: Option<Vec<Instance>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct ReplicaComputeCapacity {
+    /// nodeCount property.
+    pub node_count: Option<i64>,
+    /// processingUnits property.
+    pub processing_units: Option<i64>,
+    /// replicaSelection property.
+    pub replica_selection: Option<InstanceReplicaSelection>,
 }
 
-/// `FreeInstanceMetadata` type.
+/// `AsymmetricAutoscalingOption` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FreeInstanceMetadata {
-    /// expireBehavior property.
-    pub expire_behavior: Option<String>,
-    /// expireTime property.
-    pub expire_time: Option<String>,
-    /// upgradeTime property.
-    pub upgrade_time: Option<String>,
+pub struct AsymmetricAutoscalingOption {
+    /// overrides property.
+    pub overrides: Option<AutoscalingConfigOverrides>,
+    /// replicaSelection property.
+    pub replica_selection: Option<InstanceReplicaSelection>,
 }
 
 /// `Expr` type.
@@ -113,92 +191,15 @@ pub struct Expr {
     pub title: Option<String>,
 }
 
-/// `AutoscalingConfig` type.
+/// `ListInstancesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoscalingConfig {
-    /// asymmetricAutoscalingOptions property.
-    pub asymmetric_autoscaling_options: Option<Vec<AsymmetricAutoscalingOption>>,
-    /// autoscalingLimits property.
-    pub autoscaling_limits: Option<AutoscalingLimits>,
-    /// autoscalingTargets property.
-    pub autoscaling_targets: Option<AutoscalingTargets>,
-}
-
-/// `InstanceReplicaSelection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceReplicaSelection {
-    /// location property.
-    pub location: Option<String>,
-}
-
-/// `AsymmetricAutoscalingOption` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AsymmetricAutoscalingOption {
-    /// overrides property.
-    pub overrides: Option<AutoscalingConfigOverrides>,
-    /// replicaSelection property.
-    pub replica_selection: Option<InstanceReplicaSelection>,
-}
-
-/// `AutoscalingLimits` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoscalingLimits {
-    /// maxNodes property.
-    pub max_nodes: Option<i64>,
-    /// maxProcessingUnits property.
-    pub max_processing_units: Option<i64>,
-    /// minNodes property.
-    pub min_nodes: Option<i64>,
-    /// minProcessingUnits property.
-    pub min_processing_units: Option<i64>,
-}
-
-/// `ReplicaComputeCapacity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReplicaComputeCapacity {
-    /// nodeCount property.
-    pub node_count: Option<i64>,
-    /// processingUnits property.
-    pub processing_units: Option<i64>,
-    /// replicaSelection property.
-    pub replica_selection: Option<InstanceReplicaSelection>,
-}
-
-/// `AutoscalingConfigOverrides` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoscalingConfigOverrides {
-    /// autoscalingLimits property.
-    pub autoscaling_limits: Option<AutoscalingLimits>,
-    /// autoscalingTargetHighPriorityCpuUtilizationPercent property.
-    pub autoscaling_target_high_priority_cpu_utilization_percent: Option<i64>,
-    /// autoscalingTargetTotalCpuUtilizationPercent property.
-    pub autoscaling_target_total_cpu_utilization_percent: Option<i64>,
-    /// disableHighPriorityCpuAutoscaling property.
-    pub disable_high_priority_cpu_autoscaling: Option<bool>,
-    /// disableTotalCpuAutoscaling property.
-    pub disable_total_cpu_autoscaling: Option<bool>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct ListInstancesResponse {
+    /// instances property.
+    pub instances: Option<Vec<Instance>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 // =============================================================================

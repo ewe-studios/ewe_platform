@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,44 +23,11 @@ use serde::{Deserialize, Serialize};
 use super::shared::Image;
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `FileContentBuffer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FileContentBuffer {
-    /// content property.
-    pub content: Option<String>,
-    /// fileType property.
-    pub file_type: Option<String>,
-}
-
-/// `CustomerEncryptionKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerEncryptionKey {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-    /// kmsKeyServiceAccount property.
-    pub kms_key_service_account: Option<String>,
-    /// rawKey property.
-    pub raw_key: Option<String>,
-    /// rsaEncryptedKey property.
-    pub rsa_encrypted_key: Option<String>,
-    /// sha256 property.
-    pub sha256: Option<String>,
-}
 
 /// `QuotaExceededInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -87,73 +55,13 @@ pub struct SetCommonInstanceMetadataOperationMetadata {
     pub per_location_operations: Option<serde_json::Value>,
 }
 
-/// `DeprecationStatus` type.
+/// `LocalizedMessage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeprecationStatus {
-    /// deleted property.
-    pub deleted: Option<String>,
-    /// deprecated property.
-    pub deprecated: Option<String>,
-    /// obsolete property.
-    pub obsolete: Option<String>,
-    /// replacement property.
-    pub replacement: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `ErrorInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `GetVersionOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadata {
-    /// inlineSbomInfo property.
-    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
-}
-
-/// `InstancesBulkInsertOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
-}
-
-/// `InitialStateConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InitialStateConfig {
-    /// dbs property.
-    pub dbs: Option<Vec<FileContentBuffer>>,
-    /// dbxs property.
-    pub dbxs: Option<Vec<FileContentBuffer>>,
-    /// keks property.
-    pub keks: Option<Vec<FileContentBuffer>>,
-    /// pk property.
-    pub pk: Option<FileContentBuffer>,
-}
-
-/// `Help` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
-}
-
-/// `GetVersionOperationMetadataSbomInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `ImageList` type.
@@ -173,6 +81,93 @@ pub struct ImageList {
     pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
+/// `CustomerEncryptionKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomerEncryptionKey {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+    /// kmsKeyServiceAccount property.
+    pub kms_key_service_account: Option<String>,
+    /// rawKey property.
+    pub raw_key: Option<String>,
+    /// rsaEncryptedKey property.
+    pub rsa_encrypted_key: Option<String>,
+    /// sha256 property.
+    pub sha256: Option<String>,
+}
+
+/// `FileContentBuffer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FileContentBuffer {
+    /// content property.
+    pub content: Option<String>,
+    /// fileType property.
+    pub file_type: Option<String>,
+}
+
+/// `GetVersionOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadata {
+    /// inlineSbomInfo property.
+    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `GetVersionOperationMetadataSbomInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
+}
+
+/// `InitialStateConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InitialStateConfig {
+    /// dbs property.
+    pub dbs: Option<Vec<FileContentBuffer>>,
+    /// dbxs property.
+    pub dbxs: Option<Vec<FileContentBuffer>>,
+    /// keks property.
+    pub keks: Option<Vec<FileContentBuffer>>,
+    /// pk property.
+    pub pk: Option<FileContentBuffer>,
+}
+
+/// `ErrorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `Help` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
+}
+
+/// `HelpLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
 /// `GuestOsFeature` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuestOsFeature {
@@ -187,13 +182,19 @@ pub struct ImageParams {
     pub resource_manager_tags: Option<serde_json::Value>,
 }
 
-/// `HelpLink` type.
+/// `DeprecationStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
+pub struct DeprecationStatus {
+    /// deleted property.
+    pub deleted: Option<String>,
+    /// deprecated property.
+    pub deprecated: Option<String>,
+    /// obsolete property.
+    pub obsolete: Option<String>,
+    /// replacement property.
+    pub replacement: Option<String>,
+    /// state property.
+    pub state: Option<String>,
 }
 
 // =============================================================================

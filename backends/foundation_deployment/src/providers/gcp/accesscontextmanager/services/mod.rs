@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListSupportedServicesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSupportedServicesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// supportedServices property.
-    pub supported_services: Option<Vec<SupportedService>>,
-}
 
 /// `MethodSelector` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -59,6 +51,15 @@ pub struct SupportedService {
     pub supported_methods: Option<Vec<MethodSelector>>,
     /// title property.
     pub title: Option<String>,
+}
+
+/// `ListSupportedServicesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListSupportedServicesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// supportedServices property.
+    pub supported_services: Option<Vec<SupportedService>>,
 }
 
 // =============================================================================

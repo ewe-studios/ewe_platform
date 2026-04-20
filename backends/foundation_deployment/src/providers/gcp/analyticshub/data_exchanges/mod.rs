@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -25,11 +26,80 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfo {
+    /// cloudMarketplace property.
+    pub cloud_marketplace: Option<
+        GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfoGoogleCloudMarketplaceInfo,
+    >,
+}
+
+/// `GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfoGoogleCloudMarketplaceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfoGoogleCloudMarketplaceInfo {
+    /// order property.
+    pub order: Option<String>,
+}
+
+/// `DcrExchangeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DcrExchangeConfig {
+    /// singleLinkedDatasetPerCleanroom property.
+    pub single_linked_dataset_per_cleanroom: Option<bool>,
+    /// singleSelectedResourceSharingRestriction property.
+    pub single_selected_resource_sharing_restriction: Option<bool>,
+}
+
+/// `ListOrgDataExchangesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListOrgDataExchangesResponse {
+    /// dataExchanges property.
+    pub data_exchanges: Option<Vec<DataExchange>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `DefaultExchangeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DefaultExchangeConfig {}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
 
 /// `Subscription` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -66,33 +136,15 @@ pub struct Subscription {
     pub subscriber_contact: Option<String>,
 }
 
-/// `LinkedResource` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LinkedResource {
-    /// linkedDataset property.
-    pub linked_dataset: Option<String>,
-    /// linkedPubsubSubscription property.
-    pub linked_pubsub_subscription: Option<String>,
-    /// listing property.
-    pub listing: Option<String>,
-}
-
-/// `GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfoGoogleCloudMarketplaceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfoGoogleCloudMarketplaceInfo {
-    /// order property.
-    pub order: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `DestinationDataset` type.
@@ -110,41 +162,6 @@ pub struct DestinationDataset {
     pub location: Option<String>,
     /// replicaLocations property.
     pub replica_locations: Option<Vec<String>>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `DefaultExchangeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DefaultExchangeConfig {}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfo {
-    /// cloudMarketplace property.
-    pub cloud_marketplace: Option<
-        GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfoGoogleCloudMarketplaceInfo,
-    >,
 }
 
 /// `DataExchange` type.
@@ -172,15 +189,24 @@ pub struct DataExchange {
     pub sharing_environment_config: Option<SharingEnvironmentConfig>,
 }
 
-/// `Status` type.
+/// `SharingEnvironmentConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct SharingEnvironmentConfig {
+    /// dcrExchangeConfig property.
+    pub dcr_exchange_config: Option<DcrExchangeConfig>,
+    /// defaultExchangeConfig property.
+    pub default_exchange_config: Option<DefaultExchangeConfig>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `ListDataExchangesResponse` type.
@@ -192,6 +218,17 @@ pub struct ListDataExchangesResponse {
     pub next_page_token: Option<String>,
 }
 
+/// `LinkedResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LinkedResource {
+    /// linkedDataset property.
+    pub linked_dataset: Option<String>,
+    /// linkedPubsubSubscription property.
+    pub linked_pubsub_subscription: Option<String>,
+    /// listing property.
+    pub listing: Option<String>,
+}
+
 /// `DestinationDatasetReference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DestinationDatasetReference {
@@ -199,42 +236,6 @@ pub struct DestinationDatasetReference {
     pub dataset_id: Option<String>,
     /// projectId property.
     pub project_id: Option<String>,
-}
-
-/// `SharingEnvironmentConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SharingEnvironmentConfig {
-    /// dcrExchangeConfig property.
-    pub dcr_exchange_config: Option<DcrExchangeConfig>,
-    /// defaultExchangeConfig property.
-    pub default_exchange_config: Option<DefaultExchangeConfig>,
-}
-
-/// `ListOrgDataExchangesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListOrgDataExchangesResponse {
-    /// dataExchanges property.
-    pub data_exchanges: Option<Vec<DataExchange>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `DcrExchangeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DcrExchangeConfig {
-    /// singleLinkedDatasetPerCleanroom property.
-    pub single_linked_dataset_per_cleanroom: Option<bool>,
-    /// singleSelectedResourceSharingRestriction property.
-    pub single_selected_resource_sharing_restriction: Option<bool>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
 }
 
 // =============================================================================

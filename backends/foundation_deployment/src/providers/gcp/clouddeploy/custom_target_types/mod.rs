@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,7 +23,7 @@ use serde::{Deserialize, Serialize};
 use super::shared::Operation;
 use super::shared::Policy;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -64,44 +65,6 @@ pub struct AuditConfig {
     pub service: Option<String>,
 }
 
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `Task` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Task {
-    /// container property.
-    pub container: Option<ContainerTask>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `ListCustomTargetTypesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCustomTargetTypesResponse {
-    /// customTargetTypes property.
-    pub custom_target_types: Option<Vec<CustomTargetType>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
 /// `SkaffoldGCBRepoSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SkaffoldGCBRepoSource {
@@ -126,13 +89,42 @@ pub struct Expr {
     pub title: Option<String>,
 }
 
-/// `SkaffoldGCSSource` type.
+/// `SkaffoldGitSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SkaffoldGCSSource {
+pub struct SkaffoldGitSource {
     /// path property.
     pub path: Option<String>,
-    /// source property.
-    pub source: Option<String>,
+    /// ref property.
+    pub r#ref: Option<String>,
+    /// repo property.
+    pub repo: Option<String>,
+}
+
+/// `CustomTargetTasks` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomTargetTasks {
+    /// deploy property.
+    pub deploy: Option<Task>,
+    /// render property.
+    pub render: Option<Task>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `Task` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Task {
+    /// container property.
+    pub container: Option<ContainerTask>,
 }
 
 /// `CustomTargetSkaffoldActions` type.
@@ -144,6 +136,17 @@ pub struct CustomTargetSkaffoldActions {
     pub include_skaffold_modules: Option<Vec<SkaffoldModules>>,
     /// renderAction property.
     pub render_action: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `ContainerTask` type.
@@ -172,35 +175,33 @@ pub struct SkaffoldModules {
     pub google_cloud_storage: Option<SkaffoldGCSSource>,
 }
 
-/// `CustomTargetTasks` type.
+/// `SkaffoldGCSSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomTargetTasks {
-    /// deploy property.
-    pub deploy: Option<Task>,
-    /// render property.
-    pub render: Option<Task>,
-}
-
-/// `SkaffoldGitSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SkaffoldGitSource {
+pub struct SkaffoldGCSSource {
     /// path property.
     pub path: Option<String>,
-    /// ref property.
-    pub r#ref: Option<String>,
-    /// repo property.
-    pub repo: Option<String>,
+    /// source property.
+    pub source: Option<String>,
 }
 
-/// `Status` type.
+/// `ListCustomTargetTypesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct ListCustomTargetTypesResponse {
+    /// customTargetTypes property.
+    pub custom_target_types: Option<Vec<CustomTargetType>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
 // =============================================================================

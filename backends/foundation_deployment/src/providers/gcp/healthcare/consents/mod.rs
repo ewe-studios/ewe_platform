@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,20 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Attribute` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Attribute {
+    /// attributeDefinitionId property.
+    pub attribute_definition_id: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
 
 /// `GoogleCloudHealthcareV1ConsentPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -43,28 +53,6 @@ pub struct ListConsentRevisionsResponse {
     pub consents: Option<Vec<Consent>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-}
-
-/// `Attribute` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Attribute {
-    /// attributeDefinitionId property.
-    pub attribute_definition_id: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
 }
 
 /// `ListConsentsResponse` type.
@@ -99,6 +87,19 @@ pub struct Consent {
     pub ttl: Option<String>,
     /// userId property.
     pub user_id: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 // =============================================================================

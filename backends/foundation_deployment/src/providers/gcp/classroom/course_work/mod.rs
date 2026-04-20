@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,55 +22,30 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `IndividualStudentsOptions` type.
+/// `Form` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IndividualStudentsOptions {
-    /// studentIds property.
-    pub student_ids: Option<Vec<String>>,
-}
-
-/// `Link` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Link {
+pub struct Form {
+    /// formUrl property.
+    pub form_url: Option<String>,
+    /// responseUrl property.
+    pub response_url: Option<String>,
     /// thumbnailUrl property.
     pub thumbnail_url: Option<String>,
     /// title property.
     pub title: Option<String>,
-    /// url property.
-    pub url: Option<String>,
 }
 
-/// `SharedDriveFile` type.
+/// `Assignment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SharedDriveFile {
-    /// driveFile property.
-    pub drive_file: Option<DriveFile>,
-    /// shareMode property.
-    pub share_mode: Option<String>,
-}
-
-/// `GeminiGem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeminiGem {
-    /// id property.
-    pub id: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `MultipleChoiceQuestion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MultipleChoiceQuestion {
-    /// choices property.
-    pub choices: Option<Vec<String>>,
+pub struct Assignment {
+    /// studentWorkFolder property.
+    pub student_work_folder: Option<DriveFolder>,
 }
 
 /// `CourseWork` type.
@@ -125,6 +101,24 @@ pub struct CourseWork {
     pub work_type: Option<String>,
 }
 
+/// `MultipleChoiceQuestion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MultipleChoiceQuestion {
+    /// choices property.
+    pub choices: Option<Vec<String>>,
+}
+
+/// `GeminiGem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GeminiGem {
+    /// id property.
+    pub id: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
 /// `ListCourseWorkResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCourseWorkResponse {
@@ -134,70 +128,13 @@ pub struct ListCourseWorkResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `Date` type.
+/// `SharedDriveFile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `GradeCategory` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GradeCategory {
-    /// defaultGradeDenominator property.
-    pub default_grade_denominator: Option<i64>,
-    /// id property.
-    pub id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// weight property.
-    pub weight: Option<i64>,
-}
-
-/// `TimeOfDay` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeOfDay {
-    /// hours property.
-    pub hours: Option<i64>,
-    /// minutes property.
-    pub minutes: Option<i64>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<i64>,
-}
-
-/// `NotebookLmNotebook` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NotebookLmNotebook {
-    /// id property.
-    pub id: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `Assignment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Assignment {
-    /// studentWorkFolder property.
-    pub student_work_folder: Option<DriveFolder>,
-}
-
-/// `DriveFolder` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DriveFolder {
-    /// alternateLink property.
-    pub alternate_link: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct SharedDriveFile {
+    /// driveFile property.
+    pub drive_file: Option<DriveFile>,
+    /// shareMode property.
+    pub share_mode: Option<String>,
 }
 
 /// `Material` type.
@@ -217,17 +154,17 @@ pub struct Material {
     pub youtube_video: Option<YouTubeVideo>,
 }
 
-/// `Form` type.
+/// `GradeCategory` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Form {
-    /// formUrl property.
-    pub form_url: Option<String>,
-    /// responseUrl property.
-    pub response_url: Option<String>,
-    /// thumbnailUrl property.
-    pub thumbnail_url: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct GradeCategory {
+    /// defaultGradeDenominator property.
+    pub default_grade_denominator: Option<i64>,
+    /// id property.
+    pub id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// weight property.
+    pub weight: Option<i64>,
 }
 
 /// `YouTubeVideo` type.
@@ -243,6 +180,28 @@ pub struct YouTubeVideo {
     pub title: Option<String>,
 }
 
+/// `Date` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `Link` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Link {
+    /// thumbnailUrl property.
+    pub thumbnail_url: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
 /// `DriveFile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveFile {
@@ -254,6 +213,48 @@ pub struct DriveFile {
     pub thumbnail_url: Option<String>,
     /// title property.
     pub title: Option<String>,
+}
+
+/// `DriveFolder` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DriveFolder {
+    /// alternateLink property.
+    pub alternate_link: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `IndividualStudentsOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IndividualStudentsOptions {
+    /// studentIds property.
+    pub student_ids: Option<Vec<String>>,
+}
+
+/// `NotebookLmNotebook` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NotebookLmNotebook {
+    /// id property.
+    pub id: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `TimeOfDay` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeOfDay {
+    /// hours property.
+    pub hours: Option<i64>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<i64>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,46 +22,34 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListClustersResponse` type.
+/// `ComputeInstance` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListClustersResponse {
-    /// clusters property.
-    pub clusters: Option<Vec<Cluster>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct ComputeInstance {
+    /// instance property.
+    pub instance: Option<String>,
 }
 
-/// `SlurmLoginNodes` type.
+/// `SlurmOrchestrator` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SlurmLoginNodes {
-    /// bootDisk property.
-    pub boot_disk: Option<BootDisk>,
-    /// count property.
-    pub count: Option<String>,
-    /// enableOsLogin property.
-    pub enable_os_login: Option<bool>,
-    /// enablePublicIps property.
-    pub enable_public_ips: Option<bool>,
-    /// instances property.
-    pub instances: Option<Vec<ComputeInstance>>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// machineType property.
-    pub machine_type: Option<String>,
-    /// startupScript property.
-    pub startup_script: Option<String>,
-    /// storageConfigs property.
-    pub storage_configs: Option<Vec<StorageConfig>>,
-    /// zone property.
-    pub zone: Option<String>,
+pub struct SlurmOrchestrator {
+    /// defaultPartition property.
+    pub default_partition: Option<String>,
+    /// epilogBashScripts property.
+    pub epilog_bash_scripts: Option<Vec<String>>,
+    /// loginNodes property.
+    pub login_nodes: Option<SlurmLoginNodes>,
+    /// nodeSets property.
+    pub node_sets: Option<Vec<SlurmNodeSet>>,
+    /// partitions property.
+    pub partitions: Option<Vec<SlurmPartition>>,
+    /// prologBashScripts property.
+    pub prolog_bash_scripts: Option<Vec<String>>,
 }
 
 /// `Status` type.
@@ -74,11 +63,40 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `Orchestrator` type.
+/// `Cluster` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Orchestrator {
-    /// slurm property.
-    pub slurm: Option<SlurmOrchestrator>,
+pub struct Cluster {
+    /// computeResources property.
+    pub compute_resources: Option<serde_json::Value>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// networkResources property.
+    pub network_resources: Option<serde_json::Value>,
+    /// orchestrator property.
+    pub orchestrator: Option<Orchestrator>,
+    /// reconciling property.
+    pub reconciling: Option<bool>,
+    /// storageResources property.
+    pub storage_resources: Option<serde_json::Value>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `ListClustersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListClustersResponse {
+    /// clusters property.
+    pub clusters: Option<Vec<Cluster>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `SlurmNodeSet` type.
@@ -107,15 +125,29 @@ pub struct SlurmPartition {
     pub node_set_ids: Option<Vec<String>>,
 }
 
-/// `ComputeInstanceSlurmNodeSet` type.
+/// `SlurmLoginNodes` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeInstanceSlurmNodeSet {
+pub struct SlurmLoginNodes {
     /// bootDisk property.
     pub boot_disk: Option<BootDisk>,
+    /// count property.
+    pub count: Option<String>,
+    /// enableOsLogin property.
+    pub enable_os_login: Option<bool>,
+    /// enablePublicIps property.
+    pub enable_public_ips: Option<bool>,
+    /// instances property.
+    pub instances: Option<Vec<ComputeInstance>>,
     /// labels property.
     pub labels: Option<serde_json::Value>,
+    /// machineType property.
+    pub machine_type: Option<String>,
     /// startupScript property.
     pub startup_script: Option<String>,
+    /// storageConfigs property.
+    pub storage_configs: Option<Vec<StorageConfig>>,
+    /// zone property.
+    pub zone: Option<String>,
 }
 
 /// `BootDisk` type.
@@ -127,48 +159,6 @@ pub struct BootDisk {
     pub r#type: Option<String>,
 }
 
-/// `Cluster` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Cluster {
-    /// computeResources property.
-    pub compute_resources: Option<serde_json::Value>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// networkResources property.
-    pub network_resources: Option<serde_json::Value>,
-    /// orchestrator property.
-    pub orchestrator: Option<Orchestrator>,
-    /// reconciling property.
-    pub reconciling: Option<bool>,
-    /// storageResources property.
-    pub storage_resources: Option<serde_json::Value>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `SlurmOrchestrator` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SlurmOrchestrator {
-    /// defaultPartition property.
-    pub default_partition: Option<String>,
-    /// epilogBashScripts property.
-    pub epilog_bash_scripts: Option<Vec<String>>,
-    /// loginNodes property.
-    pub login_nodes: Option<SlurmLoginNodes>,
-    /// nodeSets property.
-    pub node_sets: Option<Vec<SlurmNodeSet>>,
-    /// partitions property.
-    pub partitions: Option<Vec<SlurmPartition>>,
-    /// prologBashScripts property.
-    pub prolog_bash_scripts: Option<Vec<String>>,
-}
-
 /// `StorageConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StorageConfig {
@@ -178,11 +168,22 @@ pub struct StorageConfig {
     pub local_mount: Option<String>,
 }
 
-/// `ComputeInstance` type.
+/// `ComputeInstanceSlurmNodeSet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeInstance {
-    /// instance property.
-    pub instance: Option<String>,
+pub struct ComputeInstanceSlurmNodeSet {
+    /// bootDisk property.
+    pub boot_disk: Option<BootDisk>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// startupScript property.
+    pub startup_script: Option<String>,
+}
+
+/// `Orchestrator` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Orchestrator {
+    /// slurm property.
+    pub slurm: Option<SlurmOrchestrator>,
 }
 
 // =============================================================================

@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -35,15 +36,6 @@ pub struct AmpUrl {
     pub original_url: Option<String>,
 }
 
-/// `BatchGetAmpUrlsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BatchGetAmpUrlsResponse {
-    /// ampUrls property.
-    pub amp_urls: Option<Vec<AmpUrl>>,
-    /// urlErrors property.
-    pub url_errors: Option<Vec<AmpUrlError>>,
-}
-
 /// `AmpUrlError` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AmpUrlError {
@@ -53,6 +45,15 @@ pub struct AmpUrlError {
     pub error_message: Option<String>,
     /// originalUrl property.
     pub original_url: Option<String>,
+}
+
+/// `BatchGetAmpUrlsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BatchGetAmpUrlsResponse {
+    /// ampUrls property.
+    pub amp_urls: Option<Vec<AmpUrl>>,
+    /// urlErrors property.
+    pub url_errors: Option<Vec<AmpUrlError>>,
 }
 
 // =============================================================================

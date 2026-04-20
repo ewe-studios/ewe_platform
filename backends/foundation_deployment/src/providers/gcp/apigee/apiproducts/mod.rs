@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,97 +24,11 @@ use super::shared::GoogleCloudApigeeV1AppGroupAppKey;
 use super::shared::GoogleCloudApigeeV1DeveloperAppKey;
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudApigeeV1GraphQLOperation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1GraphQLOperation {
-    /// operation property.
-    pub operation: Option<String>,
-    /// operationTypes property.
-    pub operation_types: Option<Vec<String>>,
-}
-
-/// `GoogleCloudApigeeV1GrpcOperationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1GrpcOperationConfig {
-    /// apiSource property.
-    pub api_source: Option<String>,
-    /// attributes property.
-    pub attributes: Option<Vec<GoogleCloudApigeeV1Attribute>>,
-    /// methods property.
-    pub methods: Option<Vec<String>>,
-    /// quota property.
-    pub quota: Option<GoogleCloudApigeeV1Quota>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1GraphQLOperationGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1GraphQLOperationGroup {
-    /// operationConfigType property.
-    pub operation_config_type: Option<String>,
-    /// operationConfigs property.
-    pub operation_configs: Option<Vec<GoogleCloudApigeeV1GraphQLOperationConfig>>,
-}
-
-/// `GoogleCloudApigeeV1ListApiProductsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ListApiProductsResponse {
-    /// apiProduct property.
-    pub api_product: Option<Vec<GoogleCloudApigeeV1ApiProduct>>,
-}
-
-/// `GoogleCloudApigeeV1OperationGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1OperationGroup {
-    /// operationConfigType property.
-    pub operation_config_type: Option<String>,
-    /// operationConfigs property.
-    pub operation_configs: Option<Vec<GoogleCloudApigeeV1OperationConfig>>,
-}
-
-/// `GoogleCloudApigeeV1OperationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1OperationConfig {
-    /// apiSource property.
-    pub api_source: Option<String>,
-    /// attributes property.
-    pub attributes: Option<Vec<GoogleCloudApigeeV1Attribute>>,
-    /// operations property.
-    pub operations: Option<Vec<GoogleCloudApigeeV1Operation>>,
-    /// quota property.
-    pub quota: Option<GoogleCloudApigeeV1Quota>,
-}
-
-/// `GoogleCloudApigeeV1GraphQLOperationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1GraphQLOperationConfig {
-    /// apiSource property.
-    pub api_source: Option<String>,
-    /// attributes property.
-    pub attributes: Option<Vec<GoogleCloudApigeeV1Attribute>>,
-    /// operations property.
-    pub operations: Option<Vec<GoogleCloudApigeeV1GraphQLOperation>>,
-    /// quota property.
-    pub quota: Option<GoogleCloudApigeeV1Quota>,
-}
-
-/// `GoogleCloudApigeeV1LlmTokenQuota` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1LlmTokenQuota {
-    /// interval property.
-    pub interval: Option<String>,
-    /// limit property.
-    pub limit: Option<String>,
-    /// timeUnit property.
-    pub time_unit: Option<String>,
-}
 
 /// `GoogleCloudApigeeV1ApiProduct` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -166,27 +81,24 @@ pub struct GoogleCloudApigeeV1ApiProduct {
     pub space: Option<String>,
 }
 
-/// `GoogleCloudApigeeV1Attribute` type.
+/// `GoogleCloudApigeeV1LlmTokenQuota` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1Attribute {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct GoogleCloudApigeeV1LlmTokenQuota {
+    /// interval property.
+    pub interval: Option<String>,
+    /// limit property.
+    pub limit: Option<String>,
+    /// timeUnit property.
+    pub time_unit: Option<String>,
 }
 
-/// `GoogleCloudApigeeV1GrpcOperationGroup` type.
+/// `GoogleCloudApigeeV1GraphQLOperationGroup` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1GrpcOperationGroup {
+pub struct GoogleCloudApigeeV1GraphQLOperationGroup {
+    /// operationConfigType property.
+    pub operation_config_type: Option<String>,
     /// operationConfigs property.
-    pub operation_configs: Option<Vec<GoogleCloudApigeeV1GrpcOperationConfig>>,
-}
-
-/// `GoogleCloudApigeeV1LlmOperationGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1LlmOperationGroup {
-    /// operationConfigs property.
-    pub operation_configs: Option<Vec<GoogleCloudApigeeV1LlmOperationConfig>>,
+    pub operation_configs: Option<Vec<GoogleCloudApigeeV1GraphQLOperationConfig>>,
 }
 
 /// `GoogleCloudApigeeV1Quota` type.
@@ -200,26 +112,13 @@ pub struct GoogleCloudApigeeV1Quota {
     pub time_unit: Option<String>,
 }
 
-/// `GoogleCloudApigeeV1APIProductAssociation` type.
+/// `GoogleCloudApigeeV1GraphQLOperation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1APIProductAssociation {
-    /// apiproduct property.
-    pub apiproduct: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1LlmOperationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1LlmOperationConfig {
-    /// apiSource property.
-    pub api_source: Option<String>,
-    /// attributes property.
-    pub attributes: Option<Vec<GoogleCloudApigeeV1Attribute>>,
-    /// llmOperations property.
-    pub llm_operations: Option<Vec<GoogleCloudApigeeV1LlmOperation>>,
-    /// llmTokenQuota property.
-    pub llm_token_quota: Option<GoogleCloudApigeeV1LlmTokenQuota>,
+pub struct GoogleCloudApigeeV1GraphQLOperation {
+    /// operation property.
+    pub operation: Option<String>,
+    /// operationTypes property.
+    pub operation_types: Option<Vec<String>>,
 }
 
 /// `GoogleCloudApigeeV1LlmOperation` type.
@@ -240,6 +139,108 @@ pub struct GoogleCloudApigeeV1Operation {
     pub methods: Option<Vec<String>>,
     /// resource property.
     pub resource: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1GrpcOperationGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1GrpcOperationGroup {
+    /// operationConfigs property.
+    pub operation_configs: Option<Vec<GoogleCloudApigeeV1GrpcOperationConfig>>,
+}
+
+/// `GoogleCloudApigeeV1LlmOperationGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1LlmOperationGroup {
+    /// operationConfigs property.
+    pub operation_configs: Option<Vec<GoogleCloudApigeeV1LlmOperationConfig>>,
+}
+
+/// `GoogleCloudApigeeV1ListApiProductsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ListApiProductsResponse {
+    /// apiProduct property.
+    pub api_product: Option<Vec<GoogleCloudApigeeV1ApiProduct>>,
+}
+
+/// `GoogleCloudApigeeV1APIProductAssociation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1APIProductAssociation {
+    /// apiproduct property.
+    pub apiproduct: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1GraphQLOperationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1GraphQLOperationConfig {
+    /// apiSource property.
+    pub api_source: Option<String>,
+    /// attributes property.
+    pub attributes: Option<Vec<GoogleCloudApigeeV1Attribute>>,
+    /// operations property.
+    pub operations: Option<Vec<GoogleCloudApigeeV1GraphQLOperation>>,
+    /// quota property.
+    pub quota: Option<GoogleCloudApigeeV1Quota>,
+}
+
+/// `GoogleCloudApigeeV1Attribute` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1Attribute {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1OperationGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1OperationGroup {
+    /// operationConfigType property.
+    pub operation_config_type: Option<String>,
+    /// operationConfigs property.
+    pub operation_configs: Option<Vec<GoogleCloudApigeeV1OperationConfig>>,
+}
+
+/// `GoogleCloudApigeeV1LlmOperationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1LlmOperationConfig {
+    /// apiSource property.
+    pub api_source: Option<String>,
+    /// attributes property.
+    pub attributes: Option<Vec<GoogleCloudApigeeV1Attribute>>,
+    /// llmOperations property.
+    pub llm_operations: Option<Vec<GoogleCloudApigeeV1LlmOperation>>,
+    /// llmTokenQuota property.
+    pub llm_token_quota: Option<GoogleCloudApigeeV1LlmTokenQuota>,
+}
+
+/// `GoogleCloudApigeeV1GrpcOperationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1GrpcOperationConfig {
+    /// apiSource property.
+    pub api_source: Option<String>,
+    /// attributes property.
+    pub attributes: Option<Vec<GoogleCloudApigeeV1Attribute>>,
+    /// methods property.
+    pub methods: Option<Vec<String>>,
+    /// quota property.
+    pub quota: Option<GoogleCloudApigeeV1Quota>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1OperationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1OperationConfig {
+    /// apiSource property.
+    pub api_source: Option<String>,
+    /// attributes property.
+    pub attributes: Option<Vec<GoogleCloudApigeeV1Attribute>>,
+    /// operations property.
+    pub operations: Option<Vec<GoogleCloudApigeeV1Operation>>,
+    /// quota property.
+    pub quota: Option<GoogleCloudApigeeV1Quota>,
 }
 
 // =============================================================================

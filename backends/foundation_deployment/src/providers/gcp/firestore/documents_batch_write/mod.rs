@@ -12,35 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `LatLng` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LatLng {
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
-}
-
-/// `WriteResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WriteResult {
-    /// transformResults property.
-    pub transform_results: Option<Vec<Value>>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
 
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -53,6 +36,40 @@ pub struct Status {
     pub message: Option<String>,
 }
 
+/// `Function` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Function {
+    /// args property.
+    pub args: Option<Vec<Box<Value>>>,
+    /// name property.
+    pub name: Option<String>,
+    /// options property.
+    pub options: Option<serde_json::Value>,
+}
+
+/// `Pipeline` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Pipeline {
+    /// stages property.
+    pub stages: Option<Vec<Box<Stage>>>,
+}
+
+/// `ArrayValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ArrayValue {
+    /// values property.
+    pub values: Option<Vec<Box<Value>>>,
+}
+
+/// `LatLng` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LatLng {
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
+}
+
 /// `BatchWriteResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchWriteResponse {
@@ -62,47 +79,11 @@ pub struct BatchWriteResponse {
     pub write_results: Option<Vec<WriteResult>>,
 }
 
-/// `ArrayValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArrayValue {
-    /// values property.
-    pub values: Option<Vec<Value>>,
-}
-
-/// `Stage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Stage {
-    /// args property.
-    pub args: Option<Vec<Value>>,
-    /// name property.
-    pub name: Option<String>,
-    /// options property.
-    pub options: Option<serde_json::Value>,
-}
-
-/// `Function` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Function {
-    /// args property.
-    pub args: Option<Vec<Value>>,
-    /// name property.
-    pub name: Option<String>,
-    /// options property.
-    pub options: Option<serde_json::Value>,
-}
-
-/// `MapValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MapValue {
-    /// fields property.
-    pub fields: Option<serde_json::Value>,
-}
-
 /// `Value` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Value {
     /// arrayValue property.
-    pub array_value: Option<ArrayValue>,
+    pub array_value: Option<Box<ArrayValue>>,
     /// booleanValue property.
     pub boolean_value: Option<bool>,
     /// bytesValue property.
@@ -112,7 +93,7 @@ pub struct Value {
     /// fieldReferenceValue property.
     pub field_reference_value: Option<String>,
     /// functionValue property.
-    pub function_value: Option<Function>,
+    pub function_value: Option<Box<Function>>,
     /// geoPointValue property.
     pub geo_point_value: Option<LatLng>,
     /// integerValue property.
@@ -122,7 +103,7 @@ pub struct Value {
     /// nullValue property.
     pub null_value: Option<String>,
     /// pipelineValue property.
-    pub pipeline_value: Option<Pipeline>,
+    pub pipeline_value: Option<Box<Pipeline>>,
     /// referenceValue property.
     pub reference_value: Option<String>,
     /// stringValue property.
@@ -133,11 +114,31 @@ pub struct Value {
     pub variable_reference_value: Option<String>,
 }
 
-/// `Pipeline` type.
+/// `MapValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Pipeline {
-    /// stages property.
-    pub stages: Option<Vec<Stage>>,
+pub struct MapValue {
+    /// fields property.
+    pub fields: Option<serde_json::Value>,
+}
+
+/// `Stage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Stage {
+    /// args property.
+    pub args: Option<Vec<Box<Value>>>,
+    /// name property.
+    pub name: Option<String>,
+    /// options property.
+    pub options: Option<serde_json::Value>,
+}
+
+/// `WriteResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WriteResult {
+    /// transformResults property.
+    pub transform_results: Option<Vec<Box<Value>>>,
+    /// updateTime property.
+    pub update_time: Option<String>,
 }
 
 // =============================================================================

@@ -12,214 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `AppliedLabel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppliedLabel {
-    /// fieldValues property.
-    pub field_values: Option<Vec<FieldValue>>,
-    /// id property.
-    pub id: Option<String>,
-    /// reason property.
-    pub reason: Option<Reason>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `Date` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `OwnerDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OwnerDetails {
-    /// ownerIdentity property.
-    pub owner_identity: Option<Vec<OwnerIdentity>>,
-    /// ownerType property.
-    pub owner_type: Option<String>,
-}
-
-/// `FieldValueUserListValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FieldValueUserListValue {
-    /// values property.
-    pub values: Option<Vec<FieldValueUserValue>>,
-}
-
-/// `ActivityNetworkInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActivityNetworkInfo {
-    /// ipAsn property.
-    pub ip_asn: Option<Vec<i64>>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-    /// subdivisionCode property.
-    pub subdivision_code: Option<String>,
-}
-
-/// `Activity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Activity {
-    /// actor property.
-    pub actor: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// events property.
-    pub events: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// id property.
-    pub id: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// networkInfo property.
-    pub network_info: Option<ActivityNetworkInfo>,
-    /// ownerDomain property.
-    pub owner_domain: Option<String>,
-    /// resourceDetails property.
-    pub resource_details: Option<Vec<ResourceDetails>>,
-}
-
-/// `CustomerIdentity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerIdentity {
-    /// id property.
-    pub id: Option<String>,
-}
-
-/// `FieldValueTextListValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FieldValueTextListValue {
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `ActivityEventsStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActivityEventsStatus {
-    /// errorCode property.
-    pub error_code: Option<String>,
-    /// errorMessage property.
-    pub error_message: Option<String>,
-    /// eventStatus property.
-    pub event_status: Option<String>,
-    /// httpStatusCode property.
-    pub http_status_code: Option<i64>,
-}
-
-/// `ResourceDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceDetails {
-    /// appliedLabels property.
-    pub applied_labels: Option<Vec<AppliedLabel>>,
-    /// id property.
-    pub id: Option<String>,
-    /// ownerDetails property.
-    pub owner_details: Option<OwnerDetails>,
-    /// relation property.
-    pub relation: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `FieldValueSelectionValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FieldValueSelectionValue {
-    /// badged property.
-    pub badged: Option<bool>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-}
-
-/// `FieldValueSelectionListValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FieldValueSelectionListValue {
-    /// values property.
-    pub values: Option<Vec<FieldValueSelectionValue>>,
-}
-
-/// `NestedParameter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NestedParameter {
-    /// boolValue property.
-    pub bool_value: Option<bool>,
-    /// intValue property.
-    pub int_value: Option<String>,
-    /// multiBoolValue property.
-    pub multi_bool_value: Option<Vec<bool>>,
-    /// multiIntValue property.
-    pub multi_int_value: Option<Vec<String>>,
-    /// multiValue property.
-    pub multi_value: Option<Vec<String>>,
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Activities` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Activities {
-    /// etag property.
-    pub etag: Option<String>,
-    /// items property.
-    pub items: Option<Vec<Activity>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `OwnerIdentity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OwnerIdentity {
-    /// customerIdentity property.
-    pub customer_identity: Option<CustomerIdentity>,
-    /// groupIdentity property.
-    pub group_identity: Option<GroupIdentity>,
-    /// userIdentity property.
-    pub user_identity: Option<UserIdentity>,
-}
-
-/// `GroupIdentity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GroupIdentity {
-    /// groupEmail property.
-    pub group_email: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-}
-
-/// `UserIdentity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserIdentity {
-    /// id property.
-    pub id: Option<String>,
-    /// userEmail property.
-    pub user_email: Option<String>,
-}
 
 /// `FieldValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -254,11 +58,31 @@ pub struct FieldValue {
     pub user_value: Option<FieldValueUserValue>,
 }
 
-/// `FieldValueUserValue` type.
+/// `UserIdentity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FieldValueUserValue {
-    /// email property.
-    pub email: Option<String>,
+pub struct UserIdentity {
+    /// id property.
+    pub id: Option<String>,
+    /// userEmail property.
+    pub user_email: Option<String>,
+}
+
+/// `FieldValueSelectionValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FieldValueSelectionValue {
+    /// badged property.
+    pub badged: Option<bool>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+}
+
+/// `FieldValueSelectionListValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FieldValueSelectionListValue {
+    /// values property.
+    pub values: Option<Vec<FieldValueSelectionValue>>,
 }
 
 /// `Reason` type.
@@ -266,6 +90,183 @@ pub struct FieldValueUserValue {
 pub struct Reason {
     /// reasonType property.
     pub reason_type: Option<String>,
+}
+
+/// `NestedParameter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NestedParameter {
+    /// boolValue property.
+    pub bool_value: Option<bool>,
+    /// intValue property.
+    pub int_value: Option<String>,
+    /// multiBoolValue property.
+    pub multi_bool_value: Option<Vec<bool>>,
+    /// multiIntValue property.
+    pub multi_int_value: Option<Vec<String>>,
+    /// multiValue property.
+    pub multi_value: Option<Vec<String>>,
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `ActivityNetworkInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActivityNetworkInfo {
+    /// ipAsn property.
+    pub ip_asn: Option<Vec<i64>>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+    /// subdivisionCode property.
+    pub subdivision_code: Option<String>,
+}
+
+/// `ResourceDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceDetails {
+    /// appliedLabels property.
+    pub applied_labels: Option<Vec<AppliedLabel>>,
+    /// id property.
+    pub id: Option<String>,
+    /// ownerDetails property.
+    pub owner_details: Option<OwnerDetails>,
+    /// relation property.
+    pub relation: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ActivityEventsStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActivityEventsStatus {
+    /// errorCode property.
+    pub error_code: Option<String>,
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// eventStatus property.
+    pub event_status: Option<String>,
+    /// httpStatusCode property.
+    pub http_status_code: Option<i64>,
+}
+
+/// `AppliedLabel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppliedLabel {
+    /// fieldValues property.
+    pub field_values: Option<Vec<FieldValue>>,
+    /// id property.
+    pub id: Option<String>,
+    /// reason property.
+    pub reason: Option<Reason>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `FieldValueTextListValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FieldValueTextListValue {
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `Activities` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Activities {
+    /// etag property.
+    pub etag: Option<String>,
+    /// items property.
+    pub items: Option<Vec<Activity>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `OwnerDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OwnerDetails {
+    /// ownerIdentity property.
+    pub owner_identity: Option<Vec<OwnerIdentity>>,
+    /// ownerType property.
+    pub owner_type: Option<String>,
+}
+
+/// `FieldValueUserValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FieldValueUserValue {
+    /// email property.
+    pub email: Option<String>,
+}
+
+/// `GroupIdentity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GroupIdentity {
+    /// groupEmail property.
+    pub group_email: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+}
+
+/// `FieldValueUserListValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FieldValueUserListValue {
+    /// values property.
+    pub values: Option<Vec<FieldValueUserValue>>,
+}
+
+/// `Activity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Activity {
+    /// actor property.
+    pub actor: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// events property.
+    pub events: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// id property.
+    pub id: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// networkInfo property.
+    pub network_info: Option<ActivityNetworkInfo>,
+    /// ownerDomain property.
+    pub owner_domain: Option<String>,
+    /// resourceDetails property.
+    pub resource_details: Option<Vec<ResourceDetails>>,
+}
+
+/// `OwnerIdentity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OwnerIdentity {
+    /// customerIdentity property.
+    pub customer_identity: Option<CustomerIdentity>,
+    /// groupIdentity property.
+    pub group_identity: Option<GroupIdentity>,
+    /// userIdentity property.
+    pub user_identity: Option<UserIdentity>,
+}
+
+/// `Date` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `CustomerIdentity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomerIdentity {
+    /// id property.
+    pub id: Option<String>,
 }
 
 // =============================================================================

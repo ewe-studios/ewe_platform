@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,18 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ConnectAccessConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectAccessConfig {
-    /// networkConfigs property.
-    pub network_configs: Option<Vec<ConnectNetworkConfig>>,
-}
 
 /// `ConnectGcpConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -43,15 +37,13 @@ pub struct ConnectGcpConfig {
     pub secret_paths: Option<Vec<String>>,
 }
 
-/// `ConnectNetworkConfig` type.
+/// `CapacityConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectNetworkConfig {
-    /// additionalSubnets property.
-    pub additional_subnets: Option<Vec<String>>,
-    /// dnsDomainNames property.
-    pub dns_domain_names: Option<Vec<String>>,
-    /// primarySubnet property.
-    pub primary_subnet: Option<String>,
+pub struct CapacityConfig {
+    /// memoryBytes property.
+    pub memory_bytes: Option<String>,
+    /// vcpuCount property.
+    pub vcpu_count: Option<String>,
 }
 
 /// `Status` type.
@@ -65,6 +57,24 @@ pub struct Status {
     pub message: Option<String>,
 }
 
+/// `ConnectAccessConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectAccessConfig {
+    /// networkConfigs property.
+    pub network_configs: Option<Vec<ConnectNetworkConfig>>,
+}
+
+/// `ConnectNetworkConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectNetworkConfig {
+    /// additionalSubnets property.
+    pub additional_subnets: Option<Vec<String>>,
+    /// dnsDomainNames property.
+    pub dns_domain_names: Option<Vec<String>>,
+    /// primarySubnet property.
+    pub primary_subnet: Option<String>,
+}
+
 /// `ListConnectClustersResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListConnectClustersResponse {
@@ -74,15 +84,6 @@ pub struct ListConnectClustersResponse {
     pub next_page_token: Option<String>,
     /// unreachable property.
     pub unreachable: Option<Vec<String>>,
-}
-
-/// `CapacityConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CapacityConfig {
-    /// memoryBytes property.
-    pub memory_bytes: Option<String>,
-    /// vcpuCount property.
-    pub vcpu_count: Option<String>,
 }
 
 /// `ConnectCluster` type.

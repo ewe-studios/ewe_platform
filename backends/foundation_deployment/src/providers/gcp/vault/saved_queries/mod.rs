@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,42 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `SavedQuery` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SavedQuery {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// matterId property.
+    pub matter_id: Option<String>,
+    /// query property.
+    pub query: Option<Query>,
+    /// savedQueryId property.
+    pub saved_query_id: Option<String>,
+}
+
+/// `VoiceOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VoiceOptions {
+    /// coveredData property.
+    pub covered_data: Option<Vec<String>>,
+}
+
+/// `MailOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MailOptions {
+    /// clientSideEncryptedOption property.
+    pub client_side_encrypted_option: Option<String>,
+    /// excludeDrafts property.
+    pub exclude_drafts: Option<bool>,
+}
 
 /// `Query` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -74,6 +106,41 @@ pub struct Query {
     pub voice_options: Option<VoiceOptions>,
 }
 
+/// `HangoutsChatOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HangoutsChatOptions {
+    /// includeRooms property.
+    pub include_rooms: Option<bool>,
+}
+
+/// `TeamDriveInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TeamDriveInfo {
+    /// teamDriveIds property.
+    pub team_drive_ids: Option<Vec<String>>,
+}
+
+/// `DriveDocumentInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DriveDocumentInfo {
+    /// documentIds property.
+    pub document_ids: Option<DriveDocumentIds>,
+}
+
+/// `SharedDriveInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SharedDriveInfo {
+    /// sharedDriveIds property.
+    pub shared_drive_ids: Option<Vec<String>>,
+}
+
+/// `HangoutsChatInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HangoutsChatInfo {
+    /// roomId property.
+    pub room_id: Option<Vec<String>>,
+}
+
 /// `CalendarOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CalendarOptions {
@@ -87,106 +154,6 @@ pub struct CalendarOptions {
     pub response_statuses: Option<Vec<String>>,
     /// versionDate property.
     pub version_date: Option<String>,
-}
-
-/// `MailOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MailOptions {
-    /// clientSideEncryptedOption property.
-    pub client_side_encrypted_option: Option<String>,
-    /// excludeDrafts property.
-    pub exclude_drafts: Option<bool>,
-}
-
-/// `DriveDocumentInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DriveDocumentInfo {
-    /// documentIds property.
-    pub document_ids: Option<DriveDocumentIds>,
-}
-
-/// `DriveDocumentIds` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DriveDocumentIds {
-    /// ids property.
-    pub ids: Option<Vec<String>>,
-}
-
-/// `SavedQuery` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SavedQuery {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// matterId property.
-    pub matter_id: Option<String>,
-    /// query property.
-    pub query: Option<Query>,
-    /// savedQueryId property.
-    pub saved_query_id: Option<String>,
-}
-
-/// `AccountInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountInfo {
-    /// emails property.
-    pub emails: Option<Vec<String>>,
-}
-
-/// `ListSavedQueriesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSavedQueriesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// savedQueries property.
-    pub saved_queries: Option<Vec<SavedQuery>>,
-}
-
-/// `SitesUrlInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SitesUrlInfo {
-    /// urls property.
-    pub urls: Option<Vec<String>>,
-}
-
-/// `TeamDriveInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TeamDriveInfo {
-    /// teamDriveIds property.
-    pub team_drive_ids: Option<Vec<String>>,
-}
-
-/// `VoiceOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VoiceOptions {
-    /// coveredData property.
-    pub covered_data: Option<Vec<String>>,
-}
-
-/// `SharedDriveInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SharedDriveInfo {
-    /// sharedDriveIds property.
-    pub shared_drive_ids: Option<Vec<String>>,
-}
-
-/// `OrgUnitInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OrgUnitInfo {
-    /// orgUnitId property.
-    pub org_unit_id: Option<String>,
-}
-
-/// `GeminiOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeminiOptions {}
-
-/// `HangoutsChatOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HangoutsChatOptions {
-    /// includeRooms property.
-    pub include_rooms: Option<bool>,
 }
 
 /// `DriveOptions` type.
@@ -204,12 +171,46 @@ pub struct DriveOptions {
     pub version_date: Option<String>,
 }
 
-/// `HangoutsChatInfo` type.
+/// `OrgUnitInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HangoutsChatInfo {
-    /// roomId property.
-    pub room_id: Option<Vec<String>>,
+pub struct OrgUnitInfo {
+    /// orgUnitId property.
+    pub org_unit_id: Option<String>,
 }
+
+/// `ListSavedQueriesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListSavedQueriesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// savedQueries property.
+    pub saved_queries: Option<Vec<SavedQuery>>,
+}
+
+/// `DriveDocumentIds` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DriveDocumentIds {
+    /// ids property.
+    pub ids: Option<Vec<String>>,
+}
+
+/// `AccountInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountInfo {
+    /// emails property.
+    pub emails: Option<Vec<String>>,
+}
+
+/// `SitesUrlInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SitesUrlInfo {
+    /// urls property.
+    pub urls: Option<Vec<String>>,
+}
+
+/// `GeminiOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GeminiOptions {}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

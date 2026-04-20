@@ -12,38 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `AggregationResultCount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AggregationResultCount {
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `AggregationResultSum` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AggregationResultSum {
-    /// value property.
-    pub value: Option<f64>,
-}
-
-/// `AggregateAssetsValuesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AggregateAssetsValuesResponse {
-    /// results property.
-    pub results: Option<Vec<AggregationResult>>,
-}
 
 /// `AggregationResultHistogramBucket` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -56,11 +36,11 @@ pub struct AggregationResultHistogramBucket {
     pub upper_bound: Option<f64>,
 }
 
-/// `AggregationResultFrequency` type.
+/// `AggregationResultCount` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AggregationResultFrequency {
-    /// values property.
-    pub values: Option<serde_json::Value>,
+pub struct AggregationResultCount {
+    /// value property.
+    pub value: Option<String>,
 }
 
 /// `AggregationResultHistogram` type.
@@ -83,6 +63,27 @@ pub struct AggregationResult {
     pub histogram: Option<AggregationResultHistogram>,
     /// sum property.
     pub sum: Option<AggregationResultSum>,
+}
+
+/// `AggregateAssetsValuesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AggregateAssetsValuesResponse {
+    /// results property.
+    pub results: Option<Vec<AggregationResult>>,
+}
+
+/// `AggregationResultFrequency` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AggregationResultFrequency {
+    /// values property.
+    pub values: Option<serde_json::Value>,
+}
+
+/// `AggregationResultSum` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AggregationResultSum {
+    /// value property.
+    pub value: Option<f64>,
 }
 
 // =============================================================================

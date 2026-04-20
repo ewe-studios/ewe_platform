@@ -12,17 +12,107 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `OracleColumn` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OracleColumn {
+    /// column property.
+    pub column: Option<String>,
+    /// dataType property.
+    pub data_type: Option<String>,
+    /// encoding property.
+    pub encoding: Option<String>,
+    /// length property.
+    pub length: Option<i64>,
+    /// nullable property.
+    pub nullable: Option<bool>,
+    /// ordinalPosition property.
+    pub ordinal_position: Option<i64>,
+    /// precision property.
+    pub precision: Option<i64>,
+    /// primaryKey property.
+    pub primary_key: Option<bool>,
+    /// scale property.
+    pub scale: Option<i64>,
+}
+
+/// `MysqlRdbms` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MysqlRdbms {
+    /// mysqlDatabases property.
+    pub mysql_databases: Option<Vec<MysqlDatabase>>,
+}
+
+/// `SqlServerSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerSchema {
+    /// schema property.
+    pub schema: Option<String>,
+    /// tables property.
+    pub tables: Option<Vec<SqlServerTable>>,
+}
+
+/// `SqlServerColumn` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerColumn {
+    /// column property.
+    pub column: Option<String>,
+    /// dataType property.
+    pub data_type: Option<String>,
+    /// length property.
+    pub length: Option<i64>,
+    /// nullable property.
+    pub nullable: Option<bool>,
+    /// ordinalPosition property.
+    pub ordinal_position: Option<i64>,
+    /// precision property.
+    pub precision: Option<i64>,
+    /// primaryKey property.
+    pub primary_key: Option<bool>,
+    /// scale property.
+    pub scale: Option<i64>,
+}
+
+/// `SpannerColumn` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpannerColumn {
+    /// column property.
+    pub column: Option<String>,
+    /// dataType property.
+    pub data_type: Option<String>,
+    /// isPrimaryKey property.
+    pub is_primary_key: Option<bool>,
+    /// ordinalPosition property.
+    pub ordinal_position: Option<String>,
+}
+
+/// `SqlServerRdbms` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerRdbms {
+    /// schemas property.
+    pub schemas: Option<Vec<SqlServerSchema>>,
+}
+
+/// `OracleSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OracleSchema {
+    /// oracleTables property.
+    pub oracle_tables: Option<Vec<OracleTable>>,
+    /// schema property.
+    pub schema: Option<String>,
+}
 
 /// `OracleTable` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -33,6 +123,100 @@ pub struct OracleTable {
     pub table: Option<String>,
 }
 
+/// `SalesforceObject` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SalesforceObject {
+    /// fields property.
+    pub fields: Option<Vec<SalesforceField>>,
+    /// objectName property.
+    pub object_name: Option<String>,
+}
+
+/// `SalesforceOrg` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SalesforceOrg {
+    /// objects property.
+    pub objects: Option<Vec<SalesforceObject>>,
+}
+
+/// `PostgresqlSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostgresqlSchema {
+    /// postgresqlTables property.
+    pub postgresql_tables: Option<Vec<PostgresqlTable>>,
+    /// schema property.
+    pub schema: Option<String>,
+}
+
+/// `SpannerDatabase` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpannerDatabase {
+    /// schemas property.
+    pub schemas: Option<Vec<SpannerSchema>>,
+}
+
+/// `PostgresqlTable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostgresqlTable {
+    /// postgresqlColumns property.
+    pub postgresql_columns: Option<Vec<PostgresqlColumn>>,
+    /// table property.
+    pub table: Option<String>,
+}
+
+/// `PostgresqlColumn` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostgresqlColumn {
+    /// column property.
+    pub column: Option<String>,
+    /// dataType property.
+    pub data_type: Option<String>,
+    /// length property.
+    pub length: Option<i64>,
+    /// nullable property.
+    pub nullable: Option<bool>,
+    /// ordinalPosition property.
+    pub ordinal_position: Option<i64>,
+    /// precision property.
+    pub precision: Option<i64>,
+    /// primaryKey property.
+    pub primary_key: Option<bool>,
+    /// scale property.
+    pub scale: Option<i64>,
+}
+
+/// `SpannerSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpannerSchema {
+    /// schema property.
+    pub schema: Option<String>,
+    /// tables property.
+    pub tables: Option<Vec<SpannerTable>>,
+}
+
+/// `SqlServerTable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerTable {
+    /// columns property.
+    pub columns: Option<Vec<SqlServerColumn>>,
+    /// table property.
+    pub table: Option<String>,
+}
+
+/// `OracleRdbms` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OracleRdbms {
+    /// oracleSchemas property.
+    pub oracle_schemas: Option<Vec<OracleSchema>>,
+}
+
+/// `PostgresqlRdbms` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostgresqlRdbms {
+    /// postgresqlSchemas property.
+    pub postgresql_schemas: Option<Vec<PostgresqlSchema>>,
+}
+
 /// `MysqlDatabase` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MysqlDatabase {
@@ -40,6 +224,15 @@ pub struct MysqlDatabase {
     pub database: Option<String>,
     /// mysqlTables property.
     pub mysql_tables: Option<Vec<MysqlTable>>,
+}
+
+/// `MongodbDatabase` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MongodbDatabase {
+    /// collections property.
+    pub collections: Option<Vec<MongodbCollection>>,
+    /// database property.
+    pub database: Option<String>,
 }
 
 /// `MysqlColumn` type.
@@ -65,6 +258,49 @@ pub struct MysqlColumn {
     pub scale: Option<i64>,
 }
 
+/// `MongodbField` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MongodbField {
+    /// field property.
+    pub field: Option<String>,
+}
+
+/// `SpannerTable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpannerTable {
+    /// columns property.
+    pub columns: Option<Vec<SpannerColumn>>,
+    /// table property.
+    pub table: Option<String>,
+}
+
+/// `MongodbCluster` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MongodbCluster {
+    /// databases property.
+    pub databases: Option<Vec<MongodbDatabase>>,
+}
+
+/// `SalesforceField` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SalesforceField {
+    /// dataType property.
+    pub data_type: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// nillable property.
+    pub nillable: Option<bool>,
+}
+
+/// `MysqlTable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MysqlTable {
+    /// mysqlColumns property.
+    pub mysql_columns: Option<Vec<MysqlColumn>>,
+    /// table property.
+    pub table: Option<String>,
+}
+
 /// `DiscoverConnectionProfileResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiscoverConnectionProfileResponse {
@@ -84,45 +320,6 @@ pub struct DiscoverConnectionProfileResponse {
     pub sql_server_rdbms: Option<SqlServerRdbms>,
 }
 
-/// `SalesforceOrg` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SalesforceOrg {
-    /// objects property.
-    pub objects: Option<Vec<SalesforceObject>>,
-}
-
-/// `SalesforceObject` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SalesforceObject {
-    /// fields property.
-    pub fields: Option<Vec<SalesforceField>>,
-    /// objectName property.
-    pub object_name: Option<String>,
-}
-
-/// `OracleColumn` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OracleColumn {
-    /// column property.
-    pub column: Option<String>,
-    /// dataType property.
-    pub data_type: Option<String>,
-    /// encoding property.
-    pub encoding: Option<String>,
-    /// length property.
-    pub length: Option<i64>,
-    /// nullable property.
-    pub nullable: Option<bool>,
-    /// ordinalPosition property.
-    pub ordinal_position: Option<i64>,
-    /// precision property.
-    pub precision: Option<i64>,
-    /// primaryKey property.
-    pub primary_key: Option<bool>,
-    /// scale property.
-    pub scale: Option<i64>,
-}
-
 /// `MongodbCollection` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MongodbCollection {
@@ -130,202 +327,6 @@ pub struct MongodbCollection {
     pub collection: Option<String>,
     /// fields property.
     pub fields: Option<Vec<MongodbField>>,
-}
-
-/// `SqlServerRdbms` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerRdbms {
-    /// schemas property.
-    pub schemas: Option<Vec<SqlServerSchema>>,
-}
-
-/// `OracleRdbms` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OracleRdbms {
-    /// oracleSchemas property.
-    pub oracle_schemas: Option<Vec<OracleSchema>>,
-}
-
-/// `MongodbDatabase` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MongodbDatabase {
-    /// collections property.
-    pub collections: Option<Vec<MongodbCollection>>,
-    /// database property.
-    pub database: Option<String>,
-}
-
-/// `SpannerSchema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpannerSchema {
-    /// schema property.
-    pub schema: Option<String>,
-    /// tables property.
-    pub tables: Option<Vec<SpannerTable>>,
-}
-
-/// `SpannerTable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpannerTable {
-    /// columns property.
-    pub columns: Option<Vec<SpannerColumn>>,
-    /// table property.
-    pub table: Option<String>,
-}
-
-/// `SalesforceField` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SalesforceField {
-    /// dataType property.
-    pub data_type: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// nillable property.
-    pub nillable: Option<bool>,
-}
-
-/// `PostgresqlRdbms` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostgresqlRdbms {
-    /// postgresqlSchemas property.
-    pub postgresql_schemas: Option<Vec<PostgresqlSchema>>,
-}
-
-/// `MysqlTable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MysqlTable {
-    /// mysqlColumns property.
-    pub mysql_columns: Option<Vec<MysqlColumn>>,
-    /// table property.
-    pub table: Option<String>,
-}
-
-/// `MongodbCluster` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MongodbCluster {
-    /// databases property.
-    pub databases: Option<Vec<MongodbDatabase>>,
-}
-
-/// `SqlServerSchema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerSchema {
-    /// schema property.
-    pub schema: Option<String>,
-    /// tables property.
-    pub tables: Option<Vec<SqlServerTable>>,
-}
-
-/// `MongodbField` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MongodbField {
-    /// field property.
-    pub field: Option<String>,
-}
-
-/// `SqlServerTable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerTable {
-    /// columns property.
-    pub columns: Option<Vec<SqlServerColumn>>,
-    /// table property.
-    pub table: Option<String>,
-}
-
-/// `SpannerColumn` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpannerColumn {
-    /// column property.
-    pub column: Option<String>,
-    /// dataType property.
-    pub data_type: Option<String>,
-    /// isPrimaryKey property.
-    pub is_primary_key: Option<bool>,
-    /// ordinalPosition property.
-    pub ordinal_position: Option<String>,
-}
-
-/// `PostgresqlSchema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostgresqlSchema {
-    /// postgresqlTables property.
-    pub postgresql_tables: Option<Vec<PostgresqlTable>>,
-    /// schema property.
-    pub schema: Option<String>,
-}
-
-/// `SpannerDatabase` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpannerDatabase {
-    /// schemas property.
-    pub schemas: Option<Vec<SpannerSchema>>,
-}
-
-/// `PostgresqlColumn` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostgresqlColumn {
-    /// column property.
-    pub column: Option<String>,
-    /// dataType property.
-    pub data_type: Option<String>,
-    /// length property.
-    pub length: Option<i64>,
-    /// nullable property.
-    pub nullable: Option<bool>,
-    /// ordinalPosition property.
-    pub ordinal_position: Option<i64>,
-    /// precision property.
-    pub precision: Option<i64>,
-    /// primaryKey property.
-    pub primary_key: Option<bool>,
-    /// scale property.
-    pub scale: Option<i64>,
-}
-
-/// `MysqlRdbms` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MysqlRdbms {
-    /// mysqlDatabases property.
-    pub mysql_databases: Option<Vec<MysqlDatabase>>,
-}
-
-/// `OracleSchema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OracleSchema {
-    /// oracleTables property.
-    pub oracle_tables: Option<Vec<OracleTable>>,
-    /// schema property.
-    pub schema: Option<String>,
-}
-
-/// `PostgresqlTable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostgresqlTable {
-    /// postgresqlColumns property.
-    pub postgresql_columns: Option<Vec<PostgresqlColumn>>,
-    /// table property.
-    pub table: Option<String>,
-}
-
-/// `SqlServerColumn` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerColumn {
-    /// column property.
-    pub column: Option<String>,
-    /// dataType property.
-    pub data_type: Option<String>,
-    /// length property.
-    pub length: Option<i64>,
-    /// nullable property.
-    pub nullable: Option<bool>,
-    /// ordinalPosition property.
-    pub ordinal_position: Option<i64>,
-    /// precision property.
-    pub precision: Option<i64>,
-    /// primaryKey property.
-    pub primary_key: Option<bool>,
-    /// scale property.
-    pub scale: Option<i64>,
 }
 
 // =============================================================================

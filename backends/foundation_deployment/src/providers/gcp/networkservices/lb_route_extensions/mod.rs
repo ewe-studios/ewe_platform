@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,34 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `LbRouteExtension` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LbRouteExtension {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// extensionChains property.
-    pub extension_chains: Option<Vec<ExtensionChain>>,
-    /// forwardingRules property.
-    pub forwarding_rules: Option<Vec<String>>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// loadBalancingScheme property.
-    pub load_balancing_scheme: Option<String>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
 
 /// `ListLbRouteExtensionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -106,6 +84,29 @@ pub struct ExtensionChainExtension {
 pub struct ExtensionChainMatchCondition {
     /// celExpression property.
     pub cel_expression: Option<String>,
+}
+
+/// `LbRouteExtension` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LbRouteExtension {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// extensionChains property.
+    pub extension_chains: Option<Vec<ExtensionChain>>,
+    /// forwardingRules property.
+    pub forwarding_rules: Option<Vec<String>>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// loadBalancingScheme property.
+    pub load_balancing_scheme: Option<String>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
 }
 
 /// `Status` type.

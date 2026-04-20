@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -24,251 +25,11 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudHealthcareV1FhirBigQueryDestination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudHealthcareV1FhirBigQueryDestination {
-    /// datasetUri property.
-    pub dataset_uri: Option<String>,
-    /// force property.
-    pub force: Option<bool>,
-    /// schemaConfig property.
-    pub schema_config: Option<SchemaConfig>,
-    /// writeDisposition property.
-    pub write_disposition: Option<String>,
-}
-
-/// `ExplainDataAccessConsentInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExplainDataAccessConsentInfo {
-    /// cascadeOrigins property.
-    pub cascade_origins: Option<Vec<String>>,
-    /// consentResource property.
-    pub consent_resource: Option<String>,
-    /// enforcementTime property.
-    pub enforcement_time: Option<String>,
-    /// matchingAccessorScopes property.
-    pub matching_accessor_scopes: Option<Vec<ConsentAccessorScope>>,
-    /// patientConsentOwner property.
-    pub patient_consent_owner: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// variants property.
-    pub variants: Option<Vec<String>>,
-}
-
-/// `TextConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextConfig {
-    /// additionalTransformations property.
-    pub additional_transformations: Option<Vec<InfoTypeTransformation>>,
-    /// excludeInfoTypes property.
-    pub exclude_info_types: Option<Vec<String>>,
-    /// transformations property.
-    pub transformations: Option<Vec<InfoTypeTransformation>>,
-}
-
-/// `SchemaConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SchemaConfig {
-    /// lastUpdatedPartitionConfig property.
-    pub last_updated_partition_config: Option<TimePartitioning>,
-    /// recursiveStructureDepth property.
-    pub recursive_structure_depth: Option<String>,
-    /// schemaType property.
-    pub schema_type: Option<String>,
-}
-
-/// `TimePartitioning` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimePartitioning {
-    /// expirationMs property.
-    pub expiration_ms: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `DeidentifiedStoreDestination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeidentifiedStoreDestination {
-    /// config property.
-    pub config: Option<DeidentifyConfig>,
-    /// store property.
-    pub store: Option<String>,
-}
-
-/// `FhirStoreMetric` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FhirStoreMetric {
-    /// count property.
-    pub count: Option<String>,
-    /// resourceType property.
-    pub resource_type: Option<String>,
-    /// structuredStorageSizeBytes property.
-    pub structured_storage_size_bytes: Option<String>,
-    /// versionedStorageSizeBytes property.
-    pub versioned_storage_size_bytes: Option<String>,
-}
-
-/// `ConsentAccessorScope` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConsentAccessorScope {
-    /// actor property.
-    pub actor: Option<String>,
-    /// environment property.
-    pub environment: Option<String>,
-    /// purpose property.
-    pub purpose: Option<String>,
-}
-
-/// `AccessDeterminationLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessDeterminationLogConfig {
-    /// logLevel property.
-    pub log_level: Option<String>,
-}
-
-/// `FhirConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FhirConfig {
-    /// defaultKeepExtensions property.
-    pub default_keep_extensions: Option<bool>,
-    /// fieldMetadataList property.
-    pub field_metadata_list: Option<Vec<FieldMetadata>>,
-}
-
-/// `DicomConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DicomConfig {
-    /// filterProfile property.
-    pub filter_profile: Option<String>,
-    /// keepList property.
-    pub keep_list: Option<TagFilterList>,
-    /// removeList property.
-    pub remove_list: Option<TagFilterList>,
-    /// skipIdRedaction property.
-    pub skip_id_redaction: Option<bool>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `FhirNotificationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FhirNotificationConfig {
-    /// pubsubTopic property.
-    pub pubsub_topic: Option<String>,
-    /// sendFullResource property.
-    pub send_full_resource: Option<bool>,
-    /// sendPreviousResourceOnDelete property.
-    pub send_previous_resource_on_delete: Option<bool>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `RedactConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RedactConfig {}
-
-/// `DateShiftConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DateShiftConfig {
-    /// cryptoKey property.
-    pub crypto_key: Option<String>,
-    /// kmsWrapped property.
-    pub kms_wrapped: Option<KmsWrappedCryptoKey>,
-}
-
-/// `InfoTypeTransformation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InfoTypeTransformation {
-    /// characterMaskConfig property.
-    pub character_mask_config: Option<CharacterMaskConfig>,
-    /// cryptoHashConfig property.
-    pub crypto_hash_config: Option<CryptoHashConfig>,
-    /// dateShiftConfig property.
-    pub date_shift_config: Option<DateShiftConfig>,
-    /// infoTypes property.
-    pub info_types: Option<Vec<String>>,
-    /// redactConfig property.
-    pub redact_config: Option<RedactConfig>,
-    /// replaceWithInfoTypeConfig property.
-    pub replace_with_info_type_config: Option<ReplaceWithInfoTypeConfig>,
-}
-
-/// `CharacterMaskConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CharacterMaskConfig {
-    /// maskingCharacter property.
-    pub masking_character: Option<String>,
-}
-
-/// `BulkExportGcsDestination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BulkExportGcsDestination {
-    /// uriPrefix property.
-    pub uri_prefix: Option<String>,
-}
-
-/// `FhirStoreMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FhirStoreMetrics {
-    /// metrics property.
-    pub metrics: Option<Vec<FhirStoreMetric>>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `ImageConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImageConfig {
-    /// textRedactionMode property.
-    pub text_redaction_mode: Option<String>,
-}
 
 /// `CryptoHashConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -277,67 +38,6 @@ pub struct CryptoHashConfig {
     pub crypto_key: Option<String>,
     /// kmsWrapped property.
     pub kms_wrapped: Option<KmsWrappedCryptoKey>,
-}
-
-/// `ListFhirStoresResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListFhirStoresResponse {
-    /// fhirStores property.
-    pub fhir_stores: Option<Vec<FhirStore>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `StreamConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StreamConfig {
-    /// bigqueryDestination property.
-    pub bigquery_destination: Option<GoogleCloudHealthcareV1FhirBigQueryDestination>,
-    /// deidentifiedStoreDestination property.
-    pub deidentified_store_destination: Option<DeidentifiedStoreDestination>,
-    /// resourceTypes property.
-    pub resource_types: Option<Vec<String>>,
-}
-
-/// `ExplainDataAccessConsentScope` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExplainDataAccessConsentScope {
-    /// accessorScope property.
-    pub accessor_scope: Option<ConsentAccessorScope>,
-    /// decision property.
-    pub decision: Option<String>,
-    /// enforcingConsents property.
-    pub enforcing_consents: Option<Vec<ExplainDataAccessConsentInfo>>,
-    /// exceptions property.
-    pub exceptions: Option<Vec<ExplainDataAccessConsentScope>>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `ReplaceWithInfoTypeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReplaceWithInfoTypeConfig {}
-
-/// `ConsentConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConsentConfig {
-    /// accessDeterminationLogConfig property.
-    pub access_determination_log_config: Option<AccessDeterminationLogConfig>,
-    /// accessEnforced property.
-    pub access_enforced: Option<bool>,
-    /// consentHeaderHandling property.
-    pub consent_header_handling: Option<ConsentHeaderHandling>,
-    /// enforcedAdminConsents property.
-    pub enforced_admin_consents: Option<Vec<String>>,
-    /// version property.
-    pub version: Option<String>,
 }
 
 /// `FhirStore` type.
@@ -373,13 +73,176 @@ pub struct FhirStore {
     pub version: Option<String>,
 }
 
-/// `NotificationConfig` type.
+/// `AuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NotificationConfig {
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `FieldMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FieldMetadata {
+    /// action property.
+    pub action: Option<String>,
+    /// paths property.
+    pub paths: Option<Vec<String>>,
+}
+
+/// `StreamConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StreamConfig {
+    /// bigqueryDestination property.
+    pub bigquery_destination: Option<GoogleCloudHealthcareV1FhirBigQueryDestination>,
+    /// deidentifiedStoreDestination property.
+    pub deidentified_store_destination: Option<DeidentifiedStoreDestination>,
+    /// resourceTypes property.
+    pub resource_types: Option<Vec<String>>,
+}
+
+/// `CharacterMaskConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CharacterMaskConfig {
+    /// maskingCharacter property.
+    pub masking_character: Option<String>,
+}
+
+/// `ReplaceWithInfoTypeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReplaceWithInfoTypeConfig {}
+
+/// `InfoTypeTransformation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InfoTypeTransformation {
+    /// characterMaskConfig property.
+    pub character_mask_config: Option<CharacterMaskConfig>,
+    /// cryptoHashConfig property.
+    pub crypto_hash_config: Option<CryptoHashConfig>,
+    /// dateShiftConfig property.
+    pub date_shift_config: Option<DateShiftConfig>,
+    /// infoTypes property.
+    pub info_types: Option<Vec<String>>,
+    /// redactConfig property.
+    pub redact_config: Option<RedactConfig>,
+    /// replaceWithInfoTypeConfig property.
+    pub replace_with_info_type_config: Option<ReplaceWithInfoTypeConfig>,
+}
+
+/// `RedactConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RedactConfig {}
+
+/// `TimePartitioning` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimePartitioning {
+    /// expirationMs property.
+    pub expiration_ms: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ExplainDataAccessResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExplainDataAccessResponse {
+    /// consentScopes property.
+    pub consent_scopes: Option<Vec<Box<ExplainDataAccessConsentScope>>>,
+    /// warning property.
+    pub warning: Option<String>,
+}
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `KmsWrappedCryptoKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KmsWrappedCryptoKey {
+    /// cryptoKey property.
+    pub crypto_key: Option<String>,
+    /// wrappedKey property.
+    pub wrapped_key: Option<String>,
+}
+
+/// `DeidentifyConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeidentifyConfig {
+    /// dicom property.
+    pub dicom: Option<DicomConfig>,
+    /// fhir property.
+    pub fhir: Option<FhirConfig>,
+    /// image property.
+    pub image: Option<ImageConfig>,
+    /// text property.
+    pub text: Option<TextConfig>,
+    /// useRegionalDataProcessing property.
+    pub use_regional_data_processing: Option<bool>,
+}
+
+/// `DicomConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DicomConfig {
+    /// filterProfile property.
+    pub filter_profile: Option<String>,
+    /// keepList property.
+    pub keep_list: Option<TagFilterList>,
+    /// removeList property.
+    pub remove_list: Option<TagFilterList>,
+    /// skipIdRedaction property.
+    pub skip_id_redaction: Option<bool>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `BulkExportGcsDestination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BulkExportGcsDestination {
+    /// uriPrefix property.
+    pub uri_prefix: Option<String>,
+}
+
+/// `FhirNotificationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FhirNotificationConfig {
     /// pubsubTopic property.
     pub pubsub_topic: Option<String>,
-    /// sendForBulkImport property.
-    pub send_for_bulk_import: Option<bool>,
+    /// sendFullResource property.
+    pub send_full_resource: Option<bool>,
+    /// sendPreviousResourceOnDelete property.
+    pub send_previous_resource_on_delete: Option<bool>,
+}
+
+/// `DateShiftConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DateShiftConfig {
+    /// cryptoKey property.
+    pub crypto_key: Option<String>,
+    /// kmsWrapped property.
+    pub kms_wrapped: Option<KmsWrappedCryptoKey>,
+}
+
+/// `ListFhirStoresResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListFhirStoresResponse {
+    /// fhirStores property.
+    pub fhir_stores: Option<Vec<FhirStore>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `ValidationConfig` type.
@@ -399,44 +262,29 @@ pub struct ValidationConfig {
     pub enabled_implementation_guides: Option<Vec<String>>,
 }
 
-/// `DeidentifyConfig` type.
+/// `FhirStoreMetrics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeidentifyConfig {
-    /// dicom property.
-    pub dicom: Option<DicomConfig>,
-    /// fhir property.
-    pub fhir: Option<FhirConfig>,
-    /// image property.
-    pub image: Option<ImageConfig>,
-    /// text property.
-    pub text: Option<TextConfig>,
-    /// useRegionalDataProcessing property.
-    pub use_regional_data_processing: Option<bool>,
+pub struct FhirStoreMetrics {
+    /// metrics property.
+    pub metrics: Option<Vec<FhirStoreMetric>>,
+    /// name property.
+    pub name: Option<String>,
 }
 
-/// `KmsWrappedCryptoKey` type.
+/// `FhirConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KmsWrappedCryptoKey {
-    /// cryptoKey property.
-    pub crypto_key: Option<String>,
-    /// wrappedKey property.
-    pub wrapped_key: Option<String>,
+pub struct FhirConfig {
+    /// defaultKeepExtensions property.
+    pub default_keep_extensions: Option<bool>,
+    /// fieldMetadataList property.
+    pub field_metadata_list: Option<Vec<FieldMetadata>>,
 }
 
-/// `FieldMetadata` type.
+/// `AccessDeterminationLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FieldMetadata {
-    /// action property.
-    pub action: Option<String>,
-    /// paths property.
-    pub paths: Option<Vec<String>>,
-}
-
-/// `TagFilterList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TagFilterList {
-    /// tags property.
-    pub tags: Option<Vec<String>>,
+pub struct AccessDeterminationLogConfig {
+    /// logLevel property.
+    pub log_level: Option<String>,
 }
 
 /// `ConsentHeaderHandling` type.
@@ -446,13 +294,166 @@ pub struct ConsentHeaderHandling {
     pub profile: Option<String>,
 }
 
-/// `ExplainDataAccessResponse` type.
+/// `FhirStoreMetric` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExplainDataAccessResponse {
-    /// consentScopes property.
-    pub consent_scopes: Option<Vec<ExplainDataAccessConsentScope>>,
-    /// warning property.
-    pub warning: Option<String>,
+pub struct FhirStoreMetric {
+    /// count property.
+    pub count: Option<String>,
+    /// resourceType property.
+    pub resource_type: Option<String>,
+    /// structuredStorageSizeBytes property.
+    pub structured_storage_size_bytes: Option<String>,
+    /// versionedStorageSizeBytes property.
+    pub versioned_storage_size_bytes: Option<String>,
+}
+
+/// `DeidentifiedStoreDestination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeidentifiedStoreDestination {
+    /// config property.
+    pub config: Option<DeidentifyConfig>,
+    /// store property.
+    pub store: Option<String>,
+}
+
+/// `TagFilterList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TagFilterList {
+    /// tags property.
+    pub tags: Option<Vec<String>>,
+}
+
+/// `ExplainDataAccessConsentScope` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExplainDataAccessConsentScope {
+    /// accessorScope property.
+    pub accessor_scope: Option<ConsentAccessorScope>,
+    /// decision property.
+    pub decision: Option<String>,
+    /// enforcingConsents property.
+    pub enforcing_consents: Option<Vec<ExplainDataAccessConsentInfo>>,
+    /// exceptions property.
+    pub exceptions: Option<Vec<Box<ExplainDataAccessConsentScope>>>,
+}
+
+/// `SchemaConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SchemaConfig {
+    /// lastUpdatedPartitionConfig property.
+    pub last_updated_partition_config: Option<TimePartitioning>,
+    /// recursiveStructureDepth property.
+    pub recursive_structure_depth: Option<String>,
+    /// schemaType property.
+    pub schema_type: Option<String>,
+}
+
+/// `TextConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextConfig {
+    /// additionalTransformations property.
+    pub additional_transformations: Option<Vec<InfoTypeTransformation>>,
+    /// excludeInfoTypes property.
+    pub exclude_info_types: Option<Vec<String>>,
+    /// transformations property.
+    pub transformations: Option<Vec<InfoTypeTransformation>>,
+}
+
+/// `ExplainDataAccessConsentInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExplainDataAccessConsentInfo {
+    /// cascadeOrigins property.
+    pub cascade_origins: Option<Vec<String>>,
+    /// consentResource property.
+    pub consent_resource: Option<String>,
+    /// enforcementTime property.
+    pub enforcement_time: Option<String>,
+    /// matchingAccessorScopes property.
+    pub matching_accessor_scopes: Option<Vec<ConsentAccessorScope>>,
+    /// patientConsentOwner property.
+    pub patient_consent_owner: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// variants property.
+    pub variants: Option<Vec<String>>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `ConsentConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConsentConfig {
+    /// accessDeterminationLogConfig property.
+    pub access_determination_log_config: Option<AccessDeterminationLogConfig>,
+    /// accessEnforced property.
+    pub access_enforced: Option<bool>,
+    /// consentHeaderHandling property.
+    pub consent_header_handling: Option<ConsentHeaderHandling>,
+    /// enforcedAdminConsents property.
+    pub enforced_admin_consents: Option<Vec<String>>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `NotificationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NotificationConfig {
+    /// pubsubTopic property.
+    pub pubsub_topic: Option<String>,
+    /// sendForBulkImport property.
+    pub send_for_bulk_import: Option<bool>,
+}
+
+/// `ConsentAccessorScope` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConsentAccessorScope {
+    /// actor property.
+    pub actor: Option<String>,
+    /// environment property.
+    pub environment: Option<String>,
+    /// purpose property.
+    pub purpose: Option<String>,
+}
+
+/// `ImageConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImageConfig {
+    /// textRedactionMode property.
+    pub text_redaction_mode: Option<String>,
+}
+
+/// `GoogleCloudHealthcareV1FhirBigQueryDestination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudHealthcareV1FhirBigQueryDestination {
+    /// datasetUri property.
+    pub dataset_uri: Option<String>,
+    /// force property.
+    pub force: Option<bool>,
+    /// schemaConfig property.
+    pub schema_config: Option<SchemaConfig>,
+    /// writeDisposition property.
+    pub write_disposition: Option<String>,
 }
 
 // =============================================================================

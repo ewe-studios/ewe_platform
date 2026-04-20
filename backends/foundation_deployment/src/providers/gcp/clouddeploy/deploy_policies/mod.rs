@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,45 +23,30 @@ use serde::{Deserialize, Serialize};
 use super::shared::Operation;
 use super::shared::Policy;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `TimeOfDay` type.
+/// `AuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeOfDay {
-    /// hours property.
-    pub hours: Option<i64>,
-    /// minutes property.
-    pub minutes: Option<i64>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<i64>,
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
 }
 
-/// `Date` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `Expr` type.
@@ -76,35 +62,6 @@ pub struct Expr {
     pub title: Option<String>,
 }
 
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `DeliveryPipelineAttribute` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeliveryPipelineAttribute {
-    /// id property.
-    pub id: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
 /// `OneTimeWindow` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OneTimeWindow {
@@ -118,6 +75,19 @@ pub struct OneTimeWindow {
     pub start_time: Option<TimeOfDay>,
 }
 
+/// `RolloutRestriction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RolloutRestriction {
+    /// actions property.
+    pub actions: Option<Vec<String>>,
+    /// id property.
+    pub id: Option<String>,
+    /// invokers property.
+    pub invokers: Option<Vec<String>>,
+    /// timeWindows property.
+    pub time_windows: Option<TimeWindows>,
+}
+
 /// `WeeklyWindow` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WeeklyWindow {
@@ -127,37 +97,6 @@ pub struct WeeklyWindow {
     pub end_time: Option<TimeOfDay>,
     /// startTime property.
     pub start_time: Option<TimeOfDay>,
-}
-
-/// `ListDeployPoliciesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDeployPoliciesResponse {
-    /// deployPolicies property.
-    pub deploy_policies: Option<Vec<DeployPolicy>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `TimeWindows` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeWindows {
-    /// oneTimeWindows property.
-    pub one_time_windows: Option<Vec<OneTimeWindow>>,
-    /// timeZone property.
-    pub time_zone: Option<String>,
-    /// weeklyWindows property.
-    pub weekly_windows: Option<Vec<WeeklyWindow>>,
-}
-
-/// `TargetAttribute` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TargetAttribute {
-    /// id property.
-    pub id: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
 }
 
 /// `DeployPolicy` type.
@@ -187,26 +126,57 @@ pub struct DeployPolicy {
     pub update_time: Option<String>,
 }
 
-/// `AuditLogConfig` type.
+/// `DeployPolicyResourceSelector` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
+pub struct DeployPolicyResourceSelector {
+    /// deliveryPipeline property.
+    pub delivery_pipeline: Option<DeliveryPipelineAttribute>,
+    /// target property.
+    pub target: Option<TargetAttribute>,
 }
 
-/// `RolloutRestriction` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RolloutRestriction {
-    /// actions property.
-    pub actions: Option<Vec<String>>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `DeliveryPipelineAttribute` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeliveryPipelineAttribute {
     /// id property.
     pub id: Option<String>,
-    /// invokers property.
-    pub invokers: Option<Vec<String>>,
-    /// timeWindows property.
-    pub time_windows: Option<TimeWindows>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+}
+
+/// `TimeOfDay` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeOfDay {
+    /// hours property.
+    pub hours: Option<i64>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<i64>,
+}
+
+/// `ListDeployPoliciesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDeployPoliciesResponse {
+    /// deployPolicies property.
+    pub deploy_policies: Option<Vec<DeployPolicy>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `PolicyRule` type.
@@ -216,13 +186,44 @@ pub struct PolicyRule {
     pub rollout_restriction: Option<RolloutRestriction>,
 }
 
-/// `DeployPolicyResourceSelector` type.
+/// `Date` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeployPolicyResourceSelector {
-    /// deliveryPipeline property.
-    pub delivery_pipeline: Option<DeliveryPipelineAttribute>,
-    /// target property.
-    pub target: Option<TargetAttribute>,
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `TargetAttribute` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TargetAttribute {
+    /// id property.
+    pub id: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+}
+
+/// `TimeWindows` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeWindows {
+    /// oneTimeWindows property.
+    pub one_time_windows: Option<Vec<OneTimeWindow>>,
+    /// timeZone property.
+    pub time_zone: Option<String>,
+    /// weeklyWindows property.
+    pub weekly_windows: Option<Vec<WeeklyWindow>>,
 }
 
 // =============================================================================

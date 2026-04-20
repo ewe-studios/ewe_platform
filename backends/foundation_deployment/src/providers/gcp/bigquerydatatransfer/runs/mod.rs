@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,38 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListTransferRunsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListTransferRunsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// transferRuns property.
+    pub transfer_runs: Option<Vec<TransferRun>>,
+}
+
+/// `EmailPreferences` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EmailPreferences {
+    /// enableFailureEmail property.
+    pub enable_failure_email: Option<bool>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
 
 /// `TransferRun` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -60,33 +88,6 @@ pub struct TransferRun {
     pub update_time: Option<String>,
     /// userId property.
     pub user_id: Option<String>,
-}
-
-/// `ListTransferRunsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListTransferRunsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// transferRuns property.
-    pub transfer_runs: Option<Vec<TransferRun>>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `EmailPreferences` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EmailPreferences {
-    /// enableFailureEmail property.
-    pub enable_failure_email: Option<bool>,
 }
 
 // =============================================================================

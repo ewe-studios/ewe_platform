@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -36,48 +37,18 @@ pub struct GoogleCloudApihubV1AuthConfigTemplate {
     pub supported_auth_types: Option<Vec<String>>,
 }
 
-/// `GoogleCloudApihubV1HostingService` type.
+/// `GoogleCloudApihubV1EnumAttributeValues` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1HostingService {
-    /// serviceUri property.
-    pub service_uri: Option<String>,
+pub struct GoogleCloudApihubV1EnumAttributeValues {
+    /// values property.
+    pub values: Option<Vec<GoogleCloudApihubV1AllowedValue>>,
 }
 
-/// `GoogleCloudApihubV1ConfigTemplate` type.
+/// `GoogleCloudApihubV1StringAttributeValues` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1ConfigTemplate {
-    /// additionalConfigTemplate property.
-    pub additional_config_template: Option<Vec<GoogleCloudApihubV1ConfigVariableTemplate>>,
-    /// authConfigTemplate property.
-    pub auth_config_template: Option<GoogleCloudApihubV1AuthConfigTemplate>,
-}
-
-/// `GoogleCloudApihubV1AllowedValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1AllowedValue {
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// immutable property.
-    pub immutable: Option<bool>,
-}
-
-/// `GoogleCloudApihubV1AttributeValues` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1AttributeValues {
-    /// attribute property.
-    pub attribute: Option<String>,
-    /// enumValues property.
-    pub enum_values: Option<GoogleCloudApihubV1EnumAttributeValues>,
-    /// jsonValues property.
-    pub json_values: Option<GoogleCloudApihubV1StringAttributeValues>,
-    /// stringValues property.
-    pub string_values: Option<GoogleCloudApihubV1StringAttributeValues>,
-    /// uriValues property.
-    pub uri_values: Option<GoogleCloudApihubV1StringAttributeValues>,
+pub struct GoogleCloudApihubV1StringAttributeValues {
+    /// values property.
+    pub values: Option<Vec<String>>,
 }
 
 /// `GoogleCloudApihubV1ConfigValueOption` type.
@@ -89,46 +60,6 @@ pub struct GoogleCloudApihubV1ConfigValueOption {
     pub display_name: Option<String>,
     /// id property.
     pub id: Option<String>,
-}
-
-/// `GoogleCloudApihubV1PluginActionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1PluginActionConfig {
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// triggerMode property.
-    pub trigger_mode: Option<String>,
-}
-
-/// `GoogleCloudApihubV1ListPluginsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1ListPluginsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// plugins property.
-    pub plugins: Option<Vec<GoogleCloudApihubV1Plugin>>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudApihubV1Documentation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1Documentation {
-    /// externalUri property.
-    pub external_uri: Option<String>,
 }
 
 /// `GoogleCloudApihubV1Plugin` type.
@@ -164,25 +95,51 @@ pub struct GoogleCloudApihubV1Plugin {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudApihubV1StringAttributeValues` type.
+/// `GoogleCloudApihubV1PluginActionConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1StringAttributeValues {
-    /// values property.
-    pub values: Option<Vec<String>>,
+pub struct GoogleCloudApihubV1PluginActionConfig {
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// triggerMode property.
+    pub trigger_mode: Option<String>,
 }
 
-/// `GoogleCloudApihubV1EnumAttributeValues` type.
+/// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1EnumAttributeValues {
-    /// values property.
-    pub values: Option<Vec<GoogleCloudApihubV1AllowedValue>>,
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
-/// `GoogleCloudApihubV1GoogleServiceAccountConfig` type.
+/// `GoogleCloudApihubV1HostingService` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1GoogleServiceAccountConfig {
-    /// serviceAccount property.
-    pub service_account: Option<String>,
+pub struct GoogleCloudApihubV1HostingService {
+    /// serviceUri property.
+    pub service_uri: Option<String>,
+}
+
+/// `GoogleCloudApihubV1ListPluginsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1ListPluginsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// plugins property.
+    pub plugins: Option<Vec<GoogleCloudApihubV1Plugin>>,
+}
+
+/// `GoogleCloudApihubV1Documentation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1Documentation {
+    /// externalUri property.
+    pub external_uri: Option<String>,
 }
 
 /// `GoogleCloudApihubV1ConfigVariableTemplate` type.
@@ -202,6 +159,50 @@ pub struct GoogleCloudApihubV1ConfigVariableTemplate {
     pub validation_regex: Option<String>,
     /// valueType property.
     pub value_type: Option<String>,
+}
+
+/// `GoogleCloudApihubV1AllowedValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1AllowedValue {
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// immutable property.
+    pub immutable: Option<bool>,
+}
+
+/// `GoogleCloudApihubV1AttributeValues` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1AttributeValues {
+    /// attribute property.
+    pub attribute: Option<String>,
+    /// enumValues property.
+    pub enum_values: Option<GoogleCloudApihubV1EnumAttributeValues>,
+    /// jsonValues property.
+    pub json_values: Option<GoogleCloudApihubV1StringAttributeValues>,
+    /// stringValues property.
+    pub string_values: Option<GoogleCloudApihubV1StringAttributeValues>,
+    /// uriValues property.
+    pub uri_values: Option<GoogleCloudApihubV1StringAttributeValues>,
+}
+
+/// `GoogleCloudApihubV1ConfigTemplate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1ConfigTemplate {
+    /// additionalConfigTemplate property.
+    pub additional_config_template: Option<Vec<GoogleCloudApihubV1ConfigVariableTemplate>>,
+    /// authConfigTemplate property.
+    pub auth_config_template: Option<GoogleCloudApihubV1AuthConfigTemplate>,
+}
+
+/// `GoogleCloudApihubV1GoogleServiceAccountConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1GoogleServiceAccountConfig {
+    /// serviceAccount property.
+    pub service_account: Option<String>,
 }
 
 // =============================================================================

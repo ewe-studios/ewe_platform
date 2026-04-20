@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,20 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `FetchReadWriteTokenResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FetchReadWriteTokenResponse {
-    /// expirationTime property.
-    pub expiration_time: Option<String>,
-    /// token property.
-    pub token: Option<String>,
-}
 
 /// `FetchReadTokenResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,15 +37,13 @@ pub struct FetchReadTokenResponse {
     pub token: Option<String>,
 }
 
-/// `Status` type.
+/// `FetchReadWriteTokenResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct FetchReadWriteTokenResponse {
+    /// expirationTime property.
+    pub expiration_time: Option<String>,
+    /// token property.
+    pub token: Option<String>,
 }
 
 /// `FetchGitRefsResponse` type.
@@ -65,15 +55,15 @@ pub struct FetchGitRefsResponse {
     pub ref_names: Option<Vec<String>>,
 }
 
-/// `ListRepositoriesResponse` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListRepositoriesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// repositories property.
-    pub repositories: Option<Vec<Repository>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `Repository` type.
@@ -93,6 +83,17 @@ pub struct Repository {
     pub update_time: Option<String>,
     /// webhookId property.
     pub webhook_id: Option<String>,
+}
+
+/// `ListRepositoriesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListRepositoriesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// repositories property.
+    pub repositories: Option<Vec<Repository>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 // =============================================================================

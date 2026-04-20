@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListNotificationChannelDescriptorsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListNotificationChannelDescriptorsResponse {
-    /// channelDescriptors property.
-    pub channel_descriptors: Option<Vec<NotificationChannelDescriptor>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `NotificationChannelDescriptor` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -61,6 +53,15 @@ pub struct LabelDescriptor {
     pub key: Option<String>,
     /// valueType property.
     pub value_type: Option<String>,
+}
+
+/// `ListNotificationChannelDescriptorsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListNotificationChannelDescriptorsResponse {
+    /// channelDescriptors property.
+    pub channel_descriptors: Option<Vec<NotificationChannelDescriptor>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

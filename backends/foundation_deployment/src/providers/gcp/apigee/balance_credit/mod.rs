@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,15 +23,15 @@ use serde::{Deserialize, Serialize};
 use super::shared::GoogleCloudApigeeV1AppGroupBalance;
 use super::shared::GoogleCloudApigeeV1DeveloperBalance;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudApigeeV1DeveloperBalanceWallet` type.
+/// `GoogleCloudApigeeV1AppGroupBalanceWallet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1DeveloperBalanceWallet {
+pub struct GoogleCloudApigeeV1AppGroupBalanceWallet {
     /// balance property.
     pub balance: Option<GoogleTypeMoney>,
     /// lastCreditTime property.
@@ -48,9 +49,9 @@ pub struct GoogleTypeMoney {
     pub units: Option<String>,
 }
 
-/// `GoogleCloudApigeeV1AppGroupBalanceWallet` type.
+/// `GoogleCloudApigeeV1DeveloperBalanceWallet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1AppGroupBalanceWallet {
+pub struct GoogleCloudApigeeV1DeveloperBalanceWallet {
     /// balance property.
     pub balance: Option<GoogleTypeMoney>,
     /// lastCreditTime property.

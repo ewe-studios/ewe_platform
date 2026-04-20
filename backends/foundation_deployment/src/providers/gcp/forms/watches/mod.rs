@@ -12,17 +12,40 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Empty;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Watch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Watch {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// errorType property.
+    pub error_type: Option<String>,
+    /// eventType property.
+    pub event_type: Option<String>,
+    /// expireTime property.
+    pub expire_time: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// target property.
+    pub target: Option<WatchTarget>,
+}
 
 /// `CloudPubsubTopic` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,29 +67,6 @@ pub struct ListWatchesResponse {
     /// watches property.
     pub watches: Option<Vec<Watch>>,
 }
-
-/// `Watch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Watch {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// errorType property.
-    pub error_type: Option<String>,
-    /// eventType property.
-    pub event_type: Option<String>,
-    /// expireTime property.
-    pub expire_time: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// target property.
-    pub target: Option<WatchTarget>,
-}
-
-/// `Empty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

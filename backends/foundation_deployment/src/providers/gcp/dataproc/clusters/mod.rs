@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,91 +24,124 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `SoftwareConfig` type.
+/// `KubernetesClusterConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SoftwareConfig {
-    /// imageVersion property.
-    pub image_version: Option<String>,
-    /// optionalComponents property.
-    pub optional_components: Option<Vec<String>>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
+pub struct KubernetesClusterConfig {
+    /// gkeClusterConfig property.
+    pub gke_cluster_config: Option<GkeClusterConfig>,
+    /// kubernetesNamespace property.
+    pub kubernetes_namespace: Option<String>,
+    /// kubernetesSoftwareConfig property.
+    pub kubernetes_software_config: Option<KubernetesSoftwareConfig>,
 }
 
-/// `Expr` type.
+/// `ClusterMetrics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct ClusterMetrics {
+    /// hdfsMetrics property.
+    pub hdfs_metrics: Option<serde_json::Value>,
+    /// yarnMetrics property.
+    pub yarn_metrics: Option<serde_json::Value>,
 }
 
-/// `KubernetesSoftwareConfig` type.
+/// `GkeNodePoolTarget` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KubernetesSoftwareConfig {
-    /// componentVersion property.
-    pub component_version: Option<serde_json::Value>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
+pub struct GkeNodePoolTarget {
+    /// nodePool property.
+    pub node_pool: Option<String>,
+    /// nodePoolConfig property.
+    pub node_pool_config: Option<GkeNodePoolConfig>,
+    /// roles property.
+    pub roles: Option<Vec<String>>,
 }
 
-/// `GceClusterConfig` type.
+/// `LifecycleConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GceClusterConfig {
-    /// autoZoneExcludeZoneUris property.
-    pub auto_zone_exclude_zone_uris: Option<Vec<String>>,
-    /// confidentialInstanceConfig property.
-    pub confidential_instance_config: Option<ConfidentialInstanceConfig>,
-    /// internalIpOnly property.
-    pub internal_ip_only: Option<bool>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// networkUri property.
-    pub network_uri: Option<String>,
-    /// nodeGroupAffinity property.
-    pub node_group_affinity: Option<NodeGroupAffinity>,
-    /// privateIpv6GoogleAccess property.
-    pub private_ipv6_google_access: Option<String>,
-    /// reservationAffinity property.
-    pub reservation_affinity: Option<ReservationAffinity>,
-    /// resourceManagerTags property.
-    pub resource_manager_tags: Option<serde_json::Value>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-    /// serviceAccountScopes property.
-    pub service_account_scopes: Option<Vec<String>>,
-    /// shieldedInstanceConfig property.
-    pub shielded_instance_config: Option<ShieldedInstanceConfig>,
-    /// subnetworkUri property.
-    pub subnetwork_uri: Option<String>,
-    /// tags property.
-    pub tags: Option<Vec<String>>,
-    /// zoneUri property.
-    pub zone_uri: Option<String>,
+pub struct LifecycleConfig {
+    /// autoDeleteTime property.
+    pub auto_delete_time: Option<String>,
+    /// autoDeleteTtl property.
+    pub auto_delete_ttl: Option<String>,
+    /// autoStopTime property.
+    pub auto_stop_time: Option<String>,
+    /// autoStopTtl property.
+    pub auto_stop_ttl: Option<String>,
+    /// idleDeleteTtl property.
+    pub idle_delete_ttl: Option<String>,
+    /// idleStartTime property.
+    pub idle_start_time: Option<String>,
+    /// idleStopTtl property.
+    pub idle_stop_ttl: Option<String>,
 }
 
-/// `ClusterStatus` type.
+/// `AutoscalingConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterStatus {
-    /// detail property.
-    pub detail: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// stateStartTime property.
-    pub state_start_time: Option<String>,
-    /// substate property.
-    pub substate: Option<String>,
+pub struct AutoscalingConfig {
+    /// policyUri property.
+    pub policy_uri: Option<String>,
+}
+
+/// `MetastoreConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetastoreConfig {
+    /// dataprocMetastoreService property.
+    pub dataproc_metastore_service: Option<String>,
+}
+
+/// `Cluster` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Cluster {
+    /// clusterName property.
+    pub cluster_name: Option<String>,
+    /// clusterUuid property.
+    pub cluster_uuid: Option<String>,
+    /// config property.
+    pub config: Option<ClusterConfig>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// metrics property.
+    pub metrics: Option<ClusterMetrics>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// status property.
+    pub status: Option<ClusterStatus>,
+    /// statusHistory property.
+    pub status_history: Option<Vec<ClusterStatus>>,
+    /// virtualClusterConfig property.
+    pub virtual_cluster_config: Option<VirtualClusterConfig>,
+}
+
+/// `SparkHistoryServerConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkHistoryServerConfig {
+    /// dataprocCluster property.
+    pub dataproc_cluster: Option<String>,
+}
+
+/// `AuxiliaryNodeGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuxiliaryNodeGroup {
+    /// nodeGroup property.
+    pub node_group: Option<NodeGroup>,
+    /// nodeGroupId property.
+    pub node_group_id: Option<String>,
+}
+
+/// `VirtualClusterConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VirtualClusterConfig {
+    /// auxiliaryServicesConfig property.
+    pub auxiliary_services_config: Option<AuxiliaryServicesConfig>,
+    /// kubernetesClusterConfig property.
+    pub kubernetes_cluster_config: Option<KubernetesClusterConfig>,
+    /// stagingBucket property.
+    pub staging_bucket: Option<String>,
 }
 
 /// `InstanceFlexibilityPolicy` type.
@@ -143,314 +177,13 @@ pub struct StartupConfig {
     pub required_registration_fraction: Option<f64>,
 }
 
-/// `KubernetesClusterConfig` type.
+/// `InstanceSelectionResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KubernetesClusterConfig {
-    /// gkeClusterConfig property.
-    pub gke_cluster_config: Option<GkeClusterConfig>,
-    /// kubernetesNamespace property.
-    pub kubernetes_namespace: Option<String>,
-    /// kubernetesSoftwareConfig property.
-    pub kubernetes_software_config: Option<KubernetesSoftwareConfig>,
-}
-
-/// `ClusterMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterMetrics {
-    /// hdfsMetrics property.
-    pub hdfs_metrics: Option<serde_json::Value>,
-    /// yarnMetrics property.
-    pub yarn_metrics: Option<serde_json::Value>,
-}
-
-/// `GkeNodePoolConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GkeNodePoolConfig {
-    /// autoscaling property.
-    pub autoscaling: Option<GkeNodePoolAutoscalingConfig>,
-    /// config property.
-    pub config: Option<GkeNodeConfig>,
-    /// locations property.
-    pub locations: Option<Vec<String>>,
-}
-
-/// `VirtualClusterConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VirtualClusterConfig {
-    /// auxiliaryServicesConfig property.
-    pub auxiliary_services_config: Option<AuxiliaryServicesConfig>,
-    /// kubernetesClusterConfig property.
-    pub kubernetes_cluster_config: Option<KubernetesClusterConfig>,
-    /// stagingBucket property.
-    pub staging_bucket: Option<String>,
-}
-
-/// `GkeNodePoolAutoscalingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GkeNodePoolAutoscalingConfig {
-    /// maxNodeCount property.
-    pub max_node_count: Option<i64>,
-    /// minNodeCount property.
-    pub min_node_count: Option<i64>,
-}
-
-/// `NodeInitializationAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeInitializationAction {
-    /// executableFile property.
-    pub executable_file: Option<String>,
-    /// executionTimeout property.
-    pub execution_timeout: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `EndpointConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndpointConfig {
-    /// enableHttpPortAccess property.
-    pub enable_http_port_access: Option<bool>,
-    /// httpPorts property.
-    pub http_ports: Option<serde_json::Value>,
-}
-
-/// `AcceleratorConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcceleratorConfig {
-    /// acceleratorCount property.
-    pub accelerator_count: Option<i64>,
-    /// acceleratorTypeUri property.
-    pub accelerator_type_uri: Option<String>,
-}
-
-/// `ManagedGroupConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedGroupConfig {
-    /// instanceGroupManagerName property.
-    pub instance_group_manager_name: Option<String>,
-    /// instanceGroupManagerUri property.
-    pub instance_group_manager_uri: Option<String>,
-    /// instanceTemplateName property.
-    pub instance_template_name: Option<String>,
-}
-
-/// `NodeGroupAffinity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeGroupAffinity {
-    /// nodeGroupUri property.
-    pub node_group_uri: Option<String>,
-}
-
-/// `ShieldedInstanceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShieldedInstanceConfig {
-    /// enableIntegrityMonitoring property.
-    pub enable_integrity_monitoring: Option<bool>,
-    /// enableSecureBoot property.
-    pub enable_secure_boot: Option<bool>,
-    /// enableVtpm property.
-    pub enable_vtpm: Option<bool>,
-}
-
-/// `Metric` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Metric {
-    /// metricOverrides property.
-    pub metric_overrides: Option<Vec<String>>,
-    /// metricSource property.
-    pub metric_source: Option<String>,
-}
-
-/// `GkeNodePoolTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GkeNodePoolTarget {
-    /// nodePool property.
-    pub node_pool: Option<String>,
-    /// nodePoolConfig property.
-    pub node_pool_config: Option<GkeNodePoolConfig>,
-    /// roles property.
-    pub roles: Option<Vec<String>>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GkeClusterConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GkeClusterConfig {
-    /// gkeClusterTarget property.
-    pub gke_cluster_target: Option<String>,
-    /// namespacedGkeDeploymentTarget property.
-    pub namespaced_gke_deployment_target: Option<NamespacedGkeDeploymentTarget>,
-    /// nodePoolTarget property.
-    pub node_pool_target: Option<Vec<GkeNodePoolTarget>>,
-}
-
-/// `GkeNodePoolAcceleratorConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GkeNodePoolAcceleratorConfig {
-    /// acceleratorCount property.
-    pub accelerator_count: Option<String>,
-    /// acceleratorType property.
-    pub accelerator_type: Option<String>,
-    /// gpuPartitionSize property.
-    pub gpu_partition_size: Option<String>,
-}
-
-/// `AttachedDiskConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AttachedDiskConfig {
-    /// diskSizeGb property.
-    pub disk_size_gb: Option<i64>,
-    /// diskType property.
-    pub disk_type: Option<String>,
-    /// provisionedIops property.
-    pub provisioned_iops: Option<String>,
-    /// provisionedThroughput property.
-    pub provisioned_throughput: Option<String>,
-}
-
-/// `NodeGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeGroup {
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// nodeGroupConfig property.
-    pub node_group_config: Option<InstanceGroupConfig>,
-    /// roles property.
-    pub roles: Option<Vec<String>>,
-}
-
-/// `ProvisioningModelMix` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProvisioningModelMix {
-    /// standardCapacityBase property.
-    pub standard_capacity_base: Option<i64>,
-    /// standardCapacityPercentAboveBase property.
-    pub standard_capacity_percent_above_base: Option<i64>,
-}
-
-/// `InstanceSelection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceSelection {
-    /// machineTypes property.
-    pub machine_types: Option<Vec<String>>,
-    /// rank property.
-    pub rank: Option<i64>,
-}
-
-/// `GkeNodeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GkeNodeConfig {
-    /// accelerators property.
-    pub accelerators: Option<Vec<GkeNodePoolAcceleratorConfig>>,
-    /// bootDiskKmsKey property.
-    pub boot_disk_kms_key: Option<String>,
-    /// localSsdCount property.
-    pub local_ssd_count: Option<i64>,
+pub struct InstanceSelectionResult {
     /// machineType property.
     pub machine_type: Option<String>,
-    /// minCpuPlatform property.
-    pub min_cpu_platform: Option<String>,
-    /// preemptible property.
-    pub preemptible: Option<bool>,
-    /// spot property.
-    pub spot: Option<bool>,
-}
-
-/// `InstanceGroupConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupConfig {
-    /// accelerators property.
-    pub accelerators: Option<Vec<AcceleratorConfig>>,
-    /// diskConfig property.
-    pub disk_config: Option<DiskConfig>,
-    /// imageUri property.
-    pub image_uri: Option<String>,
-    /// instanceFlexibilityPolicy property.
-    pub instance_flexibility_policy: Option<InstanceFlexibilityPolicy>,
-    /// instanceNames property.
-    pub instance_names: Option<Vec<String>>,
-    /// instanceReferences property.
-    pub instance_references: Option<Vec<InstanceReference>>,
-    /// isPreemptible property.
-    pub is_preemptible: Option<bool>,
-    /// machineTypeUri property.
-    pub machine_type_uri: Option<String>,
-    /// managedGroupConfig property.
-    pub managed_group_config: Option<ManagedGroupConfig>,
-    /// minCpuPlatform property.
-    pub min_cpu_platform: Option<String>,
-    /// minNumInstances property.
-    pub min_num_instances: Option<i64>,
-    /// numInstances property.
-    pub num_instances: Option<i64>,
-    /// preemptibility property.
-    pub preemptibility: Option<String>,
-    /// startupConfig property.
-    pub startup_config: Option<StartupConfig>,
-}
-
-/// `AuxiliaryNodeGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuxiliaryNodeGroup {
-    /// nodeGroup property.
-    pub node_group: Option<NodeGroup>,
-    /// nodeGroupId property.
-    pub node_group_id: Option<String>,
-}
-
-/// `ConfidentialInstanceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfidentialInstanceConfig {
-    /// enableConfidentialCompute property.
-    pub enable_confidential_compute: Option<bool>,
-}
-
-/// `EncryptionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionConfig {
-    /// gcePdKmsKeyName property.
-    pub gce_pd_kms_key_name: Option<String>,
-    /// kmsKey property.
-    pub kms_key: Option<String>,
-}
-
-/// `ReservationAffinity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReservationAffinity {
-    /// consumeReservationType property.
-    pub consume_reservation_type: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `AutoscalingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoscalingConfig {
-    /// policyUri property.
-    pub policy_uri: Option<String>,
+    /// vmCount property.
+    pub vm_count: Option<i64>,
 }
 
 /// `DiskConfig` type.
@@ -472,138 +205,13 @@ pub struct DiskConfig {
     pub num_local_ssds: Option<i64>,
 }
 
-/// `MetastoreConfig` type.
+/// `ProvisioningModelMix` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetastoreConfig {
-    /// dataprocMetastoreService property.
-    pub dataproc_metastore_service: Option<String>,
-}
-
-/// `InstanceSelectionResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceSelectionResult {
-    /// machineType property.
-    pub machine_type: Option<String>,
-    /// vmCount property.
-    pub vm_count: Option<i64>,
-}
-
-/// `AuxiliaryServicesConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuxiliaryServicesConfig {
-    /// metastoreConfig property.
-    pub metastore_config: Option<MetastoreConfig>,
-    /// sparkHistoryServerConfig property.
-    pub spark_history_server_config: Option<SparkHistoryServerConfig>,
-}
-
-/// `LifecycleConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LifecycleConfig {
-    /// autoDeleteTime property.
-    pub auto_delete_time: Option<String>,
-    /// autoDeleteTtl property.
-    pub auto_delete_ttl: Option<String>,
-    /// autoStopTime property.
-    pub auto_stop_time: Option<String>,
-    /// autoStopTtl property.
-    pub auto_stop_ttl: Option<String>,
-    /// idleDeleteTtl property.
-    pub idle_delete_ttl: Option<String>,
-    /// idleStartTime property.
-    pub idle_start_time: Option<String>,
-    /// idleStopTtl property.
-    pub idle_stop_ttl: Option<String>,
-}
-
-/// `SecurityConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityConfig {
-    /// identityConfig property.
-    pub identity_config: Option<IdentityConfig>,
-    /// kerberosConfig property.
-    pub kerberos_config: Option<KerberosConfig>,
-}
-
-/// `Cluster` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Cluster {
-    /// clusterName property.
-    pub cluster_name: Option<String>,
-    /// clusterUuid property.
-    pub cluster_uuid: Option<String>,
-    /// config property.
-    pub config: Option<ClusterConfig>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// metrics property.
-    pub metrics: Option<ClusterMetrics>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// status property.
-    pub status: Option<ClusterStatus>,
-    /// statusHistory property.
-    pub status_history: Option<Vec<ClusterStatus>>,
-    /// virtualClusterConfig property.
-    pub virtual_cluster_config: Option<VirtualClusterConfig>,
-}
-
-/// `IdentityConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdentityConfig {
-    /// userServiceAccountMapping property.
-    pub user_service_account_mapping: Option<serde_json::Value>,
-}
-
-/// `DataprocMetricConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataprocMetricConfig {
-    /// metrics property.
-    pub metrics: Option<Vec<Metric>>,
-}
-
-/// `KerberosConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KerberosConfig {
-    /// crossRealmTrustAdminServer property.
-    pub cross_realm_trust_admin_server: Option<String>,
-    /// crossRealmTrustKdc property.
-    pub cross_realm_trust_kdc: Option<String>,
-    /// crossRealmTrustRealm property.
-    pub cross_realm_trust_realm: Option<String>,
-    /// crossRealmTrustSharedPasswordUri property.
-    pub cross_realm_trust_shared_password_uri: Option<String>,
-    /// enableKerberos property.
-    pub enable_kerberos: Option<bool>,
-    /// kdcDbKeyUri property.
-    pub kdc_db_key_uri: Option<String>,
-    /// keyPasswordUri property.
-    pub key_password_uri: Option<String>,
-    /// keystorePasswordUri property.
-    pub keystore_password_uri: Option<String>,
-    /// keystoreUri property.
-    pub keystore_uri: Option<String>,
-    /// kmsKeyUri property.
-    pub kms_key_uri: Option<String>,
-    /// realm property.
-    pub realm: Option<String>,
-    /// rootPrincipalPasswordUri property.
-    pub root_principal_password_uri: Option<String>,
-    /// tgtLifetimeHours property.
-    pub tgt_lifetime_hours: Option<i64>,
-    /// truststorePasswordUri property.
-    pub truststore_password_uri: Option<String>,
-    /// truststoreUri property.
-    pub truststore_uri: Option<String>,
-}
-
-/// `ListClustersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListClustersResponse {
-    /// clusters property.
-    pub clusters: Option<Vec<Cluster>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct ProvisioningModelMix {
+    /// standardCapacityBase property.
+    pub standard_capacity_base: Option<i64>,
+    /// standardCapacityPercentAboveBase property.
+    pub standard_capacity_percent_above_base: Option<i64>,
 }
 
 /// `NamespacedGkeDeploymentTarget` type.
@@ -615,11 +223,78 @@ pub struct NamespacedGkeDeploymentTarget {
     pub target_gke_cluster: Option<String>,
 }
 
-/// `SparkHistoryServerConfig` type.
+/// `InstanceSelection` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkHistoryServerConfig {
-    /// dataprocCluster property.
-    pub dataproc_cluster: Option<String>,
+pub struct InstanceSelection {
+    /// machineTypes property.
+    pub machine_types: Option<Vec<String>>,
+    /// rank property.
+    pub rank: Option<i64>,
+}
+
+/// `SecurityConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityConfig {
+    /// identityConfig property.
+    pub identity_config: Option<IdentityConfig>,
+    /// kerberosConfig property.
+    pub kerberos_config: Option<KerberosConfig>,
+}
+
+/// `IdentityConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IdentityConfig {
+    /// userServiceAccountMapping property.
+    pub user_service_account_mapping: Option<serde_json::Value>,
+}
+
+/// `AttachedDiskConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AttachedDiskConfig {
+    /// diskSizeGb property.
+    pub disk_size_gb: Option<i64>,
+    /// diskType property.
+    pub disk_type: Option<String>,
+    /// provisionedIops property.
+    pub provisioned_iops: Option<String>,
+    /// provisionedThroughput property.
+    pub provisioned_throughput: Option<String>,
+}
+
+/// `EndpointConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EndpointConfig {
+    /// enableHttpPortAccess property.
+    pub enable_http_port_access: Option<bool>,
+    /// httpPorts property.
+    pub http_ports: Option<serde_json::Value>,
+}
+
+/// `GkeNodePoolAutoscalingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GkeNodePoolAutoscalingConfig {
+    /// maxNodeCount property.
+    pub max_node_count: Option<i64>,
+    /// minNodeCount property.
+    pub min_node_count: Option<i64>,
+}
+
+/// `EncryptionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EncryptionConfig {
+    /// gcePdKmsKeyName property.
+    pub gce_pd_kms_key_name: Option<String>,
+    /// kmsKey property.
+    pub kms_key: Option<String>,
+}
+
+/// `NodeInitializationAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodeInitializationAction {
+    /// executableFile property.
+    pub executable_file: Option<String>,
+    /// executionTimeout property.
+    pub execution_timeout: Option<String>,
 }
 
 /// `ClusterConfig` type.
@@ -667,6 +342,332 @@ pub struct ClusterConfig {
     pub temp_bucket: Option<String>,
     /// workerConfig property.
     pub worker_config: Option<InstanceGroupConfig>,
+}
+
+/// `ShieldedInstanceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShieldedInstanceConfig {
+    /// enableIntegrityMonitoring property.
+    pub enable_integrity_monitoring: Option<bool>,
+    /// enableSecureBoot property.
+    pub enable_secure_boot: Option<bool>,
+    /// enableVtpm property.
+    pub enable_vtpm: Option<bool>,
+}
+
+/// `InstanceGroupConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupConfig {
+    /// accelerators property.
+    pub accelerators: Option<Vec<AcceleratorConfig>>,
+    /// diskConfig property.
+    pub disk_config: Option<DiskConfig>,
+    /// imageUri property.
+    pub image_uri: Option<String>,
+    /// instanceFlexibilityPolicy property.
+    pub instance_flexibility_policy: Option<InstanceFlexibilityPolicy>,
+    /// instanceNames property.
+    pub instance_names: Option<Vec<String>>,
+    /// instanceReferences property.
+    pub instance_references: Option<Vec<InstanceReference>>,
+    /// isPreemptible property.
+    pub is_preemptible: Option<bool>,
+    /// machineTypeUri property.
+    pub machine_type_uri: Option<String>,
+    /// managedGroupConfig property.
+    pub managed_group_config: Option<ManagedGroupConfig>,
+    /// minCpuPlatform property.
+    pub min_cpu_platform: Option<String>,
+    /// minNumInstances property.
+    pub min_num_instances: Option<i64>,
+    /// numInstances property.
+    pub num_instances: Option<i64>,
+    /// preemptibility property.
+    pub preemptibility: Option<String>,
+    /// startupConfig property.
+    pub startup_config: Option<StartupConfig>,
+}
+
+/// `AcceleratorConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AcceleratorConfig {
+    /// acceleratorCount property.
+    pub accelerator_count: Option<i64>,
+    /// acceleratorTypeUri property.
+    pub accelerator_type_uri: Option<String>,
+}
+
+/// `AuxiliaryServicesConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuxiliaryServicesConfig {
+    /// metastoreConfig property.
+    pub metastore_config: Option<MetastoreConfig>,
+    /// sparkHistoryServerConfig property.
+    pub spark_history_server_config: Option<SparkHistoryServerConfig>,
+}
+
+/// `GkeNodePoolAcceleratorConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GkeNodePoolAcceleratorConfig {
+    /// acceleratorCount property.
+    pub accelerator_count: Option<String>,
+    /// acceleratorType property.
+    pub accelerator_type: Option<String>,
+    /// gpuPartitionSize property.
+    pub gpu_partition_size: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `NodeGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodeGroup {
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// nodeGroupConfig property.
+    pub node_group_config: Option<InstanceGroupConfig>,
+    /// roles property.
+    pub roles: Option<Vec<String>>,
+}
+
+/// `GceClusterConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GceClusterConfig {
+    /// autoZoneExcludeZoneUris property.
+    pub auto_zone_exclude_zone_uris: Option<Vec<String>>,
+    /// confidentialInstanceConfig property.
+    pub confidential_instance_config: Option<ConfidentialInstanceConfig>,
+    /// internalIpOnly property.
+    pub internal_ip_only: Option<bool>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// networkUri property.
+    pub network_uri: Option<String>,
+    /// nodeGroupAffinity property.
+    pub node_group_affinity: Option<NodeGroupAffinity>,
+    /// privateIpv6GoogleAccess property.
+    pub private_ipv6_google_access: Option<String>,
+    /// reservationAffinity property.
+    pub reservation_affinity: Option<ReservationAffinity>,
+    /// resourceManagerTags property.
+    pub resource_manager_tags: Option<serde_json::Value>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// serviceAccountScopes property.
+    pub service_account_scopes: Option<Vec<String>>,
+    /// shieldedInstanceConfig property.
+    pub shielded_instance_config: Option<ShieldedInstanceConfig>,
+    /// subnetworkUri property.
+    pub subnetwork_uri: Option<String>,
+    /// tags property.
+    pub tags: Option<Vec<String>>,
+    /// zoneUri property.
+    pub zone_uri: Option<String>,
+}
+
+/// `ListClustersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListClustersResponse {
+    /// clusters property.
+    pub clusters: Option<Vec<Cluster>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `KerberosConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KerberosConfig {
+    /// crossRealmTrustAdminServer property.
+    pub cross_realm_trust_admin_server: Option<String>,
+    /// crossRealmTrustKdc property.
+    pub cross_realm_trust_kdc: Option<String>,
+    /// crossRealmTrustRealm property.
+    pub cross_realm_trust_realm: Option<String>,
+    /// crossRealmTrustSharedPasswordUri property.
+    pub cross_realm_trust_shared_password_uri: Option<String>,
+    /// enableKerberos property.
+    pub enable_kerberos: Option<bool>,
+    /// kdcDbKeyUri property.
+    pub kdc_db_key_uri: Option<String>,
+    /// keyPasswordUri property.
+    pub key_password_uri: Option<String>,
+    /// keystorePasswordUri property.
+    pub keystore_password_uri: Option<String>,
+    /// keystoreUri property.
+    pub keystore_uri: Option<String>,
+    /// kmsKeyUri property.
+    pub kms_key_uri: Option<String>,
+    /// realm property.
+    pub realm: Option<String>,
+    /// rootPrincipalPasswordUri property.
+    pub root_principal_password_uri: Option<String>,
+    /// tgtLifetimeHours property.
+    pub tgt_lifetime_hours: Option<i64>,
+    /// truststorePasswordUri property.
+    pub truststore_password_uri: Option<String>,
+    /// truststoreUri property.
+    pub truststore_uri: Option<String>,
+}
+
+/// `GkeNodeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GkeNodeConfig {
+    /// accelerators property.
+    pub accelerators: Option<Vec<GkeNodePoolAcceleratorConfig>>,
+    /// bootDiskKmsKey property.
+    pub boot_disk_kms_key: Option<String>,
+    /// localSsdCount property.
+    pub local_ssd_count: Option<i64>,
+    /// machineType property.
+    pub machine_type: Option<String>,
+    /// minCpuPlatform property.
+    pub min_cpu_platform: Option<String>,
+    /// preemptible property.
+    pub preemptible: Option<bool>,
+    /// spot property.
+    pub spot: Option<bool>,
+}
+
+/// `SoftwareConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SoftwareConfig {
+    /// imageVersion property.
+    pub image_version: Option<String>,
+    /// optionalComponents property.
+    pub optional_components: Option<Vec<String>>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
+}
+
+/// `GkeClusterConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GkeClusterConfig {
+    /// gkeClusterTarget property.
+    pub gke_cluster_target: Option<String>,
+    /// namespacedGkeDeploymentTarget property.
+    pub namespaced_gke_deployment_target: Option<NamespacedGkeDeploymentTarget>,
+    /// nodePoolTarget property.
+    pub node_pool_target: Option<Vec<GkeNodePoolTarget>>,
+}
+
+/// `KubernetesSoftwareConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KubernetesSoftwareConfig {
+    /// componentVersion property.
+    pub component_version: Option<serde_json::Value>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
+}
+
+/// `DataprocMetricConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataprocMetricConfig {
+    /// metrics property.
+    pub metrics: Option<Vec<Metric>>,
+}
+
+/// `ManagedGroupConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedGroupConfig {
+    /// instanceGroupManagerName property.
+    pub instance_group_manager_name: Option<String>,
+    /// instanceGroupManagerUri property.
+    pub instance_group_manager_uri: Option<String>,
+    /// instanceTemplateName property.
+    pub instance_template_name: Option<String>,
+}
+
+/// `ReservationAffinity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReservationAffinity {
+    /// consumeReservationType property.
+    pub consume_reservation_type: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `Metric` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Metric {
+    /// metricOverrides property.
+    pub metric_overrides: Option<Vec<String>>,
+    /// metricSource property.
+    pub metric_source: Option<String>,
+}
+
+/// `GkeNodePoolConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GkeNodePoolConfig {
+    /// autoscaling property.
+    pub autoscaling: Option<GkeNodePoolAutoscalingConfig>,
+    /// config property.
+    pub config: Option<GkeNodeConfig>,
+    /// locations property.
+    pub locations: Option<Vec<String>>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ClusterStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterStatus {
+    /// detail property.
+    pub detail: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// stateStartTime property.
+    pub state_start_time: Option<String>,
+    /// substate property.
+    pub substate: Option<String>,
+}
+
+/// `ConfidentialInstanceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfidentialInstanceConfig {
+    /// enableConfidentialCompute property.
+    pub enable_confidential_compute: Option<bool>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `NodeGroupAffinity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodeGroupAffinity {
+    /// nodeGroupUri property.
+    pub node_group_uri: Option<String>,
 }
 
 // =============================================================================

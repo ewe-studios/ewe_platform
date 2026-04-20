@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,26 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudDocumentaiV1DocumentSchemaEntityTypeProperty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentSchemaEntityTypeProperty {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// method property.
-    pub method: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// occurrenceType property.
-    pub occurrence_type: Option<String>,
-    /// valueType property.
-    pub value_type: Option<String>,
-}
 
 /// `GoogleCloudDocumentaiV1DocumentSchemaEntityTypeEnumValues` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -64,19 +50,13 @@ pub struct GoogleCloudDocumentaiV1DocumentSchemaEntityType {
     pub properties: Option<Vec<GoogleCloudDocumentaiV1DocumentSchemaEntityTypeProperty>>,
 }
 
-/// `GoogleCloudDocumentaiV1DocumentSchema` type.
+/// `GoogleCloudDocumentaiV1ListSchemaVersionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentSchema {
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// documentPrompt property.
-    pub document_prompt: Option<String>,
-    /// entityTypes property.
-    pub entity_types: Option<Vec<GoogleCloudDocumentaiV1DocumentSchemaEntityType>>,
-    /// metadata property.
-    pub metadata: Option<GoogleCloudDocumentaiV1DocumentSchemaMetadata>,
+pub struct GoogleCloudDocumentaiV1ListSchemaVersionsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// schemaVersions property.
+    pub schema_versions: Option<Vec<GoogleCloudDocumentaiV1SchemaVersion>>,
 }
 
 /// `GoogleCloudDocumentaiV1SchemaVersion` type.
@@ -94,19 +74,6 @@ pub struct GoogleCloudDocumentaiV1SchemaVersion {
     pub schema: Option<GoogleCloudDocumentaiV1DocumentSchema>,
 }
 
-/// `GoogleCloudDocumentaiV1DocumentSchemaMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentSchemaMetadata {
-    /// documentAllowMultipleLabels property.
-    pub document_allow_multiple_labels: Option<bool>,
-    /// documentSplitter property.
-    pub document_splitter: Option<bool>,
-    /// prefixedNamingOnProperties property.
-    pub prefixed_naming_on_properties: Option<bool>,
-    /// skipNamingValidation property.
-    pub skip_naming_validation: Option<bool>,
-}
-
 /// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
@@ -118,13 +85,47 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `GoogleCloudDocumentaiV1ListSchemaVersionsResponse` type.
+/// `GoogleCloudDocumentaiV1DocumentSchema` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1ListSchemaVersionsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// schemaVersions property.
-    pub schema_versions: Option<Vec<GoogleCloudDocumentaiV1SchemaVersion>>,
+pub struct GoogleCloudDocumentaiV1DocumentSchema {
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// documentPrompt property.
+    pub document_prompt: Option<String>,
+    /// entityTypes property.
+    pub entity_types: Option<Vec<GoogleCloudDocumentaiV1DocumentSchemaEntityType>>,
+    /// metadata property.
+    pub metadata: Option<GoogleCloudDocumentaiV1DocumentSchemaMetadata>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentSchemaEntityTypeProperty` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentSchemaEntityTypeProperty {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// method property.
+    pub method: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// occurrenceType property.
+    pub occurrence_type: Option<String>,
+    /// valueType property.
+    pub value_type: Option<String>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentSchemaMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentSchemaMetadata {
+    /// documentAllowMultipleLabels property.
+    pub document_allow_multiple_labels: Option<bool>,
+    /// documentSplitter property.
+    pub document_splitter: Option<bool>,
+    /// prefixedNamingOnProperties property.
+    pub prefixed_naming_on_properties: Option<bool>,
+    /// skipNamingValidation property.
+    pub skip_naming_validation: Option<bool>,
 }
 
 // =============================================================================

@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -27,6 +28,22 @@ use super::shared::ApiResponse;
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `VPCEndpointsWithRegionResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VPCEndpointsWithRegionResponse {
+    /// endpoints property.
+    pub endpoints: Vec<VPCEndpointWithRegion>,
+}
+
+/// `VPCEndpoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VPCEndpoint {
+    /// label property.
+    pub label: String,
+    /// vpc_endpoint_id property.
+    pub vpc_endpoint_id: String,
+}
 
 /// `VPCEndpointDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -48,22 +65,6 @@ pub struct VPCEndpointDetails {
 pub struct VPCEndpointWithRegion {
     /// `region_id` property.
     pub region_id: String,
-}
-
-/// `VPCEndpoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VPCEndpoint {
-    /// label property.
-    pub label: String,
-    /// vpc_endpoint_id property.
-    pub vpc_endpoint_id: String,
-}
-
-/// `VPCEndpointsWithRegionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VPCEndpointsWithRegionResponse {
-    /// endpoints property.
-    pub endpoints: Vec<VPCEndpointWithRegion>,
 }
 
 // =============================================================================

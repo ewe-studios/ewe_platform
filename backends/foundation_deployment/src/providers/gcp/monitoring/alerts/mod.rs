@@ -12,30 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `PolicySnapshot` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PolicySnapshot {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// severity property.
-    pub severity: Option<String>,
-    /// userLabels property.
-    pub user_labels: Option<serde_json::Value>,
-}
 
 /// `MonitoredResource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -57,20 +45,13 @@ pub struct ListAlertsResponse {
     pub total_size: Option<i64>,
 }
 
-/// `MonitoredResourceMetadata` type.
+/// `Metric` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MonitoredResourceMetadata {
-    /// systemLabels property.
-    pub system_labels: Option<serde_json::Value>,
-    /// userLabels property.
-    pub user_labels: Option<serde_json::Value>,
-}
-
-/// `LogMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LogMetadata {
-    /// extractedLabels property.
-    pub extracted_labels: Option<serde_json::Value>,
+pub struct Metric {
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `Alert` type.
@@ -96,13 +77,33 @@ pub struct Alert {
     pub state: Option<String>,
 }
 
-/// `Metric` type.
+/// `MonitoredResourceMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Metric {
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct MonitoredResourceMetadata {
+    /// systemLabels property.
+    pub system_labels: Option<serde_json::Value>,
+    /// userLabels property.
+    pub user_labels: Option<serde_json::Value>,
+}
+
+/// `LogMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogMetadata {
+    /// extractedLabels property.
+    pub extracted_labels: Option<serde_json::Value>,
+}
+
+/// `PolicySnapshot` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PolicySnapshot {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// severity property.
+    pub severity: Option<String>,
+    /// userLabels property.
+    pub user_labels: Option<serde_json::Value>,
 }
 
 // =============================================================================

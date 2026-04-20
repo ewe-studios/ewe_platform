@@ -12,23 +12,55 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `InspectUrlIndexResponse` type.
+/// `AmpIssue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InspectUrlIndexResponse {
-    /// inspectionResult property.
-    pub inspection_result: Option<UrlInspectionResult>,
+pub struct AmpIssue {
+    /// issueMessage property.
+    pub issue_message: Option<String>,
+    /// severity property.
+    pub severity: Option<String>,
+}
+
+/// `RichResultsInspectionResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RichResultsInspectionResult {
+    /// detectedItems property.
+    pub detected_items: Option<Vec<DetectedItems>>,
+    /// verdict property.
+    pub verdict: Option<String>,
+}
+
+/// `MobileUsabilityIssue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MobileUsabilityIssue {
+    /// issueType property.
+    pub issue_type: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// severity property.
+    pub severity: Option<String>,
+}
+
+/// `MobileUsabilityInspectionResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MobileUsabilityInspectionResult {
+    /// issues property.
+    pub issues: Option<Vec<MobileUsabilityIssue>>,
+    /// verdict property.
+    pub verdict: Option<String>,
 }
 
 /// `IndexStatusInspectionResult` type.
@@ -58,6 +90,31 @@ pub struct IndexStatusInspectionResult {
     pub verdict: Option<String>,
 }
 
+/// `Item` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Item {
+    /// issues property.
+    pub issues: Option<Vec<RichResultsIssue>>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `InspectUrlIndexResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InspectUrlIndexResponse {
+    /// inspectionResult property.
+    pub inspection_result: Option<UrlInspectionResult>,
+}
+
+/// `DetectedItems` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DetectedItems {
+    /// items property.
+    pub items: Option<Vec<Item>>,
+    /// richResultType property.
+    pub rich_result_type: Option<String>,
+}
+
 /// `UrlInspectionResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlInspectionResult {
@@ -71,51 +128,6 @@ pub struct UrlInspectionResult {
     pub mobile_usability_result: Option<MobileUsabilityInspectionResult>,
     /// richResultsResult property.
     pub rich_results_result: Option<RichResultsInspectionResult>,
-}
-
-/// `RichResultsInspectionResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RichResultsInspectionResult {
-    /// detectedItems property.
-    pub detected_items: Option<Vec<DetectedItems>>,
-    /// verdict property.
-    pub verdict: Option<String>,
-}
-
-/// `Item` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Item {
-    /// issues property.
-    pub issues: Option<Vec<RichResultsIssue>>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `RichResultsIssue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RichResultsIssue {
-    /// issueMessage property.
-    pub issue_message: Option<String>,
-    /// severity property.
-    pub severity: Option<String>,
-}
-
-/// `AmpIssue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AmpIssue {
-    /// issueMessage property.
-    pub issue_message: Option<String>,
-    /// severity property.
-    pub severity: Option<String>,
-}
-
-/// `MobileUsabilityInspectionResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MobileUsabilityInspectionResult {
-    /// issues property.
-    pub issues: Option<Vec<MobileUsabilityIssue>>,
-    /// verdict property.
-    pub verdict: Option<String>,
 }
 
 /// `AmpInspectionResult` type.
@@ -139,24 +151,13 @@ pub struct AmpInspectionResult {
     pub verdict: Option<String>,
 }
 
-/// `MobileUsabilityIssue` type.
+/// `RichResultsIssue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MobileUsabilityIssue {
-    /// issueType property.
-    pub issue_type: Option<String>,
-    /// message property.
-    pub message: Option<String>,
+pub struct RichResultsIssue {
+    /// issueMessage property.
+    pub issue_message: Option<String>,
     /// severity property.
     pub severity: Option<String>,
-}
-
-/// `DetectedItems` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DetectedItems {
-    /// items property.
-    pub items: Option<Vec<Item>>,
-    /// richResultType property.
-    pub rich_result_type: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,25 +22,41 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `ListAssetsExportJobsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAssetsExportJobsResponse {
+    /// assetsExportJobs property.
+    pub assets_export_jobs: Option<Vec<AssetsExportJob>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
 /// `AssetsExportJobInventory` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssetsExportJobInventory {}
 
-/// `Status` type.
+/// `OutputFile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct OutputFile {
+    /// csvOutputFile property.
+    pub csv_output_file: Option<CsvOutputFile>,
+    /// fileSizeBytes property.
+    pub file_size_bytes: Option<String>,
+    /// xlsxOutputFile property.
+    pub xlsx_output_file: Option<XlsxOutputFile>,
+}
+
+/// `SignedUriDestination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SignedUriDestination {
+    /// fileFormat property.
+    pub file_format: Option<String>,
 }
 
 /// `CsvOutputFile` type.
@@ -53,38 +70,15 @@ pub struct CsvOutputFile {
     pub signed_uri: Option<SignedUri>,
 }
 
-/// `AssetsExportJobExportCondition` type.
+/// `AssetsExportJobNetworkDependencies` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AssetsExportJobExportCondition {
-    /// filter property.
-    pub filter: Option<String>,
-}
+pub struct AssetsExportJobNetworkDependencies {}
 
-/// `OutputFile` type.
+/// `OutputFileList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OutputFile {
-    /// csvOutputFile property.
-    pub csv_output_file: Option<CsvOutputFile>,
-    /// fileSizeBytes property.
-    pub file_size_bytes: Option<String>,
-    /// xlsxOutputFile property.
-    pub xlsx_output_file: Option<XlsxOutputFile>,
-}
-
-/// `SignedUris` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SignedUris {
-    /// signedUris property.
-    pub signed_uris: Option<Vec<SignedUri>>,
-}
-
-/// `SignedUri` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SignedUri {
-    /// file property.
-    pub file: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
+pub struct OutputFileList {
+    /// entries property.
+    pub entries: Option<Vec<OutputFile>>,
 }
 
 /// `AssetsExportJob` type.
@@ -114,18 +108,56 @@ pub struct AssetsExportJob {
     pub update_time: Option<String>,
 }
 
-/// `SignedUriDestination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SignedUriDestination {
-    /// fileFormat property.
-    pub file_format: Option<String>,
-}
-
 /// `AssetsExportJobPerformanceData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssetsExportJobPerformanceData {
     /// maxDays property.
     pub max_days: Option<i64>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `AssetsExportJobExportCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AssetsExportJobExportCondition {
+    /// filter property.
+    pub filter: Option<String>,
+}
+
+/// `SignedUri` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SignedUri {
+    /// file property.
+    pub file: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `AssetsExportJobExecutionResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AssetsExportJobExecutionResult {
+    /// error property.
+    pub error: Option<Status>,
+    /// outputFiles property.
+    pub output_files: Option<OutputFileList>,
+    /// signedUris property.
+    pub signed_uris: Option<SignedUris>,
+}
+
+/// `SignedUris` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SignedUris {
+    /// signedUris property.
+    pub signed_uris: Option<Vec<SignedUri>>,
 }
 
 /// `AssetsExportJobExecution` type.
@@ -143,37 +175,6 @@ pub struct AssetsExportJobExecution {
     pub result: Option<AssetsExportJobExecutionResult>,
     /// startTime property.
     pub start_time: Option<String>,
-}
-
-/// `AssetsExportJobExecutionResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AssetsExportJobExecutionResult {
-    /// error property.
-    pub error: Option<Status>,
-    /// outputFiles property.
-    pub output_files: Option<OutputFileList>,
-    /// signedUris property.
-    pub signed_uris: Option<SignedUris>,
-}
-
-/// `ListAssetsExportJobsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAssetsExportJobsResponse {
-    /// assetsExportJobs property.
-    pub assets_export_jobs: Option<Vec<AssetsExportJob>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `AssetsExportJobNetworkDependencies` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AssetsExportJobNetworkDependencies {}
-
-/// `OutputFileList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OutputFileList {
-    /// entries property.
-    pub entries: Option<Vec<OutputFile>>,
 }
 
 /// `XlsxOutputFile` type.

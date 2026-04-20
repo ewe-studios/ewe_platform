@@ -12,23 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `NavigationInfo` type.
+/// `AnalyticsInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NavigationInfo {
-    /// enableForcedRedirect property.
-    pub enable_forced_redirect: Option<bool>,
+pub struct AnalyticsInfo {
+    /// googlePlayAnalytics property.
+    pub google_play_analytics: Option<GooglePlayAnalytics>,
+    /// itunesConnectAnalytics property.
+    pub itunes_connect_analytics: Option<ITunesConnectAnalytics>,
 }
 
 /// `IosInfo` type.
@@ -67,23 +70,6 @@ pub struct ManagedShortLink {
     pub visibility: Option<String>,
 }
 
-/// `GooglePlayAnalytics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePlayAnalytics {
-    /// gclid property.
-    pub gclid: Option<String>,
-    /// utmCampaign property.
-    pub utm_campaign: Option<String>,
-    /// utmContent property.
-    pub utm_content: Option<String>,
-    /// utmMedium property.
-    pub utm_medium: Option<String>,
-    /// utmSource property.
-    pub utm_source: Option<String>,
-    /// utmTerm property.
-    pub utm_term: Option<String>,
-}
-
 /// `SocialMetaTagInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SocialMetaTagInfo {
@@ -95,24 +81,15 @@ pub struct SocialMetaTagInfo {
     pub social_title: Option<String>,
 }
 
-/// `DesktopInfo` type.
+/// `CreateManagedShortLinkResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DesktopInfo {
-    /// desktopFallbackLink property.
-    pub desktop_fallback_link: Option<String>,
-}
-
-/// `ITunesConnectAnalytics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ITunesConnectAnalytics {
-    /// at property.
-    pub at: Option<String>,
-    /// ct property.
-    pub ct: Option<String>,
-    /// mt property.
-    pub mt: Option<String>,
-    /// pt property.
-    pub pt: Option<String>,
+pub struct CreateManagedShortLinkResponse {
+    /// managedShortLink property.
+    pub managed_short_link: Option<ManagedShortLink>,
+    /// previewLink property.
+    pub preview_link: Option<String>,
+    /// warning property.
+    pub warning: Option<Vec<DynamicLinkWarning>>,
 }
 
 /// `DynamicLinkWarning` type.
@@ -126,15 +103,11 @@ pub struct DynamicLinkWarning {
     pub warning_message: Option<String>,
 }
 
-/// `CreateManagedShortLinkResponse` type.
+/// `DesktopInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateManagedShortLinkResponse {
-    /// managedShortLink property.
-    pub managed_short_link: Option<ManagedShortLink>,
-    /// previewLink property.
-    pub preview_link: Option<String>,
-    /// warning property.
-    pub warning: Option<Vec<DynamicLinkWarning>>,
+pub struct DesktopInfo {
+    /// desktopFallbackLink property.
+    pub desktop_fallback_link: Option<String>,
 }
 
 /// `DynamicLinkInfo` type.
@@ -160,13 +133,41 @@ pub struct DynamicLinkInfo {
     pub social_meta_tag_info: Option<SocialMetaTagInfo>,
 }
 
-/// `AnalyticsInfo` type.
+/// `NavigationInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AnalyticsInfo {
-    /// googlePlayAnalytics property.
-    pub google_play_analytics: Option<GooglePlayAnalytics>,
-    /// itunesConnectAnalytics property.
-    pub itunes_connect_analytics: Option<ITunesConnectAnalytics>,
+pub struct NavigationInfo {
+    /// enableForcedRedirect property.
+    pub enable_forced_redirect: Option<bool>,
+}
+
+/// `GooglePlayAnalytics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePlayAnalytics {
+    /// gclid property.
+    pub gclid: Option<String>,
+    /// utmCampaign property.
+    pub utm_campaign: Option<String>,
+    /// utmContent property.
+    pub utm_content: Option<String>,
+    /// utmMedium property.
+    pub utm_medium: Option<String>,
+    /// utmSource property.
+    pub utm_source: Option<String>,
+    /// utmTerm property.
+    pub utm_term: Option<String>,
+}
+
+/// `ITunesConnectAnalytics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ITunesConnectAnalytics {
+    /// at property.
+    pub at: Option<String>,
+    /// ct property.
+    pub ct: Option<String>,
+    /// mt property.
+    pub mt: Option<String>,
+    /// pt property.
+    pub pt: Option<String>,
 }
 
 /// `AndroidInfo` type.

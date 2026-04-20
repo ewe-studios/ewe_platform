@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,37 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ReportConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportConfig {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// groupPreferencesetAssignments property.
+    pub group_preferenceset_assignments: Option<Vec<ReportConfigGroupPreferenceSetAssignment>>,
+    /// name property.
+    pub name: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `ReportConfigGroupPreferenceSetAssignment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportConfigGroupPreferenceSetAssignment {
+    /// group property.
+    pub group: Option<String>,
+    /// preferenceSet property.
+    pub preference_set: Option<String>,
+}
 
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -47,32 +74,6 @@ pub struct ListReportConfigsResponse {
     pub report_configs: Option<Vec<ReportConfig>>,
     /// unreachable property.
     pub unreachable: Option<Vec<String>>,
-}
-
-/// `ReportConfigGroupPreferenceSetAssignment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportConfigGroupPreferenceSetAssignment {
-    /// group property.
-    pub group: Option<String>,
-    /// preferenceSet property.
-    pub preference_set: Option<String>,
-}
-
-/// `ReportConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportConfig {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// groupPreferencesetAssignments property.
-    pub group_preferenceset_assignments: Option<Vec<ReportConfigGroupPreferenceSetAssignment>>,
-    /// name property.
-    pub name: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
 }
 
 // =============================================================================

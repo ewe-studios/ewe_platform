@@ -12,68 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `DiskTypeAggregatedList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskTypeAggregatedList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<serde_json::Value>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// unreachables property.
-    pub unreachables: Option<Vec<String>>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `DiskTypeList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskTypeList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<DiskType>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `DeprecationStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeprecationStatus {
-    /// deleted property.
-    pub deleted: Option<String>,
-    /// deprecated property.
-    pub deprecated: Option<String>,
-    /// obsolete property.
-    pub obsolete: Option<String>,
-    /// replacement property.
-    pub replacement: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
 
 /// `DiskType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -102,6 +52,38 @@ pub struct DiskType {
     pub zone: Option<String>,
 }
 
+/// `DeprecationStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeprecationStatus {
+    /// deleted property.
+    pub deleted: Option<String>,
+    /// deprecated property.
+    pub deprecated: Option<String>,
+    /// obsolete property.
+    pub obsolete: Option<String>,
+    /// replacement property.
+    pub replacement: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `DiskTypeList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskTypeList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<DiskType>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
 /// `RegionDiskTypeList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionDiskTypeList {
@@ -115,6 +97,25 @@ pub struct RegionDiskTypeList {
     pub next_page_token: Option<String>,
     /// selfLink property.
     pub self_link: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `DiskTypeAggregatedList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskTypeAggregatedList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<serde_json::Value>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// unreachables property.
+    pub unreachables: Option<Vec<String>>,
     /// warning property.
     pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }

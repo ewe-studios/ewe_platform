@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,51 +22,34 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ResponseMetadata` type.
+/// `Location` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResponseMetadata {
-    /// requestId property.
-    pub request_id: Option<String>,
+pub struct Location {
+    /// latLng property.
+    pub lat_lng: Option<LatLng>,
+    /// locationType property.
+    pub location_type: Option<String>,
+    /// postalAddress property.
+    pub postal_address: Option<PostalAddress>,
+    /// radiusMiles property.
+    pub radius_miles: Option<f64>,
 }
 
-/// `PostalAddress` type.
+/// `ListCompaniesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostalAddress {
-    /// addressLines property.
-    pub address_lines: Option<Vec<String>>,
-    /// administrativeArea property.
-    pub administrative_area: Option<String>,
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// locality property.
-    pub locality: Option<String>,
-    /// organization property.
-    pub organization: Option<String>,
-    /// postalCode property.
-    pub postal_code: Option<String>,
-    /// recipients property.
-    pub recipients: Option<Vec<String>>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-    /// revision property.
-    pub revision: Option<i64>,
-    /// sortingCode property.
-    pub sorting_code: Option<String>,
-    /// sublocality property.
-    pub sublocality: Option<String>,
-}
-
-/// `CompanyDerivedInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompanyDerivedInfo {
-    /// headquartersLocation property.
-    pub headquarters_location: Option<Location>,
+pub struct ListCompaniesResponse {
+    /// companies property.
+    pub companies: Option<Vec<Company>>,
+    /// metadata property.
+    pub metadata: Option<ResponseMetadata>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `Company` type.
@@ -99,6 +83,47 @@ pub struct Company {
     pub website_uri: Option<String>,
 }
 
+/// `PostalAddress` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostalAddress {
+    /// addressLines property.
+    pub address_lines: Option<Vec<String>>,
+    /// administrativeArea property.
+    pub administrative_area: Option<String>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// locality property.
+    pub locality: Option<String>,
+    /// organization property.
+    pub organization: Option<String>,
+    /// postalCode property.
+    pub postal_code: Option<String>,
+    /// recipients property.
+    pub recipients: Option<Vec<String>>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+    /// revision property.
+    pub revision: Option<i64>,
+    /// sortingCode property.
+    pub sorting_code: Option<String>,
+    /// sublocality property.
+    pub sublocality: Option<String>,
+}
+
+/// `ResponseMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResponseMetadata {
+    /// requestId property.
+    pub request_id: Option<String>,
+}
+
+/// `CompanyDerivedInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CompanyDerivedInfo {
+    /// headquartersLocation property.
+    pub headquarters_location: Option<Location>,
+}
+
 /// `LatLng` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LatLng {
@@ -106,30 +131,6 @@ pub struct LatLng {
     pub latitude: Option<f64>,
     /// longitude property.
     pub longitude: Option<f64>,
-}
-
-/// `ListCompaniesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCompaniesResponse {
-    /// companies property.
-    pub companies: Option<Vec<Company>>,
-    /// metadata property.
-    pub metadata: Option<ResponseMetadata>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `Location` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Location {
-    /// latLng property.
-    pub lat_lng: Option<LatLng>,
-    /// locationType property.
-    pub location_type: Option<String>,
-    /// postalAddress property.
-    pub postal_address: Option<PostalAddress>,
-    /// radiusMiles property.
-    pub radius_miles: Option<f64>,
 }
 
 // =============================================================================

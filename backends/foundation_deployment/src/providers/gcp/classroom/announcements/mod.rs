@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,30 +22,80 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Link` type.
+/// `Announcement` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Link {
-    /// thumbnailUrl property.
-    pub thumbnail_url: Option<String>,
+pub struct Announcement {
+    /// alternateLink property.
+    pub alternate_link: Option<String>,
+    /// assigneeMode property.
+    pub assignee_mode: Option<String>,
+    /// courseId property.
+    pub course_id: Option<String>,
+    /// creationTime property.
+    pub creation_time: Option<String>,
+    /// creatorUserId property.
+    pub creator_user_id: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// individualStudentsOptions property.
+    pub individual_students_options: Option<IndividualStudentsOptions>,
+    /// materials property.
+    pub materials: Option<Vec<Material>>,
+    /// scheduledTime property.
+    pub scheduled_time: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// text property.
+    pub text: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `Material` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Material {
+    /// driveFile property.
+    pub drive_file: Option<SharedDriveFile>,
+    /// form property.
+    pub form: Option<Form>,
+    /// gem property.
+    pub gem: Option<GeminiGem>,
+    /// link property.
+    pub link: Option<Link>,
+    /// notebook property.
+    pub notebook: Option<NotebookLmNotebook>,
+    /// youtubeVideo property.
+    pub youtube_video: Option<YouTubeVideo>,
+}
+
+/// `GeminiGem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GeminiGem {
+    /// id property.
+    pub id: Option<String>,
     /// title property.
     pub title: Option<String>,
     /// url property.
     pub url: Option<String>,
 }
 
-/// `ListAnnouncementsResponse` type.
+/// `DriveFile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAnnouncementsResponse {
-    /// announcements property.
-    pub announcements: Option<Vec<Announcement>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct DriveFile {
+    /// alternateLink property.
+    pub alternate_link: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// thumbnailUrl property.
+    pub thumbnail_url: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 /// `SharedDriveFile` type.
@@ -54,13 +105,6 @@ pub struct SharedDriveFile {
     pub drive_file: Option<DriveFile>,
     /// shareMode property.
     pub share_mode: Option<String>,
-}
-
-/// `IndividualStudentsOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IndividualStudentsOptions {
-    /// studentIds property.
-    pub student_ids: Option<Vec<String>>,
 }
 
 /// `YouTubeVideo` type.
@@ -100,74 +144,31 @@ pub struct Form {
     pub title: Option<String>,
 }
 
-/// `Announcement` type.
+/// `ListAnnouncementsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Announcement {
-    /// alternateLink property.
-    pub alternate_link: Option<String>,
-    /// assigneeMode property.
-    pub assignee_mode: Option<String>,
-    /// courseId property.
-    pub course_id: Option<String>,
-    /// creationTime property.
-    pub creation_time: Option<String>,
-    /// creatorUserId property.
-    pub creator_user_id: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// individualStudentsOptions property.
-    pub individual_students_options: Option<IndividualStudentsOptions>,
-    /// materials property.
-    pub materials: Option<Vec<Material>>,
-    /// scheduledTime property.
-    pub scheduled_time: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// text property.
-    pub text: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
+pub struct ListAnnouncementsResponse {
+    /// announcements property.
+    pub announcements: Option<Vec<Announcement>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
-/// `DriveFile` type.
+/// `Link` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DriveFile {
-    /// alternateLink property.
-    pub alternate_link: Option<String>,
-    /// id property.
-    pub id: Option<String>,
+pub struct Link {
     /// thumbnailUrl property.
     pub thumbnail_url: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GeminiGem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeminiGem {
-    /// id property.
-    pub id: Option<String>,
     /// title property.
     pub title: Option<String>,
     /// url property.
     pub url: Option<String>,
 }
 
-/// `Material` type.
+/// `IndividualStudentsOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Material {
-    /// driveFile property.
-    pub drive_file: Option<SharedDriveFile>,
-    /// form property.
-    pub form: Option<Form>,
-    /// gem property.
-    pub gem: Option<GeminiGem>,
-    /// link property.
-    pub link: Option<Link>,
-    /// notebook property.
-    pub notebook: Option<NotebookLmNotebook>,
-    /// youtubeVideo property.
-    pub youtube_video: Option<YouTubeVideo>,
+pub struct IndividualStudentsOptions {
+    /// studentIds property.
+    pub student_ids: Option<Vec<String>>,
 }
 
 // =============================================================================

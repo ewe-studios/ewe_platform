@@ -12,27 +12,32 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListMeshRouteViewsResponse` type.
+/// `GatewayRouteView` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListMeshRouteViewsResponse {
-    /// meshRouteViews property.
-    pub mesh_route_views: Option<Vec<MeshRouteView>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct GatewayRouteView {
+    /// name property.
+    pub name: Option<String>,
+    /// routeId property.
+    pub route_id: Option<String>,
+    /// routeLocation property.
+    pub route_location: Option<String>,
+    /// routeProjectNumber property.
+    pub route_project_number: Option<String>,
+    /// routeType property.
+    pub route_type: Option<String>,
 }
 
 /// `ListGatewayRouteViewsResponse` type.
@@ -61,19 +66,15 @@ pub struct MeshRouteView {
     pub route_type: Option<String>,
 }
 
-/// `GatewayRouteView` type.
+/// `ListMeshRouteViewsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GatewayRouteView {
-    /// name property.
-    pub name: Option<String>,
-    /// routeId property.
-    pub route_id: Option<String>,
-    /// routeLocation property.
-    pub route_location: Option<String>,
-    /// routeProjectNumber property.
-    pub route_project_number: Option<String>,
-    /// routeType property.
-    pub route_type: Option<String>,
+pub struct ListMeshRouteViewsResponse {
+    /// meshRouteViews property.
+    pub mesh_route_views: Option<Vec<MeshRouteView>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 // =============================================================================

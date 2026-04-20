@@ -12,17 +12,61 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `BackupLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupLocation {
+    /// locationId property.
+    pub location_id: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `BackupDrPlanConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupDrPlanConfig {
+    /// backupDrPlanRules property.
+    pub backup_dr_plan_rules: Option<Vec<BackupDrPlanRule>>,
+}
+
+/// `BackupDrPlanRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupDrPlanRule {
+    /// lastSuccessfulBackupTime property.
+    pub last_successful_backup_time: Option<String>,
+    /// ruleId property.
+    pub rule_id: Option<String>,
+}
+
+/// `ListResourceBackupConfigsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListResourceBackupConfigsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// resourceBackupConfigs property.
+    pub resource_backup_configs: Option<Vec<ResourceBackupConfig>>,
+}
+
+/// `BackupDrTemplateConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupDrTemplateConfig {
+    /// firstPartyManagementUri property.
+    pub first_party_management_uri: Option<String>,
+    /// thirdPartyManagementUri property.
+    pub third_party_management_uri: Option<String>,
+}
 
 /// `PitrSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -79,49 +123,6 @@ pub struct ResourceBackupConfig {
     pub uid: Option<String>,
     /// vaulted property.
     pub vaulted: Option<bool>,
-}
-
-/// `BackupDrPlanConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupDrPlanConfig {
-    /// backupDrPlanRules property.
-    pub backup_dr_plan_rules: Option<Vec<BackupDrPlanRule>>,
-}
-
-/// `BackupLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupLocation {
-    /// locationId property.
-    pub location_id: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `BackupDrPlanRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupDrPlanRule {
-    /// lastSuccessfulBackupTime property.
-    pub last_successful_backup_time: Option<String>,
-    /// ruleId property.
-    pub rule_id: Option<String>,
-}
-
-/// `ListResourceBackupConfigsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListResourceBackupConfigsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// resourceBackupConfigs property.
-    pub resource_backup_configs: Option<Vec<ResourceBackupConfig>>,
-}
-
-/// `BackupDrTemplateConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupDrTemplateConfig {
-    /// firstPartyManagementUri property.
-    pub first_party_management_uri: Option<String>,
-    /// thirdPartyManagementUri property.
-    pub third_party_management_uri: Option<String>,
 }
 
 // =============================================================================

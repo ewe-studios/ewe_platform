@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,20 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `SamlSpConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SamlSpConfig {
-    /// assertionConsumerServiceUri property.
-    pub assertion_consumer_service_uri: Option<String>,
-    /// entityId property.
-    pub entity_id: Option<String>,
-}
 
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,6 +37,15 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
+}
+
+/// `ListInboundSamlSsoProfilesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListInboundSamlSsoProfilesResponse {
+    /// inboundSamlSsoProfiles property.
+    pub inbound_saml_sso_profiles: Option<Vec<InboundSamlSsoProfile>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `InboundSamlSsoProfile` type.
@@ -62,13 +63,13 @@ pub struct InboundSamlSsoProfile {
     pub sp_config: Option<SamlSpConfig>,
 }
 
-/// `ListInboundSamlSsoProfilesResponse` type.
+/// `SamlSpConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListInboundSamlSsoProfilesResponse {
-    /// inboundSamlSsoProfiles property.
-    pub inbound_saml_sso_profiles: Option<Vec<InboundSamlSsoProfile>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct SamlSpConfig {
+    /// assertionConsumerServiceUri property.
+    pub assertion_consumer_service_uri: Option<String>,
+    /// entityId property.
+    pub entity_id: Option<String>,
 }
 
 /// `SamlIdpConfig` type.

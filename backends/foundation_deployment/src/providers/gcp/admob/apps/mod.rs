@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -41,15 +42,6 @@ pub struct App {
     pub platform: Option<String>,
 }
 
-/// `ListAppsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAppsResponse {
-    /// apps property.
-    pub apps: Option<Vec<App>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
 /// `AppManualAppInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppManualAppInfo {
@@ -64,6 +56,15 @@ pub struct AppLinkedAppInfo {
     pub app_store_id: Option<String>,
     /// displayName property.
     pub display_name: Option<String>,
+}
+
+/// `ListAppsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAppsResponse {
+    /// apps property.
+    pub apps: Option<Vec<App>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

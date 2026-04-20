@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,24 +23,26 @@ use serde::{Deserialize, Serialize};
 use super::shared::Empty;
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `CloseMatterResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloseMatterResponse {
-    /// matter property.
-    pub matter: Option<Matter>,
-}
 
 /// `ReopenMatterResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReopenMatterResponse {
     /// matter property.
     pub matter: Option<Matter>,
+}
+
+/// `ListMattersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListMattersResponse {
+    /// matters property.
+    pub matters: Option<Vec<Matter>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `Matter` type.
@@ -57,6 +60,13 @@ pub struct Matter {
     pub name: Option<String>,
     /// state property.
     pub state: Option<String>,
+}
+
+/// `CloseMatterResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloseMatterResponse {
+    /// matter property.
+    pub matter: Option<Matter>,
 }
 
 /// `MatterPermission` type.
@@ -77,15 +87,6 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
-}
-
-/// `ListMattersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListMattersResponse {
-    /// matters property.
-    pub matters: Option<Vec<Matter>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

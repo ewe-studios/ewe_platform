@@ -12,17 +12,44 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Parameter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Parameter {
+    /// isWeakReference property.
+    pub is_weak_reference: Option<bool>,
+    /// key property.
+    pub key: Option<String>,
+    /// list property.
+    pub list: Option<Vec<Box<Parameter>>>,
+    /// map property.
+    pub map: Option<Vec<Box<Parameter>>>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `ListTagsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListTagsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// tag property.
+    pub tag: Option<Vec<Tag>>,
+}
 
 /// `RevertTagResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -31,11 +58,29 @@ pub struct RevertTagResponse {
     pub tag: Option<Tag>,
 }
 
+/// `TagConsentSetting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TagConsentSetting {
+    /// consentStatus property.
+    pub consent_status: Option<String>,
+    /// consentType property.
+    pub consent_type: Option<Box<Parameter>>,
+}
+
 /// `SetupTag` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupTag {
     /// stopOnSetupFailure property.
     pub stop_on_setup_failure: Option<bool>,
+    /// tagName property.
+    pub tag_name: Option<String>,
+}
+
+/// `TeardownTag` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TeardownTag {
+    /// stopTeardownOnFailure property.
+    pub stop_teardown_on_failure: Option<bool>,
     /// tagName property.
     pub tag_name: Option<String>,
 }
@@ -58,7 +103,7 @@ pub struct Tag {
     /// liveOnly property.
     pub live_only: Option<bool>,
     /// monitoringMetadata property.
-    pub monitoring_metadata: Option<Parameter>,
+    pub monitoring_metadata: Option<Box<Parameter>>,
     /// monitoringMetadataTagNameKey property.
     pub monitoring_metadata_tag_name_key: Option<String>,
     /// name property.
@@ -66,7 +111,7 @@ pub struct Tag {
     /// notes property.
     pub notes: Option<String>,
     /// parameter property.
-    pub parameter: Option<Vec<Parameter>>,
+    pub parameter: Option<Vec<Box<Parameter>>>,
     /// parentFolderId property.
     pub parent_folder_id: Option<String>,
     /// path property.
@@ -74,7 +119,7 @@ pub struct Tag {
     /// paused property.
     pub paused: Option<bool>,
     /// priority property.
-    pub priority: Option<Parameter>,
+    pub priority: Option<Box<Parameter>>,
     /// scheduleEndMs property.
     pub schedule_end_ms: Option<String>,
     /// scheduleStartMs property.
@@ -93,50 +138,6 @@ pub struct Tag {
     pub r#type: Option<String>,
     /// workspaceId property.
     pub workspace_id: Option<String>,
-}
-
-/// `TagConsentSetting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TagConsentSetting {
-    /// consentStatus property.
-    pub consent_status: Option<String>,
-    /// consentType property.
-    pub consent_type: Option<Parameter>,
-}
-
-/// `Parameter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Parameter {
-    /// isWeakReference property.
-    pub is_weak_reference: Option<bool>,
-    /// key property.
-    pub key: Option<String>,
-    /// list property.
-    pub list: Option<Vec<Parameter>>,
-    /// map property.
-    pub map: Option<Vec<Parameter>>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `TeardownTag` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TeardownTag {
-    /// stopTeardownOnFailure property.
-    pub stop_teardown_on_failure: Option<bool>,
-    /// tagName property.
-    pub tag_name: Option<String>,
-}
-
-/// `ListTagsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListTagsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// tag property.
-    pub tag: Option<Vec<Tag>>,
 }
 
 // =============================================================================

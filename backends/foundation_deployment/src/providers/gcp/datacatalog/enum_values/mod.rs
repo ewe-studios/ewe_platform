@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,19 +22,17 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleCloudDatacatalogV1TagTemplateField;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudDatacatalogV1FieldType` type.
+/// `GoogleCloudDatacatalogV1FieldTypeEnumTypeEnumValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1FieldType {
-    /// enumType property.
-    pub enum_type: Option<GoogleCloudDatacatalogV1FieldTypeEnumType>,
-    /// primitiveType property.
-    pub primitive_type: Option<String>,
+pub struct GoogleCloudDatacatalogV1FieldTypeEnumTypeEnumValue {
+    /// displayName property.
+    pub display_name: Option<String>,
 }
 
 /// `GoogleCloudDatacatalogV1FieldTypeEnumType` type.
@@ -43,11 +42,13 @@ pub struct GoogleCloudDatacatalogV1FieldTypeEnumType {
     pub allowed_values: Option<Vec<GoogleCloudDatacatalogV1FieldTypeEnumTypeEnumValue>>,
 }
 
-/// `GoogleCloudDatacatalogV1FieldTypeEnumTypeEnumValue` type.
+/// `GoogleCloudDatacatalogV1FieldType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1FieldTypeEnumTypeEnumValue {
-    /// displayName property.
-    pub display_name: Option<String>,
+pub struct GoogleCloudDatacatalogV1FieldType {
+    /// enumType property.
+    pub enum_type: Option<GoogleCloudDatacatalogV1FieldTypeEnumType>,
+    /// primitiveType property.
+    pub primitive_type: Option<String>,
 }
 
 // =============================================================================

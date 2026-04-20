@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleCloudApigeeV1ApiProxyRevision;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -41,6 +42,13 @@ pub struct GoogleCloudApigeeV1ResourceFile {
     pub name: Option<String>,
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1ListApiProxiesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ListApiProxiesResponse {
+    /// proxies property.
+    pub proxies: Option<Vec<GoogleCloudApigeeV1ApiProxy>>,
 }
 
 /// `GoogleCloudApigeeV1ApiProxy` type.
@@ -82,13 +90,6 @@ pub struct GoogleCloudApigeeV1ConfigVersion {
     pub major_version: Option<i64>,
     /// minorVersion property.
     pub minor_version: Option<i64>,
-}
-
-/// `GoogleCloudApigeeV1ListApiProxiesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ListApiProxiesResponse {
-    /// proxies property.
-    pub proxies: Option<Vec<GoogleCloudApigeeV1ApiProxy>>,
 }
 
 // =============================================================================

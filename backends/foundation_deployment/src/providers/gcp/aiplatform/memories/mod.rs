@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,19 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudAiplatformV1ListMemoriesResponse` type.
+/// `GoogleCloudAiplatformV1MemoryTopicId` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListMemoriesResponse {
-    /// memories property.
-    pub memories: Option<Vec<GoogleCloudAiplatformV1Memory>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct GoogleCloudAiplatformV1MemoryTopicId {
+    /// customMemoryTopicLabel property.
+    pub custom_memory_topic_label: Option<String>,
+    /// managedMemoryTopic property.
+    pub managed_memory_topic: Option<String>,
 }
 
 /// `GoogleRpcStatus` type.
@@ -45,6 +46,15 @@ pub struct GoogleRpcStatus {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ListMemoriesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ListMemoriesResponse {
+    /// memories property.
+    pub memories: Option<Vec<GoogleCloudAiplatformV1Memory>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1Memory` type.
@@ -80,15 +90,6 @@ pub struct GoogleCloudAiplatformV1Memory {
     pub ttl: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1MemoryTopicId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MemoryTopicId {
-    /// customMemoryTopicLabel property.
-    pub custom_memory_topic_label: Option<String>,
-    /// managedMemoryTopic property.
-    pub managed_memory_topic: Option<String>,
 }
 
 // =============================================================================

@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -24,6 +25,13 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `ProjectsPatchResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsPatchResponse {
+    /// data property.
+    pub data: Projects,
+}
+
 /// `ProjectsPatchRequest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectsPatchRequest {
@@ -31,6 +39,17 @@ pub struct ProjectsPatchRequest {
     pub name: Option<String>,
     /// settings property.
     pub settings: Option<serde_json::Value>,
+}
+
+/// `ProjectsWorkspace` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsWorkspace {
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+    /// url property.
+    pub url: String,
 }
 
 /// `Projects` type.
@@ -52,28 +71,6 @@ pub struct Projects {
     pub workspace: ProjectsWorkspace,
 }
 
-/// `ProjectsWorkspace` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsWorkspace {
-    /// id property.
-    pub id: String,
-    /// name property.
-    pub name: String,
-    /// url property.
-    pub url: String,
-}
-
-/// `ProjectsPostRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsPostRequest {
-    /// createDatabase property.
-    pub create_database: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-}
-
 /// `ProjectsGetResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectsGetResponse {
@@ -88,11 +85,15 @@ pub struct ProjectsPostResponse {
     pub data: Projects,
 }
 
-/// `ProjectsPatchResponse` type.
+/// `ProjectsPostRequest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsPatchResponse {
-    /// data property.
-    pub data: Projects,
+pub struct ProjectsPostRequest {
+    /// createDatabase property.
+    pub create_database: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+    /// region property.
+    pub region: Option<String>,
 }
 
 // =============================================================================

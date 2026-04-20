@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,62 +22,28 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudChannelV1CustomerRepricingConfig` type.
+/// `GoogleTypeDecimal` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1CustomerRepricingConfig {
-    /// name property.
-    pub name: Option<String>,
-    /// repricingConfig property.
-    pub repricing_config: Option<GoogleCloudChannelV1RepricingConfig>,
-    /// updateTime property.
-    pub update_time: Option<String>,
+pub struct GoogleTypeDecimal {
+    /// value property.
+    pub value: Option<String>,
 }
 
-/// `GoogleTypeDate` type.
+/// `GoogleCloudChannelV1ConditionalOverride` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeDate {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `GoogleCloudChannelV1RepricingConfigEntitlementGranularity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1RepricingConfigEntitlementGranularity {
-    /// entitlement property.
-    pub entitlement: Option<String>,
-}
-
-/// `GoogleCloudChannelV1ListCustomerRepricingConfigsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1ListCustomerRepricingConfigsResponse {
-    /// customerRepricingConfigs property.
-    pub customer_repricing_configs: Option<Vec<GoogleCloudChannelV1CustomerRepricingConfig>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudChannelV1RepricingAdjustment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1RepricingAdjustment {
-    /// percentageAdjustment property.
-    pub percentage_adjustment: Option<GoogleCloudChannelV1PercentageAdjustment>,
-}
-
-/// `GoogleCloudChannelV1RepricingCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1RepricingCondition {
-    /// skuGroupCondition property.
-    pub sku_group_condition: Option<GoogleCloudChannelV1SkuGroupCondition>,
+pub struct GoogleCloudChannelV1ConditionalOverride {
+    /// adjustment property.
+    pub adjustment: Option<GoogleCloudChannelV1RepricingAdjustment>,
+    /// rebillingBasis property.
+    pub rebilling_basis: Option<String>,
+    /// repricingCondition property.
+    pub repricing_condition: Option<GoogleCloudChannelV1RepricingCondition>,
 }
 
 /// `GoogleCloudChannelV1RepricingConfig` type.
@@ -97,22 +64,45 @@ pub struct GoogleCloudChannelV1RepricingConfig {
     pub rebilling_basis: Option<String>,
 }
 
-/// `GoogleCloudChannelV1ConditionalOverride` type.
+/// `GoogleCloudChannelV1ListCustomerRepricingConfigsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1ConditionalOverride {
-    /// adjustment property.
-    pub adjustment: Option<GoogleCloudChannelV1RepricingAdjustment>,
-    /// rebillingBasis property.
-    pub rebilling_basis: Option<String>,
-    /// repricingCondition property.
-    pub repricing_condition: Option<GoogleCloudChannelV1RepricingCondition>,
+pub struct GoogleCloudChannelV1ListCustomerRepricingConfigsResponse {
+    /// customerRepricingConfigs property.
+    pub customer_repricing_configs: Option<Vec<GoogleCloudChannelV1CustomerRepricingConfig>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
-/// `GoogleCloudChannelV1SkuGroupCondition` type.
+/// `GoogleCloudChannelV1RepricingAdjustment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1SkuGroupCondition {
-    /// skuGroup property.
-    pub sku_group: Option<String>,
+pub struct GoogleCloudChannelV1RepricingAdjustment {
+    /// percentageAdjustment property.
+    pub percentage_adjustment: Option<GoogleCloudChannelV1PercentageAdjustment>,
+}
+
+/// `GoogleTypeDate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeDate {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `GoogleCloudChannelV1RepricingConfigEntitlementGranularity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1RepricingConfigEntitlementGranularity {
+    /// entitlement property.
+    pub entitlement: Option<String>,
+}
+
+/// `GoogleCloudChannelV1RepricingCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1RepricingCondition {
+    /// skuGroupCondition property.
+    pub sku_group_condition: Option<GoogleCloudChannelV1SkuGroupCondition>,
 }
 
 /// `GoogleCloudChannelV1PercentageAdjustment` type.
@@ -122,16 +112,27 @@ pub struct GoogleCloudChannelV1PercentageAdjustment {
     pub percentage: Option<GoogleTypeDecimal>,
 }
 
-/// `GoogleTypeDecimal` type.
+/// `GoogleCloudChannelV1SkuGroupCondition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeDecimal {
-    /// value property.
-    pub value: Option<String>,
+pub struct GoogleCloudChannelV1SkuGroupCondition {
+    /// skuGroup property.
+    pub sku_group: Option<String>,
 }
 
 /// `GoogleCloudChannelV1RepricingConfigChannelPartnerGranularity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1RepricingConfigChannelPartnerGranularity {}
+
+/// `GoogleCloudChannelV1CustomerRepricingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1CustomerRepricingConfig {
+    /// name property.
+    pub name: Option<String>,
+    /// repricingConfig property.
+    pub repricing_config: Option<GoogleCloudChannelV1RepricingConfig>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

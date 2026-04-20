@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,27 +22,215 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `RouterList` type.
+/// `RouterInterface` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterList {
+pub struct RouterInterface {
+    /// ipRange property.
+    pub ip_range: Option<String>,
+    /// ipVersion property.
+    pub ip_version: Option<String>,
+    /// linkedInterconnectAttachment property.
+    pub linked_interconnect_attachment: Option<String>,
+    /// linkedVpnTunnel property.
+    pub linked_vpn_tunnel: Option<String>,
+    /// managementType property.
+    pub management_type: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// privateIpAddress property.
+    pub private_ip_address: Option<String>,
+    /// redundantInterface property.
+    pub redundant_interface: Option<String>,
+    /// subnetwork property.
+    pub subnetwork: Option<String>,
+}
+
+/// `RouterAdvertisedIpRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouterAdvertisedIpRange {
+    /// description property.
+    pub description: Option<String>,
+    /// range property.
+    pub range: Option<String>,
+}
+
+/// `LocalizedMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `HelpLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `RouterBgp` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouterBgp {
+    /// advertiseMode property.
+    pub advertise_mode: Option<String>,
+    /// advertisedGroups property.
+    pub advertised_groups: Option<Vec<String>>,
+    /// advertisedIpRanges property.
+    pub advertised_ip_ranges: Option<Vec<RouterAdvertisedIpRange>>,
+    /// asn property.
+    pub asn: Option<i64>,
+    /// identifierRange property.
+    pub identifier_range: Option<String>,
+    /// keepaliveInterval property.
+    pub keepalive_interval: Option<i64>,
+}
+
+/// `RouterNatSubnetworkToNat64` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouterNatSubnetworkToNat64 {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `RouterAggregatedList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouterAggregatedList {
     /// id property.
     pub id: Option<String>,
     /// items property.
-    pub items: Option<Vec<Router>>,
+    pub items: Option<serde_json::Value>,
     /// kind property.
     pub kind: Option<String>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
     /// selfLink property.
     pub self_link: Option<String>,
+    /// unreachables property.
+    pub unreachables: Option<Vec<String>>,
     /// warning property.
     pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `RouterBgpPeerCustomLearnedIpRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouterBgpPeerCustomLearnedIpRange {
+    /// range property.
+    pub range: Option<String>,
+}
+
+/// `RouterNat` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouterNat {
+    /// autoNetworkTier property.
+    pub auto_network_tier: Option<String>,
+    /// drainNatIps property.
+    pub drain_nat_ips: Option<Vec<String>>,
+    /// enableDynamicPortAllocation property.
+    pub enable_dynamic_port_allocation: Option<bool>,
+    /// enableEndpointIndependentMapping property.
+    pub enable_endpoint_independent_mapping: Option<bool>,
+    /// endpointTypes property.
+    pub endpoint_types: Option<Vec<String>>,
+    /// icmpIdleTimeoutSec property.
+    pub icmp_idle_timeout_sec: Option<i64>,
+    /// logConfig property.
+    pub log_config: Option<RouterNatLogConfig>,
+    /// maxPortsPerVm property.
+    pub max_ports_per_vm: Option<i64>,
+    /// minPortsPerVm property.
+    pub min_ports_per_vm: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// nat64Subnetworks property.
+    pub nat64_subnetworks: Option<Vec<RouterNatSubnetworkToNat64>>,
+    /// natIpAllocateOption property.
+    pub nat_ip_allocate_option: Option<String>,
+    /// natIps property.
+    pub nat_ips: Option<Vec<String>>,
+    /// rules property.
+    pub rules: Option<Vec<RouterNatRule>>,
+    /// sourceSubnetworkIpRangesToNat property.
+    pub source_subnetwork_ip_ranges_to_nat: Option<String>,
+    /// sourceSubnetworkIpRangesToNat64 property.
+    pub source_subnetwork_ip_ranges_to_nat64: Option<String>,
+    /// subnetworks property.
+    pub subnetworks: Option<Vec<RouterNatSubnetworkToNat>>,
+    /// tcpEstablishedIdleTimeoutSec property.
+    pub tcp_established_idle_timeout_sec: Option<i64>,
+    /// tcpTimeWaitTimeoutSec property.
+    pub tcp_time_wait_timeout_sec: Option<i64>,
+    /// tcpTransitoryIdleTimeoutSec property.
+    pub tcp_transitory_idle_timeout_sec: Option<i64>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// udpIdleTimeoutSec property.
+    pub udp_idle_timeout_sec: Option<i64>,
+}
+
+/// `RouterParams` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouterParams {
+    /// resourceManagerTags property.
+    pub resource_manager_tags: Option<serde_json::Value>,
+}
+
+/// `ErrorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `SetCommonInstanceMetadataOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetCommonInstanceMetadataOperationMetadata {
+    /// clientOperationId property.
+    pub client_operation_id: Option<String>,
+    /// perLocationOperations property.
+    pub per_location_operations: Option<serde_json::Value>,
+}
+
+/// `RouterMd5AuthenticationKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouterMd5AuthenticationKey {
+    /// key property.
+    pub key: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `RouterBgpPeerBfd` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouterBgpPeerBfd {
+    /// minReceiveInterval property.
+    pub min_receive_interval: Option<i64>,
+    /// minTransmitInterval property.
+    pub min_transmit_interval: Option<i64>,
+    /// multiplier property.
+    pub multiplier: Option<i64>,
+    /// sessionInitializationMode property.
+    pub session_initialization_mode: Option<String>,
 }
 
 /// `RouterBgpPeer` type.
@@ -97,53 +286,6 @@ pub struct RouterBgpPeer {
     pub router_appliance_instance: Option<String>,
 }
 
-/// `RouterAdvertisedIpRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterAdvertisedIpRange {
-    /// description property.
-    pub description: Option<String>,
-    /// range property.
-    pub range: Option<String>,
-}
-
-/// `RouterBgpPeerBfd` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterBgpPeerBfd {
-    /// minReceiveInterval property.
-    pub min_receive_interval: Option<i64>,
-    /// minTransmitInterval property.
-    pub min_transmit_interval: Option<i64>,
-    /// multiplier property.
-    pub multiplier: Option<i64>,
-    /// sessionInitializationMode property.
-    pub session_initialization_mode: Option<String>,
-}
-
-/// `Help` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
-}
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `RouterMd5AuthenticationKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterMd5AuthenticationKey {
-    /// key property.
-    pub key: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
 /// `GetVersionOperationMetadataSbomInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetVersionOperationMetadataSbomInfo {
@@ -153,84 +295,81 @@ pub struct GetVersionOperationMetadataSbomInfo {
     pub target_component_versions: Option<serde_json::Value>,
 }
 
-/// `InstancesBulkInsertOperationMetadata` type.
+/// `GetVersionOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
+pub struct GetVersionOperationMetadata {
+    /// inlineSbomInfo property.
+    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
 }
 
-/// `RouterNat` type.
+/// `RouterList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterNat {
-    /// autoNetworkTier property.
-    pub auto_network_tier: Option<String>,
-    /// drainNatIps property.
-    pub drain_nat_ips: Option<Vec<String>>,
-    /// enableDynamicPortAllocation property.
-    pub enable_dynamic_port_allocation: Option<bool>,
-    /// enableEndpointIndependentMapping property.
-    pub enable_endpoint_independent_mapping: Option<bool>,
-    /// endpointTypes property.
-    pub endpoint_types: Option<Vec<String>>,
-    /// icmpIdleTimeoutSec property.
-    pub icmp_idle_timeout_sec: Option<i64>,
-    /// logConfig property.
-    pub log_config: Option<RouterNatLogConfig>,
-    /// maxPortsPerVm property.
-    pub max_ports_per_vm: Option<i64>,
-    /// minPortsPerVm property.
-    pub min_ports_per_vm: Option<i64>,
+pub struct RouterList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<Router>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `RouterNatLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouterNatLogConfig {
+    /// enable property.
+    pub enable: Option<bool>,
+    /// filter property.
+    pub filter: Option<String>,
+}
+
+/// `RouterNatRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouterNatRule {
+    /// action property.
+    pub action: Option<RouterNatRuleAction>,
+    /// description property.
+    pub description: Option<String>,
+    /// match property.
+    pub r#match: Option<String>,
+    /// ruleNumber property.
+    pub rule_number: Option<i64>,
+}
+
+/// `RouterNatSubnetworkToNat` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouterNatSubnetworkToNat {
     /// name property.
     pub name: Option<String>,
-    /// nat64Subnetworks property.
-    pub nat64_subnetworks: Option<Vec<RouterNatSubnetworkToNat64>>,
-    /// natIpAllocateOption property.
-    pub nat_ip_allocate_option: Option<String>,
-    /// natIps property.
-    pub nat_ips: Option<Vec<String>>,
-    /// rules property.
-    pub rules: Option<Vec<RouterNatRule>>,
-    /// sourceSubnetworkIpRangesToNat property.
-    pub source_subnetwork_ip_ranges_to_nat: Option<String>,
-    /// sourceSubnetworkIpRangesToNat64 property.
-    pub source_subnetwork_ip_ranges_to_nat64: Option<String>,
-    /// subnetworks property.
-    pub subnetworks: Option<Vec<RouterNatSubnetworkToNat>>,
-    /// tcpEstablishedIdleTimeoutSec property.
-    pub tcp_established_idle_timeout_sec: Option<i64>,
-    /// tcpTimeWaitTimeoutSec property.
-    pub tcp_time_wait_timeout_sec: Option<i64>,
-    /// tcpTransitoryIdleTimeoutSec property.
-    pub tcp_transitory_idle_timeout_sec: Option<i64>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// udpIdleTimeoutSec property.
-    pub udp_idle_timeout_sec: Option<i64>,
+    /// secondaryIpRangeNames property.
+    pub secondary_ip_range_names: Option<Vec<String>>,
+    /// sourceIpRangesToNat property.
+    pub source_ip_ranges_to_nat: Option<Vec<String>>,
 }
 
-/// `RouterBgp` type.
+/// `RouterNatRuleAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterBgp {
-    /// advertiseMode property.
-    pub advertise_mode: Option<String>,
-    /// advertisedGroups property.
-    pub advertised_groups: Option<Vec<String>>,
-    /// advertisedIpRanges property.
-    pub advertised_ip_ranges: Option<Vec<RouterAdvertisedIpRange>>,
-    /// asn property.
-    pub asn: Option<i64>,
-    /// identifierRange property.
-    pub identifier_range: Option<String>,
-    /// keepaliveInterval property.
-    pub keepalive_interval: Option<i64>,
+pub struct RouterNatRuleAction {
+    /// sourceNatActiveIps property.
+    pub source_nat_active_ips: Option<Vec<String>>,
+    /// sourceNatActiveRanges property.
+    pub source_nat_active_ranges: Option<Vec<String>>,
+    /// sourceNatDrainIps property.
+    pub source_nat_drain_ips: Option<Vec<String>>,
+    /// sourceNatDrainRanges property.
+    pub source_nat_drain_ranges: Option<Vec<String>>,
 }
 
-/// `RouterNatSubnetworkToNat64` type.
+/// `Help` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterNatSubnetworkToNat64 {
-    /// name property.
-    pub name: Option<String>,
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
 }
 
 /// `Router` type.
@@ -268,137 +407,6 @@ pub struct Router {
     pub self_link: Option<String>,
 }
 
-/// `RouterAggregatedList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterAggregatedList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<serde_json::Value>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// unreachables property.
-    pub unreachables: Option<Vec<String>>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `RouterInterface` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterInterface {
-    /// ipRange property.
-    pub ip_range: Option<String>,
-    /// ipVersion property.
-    pub ip_version: Option<String>,
-    /// linkedInterconnectAttachment property.
-    pub linked_interconnect_attachment: Option<String>,
-    /// linkedVpnTunnel property.
-    pub linked_vpn_tunnel: Option<String>,
-    /// managementType property.
-    pub management_type: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// privateIpAddress property.
-    pub private_ip_address: Option<String>,
-    /// redundantInterface property.
-    pub redundant_interface: Option<String>,
-    /// subnetwork property.
-    pub subnetwork: Option<String>,
-}
-
-/// `RouterNatRuleAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterNatRuleAction {
-    /// sourceNatActiveIps property.
-    pub source_nat_active_ips: Option<Vec<String>>,
-    /// sourceNatActiveRanges property.
-    pub source_nat_active_ranges: Option<Vec<String>>,
-    /// sourceNatDrainIps property.
-    pub source_nat_drain_ips: Option<Vec<String>>,
-    /// sourceNatDrainRanges property.
-    pub source_nat_drain_ranges: Option<Vec<String>>,
-}
-
-/// `GetVersionOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadata {
-    /// inlineSbomInfo property.
-    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
-}
-
-/// `SetCommonInstanceMetadataOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetCommonInstanceMetadataOperationMetadata {
-    /// clientOperationId property.
-    pub client_operation_id: Option<String>,
-    /// perLocationOperations property.
-    pub per_location_operations: Option<serde_json::Value>,
-}
-
-/// `RouterNatSubnetworkToNat` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterNatSubnetworkToNat {
-    /// name property.
-    pub name: Option<String>,
-    /// secondaryIpRangeNames property.
-    pub secondary_ip_range_names: Option<Vec<String>>,
-    /// sourceIpRangesToNat property.
-    pub source_ip_ranges_to_nat: Option<Vec<String>>,
-}
-
-/// `HelpLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `RouterNatRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterNatRule {
-    /// action property.
-    pub action: Option<RouterNatRuleAction>,
-    /// description property.
-    pub description: Option<String>,
-    /// match property.
-    pub r#match: Option<String>,
-    /// ruleNumber property.
-    pub rule_number: Option<i64>,
-}
-
-/// `ErrorInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `RouterBgpPeerCustomLearnedIpRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterBgpPeerCustomLearnedIpRange {
-    /// range property.
-    pub range: Option<String>,
-}
-
-/// `RouterNatLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterNatLogConfig {
-    /// enable property.
-    pub enable: Option<bool>,
-    /// filter property.
-    pub filter: Option<String>,
-}
-
 /// `QuotaExceededInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuotaExceededInfo {
@@ -414,13 +422,6 @@ pub struct QuotaExceededInfo {
     pub metric_name: Option<String>,
     /// rolloutStatus property.
     pub rollout_status: Option<String>,
-}
-
-/// `RouterParams` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterParams {
-    /// resourceManagerTags property.
-    pub resource_manager_tags: Option<serde_json::Value>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,22 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Profile;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Deployment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Deployment {
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// target property.
-    pub target: Option<String>,
-}
 
 /// `ListProfilesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -47,6 +37,17 @@ pub struct ListProfilesResponse {
     pub profiles: Option<Vec<Profile>>,
     /// skippedProfiles property.
     pub skipped_profiles: Option<i64>,
+}
+
+/// `Deployment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Deployment {
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// target property.
+    pub target: Option<String>,
 }
 
 // =============================================================================

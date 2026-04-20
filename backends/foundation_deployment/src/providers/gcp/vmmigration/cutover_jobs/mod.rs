@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,214 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `NetworkInterface` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkInterface {
-    /// externalIp property.
-    pub external_ip: Option<String>,
-    /// internalIp property.
-    pub internal_ip: Option<String>,
-    /// network property.
-    pub network: Option<String>,
-    /// networkTier property.
-    pub network_tier: Option<String>,
-    /// subnetwork property.
-    pub subnetwork: Option<String>,
-}
-
-/// `ShuttingDownSourceVMStep` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShuttingDownSourceVMStep {}
-
-/// `CutoverStep` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CutoverStep {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// finalSync property.
-    pub final_sync: Option<ReplicationCycle>,
-    /// instantiatingMigratedVm property.
-    pub instantiating_migrated_vm: Option<InstantiatingMigratedVMStep>,
-    /// preparingVmDisks property.
-    pub preparing_vm_disks: Option<PreparingVMDisksStep>,
-    /// previousReplicationCycle property.
-    pub previous_replication_cycle: Option<ReplicationCycle>,
-    /// shuttingDownSourceVm property.
-    pub shutting_down_source_vm: Option<ShuttingDownSourceVMStep>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `InitializingReplicationStep` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InitializingReplicationStep {}
-
-/// `ComputeScheduling` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeScheduling {
-    /// minNodeCpus property.
-    pub min_node_cpus: Option<i64>,
-    /// nodeAffinities property.
-    pub node_affinities: Option<Vec<SchedulingNodeAffinity>>,
-    /// onHostMaintenance property.
-    pub on_host_maintenance: Option<String>,
-    /// restartType property.
-    pub restart_type: Option<String>,
-}
-
-/// `DisksMigrationDisksTargetDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DisksMigrationDisksTargetDetails {}
-
-/// `SchedulingNodeAffinity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SchedulingNodeAffinity {
-    /// key property.
-    pub key: Option<String>,
-    /// operator property.
-    pub operator: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `ListCutoverJobsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCutoverJobsResponse {
-    /// cutoverJobs property.
-    pub cutover_jobs: Option<Vec<CutoverJob>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `PersistentDisk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PersistentDisk {
-    /// diskUri property.
-    pub disk_uri: Option<String>,
-    /// sourceDiskNumber property.
-    pub source_disk_number: Option<i64>,
-}
-
-/// `MigrationWarning` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MigrationWarning {
-    /// actionItem property.
-    pub action_item: Option<LocalizedMessage>,
-    /// code property.
-    pub code: Option<String>,
-    /// helpLinks property.
-    pub help_links: Option<Vec<Link>>,
-    /// warningMessage property.
-    pub warning_message: Option<LocalizedMessage>,
-    /// warningTime property.
-    pub warning_time: Option<String>,
-}
-
-/// `ComputeEngineDisksTargetDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeEngineDisksTargetDetails {
-    /// disks property.
-    pub disks: Option<Vec<PersistentDisk>>,
-    /// disksTargetDetails property.
-    pub disks_target_details: Option<DisksMigrationDisksTargetDetails>,
-    /// vmTargetDetails property.
-    pub vm_target_details: Option<DisksMigrationVmTargetDetails>,
-}
-
-/// `Link` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Link {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `DisksMigrationVmTargetDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DisksMigrationVmTargetDetails {
-    /// vmUri property.
-    pub vm_uri: Option<String>,
-}
-
-/// `PreparingVMDisksStep` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreparingVMDisksStep {}
-
-/// `Encryption` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Encryption {
-    /// kmsKey property.
-    pub kms_key: Option<String>,
-}
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `AppliedLicense` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppliedLicense {
-    /// osLicense property.
-    pub os_license: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `CutoverJob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CutoverJob {
-    /// computeEngineDisksTargetDetails property.
-    pub compute_engine_disks_target_details: Option<ComputeEngineDisksTargetDetails>,
-    /// computeEngineTargetDetails property.
-    pub compute_engine_target_details: Option<ComputeEngineTargetDetails>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// error property.
-    pub error: Option<Status>,
-    /// name property.
-    pub name: Option<String>,
-    /// progressPercent property.
-    pub progress_percent: Option<i64>,
-    /// state property.
-    pub state: Option<String>,
-    /// stateMessage property.
-    pub state_message: Option<String>,
-    /// stateTime property.
-    pub state_time: Option<String>,
-    /// steps property.
-    pub steps: Option<Vec<CutoverStep>>,
-}
-
-/// `PostProcessingStep` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostProcessingStep {}
 
 /// `ComputeEngineTargetDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -285,21 +83,90 @@ pub struct ComputeEngineTargetDetails {
     pub zone: Option<String>,
 }
 
+/// `ComputeEngineDisksTargetDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeEngineDisksTargetDetails {
+    /// disks property.
+    pub disks: Option<Vec<PersistentDisk>>,
+    /// disksTargetDetails property.
+    pub disks_target_details: Option<DisksMigrationDisksTargetDetails>,
+    /// vmTargetDetails property.
+    pub vm_target_details: Option<DisksMigrationVmTargetDetails>,
+}
+
+/// `MigrationWarning` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MigrationWarning {
+    /// actionItem property.
+    pub action_item: Option<LocalizedMessage>,
+    /// code property.
+    pub code: Option<String>,
+    /// helpLinks property.
+    pub help_links: Option<Vec<Link>>,
+    /// warningMessage property.
+    pub warning_message: Option<LocalizedMessage>,
+    /// warningTime property.
+    pub warning_time: Option<String>,
+}
+
+/// `PreparingVMDisksStep` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PreparingVMDisksStep {}
+
+/// `PostProcessingStep` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostProcessingStep {}
+
+/// `AppliedLicense` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppliedLicense {
+    /// osLicense property.
+    pub os_license: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `Encryption` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Encryption {
+    /// kmsKey property.
+    pub kms_key: Option<String>,
+}
+
+/// `ListCutoverJobsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListCutoverJobsResponse {
+    /// cutoverJobs property.
+    pub cutover_jobs: Option<Vec<CutoverJob>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
 /// `InstantiatingMigratedVMStep` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstantiatingMigratedVMStep {}
 
-/// `CycleStep` type.
+/// `ShuttingDownSourceVMStep` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CycleStep {
+pub struct ShuttingDownSourceVMStep {}
+
+/// `CutoverStep` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CutoverStep {
     /// endTime property.
     pub end_time: Option<String>,
-    /// initializingReplication property.
-    pub initializing_replication: Option<InitializingReplicationStep>,
-    /// postProcessing property.
-    pub post_processing: Option<PostProcessingStep>,
-    /// replicating property.
-    pub replicating: Option<ReplicatingStep>,
+    /// finalSync property.
+    pub final_sync: Option<ReplicationCycle>,
+    /// instantiatingMigratedVm property.
+    pub instantiating_migrated_vm: Option<InstantiatingMigratedVMStep>,
+    /// preparingVmDisks property.
+    pub preparing_vm_disks: Option<PreparingVMDisksStep>,
+    /// previousReplicationCycle property.
+    pub previous_replication_cycle: Option<ReplicationCycle>,
+    /// shuttingDownSourceVm property.
+    pub shutting_down_source_vm: Option<ShuttingDownSourceVMStep>,
     /// startTime property.
     pub start_time: Option<String>,
 }
@@ -329,6 +196,127 @@ pub struct ReplicationCycle {
     pub warnings: Option<Vec<MigrationWarning>>,
 }
 
+/// `AdaptationModifier` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdaptationModifier {
+    /// modifier property.
+    pub modifier: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `SchedulingNodeAffinity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SchedulingNodeAffinity {
+    /// key property.
+    pub key: Option<String>,
+    /// operator property.
+    pub operator: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `InitializingReplicationStep` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InitializingReplicationStep {}
+
+/// `PersistentDisk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PersistentDisk {
+    /// diskUri property.
+    pub disk_uri: Option<String>,
+    /// sourceDiskNumber property.
+    pub source_disk_number: Option<i64>,
+}
+
+/// `DisksMigrationDisksTargetDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DisksMigrationDisksTargetDetails {}
+
+/// `CycleStep` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CycleStep {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// initializingReplication property.
+    pub initializing_replication: Option<InitializingReplicationStep>,
+    /// postProcessing property.
+    pub post_processing: Option<PostProcessingStep>,
+    /// replicating property.
+    pub replicating: Option<ReplicatingStep>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `LocalizedMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `CutoverJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CutoverJob {
+    /// computeEngineDisksTargetDetails property.
+    pub compute_engine_disks_target_details: Option<ComputeEngineDisksTargetDetails>,
+    /// computeEngineTargetDetails property.
+    pub compute_engine_target_details: Option<ComputeEngineTargetDetails>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// error property.
+    pub error: Option<Status>,
+    /// name property.
+    pub name: Option<String>,
+    /// progressPercent property.
+    pub progress_percent: Option<i64>,
+    /// state property.
+    pub state: Option<String>,
+    /// stateMessage property.
+    pub state_message: Option<String>,
+    /// stateTime property.
+    pub state_time: Option<String>,
+    /// steps property.
+    pub steps: Option<Vec<CutoverStep>>,
+}
+
+/// `NetworkInterface` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkInterface {
+    /// externalIp property.
+    pub external_ip: Option<String>,
+    /// internalIp property.
+    pub internal_ip: Option<String>,
+    /// network property.
+    pub network: Option<String>,
+    /// networkTier property.
+    pub network_tier: Option<String>,
+    /// subnetwork property.
+    pub subnetwork: Option<String>,
+}
+
+/// `DisksMigrationVmTargetDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DisksMigrationVmTargetDetails {
+    /// vmUri property.
+    pub vm_uri: Option<String>,
+}
+
 /// `ReplicatingStep` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplicatingStep {
@@ -342,13 +330,26 @@ pub struct ReplicatingStep {
     pub total_bytes: Option<String>,
 }
 
-/// `AdaptationModifier` type.
+/// `Link` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdaptationModifier {
-    /// modifier property.
-    pub modifier: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct Link {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `ComputeScheduling` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeScheduling {
+    /// minNodeCpus property.
+    pub min_node_cpus: Option<i64>,
+    /// nodeAffinities property.
+    pub node_affinities: Option<Vec<SchedulingNodeAffinity>>,
+    /// onHostMaintenance property.
+    pub on_host_maintenance: Option<String>,
+    /// restartType property.
+    pub restart_type: Option<String>,
 }
 
 // =============================================================================

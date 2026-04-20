@@ -6,6 +6,7 @@
 #![cfg(feature = "gcp_tasks")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
 #![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(unused_imports)]
 
 pub mod shared;
 
@@ -13,7 +14,7 @@ pub mod shared;
 pub mod clear;
 #[cfg(feature = "gcp_tasks_lists")]
 pub mod lists;
-#[cfg(feature = "gcp_tasks_move")]
-pub mod move;
+#[cfg(feature = "gcp_tasks_move_mod")]
+pub mod move_mod;
 #[cfg(feature = "gcp_tasks_tasks")]
 pub mod tasks;

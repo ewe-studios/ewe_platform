@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,91 +22,21 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `SoleTenantNodeType` type.
+/// `ListPreferenceSetsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SoleTenantNodeType {
-    /// nodeName property.
-    pub node_name: Option<String>,
-}
-
-/// `ComputeEnginePreferences` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeEnginePreferences {
-    /// licenseType property.
-    pub license_type: Option<String>,
-    /// machinePreferences property.
-    pub machine_preferences: Option<MachinePreferences>,
-    /// persistentDiskType property.
-    pub persistent_disk_type: Option<String>,
-}
-
-/// `SoleTenancyPreferences` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SoleTenancyPreferences {
-    /// commitmentPlan property.
-    pub commitment_plan: Option<String>,
-    /// cpuOvercommitRatio property.
-    pub cpu_overcommit_ratio: Option<f64>,
-    /// hostMaintenancePolicy property.
-    pub host_maintenance_policy: Option<String>,
-    /// nodeTypes property.
-    pub node_types: Option<Vec<SoleTenantNodeType>>,
-}
-
-/// `VirtualMachinePreferences` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VirtualMachinePreferences {
-    /// commitmentPlan property.
-    pub commitment_plan: Option<String>,
-    /// computeEnginePreferences property.
-    pub compute_engine_preferences: Option<ComputeEnginePreferences>,
-    /// regionPreferences property.
-    pub region_preferences: Option<RegionPreferences>,
-    /// sizingOptimizationStrategy property.
-    pub sizing_optimization_strategy: Option<String>,
-    /// soleTenancyPreferences property.
-    pub sole_tenancy_preferences: Option<SoleTenancyPreferences>,
-    /// targetProduct property.
-    pub target_product: Option<String>,
-    /// vmwareEnginePreferences property.
-    pub vmware_engine_preferences: Option<VmwareEnginePreferences>,
-}
-
-/// `PreferenceSet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreferenceSet {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-    /// virtualMachinePreferences property.
-    pub virtual_machine_preferences: Option<VirtualMachinePreferences>,
-}
-
-/// `MachineSeries` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MachineSeries {
-    /// code property.
-    pub code: Option<String>,
-}
-
-/// `MachinePreferences` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MachinePreferences {
-    /// allowedMachineSeries property.
-    pub allowed_machine_series: Option<Vec<MachineSeries>>,
+pub struct ListPreferenceSetsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// preferenceSets property.
+    pub preference_sets: Option<Vec<PreferenceSet>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `RegionPreferences` type.
@@ -128,6 +59,62 @@ pub struct VmwareEnginePreferences {
     pub storage_deduplication_compression_ratio: Option<f64>,
 }
 
+/// `VirtualMachinePreferences` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VirtualMachinePreferences {
+    /// commitmentPlan property.
+    pub commitment_plan: Option<String>,
+    /// computeEnginePreferences property.
+    pub compute_engine_preferences: Option<ComputeEnginePreferences>,
+    /// regionPreferences property.
+    pub region_preferences: Option<RegionPreferences>,
+    /// sizingOptimizationStrategy property.
+    pub sizing_optimization_strategy: Option<String>,
+    /// soleTenancyPreferences property.
+    pub sole_tenancy_preferences: Option<SoleTenancyPreferences>,
+    /// targetProduct property.
+    pub target_product: Option<String>,
+    /// vmwareEnginePreferences property.
+    pub vmware_engine_preferences: Option<VmwareEnginePreferences>,
+}
+
+/// `SoleTenancyPreferences` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SoleTenancyPreferences {
+    /// commitmentPlan property.
+    pub commitment_plan: Option<String>,
+    /// cpuOvercommitRatio property.
+    pub cpu_overcommit_ratio: Option<f64>,
+    /// hostMaintenancePolicy property.
+    pub host_maintenance_policy: Option<String>,
+    /// nodeTypes property.
+    pub node_types: Option<Vec<SoleTenantNodeType>>,
+}
+
+/// `MachineSeries` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MachineSeries {
+    /// code property.
+    pub code: Option<String>,
+}
+
+/// `PreferenceSet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PreferenceSet {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+    /// virtualMachinePreferences property.
+    pub virtual_machine_preferences: Option<VirtualMachinePreferences>,
+}
+
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
@@ -139,15 +126,29 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `ListPreferenceSetsResponse` type.
+/// `ComputeEnginePreferences` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListPreferenceSetsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// preferenceSets property.
-    pub preference_sets: Option<Vec<PreferenceSet>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct ComputeEnginePreferences {
+    /// licenseType property.
+    pub license_type: Option<String>,
+    /// machinePreferences property.
+    pub machine_preferences: Option<MachinePreferences>,
+    /// persistentDiskType property.
+    pub persistent_disk_type: Option<String>,
+}
+
+/// `SoleTenantNodeType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SoleTenantNodeType {
+    /// nodeName property.
+    pub node_name: Option<String>,
+}
+
+/// `MachinePreferences` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MachinePreferences {
+    /// allowedMachineSeries property.
+    pub allowed_machine_series: Option<Vec<MachineSeries>>,
 }
 
 // =============================================================================

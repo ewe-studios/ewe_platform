@@ -12,28 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ClassificationCategory` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClassificationCategory {
-    /// confidence property.
-    pub confidence: Option<f64>,
-    /// name property.
-    pub name: Option<String>,
-    /// severity property.
-    pub severity: Option<f64>,
-}
 
 /// `ModerateTextResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,6 +34,17 @@ pub struct ModerateTextResponse {
     pub language_supported: Option<bool>,
     /// moderationCategories property.
     pub moderation_categories: Option<Vec<ClassificationCategory>>,
+}
+
+/// `ClassificationCategory` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClassificationCategory {
+    /// confidence property.
+    pub confidence: Option<f64>,
+    /// name property.
+    pub name: Option<String>,
+    /// severity property.
+    pub severity: Option<f64>,
 }
 
 // =============================================================================

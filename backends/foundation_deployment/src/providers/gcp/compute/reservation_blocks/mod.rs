@@ -12,28 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ReservationBlockPhysicalTopology` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReservationBlockPhysicalTopology {
-    /// block property.
-    pub block: Option<String>,
-    /// cluster property.
-    pub cluster: Option<String>,
-    /// instances property.
-    pub instances: Option<Vec<ReservationBlockPhysicalTopologyInstance>>,
-}
 
 /// `ReservationBlockPhysicalTopologyInstance` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,92 +35,6 @@ pub struct ReservationBlockPhysicalTopologyInstance {
         Option<ReservationBlockPhysicalTopologyInstancePhysicalHostTopology>,
     /// projectId property.
     pub project_id: Option<String>,
-}
-
-/// `ReservationBlocksListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReservationBlocksListResponse {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<ReservationBlock>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `ReservationBlocksGetResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReservationBlocksGetResponse {
-    /// resource property.
-    pub resource: Option<ReservationBlock>,
-}
-
-/// `UpcomingMaintenance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpcomingMaintenance {
-    /// canReschedule property.
-    pub can_reschedule: Option<bool>,
-    /// latestWindowStartTime property.
-    pub latest_window_start_time: Option<String>,
-    /// maintenanceOnShutdown property.
-    pub maintenance_on_shutdown: Option<bool>,
-    /// maintenanceReasons property.
-    pub maintenance_reasons: Option<Vec<String>>,
-    /// maintenanceStatus property.
-    pub maintenance_status: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// windowEndTime property.
-    pub window_end_time: Option<String>,
-    /// windowStartTime property.
-    pub window_start_time: Option<String>,
-}
-
-/// `ReservationBlockHealthInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReservationBlockHealthInfo {
-    /// degradedSubBlockCount property.
-    pub degraded_sub_block_count: Option<i64>,
-    /// healthStatus property.
-    pub health_status: Option<String>,
-    /// healthySubBlockCount property.
-    pub healthy_sub_block_count: Option<i64>,
-}
-
-/// `ReservationBlockPhysicalTopologyInstancePhysicalHostTopology` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReservationBlockPhysicalTopologyInstancePhysicalHostTopology {
-    /// host property.
-    pub host: Option<String>,
-    /// subBlock property.
-    pub sub_block: Option<String>,
-}
-
-/// `GroupMaintenanceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GroupMaintenanceInfo {
-    /// instanceMaintenanceOngoingCount property.
-    pub instance_maintenance_ongoing_count: Option<i64>,
-    /// instanceMaintenancePendingCount property.
-    pub instance_maintenance_pending_count: Option<i64>,
-    /// maintenanceOngoingCount property.
-    pub maintenance_ongoing_count: Option<i64>,
-    /// maintenancePendingCount property.
-    pub maintenance_pending_count: Option<i64>,
-    /// schedulingType property.
-    pub scheduling_type: Option<String>,
-    /// subblockInfraMaintenanceOngoingCount property.
-    pub subblock_infra_maintenance_ongoing_count: Option<i64>,
-    /// subblockInfraMaintenancePendingCount property.
-    pub subblock_infra_maintenance_pending_count: Option<i64>,
-    /// upcomingGroupMaintenance property.
-    pub upcoming_group_maintenance: Option<UpcomingMaintenance>,
 }
 
 /// `ReservationBlock` type.
@@ -168,6 +72,103 @@ pub struct ReservationBlock {
     pub status: Option<String>,
     /// zone property.
     pub zone: Option<String>,
+}
+
+/// `UpcomingMaintenance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpcomingMaintenance {
+    /// canReschedule property.
+    pub can_reschedule: Option<bool>,
+    /// latestWindowStartTime property.
+    pub latest_window_start_time: Option<String>,
+    /// maintenanceOnShutdown property.
+    pub maintenance_on_shutdown: Option<bool>,
+    /// maintenanceReasons property.
+    pub maintenance_reasons: Option<Vec<String>>,
+    /// maintenanceStatus property.
+    pub maintenance_status: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// windowEndTime property.
+    pub window_end_time: Option<String>,
+    /// windowStartTime property.
+    pub window_start_time: Option<String>,
+}
+
+/// `GroupMaintenanceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GroupMaintenanceInfo {
+    /// instanceMaintenanceOngoingCount property.
+    pub instance_maintenance_ongoing_count: Option<i64>,
+    /// instanceMaintenancePendingCount property.
+    pub instance_maintenance_pending_count: Option<i64>,
+    /// maintenanceOngoingCount property.
+    pub maintenance_ongoing_count: Option<i64>,
+    /// maintenancePendingCount property.
+    pub maintenance_pending_count: Option<i64>,
+    /// schedulingType property.
+    pub scheduling_type: Option<String>,
+    /// subblockInfraMaintenanceOngoingCount property.
+    pub subblock_infra_maintenance_ongoing_count: Option<i64>,
+    /// subblockInfraMaintenancePendingCount property.
+    pub subblock_infra_maintenance_pending_count: Option<i64>,
+    /// upcomingGroupMaintenance property.
+    pub upcoming_group_maintenance: Option<UpcomingMaintenance>,
+}
+
+/// `ReservationBlocksListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReservationBlocksListResponse {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<ReservationBlock>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `ReservationBlockHealthInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReservationBlockHealthInfo {
+    /// degradedSubBlockCount property.
+    pub degraded_sub_block_count: Option<i64>,
+    /// healthStatus property.
+    pub health_status: Option<String>,
+    /// healthySubBlockCount property.
+    pub healthy_sub_block_count: Option<i64>,
+}
+
+/// `ReservationBlockPhysicalTopology` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReservationBlockPhysicalTopology {
+    /// block property.
+    pub block: Option<String>,
+    /// cluster property.
+    pub cluster: Option<String>,
+    /// instances property.
+    pub instances: Option<Vec<ReservationBlockPhysicalTopologyInstance>>,
+}
+
+/// `ReservationBlocksGetResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReservationBlocksGetResponse {
+    /// resource property.
+    pub resource: Option<ReservationBlock>,
+}
+
+/// `ReservationBlockPhysicalTopologyInstancePhysicalHostTopology` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReservationBlockPhysicalTopologyInstancePhysicalHostTopology {
+    /// host property.
+    pub host: Option<String>,
+    /// subBlock property.
+    pub sub_block: Option<String>,
 }
 
 // =============================================================================

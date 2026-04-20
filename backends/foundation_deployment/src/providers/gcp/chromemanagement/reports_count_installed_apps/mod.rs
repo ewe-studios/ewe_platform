@@ -12,28 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleChromeManagementV1RiskAssessment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1RiskAssessment {
-    /// assessment property.
-    pub assessment: Option<String>,
-    /// detailsUrl property.
-    pub details_url: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
 
 /// `GoogleChromeManagementV1CountInstalledAppsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,6 +34,26 @@ pub struct GoogleChromeManagementV1CountInstalledAppsResponse {
     pub next_page_token: Option<String>,
     /// totalSize property.
     pub total_size: Option<i64>,
+}
+
+/// `GoogleChromeManagementV1RiskAssessmentEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1RiskAssessmentEntry {
+    /// provider property.
+    pub provider: Option<String>,
+    /// riskAssessment property.
+    pub risk_assessment: Option<GoogleChromeManagementV1RiskAssessment>,
+    /// riskLevel property.
+    pub risk_level: Option<String>,
+}
+
+/// `GoogleChromeManagementV1RiskAssessmentData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1RiskAssessmentData {
+    /// entries property.
+    pub entries: Option<Vec<GoogleChromeManagementV1RiskAssessmentEntry>>,
+    /// overallRiskLevel property.
+    pub overall_risk_level: Option<String>,
 }
 
 /// `GoogleChromeManagementV1InstalledApp` type.
@@ -75,24 +85,15 @@ pub struct GoogleChromeManagementV1InstalledApp {
     pub risk_assessment: Option<GoogleChromeManagementV1RiskAssessmentData>,
 }
 
-/// `GoogleChromeManagementV1RiskAssessmentEntry` type.
+/// `GoogleChromeManagementV1RiskAssessment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1RiskAssessmentEntry {
-    /// provider property.
-    pub provider: Option<String>,
-    /// riskAssessment property.
-    pub risk_assessment: Option<GoogleChromeManagementV1RiskAssessment>,
-    /// riskLevel property.
-    pub risk_level: Option<String>,
-}
-
-/// `GoogleChromeManagementV1RiskAssessmentData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1RiskAssessmentData {
-    /// entries property.
-    pub entries: Option<Vec<GoogleChromeManagementV1RiskAssessmentEntry>>,
-    /// overallRiskLevel property.
-    pub overall_risk_level: Option<String>,
+pub struct GoogleChromeManagementV1RiskAssessment {
+    /// assessment property.
+    pub assessment: Option<String>,
+    /// detailsUrl property.
+    pub details_url: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
 // =============================================================================

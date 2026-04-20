@@ -12,17 +12,275 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ContextAttribute` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContextAttribute {
+    /// name property.
+    pub name: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `IntegerValues` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntegerValues {
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `SearchQualityMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchQualityMetadata {
+    /// quality property.
+    pub quality: Option<f64>,
+}
+
+/// `Item` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Item {
+    /// acl property.
+    pub acl: Option<ItemAcl>,
+    /// content property.
+    pub content: Option<ItemContent>,
+    /// itemType property.
+    pub item_type: Option<String>,
+    /// metadata property.
+    pub metadata: Option<ItemMetadata>,
+    /// name property.
+    pub name: Option<String>,
+    /// payload property.
+    pub payload: Option<String>,
+    /// queue property.
+    pub queue: Option<String>,
+    /// status property.
+    pub status: Option<ItemStatus>,
+    /// structuredData property.
+    pub structured_data: Option<ItemStructuredData>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `Principal` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Principal {
+    /// groupResourceName property.
+    pub group_resource_name: Option<String>,
+    /// gsuitePrincipal property.
+    pub gsuite_principal: Option<GSuitePrincipal>,
+    /// userResourceName property.
+    pub user_resource_name: Option<String>,
+}
+
+/// `GSuitePrincipal` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GSuitePrincipal {
+    /// gsuiteDomain property.
+    pub gsuite_domain: Option<bool>,
+    /// gsuiteGroupEmail property.
+    pub gsuite_group_email: Option<String>,
+    /// gsuiteUserEmail property.
+    pub gsuite_user_email: Option<String>,
+}
+
+/// `SearchItemsByViewUrlResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchItemsByViewUrlResponse {
+    /// items property.
+    pub items: Option<Vec<Item>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `ItemContent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ItemContent {
+    /// contentDataRef property.
+    pub content_data_ref: Option<UploadItemRef>,
+    /// contentFormat property.
+    pub content_format: Option<String>,
+    /// hash property.
+    pub hash: Option<String>,
+    /// inlineContent property.
+    pub inline_content: Option<String>,
+}
+
+/// `ItemStructuredData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ItemStructuredData {
+    /// hash property.
+    pub hash: Option<String>,
+    /// object property.
+    pub object: Option<Box<StructuredDataObject>>,
+}
+
+/// `StructuredDataObject` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StructuredDataObject {
+    /// properties property.
+    pub properties: Option<Vec<Box<NamedProperty>>>,
+}
+
+/// `Date` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `HtmlValues` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HtmlValues {
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `TextValues` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextValues {
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `TimestampValues` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimestampValues {
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `DoubleValues` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DoubleValues {
+    /// values property.
+    pub values: Option<Vec<f64>>,
+}
+
+/// `NamedProperty` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NamedProperty {
+    /// booleanValue property.
+    pub boolean_value: Option<bool>,
+    /// dateValues property.
+    pub date_values: Option<DateValues>,
+    /// doubleValues property.
+    pub double_values: Option<DoubleValues>,
+    /// enumValues property.
+    pub enum_values: Option<EnumValues>,
+    /// htmlValues property.
+    pub html_values: Option<HtmlValues>,
+    /// integerValues property.
+    pub integer_values: Option<IntegerValues>,
+    /// name property.
+    pub name: Option<String>,
+    /// objectValues property.
+    pub object_values: Option<Box<ObjectValues>>,
+    /// textValues property.
+    pub text_values: Option<TextValues>,
+    /// timestampValues property.
+    pub timestamp_values: Option<TimestampValues>,
+}
+
+/// `UploadItemRef` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UploadItemRef {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `ItemStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ItemStatus {
+    /// code property.
+    pub code: Option<String>,
+    /// processingErrors property.
+    pub processing_errors: Option<Vec<ProcessingError>>,
+    /// repositoryErrors property.
+    pub repository_errors: Option<Vec<RepositoryError>>,
+}
+
+/// `ItemAcl` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ItemAcl {
+    /// aclInheritanceType property.
+    pub acl_inheritance_type: Option<String>,
+    /// deniedReaders property.
+    pub denied_readers: Option<Vec<Principal>>,
+    /// inheritAclFrom property.
+    pub inherit_acl_from: Option<String>,
+    /// owners property.
+    pub owners: Option<Vec<Principal>>,
+    /// readers property.
+    pub readers: Option<Vec<Principal>>,
+}
+
+/// `DateValues` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DateValues {
+    /// values property.
+    pub values: Option<Vec<Date>>,
+}
+
+/// `EnumValues` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnumValues {
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `ObjectValues` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ObjectValues {
+    /// values property.
+    pub values: Option<Vec<Box<StructuredDataObject>>>,
+}
+
+/// `ProcessingError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProcessingError {
+    /// code property.
+    pub code: Option<String>,
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// fieldViolations property.
+    pub field_violations: Option<Vec<FieldViolation>>,
+}
+
+/// `RepositoryError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RepositoryError {
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// httpStatusCode property.
+    pub http_status_code: Option<i64>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `FieldViolation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FieldViolation {
+    /// description property.
+    pub description: Option<String>,
+    /// field property.
+    pub field: Option<String>,
+}
 
 /// `ItemMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -55,169 +313,6 @@ pub struct ItemMetadata {
     pub update_time: Option<String>,
 }
 
-/// `ItemAcl` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ItemAcl {
-    /// aclInheritanceType property.
-    pub acl_inheritance_type: Option<String>,
-    /// deniedReaders property.
-    pub denied_readers: Option<Vec<Principal>>,
-    /// inheritAclFrom property.
-    pub inherit_acl_from: Option<String>,
-    /// owners property.
-    pub owners: Option<Vec<Principal>>,
-    /// readers property.
-    pub readers: Option<Vec<Principal>>,
-}
-
-/// `ItemStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ItemStatus {
-    /// code property.
-    pub code: Option<String>,
-    /// processingErrors property.
-    pub processing_errors: Option<Vec<ProcessingError>>,
-    /// repositoryErrors property.
-    pub repository_errors: Option<Vec<RepositoryError>>,
-}
-
-/// `ObjectValues` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObjectValues {
-    /// values property.
-    pub values: Option<Vec<StructuredDataObject>>,
-}
-
-/// `ItemStructuredData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ItemStructuredData {
-    /// hash property.
-    pub hash: Option<String>,
-    /// object property.
-    pub object: Option<StructuredDataObject>,
-}
-
-/// `TextValues` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextValues {
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `Date` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `FieldViolation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FieldViolation {
-    /// description property.
-    pub description: Option<String>,
-    /// field property.
-    pub field: Option<String>,
-}
-
-/// `NamedProperty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NamedProperty {
-    /// booleanValue property.
-    pub boolean_value: Option<bool>,
-    /// dateValues property.
-    pub date_values: Option<DateValues>,
-    /// doubleValues property.
-    pub double_values: Option<DoubleValues>,
-    /// enumValues property.
-    pub enum_values: Option<EnumValues>,
-    /// htmlValues property.
-    pub html_values: Option<HtmlValues>,
-    /// integerValues property.
-    pub integer_values: Option<IntegerValues>,
-    /// name property.
-    pub name: Option<String>,
-    /// objectValues property.
-    pub object_values: Option<ObjectValues>,
-    /// textValues property.
-    pub text_values: Option<TextValues>,
-    /// timestampValues property.
-    pub timestamp_values: Option<TimestampValues>,
-}
-
-/// `Principal` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Principal {
-    /// groupResourceName property.
-    pub group_resource_name: Option<String>,
-    /// gsuitePrincipal property.
-    pub gsuite_principal: Option<GSuitePrincipal>,
-    /// userResourceName property.
-    pub user_resource_name: Option<String>,
-}
-
-/// `UploadItemRef` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UploadItemRef {
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GSuitePrincipal` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GSuitePrincipal {
-    /// gsuiteDomain property.
-    pub gsuite_domain: Option<bool>,
-    /// gsuiteGroupEmail property.
-    pub gsuite_group_email: Option<String>,
-    /// gsuiteUserEmail property.
-    pub gsuite_user_email: Option<String>,
-}
-
-/// `ItemContent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ItemContent {
-    /// contentDataRef property.
-    pub content_data_ref: Option<UploadItemRef>,
-    /// contentFormat property.
-    pub content_format: Option<String>,
-    /// hash property.
-    pub hash: Option<String>,
-    /// inlineContent property.
-    pub inline_content: Option<String>,
-}
-
-/// `SearchItemsByViewUrlResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchItemsByViewUrlResponse {
-    /// items property.
-    pub items: Option<Vec<Item>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `SearchQualityMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchQualityMetadata {
-    /// quality property.
-    pub quality: Option<f64>,
-}
-
-/// `RepositoryError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RepositoryError {
-    /// errorMessage property.
-    pub error_message: Option<String>,
-    /// httpStatusCode property.
-    pub http_status_code: Option<i64>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
 /// `Interaction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Interaction {
@@ -227,100 +322,6 @@ pub struct Interaction {
     pub principal: Option<Principal>,
     /// type property.
     pub r#type: Option<String>,
-}
-
-/// `EnumValues` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnumValues {
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `IntegerValues` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntegerValues {
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `StructuredDataObject` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StructuredDataObject {
-    /// properties property.
-    pub properties: Option<Vec<NamedProperty>>,
-}
-
-/// `DoubleValues` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DoubleValues {
-    /// values property.
-    pub values: Option<Vec<f64>>,
-}
-
-/// `TimestampValues` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimestampValues {
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `DateValues` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DateValues {
-    /// values property.
-    pub values: Option<Vec<Date>>,
-}
-
-/// `HtmlValues` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HtmlValues {
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `ProcessingError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProcessingError {
-    /// code property.
-    pub code: Option<String>,
-    /// errorMessage property.
-    pub error_message: Option<String>,
-    /// fieldViolations property.
-    pub field_violations: Option<Vec<FieldViolation>>,
-}
-
-/// `ContextAttribute` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContextAttribute {
-    /// name property.
-    pub name: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `Item` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Item {
-    /// acl property.
-    pub acl: Option<ItemAcl>,
-    /// content property.
-    pub content: Option<ItemContent>,
-    /// itemType property.
-    pub item_type: Option<String>,
-    /// metadata property.
-    pub metadata: Option<ItemMetadata>,
-    /// name property.
-    pub name: Option<String>,
-    /// payload property.
-    pub payload: Option<String>,
-    /// queue property.
-    pub queue: Option<String>,
-    /// status property.
-    pub status: Option<ItemStatus>,
-    /// structuredData property.
-    pub structured_data: Option<ItemStructuredData>,
-    /// version property.
-    pub version: Option<String>,
 }
 
 // =============================================================================

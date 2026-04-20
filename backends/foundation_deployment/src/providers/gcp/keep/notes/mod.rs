@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,54 +22,17 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `TextContent` type.
+/// `ListContent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextContent {
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `ListNotesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListNotesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// notes property.
-    pub notes: Option<Vec<Note>>,
-}
-
-/// `Attachment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Attachment {
-    /// mimeType property.
-    pub mime_type: Option<Vec<String>>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `Permission` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Permission {
-    /// deleted property.
-    pub deleted: Option<bool>,
-    /// email property.
-    pub email: Option<String>,
-    /// family property.
-    pub family: Option<Family>,
-    /// group property.
-    pub group: Option<Group>,
-    /// name property.
-    pub name: Option<String>,
-    /// role property.
-    pub role: Option<String>,
-    /// user property.
-    pub user: Option<User>,
+pub struct ListContent {
+    /// listItems property.
+    pub list_items: Option<Vec<Box<ListItem>>>,
 }
 
 /// `Note` type.
@@ -94,13 +58,11 @@ pub struct Note {
     pub update_time: Option<String>,
 }
 
-/// `Section` type.
+/// `User` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Section {
-    /// list property.
-    pub list: Option<ListContent>,
-    /// text property.
-    pub text: Option<TextContent>,
+pub struct User {
+    /// email property.
+    pub email: Option<String>,
 }
 
 /// `ListItem` type.
@@ -109,9 +71,34 @@ pub struct ListItem {
     /// checked property.
     pub checked: Option<bool>,
     /// childListItems property.
-    pub child_list_items: Option<Vec<ListItem>>,
+    pub child_list_items: Option<Vec<Box<ListItem>>>,
     /// text property.
     pub text: Option<TextContent>,
+}
+
+/// `ListNotesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListNotesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// notes property.
+    pub notes: Option<Vec<Note>>,
+}
+
+/// `TextContent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextContent {
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `Attachment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Attachment {
+    /// mimeType property.
+    pub mime_type: Option<Vec<String>>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 /// `Family` type.
@@ -125,18 +112,32 @@ pub struct Group {
     pub email: Option<String>,
 }
 
-/// `User` type.
+/// `Permission` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct User {
+pub struct Permission {
+    /// deleted property.
+    pub deleted: Option<bool>,
     /// email property.
     pub email: Option<String>,
+    /// family property.
+    pub family: Option<Family>,
+    /// group property.
+    pub group: Option<Group>,
+    /// name property.
+    pub name: Option<String>,
+    /// role property.
+    pub role: Option<String>,
+    /// user property.
+    pub user: Option<User>,
 }
 
-/// `ListContent` type.
+/// `Section` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListContent {
-    /// listItems property.
-    pub list_items: Option<Vec<ListItem>>,
+pub struct Section {
+    /// list property.
+    pub list: Option<ListContent>,
+    /// text property.
+    pub text: Option<TextContent>,
 }
 
 // =============================================================================

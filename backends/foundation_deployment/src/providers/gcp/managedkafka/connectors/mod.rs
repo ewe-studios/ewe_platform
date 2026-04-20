@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,39 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `TaskRetryPolicy` type.
+/// `ResumeConnectorResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TaskRetryPolicy {
-    /// maximumBackoff property.
-    pub maximum_backoff: Option<String>,
-    /// minimumBackoff property.
-    pub minimum_backoff: Option<String>,
-    /// taskRetryDisabled property.
-    pub task_retry_disabled: Option<bool>,
-}
+pub struct ResumeConnectorResponse {}
 
 /// `StopConnectorResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StopConnectorResponse {}
-
-/// `ListConnectorsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListConnectorsResponse {
-    /// connectors property.
-    pub connectors: Option<Vec<Connector>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `RestartConnectorResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RestartConnectorResponse {}
 
 /// `Connector` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -68,13 +49,33 @@ pub struct Connector {
     pub task_restart_policy: Option<TaskRetryPolicy>,
 }
 
+/// `ListConnectorsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListConnectorsResponse {
+    /// connectors property.
+    pub connectors: Option<Vec<Connector>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `TaskRetryPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TaskRetryPolicy {
+    /// maximumBackoff property.
+    pub maximum_backoff: Option<String>,
+    /// minimumBackoff property.
+    pub minimum_backoff: Option<String>,
+    /// taskRetryDisabled property.
+    pub task_retry_disabled: Option<bool>,
+}
+
 /// `PauseConnectorResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PauseConnectorResponse {}
 
-/// `ResumeConnectorResponse` type.
+/// `RestartConnectorResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResumeConnectorResponse {}
+pub struct RestartConnectorResponse {}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

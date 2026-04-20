@@ -12,374 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `AndroidMatrix` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AndroidMatrix {
-    /// androidModelIds property.
-    pub android_model_ids: Option<Vec<String>>,
-    /// androidVersionIds property.
-    pub android_version_ids: Option<Vec<String>>,
-    /// locales property.
-    pub locales: Option<Vec<String>>,
-    /// orientations property.
-    pub orientations: Option<Vec<String>>,
-}
-
-/// `CancelTestMatrixResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelTestMatrixResponse {
-    /// testState property.
-    pub test_state: Option<String>,
-}
-
-/// `IosXcTest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IosXcTest {
-    /// appBundleId property.
-    pub app_bundle_id: Option<String>,
-    /// testSpecialEntitlements property.
-    pub test_special_entitlements: Option<bool>,
-    /// testsZip property.
-    pub tests_zip: Option<FileReference>,
-    /// xcodeVersion property.
-    pub xcode_version: Option<String>,
-    /// xctestrun property.
-    pub xctestrun: Option<FileReference>,
-}
-
-/// `IosTestLoop` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IosTestLoop {
-    /// appBundleId property.
-    pub app_bundle_id: Option<String>,
-    /// appIpa property.
-    pub app_ipa: Option<FileReference>,
-    /// scenarios property.
-    pub scenarios: Option<Vec<i64>>,
-}
-
-/// `GoogleAuto` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAuto {}
-
-/// `AndroidDevice` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AndroidDevice {
-    /// androidModelId property.
-    pub android_model_id: Option<String>,
-    /// androidVersionId property.
-    pub android_version_id: Option<String>,
-    /// locale property.
-    pub locale: Option<String>,
-    /// orientation property.
-    pub orientation: Option<String>,
-}
-
-/// `IosDevice` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IosDevice {
-    /// iosModelId property.
-    pub ios_model_id: Option<String>,
-    /// iosVersionId property.
-    pub ios_version_id: Option<String>,
-    /// locale property.
-    pub locale: Option<String>,
-    /// orientation property.
-    pub orientation: Option<String>,
-}
-
-/// `AndroidDeviceList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AndroidDeviceList {
-    /// androidDevices property.
-    pub android_devices: Option<Vec<AndroidDevice>>,
-}
-
-/// `ClientInfoDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClientInfoDetail {
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `TestExecution` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestExecution {
-    /// environment property.
-    pub environment: Option<Environment>,
-    /// id property.
-    pub id: Option<String>,
-    /// matrixId property.
-    pub matrix_id: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// shard property.
-    pub shard: Option<Shard>,
-    /// state property.
-    pub state: Option<String>,
-    /// testDetails property.
-    pub test_details: Option<TestDetails>,
-    /// testSpecification property.
-    pub test_specification: Option<TestSpecification>,
-    /// timestamp property.
-    pub timestamp: Option<String>,
-    /// toolResultsStep property.
-    pub tool_results_step: Option<ToolResultsStep>,
-}
-
-/// `ApkSplits` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApkSplits {
-    /// bundleSplits property.
-    pub bundle_splits: Option<Vec<FileReference>>,
-}
-
-/// `RegularFile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegularFile {
-    /// content property.
-    pub content: Option<FileReference>,
-    /// devicePath property.
-    pub device_path: Option<String>,
-}
-
-/// `StartActivityIntent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StartActivityIntent {
-    /// action property.
-    pub action: Option<String>,
-    /// categories property.
-    pub categories: Option<Vec<String>>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `IosDeviceList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IosDeviceList {
-    /// iosDevices property.
-    pub ios_devices: Option<Vec<IosDevice>>,
-}
-
-/// `IosTestSetup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IosTestSetup {
-    /// additionalIpas property.
-    pub additional_ipas: Option<Vec<FileReference>>,
-    /// networkProfile property.
-    pub network_profile: Option<String>,
-    /// pullDirectories property.
-    pub pull_directories: Option<Vec<IosDeviceFile>>,
-    /// pushFiles property.
-    pub push_files: Option<Vec<IosDeviceFile>>,
-}
-
-/// `EnvironmentMatrix` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnvironmentMatrix {
-    /// androidDeviceList property.
-    pub android_device_list: Option<AndroidDeviceList>,
-    /// androidMatrix property.
-    pub android_matrix: Option<AndroidMatrix>,
-    /// iosDeviceList property.
-    pub ios_device_list: Option<IosDeviceList>,
-}
-
-/// `DeviceFile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceFile {
-    /// obbFile property.
-    pub obb_file: Option<ObbFile>,
-    /// regularFile property.
-    pub regular_file: Option<RegularFile>,
-}
-
-/// `TestMatrix` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestMatrix {
-    /// clientInfo property.
-    pub client_info: Option<ClientInfo>,
-    /// environmentMatrix property.
-    pub environment_matrix: Option<EnvironmentMatrix>,
-    /// extendedInvalidMatrixDetails property.
-    pub extended_invalid_matrix_details: Option<Vec<MatrixErrorDetail>>,
-    /// failFast property.
-    pub fail_fast: Option<bool>,
-    /// flakyTestAttempts property.
-    pub flaky_test_attempts: Option<i64>,
-    /// invalidMatrixDetails property.
-    pub invalid_matrix_details: Option<String>,
-    /// outcomeSummary property.
-    pub outcome_summary: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// resultStorage property.
-    pub result_storage: Option<ResultStorage>,
-    /// state property.
-    pub state: Option<String>,
-    /// testExecutions property.
-    pub test_executions: Option<Vec<TestExecution>>,
-    /// testMatrixId property.
-    pub test_matrix_id: Option<String>,
-    /// testSpecification property.
-    pub test_specification: Option<TestSpecification>,
-    /// timestamp property.
-    pub timestamp: Option<String>,
-}
-
-/// `MatrixErrorDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MatrixErrorDetail {
-    /// message property.
-    pub message: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `AndroidRoboTest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AndroidRoboTest {
-    /// appApk property.
-    pub app_apk: Option<FileReference>,
-    /// appBundle property.
-    pub app_bundle: Option<AppBundle>,
-    /// appInitialActivity property.
-    pub app_initial_activity: Option<String>,
-    /// appPackageId property.
-    pub app_package_id: Option<String>,
-    /// maxDepth property.
-    pub max_depth: Option<i64>,
-    /// maxSteps property.
-    pub max_steps: Option<i64>,
-    /// roboDirectives property.
-    pub robo_directives: Option<Vec<RoboDirective>>,
-    /// roboMode property.
-    pub robo_mode: Option<String>,
-    /// roboScript property.
-    pub robo_script: Option<FileReference>,
-    /// startingIntents property.
-    pub starting_intents: Option<Vec<RoboStartingIntent>>,
-}
-
-/// `EnvironmentVariable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnvironmentVariable {
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `AppBundle` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppBundle {
-    /// apks property.
-    pub apks: Option<ApkSplits>,
-    /// bundleLocation property.
-    pub bundle_location: Option<FileReference>,
-}
-
-/// `Environment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Environment {
-    /// androidDevice property.
-    pub android_device: Option<AndroidDevice>,
-    /// iosDevice property.
-    pub ios_device: Option<IosDevice>,
-}
-
-/// `SystraceSetup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SystraceSetup {
-    /// durationSeconds property.
-    pub duration_seconds: Option<i64>,
-}
-
-/// `ShardingOption` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShardingOption {
-    /// manualSharding property.
-    pub manual_sharding: Option<ManualSharding>,
-    /// smartSharding property.
-    pub smart_sharding: Option<SmartSharding>,
-    /// uniformSharding property.
-    pub uniform_sharding: Option<UniformSharding>,
-}
-
-/// `IosDeviceFile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IosDeviceFile {
-    /// bundleId property.
-    pub bundle_id: Option<String>,
-    /// content property.
-    pub content: Option<FileReference>,
-    /// devicePath property.
-    pub device_path: Option<String>,
-}
-
-/// `ObbFile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObbFile {
-    /// obb property.
-    pub obb: Option<FileReference>,
-    /// obbFileName property.
-    pub obb_file_name: Option<String>,
-}
-
-/// `Apk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Apk {
-    /// location property.
-    pub location: Option<FileReference>,
-    /// packageName property.
-    pub package_name: Option<String>,
-}
-
-/// `NoActivityIntent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NoActivityIntent {}
-
-/// `ManualSharding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManualSharding {
-    /// testTargetsForShard property.
-    pub test_targets_for_shard: Option<Vec<TestTargetsForShard>>,
-}
-
-/// `TestTargetsForShard` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestTargetsForShard {
-    /// testTargets property.
-    pub test_targets: Option<Vec<String>>,
-}
-
-/// `FileReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FileReference {
-    /// gcsPath property.
-    pub gcs_path: Option<String>,
-}
-
-/// `Account` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Account {
-    /// googleAuto property.
-    pub google_auto: Option<GoogleAuto>,
-}
 
 /// `ToolResultsHistory` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -415,6 +59,322 @@ pub struct TestSpecification {
     pub test_setup: Option<TestSetup>,
     /// testTimeout property.
     pub test_timeout: Option<String>,
+}
+
+/// `Apk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Apk {
+    /// location property.
+    pub location: Option<FileReference>,
+    /// packageName property.
+    pub package_name: Option<String>,
+}
+
+/// `AndroidMatrix` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AndroidMatrix {
+    /// androidModelIds property.
+    pub android_model_ids: Option<Vec<String>>,
+    /// androidVersionIds property.
+    pub android_version_ids: Option<Vec<String>>,
+    /// locales property.
+    pub locales: Option<Vec<String>>,
+    /// orientations property.
+    pub orientations: Option<Vec<String>>,
+}
+
+/// `AndroidInstrumentationTest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AndroidInstrumentationTest {
+    /// appApk property.
+    pub app_apk: Option<FileReference>,
+    /// appBundle property.
+    pub app_bundle: Option<AppBundle>,
+    /// appPackageId property.
+    pub app_package_id: Option<String>,
+    /// orchestratorOption property.
+    pub orchestrator_option: Option<String>,
+    /// shardingOption property.
+    pub sharding_option: Option<ShardingOption>,
+    /// testApk property.
+    pub test_apk: Option<FileReference>,
+    /// testPackageId property.
+    pub test_package_id: Option<String>,
+    /// testRunnerClass property.
+    pub test_runner_class: Option<String>,
+    /// testTargets property.
+    pub test_targets: Option<Vec<String>>,
+}
+
+/// `RoboStartingIntent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RoboStartingIntent {
+    /// launcherActivity property.
+    pub launcher_activity: Option<LauncherActivityIntent>,
+    /// noActivity property.
+    pub no_activity: Option<NoActivityIntent>,
+    /// startActivity property.
+    pub start_activity: Option<StartActivityIntent>,
+    /// timeout property.
+    pub timeout: Option<String>,
+}
+
+/// `IosDevice` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IosDevice {
+    /// iosModelId property.
+    pub ios_model_id: Option<String>,
+    /// iosVersionId property.
+    pub ios_version_id: Option<String>,
+    /// locale property.
+    pub locale: Option<String>,
+    /// orientation property.
+    pub orientation: Option<String>,
+}
+
+/// `IosDeviceFile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IosDeviceFile {
+    /// bundleId property.
+    pub bundle_id: Option<String>,
+    /// content property.
+    pub content: Option<FileReference>,
+    /// devicePath property.
+    pub device_path: Option<String>,
+}
+
+/// `Account` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Account {
+    /// googleAuto property.
+    pub google_auto: Option<GoogleAuto>,
+}
+
+/// `RoboDirective` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RoboDirective {
+    /// actionType property.
+    pub action_type: Option<String>,
+    /// inputText property.
+    pub input_text: Option<String>,
+    /// resourceName property.
+    pub resource_name: Option<String>,
+}
+
+/// `ShardingOption` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShardingOption {
+    /// manualSharding property.
+    pub manual_sharding: Option<ManualSharding>,
+    /// smartSharding property.
+    pub smart_sharding: Option<SmartSharding>,
+    /// uniformSharding property.
+    pub uniform_sharding: Option<UniformSharding>,
+}
+
+/// `UniformSharding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UniformSharding {
+    /// numShards property.
+    pub num_shards: Option<i64>,
+}
+
+/// `TestMatrix` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TestMatrix {
+    /// clientInfo property.
+    pub client_info: Option<ClientInfo>,
+    /// environmentMatrix property.
+    pub environment_matrix: Option<EnvironmentMatrix>,
+    /// extendedInvalidMatrixDetails property.
+    pub extended_invalid_matrix_details: Option<Vec<MatrixErrorDetail>>,
+    /// failFast property.
+    pub fail_fast: Option<bool>,
+    /// flakyTestAttempts property.
+    pub flaky_test_attempts: Option<i64>,
+    /// invalidMatrixDetails property.
+    pub invalid_matrix_details: Option<String>,
+    /// outcomeSummary property.
+    pub outcome_summary: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// resultStorage property.
+    pub result_storage: Option<ResultStorage>,
+    /// state property.
+    pub state: Option<String>,
+    /// testExecutions property.
+    pub test_executions: Option<Vec<TestExecution>>,
+    /// testMatrixId property.
+    pub test_matrix_id: Option<String>,
+    /// testSpecification property.
+    pub test_specification: Option<TestSpecification>,
+    /// timestamp property.
+    pub timestamp: Option<String>,
+}
+
+/// `GoogleAuto` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAuto {}
+
+/// `IosTestLoop` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IosTestLoop {
+    /// appBundleId property.
+    pub app_bundle_id: Option<String>,
+    /// appIpa property.
+    pub app_ipa: Option<FileReference>,
+    /// scenarios property.
+    pub scenarios: Option<Vec<i64>>,
+}
+
+/// `ClientInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClientInfo {
+    /// clientInfoDetails property.
+    pub client_info_details: Option<Vec<ClientInfoDetail>>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `TestExecution` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TestExecution {
+    /// environment property.
+    pub environment: Option<Environment>,
+    /// id property.
+    pub id: Option<String>,
+    /// matrixId property.
+    pub matrix_id: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// shard property.
+    pub shard: Option<Shard>,
+    /// state property.
+    pub state: Option<String>,
+    /// testDetails property.
+    pub test_details: Option<TestDetails>,
+    /// testSpecification property.
+    pub test_specification: Option<TestSpecification>,
+    /// timestamp property.
+    pub timestamp: Option<String>,
+    /// toolResultsStep property.
+    pub tool_results_step: Option<ToolResultsStep>,
+}
+
+/// `RegularFile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegularFile {
+    /// content property.
+    pub content: Option<FileReference>,
+    /// devicePath property.
+    pub device_path: Option<String>,
+}
+
+/// `StartActivityIntent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StartActivityIntent {
+    /// action property.
+    pub action: Option<String>,
+    /// categories property.
+    pub categories: Option<Vec<String>>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `NoActivityIntent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NoActivityIntent {}
+
+/// `SystraceSetup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SystraceSetup {
+    /// durationSeconds property.
+    pub duration_seconds: Option<i64>,
+}
+
+/// `ObbFile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ObbFile {
+    /// obb property.
+    pub obb: Option<FileReference>,
+    /// obbFileName property.
+    pub obb_file_name: Option<String>,
+}
+
+/// `ClientInfoDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClientInfoDetail {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `EnvironmentMatrix` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnvironmentMatrix {
+    /// androidDeviceList property.
+    pub android_device_list: Option<AndroidDeviceList>,
+    /// androidMatrix property.
+    pub android_matrix: Option<AndroidMatrix>,
+    /// iosDeviceList property.
+    pub ios_device_list: Option<IosDeviceList>,
+}
+
+/// `DeviceFile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceFile {
+    /// obbFile property.
+    pub obb_file: Option<ObbFile>,
+    /// regularFile property.
+    pub regular_file: Option<RegularFile>,
+}
+
+/// `AndroidDevice` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AndroidDevice {
+    /// androidModelId property.
+    pub android_model_id: Option<String>,
+    /// androidVersionId property.
+    pub android_version_id: Option<String>,
+    /// locale property.
+    pub locale: Option<String>,
+    /// orientation property.
+    pub orientation: Option<String>,
+}
+
+/// `TestDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TestDetails {
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// progressMessages property.
+    pub progress_messages: Option<Vec<String>>,
+}
+
+/// `IosRoboTest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IosRoboTest {
+    /// appBundleId property.
+    pub app_bundle_id: Option<String>,
+    /// appIpa property.
+    pub app_ipa: Option<FileReference>,
+    /// roboScript property.
+    pub robo_script: Option<FileReference>,
+}
+
+/// `GoogleCloudStorage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudStorage {
+    /// gcsPath property.
+    pub gcs_path: Option<String>,
+}
+
+/// `AndroidDeviceList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AndroidDeviceList {
+    /// androidDevices property.
+    pub android_devices: Option<Vec<AndroidDevice>>,
 }
 
 /// `AndroidTestLoop` type.
@@ -455,113 +415,13 @@ pub struct TestSetup {
     pub systrace: Option<SystraceSetup>,
 }
 
-/// `RoboDirective` type.
+/// `EnvironmentVariable` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RoboDirective {
-    /// actionType property.
-    pub action_type: Option<String>,
-    /// inputText property.
-    pub input_text: Option<String>,
-    /// resourceName property.
-    pub resource_name: Option<String>,
-}
-
-/// `ClientInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClientInfo {
-    /// clientInfoDetails property.
-    pub client_info_details: Option<Vec<ClientInfoDetail>>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `ResultStorage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResultStorage {
-    /// googleCloudStorage property.
-    pub google_cloud_storage: Option<GoogleCloudStorage>,
-    /// resultsUrl property.
-    pub results_url: Option<String>,
-    /// toolResultsExecution property.
-    pub tool_results_execution: Option<ToolResultsExecution>,
-    /// toolResultsHistory property.
-    pub tool_results_history: Option<ToolResultsHistory>,
-}
-
-/// `AndroidInstrumentationTest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AndroidInstrumentationTest {
-    /// appApk property.
-    pub app_apk: Option<FileReference>,
-    /// appBundle property.
-    pub app_bundle: Option<AppBundle>,
-    /// appPackageId property.
-    pub app_package_id: Option<String>,
-    /// orchestratorOption property.
-    pub orchestrator_option: Option<String>,
-    /// shardingOption property.
-    pub sharding_option: Option<ShardingOption>,
-    /// testApk property.
-    pub test_apk: Option<FileReference>,
-    /// testPackageId property.
-    pub test_package_id: Option<String>,
-    /// testRunnerClass property.
-    pub test_runner_class: Option<String>,
-    /// testTargets property.
-    pub test_targets: Option<Vec<String>>,
-}
-
-/// `RoboStartingIntent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RoboStartingIntent {
-    /// launcherActivity property.
-    pub launcher_activity: Option<LauncherActivityIntent>,
-    /// noActivity property.
-    pub no_activity: Option<NoActivityIntent>,
-    /// startActivity property.
-    pub start_activity: Option<StartActivityIntent>,
-    /// timeout property.
-    pub timeout: Option<String>,
-}
-
-/// `LauncherActivityIntent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LauncherActivityIntent {}
-
-/// `SmartSharding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SmartSharding {
-    /// targetedShardDuration property.
-    pub targeted_shard_duration: Option<String>,
-}
-
-/// `Shard` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Shard {
-    /// estimatedShardDuration property.
-    pub estimated_shard_duration: Option<String>,
-    /// numShards property.
-    pub num_shards: Option<i64>,
-    /// shardIndex property.
-    pub shard_index: Option<i64>,
-    /// testTargetsForShard property.
-    pub test_targets_for_shard: Option<TestTargetsForShard>,
-}
-
-/// `TestDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestDetails {
-    /// errorMessage property.
-    pub error_message: Option<String>,
-    /// progressMessages property.
-    pub progress_messages: Option<Vec<String>>,
-}
-
-/// `UniformSharding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UniformSharding {
-    /// numShards property.
-    pub num_shards: Option<i64>,
+pub struct EnvironmentVariable {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
 /// `ToolResultsStep` type.
@@ -577,22 +437,89 @@ pub struct ToolResultsStep {
     pub step_id: Option<String>,
 }
 
-/// `IosRoboTest` type.
+/// `CancelTestMatrixResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IosRoboTest {
-    /// appBundleId property.
-    pub app_bundle_id: Option<String>,
-    /// appIpa property.
-    pub app_ipa: Option<FileReference>,
-    /// roboScript property.
-    pub robo_script: Option<FileReference>,
+pub struct CancelTestMatrixResponse {
+    /// testState property.
+    pub test_state: Option<String>,
 }
 
-/// `GoogleCloudStorage` type.
+/// `IosXcTest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudStorage {
+pub struct IosXcTest {
+    /// appBundleId property.
+    pub app_bundle_id: Option<String>,
+    /// testSpecialEntitlements property.
+    pub test_special_entitlements: Option<bool>,
+    /// testsZip property.
+    pub tests_zip: Option<FileReference>,
+    /// xcodeVersion property.
+    pub xcode_version: Option<String>,
+    /// xctestrun property.
+    pub xctestrun: Option<FileReference>,
+}
+
+/// `LauncherActivityIntent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LauncherActivityIntent {}
+
+/// `AppBundle` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppBundle {
+    /// apks property.
+    pub apks: Option<ApkSplits>,
+    /// bundleLocation property.
+    pub bundle_location: Option<FileReference>,
+}
+
+/// `FileReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FileReference {
     /// gcsPath property.
     pub gcs_path: Option<String>,
+}
+
+/// `TestTargetsForShard` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TestTargetsForShard {
+    /// testTargets property.
+    pub test_targets: Option<Vec<String>>,
+}
+
+/// `MatrixErrorDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MatrixErrorDetail {
+    /// message property.
+    pub message: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `Shard` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Shard {
+    /// estimatedShardDuration property.
+    pub estimated_shard_duration: Option<String>,
+    /// numShards property.
+    pub num_shards: Option<i64>,
+    /// shardIndex property.
+    pub shard_index: Option<i64>,
+    /// testTargetsForShard property.
+    pub test_targets_for_shard: Option<TestTargetsForShard>,
+}
+
+/// `ApkSplits` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApkSplits {
+    /// bundleSplits property.
+    pub bundle_splits: Option<Vec<FileReference>>,
+}
+
+/// `SmartSharding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SmartSharding {
+    /// targetedShardDuration property.
+    pub targeted_shard_duration: Option<String>,
 }
 
 /// `ToolResultsExecution` type.
@@ -604,6 +531,80 @@ pub struct ToolResultsExecution {
     pub history_id: Option<String>,
     /// projectId property.
     pub project_id: Option<String>,
+}
+
+/// `AndroidRoboTest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AndroidRoboTest {
+    /// appApk property.
+    pub app_apk: Option<FileReference>,
+    /// appBundle property.
+    pub app_bundle: Option<AppBundle>,
+    /// appInitialActivity property.
+    pub app_initial_activity: Option<String>,
+    /// appPackageId property.
+    pub app_package_id: Option<String>,
+    /// maxDepth property.
+    pub max_depth: Option<i64>,
+    /// maxSteps property.
+    pub max_steps: Option<i64>,
+    /// roboDirectives property.
+    pub robo_directives: Option<Vec<RoboDirective>>,
+    /// roboMode property.
+    pub robo_mode: Option<String>,
+    /// roboScript property.
+    pub robo_script: Option<FileReference>,
+    /// startingIntents property.
+    pub starting_intents: Option<Vec<RoboStartingIntent>>,
+}
+
+/// `Environment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Environment {
+    /// androidDevice property.
+    pub android_device: Option<AndroidDevice>,
+    /// iosDevice property.
+    pub ios_device: Option<IosDevice>,
+}
+
+/// `ResultStorage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResultStorage {
+    /// googleCloudStorage property.
+    pub google_cloud_storage: Option<GoogleCloudStorage>,
+    /// resultsUrl property.
+    pub results_url: Option<String>,
+    /// toolResultsExecution property.
+    pub tool_results_execution: Option<ToolResultsExecution>,
+    /// toolResultsHistory property.
+    pub tool_results_history: Option<ToolResultsHistory>,
+}
+
+/// `IosTestSetup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IosTestSetup {
+    /// additionalIpas property.
+    pub additional_ipas: Option<Vec<FileReference>>,
+    /// networkProfile property.
+    pub network_profile: Option<String>,
+    /// pullDirectories property.
+    pub pull_directories: Option<Vec<IosDeviceFile>>,
+    /// pushFiles property.
+    pub push_files: Option<Vec<IosDeviceFile>>,
+}
+
+/// `IosDeviceList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IosDeviceList {
+    /// iosDevices property.
+    pub ios_devices: Option<Vec<IosDevice>>,
+}
+
+/// `ManualSharding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManualSharding {
+    /// testTargetsForShard property.
+    pub test_targets_for_shard: Option<Vec<TestTargetsForShard>>,
 }
 
 // =============================================================================

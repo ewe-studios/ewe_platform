@@ -12,35 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `TimeZone` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeZone {
-    /// id property.
-    pub id: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `ListChildAccountsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListChildAccountsResponse {
-    /// accounts property.
-    pub accounts: Option<Vec<Account>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `Account` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -61,6 +44,15 @@ pub struct Account {
     pub time_zone: Option<TimeZone>,
 }
 
+/// `ListChildAccountsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListChildAccountsResponse {
+    /// accounts property.
+    pub accounts: Option<Vec<Account>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
 /// `ListAccountsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAccountsResponse {
@@ -68,6 +60,15 @@ pub struct ListAccountsResponse {
     pub accounts: Option<Vec<Account>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `TimeZone` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeZone {
+    /// id property.
+    pub id: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
 // =============================================================================

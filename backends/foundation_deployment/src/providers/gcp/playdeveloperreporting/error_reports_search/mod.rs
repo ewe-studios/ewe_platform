@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -40,6 +41,22 @@ pub struct GooglePlayDeveloperReportingV1Beta1DeviceModelSummary {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
+/// `GooglePlayDeveloperReportingV1Beta1OsVersion` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePlayDeveloperReportingV1Beta1OsVersion {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GooglePlayDeveloperReportingV1Beta1DeviceId` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePlayDeveloperReportingV1Beta1DeviceId {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `GooglePlayDeveloperReportingV1beta1SearchErrorReportsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1SearchErrorReportsResponse {
@@ -52,22 +69,6 @@ pub struct GooglePlayDeveloperReportingV1beta1SearchErrorReportsResponse {
 /// `GooglePlayDeveloperReportingV1Beta1ErrorReport` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1Beta1ErrorReport {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GooglePlayDeveloperReportingV1Beta1OsVersion` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePlayDeveloperReportingV1Beta1OsVersion {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GooglePlayDeveloperReportingV1Beta1DeviceId` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePlayDeveloperReportingV1Beta1DeviceId {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,52 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `CloudSQLBackupRunSource` type.
+/// `SslConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudSQLBackupRunSource {
-    /// backupRunId property.
-    pub backup_run_id: Option<String>,
-    /// instanceId property.
-    pub instance_id: Option<String>,
-    /// project property.
-    pub project: Option<String>,
-}
-
-/// `WeeklySchedule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WeeklySchedule {
-    /// daysOfWeek property.
-    pub days_of_week: Option<Vec<String>>,
-    /// startTimes property.
-    pub start_times: Option<Vec<GoogleTypeTimeOfDay>>,
-}
-
-/// `DenyMaintenancePeriod` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DenyMaintenancePeriod {
-    /// endDate property.
-    pub end_date: Option<GoogleTypeDate>,
-    /// startDate property.
-    pub start_date: Option<GoogleTypeDate>,
-    /// time property.
-    pub time: Option<GoogleTypeTimeOfDay>,
-}
-
-/// `GoogleTypeDate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeDate {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
+pub struct SslConfig {
+    /// caSource property.
+    pub ca_source: Option<String>,
+    /// sslMode property.
+    pub ssl_mode: Option<String>,
 }
 
 /// `NetworkConfig` type.
@@ -78,56 +46,6 @@ pub struct NetworkConfig {
     pub network: Option<String>,
 }
 
-/// `EncryptionInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionInfo {
-    /// encryptionType property.
-    pub encryption_type: Option<String>,
-    /// kmsKeyVersions property.
-    pub kms_key_versions: Option<Vec<String>>,
-}
-
-/// `PrimaryConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrimaryConfig {
-    /// secondaryClusterNames property.
-    pub secondary_cluster_names: Option<Vec<String>>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `QuantityBasedRetention` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuantityBasedRetention {
-    /// count property.
-    pub count: Option<i64>,
-}
-
-/// `DataplexConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataplexConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `UserPassword` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserPassword {
-    /// password property.
-    pub password: Option<String>,
-    /// user property.
-    pub user: Option<String>,
-}
-
 /// `PscConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PscConfig {
@@ -137,42 +55,33 @@ pub struct PscConfig {
     pub service_owned_project_number: Option<String>,
 }
 
-/// `MaintenanceWindow` type.
+/// `DataplexConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaintenanceWindow {
-    /// day property.
-    pub day: Option<String>,
-    /// startTime property.
-    pub start_time: Option<GoogleTypeTimeOfDay>,
+pub struct DataplexConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
 }
 
-/// `SslConfig` type.
+/// `BackupSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SslConfig {
-    /// caSource property.
-    pub ca_source: Option<String>,
-    /// sslMode property.
-    pub ssl_mode: Option<String>,
+pub struct BackupSource {
+    /// backupName property.
+    pub backup_name: Option<String>,
+    /// backupUid property.
+    pub backup_uid: Option<String>,
 }
 
-/// `TimeBasedRetention` type.
+/// `ContinuousBackupInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeBasedRetention {
-    /// retentionPeriod property.
-    pub retention_period: Option<String>,
-}
-
-/// `TrialMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TrialMetadata {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// graceEndTime property.
-    pub grace_end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// upgradeTime property.
-    pub upgrade_time: Option<String>,
+pub struct ContinuousBackupInfo {
+    /// earliestRestorableTime property.
+    pub earliest_restorable_time: Option<String>,
+    /// enabledTime property.
+    pub enabled_time: Option<String>,
+    /// encryptionInfo property.
+    pub encryption_info: Option<EncryptionInfo>,
+    /// schedule property.
+    pub schedule: Option<Vec<String>>,
 }
 
 /// `BackupDrBackupSource` type.
@@ -189,69 +98,40 @@ pub struct SecondaryConfig {
     pub primary_cluster_name: Option<String>,
 }
 
-/// `ContinuousBackupConfig` type.
+/// `WeeklySchedule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContinuousBackupConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// encryptionConfig property.
-    pub encryption_config: Option<EncryptionConfig>,
-    /// recoveryWindowDays property.
-    pub recovery_window_days: Option<i64>,
+pub struct WeeklySchedule {
+    /// daysOfWeek property.
+    pub days_of_week: Option<Vec<String>>,
+    /// startTimes property.
+    pub start_times: Option<Vec<GoogleTypeTimeOfDay>>,
 }
 
-/// `ContinuousBackupInfo` type.
+/// `EncryptionConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContinuousBackupInfo {
-    /// earliestRestorableTime property.
-    pub earliest_restorable_time: Option<String>,
-    /// enabledTime property.
-    pub enabled_time: Option<String>,
-    /// encryptionInfo property.
-    pub encryption_info: Option<EncryptionInfo>,
-    /// schedule property.
-    pub schedule: Option<Vec<String>>,
+pub struct EncryptionConfig {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
 }
 
-/// `AutomatedBackupPolicy` type.
+/// `MaintenanceUpdatePolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutomatedBackupPolicy {
-    /// backupWindow property.
-    pub backup_window: Option<String>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// encryptionConfig property.
-    pub encryption_config: Option<EncryptionConfig>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// location property.
-    pub location: Option<String>,
-    /// quantityBasedRetention property.
-    pub quantity_based_retention: Option<QuantityBasedRetention>,
-    /// timeBasedRetention property.
-    pub time_based_retention: Option<TimeBasedRetention>,
-    /// weeklySchedule property.
-    pub weekly_schedule: Option<WeeklySchedule>,
+pub struct MaintenanceUpdatePolicy {
+    /// denyMaintenancePeriods property.
+    pub deny_maintenance_periods: Option<Vec<DenyMaintenancePeriod>>,
+    /// maintenanceWindows property.
+    pub maintenance_windows: Option<Vec<MaintenanceWindow>>,
 }
 
-/// `MaintenanceSchedule` type.
+/// `DenyMaintenancePeriod` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaintenanceSchedule {
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `GoogleTypeTimeOfDay` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeTimeOfDay {
-    /// hours property.
-    pub hours: Option<i64>,
-    /// minutes property.
-    pub minutes: Option<i64>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<i64>,
+pub struct DenyMaintenancePeriod {
+    /// endDate property.
+    pub end_date: Option<GoogleTypeDate>,
+    /// startDate property.
+    pub start_date: Option<GoogleTypeDate>,
+    /// time property.
+    pub time: Option<GoogleTypeTimeOfDay>,
 }
 
 /// `ListClustersResponse` type.
@@ -263,6 +143,65 @@ pub struct ListClustersResponse {
     pub next_page_token: Option<String>,
     /// unreachable property.
     pub unreachable: Option<Vec<String>>,
+}
+
+/// `BackupDrInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupDrInfo {
+    /// currentWindow property.
+    pub current_window: Option<BackupDrEnabledWindow>,
+    /// previousWindows property.
+    pub previous_windows: Option<Vec<BackupDrEnabledWindow>>,
+}
+
+/// `EncryptionInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EncryptionInfo {
+    /// encryptionType property.
+    pub encryption_type: Option<String>,
+    /// kmsKeyVersions property.
+    pub kms_key_versions: Option<Vec<String>>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `BackupDrEnabledWindow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupDrEnabledWindow {
+    /// automatedBackupPreviouslyEnabled property.
+    pub automated_backup_previously_enabled: Option<bool>,
+    /// backupPlanAssociation property.
+    pub backup_plan_association: Option<String>,
+    /// continuousBackupPreviousRecoveryWindowDays property.
+    pub continuous_backup_previous_recovery_window_days: Option<i64>,
+    /// continuousBackupPreviouslyEnabled property.
+    pub continuous_backup_previously_enabled: Option<bool>,
+    /// continuousBackupPreviouslyEnabledTime property.
+    pub continuous_backup_previously_enabled_time: Option<String>,
+    /// dataSource property.
+    pub data_source: Option<String>,
+    /// disabledTime property.
+    pub disabled_time: Option<String>,
+    /// enabledTime property.
+    pub enabled_time: Option<String>,
+    /// logRetentionPeriod property.
+    pub log_retention_period: Option<String>,
+}
+
+/// `MaintenanceSchedule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MaintenanceSchedule {
+    /// startTime property.
+    pub start_time: Option<String>,
 }
 
 /// `Cluster` type.
@@ -346,61 +285,116 @@ pub struct Cluster {
     pub update_time: Option<String>,
 }
 
-/// `MaintenanceUpdatePolicy` type.
+/// `TimeBasedRetention` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaintenanceUpdatePolicy {
-    /// denyMaintenancePeriods property.
-    pub deny_maintenance_periods: Option<Vec<DenyMaintenancePeriod>>,
-    /// maintenanceWindows property.
-    pub maintenance_windows: Option<Vec<MaintenanceWindow>>,
+pub struct TimeBasedRetention {
+    /// retentionPeriod property.
+    pub retention_period: Option<String>,
 }
 
-/// `EncryptionConfig` type.
+/// `QuantityBasedRetention` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionConfig {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
+pub struct QuantityBasedRetention {
+    /// count property.
+    pub count: Option<i64>,
 }
 
-/// `BackupDrEnabledWindow` type.
+/// `ContinuousBackupConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupDrEnabledWindow {
-    /// automatedBackupPreviouslyEnabled property.
-    pub automated_backup_previously_enabled: Option<bool>,
-    /// backupPlanAssociation property.
-    pub backup_plan_association: Option<String>,
-    /// continuousBackupPreviousRecoveryWindowDays property.
-    pub continuous_backup_previous_recovery_window_days: Option<i64>,
-    /// continuousBackupPreviouslyEnabled property.
-    pub continuous_backup_previously_enabled: Option<bool>,
-    /// continuousBackupPreviouslyEnabledTime property.
-    pub continuous_backup_previously_enabled_time: Option<String>,
-    /// dataSource property.
-    pub data_source: Option<String>,
-    /// disabledTime property.
-    pub disabled_time: Option<String>,
-    /// enabledTime property.
-    pub enabled_time: Option<String>,
-    /// logRetentionPeriod property.
-    pub log_retention_period: Option<String>,
+pub struct ContinuousBackupConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// encryptionConfig property.
+    pub encryption_config: Option<EncryptionConfig>,
+    /// recoveryWindowDays property.
+    pub recovery_window_days: Option<i64>,
 }
 
-/// `BackupSource` type.
+/// `TrialMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupSource {
-    /// backupName property.
-    pub backup_name: Option<String>,
-    /// backupUid property.
-    pub backup_uid: Option<String>,
+pub struct TrialMetadata {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// graceEndTime property.
+    pub grace_end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// upgradeTime property.
+    pub upgrade_time: Option<String>,
 }
 
-/// `BackupDrInfo` type.
+/// `CloudSQLBackupRunSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupDrInfo {
-    /// currentWindow property.
-    pub current_window: Option<BackupDrEnabledWindow>,
-    /// previousWindows property.
-    pub previous_windows: Option<Vec<BackupDrEnabledWindow>>,
+pub struct CloudSQLBackupRunSource {
+    /// backupRunId property.
+    pub backup_run_id: Option<String>,
+    /// instanceId property.
+    pub instance_id: Option<String>,
+    /// project property.
+    pub project: Option<String>,
+}
+
+/// `GoogleTypeDate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeDate {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `UserPassword` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UserPassword {
+    /// password property.
+    pub password: Option<String>,
+    /// user property.
+    pub user: Option<String>,
+}
+
+/// `AutomatedBackupPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutomatedBackupPolicy {
+    /// backupWindow property.
+    pub backup_window: Option<String>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// encryptionConfig property.
+    pub encryption_config: Option<EncryptionConfig>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// location property.
+    pub location: Option<String>,
+    /// quantityBasedRetention property.
+    pub quantity_based_retention: Option<QuantityBasedRetention>,
+    /// timeBasedRetention property.
+    pub time_based_retention: Option<TimeBasedRetention>,
+    /// weeklySchedule property.
+    pub weekly_schedule: Option<WeeklySchedule>,
+}
+
+/// `MaintenanceWindow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MaintenanceWindow {
+    /// day property.
+    pub day: Option<String>,
+    /// startTime property.
+    pub start_time: Option<GoogleTypeTimeOfDay>,
+}
+
+/// `GoogleTypeTimeOfDay` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeTimeOfDay {
+    /// hours property.
+    pub hours: Option<i64>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<i64>,
 }
 
 /// `MigrationSource` type.
@@ -412,6 +406,13 @@ pub struct MigrationSource {
     pub reference_id: Option<String>,
     /// sourceType property.
     pub source_type: Option<String>,
+}
+
+/// `PrimaryConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrimaryConfig {
+    /// secondaryClusterNames property.
+    pub secondary_cluster_names: Option<Vec<String>>,
 }
 
 // =============================================================================

@@ -12,36 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `CollectdPayloadError` type.
+/// `CreateCollectdTimeSeriesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CollectdPayloadError {
-    /// error property.
-    pub error: Option<Status>,
-    /// index property.
-    pub index: Option<i64>,
-    /// valueErrors property.
-    pub value_errors: Option<Vec<CollectdValueError>>,
-}
-
-/// `Error` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Error {
-    /// pointCount property.
-    pub point_count: Option<i64>,
-    /// status property.
-    pub status: Option<Status>,
+pub struct CreateCollectdTimeSeriesResponse {
+    /// payloadErrors property.
+    pub payload_errors: Option<Vec<CollectdPayloadError>>,
+    /// summary property.
+    pub summary: Option<CreateTimeSeriesSummary>,
 }
 
 /// `CreateTimeSeriesSummary` type.
@@ -55,13 +45,13 @@ pub struct CreateTimeSeriesSummary {
     pub total_point_count: Option<i64>,
 }
 
-/// `CreateCollectdTimeSeriesResponse` type.
+/// `CollectdValueError` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateCollectdTimeSeriesResponse {
-    /// payloadErrors property.
-    pub payload_errors: Option<Vec<CollectdPayloadError>>,
-    /// summary property.
-    pub summary: Option<CreateTimeSeriesSummary>,
+pub struct CollectdValueError {
+    /// error property.
+    pub error: Option<Status>,
+    /// index property.
+    pub index: Option<i64>,
 }
 
 /// `Status` type.
@@ -75,13 +65,24 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `CollectdValueError` type.
+/// `Error` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CollectdValueError {
+pub struct Error {
+    /// pointCount property.
+    pub point_count: Option<i64>,
+    /// status property.
+    pub status: Option<Status>,
+}
+
+/// `CollectdPayloadError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CollectdPayloadError {
     /// error property.
     pub error: Option<Status>,
     /// index property.
     pub index: Option<i64>,
+    /// valueErrors property.
+    pub value_errors: Option<Vec<CollectdValueError>>,
 }
 
 // =============================================================================

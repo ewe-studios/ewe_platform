@@ -12,28 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `NatIpInfoNatIpInfoMapping` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NatIpInfoNatIpInfoMapping {
-    /// mode property.
-    pub mode: Option<String>,
-    /// natIp property.
-    pub nat_ip: Option<String>,
-    /// usage property.
-    pub usage: Option<String>,
-}
 
 /// `NatIpInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,6 +39,17 @@ pub struct NatIpInfo {
 pub struct NatIpInfoResponse {
     /// result property.
     pub result: Option<Vec<NatIpInfo>>,
+}
+
+/// `NatIpInfoNatIpInfoMapping` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NatIpInfoNatIpInfoMapping {
+    /// mode property.
+    pub mode: Option<String>,
+    /// natIp property.
+    pub nat_ip: Option<String>,
+    /// usage property.
+    pub usage: Option<String>,
 }
 
 // =============================================================================

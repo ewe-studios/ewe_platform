@@ -12,21 +12,22 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `InsiderThreatFindingDetail` type.
+/// `DataLeakFindingDetail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InsiderThreatFindingDetail {
+pub struct DataLeakFindingDetail {
     /// documentId property.
     pub document_id: Option<String>,
     /// matchScore property.
@@ -44,6 +45,39 @@ pub struct InitialAccessBrokerFindingDetail {
     pub match_score: Option<f64>,
     /// severity property.
     pub severity: Option<String>,
+}
+
+/// `InsiderThreatFindingDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InsiderThreatFindingDetail {
+    /// documentId property.
+    pub document_id: Option<String>,
+    /// matchScore property.
+    pub match_score: Option<f64>,
+    /// severity property.
+    pub severity: Option<String>,
+}
+
+/// `Audit` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Audit {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// creator property.
+    pub creator: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+    /// updater property.
+    pub updater: Option<String>,
+}
+
+/// `Evidence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Evidence {
+    /// commonThemes property.
+    pub common_themes: Option<Vec<String>>,
+    /// distinctThemes property.
+    pub distinct_themes: Option<Vec<String>>,
 }
 
 /// `Finding` type.
@@ -75,24 +109,6 @@ pub struct Finding {
     pub severity_analysis: Option<SeverityAnalysis>,
 }
 
-/// `ListFindingsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListFindingsResponse {
-    /// findings property.
-    pub findings: Option<Vec<Finding>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `Evidence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Evidence {
-    /// commonThemes property.
-    pub common_themes: Option<Vec<String>>,
-    /// distinctThemes property.
-    pub distinct_themes: Option<Vec<String>>,
-}
-
 /// `RelevanceAnalysis` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RelevanceAnalysis {
@@ -108,15 +124,13 @@ pub struct RelevanceAnalysis {
     pub relevant: Option<bool>,
 }
 
-/// `SeverityAnalysis` type.
+/// `ListFindingsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SeverityAnalysis {
-    /// confidence property.
-    pub confidence: Option<String>,
-    /// reasoning property.
-    pub reasoning: Option<String>,
-    /// severityLevel property.
-    pub severity_level: Option<String>,
+pub struct ListFindingsResponse {
+    /// findings property.
+    pub findings: Option<Vec<Finding>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `FindingDetail` type.
@@ -132,28 +146,15 @@ pub struct FindingDetail {
     pub insider_threat: Option<InsiderThreatFindingDetail>,
 }
 
-/// `DataLeakFindingDetail` type.
+/// `SeverityAnalysis` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataLeakFindingDetail {
-    /// documentId property.
-    pub document_id: Option<String>,
-    /// matchScore property.
-    pub match_score: Option<f64>,
-    /// severity property.
-    pub severity: Option<String>,
-}
-
-/// `Audit` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Audit {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// creator property.
-    pub creator: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-    /// updater property.
-    pub updater: Option<String>,
+pub struct SeverityAnalysis {
+    /// confidence property.
+    pub confidence: Option<String>,
+    /// reasoning property.
+    pub reasoning: Option<String>,
+    /// severityLevel property.
+    pub severity_level: Option<String>,
 }
 
 // =============================================================================

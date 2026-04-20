@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,20 +23,11 @@ use serde::{Deserialize, Serialize};
 use super::shared::GraphqlResponse;
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `SourceLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceLocation {
-    /// column property.
-    pub column: Option<i64>,
-    /// line property.
-    pub line: Option<i64>,
-}
 
 /// `ListServicesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -46,6 +38,26 @@ pub struct ListServicesResponse {
     pub services: Option<Vec<Service>>,
     /// unreachable property.
     pub unreachable: Option<Vec<String>>,
+}
+
+/// `SourceLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SourceLocation {
+    /// column property.
+    pub column: Option<i64>,
+    /// line property.
+    pub line: Option<i64>,
+}
+
+/// `Workaround` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Workaround {
+    /// description property.
+    pub description: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+    /// replace property.
+    pub replace: Option<String>,
 }
 
 /// `Service` type.
@@ -71,15 +83,15 @@ pub struct Service {
     pub update_time: Option<String>,
 }
 
-/// `GraphqlError` type.
+/// `DataConnectProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GraphqlError {
-    /// extensions property.
-    pub extensions: Option<GraphqlErrorExtensions>,
-    /// locations property.
-    pub locations: Option<Vec<SourceLocation>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct DataConnectProperties {
+    /// entityId property.
+    pub entity_id: Option<String>,
+    /// entityIds property.
+    pub entity_ids: Option<Vec<String>>,
+    /// maxAge property.
+    pub max_age: Option<String>,
     /// path property.
     pub path: Option<Vec<serde_json::Value>>,
 }
@@ -110,35 +122,24 @@ pub struct GraphqlErrorExtensions {
     pub workarounds: Option<Vec<Workaround>>,
 }
 
+/// `GraphqlError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GraphqlError {
+    /// extensions property.
+    pub extensions: Option<GraphqlErrorExtensions>,
+    /// locations property.
+    pub locations: Option<Vec<SourceLocation>>,
+    /// message property.
+    pub message: Option<String>,
+    /// path property.
+    pub path: Option<Vec<serde_json::Value>>,
+}
+
 /// `GraphqlResponseExtensions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GraphqlResponseExtensions {
     /// dataConnect property.
     pub data_connect: Option<Vec<DataConnectProperties>>,
-}
-
-/// `Workaround` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Workaround {
-    /// description property.
-    pub description: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
-    /// replace property.
-    pub replace: Option<String>,
-}
-
-/// `DataConnectProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataConnectProperties {
-    /// entityId property.
-    pub entity_id: Option<String>,
-    /// entityIds property.
-    pub entity_ids: Option<Vec<String>>,
-    /// maxAge property.
-    pub max_age: Option<String>,
-    /// path property.
-    pub path: Option<Vec<serde_json::Value>>,
 }
 
 // =============================================================================

@@ -12,53 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `PolicyAlternativeNameServerConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PolicyAlternativeNameServerConfig {
-    /// kind property.
-    pub kind: Option<String>,
-    /// targetNameServers property.
-    pub target_name_servers: Option<Vec<PolicyAlternativeNameServerConfigTargetNameServer>>,
-}
-
-/// `PolicyDns64Config` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PolicyDns64Config {
-    /// kind property.
-    pub kind: Option<String>,
-    /// scope property.
-    pub scope: Option<PolicyDns64ConfigScope>,
-}
-
-/// `PoliciesPatchResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PoliciesPatchResponse {
-    /// policy property.
-    pub policy: Option<Policy>,
-}
-
-/// `PoliciesListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PoliciesListResponse {
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// policies property.
-    pub policies: Option<Vec<Policy>>,
-}
 
 /// `Policy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -83,29 +48,22 @@ pub struct Policy {
     pub networks: Option<Vec<PolicyNetwork>>,
 }
 
-/// `PoliciesUpdateResponse` type.
+/// `PoliciesListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PoliciesUpdateResponse {
+pub struct PoliciesListResponse {
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// policies property.
+    pub policies: Option<Vec<Policy>>,
+}
+
+/// `PoliciesPatchResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PoliciesPatchResponse {
     /// policy property.
     pub policy: Option<Policy>,
-}
-
-/// `PolicyNetwork` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PolicyNetwork {
-    /// kind property.
-    pub kind: Option<String>,
-    /// networkUrl property.
-    pub network_url: Option<String>,
-}
-
-/// `PolicyDns64ConfigScope` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PolicyDns64ConfigScope {
-    /// allQueries property.
-    pub all_queries: Option<bool>,
-    /// kind property.
-    pub kind: Option<String>,
 }
 
 /// `PolicyAlternativeNameServerConfigTargetNameServer` type.
@@ -119,6 +77,49 @@ pub struct PolicyAlternativeNameServerConfigTargetNameServer {
     pub ipv6_address: Option<String>,
     /// kind property.
     pub kind: Option<String>,
+}
+
+/// `PoliciesUpdateResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PoliciesUpdateResponse {
+    /// policy property.
+    pub policy: Option<Policy>,
+}
+
+/// `PolicyDns64ConfigScope` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PolicyDns64ConfigScope {
+    /// allQueries property.
+    pub all_queries: Option<bool>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `PolicyDns64Config` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PolicyDns64Config {
+    /// kind property.
+    pub kind: Option<String>,
+    /// scope property.
+    pub scope: Option<PolicyDns64ConfigScope>,
+}
+
+/// `PolicyAlternativeNameServerConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PolicyAlternativeNameServerConfig {
+    /// kind property.
+    pub kind: Option<String>,
+    /// targetNameServers property.
+    pub target_name_servers: Option<Vec<PolicyAlternativeNameServerConfigTargetNameServer>>,
+}
+
+/// `PolicyNetwork` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PolicyNetwork {
+    /// kind property.
+    pub kind: Option<String>,
+    /// networkUrl property.
+    pub network_url: Option<String>,
 }
 
 // =============================================================================

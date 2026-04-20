@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,21 +22,17 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::ReportResult;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Header` type.
+/// `Row` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Header {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct Row {
+    /// cells property.
+    pub cells: Option<Vec<Cell>>,
 }
 
 /// `Cell` type.
@@ -56,11 +53,15 @@ pub struct Date {
     pub year: Option<i64>,
 }
 
-/// `Row` type.
+/// `Header` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Row {
-    /// cells property.
-    pub cells: Option<Vec<Cell>>,
+pub struct Header {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 // =============================================================================

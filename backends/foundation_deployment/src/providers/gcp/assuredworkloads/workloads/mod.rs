@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,28 +22,21 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudAssuredworkloadsV1WorkloadResourceInfo` type.
+/// `GoogleCloudAssuredworkloadsV1MoveAnalysisGroup` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1WorkloadResourceInfo {
-    /// resourceId property.
-    pub resource_id: Option<String>,
-    /// resourceType property.
-    pub resource_type: Option<String>,
-}
-
-/// `GoogleCloudAssuredworkloadsV1AnalyzeWorkloadMoveResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1AnalyzeWorkloadMoveResponse {
-    /// assetMoveAnalyses property.
-    pub asset_move_analyses: Option<Vec<GoogleCloudAssuredworkloadsV1AssetMoveAnalysis>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct GoogleCloudAssuredworkloadsV1MoveAnalysisGroup {
+    /// analysisResult property.
+    pub analysis_result: Option<GoogleCloudAssuredworkloadsV1MoveAnalysisResult>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// error property.
+    pub error: Option<GoogleRpcStatus>,
 }
 
 /// `GoogleCloudAssuredworkloadsV1Workload` type.
@@ -97,9 +91,27 @@ pub struct GoogleCloudAssuredworkloadsV1Workload {
     pub workload_options: Option<GoogleCloudAssuredworkloadsV1WorkloadWorkloadOptions>,
 }
 
-/// `GoogleCloudAssuredworkloadsV1EnableComplianceUpdatesResponse` type.
+/// `GoogleCloudAssuredworkloadsV1EnableResourceMonitoringResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1EnableComplianceUpdatesResponse {}
+pub struct GoogleCloudAssuredworkloadsV1EnableResourceMonitoringResponse {}
+
+/// `GoogleCloudAssuredworkloadsV1ListWorkloadsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAssuredworkloadsV1ListWorkloadsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// workloads property.
+    pub workloads: Option<Vec<GoogleCloudAssuredworkloadsV1Workload>>,
+}
+
+/// `GoogleCloudAssuredworkloadsV1MoveAnalysisResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAssuredworkloadsV1MoveAnalysisResult {
+    /// blockers property.
+    pub blockers: Option<Vec<GoogleCloudAssuredworkloadsV1MoveImpact>>,
+    /// warnings property.
+    pub warnings: Option<Vec<GoogleCloudAssuredworkloadsV1MoveImpact>>,
+}
 
 /// `GoogleCloudAssuredworkloadsV1WorkloadEkmProvisioningResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -110,6 +122,22 @@ pub struct GoogleCloudAssuredworkloadsV1WorkloadEkmProvisioningResponse {
     pub ekm_provisioning_error_mapping: Option<String>,
     /// ekmProvisioningState property.
     pub ekm_provisioning_state: Option<String>,
+}
+
+/// `GoogleCloudAssuredworkloadsV1WorkloadWorkloadOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAssuredworkloadsV1WorkloadWorkloadOptions {
+    /// kajEnrollmentType property.
+    pub kaj_enrollment_type: Option<String>,
+}
+
+/// `GoogleCloudAssuredworkloadsV1WorkloadResourceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAssuredworkloadsV1WorkloadResourceInfo {
+    /// resourceId property.
+    pub resource_id: Option<String>,
+    /// resourceType property.
+    pub resource_type: Option<String>,
 }
 
 /// `GoogleRpcStatus` type.
@@ -123,37 +151,6 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `GoogleCloudAssuredworkloadsV1AssetMoveAnalysis` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1AssetMoveAnalysis {
-    /// analysisGroups property.
-    pub analysis_groups: Option<Vec<GoogleCloudAssuredworkloadsV1MoveAnalysisGroup>>,
-    /// asset property.
-    pub asset: Option<String>,
-    /// assetType property.
-    pub asset_type: Option<String>,
-}
-
-/// `GoogleProtobufEmpty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
-
-/// `GoogleCloudAssuredworkloadsV1WorkloadSaaEnrollmentResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1WorkloadSaaEnrollmentResponse {
-    /// setupErrors property.
-    pub setup_errors: Option<Vec<String>>,
-    /// setupStatus property.
-    pub setup_status: Option<String>,
-}
-
-/// `GoogleCloudAssuredworkloadsV1WorkloadWorkloadOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1WorkloadWorkloadOptions {
-    /// kajEnrollmentType property.
-    pub kaj_enrollment_type: Option<String>,
-}
-
 /// `GoogleCloudAssuredworkloadsV1WorkloadResourceSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1WorkloadResourceSettings {
@@ -165,37 +162,11 @@ pub struct GoogleCloudAssuredworkloadsV1WorkloadResourceSettings {
     pub resource_type: Option<String>,
 }
 
-/// `GoogleCloudAssuredworkloadsV1EnableResourceMonitoringResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1EnableResourceMonitoringResponse {}
-
-/// `GoogleCloudAssuredworkloadsV1MoveAnalysisResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1MoveAnalysisResult {
-    /// blockers property.
-    pub blockers: Option<Vec<GoogleCloudAssuredworkloadsV1MoveImpact>>,
-    /// warnings property.
-    pub warnings: Option<Vec<GoogleCloudAssuredworkloadsV1MoveImpact>>,
-}
-
 /// `GoogleCloudAssuredworkloadsV1MoveImpact` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1MoveImpact {
     /// detail property.
     pub detail: Option<String>,
-}
-
-/// `GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesResponse {}
-
-/// `GoogleCloudAssuredworkloadsV1ListWorkloadsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1ListWorkloadsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// workloads property.
-    pub workloads: Option<Vec<GoogleCloudAssuredworkloadsV1Workload>>,
 }
 
 /// `GoogleCloudAssuredworkloadsV1WorkloadComplianceStatus` type.
@@ -224,16 +195,46 @@ pub struct GoogleCloudAssuredworkloadsV1WorkloadPartnerPermissions {
     pub service_access_approver: Option<bool>,
 }
 
-/// `GoogleCloudAssuredworkloadsV1MoveAnalysisGroup` type.
+/// `GoogleCloudAssuredworkloadsV1EnableComplianceUpdatesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1MoveAnalysisGroup {
-    /// analysisResult property.
-    pub analysis_result: Option<GoogleCloudAssuredworkloadsV1MoveAnalysisResult>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// error property.
-    pub error: Option<GoogleRpcStatus>,
+pub struct GoogleCloudAssuredworkloadsV1EnableComplianceUpdatesResponse {}
+
+/// `GoogleCloudAssuredworkloadsV1AnalyzeWorkloadMoveResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAssuredworkloadsV1AnalyzeWorkloadMoveResponse {
+    /// assetMoveAnalyses property.
+    pub asset_move_analyses: Option<Vec<GoogleCloudAssuredworkloadsV1AssetMoveAnalysis>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
+
+/// `GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesResponse {}
+
+/// `GoogleCloudAssuredworkloadsV1WorkloadSaaEnrollmentResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAssuredworkloadsV1WorkloadSaaEnrollmentResponse {
+    /// setupErrors property.
+    pub setup_errors: Option<Vec<String>>,
+    /// setupStatus property.
+    pub setup_status: Option<String>,
+}
+
+/// `GoogleCloudAssuredworkloadsV1AssetMoveAnalysis` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAssuredworkloadsV1AssetMoveAnalysis {
+    /// analysisGroups property.
+    pub analysis_groups: Option<Vec<GoogleCloudAssuredworkloadsV1MoveAnalysisGroup>>,
+    /// asset property.
+    pub asset: Option<String>,
+    /// assetType property.
+    pub asset_type: Option<String>,
+}
+
+/// `GoogleProtobufEmpty` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleProtobufEmpty {}
 
 /// `GoogleCloudAssuredworkloadsV1WorkloadKMSSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

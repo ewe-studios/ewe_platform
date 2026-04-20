@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,17 +22,47 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `AccessScope` type.
+/// `ScopedAccessSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessScope {
-    /// clientScope property.
-    pub client_scope: Option<ClientScope>,
+pub struct ScopedAccessSettings {
+    /// activeSettings property.
+    pub active_settings: Option<AccessSettings>,
+    /// dryRunSettings property.
+    pub dry_run_settings: Option<AccessSettings>,
+    /// scope property.
+    pub scope: Option<AccessScope>,
+}
+
+/// `SessionSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SessionSettings {
+    /// maxInactivity property.
+    pub max_inactivity: Option<String>,
+    /// sessionLength property.
+    pub session_length: Option<String>,
+    /// sessionLengthEnabled property.
+    pub session_length_enabled: Option<bool>,
+    /// sessionReauthMethod property.
+    pub session_reauth_method: Option<String>,
+    /// useOidcMaxAge property.
+    pub use_oidc_max_age: Option<bool>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `ListGcpUserAccessBindingsResponse` type.
@@ -41,6 +72,22 @@ pub struct ListGcpUserAccessBindingsResponse {
     pub gcp_user_access_bindings: Option<Vec<GcpUserAccessBinding>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `Application` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Application {
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `AccessScope` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessScope {
+    /// clientScope property.
+    pub client_scope: Option<ClientScope>,
 }
 
 /// `GcpUserAccessBinding` type.
@@ -62,24 +109,6 @@ pub struct GcpUserAccessBinding {
     pub session_settings: Option<SessionSettings>,
 }
 
-/// `ScopedAccessSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScopedAccessSettings {
-    /// activeSettings property.
-    pub active_settings: Option<AccessSettings>,
-    /// dryRunSettings property.
-    pub dry_run_settings: Option<AccessSettings>,
-    /// scope property.
-    pub scope: Option<AccessScope>,
-}
-
-/// `ClientScope` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClientScope {
-    /// restrictedClientApplication property.
-    pub restricted_client_application: Option<Application>,
-}
-
 /// `AccessSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSettings {
@@ -89,39 +118,11 @@ pub struct AccessSettings {
     pub session_settings: Option<SessionSettings>,
 }
 
-/// `SessionSettings` type.
+/// `ClientScope` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SessionSettings {
-    /// maxInactivity property.
-    pub max_inactivity: Option<String>,
-    /// sessionLength property.
-    pub session_length: Option<String>,
-    /// sessionLengthEnabled property.
-    pub session_length_enabled: Option<bool>,
-    /// sessionReauthMethod property.
-    pub session_reauth_method: Option<String>,
-    /// useOidcMaxAge property.
-    pub use_oidc_max_age: Option<bool>,
-}
-
-/// `Application` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Application {
-    /// clientId property.
-    pub client_id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct ClientScope {
+    /// restrictedClientApplication property.
+    pub restricted_client_application: Option<Application>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,21 +22,39 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::CssProductInput;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `HeadlineOfferInstallment` type.
+/// `Price` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HeadlineOfferInstallment {
-    /// amount property.
-    pub amount: Option<Price>,
-    /// downpayment property.
-    pub downpayment: Option<Price>,
-    /// months property.
-    pub months: Option<String>,
+pub struct Price {
+    /// amountMicros property.
+    pub amount_micros: Option<String>,
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+}
+
+/// `ProductDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductDetail {
+    /// attributeName property.
+    pub attribute_name: Option<String>,
+    /// attributeValue property.
+    pub attribute_value: Option<String>,
+    /// sectionName property.
+    pub section_name: Option<String>,
+}
+
+/// `ProductWeight` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductWeight {
+    /// unit property.
+    pub unit: Option<String>,
+    /// value property.
+    pub value: Option<f64>,
 }
 
 /// `ProductDimension` type.
@@ -47,13 +66,26 @@ pub struct ProductDimension {
     pub value: Option<f64>,
 }
 
-/// `ProductWeight` type.
+/// `CustomAttribute` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductWeight {
-    /// unit property.
-    pub unit: Option<String>,
+pub struct CustomAttribute {
+    /// groupValues property.
+    pub group_values: Option<Vec<Box<CustomAttribute>>>,
+    /// name property.
+    pub name: Option<String>,
     /// value property.
-    pub value: Option<f64>,
+    pub value: Option<String>,
+}
+
+/// `HeadlineOfferSubscriptionCost` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HeadlineOfferSubscriptionCost {
+    /// amount property.
+    pub amount: Option<Price>,
+    /// period property.
+    pub period: Option<String>,
+    /// periodLength property.
+    pub period_length: Option<String>,
 }
 
 /// `Attributes` type.
@@ -169,37 +201,6 @@ pub struct Attributes {
     pub title: Option<String>,
 }
 
-/// `HeadlineOfferSubscriptionCost` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HeadlineOfferSubscriptionCost {
-    /// amount property.
-    pub amount: Option<Price>,
-    /// period property.
-    pub period: Option<String>,
-    /// periodLength property.
-    pub period_length: Option<String>,
-}
-
-/// `ProductDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductDetail {
-    /// attributeName property.
-    pub attribute_name: Option<String>,
-    /// attributeValue property.
-    pub attribute_value: Option<String>,
-    /// sectionName property.
-    pub section_name: Option<String>,
-}
-
-/// `Price` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Price {
-    /// amountMicros property.
-    pub amount_micros: Option<String>,
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-}
-
 /// `Certification` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Certification {
@@ -211,15 +212,15 @@ pub struct Certification {
     pub name: Option<String>,
 }
 
-/// `CustomAttribute` type.
+/// `HeadlineOfferInstallment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomAttribute {
-    /// groupValues property.
-    pub group_values: Option<Vec<CustomAttribute>>,
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct HeadlineOfferInstallment {
+    /// amount property.
+    pub amount: Option<Price>,
+    /// downpayment property.
+    pub downpayment: Option<Price>,
+    /// months property.
+    pub months: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -36,13 +37,13 @@ pub struct ListServicesResponse {
     pub services: Option<Vec<Service>>,
 }
 
-/// `EndpointSpec` type.
+/// `Interface` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndpointSpec {
-    /// content property.
-    pub content: Option<serde_json::Value>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct Interface {
+    /// protocolBinding property.
+    pub protocol_binding: Option<String>,
+    /// url property.
+    pub url: Option<String>,
 }
 
 /// `Service` type.
@@ -99,13 +100,13 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `Interface` type.
+/// `EndpointSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Interface {
-    /// protocolBinding property.
-    pub protocol_binding: Option<String>,
-    /// url property.
-    pub url: Option<String>,
+pub struct EndpointSpec {
+    /// content property.
+    pub content: Option<serde_json::Value>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 // =============================================================================

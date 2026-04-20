@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,20 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::ScanRun;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListScanRunsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListScanRunsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// scanRuns property.
+    pub scan_runs: Option<Vec<ScanRun>>,
+}
 
 /// `ScanRunErrorTrace` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -38,22 +48,6 @@ pub struct ScanRunErrorTrace {
     pub scan_config_error: Option<ScanConfigError>,
 }
 
-/// `ScanRunWarningTrace` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScanRunWarningTrace {
-    /// code property.
-    pub code: Option<String>,
-}
-
-/// `ListScanRunsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListScanRunsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// scanRuns property.
-    pub scan_runs: Option<Vec<ScanRun>>,
-}
-
 /// `ScanConfigError` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScanConfigError {
@@ -61,6 +55,13 @@ pub struct ScanConfigError {
     pub code: Option<String>,
     /// fieldName property.
     pub field_name: Option<String>,
+}
+
+/// `ScanRunWarningTrace` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ScanRunWarningTrace {
+    /// code property.
+    pub code: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -25,11 +26,91 @@ use super::shared::Policy;
 use super::shared::SetTagsResponse;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `NamespacedNames` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NamespacedNames {
+    /// namespacedNames property.
+    pub namespaced_names: Option<Vec<NamespacedName>>,
+}
+
+/// `TransformationRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TransformationRule {
+    /// description property.
+    pub description: Option<String>,
+    /// fieldActions property.
+    pub field_actions: Option<Vec<TransformationRuleAction>>,
+    /// resourceFilter property.
+    pub resource_filter: Option<ResourceFilter>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GroupKind` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GroupKind {
+    /// resourceGroup property.
+    pub resource_group: Option<String>,
+    /// resourceKind property.
+    pub resource_kind: Option<String>,
+}
+
+/// `RestoreConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RestoreConfig {
+    /// allNamespaces property.
+    pub all_namespaces: Option<bool>,
+    /// clusterResourceConflictPolicy property.
+    pub cluster_resource_conflict_policy: Option<String>,
+    /// clusterResourceRestoreScope property.
+    pub cluster_resource_restore_scope: Option<ClusterResourceRestoreScope>,
+    /// excludedNamespaces property.
+    pub excluded_namespaces: Option<Namespaces>,
+    /// namespacedResourceRestoreMode property.
+    pub namespaced_resource_restore_mode: Option<String>,
+    /// noNamespaces property.
+    pub no_namespaces: Option<bool>,
+    /// restoreOrder property.
+    pub restore_order: Option<RestoreOrder>,
+    /// selectedApplications property.
+    pub selected_applications: Option<NamespacedNames>,
+    /// selectedNamespaces property.
+    pub selected_namespaces: Option<Namespaces>,
+    /// substitutionRules property.
+    pub substitution_rules: Option<Vec<SubstitutionRule>>,
+    /// transformationRules property.
+    pub transformation_rules: Option<Vec<TransformationRule>>,
+    /// volumeDataRestorePolicy property.
+    pub volume_data_restore_policy: Option<String>,
+    /// volumeDataRestorePolicyBindings property.
+    pub volume_data_restore_policy_bindings: Option<Vec<VolumeDataRestorePolicyBinding>>,
+}
 
 /// `AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -38,6 +119,83 @@ pub struct AuditLogConfig {
     pub exempted_members: Option<Vec<String>>,
     /// logType property.
     pub log_type: Option<String>,
+}
+
+/// `Namespaces` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Namespaces {
+    /// namespaces property.
+    pub namespaces: Option<Vec<String>>,
+}
+
+/// `SubstitutionRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SubstitutionRule {
+    /// newValue property.
+    pub new_value: Option<String>,
+    /// originalValuePattern property.
+    pub original_value_pattern: Option<String>,
+    /// targetGroupKinds property.
+    pub target_group_kinds: Option<Vec<GroupKind>>,
+    /// targetJsonPath property.
+    pub target_json_path: Option<String>,
+    /// targetNamespaces property.
+    pub target_namespaces: Option<Vec<String>>,
+}
+
+/// `ClusterResourceRestoreScope` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterResourceRestoreScope {
+    /// allGroupKinds property.
+    pub all_group_kinds: Option<bool>,
+    /// excludedGroupKinds property.
+    pub excluded_group_kinds: Option<Vec<GroupKind>>,
+    /// noGroupKinds property.
+    pub no_group_kinds: Option<bool>,
+    /// selectedGroupKinds property.
+    pub selected_group_kinds: Option<Vec<GroupKind>>,
+}
+
+/// `NamespacedName` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NamespacedName {
+    /// name property.
+    pub name: Option<String>,
+    /// namespace property.
+    pub namespace: Option<String>,
+}
+
+/// `TransformationRuleAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TransformationRuleAction {
+    /// fromPath property.
+    pub from_path: Option<String>,
+    /// op property.
+    pub op: Option<String>,
+    /// path property.
+    pub path: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GroupKindDependency` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GroupKindDependency {
+    /// requiring property.
+    pub requiring: Option<GroupKind>,
+    /// satisfying property.
+    pub satisfying: Option<GroupKind>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `Binding` type.
@@ -51,18 +209,20 @@ pub struct Binding {
     pub role: Option<String>,
 }
 
-/// `Namespaces` type.
+/// `VolumeDataRestorePolicyBinding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Namespaces {
-    /// namespaces property.
-    pub namespaces: Option<Vec<String>>,
+pub struct VolumeDataRestorePolicyBinding {
+    /// policy property.
+    pub policy: Option<String>,
+    /// volumeType property.
+    pub volume_type: Option<String>,
 }
 
-/// `NamespacedNames` type.
+/// `RestoreOrder` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NamespacedNames {
-    /// namespacedNames property.
-    pub namespaced_names: Option<Vec<NamespacedName>>,
+pub struct RestoreOrder {
+    /// groupKindDependencies property.
+    pub group_kind_dependencies: Option<Vec<GroupKindDependency>>,
 }
 
 /// `ResourceFilter` type.
@@ -116,165 +276,6 @@ pub struct RestorePlan {
     pub uid: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `TransformationRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransformationRule {
-    /// description property.
-    pub description: Option<String>,
-    /// fieldActions property.
-    pub field_actions: Option<Vec<TransformationRuleAction>>,
-    /// resourceFilter property.
-    pub resource_filter: Option<ResourceFilter>,
-}
-
-/// `VolumeDataRestorePolicyBinding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VolumeDataRestorePolicyBinding {
-    /// policy property.
-    pub policy: Option<String>,
-    /// volumeType property.
-    pub volume_type: Option<String>,
-}
-
-/// `GroupKind` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GroupKind {
-    /// resourceGroup property.
-    pub resource_group: Option<String>,
-    /// resourceKind property.
-    pub resource_kind: Option<String>,
-}
-
-/// `NamespacedName` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NamespacedName {
-    /// name property.
-    pub name: Option<String>,
-    /// namespace property.
-    pub namespace: Option<String>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `GroupKindDependency` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GroupKindDependency {
-    /// requiring property.
-    pub requiring: Option<GroupKind>,
-    /// satisfying property.
-    pub satisfying: Option<GroupKind>,
-}
-
-/// `TransformationRuleAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransformationRuleAction {
-    /// fromPath property.
-    pub from_path: Option<String>,
-    /// op property.
-    pub op: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `RestoreOrder` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RestoreOrder {
-    /// groupKindDependencies property.
-    pub group_kind_dependencies: Option<Vec<GroupKindDependency>>,
-}
-
-/// `SubstitutionRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubstitutionRule {
-    /// newValue property.
-    pub new_value: Option<String>,
-    /// originalValuePattern property.
-    pub original_value_pattern: Option<String>,
-    /// targetGroupKinds property.
-    pub target_group_kinds: Option<Vec<GroupKind>>,
-    /// targetJsonPath property.
-    pub target_json_path: Option<String>,
-    /// targetNamespaces property.
-    pub target_namespaces: Option<Vec<String>>,
-}
-
-/// `RestoreConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RestoreConfig {
-    /// allNamespaces property.
-    pub all_namespaces: Option<bool>,
-    /// clusterResourceConflictPolicy property.
-    pub cluster_resource_conflict_policy: Option<String>,
-    /// clusterResourceRestoreScope property.
-    pub cluster_resource_restore_scope: Option<ClusterResourceRestoreScope>,
-    /// excludedNamespaces property.
-    pub excluded_namespaces: Option<Namespaces>,
-    /// namespacedResourceRestoreMode property.
-    pub namespaced_resource_restore_mode: Option<String>,
-    /// noNamespaces property.
-    pub no_namespaces: Option<bool>,
-    /// restoreOrder property.
-    pub restore_order: Option<RestoreOrder>,
-    /// selectedApplications property.
-    pub selected_applications: Option<NamespacedNames>,
-    /// selectedNamespaces property.
-    pub selected_namespaces: Option<Namespaces>,
-    /// substitutionRules property.
-    pub substitution_rules: Option<Vec<SubstitutionRule>>,
-    /// transformationRules property.
-    pub transformation_rules: Option<Vec<TransformationRule>>,
-    /// volumeDataRestorePolicy property.
-    pub volume_data_restore_policy: Option<String>,
-    /// volumeDataRestorePolicyBindings property.
-    pub volume_data_restore_policy_bindings: Option<Vec<VolumeDataRestorePolicyBinding>>,
-}
-
-/// `ClusterResourceRestoreScope` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterResourceRestoreScope {
-    /// allGroupKinds property.
-    pub all_group_kinds: Option<bool>,
-    /// excludedGroupKinds property.
-    pub excluded_group_kinds: Option<Vec<GroupKind>>,
-    /// noGroupKinds property.
-    pub no_group_kinds: Option<bool>,
-    /// selectedGroupKinds property.
-    pub selected_group_kinds: Option<Vec<GroupKind>>,
 }
 
 // =============================================================================

@@ -12,17 +12,112 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `SiteContact` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SiteContact {
+    /// address property.
+    pub address: Option<String>,
+    /// contactType property.
+    pub contact_type: Option<String>,
+    /// email property.
+    pub email: Option<String>,
+    /// firstName property.
+    pub first_name: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// lastName property.
+    pub last_name: Option<String>,
+    /// phone property.
+    pub phone: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `SiteSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SiteSettings {
+    /// activeViewOptOut property.
+    pub active_view_opt_out: Option<bool>,
+    /// adBlockingOptOut property.
+    pub ad_blocking_opt_out: Option<bool>,
+    /// disableNewCookie property.
+    pub disable_new_cookie: Option<bool>,
+    /// tagSetting property.
+    pub tag_setting: Option<TagSetting>,
+    /// videoActiveViewOptOutTemplate property.
+    pub video_active_view_opt_out_template: Option<bool>,
+    /// vpaidAdapterChoiceTemplate property.
+    pub vpaid_adapter_choice_template: Option<String>,
+}
+
+/// `SitesListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SitesListResponse {
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// sites property.
+    pub sites: Option<Vec<Site>>,
+}
+
+/// `ObaIcon` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ObaIcon {
+    /// iconClickThroughUrl property.
+    pub icon_click_through_url: Option<String>,
+    /// iconClickTrackingUrl property.
+    pub icon_click_tracking_url: Option<String>,
+    /// iconViewTrackingUrl property.
+    pub icon_view_tracking_url: Option<String>,
+    /// program property.
+    pub program: Option<String>,
+    /// resourceUrl property.
+    pub resource_url: Option<String>,
+    /// size property.
+    pub size: Option<Size>,
+    /// xPosition property.
+    pub x_position: Option<String>,
+    /// yPosition property.
+    pub y_position: Option<String>,
+}
+
+/// `VideoOffset` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoOffset {
+    /// offsetPercentage property.
+    pub offset_percentage: Option<i64>,
+    /// offsetSeconds property.
+    pub offset_seconds: Option<i64>,
+}
+
+/// `Size` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Size {
+    /// height property.
+    pub height: Option<i64>,
+    /// iab property.
+    pub iab: Option<bool>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// width property.
+    pub width: Option<i64>,
+}
 
 /// `TagSetting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -72,99 +167,6 @@ pub struct Site {
     pub video_settings: Option<SiteVideoSettings>,
 }
 
-/// `SiteCompanionSetting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SiteCompanionSetting {
-    /// companionsDisabled property.
-    pub companions_disabled: Option<bool>,
-    /// enabledSizes property.
-    pub enabled_sizes: Option<Vec<Size>>,
-    /// imageOnly property.
-    pub image_only: Option<bool>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `SiteSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SiteSettings {
-    /// activeViewOptOut property.
-    pub active_view_opt_out: Option<bool>,
-    /// adBlockingOptOut property.
-    pub ad_blocking_opt_out: Option<bool>,
-    /// disableNewCookie property.
-    pub disable_new_cookie: Option<bool>,
-    /// tagSetting property.
-    pub tag_setting: Option<TagSetting>,
-    /// videoActiveViewOptOutTemplate property.
-    pub video_active_view_opt_out_template: Option<bool>,
-    /// vpaidAdapterChoiceTemplate property.
-    pub vpaid_adapter_choice_template: Option<String>,
-}
-
-/// `SitesListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SitesListResponse {
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// sites property.
-    pub sites: Option<Vec<Site>>,
-}
-
-/// `SiteSkippableSetting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SiteSkippableSetting {
-    /// kind property.
-    pub kind: Option<String>,
-    /// progressOffset property.
-    pub progress_offset: Option<VideoOffset>,
-    /// skipOffset property.
-    pub skip_offset: Option<VideoOffset>,
-    /// skippable property.
-    pub skippable: Option<bool>,
-}
-
-/// `VideoOffset` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoOffset {
-    /// offsetPercentage property.
-    pub offset_percentage: Option<i64>,
-    /// offsetSeconds property.
-    pub offset_seconds: Option<i64>,
-}
-
-/// `SiteTranscodeSetting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SiteTranscodeSetting {
-    /// enabledVideoFormats property.
-    pub enabled_video_formats: Option<Vec<i64>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `ObaIcon` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObaIcon {
-    /// iconClickThroughUrl property.
-    pub icon_click_through_url: Option<String>,
-    /// iconClickTrackingUrl property.
-    pub icon_click_tracking_url: Option<String>,
-    /// iconViewTrackingUrl property.
-    pub icon_view_tracking_url: Option<String>,
-    /// program property.
-    pub program: Option<String>,
-    /// resourceUrl property.
-    pub resource_url: Option<String>,
-    /// size property.
-    pub size: Option<Size>,
-    /// xPosition property.
-    pub x_position: Option<String>,
-    /// yPosition property.
-    pub y_position: Option<String>,
-}
-
 /// `SiteVideoSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SiteVideoSettings {
@@ -186,6 +188,15 @@ pub struct SiteVideoSettings {
     pub transcode_settings: Option<SiteTranscodeSetting>,
 }
 
+/// `SiteTranscodeSetting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SiteTranscodeSetting {
+    /// enabledVideoFormats property.
+    pub enabled_video_formats: Option<Vec<i64>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
 /// `DimensionValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DimensionValue {
@@ -203,40 +214,30 @@ pub struct DimensionValue {
     pub value: Option<String>,
 }
 
-/// `SiteContact` type.
+/// `SiteCompanionSetting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SiteContact {
-    /// address property.
-    pub address: Option<String>,
-    /// contactType property.
-    pub contact_type: Option<String>,
-    /// email property.
-    pub email: Option<String>,
-    /// firstName property.
-    pub first_name: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// lastName property.
-    pub last_name: Option<String>,
-    /// phone property.
-    pub phone: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `Size` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Size {
-    /// height property.
-    pub height: Option<i64>,
-    /// iab property.
-    pub iab: Option<bool>,
-    /// id property.
-    pub id: Option<String>,
+pub struct SiteCompanionSetting {
+    /// companionsDisabled property.
+    pub companions_disabled: Option<bool>,
+    /// enabledSizes property.
+    pub enabled_sizes: Option<Vec<Size>>,
+    /// imageOnly property.
+    pub image_only: Option<bool>,
     /// kind property.
     pub kind: Option<String>,
-    /// width property.
-    pub width: Option<i64>,
+}
+
+/// `SiteSkippableSetting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SiteSkippableSetting {
+    /// kind property.
+    pub kind: Option<String>,
+    /// progressOffset property.
+    pub progress_offset: Option<VideoOffset>,
+    /// skipOffset property.
+    pub skip_offset: Option<VideoOffset>,
+    /// skippable property.
+    pub skippable: Option<bool>,
 }
 
 // =============================================================================

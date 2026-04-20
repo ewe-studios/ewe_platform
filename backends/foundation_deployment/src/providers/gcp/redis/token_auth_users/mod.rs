@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,20 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `TokenAuthUser` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TokenAuthUser {
-    /// name property.
-    pub name: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
 
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -56,6 +48,15 @@ pub struct ListTokenAuthUsersResponse {
     pub token_auth_users: Option<Vec<TokenAuthUser>>,
     /// unreachable property.
     pub unreachable: Option<Vec<String>>,
+}
+
+/// `TokenAuthUser` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TokenAuthUser {
+    /// name property.
+    pub name: Option<String>,
+    /// state property.
+    pub state: Option<String>,
 }
 
 // =============================================================================

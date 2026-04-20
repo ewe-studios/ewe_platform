@@ -12,39 +12,21 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Empty;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `AppTargeting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppTargeting {
-    /// mobileAppCategoryTargeting property.
-    pub mobile_app_category_targeting: Option<NumericTargetingDimension>,
-    /// mobileAppTargeting property.
-    pub mobile_app_targeting: Option<StringTargetingDimension>,
-}
-
-/// `StringTargetingDimension` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StringTargetingDimension {
-    /// targetingMode property.
-    pub targeting_mode: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `Empty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
 
 /// `ListPretargetingConfigsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -55,13 +37,13 @@ pub struct ListPretargetingConfigsResponse {
     pub pretargeting_configs: Option<Vec<PretargetingConfig>>,
 }
 
-/// `NumericTargetingDimension` type.
+/// `AppTargeting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NumericTargetingDimension {
-    /// excludedIds property.
-    pub excluded_ids: Option<Vec<String>>,
-    /// includedIds property.
-    pub included_ids: Option<Vec<String>>,
+pub struct AppTargeting {
+    /// mobileAppCategoryTargeting property.
+    pub mobile_app_category_targeting: Option<NumericTargetingDimension>,
+    /// mobileAppTargeting property.
+    pub mobile_app_targeting: Option<StringTargetingDimension>,
 }
 
 /// `PretargetingConfig` type.
@@ -113,6 +95,24 @@ pub struct PretargetingConfig {
     pub vertical_targeting: Option<NumericTargetingDimension>,
     /// webTargeting property.
     pub web_targeting: Option<StringTargetingDimension>,
+}
+
+/// `NumericTargetingDimension` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NumericTargetingDimension {
+    /// excludedIds property.
+    pub excluded_ids: Option<Vec<String>>,
+    /// includedIds property.
+    pub included_ids: Option<Vec<String>>,
+}
+
+/// `StringTargetingDimension` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StringTargetingDimension {
+    /// targetingMode property.
+    pub targeting_mode: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
 }
 
 /// `CreativeDimensions` type.

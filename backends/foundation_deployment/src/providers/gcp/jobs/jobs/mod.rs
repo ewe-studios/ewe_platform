@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,73 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Location` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Location {
+    /// latLng property.
+    pub lat_lng: Option<LatLng>,
+    /// locationType property.
+    pub location_type: Option<String>,
+    /// postalAddress property.
+    pub postal_address: Option<PostalAddress>,
+    /// radiusMiles property.
+    pub radius_miles: Option<f64>,
+}
+
+/// `ListJobsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListJobsResponse {
+    /// jobs property.
+    pub jobs: Option<Vec<Job>>,
+    /// metadata property.
+    pub metadata: Option<ResponseMetadata>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `ProcessingOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProcessingOptions {
+    /// disableStreetAddressResolution property.
+    pub disable_street_address_resolution: Option<bool>,
+    /// htmlSanitization property.
+    pub html_sanitization: Option<String>,
+}
+
+/// `LatLng` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LatLng {
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
+}
+
+/// `CompensationInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CompensationInfo {
+    /// annualizedBaseCompensationRange property.
+    pub annualized_base_compensation_range: Option<CompensationRange>,
+    /// annualizedTotalCompensationRange property.
+    pub annualized_total_compensation_range: Option<CompensationRange>,
+    /// entries property.
+    pub entries: Option<Vec<CompensationEntry>>,
+}
+
+/// `JobDerivedInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JobDerivedInfo {
+    /// jobCategories property.
+    pub job_categories: Option<Vec<String>>,
+    /// locations property.
+    pub locations: Option<Vec<Location>>,
+}
 
 /// `PostalAddress` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -54,44 +117,59 @@ pub struct PostalAddress {
     pub sublocality: Option<String>,
 }
 
-/// `ListJobsResponse` type.
+/// `ApplicationInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListJobsResponse {
-    /// jobs property.
-    pub jobs: Option<Vec<Job>>,
-    /// metadata property.
-    pub metadata: Option<ResponseMetadata>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct ApplicationInfo {
+    /// emails property.
+    pub emails: Option<Vec<String>>,
+    /// instruction property.
+    pub instruction: Option<String>,
+    /// uris property.
+    pub uris: Option<Vec<String>>,
 }
 
-/// `CompensationInfo` type.
+/// `CompensationEntry` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompensationInfo {
-    /// annualizedBaseCompensationRange property.
-    pub annualized_base_compensation_range: Option<CompensationRange>,
-    /// annualizedTotalCompensationRange property.
-    pub annualized_total_compensation_range: Option<CompensationRange>,
-    /// entries property.
-    pub entries: Option<Vec<CompensationEntry>>,
+pub struct CompensationEntry {
+    /// amount property.
+    pub amount: Option<Money>,
+    /// description property.
+    pub description: Option<String>,
+    /// expectedUnitsPerYear property.
+    pub expected_units_per_year: Option<f64>,
+    /// range property.
+    pub range: Option<CompensationRange>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// unit property.
+    pub unit: Option<String>,
 }
 
-/// `LatLng` type.
+/// `CompensationRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LatLng {
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
+pub struct CompensationRange {
+    /// maxCompensation property.
+    pub max_compensation: Option<Money>,
+    /// minCompensation property.
+    pub min_compensation: Option<Money>,
 }
 
-/// `JobDerivedInfo` type.
+/// `Money` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobDerivedInfo {
-    /// jobCategories property.
-    pub job_categories: Option<Vec<String>>,
-    /// locations property.
-    pub locations: Option<Vec<Location>>,
+pub struct Money {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// units property.
+    pub units: Option<String>,
+}
+
+/// `ResponseMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResponseMetadata {
+    /// requestId property.
+    pub request_id: Option<String>,
 }
 
 /// `Job` type.
@@ -157,83 +235,6 @@ pub struct Job {
     pub title: Option<String>,
     /// visibility property.
     pub visibility: Option<String>,
-}
-
-/// `CompensationEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompensationEntry {
-    /// amount property.
-    pub amount: Option<Money>,
-    /// description property.
-    pub description: Option<String>,
-    /// expectedUnitsPerYear property.
-    pub expected_units_per_year: Option<f64>,
-    /// range property.
-    pub range: Option<CompensationRange>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// unit property.
-    pub unit: Option<String>,
-}
-
-/// `ProcessingOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProcessingOptions {
-    /// disableStreetAddressResolution property.
-    pub disable_street_address_resolution: Option<bool>,
-    /// htmlSanitization property.
-    pub html_sanitization: Option<String>,
-}
-
-/// `Money` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Money {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// units property.
-    pub units: Option<String>,
-}
-
-/// `ResponseMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResponseMetadata {
-    /// requestId property.
-    pub request_id: Option<String>,
-}
-
-/// `CompensationRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompensationRange {
-    /// maxCompensation property.
-    pub max_compensation: Option<Money>,
-    /// minCompensation property.
-    pub min_compensation: Option<Money>,
-}
-
-/// `ApplicationInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApplicationInfo {
-    /// emails property.
-    pub emails: Option<Vec<String>>,
-    /// instruction property.
-    pub instruction: Option<String>,
-    /// uris property.
-    pub uris: Option<Vec<String>>,
-}
-
-/// `Location` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Location {
-    /// latLng property.
-    pub lat_lng: Option<LatLng>,
-    /// locationType property.
-    pub location_type: Option<String>,
-    /// postalAddress property.
-    pub postal_address: Option<PostalAddress>,
-    /// radiusMiles property.
-    pub radius_miles: Option<f64>,
 }
 
 // =============================================================================

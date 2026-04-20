@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,17 +22,178 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `TriggererResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TriggererResource {
+    /// count property.
+    pub count: Option<i64>,
+    /// cpu property.
+    pub cpu: Option<f64>,
+    /// memoryGb property.
+    pub memory_gb: Option<f64>,
+}
+
+/// `DatabaseConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseConfig {
+    /// machineType property.
+    pub machine_type: Option<String>,
+    /// zone property.
+    pub zone: Option<String>,
+}
+
+/// `FetchDatabasePropertiesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FetchDatabasePropertiesResponse {
+    /// isFailoverReplicaAvailable property.
+    pub is_failover_replica_available: Option<bool>,
+    /// primaryGceZone property.
+    pub primary_gce_zone: Option<String>,
+    /// secondaryGceZone property.
+    pub secondary_gce_zone: Option<String>,
+}
 
 /// `StorageConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StorageConfig {
     /// bucket property.
     pub bucket: Option<String>,
+}
+
+/// `EncryptionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EncryptionConfig {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+}
+
+/// `WorkerResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkerResource {
+    /// cpu property.
+    pub cpu: Option<f64>,
+    /// maxCount property.
+    pub max_count: Option<i64>,
+    /// memoryGb property.
+    pub memory_gb: Option<f64>,
+    /// minCount property.
+    pub min_count: Option<i64>,
+    /// storageGb property.
+    pub storage_gb: Option<f64>,
+}
+
+/// `IPAllocationPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IPAllocationPolicy {
+    /// clusterIpv4CidrBlock property.
+    pub cluster_ipv4_cidr_block: Option<String>,
+    /// clusterSecondaryRangeName property.
+    pub cluster_secondary_range_name: Option<String>,
+    /// servicesIpv4CidrBlock property.
+    pub services_ipv4_cidr_block: Option<String>,
+    /// servicesSecondaryRangeName property.
+    pub services_secondary_range_name: Option<String>,
+    /// useIpAliases property.
+    pub use_ip_aliases: Option<bool>,
+}
+
+/// `PrivateClusterConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrivateClusterConfig {
+    /// enablePrivateEndpoint property.
+    pub enable_private_endpoint: Option<bool>,
+    /// masterIpv4CidrBlock property.
+    pub master_ipv4_cidr_block: Option<String>,
+    /// masterIpv4ReservedRange property.
+    pub master_ipv4_reserved_range: Option<String>,
+}
+
+/// `StopAirflowCommandResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StopAirflowCommandResponse {
+    /// isDone property.
+    pub is_done: Option<bool>,
+    /// output property.
+    pub output: Option<Vec<String>>,
+}
+
+/// `CidrBlock` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CidrBlock {
+    /// cidrBlock property.
+    pub cidr_block: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+}
+
+/// `WebServerNetworkAccessControl` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WebServerNetworkAccessControl {
+    /// allowedIpRanges property.
+    pub allowed_ip_ranges: Option<Vec<AllowedIpRange>>,
+}
+
+/// `AirflowMetadataRetentionPolicyConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AirflowMetadataRetentionPolicyConfig {
+    /// retentionDays property.
+    pub retention_days: Option<i64>,
+    /// retentionMode property.
+    pub retention_mode: Option<String>,
+}
+
+/// `RecoveryConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RecoveryConfig {
+    /// scheduledSnapshotsConfig property.
+    pub scheduled_snapshots_config: Option<ScheduledSnapshotsConfig>,
+}
+
+/// `SchedulerResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SchedulerResource {
+    /// count property.
+    pub count: Option<i64>,
+    /// cpu property.
+    pub cpu: Option<f64>,
+    /// memoryGb property.
+    pub memory_gb: Option<f64>,
+    /// storageGb property.
+    pub storage_gb: Option<f64>,
+}
+
+/// `SoftwareConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SoftwareConfig {
+    /// airflowConfigOverrides property.
+    pub airflow_config_overrides: Option<serde_json::Value>,
+    /// cloudDataLineageIntegration property.
+    pub cloud_data_lineage_integration: Option<CloudDataLineageIntegration>,
+    /// envVariables property.
+    pub env_variables: Option<serde_json::Value>,
+    /// imageVersion property.
+    pub image_version: Option<String>,
+    /// pypiPackages property.
+    pub pypi_packages: Option<serde_json::Value>,
+    /// pythonVersion property.
+    pub python_version: Option<String>,
+    /// schedulerCount property.
+    pub scheduler_count: Option<i64>,
+    /// webServerPluginsMode property.
+    pub web_server_plugins_mode: Option<String>,
+}
+
+/// `CloudDataLineageIntegration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudDataLineageIntegration {
+    /// enabled property.
+    pub enabled: Option<bool>,
 }
 
 /// `WebServerResource` type.
@@ -45,11 +207,131 @@ pub struct WebServerResource {
     pub storage_gb: Option<f64>,
 }
 
-/// `NetworkingConfig` type.
+/// `MasterAuthorizedNetworksConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkingConfig {
-    /// connectionType property.
-    pub connection_type: Option<String>,
+pub struct MasterAuthorizedNetworksConfig {
+    /// cidrBlocks property.
+    pub cidr_blocks: Option<Vec<CidrBlock>>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `ScheduledSnapshotsConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ScheduledSnapshotsConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// snapshotCreationSchedule property.
+    pub snapshot_creation_schedule: Option<String>,
+    /// snapshotLocation property.
+    pub snapshot_location: Option<String>,
+    /// timeZone property.
+    pub time_zone: Option<String>,
+}
+
+/// `Line` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Line {
+    /// content property.
+    pub content: Option<String>,
+    /// lineNumber property.
+    pub line_number: Option<i64>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `NodeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodeConfig {
+    /// composerInternalIpv4CidrBlock property.
+    pub composer_internal_ipv4_cidr_block: Option<String>,
+    /// composerNetworkAttachment property.
+    pub composer_network_attachment: Option<String>,
+    /// diskSizeGb property.
+    pub disk_size_gb: Option<i64>,
+    /// enableIpMasqAgent property.
+    pub enable_ip_masq_agent: Option<bool>,
+    /// ipAllocationPolicy property.
+    pub ip_allocation_policy: Option<IPAllocationPolicy>,
+    /// location property.
+    pub location: Option<String>,
+    /// machineType property.
+    pub machine_type: Option<String>,
+    /// network property.
+    pub network: Option<String>,
+    /// oauthScopes property.
+    pub oauth_scopes: Option<Vec<String>>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// subnetwork property.
+    pub subnetwork: Option<String>,
+    /// tags property.
+    pub tags: Option<Vec<String>>,
+}
+
+/// `WebServerConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WebServerConfig {
+    /// machineType property.
+    pub machine_type: Option<String>,
+}
+
+/// `AllowedIpRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AllowedIpRange {
+    /// description property.
+    pub description: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `PrivateEnvironmentConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrivateEnvironmentConfig {
+    /// cloudComposerConnectionSubnetwork property.
+    pub cloud_composer_connection_subnetwork: Option<String>,
+    /// cloudComposerNetworkIpv4CidrBlock property.
+    pub cloud_composer_network_ipv4_cidr_block: Option<String>,
+    /// cloudComposerNetworkIpv4ReservedRange property.
+    pub cloud_composer_network_ipv4_reserved_range: Option<String>,
+    /// cloudSqlIpv4CidrBlock property.
+    pub cloud_sql_ipv4_cidr_block: Option<String>,
+    /// enablePrivateBuildsOnly property.
+    pub enable_private_builds_only: Option<bool>,
+    /// enablePrivateEnvironment property.
+    pub enable_private_environment: Option<bool>,
+    /// enablePrivatelyUsedPublicIps property.
+    pub enable_privately_used_public_ips: Option<bool>,
+    /// networkingConfig property.
+    pub networking_config: Option<NetworkingConfig>,
+    /// networkingType property.
+    pub networking_type: Option<String>,
+    /// privateClusterConfig property.
+    pub private_cluster_config: Option<PrivateClusterConfig>,
+    /// webServerIpv4CidrBlock property.
+    pub web_server_ipv4_cidr_block: Option<String>,
+    /// webServerIpv4ReservedRange property.
+    pub web_server_ipv4_reserved_range: Option<String>,
+}
+
+/// `PollAirflowCommandResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PollAirflowCommandResponse {
+    /// exitInfo property.
+    pub exit_info: Option<ExitInfo>,
+    /// output property.
+    pub output: Option<Vec<Line>>,
+    /// outputEnd property.
+    pub output_end: Option<bool>,
 }
 
 /// `WorkloadsConfig` type.
@@ -67,6 +349,26 @@ pub struct WorkloadsConfig {
     pub worker: Option<WorkerResource>,
 }
 
+/// `DagProcessorResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DagProcessorResource {
+    /// count property.
+    pub count: Option<i64>,
+    /// cpu property.
+    pub cpu: Option<f64>,
+    /// memoryGb property.
+    pub memory_gb: Option<f64>,
+    /// storageGb property.
+    pub storage_gb: Option<f64>,
+}
+
+/// `NetworkingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkingConfig {
+    /// connectionType property.
+    pub connection_type: Option<String>,
+}
+
 /// `MaintenanceWindow` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenanceWindow {
@@ -78,38 +380,58 @@ pub struct MaintenanceWindow {
     pub start_time: Option<String>,
 }
 
-/// `ListEnvironmentsResponse` type.
+/// `TaskLogsRetentionConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListEnvironmentsResponse {
-    /// environments property.
-    pub environments: Option<Vec<Environment>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct TaskLogsRetentionConfig {
+    /// storageMode property.
+    pub storage_mode: Option<String>,
 }
 
-/// `EncryptionConfig` type.
+/// `ExecuteAirflowCommandResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionConfig {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
+pub struct ExecuteAirflowCommandResponse {
+    /// error property.
+    pub error: Option<String>,
+    /// executionId property.
+    pub execution_id: Option<String>,
+    /// pod property.
+    pub pod: Option<String>,
+    /// podNamespace property.
+    pub pod_namespace: Option<String>,
 }
 
-/// `RecoveryConfig` type.
+/// `ExitInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RecoveryConfig {
-    /// scheduledSnapshotsConfig property.
-    pub scheduled_snapshots_config: Option<ScheduledSnapshotsConfig>,
+pub struct ExitInfo {
+    /// error property.
+    pub error: Option<String>,
+    /// exitCode property.
+    pub exit_code: Option<i64>,
 }
 
-/// `PollAirflowCommandResponse` type.
+/// `Environment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PollAirflowCommandResponse {
-    /// exitInfo property.
-    pub exit_info: Option<ExitInfo>,
-    /// output property.
-    pub output: Option<Vec<Line>>,
-    /// outputEnd property.
-    pub output_end: Option<bool>,
+pub struct Environment {
+    /// config property.
+    pub config: Option<EnvironmentConfig>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// satisfiesPzi property.
+    pub satisfies_pzi: Option<bool>,
+    /// satisfiesPzs property.
+    pub satisfies_pzs: Option<bool>,
+    /// state property.
+    pub state: Option<String>,
+    /// storageConfig property.
+    pub storage_config: Option<StorageConfig>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+    /// uuid property.
+    pub uuid: Option<String>,
 }
 
 /// `EnvironmentConfig` type.
@@ -155,89 +477,13 @@ pub struct EnvironmentConfig {
     pub workloads_config: Option<WorkloadsConfig>,
 }
 
-/// `CidrBlock` type.
+/// `ListEnvironmentsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CidrBlock {
-    /// cidrBlock property.
-    pub cidr_block: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-}
-
-/// `Environment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Environment {
-    /// config property.
-    pub config: Option<EnvironmentConfig>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// satisfiesPzi property.
-    pub satisfies_pzi: Option<bool>,
-    /// satisfiesPzs property.
-    pub satisfies_pzs: Option<bool>,
-    /// state property.
-    pub state: Option<String>,
-    /// storageConfig property.
-    pub storage_config: Option<StorageConfig>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-    /// uuid property.
-    pub uuid: Option<String>,
-}
-
-/// `Line` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Line {
-    /// content property.
-    pub content: Option<String>,
-    /// lineNumber property.
-    pub line_number: Option<i64>,
-}
-
-/// `IPAllocationPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IPAllocationPolicy {
-    /// clusterIpv4CidrBlock property.
-    pub cluster_ipv4_cidr_block: Option<String>,
-    /// clusterSecondaryRangeName property.
-    pub cluster_secondary_range_name: Option<String>,
-    /// servicesIpv4CidrBlock property.
-    pub services_ipv4_cidr_block: Option<String>,
-    /// servicesSecondaryRangeName property.
-    pub services_secondary_range_name: Option<String>,
-    /// useIpAliases property.
-    pub use_ip_aliases: Option<bool>,
-}
-
-/// `AirflowMetadataRetentionPolicyConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AirflowMetadataRetentionPolicyConfig {
-    /// retentionDays property.
-    pub retention_days: Option<i64>,
-    /// retentionMode property.
-    pub retention_mode: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `WebServerNetworkAccessControl` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WebServerNetworkAccessControl {
-    /// allowedIpRanges property.
-    pub allowed_ip_ranges: Option<Vec<AllowedIpRange>>,
+pub struct ListEnvironmentsResponse {
+    /// environments property.
+    pub environments: Option<Vec<Environment>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `DataRetentionConfig` type.
@@ -247,251 +493,6 @@ pub struct DataRetentionConfig {
     pub airflow_metadata_retention_config: Option<AirflowMetadataRetentionPolicyConfig>,
     /// taskLogsRetentionConfig property.
     pub task_logs_retention_config: Option<TaskLogsRetentionConfig>,
-}
-
-/// `PrivateEnvironmentConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrivateEnvironmentConfig {
-    /// cloudComposerConnectionSubnetwork property.
-    pub cloud_composer_connection_subnetwork: Option<String>,
-    /// cloudComposerNetworkIpv4CidrBlock property.
-    pub cloud_composer_network_ipv4_cidr_block: Option<String>,
-    /// cloudComposerNetworkIpv4ReservedRange property.
-    pub cloud_composer_network_ipv4_reserved_range: Option<String>,
-    /// cloudSqlIpv4CidrBlock property.
-    pub cloud_sql_ipv4_cidr_block: Option<String>,
-    /// enablePrivateBuildsOnly property.
-    pub enable_private_builds_only: Option<bool>,
-    /// enablePrivateEnvironment property.
-    pub enable_private_environment: Option<bool>,
-    /// enablePrivatelyUsedPublicIps property.
-    pub enable_privately_used_public_ips: Option<bool>,
-    /// networkingConfig property.
-    pub networking_config: Option<NetworkingConfig>,
-    /// networkingType property.
-    pub networking_type: Option<String>,
-    /// privateClusterConfig property.
-    pub private_cluster_config: Option<PrivateClusterConfig>,
-    /// webServerIpv4CidrBlock property.
-    pub web_server_ipv4_cidr_block: Option<String>,
-    /// webServerIpv4ReservedRange property.
-    pub web_server_ipv4_reserved_range: Option<String>,
-}
-
-/// `StopAirflowCommandResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StopAirflowCommandResponse {
-    /// isDone property.
-    pub is_done: Option<bool>,
-    /// output property.
-    pub output: Option<Vec<String>>,
-}
-
-/// `CloudDataLineageIntegration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudDataLineageIntegration {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `PrivateClusterConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrivateClusterConfig {
-    /// enablePrivateEndpoint property.
-    pub enable_private_endpoint: Option<bool>,
-    /// masterIpv4CidrBlock property.
-    pub master_ipv4_cidr_block: Option<String>,
-    /// masterIpv4ReservedRange property.
-    pub master_ipv4_reserved_range: Option<String>,
-}
-
-/// `MasterAuthorizedNetworksConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MasterAuthorizedNetworksConfig {
-    /// cidrBlocks property.
-    pub cidr_blocks: Option<Vec<CidrBlock>>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `WebServerConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WebServerConfig {
-    /// machineType property.
-    pub machine_type: Option<String>,
-}
-
-/// `SchedulerResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SchedulerResource {
-    /// count property.
-    pub count: Option<i64>,
-    /// cpu property.
-    pub cpu: Option<f64>,
-    /// memoryGb property.
-    pub memory_gb: Option<f64>,
-    /// storageGb property.
-    pub storage_gb: Option<f64>,
-}
-
-/// `FetchDatabasePropertiesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FetchDatabasePropertiesResponse {
-    /// isFailoverReplicaAvailable property.
-    pub is_failover_replica_available: Option<bool>,
-    /// primaryGceZone property.
-    pub primary_gce_zone: Option<String>,
-    /// secondaryGceZone property.
-    pub secondary_gce_zone: Option<String>,
-}
-
-/// `ScheduledSnapshotsConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScheduledSnapshotsConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// snapshotCreationSchedule property.
-    pub snapshot_creation_schedule: Option<String>,
-    /// snapshotLocation property.
-    pub snapshot_location: Option<String>,
-    /// timeZone property.
-    pub time_zone: Option<String>,
-}
-
-/// `SoftwareConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SoftwareConfig {
-    /// airflowConfigOverrides property.
-    pub airflow_config_overrides: Option<serde_json::Value>,
-    /// cloudDataLineageIntegration property.
-    pub cloud_data_lineage_integration: Option<CloudDataLineageIntegration>,
-    /// envVariables property.
-    pub env_variables: Option<serde_json::Value>,
-    /// imageVersion property.
-    pub image_version: Option<String>,
-    /// pypiPackages property.
-    pub pypi_packages: Option<serde_json::Value>,
-    /// pythonVersion property.
-    pub python_version: Option<String>,
-    /// schedulerCount property.
-    pub scheduler_count: Option<i64>,
-    /// webServerPluginsMode property.
-    pub web_server_plugins_mode: Option<String>,
-}
-
-/// `DagProcessorResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DagProcessorResource {
-    /// count property.
-    pub count: Option<i64>,
-    /// cpu property.
-    pub cpu: Option<f64>,
-    /// memoryGb property.
-    pub memory_gb: Option<f64>,
-    /// storageGb property.
-    pub storage_gb: Option<f64>,
-}
-
-/// `NodeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeConfig {
-    /// composerInternalIpv4CidrBlock property.
-    pub composer_internal_ipv4_cidr_block: Option<String>,
-    /// composerNetworkAttachment property.
-    pub composer_network_attachment: Option<String>,
-    /// diskSizeGb property.
-    pub disk_size_gb: Option<i64>,
-    /// enableIpMasqAgent property.
-    pub enable_ip_masq_agent: Option<bool>,
-    /// ipAllocationPolicy property.
-    pub ip_allocation_policy: Option<IPAllocationPolicy>,
-    /// location property.
-    pub location: Option<String>,
-    /// machineType property.
-    pub machine_type: Option<String>,
-    /// network property.
-    pub network: Option<String>,
-    /// oauthScopes property.
-    pub oauth_scopes: Option<Vec<String>>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-    /// subnetwork property.
-    pub subnetwork: Option<String>,
-    /// tags property.
-    pub tags: Option<Vec<String>>,
-}
-
-/// `WorkerResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkerResource {
-    /// cpu property.
-    pub cpu: Option<f64>,
-    /// maxCount property.
-    pub max_count: Option<i64>,
-    /// memoryGb property.
-    pub memory_gb: Option<f64>,
-    /// minCount property.
-    pub min_count: Option<i64>,
-    /// storageGb property.
-    pub storage_gb: Option<f64>,
-}
-
-/// `TaskLogsRetentionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TaskLogsRetentionConfig {
-    /// storageMode property.
-    pub storage_mode: Option<String>,
-}
-
-/// `ExecuteAirflowCommandResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExecuteAirflowCommandResponse {
-    /// error property.
-    pub error: Option<String>,
-    /// executionId property.
-    pub execution_id: Option<String>,
-    /// pod property.
-    pub pod: Option<String>,
-    /// podNamespace property.
-    pub pod_namespace: Option<String>,
-}
-
-/// `AllowedIpRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AllowedIpRange {
-    /// description property.
-    pub description: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `DatabaseConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseConfig {
-    /// machineType property.
-    pub machine_type: Option<String>,
-    /// zone property.
-    pub zone: Option<String>,
-}
-
-/// `ExitInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExitInfo {
-    /// error property.
-    pub error: Option<String>,
-    /// exitCode property.
-    pub exit_code: Option<i64>,
-}
-
-/// `TriggererResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TriggererResource {
-    /// count property.
-    pub count: Option<i64>,
-    /// cpu property.
-    pub cpu: Option<f64>,
-    /// memoryGb property.
-    pub memory_gb: Option<f64>,
 }
 
 // =============================================================================

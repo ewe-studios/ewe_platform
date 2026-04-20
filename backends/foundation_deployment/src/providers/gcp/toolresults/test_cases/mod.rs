@@ -12,28 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `TestCaseReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestCaseReference {
-    /// className property.
-    pub class_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// testSuiteName property.
-    pub test_suite_name: Option<String>,
-}
 
 /// `TestCase` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -58,11 +48,20 @@ pub struct TestCase {
     pub tool_outputs: Option<Vec<ToolOutputReference>>,
 }
 
-/// `FileReference` type.
+/// `StackTrace` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FileReference {
-    /// fileUri property.
-    pub file_uri: Option<String>,
+pub struct StackTrace {
+    /// exception property.
+    pub exception: Option<String>,
+}
+
+/// `Timestamp` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Timestamp {
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<String>,
 }
 
 /// `ListTestCasesResponse` type.
@@ -72,6 +71,24 @@ pub struct ListTestCasesResponse {
     pub next_page_token: Option<String>,
     /// testCases property.
     pub test_cases: Option<Vec<TestCase>>,
+}
+
+/// `TestCaseReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TestCaseReference {
+    /// className property.
+    pub class_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// testSuiteName property.
+    pub test_suite_name: Option<String>,
+}
+
+/// `FileReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FileReference {
+    /// fileUri property.
+    pub file_uri: Option<String>,
 }
 
 /// `ToolOutputReference` type.
@@ -92,22 +109,6 @@ pub struct Duration {
     pub nanos: Option<i64>,
     /// seconds property.
     pub seconds: Option<String>,
-}
-
-/// `Timestamp` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Timestamp {
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<String>,
-}
-
-/// `StackTrace` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StackTrace {
-    /// exception property.
-    pub exception: Option<String>,
 }
 
 // =============================================================================

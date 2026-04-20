@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,42 +24,11 @@ use super::shared::Empty;
 use super::shared::IamPolicy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ValidateAttestationOccurrenceResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValidateAttestationOccurrenceResponse {
-    /// denialReason property.
-    pub denial_reason: Option<String>,
-    /// result property.
-    pub result: Option<String>,
-}
-
-/// `ListAttestorsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAttestorsResponse {
-    /// attestors property.
-    pub attestors: Option<Vec<Attestor>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `AttestorPublicKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AttestorPublicKey {
-    /// asciiArmoredPgpPublicKey property.
-    pub ascii_armored_pgp_public_key: Option<String>,
-    /// comment property.
-    pub comment: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// pkixPublicKey property.
-    pub pkix_public_key: Option<PkixPublicKey>,
-}
 
 /// `PkixPublicKey` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -84,6 +54,59 @@ pub struct Expr {
     pub title: Option<String>,
 }
 
+/// `UserOwnedGrafeasNote` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UserOwnedGrafeasNote {
+    /// delegationServiceAccountEmail property.
+    pub delegation_service_account_email: Option<String>,
+    /// noteReference property.
+    pub note_reference: Option<String>,
+    /// publicKeys property.
+    pub public_keys: Option<Vec<AttestorPublicKey>>,
+}
+
+/// `ListAttestorsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAttestorsResponse {
+    /// attestors property.
+    pub attestors: Option<Vec<Attestor>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `AttestorPublicKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AttestorPublicKey {
+    /// asciiArmoredPgpPublicKey property.
+    pub ascii_armored_pgp_public_key: Option<String>,
+    /// comment property.
+    pub comment: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// pkixPublicKey property.
+    pub pkix_public_key: Option<PkixPublicKey>,
+}
+
+/// `ValidateAttestationOccurrenceResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ValidateAttestationOccurrenceResponse {
+    /// denialReason property.
+    pub denial_reason: Option<String>,
+    /// result property.
+    pub result: Option<String>,
+}
+
 /// `Attestor` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Attestor {
@@ -97,28 +120,6 @@ pub struct Attestor {
     pub update_time: Option<String>,
     /// userOwnedGrafeasNote property.
     pub user_owned_grafeas_note: Option<UserOwnedGrafeasNote>,
-}
-
-/// `UserOwnedGrafeasNote` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserOwnedGrafeasNote {
-    /// delegationServiceAccountEmail property.
-    pub delegation_service_account_email: Option<String>,
-    /// noteReference property.
-    pub note_reference: Option<String>,
-    /// publicKeys property.
-    pub public_keys: Option<Vec<AttestorPublicKey>>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
 }
 
 // =============================================================================

@@ -12,29 +12,41 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `SpeechRecognitionResult` type.
+/// `SpeechAdaptationInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpeechRecognitionResult {
-    /// alternatives property.
-    pub alternatives: Option<Vec<SpeechRecognitionAlternative>>,
-    /// channelTag property.
-    pub channel_tag: Option<i64>,
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// resultEndTime property.
-    pub result_end_time: Option<String>,
+pub struct SpeechAdaptationInfo {
+    /// adaptationTimeout property.
+    pub adaptation_timeout: Option<bool>,
+    /// timeoutMessage property.
+    pub timeout_message: Option<String>,
+}
+
+/// `RecognizeResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RecognizeResponse {
+    /// requestId property.
+    pub request_id: Option<String>,
+    /// results property.
+    pub results: Option<Vec<SpeechRecognitionResult>>,
+    /// speechAdaptationInfo property.
+    pub speech_adaptation_info: Option<SpeechAdaptationInfo>,
+    /// totalBilledTime property.
+    pub total_billed_time: Option<String>,
+    /// usingLegacyModels property.
+    pub using_legacy_models: Option<bool>,
 }
 
 /// `SpeechRecognitionAlternative` type.
@@ -65,28 +77,17 @@ pub struct WordInfo {
     pub word: Option<String>,
 }
 
-/// `RecognizeResponse` type.
+/// `SpeechRecognitionResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RecognizeResponse {
-    /// requestId property.
-    pub request_id: Option<String>,
-    /// results property.
-    pub results: Option<Vec<SpeechRecognitionResult>>,
-    /// speechAdaptationInfo property.
-    pub speech_adaptation_info: Option<SpeechAdaptationInfo>,
-    /// totalBilledTime property.
-    pub total_billed_time: Option<String>,
-    /// usingLegacyModels property.
-    pub using_legacy_models: Option<bool>,
-}
-
-/// `SpeechAdaptationInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpeechAdaptationInfo {
-    /// adaptationTimeout property.
-    pub adaptation_timeout: Option<bool>,
-    /// timeoutMessage property.
-    pub timeout_message: Option<String>,
+pub struct SpeechRecognitionResult {
+    /// alternatives property.
+    pub alternatives: Option<Vec<SpeechRecognitionAlternative>>,
+    /// channelTag property.
+    pub channel_tag: Option<i64>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// resultEndTime property.
+    pub result_end_time: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,34 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Identity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Identity {
+    /// principal property.
+    pub principal: Option<String>,
+}
+
+/// `ContactInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContactInfo {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// email property.
+    pub email: Option<String>,
+}
+
+/// `Criticality` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Criticality {
+    /// type property.
+    pub r#type: Option<String>,
+}
 
 /// `Environment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -34,28 +58,19 @@ pub struct Environment {
     pub r#type: Option<String>,
 }
 
-/// `WorkloadProperties` type.
+/// `Attributes` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkloadProperties {
-    /// extendedMetadata property.
-    pub extended_metadata: Option<serde_json::Value>,
-    /// functionalType property.
-    pub functional_type: Option<FunctionalType>,
-    /// gcpProject property.
-    pub gcp_project: Option<String>,
-    /// identity property.
-    pub identity: Option<Identity>,
-    /// location property.
-    pub location: Option<String>,
-    /// zone property.
-    pub zone: Option<String>,
-}
-
-/// `Identity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Identity {
-    /// principal property.
-    pub principal: Option<String>,
+pub struct Attributes {
+    /// businessOwners property.
+    pub business_owners: Option<Vec<ContactInfo>>,
+    /// criticality property.
+    pub criticality: Option<Criticality>,
+    /// developerOwners property.
+    pub developer_owners: Option<Vec<ContactInfo>>,
+    /// environment property.
+    pub environment: Option<Environment>,
+    /// operatorOwners property.
+    pub operator_owners: Option<Vec<ContactInfo>>,
 }
 
 /// `ListWorkloadsResponse` type.
@@ -78,20 +93,6 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
-}
-
-/// `Criticality` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Criticality {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `WorkloadReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkloadReference {
-    /// uri property.
-    pub uri: Option<String>,
 }
 
 /// `Workload` type.
@@ -121,6 +122,13 @@ pub struct Workload {
     pub workload_reference: Option<WorkloadReference>,
 }
 
+/// `WorkloadReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkloadReference {
+    /// uri property.
+    pub uri: Option<String>,
+}
+
 /// `FunctionalType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FunctionalType {
@@ -128,28 +136,21 @@ pub struct FunctionalType {
     pub r#type: Option<String>,
 }
 
-/// `Attributes` type.
+/// `WorkloadProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Attributes {
-    /// businessOwners property.
-    pub business_owners: Option<Vec<ContactInfo>>,
-    /// criticality property.
-    pub criticality: Option<Criticality>,
-    /// developerOwners property.
-    pub developer_owners: Option<Vec<ContactInfo>>,
-    /// environment property.
-    pub environment: Option<Environment>,
-    /// operatorOwners property.
-    pub operator_owners: Option<Vec<ContactInfo>>,
-}
-
-/// `ContactInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContactInfo {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// email property.
-    pub email: Option<String>,
+pub struct WorkloadProperties {
+    /// extendedMetadata property.
+    pub extended_metadata: Option<serde_json::Value>,
+    /// functionalType property.
+    pub functional_type: Option<FunctionalType>,
+    /// gcpProject property.
+    pub gcp_project: Option<String>,
+    /// identity property.
+    pub identity: Option<Identity>,
+    /// location property.
+    pub location: Option<String>,
+    /// zone property.
+    pub zone: Option<String>,
 }
 
 // =============================================================================

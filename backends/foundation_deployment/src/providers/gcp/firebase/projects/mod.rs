@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,19 +23,19 @@ use serde::{Deserialize, Serialize};
 use super::shared::Empty;
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `SearchFirebaseAppsResponse` type.
+/// `ListFirebaseProjectsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchFirebaseAppsResponse {
-    /// apps property.
-    pub apps: Option<Vec<FirebaseAppInfo>>,
+pub struct ListFirebaseProjectsResponse {
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+    /// results property.
+    pub results: Option<Vec<FirebaseProject>>,
 }
 
 /// `DefaultResources` type.
@@ -50,27 +51,6 @@ pub struct DefaultResources {
     pub storage_bucket: Option<String>,
 }
 
-/// `FirebaseAppInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirebaseAppInfo {
-    /// apiKeyId property.
-    pub api_key_id: Option<String>,
-    /// appId property.
-    pub app_id: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// expireTime property.
-    pub expire_time: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// namespace property.
-    pub namespace: Option<String>,
-    /// platform property.
-    pub platform: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
@@ -80,6 +60,15 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
+}
+
+/// `SearchFirebaseAppsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchFirebaseAppsResponse {
+    /// apps property.
+    pub apps: Option<Vec<FirebaseAppInfo>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `FirebaseProject` type.
@@ -103,13 +92,25 @@ pub struct FirebaseProject {
     pub state: Option<String>,
 }
 
-/// `ListFirebaseProjectsResponse` type.
+/// `FirebaseAppInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListFirebaseProjectsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// results property.
-    pub results: Option<Vec<FirebaseProject>>,
+pub struct FirebaseAppInfo {
+    /// apiKeyId property.
+    pub api_key_id: Option<String>,
+    /// appId property.
+    pub app_id: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// expireTime property.
+    pub expire_time: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// namespace property.
+    pub namespace: Option<String>,
+    /// platform property.
+    pub platform: Option<String>,
+    /// state property.
+    pub state: Option<String>,
 }
 
 // =============================================================================

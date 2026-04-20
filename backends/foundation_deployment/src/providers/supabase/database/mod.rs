@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -27,6 +28,13 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `V1ListMigrationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct V1ListMigrationsResponse {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `V1ReadOnlyQueryBody` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1ReadOnlyQueryBody {
@@ -36,61 +44,22 @@ pub struct V1ReadOnlyQueryBody {
     pub query: String,
 }
 
-/// `DiskRequestBody` type.
+/// `DiskResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskRequestBody {
+pub struct DiskResponse {
     /// attributes property.
     pub attributes: serde_json::Value,
+    /// last_modified_at property.
+    pub last_modified_at: Option<String>,
 }
 
-/// `JitListAccessResponse` type.
+/// `UpdateSupavisorConfigBody` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JitListAccessResponse {
-    /// items property.
-    pub items: Vec<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `AuthorizeJitAccessBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthorizeJitAccessBody {
-    /// rhost property.
-    pub rhost: String,
-    /// role property.
-    pub role: String,
-}
-
-/// `V1UpsertMigrationBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1UpsertMigrationBody {
-    /// name property.
-    pub name: Option<String>,
-    /// query property.
-    pub query: String,
-    /// rollback property.
-    pub rollback: Option<String>,
-}
-
-/// `V1UndoBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1UndoBody {
-    /// name property.
-    pub name: String,
-}
-
-/// `V1PatchMigrationBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1PatchMigrationBody {
-    /// name property.
-    pub name: Option<String>,
-    /// rollback property.
-    pub rollback: Option<String>,
-}
-
-/// `V1UpdatePasswordBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1UpdatePasswordBody {
-    /// password property.
-    pub password: String,
+pub struct UpdateSupavisorConfigBody {
+    /// default_pool_size property.
+    pub default_pool_size: Option<i64>,
+    /// pool_mode property.
+    pub pool_mode: Option<String>,
 }
 
 /// `V1BackupsResponse` type.
@@ -108,15 +77,6 @@ pub struct V1BackupsResponse {
     pub walg_enabled: bool,
 }
 
-/// `JitAuthorizeAccessResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JitAuthorizeAccessResponse {
-    /// user_id property.
-    pub user_id: String,
-    /// user_role property.
-    pub user_role: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `UpdateJitAccessBody` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateJitAccessBody {
@@ -126,11 +86,13 @@ pub struct UpdateJitAccessBody {
     pub user_id: String,
 }
 
-/// `V1RestorePitrBody` type.
+/// `UpdateSupavisorConfigResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1RestorePitrBody {
-    /// recovery_time_target_unix property.
-    pub recovery_time_target_unix: i64,
+pub struct UpdateSupavisorConfigResponse {
+    /// default_pool_size property.
+    pub default_pool_size: i64,
+    /// pool_mode property.
+    pub pool_mode: String,
 }
 
 /// `V1RestorePointPostBody` type.
@@ -140,13 +102,22 @@ pub struct V1RestorePointPostBody {
     pub name: String,
 }
 
-/// `UpdateSupavisorConfigBody` type.
+/// `JitListAccessResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateSupavisorConfigBody {
-    /// default_pool_size property.
-    pub default_pool_size: Option<i64>,
-    /// pool_mode property.
-    pub pool_mode: Option<String>,
+pub struct JitListAccessResponse {
+    /// items property.
+    pub items: Vec<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `V1RunQueryBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct V1RunQueryBody {
+    /// parameters property.
+    pub parameters: Option<Vec<serde_json::Value>>,
+    /// query property.
+    pub query: String,
+    /// read_only property.
+    pub read_only: Option<bool>,
 }
 
 /// `PostgresConfigResponse` type.
@@ -202,29 +173,6 @@ pub struct PostgresConfigResponse {
     pub wal_sender_timeout: Option<String>,
     /// work_mem property.
     pub work_mem: Option<String>,
-}
-
-/// `V1PgbouncerConfigResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1PgbouncerConfigResponse {
-    /// connection_string property.
-    pub connection_string: Option<String>,
-    /// default_pool_size property.
-    pub default_pool_size: Option<i64>,
-    /// ignore_startup_parameters property.
-    pub ignore_startup_parameters: Option<String>,
-    /// max_client_conn property.
-    pub max_client_conn: Option<i64>,
-    /// pool_mode property.
-    pub pool_mode: Option<String>,
-    /// query_wait_timeout property.
-    pub query_wait_timeout: Option<i64>,
-    /// reserve_pool_size property.
-    pub reserve_pool_size: Option<i64>,
-    /// server_idle_timeout property.
-    pub server_idle_timeout: Option<i64>,
-    /// server_lifetime property.
-    pub server_lifetime: Option<i64>,
 }
 
 /// `UpdatePostgresConfigBody` type.
@@ -284,15 +232,6 @@ pub struct UpdatePostgresConfigBody {
     pub work_mem: Option<String>,
 }
 
-/// `UpdateSupavisorConfigResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateSupavisorConfigResponse {
-    /// default_pool_size property.
-    pub default_pool_size: i64,
-    /// pool_mode property.
-    pub pool_mode: String,
-}
-
 /// `V1RestorePointResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1RestorePointResponse {
@@ -304,20 +243,68 @@ pub struct V1RestorePointResponse {
     pub status: String,
 }
 
-/// `DiskResponse` type.
+/// `V1UpsertMigrationBody` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskResponse {
-    /// attributes property.
-    pub attributes: serde_json::Value,
-    /// last_modified_at property.
-    pub last_modified_at: Option<String>,
+pub struct V1UpsertMigrationBody {
+    /// name property.
+    pub name: Option<String>,
+    /// query property.
+    pub query: String,
+    /// rollback property.
+    pub rollback: Option<String>,
 }
 
-/// `V1ListMigrationsResponse` type.
+/// `DiskRequestBody` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1ListMigrationsResponse {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct DiskRequestBody {
+    /// attributes property.
+    pub attributes: serde_json::Value,
+}
+
+/// `V1UndoBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct V1UndoBody {
+    /// name property.
+    pub name: String,
+}
+
+/// `AuthorizeJitAccessBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthorizeJitAccessBody {
+    /// rhost property.
+    pub rhost: String,
+    /// role property.
+    pub role: String,
+}
+
+/// `V1UpdatePasswordBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct V1UpdatePasswordBody {
+    /// password property.
+    pub password: String,
+}
+
+/// `V1UpdatePasswordResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct V1UpdatePasswordResponse {
+    /// message property.
+    pub message: String,
+}
+
+/// `JitAuthorizeAccessResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JitAuthorizeAccessResponse {
+    /// user_id property.
+    pub user_id: String,
+    /// user_role property.
+    pub user_role: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `V1RestorePitrBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct V1RestorePitrBody {
+    /// recovery_time_target_unix property.
+    pub recovery_time_target_unix: i64,
 }
 
 /// `V1GetMigrationResponse` type.
@@ -337,24 +324,6 @@ pub struct V1GetMigrationResponse {
     pub version: String,
 }
 
-/// `V1UpdatePasswordResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1UpdatePasswordResponse {
-    /// message property.
-    pub message: String,
-}
-
-/// `V1RunQueryBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1RunQueryBody {
-    /// parameters property.
-    pub parameters: Option<Vec<serde_json::Value>>,
-    /// query property.
-    pub query: String,
-    /// read_only property.
-    pub read_only: Option<bool>,
-}
-
 /// `V1CreateMigrationBody` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1CreateMigrationBody {
@@ -362,6 +331,38 @@ pub struct V1CreateMigrationBody {
     pub name: Option<String>,
     /// query property.
     pub query: String,
+    /// rollback property.
+    pub rollback: Option<String>,
+}
+
+/// `V1PgbouncerConfigResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct V1PgbouncerConfigResponse {
+    /// connection_string property.
+    pub connection_string: Option<String>,
+    /// default_pool_size property.
+    pub default_pool_size: Option<i64>,
+    /// ignore_startup_parameters property.
+    pub ignore_startup_parameters: Option<String>,
+    /// max_client_conn property.
+    pub max_client_conn: Option<i64>,
+    /// pool_mode property.
+    pub pool_mode: Option<String>,
+    /// query_wait_timeout property.
+    pub query_wait_timeout: Option<i64>,
+    /// reserve_pool_size property.
+    pub reserve_pool_size: Option<i64>,
+    /// server_idle_timeout property.
+    pub server_idle_timeout: Option<i64>,
+    /// server_lifetime property.
+    pub server_lifetime: Option<i64>,
+}
+
+/// `V1PatchMigrationBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct V1PatchMigrationBody {
+    /// name property.
+    pub name: Option<String>,
     /// rollback property.
     pub rollback: Option<String>,
 }

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,20 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListIdpCredentialsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListIdpCredentialsResponse {
-    /// idpCredentials property.
-    pub idp_credentials: Option<Vec<IdpCredential>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `IdpCredential` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,16 +41,25 @@ pub struct IdpCredential {
     pub update_time: Option<String>,
 }
 
-/// `RsaPublicKeyInfo` type.
+/// `ListIdpCredentialsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RsaPublicKeyInfo {
-    /// keySize property.
-    pub key_size: Option<i64>,
+pub struct ListIdpCredentialsResponse {
+    /// idpCredentials property.
+    pub idp_credentials: Option<Vec<IdpCredential>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `DsaPublicKeyInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DsaPublicKeyInfo {
+    /// keySize property.
+    pub key_size: Option<i64>,
+}
+
+/// `RsaPublicKeyInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RsaPublicKeyInfo {
     /// keySize property.
     pub key_size: Option<i64>,
 }

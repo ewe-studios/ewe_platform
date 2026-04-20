@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,68 +23,40 @@ use serde::{Deserialize, Serialize};
 use super::shared::Empty;
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `AwsS3CompatibleData` type.
+/// `NotificationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AwsS3CompatibleData {
-    /// bucketName property.
-    pub bucket_name: Option<String>,
-    /// endpoint property.
-    pub endpoint: Option<String>,
+pub struct NotificationConfig {
+    /// eventTypes property.
+    pub event_types: Option<Vec<String>>,
+    /// payloadFormat property.
+    pub payload_format: Option<String>,
+    /// pubsubTopic property.
+    pub pubsub_topic: Option<String>,
+}
+
+/// `AzureBlobStorageData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AzureBlobStorageData {
+    /// azureCredentials property.
+    pub azure_credentials: Option<AzureCredentials>,
+    /// container property.
+    pub container: Option<String>,
+    /// credentialsSecret property.
+    pub credentials_secret: Option<String>,
+    /// federatedIdentityConfig property.
+    pub federated_identity_config: Option<FederatedIdentityConfig>,
     /// path property.
     pub path: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-    /// s3Metadata property.
-    pub s3_metadata: Option<S3CompatibleMetadata>,
-}
-
-/// `EventStream` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventStream {
-    /// eventStreamExpirationTime property.
-    pub event_stream_expiration_time: Option<String>,
-    /// eventStreamStartTime property.
-    pub event_stream_start_time: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `TransferManifest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransferManifest {
-    /// location property.
-    pub location: Option<String>,
-}
-
-/// `AzureCredentials` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AzureCredentials {
-    /// sasToken property.
-    pub sas_token: Option<String>,
-}
-
-/// `FederatedIdentityConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FederatedIdentityConfig {
-    /// clientId property.
-    pub client_id: Option<String>,
-    /// tenantId property.
-    pub tenant_id: Option<String>,
-}
-
-/// `AwsAccessKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AwsAccessKey {
-    /// accessKeyId property.
-    pub access_key_id: Option<String>,
-    /// secretAccessKey property.
-    pub secret_access_key: Option<String>,
+    /// privateNetworkService property.
+    pub private_network_service: Option<String>,
+    /// storageAccount property.
+    pub storage_account: Option<String>,
 }
 
 /// `S3CompatibleMetadata` type.
@@ -99,6 +72,26 @@ pub struct S3CompatibleMetadata {
     pub request_model: Option<String>,
 }
 
+/// `AwsAccessKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AwsAccessKey {
+    /// accessKeyId property.
+    pub access_key_id: Option<String>,
+    /// secretAccessKey property.
+    pub secret_access_key: Option<String>,
+}
+
+/// `EventStream` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EventStream {
+    /// eventStreamExpirationTime property.
+    pub event_stream_expiration_time: Option<String>,
+    /// eventStreamStartTime property.
+    pub event_stream_start_time: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
 /// `ListTransferJobsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTransferJobsResponse {
@@ -108,105 +101,18 @@ pub struct ListTransferJobsResponse {
     pub transfer_jobs: Option<Vec<TransferJob>>,
 }
 
-/// `Status` type.
+/// `HttpData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct HttpData {
+    /// listUrl property.
+    pub list_url: Option<String>,
 }
 
-/// `NotificationConfig` type.
+/// `TransferManifest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NotificationConfig {
-    /// eventTypes property.
-    pub event_types: Option<Vec<String>>,
-    /// payloadFormat property.
-    pub payload_format: Option<String>,
-    /// pubsubTopic property.
-    pub pubsub_topic: Option<String>,
-}
-
-/// `Date` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `TransferJob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransferJob {
-    /// creationTime property.
-    pub creation_time: Option<String>,
-    /// deletionTime property.
-    pub deletion_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// eventStream property.
-    pub event_stream: Option<EventStream>,
-    /// lastModificationTime property.
-    pub last_modification_time: Option<String>,
-    /// latestOperationName property.
-    pub latest_operation_name: Option<String>,
-    /// loggingConfig property.
-    pub logging_config: Option<LoggingConfig>,
-    /// name property.
-    pub name: Option<String>,
-    /// notificationConfig property.
-    pub notification_config: Option<NotificationConfig>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// replicationSpec property.
-    pub replication_spec: Option<ReplicationSpec>,
-    /// schedule property.
-    pub schedule: Option<Schedule>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-    /// transferSpec property.
-    pub transfer_spec: Option<TransferSpec>,
-}
-
-/// `PosixFilesystem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PosixFilesystem {
-    /// rootDirectory property.
-    pub root_directory: Option<String>,
-}
-
-/// `LoggingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoggingConfig {
-    /// enableOnpremGcsTransferLogs property.
-    pub enable_onprem_gcs_transfer_logs: Option<bool>,
-    /// logActionStates property.
-    pub log_action_states: Option<Vec<String>>,
-    /// logActions property.
-    pub log_actions: Option<Vec<String>>,
-}
-
-/// `TransferOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransferOptions {
-    /// deleteObjectsFromSourceAfterTransfer property.
-    pub delete_objects_from_source_after_transfer: Option<bool>,
-    /// deleteObjectsUniqueInSink property.
-    pub delete_objects_unique_in_sink: Option<bool>,
-    /// metadataOptions property.
-    pub metadata_options: Option<MetadataOptions>,
-    /// overwriteObjectsAlreadyExistingInSink property.
-    pub overwrite_objects_already_existing_in_sink: Option<bool>,
-    /// overwriteWhen property.
-    pub overwrite_when: Option<String>,
+pub struct TransferManifest {
+    /// location property.
+    pub location: Option<String>,
 }
 
 /// `MetadataOptions` type.
@@ -232,46 +138,6 @@ pub struct MetadataOptions {
     pub uid: Option<String>,
 }
 
-/// `AwsS3Data` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AwsS3Data {
-    /// awsAccessKey property.
-    pub aws_access_key: Option<AwsAccessKey>,
-    /// bucketName property.
-    pub bucket_name: Option<String>,
-    /// cloudfrontDomain property.
-    pub cloudfront_domain: Option<String>,
-    /// credentialsSecret property.
-    pub credentials_secret: Option<String>,
-    /// managedPrivateNetwork property.
-    pub managed_private_network: Option<bool>,
-    /// path property.
-    pub path: Option<String>,
-    /// privateNetworkService property.
-    pub private_network_service: Option<String>,
-    /// roleArn property.
-    pub role_arn: Option<String>,
-}
-
-/// `AzureBlobStorageData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AzureBlobStorageData {
-    /// azureCredentials property.
-    pub azure_credentials: Option<AzureCredentials>,
-    /// container property.
-    pub container: Option<String>,
-    /// credentialsSecret property.
-    pub credentials_secret: Option<String>,
-    /// federatedIdentityConfig property.
-    pub federated_identity_config: Option<FederatedIdentityConfig>,
-    /// path property.
-    pub path: Option<String>,
-    /// privateNetworkService property.
-    pub private_network_service: Option<String>,
-    /// storageAccount property.
-    pub storage_account: Option<String>,
-}
-
 /// `ReplicationSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplicationSpec {
@@ -283,25 +149,6 @@ pub struct ReplicationSpec {
     pub object_conditions: Option<ObjectConditions>,
     /// transferOptions property.
     pub transfer_options: Option<TransferOptions>,
-}
-
-/// `ObjectConditions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObjectConditions {
-    /// excludePrefixes property.
-    pub exclude_prefixes: Option<Vec<String>>,
-    /// includePrefixes property.
-    pub include_prefixes: Option<Vec<String>>,
-    /// lastModifiedBefore property.
-    pub last_modified_before: Option<String>,
-    /// lastModifiedSince property.
-    pub last_modified_since: Option<String>,
-    /// matchGlob property.
-    pub match_glob: Option<String>,
-    /// maxTimeElapsedSinceLastModification property.
-    pub max_time_elapsed_since_last_modification: Option<String>,
-    /// minTimeElapsedSinceLastModification property.
-    pub min_time_elapsed_since_last_modification: Option<String>,
 }
 
 /// `TransferSpec` type.
@@ -352,15 +199,104 @@ pub struct TimeOfDay {
     pub seconds: Option<i64>,
 }
 
-/// `GcsData` type.
+/// `AwsS3CompatibleData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GcsData {
+pub struct AwsS3CompatibleData {
     /// bucketName property.
     pub bucket_name: Option<String>,
-    /// managedFolderTransferEnabled property.
-    pub managed_folder_transfer_enabled: Option<bool>,
+    /// endpoint property.
+    pub endpoint: Option<String>,
     /// path property.
     pub path: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// s3Metadata property.
+    pub s3_metadata: Option<S3CompatibleMetadata>,
+}
+
+/// `PosixFilesystem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PosixFilesystem {
+    /// rootDirectory property.
+    pub root_directory: Option<String>,
+}
+
+/// `AzureCredentials` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AzureCredentials {
+    /// sasToken property.
+    pub sas_token: Option<String>,
+}
+
+/// `FederatedIdentityConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FederatedIdentityConfig {
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// tenantId property.
+    pub tenant_id: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `AwsS3Data` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AwsS3Data {
+    /// awsAccessKey property.
+    pub aws_access_key: Option<AwsAccessKey>,
+    /// bucketName property.
+    pub bucket_name: Option<String>,
+    /// cloudfrontDomain property.
+    pub cloudfront_domain: Option<String>,
+    /// credentialsSecret property.
+    pub credentials_secret: Option<String>,
+    /// managedPrivateNetwork property.
+    pub managed_private_network: Option<bool>,
+    /// path property.
+    pub path: Option<String>,
+    /// privateNetworkService property.
+    pub private_network_service: Option<String>,
+    /// roleArn property.
+    pub role_arn: Option<String>,
+}
+
+/// `ObjectConditions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ObjectConditions {
+    /// excludePrefixes property.
+    pub exclude_prefixes: Option<Vec<String>>,
+    /// includePrefixes property.
+    pub include_prefixes: Option<Vec<String>>,
+    /// lastModifiedBefore property.
+    pub last_modified_before: Option<String>,
+    /// lastModifiedSince property.
+    pub last_modified_since: Option<String>,
+    /// matchGlob property.
+    pub match_glob: Option<String>,
+    /// maxTimeElapsedSinceLastModification property.
+    pub max_time_elapsed_since_last_modification: Option<String>,
+    /// minTimeElapsedSinceLastModification property.
+    pub min_time_elapsed_since_last_modification: Option<String>,
+}
+
+/// `Date` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
 }
 
 /// `HdfsData` type.
@@ -370,11 +306,39 @@ pub struct HdfsData {
     pub path: Option<String>,
 }
 
-/// `HttpData` type.
+/// `TransferJob` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpData {
-    /// listUrl property.
-    pub list_url: Option<String>,
+pub struct TransferJob {
+    /// creationTime property.
+    pub creation_time: Option<String>,
+    /// deletionTime property.
+    pub deletion_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// eventStream property.
+    pub event_stream: Option<EventStream>,
+    /// lastModificationTime property.
+    pub last_modification_time: Option<String>,
+    /// latestOperationName property.
+    pub latest_operation_name: Option<String>,
+    /// loggingConfig property.
+    pub logging_config: Option<LoggingConfig>,
+    /// name property.
+    pub name: Option<String>,
+    /// notificationConfig property.
+    pub notification_config: Option<NotificationConfig>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// replicationSpec property.
+    pub replication_spec: Option<ReplicationSpec>,
+    /// schedule property.
+    pub schedule: Option<Schedule>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+    /// transferSpec property.
+    pub transfer_spec: Option<TransferSpec>,
 }
 
 /// `Schedule` type.
@@ -390,6 +354,43 @@ pub struct Schedule {
     pub schedule_start_date: Option<Date>,
     /// startTimeOfDay property.
     pub start_time_of_day: Option<TimeOfDay>,
+}
+
+/// `TransferOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TransferOptions {
+    /// deleteObjectsFromSourceAfterTransfer property.
+    pub delete_objects_from_source_after_transfer: Option<bool>,
+    /// deleteObjectsUniqueInSink property.
+    pub delete_objects_unique_in_sink: Option<bool>,
+    /// metadataOptions property.
+    pub metadata_options: Option<MetadataOptions>,
+    /// overwriteObjectsAlreadyExistingInSink property.
+    pub overwrite_objects_already_existing_in_sink: Option<bool>,
+    /// overwriteWhen property.
+    pub overwrite_when: Option<String>,
+}
+
+/// `LoggingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoggingConfig {
+    /// enableOnpremGcsTransferLogs property.
+    pub enable_onprem_gcs_transfer_logs: Option<bool>,
+    /// logActionStates property.
+    pub log_action_states: Option<Vec<String>>,
+    /// logActions property.
+    pub log_actions: Option<Vec<String>>,
+}
+
+/// `GcsData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GcsData {
+    /// bucketName property.
+    pub bucket_name: Option<String>,
+    /// managedFolderTransferEnabled property.
+    pub managed_folder_transfer_enabled: Option<bool>,
+    /// path property.
+    pub path: Option<String>,
 }
 
 // =============================================================================

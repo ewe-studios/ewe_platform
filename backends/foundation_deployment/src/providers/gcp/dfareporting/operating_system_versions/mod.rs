@@ -12,17 +12,35 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `OperatingSystemVersion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OperatingSystemVersion {
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// majorVersion property.
+    pub major_version: Option<String>,
+    /// minorVersion property.
+    pub minor_version: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// operatingSystem property.
+    pub operating_system: Option<OperatingSystem>,
+}
 
 /// `OperatingSystem` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -46,23 +64,6 @@ pub struct OperatingSystemVersionsListResponse {
     pub kind: Option<String>,
     /// operatingSystemVersions property.
     pub operating_system_versions: Option<Vec<OperatingSystemVersion>>,
-}
-
-/// `OperatingSystemVersion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperatingSystemVersion {
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// majorVersion property.
-    pub major_version: Option<String>,
-    /// minorVersion property.
-    pub minor_version: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// operatingSystem property.
-    pub operating_system: Option<OperatingSystem>,
 }
 
 // =============================================================================

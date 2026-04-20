@@ -12,74 +12,41 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ApkDescription` type.
+/// `VariantTargeting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApkDescription {
-    /// assetSliceMetadata property.
-    pub asset_slice_metadata: Option<SplitApkMetadata>,
-    /// instantApkMetadata property.
-    pub instant_apk_metadata: Option<SplitApkMetadata>,
-    /// path property.
-    pub path: Option<String>,
-    /// splitApkMetadata property.
-    pub split_apk_metadata: Option<SplitApkMetadata>,
-    /// standaloneApkMetadata property.
-    pub standalone_apk_metadata: Option<StandaloneApkMetadata>,
-    /// targeting property.
-    pub targeting: Option<ApkTargeting>,
+pub struct VariantTargeting {
+    /// abiTargeting property.
+    pub abi_targeting: Option<AbiTargeting>,
+    /// multiAbiTargeting property.
+    pub multi_abi_targeting: Option<MultiAbiTargeting>,
+    /// screenDensityTargeting property.
+    pub screen_density_targeting: Option<ScreenDensityTargeting>,
+    /// sdkVersionTargeting property.
+    pub sdk_version_targeting: Option<SdkVersionTargeting>,
+    /// textureCompressionFormatTargeting property.
+    pub texture_compression_format_targeting: Option<TextureCompressionFormatTargeting>,
 }
 
-/// `AssetModuleMetadata` type.
+/// `AbiTargeting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AssetModuleMetadata {
-    /// deliveryType property.
-    pub delivery_type: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `LanguageTargeting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LanguageTargeting {
+pub struct AbiTargeting {
     /// alternatives property.
-    pub alternatives: Option<Vec<String>>,
+    pub alternatives: Option<Vec<Abi>>,
     /// value property.
-    pub value: Option<Vec<String>>,
-}
-
-/// `Abi` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Abi {
-    /// alias property.
-    pub alias: Option<String>,
-}
-
-/// `SdkVersion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SdkVersion {
-    /// min property.
-    pub min: Option<i64>,
-}
-
-/// `ScreenDensityTargeting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScreenDensityTargeting {
-    /// alternatives property.
-    pub alternatives: Option<Vec<ScreenDensity>>,
-    /// value property.
-    pub value: Option<Vec<ScreenDensity>>,
+    pub value: Option<Vec<Abi>>,
 }
 
 /// `GeneratedApksPerSigningKey` type.
@@ -101,6 +68,155 @@ pub struct GeneratedApksPerSigningKey {
     pub targeting_info: Option<TargetingInfo>,
 }
 
+/// `TextureCompressionFormat` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextureCompressionFormat {
+    /// alias property.
+    pub alias: Option<String>,
+}
+
+/// `GeneratedUniversalApk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GeneratedUniversalApk {
+    /// downloadId property.
+    pub download_id: Option<String>,
+}
+
+/// `ApkSet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApkSet {
+    /// apkDescription property.
+    pub apk_description: Option<Vec<ApkDescription>>,
+    /// moduleMetadata property.
+    pub module_metadata: Option<ModuleMetadata>,
+}
+
+/// `GeneratedAssetPackSlice` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GeneratedAssetPackSlice {
+    /// downloadId property.
+    pub download_id: Option<String>,
+    /// moduleName property.
+    pub module_name: Option<String>,
+    /// sliceId property.
+    pub slice_id: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `TargetingInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TargetingInfo {
+    /// assetSliceSet property.
+    pub asset_slice_set: Option<Vec<AssetSliceSet>>,
+    /// packageName property.
+    pub package_name: Option<String>,
+    /// variant property.
+    pub variant: Option<Vec<SplitApkVariant>>,
+}
+
+/// `ApkDescription` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApkDescription {
+    /// assetSliceMetadata property.
+    pub asset_slice_metadata: Option<SplitApkMetadata>,
+    /// instantApkMetadata property.
+    pub instant_apk_metadata: Option<SplitApkMetadata>,
+    /// path property.
+    pub path: Option<String>,
+    /// splitApkMetadata property.
+    pub split_apk_metadata: Option<SplitApkMetadata>,
+    /// standaloneApkMetadata property.
+    pub standalone_apk_metadata: Option<StandaloneApkMetadata>,
+    /// targeting property.
+    pub targeting: Option<ApkTargeting>,
+}
+
+/// `ModuleMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ModuleMetadata {
+    /// deliveryType property.
+    pub delivery_type: Option<String>,
+    /// dependencies property.
+    pub dependencies: Option<Vec<String>>,
+    /// moduleType property.
+    pub module_type: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// targeting property.
+    pub targeting: Option<ModuleTargeting>,
+}
+
+/// `Abi` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Abi {
+    /// alias property.
+    pub alias: Option<String>,
+}
+
+/// `ScreenDensity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ScreenDensity {
+    /// densityAlias property.
+    pub density_alias: Option<String>,
+    /// densityDpi property.
+    pub density_dpi: Option<i64>,
+}
+
+/// `SdkVersionTargeting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SdkVersionTargeting {
+    /// alternatives property.
+    pub alternatives: Option<Vec<SdkVersion>>,
+    /// value property.
+    pub value: Option<Vec<SdkVersion>>,
+}
+
+/// `SplitApkVariant` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SplitApkVariant {
+    /// apkSet property.
+    pub apk_set: Option<Vec<ApkSet>>,
+    /// targeting property.
+    pub targeting: Option<VariantTargeting>,
+    /// variantNumber property.
+    pub variant_number: Option<i64>,
+}
+
+/// `MultiAbiTargeting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MultiAbiTargeting {
+    /// alternatives property.
+    pub alternatives: Option<Vec<MultiAbi>>,
+    /// value property.
+    pub value: Option<Vec<MultiAbi>>,
+}
+
+/// `DeviceFeatureTargeting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceFeatureTargeting {
+    /// requiredFeature property.
+    pub required_feature: Option<DeviceFeature>,
+}
+
+/// `LanguageTargeting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LanguageTargeting {
+    /// alternatives property.
+    pub alternatives: Option<Vec<String>>,
+    /// value property.
+    pub value: Option<Vec<String>>,
+}
+
+/// `TextureCompressionFormatTargeting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextureCompressionFormatTargeting {
+    /// alternatives property.
+    pub alternatives: Option<Vec<TextureCompressionFormat>>,
+    /// value property.
+    pub value: Option<Vec<TextureCompressionFormat>>,
+}
+
 /// `GeneratedSplitApk` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeneratedSplitApk {
@@ -114,11 +230,47 @@ pub struct GeneratedSplitApk {
     pub variant_id: Option<i64>,
 }
 
-/// `MultiAbi` type.
+/// `AssetModuleMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MultiAbi {
-    /// abi property.
-    pub abi: Option<Vec<Abi>>,
+pub struct AssetModuleMetadata {
+    /// deliveryType property.
+    pub delivery_type: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `DeviceFeature` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceFeature {
+    /// featureName property.
+    pub feature_name: Option<String>,
+    /// featureVersion property.
+    pub feature_version: Option<i64>,
+}
+
+/// `AssetSliceSet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AssetSliceSet {
+    /// apkDescription property.
+    pub apk_description: Option<Vec<ApkDescription>>,
+    /// assetModuleMetadata property.
+    pub asset_module_metadata: Option<AssetModuleMetadata>,
+}
+
+/// `ScreenDensityTargeting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ScreenDensityTargeting {
+    /// alternatives property.
+    pub alternatives: Option<Vec<ScreenDensity>>,
+    /// value property.
+    pub value: Option<Vec<ScreenDensity>>,
+}
+
+/// `GeneratedApksListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GeneratedApksListResponse {
+    /// generatedApks property.
+    pub generated_apks: Option<Vec<GeneratedApksPerSigningKey>>,
 }
 
 /// `StandaloneApkMetadata` type.
@@ -141,62 +293,13 @@ pub struct GeneratedRecoveryApk {
     pub recovery_status: Option<String>,
 }
 
-/// `SdkVersionTargeting` type.
+/// `UserCountriesTargeting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SdkVersionTargeting {
-    /// alternatives property.
-    pub alternatives: Option<Vec<SdkVersion>>,
-    /// value property.
-    pub value: Option<Vec<SdkVersion>>,
-}
-
-/// `TextureCompressionFormatTargeting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextureCompressionFormatTargeting {
-    /// alternatives property.
-    pub alternatives: Option<Vec<TextureCompressionFormat>>,
-    /// value property.
-    pub value: Option<Vec<TextureCompressionFormat>>,
-}
-
-/// `GeneratedAssetPackSlice` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeneratedAssetPackSlice {
-    /// downloadId property.
-    pub download_id: Option<String>,
-    /// moduleName property.
-    pub module_name: Option<String>,
-    /// sliceId property.
-    pub slice_id: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `ScreenDensity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScreenDensity {
-    /// densityAlias property.
-    pub density_alias: Option<String>,
-    /// densityDpi property.
-    pub density_dpi: Option<i64>,
-}
-
-/// `GeneratedStandaloneApk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeneratedStandaloneApk {
-    /// downloadId property.
-    pub download_id: Option<String>,
-    /// variantId property.
-    pub variant_id: Option<i64>,
-}
-
-/// `MultiAbiTargeting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MultiAbiTargeting {
-    /// alternatives property.
-    pub alternatives: Option<Vec<MultiAbi>>,
-    /// value property.
-    pub value: Option<Vec<MultiAbi>>,
+pub struct UserCountriesTargeting {
+    /// countryCodes property.
+    pub country_codes: Option<Vec<String>>,
+    /// exclude property.
+    pub exclude: Option<bool>,
 }
 
 /// `ModuleTargeting` type.
@@ -210,33 +313,13 @@ pub struct ModuleTargeting {
     pub user_countries_targeting: Option<UserCountriesTargeting>,
 }
 
-/// `AbiTargeting` type.
+/// `GeneratedStandaloneApk` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AbiTargeting {
-    /// alternatives property.
-    pub alternatives: Option<Vec<Abi>>,
-    /// value property.
-    pub value: Option<Vec<Abi>>,
-}
-
-/// `SplitApkVariant` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SplitApkVariant {
-    /// apkSet property.
-    pub apk_set: Option<Vec<ApkSet>>,
-    /// targeting property.
-    pub targeting: Option<VariantTargeting>,
-    /// variantNumber property.
-    pub variant_number: Option<i64>,
-}
-
-/// `SplitApkMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SplitApkMetadata {
-    /// isMasterSplit property.
-    pub is_master_split: Option<bool>,
-    /// splitId property.
-    pub split_id: Option<String>,
+pub struct GeneratedStandaloneApk {
+    /// downloadId property.
+    pub download_id: Option<String>,
+    /// variantId property.
+    pub variant_id: Option<i64>,
 }
 
 /// `ApkTargeting` type.
@@ -256,109 +339,27 @@ pub struct ApkTargeting {
     pub texture_compression_format_targeting: Option<TextureCompressionFormatTargeting>,
 }
 
-/// `DeviceFeatureTargeting` type.
+/// `SdkVersion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceFeatureTargeting {
-    /// requiredFeature property.
-    pub required_feature: Option<DeviceFeature>,
+pub struct SdkVersion {
+    /// min property.
+    pub min: Option<i64>,
 }
 
-/// `TargetingInfo` type.
+/// `MultiAbi` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TargetingInfo {
-    /// assetSliceSet property.
-    pub asset_slice_set: Option<Vec<AssetSliceSet>>,
-    /// packageName property.
-    pub package_name: Option<String>,
-    /// variant property.
-    pub variant: Option<Vec<SplitApkVariant>>,
+pub struct MultiAbi {
+    /// abi property.
+    pub abi: Option<Vec<Abi>>,
 }
 
-/// `GeneratedUniversalApk` type.
+/// `SplitApkMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeneratedUniversalApk {
-    /// downloadId property.
-    pub download_id: Option<String>,
-}
-
-/// `ModuleMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ModuleMetadata {
-    /// deliveryType property.
-    pub delivery_type: Option<String>,
-    /// dependencies property.
-    pub dependencies: Option<Vec<String>>,
-    /// moduleType property.
-    pub module_type: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// targeting property.
-    pub targeting: Option<ModuleTargeting>,
-}
-
-/// `GeneratedApksListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeneratedApksListResponse {
-    /// generatedApks property.
-    pub generated_apks: Option<Vec<GeneratedApksPerSigningKey>>,
-}
-
-/// `UserCountriesTargeting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserCountriesTargeting {
-    /// countryCodes property.
-    pub country_codes: Option<Vec<String>>,
-    /// exclude property.
-    pub exclude: Option<bool>,
-}
-
-/// `DeviceFeature` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceFeature {
-    /// featureName property.
-    pub feature_name: Option<String>,
-    /// featureVersion property.
-    pub feature_version: Option<i64>,
-}
-
-/// `TextureCompressionFormat` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextureCompressionFormat {
-    /// alias property.
-    pub alias: Option<String>,
-}
-
-/// `VariantTargeting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VariantTargeting {
-    /// abiTargeting property.
-    pub abi_targeting: Option<AbiTargeting>,
-    /// multiAbiTargeting property.
-    pub multi_abi_targeting: Option<MultiAbiTargeting>,
-    /// screenDensityTargeting property.
-    pub screen_density_targeting: Option<ScreenDensityTargeting>,
-    /// sdkVersionTargeting property.
-    pub sdk_version_targeting: Option<SdkVersionTargeting>,
-    /// textureCompressionFormatTargeting property.
-    pub texture_compression_format_targeting: Option<TextureCompressionFormatTargeting>,
-}
-
-/// `AssetSliceSet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AssetSliceSet {
-    /// apkDescription property.
-    pub apk_description: Option<Vec<ApkDescription>>,
-    /// assetModuleMetadata property.
-    pub asset_module_metadata: Option<AssetModuleMetadata>,
-}
-
-/// `ApkSet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApkSet {
-    /// apkDescription property.
-    pub apk_description: Option<Vec<ApkDescription>>,
-    /// moduleMetadata property.
-    pub module_metadata: Option<ModuleMetadata>,
+pub struct SplitApkMetadata {
+    /// isMasterSplit property.
+    pub is_master_split: Option<bool>,
+    /// splitId property.
+    pub split_id: Option<String>,
 }
 
 // =============================================================================

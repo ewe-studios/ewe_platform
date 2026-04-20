@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,36 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ServiceLbPolicyAutoCapacityDrain` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceLbPolicyAutoCapacityDrain {
-    /// enable property.
-    pub enable: Option<bool>,
-}
-
-/// `ServiceLbPolicyFailoverConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceLbPolicyFailoverConfig {
-    /// failoverHealthThreshold property.
-    pub failover_health_threshold: Option<i64>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
 
 /// `ServiceLbPolicyIsolationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -61,15 +37,18 @@ pub struct ServiceLbPolicyIsolationConfig {
     pub isolation_mode: Option<String>,
 }
 
-/// `ListServiceLbPoliciesResponse` type.
+/// `ServiceLbPolicyFailoverConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListServiceLbPoliciesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// serviceLbPolicies property.
-    pub service_lb_policies: Option<Vec<ServiceLbPolicy>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct ServiceLbPolicyFailoverConfig {
+    /// failoverHealthThreshold property.
+    pub failover_health_threshold: Option<i64>,
+}
+
+/// `ServiceLbPolicyAutoCapacityDrain` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceLbPolicyAutoCapacityDrain {
+    /// enable property.
+    pub enable: Option<bool>,
 }
 
 /// `ServiceLbPolicy` type.
@@ -93,6 +72,28 @@ pub struct ServiceLbPolicy {
     pub name: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `ListServiceLbPoliciesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListServiceLbPoliciesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// serviceLbPolicies property.
+    pub service_lb_policies: Option<Vec<ServiceLbPolicy>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

@@ -12,28 +12,22 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ResourceUtilizationReportResponse` type.
+/// `WorkerShutdownNoticeResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceUtilizationReportResponse {}
-
-/// `StreamingScalingReportResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StreamingScalingReportResponse {
-    /// maximumThreadCount property.
-    pub maximum_thread_count: Option<i64>,
-}
+pub struct WorkerShutdownNoticeResponse {}
 
 /// `WorkerThreadScalingReportResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -42,9 +36,12 @@ pub struct WorkerThreadScalingReportResponse {
     pub recommended_thread_count: Option<i64>,
 }
 
-/// `WorkerShutdownNoticeResponse` type.
+/// `StreamingScalingReportResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkerShutdownNoticeResponse {}
+pub struct StreamingScalingReportResponse {
+    /// maximumThreadCount property.
+    pub maximum_thread_count: Option<i64>,
+}
 
 /// `SendWorkerMessagesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -52,6 +49,17 @@ pub struct SendWorkerMessagesResponse {
     /// workerMessageResponses property.
     pub worker_message_responses: Option<Vec<WorkerMessageResponse>>,
 }
+
+/// `WorkerHealthReportResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkerHealthReportResponse {
+    /// reportInterval property.
+    pub report_interval: Option<String>,
+}
+
+/// `ResourceUtilizationReportResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceUtilizationReportResponse {}
 
 /// `WorkerMessageResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -66,13 +74,6 @@ pub struct WorkerMessageResponse {
     pub worker_shutdown_notice_response: Option<WorkerShutdownNoticeResponse>,
     /// workerThreadScalingReportResponse property.
     pub worker_thread_scaling_report_response: Option<WorkerThreadScalingReportResponse>,
-}
-
-/// `WorkerHealthReportResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkerHealthReportResponse {
-    /// reportInterval property.
-    pub report_interval: Option<String>,
 }
 
 // =============================================================================

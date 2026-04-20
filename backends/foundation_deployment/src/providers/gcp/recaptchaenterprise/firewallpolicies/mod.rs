@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,63 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse {
-    /// firewallPolicies property.
-    pub firewall_policies: Option<Vec<GoogleCloudRecaptchaenterpriseV1FirewallPolicy>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1FirewallPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FirewallPolicy {
-    /// actions property.
-    pub actions: Option<Vec<GoogleCloudRecaptchaenterpriseV1FirewallAction>>,
-    /// condition property.
-    pub condition: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1FirewallActionBlockAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionBlockAction {}
-
-/// `GoogleCloudRecaptchaenterpriseV1FirewallActionIncludeRecaptchaScriptAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionIncludeRecaptchaScriptAction {}
-
-/// `GoogleCloudRecaptchaenterpriseV1FirewallActionSetHeaderAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionSetHeaderAction {
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1FirewallActionAllowAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionAllowAction {}
-
-/// `GoogleCloudRecaptchaenterpriseV1FirewallActionSubstituteAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionSubstituteAction {
-    /// path property.
-    pub path: Option<String>,
-}
 
 /// `GoogleCloudRecaptchaenterpriseV1FirewallAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -97,9 +46,61 @@ pub struct GoogleCloudRecaptchaenterpriseV1FirewallAction {
     pub substitute: Option<GoogleCloudRecaptchaenterpriseV1FirewallActionSubstituteAction>,
 }
 
+/// `GoogleCloudRecaptchaenterpriseV1FirewallActionAllowAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionAllowAction {}
+
 /// `GoogleCloudRecaptchaenterpriseV1FirewallActionRedirectAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionRedirectAction {}
+
+/// `GoogleCloudRecaptchaenterpriseV1FirewallActionBlockAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionBlockAction {}
+
+/// `GoogleCloudRecaptchaenterpriseV1FirewallActionSubstituteAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionSubstituteAction {
+    /// path property.
+    pub path: Option<String>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1FirewallPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallPolicy {
+    /// actions property.
+    pub actions: Option<Vec<GoogleCloudRecaptchaenterpriseV1FirewallAction>>,
+    /// condition property.
+    pub condition: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// path property.
+    pub path: Option<String>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse {
+    /// firewallPolicies property.
+    pub firewall_policies: Option<Vec<GoogleCloudRecaptchaenterpriseV1FirewallPolicy>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1FirewallActionIncludeRecaptchaScriptAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionIncludeRecaptchaScriptAction {}
+
+/// `GoogleCloudRecaptchaenterpriseV1FirewallActionSetHeaderAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionSetHeaderAction {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

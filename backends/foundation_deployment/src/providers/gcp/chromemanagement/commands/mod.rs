@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -33,18 +34,6 @@ pub struct GoogleChromeManagementVersionsV1ChromeBrowserProfileCommandCommandRes
     pub result_code: Option<String>,
     /// resultType property.
     pub result_type: Option<String>,
-}
-
-/// `GoogleChromeManagementVersionsV1ListChromeBrowserProfileCommandsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementVersionsV1ListChromeBrowserProfileCommandsResponse {
-    /// chromeBrowserProfileCommands property.
-    pub chrome_browser_profile_commands:
-        Option<Vec<GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// totalSize property.
-    pub total_size: Option<String>,
 }
 
 /// `GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand` type.
@@ -65,6 +54,18 @@ pub struct GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand {
     pub payload: Option<serde_json::Value>,
     /// validDuration property.
     pub valid_duration: Option<String>,
+}
+
+/// `GoogleChromeManagementVersionsV1ListChromeBrowserProfileCommandsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementVersionsV1ListChromeBrowserProfileCommandsResponse {
+    /// chromeBrowserProfileCommands property.
+    pub chrome_browser_profile_commands:
+        Option<Vec<GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// totalSize property.
+    pub total_size: Option<String>,
 }
 
 // =============================================================================

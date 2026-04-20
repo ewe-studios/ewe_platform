@@ -12,25 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleSecuritySafebrowsingV5FullHashFullHashDetail` type.
+/// `GoogleSecuritySafebrowsingV5SearchHashesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleSecuritySafebrowsingV5FullHashFullHashDetail {
-    /// attributes property.
-    pub attributes: Option<Vec<String>>,
-    /// threatType property.
-    pub threat_type: Option<String>,
+pub struct GoogleSecuritySafebrowsingV5SearchHashesResponse {
+    /// cacheDuration property.
+    pub cache_duration: Option<String>,
+    /// fullHashes property.
+    pub full_hashes: Option<Vec<GoogleSecuritySafebrowsingV5FullHash>>,
 }
 
 /// `GoogleSecuritySafebrowsingV5FullHash` type.
@@ -42,13 +43,13 @@ pub struct GoogleSecuritySafebrowsingV5FullHash {
     pub full_hash_details: Option<Vec<GoogleSecuritySafebrowsingV5FullHashFullHashDetail>>,
 }
 
-/// `GoogleSecuritySafebrowsingV5SearchHashesResponse` type.
+/// `GoogleSecuritySafebrowsingV5FullHashFullHashDetail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleSecuritySafebrowsingV5SearchHashesResponse {
-    /// cacheDuration property.
-    pub cache_duration: Option<String>,
-    /// fullHashes property.
-    pub full_hashes: Option<Vec<GoogleSecuritySafebrowsingV5FullHash>>,
+pub struct GoogleSecuritySafebrowsingV5FullHashFullHashDetail {
+    /// attributes property.
+    pub attributes: Option<Vec<String>>,
+    /// threatType property.
+    pub threat_type: Option<String>,
 }
 
 // =============================================================================

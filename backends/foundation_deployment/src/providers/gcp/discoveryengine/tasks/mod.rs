@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,39 +22,15 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::A2aV1StreamResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `A2AV1TaskStatus` response type.
+/// `A2AV1Message` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct A2AV1TaskStatus {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `A2AV1DataPart` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct A2AV1DataPart {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `A2AV1FilePart` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct A2AV1FilePart {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `A2AV1TaskArtifactUpdateEvent` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct A2AV1TaskArtifactUpdateEvent {
+pub struct A2AV1Message {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -67,14 +44,6 @@ pub struct A2AV1TaskStatusUpdateEvent {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `A2AV1Task` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct A2AV1Task {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `A2AV1Artifact` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2AV1Artifact {
@@ -83,9 +52,17 @@ pub struct A2AV1Artifact {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `A2AV1Part` response type.
+/// `A2AV1TaskStatus` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct A2AV1Part {
+pub struct A2AV1TaskStatus {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `A2AV1DataPart` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct A2AV1DataPart {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -108,9 +85,33 @@ pub struct A2aV1Task {
     pub status: Option<A2AV1TaskStatus>,
 }
 
-/// `A2AV1Message` response type.
+/// `A2AV1Part` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct A2AV1Message {
+pub struct A2AV1Part {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `A2AV1Task` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct A2AV1Task {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `A2AV1FilePart` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct A2AV1FilePart {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `A2AV1TaskArtifactUpdateEvent` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct A2AV1TaskArtifactUpdateEvent {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

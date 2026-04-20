@@ -12,17 +12,84 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `AppHubService` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppHubService {
+    /// criticalityType property.
+    pub criticality_type: Option<String>,
+    /// environmentType property.
+    pub environment_type: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+}
+
+/// `MonitoredResourceMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MonitoredResourceMetadata {
+    /// systemLabels property.
+    pub system_labels: Option<serde_json::Value>,
+    /// userLabels property.
+    pub user_labels: Option<serde_json::Value>,
+}
+
+/// `AppHubWorkload` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppHubWorkload {
+    /// criticalityType property.
+    pub criticality_type: Option<String>,
+    /// environmentType property.
+    pub environment_type: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+}
+
+/// `AppHub` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppHub {
+    /// application property.
+    pub application: Option<AppHubApplication>,
+    /// service property.
+    pub service: Option<AppHubService>,
+    /// workload property.
+    pub workload: Option<AppHubWorkload>,
+}
+
+/// `LogEntryOperation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogEntryOperation {
+    /// first property.
+    pub first: Option<bool>,
+    /// id property.
+    pub id: Option<String>,
+    /// last property.
+    pub last: Option<bool>,
+    /// producer property.
+    pub producer: Option<String>,
+}
+
+/// `LogEntrySourceLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogEntrySourceLocation {
+    /// file property.
+    pub file: Option<String>,
+    /// function property.
+    pub function: Option<String>,
+    /// line property.
+    pub line: Option<String>,
+}
 
 /// `AppHubApplication` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -35,15 +102,64 @@ pub struct AppHubApplication {
     pub location: Option<String>,
 }
 
-/// `LogSplit` type.
+/// `SuppressionInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LogSplit {
-    /// index property.
-    pub index: Option<i64>,
-    /// totalSplits property.
-    pub total_splits: Option<i64>,
-    /// uid property.
-    pub uid: Option<String>,
+pub struct SuppressionInfo {
+    /// reason property.
+    pub reason: Option<String>,
+    /// suppressedCount property.
+    pub suppressed_count: Option<i64>,
+}
+
+/// `LogErrorGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogErrorGroup {
+    /// id property.
+    pub id: Option<String>,
+}
+
+/// `HttpRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRequest {
+    /// cacheFillBytes property.
+    pub cache_fill_bytes: Option<String>,
+    /// cacheHit property.
+    pub cache_hit: Option<bool>,
+    /// cacheLookup property.
+    pub cache_lookup: Option<bool>,
+    /// cacheValidatedWithOriginServer property.
+    pub cache_validated_with_origin_server: Option<bool>,
+    /// latency property.
+    pub latency: Option<String>,
+    /// protocol property.
+    pub protocol: Option<String>,
+    /// referer property.
+    pub referer: Option<String>,
+    /// remoteIp property.
+    pub remote_ip: Option<String>,
+    /// requestMethod property.
+    pub request_method: Option<String>,
+    /// requestSize property.
+    pub request_size: Option<String>,
+    /// requestUrl property.
+    pub request_url: Option<String>,
+    /// responseSize property.
+    pub response_size: Option<String>,
+    /// serverIp property.
+    pub server_ip: Option<String>,
+    /// status property.
+    pub status: Option<i64>,
+    /// userAgent property.
+    pub user_agent: Option<String>,
+}
+
+/// `MonitoredResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MonitoredResource {
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `LogEntry` type.
@@ -97,92 +213,15 @@ pub struct LogEntry {
     pub trace_sampled: Option<bool>,
 }
 
-/// `AppHubService` type.
+/// `LogSplit` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppHubService {
-    /// criticalityType property.
-    pub criticality_type: Option<String>,
-    /// environmentType property.
-    pub environment_type: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-}
-
-/// `AppHubWorkload` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppHubWorkload {
-    /// criticalityType property.
-    pub criticality_type: Option<String>,
-    /// environmentType property.
-    pub environment_type: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-}
-
-/// `LogEntrySourceLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LogEntrySourceLocation {
-    /// file property.
-    pub file: Option<String>,
-    /// function property.
-    pub function: Option<String>,
-    /// line property.
-    pub line: Option<String>,
-}
-
-/// `AppHub` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppHub {
-    /// application property.
-    pub application: Option<AppHubApplication>,
-    /// service property.
-    pub service: Option<AppHubService>,
-    /// workload property.
-    pub workload: Option<AppHubWorkload>,
-}
-
-/// `MonitoredResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MonitoredResource {
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `HttpRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRequest {
-    /// cacheFillBytes property.
-    pub cache_fill_bytes: Option<String>,
-    /// cacheHit property.
-    pub cache_hit: Option<bool>,
-    /// cacheLookup property.
-    pub cache_lookup: Option<bool>,
-    /// cacheValidatedWithOriginServer property.
-    pub cache_validated_with_origin_server: Option<bool>,
-    /// latency property.
-    pub latency: Option<String>,
-    /// protocol property.
-    pub protocol: Option<String>,
-    /// referer property.
-    pub referer: Option<String>,
-    /// remoteIp property.
-    pub remote_ip: Option<String>,
-    /// requestMethod property.
-    pub request_method: Option<String>,
-    /// requestSize property.
-    pub request_size: Option<String>,
-    /// requestUrl property.
-    pub request_url: Option<String>,
-    /// responseSize property.
-    pub response_size: Option<String>,
-    /// serverIp property.
-    pub server_ip: Option<String>,
-    /// status property.
-    pub status: Option<i64>,
-    /// userAgent property.
-    pub user_agent: Option<String>,
+pub struct LogSplit {
+    /// index property.
+    pub index: Option<i64>,
+    /// totalSplits property.
+    pub total_splits: Option<i64>,
+    /// uid property.
+    pub uid: Option<String>,
 }
 
 /// `TailLogEntriesResponse` type.
@@ -192,44 +231,6 @@ pub struct TailLogEntriesResponse {
     pub entries: Option<Vec<LogEntry>>,
     /// suppressionInfo property.
     pub suppression_info: Option<Vec<SuppressionInfo>>,
-}
-
-/// `LogEntryOperation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LogEntryOperation {
-    /// first property.
-    pub first: Option<bool>,
-    /// id property.
-    pub id: Option<String>,
-    /// last property.
-    pub last: Option<bool>,
-    /// producer property.
-    pub producer: Option<String>,
-}
-
-/// `SuppressionInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SuppressionInfo {
-    /// reason property.
-    pub reason: Option<String>,
-    /// suppressedCount property.
-    pub suppressed_count: Option<i64>,
-}
-
-/// `LogErrorGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LogErrorGroup {
-    /// id property.
-    pub id: Option<String>,
-}
-
-/// `MonitoredResourceMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MonitoredResourceMetadata {
-    /// systemLabels property.
-    pub system_labels: Option<serde_json::Value>,
-    /// userLabels property.
-    pub user_labels: Option<serde_json::Value>,
 }
 
 // =============================================================================

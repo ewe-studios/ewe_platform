@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,18 +24,11 @@ use super::shared::GoogleLongrunningOperation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `VirtualMachine` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VirtualMachine {
-    /// tags property.
-    pub tags: Option<Vec<String>>,
-}
 
 /// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -47,26 +41,30 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `ListPolicyBasedRoutesResponse` type.
+/// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListPolicyBasedRoutesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// policyBasedRoutes property.
-    pub policy_based_routes: Option<Vec<PolicyBasedRoute>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
-/// `Binding` type.
+/// `Filter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct Filter {
+    /// destRange property.
+    pub dest_range: Option<String>,
+    /// ipProtocol property.
+    pub ip_protocol: Option<String>,
+    /// protocolVersion property.
+    pub protocol_version: Option<String>,
+    /// srcRange property.
+    pub src_range: Option<String>,
 }
 
 /// `AuditConfig` type.
@@ -78,11 +76,15 @@ pub struct AuditConfig {
     pub service: Option<String>,
 }
 
-/// `InterconnectAttachment` type.
+/// `Warnings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachment {
-    /// region property.
-    pub region: Option<String>,
+pub struct Warnings {
+    /// code property.
+    pub code: Option<String>,
+    /// data property.
+    pub data: Option<serde_json::Value>,
+    /// warningMessage property.
+    pub warning_message: Option<String>,
 }
 
 /// `PolicyBasedRoute` type.
@@ -120,41 +122,40 @@ pub struct PolicyBasedRoute {
     pub warnings: Option<Vec<Warnings>>,
 }
 
-/// `Expr` type.
+/// `ListPolicyBasedRoutesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct ListPolicyBasedRoutesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// policyBasedRoutes property.
+    pub policy_based_routes: Option<Vec<PolicyBasedRoute>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
-/// `Filter` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Filter {
-    /// destRange property.
-    pub dest_range: Option<String>,
-    /// ipProtocol property.
-    pub ip_protocol: Option<String>,
-    /// protocolVersion property.
-    pub protocol_version: Option<String>,
-    /// srcRange property.
-    pub src_range: Option<String>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
-/// `Warnings` type.
+/// `InterconnectAttachment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Warnings {
-    /// code property.
-    pub code: Option<String>,
-    /// data property.
-    pub data: Option<serde_json::Value>,
-    /// warningMessage property.
-    pub warning_message: Option<String>,
+pub struct InterconnectAttachment {
+    /// region property.
+    pub region: Option<String>,
+}
+
+/// `VirtualMachine` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VirtualMachine {
+    /// tags property.
+    pub tags: Option<Vec<String>>,
 }
 
 /// `AuditLogConfig` type.

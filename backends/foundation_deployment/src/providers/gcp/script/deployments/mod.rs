@@ -12,13 +12,17 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Empty;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -37,24 +41,35 @@ pub struct DeploymentConfig {
     pub version_number: Option<i64>,
 }
 
-/// `Empty` type.
+/// `GoogleAppsScriptTypeWebAppEntryPoint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
-
-/// `ListDeploymentsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDeploymentsResponse {
-    /// deployments property.
-    pub deployments: Option<Vec<Deployment>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct GoogleAppsScriptTypeWebAppEntryPoint {
+    /// entryPointConfig property.
+    pub entry_point_config: Option<GoogleAppsScriptTypeWebAppConfig>,
+    /// url property.
+    pub url: Option<String>,
 }
 
-/// `GoogleAppsScriptTypeExecutionApiEntryPoint` type.
+/// `GoogleAppsScriptTypeWebAppConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsScriptTypeExecutionApiEntryPoint {
-    /// entryPointConfig property.
-    pub entry_point_config: Option<GoogleAppsScriptTypeExecutionApiConfig>,
+pub struct GoogleAppsScriptTypeWebAppConfig {
+    /// access property.
+    pub access: Option<String>,
+    /// executeAs property.
+    pub execute_as: Option<String>,
+}
+
+/// `EntryPoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EntryPoint {
+    /// addOn property.
+    pub add_on: Option<GoogleAppsScriptTypeAddOnEntryPoint>,
+    /// entryPointType property.
+    pub entry_point_type: Option<String>,
+    /// executionApi property.
+    pub execution_api: Option<GoogleAppsScriptTypeExecutionApiEntryPoint>,
+    /// webApp property.
+    pub web_app: Option<GoogleAppsScriptTypeWebAppEntryPoint>,
 }
 
 /// `Deployment` type.
@@ -68,22 +83,6 @@ pub struct Deployment {
     pub entry_points: Option<Vec<EntryPoint>>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `GoogleAppsScriptTypeWebAppConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsScriptTypeWebAppConfig {
-    /// access property.
-    pub access: Option<String>,
-    /// executeAs property.
-    pub execute_as: Option<String>,
-}
-
-/// `GoogleAppsScriptTypeExecutionApiConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsScriptTypeExecutionApiConfig {
-    /// access property.
-    pub access: Option<String>,
 }
 
 /// `GoogleAppsScriptTypeAddOnEntryPoint` type.
@@ -103,26 +102,27 @@ pub struct GoogleAppsScriptTypeAddOnEntryPoint {
     pub title: Option<String>,
 }
 
-/// `EntryPoint` type.
+/// `GoogleAppsScriptTypeExecutionApiEntryPoint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EntryPoint {
-    /// addOn property.
-    pub add_on: Option<GoogleAppsScriptTypeAddOnEntryPoint>,
-    /// entryPointType property.
-    pub entry_point_type: Option<String>,
-    /// executionApi property.
-    pub execution_api: Option<GoogleAppsScriptTypeExecutionApiEntryPoint>,
-    /// webApp property.
-    pub web_app: Option<GoogleAppsScriptTypeWebAppEntryPoint>,
+pub struct GoogleAppsScriptTypeExecutionApiEntryPoint {
+    /// entryPointConfig property.
+    pub entry_point_config: Option<GoogleAppsScriptTypeExecutionApiConfig>,
 }
 
-/// `GoogleAppsScriptTypeWebAppEntryPoint` type.
+/// `ListDeploymentsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsScriptTypeWebAppEntryPoint {
-    /// entryPointConfig property.
-    pub entry_point_config: Option<GoogleAppsScriptTypeWebAppConfig>,
-    /// url property.
-    pub url: Option<String>,
+pub struct ListDeploymentsResponse {
+    /// deployments property.
+    pub deployments: Option<Vec<Deployment>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleAppsScriptTypeExecutionApiConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsScriptTypeExecutionApiConfig {
+    /// access property.
+    pub access: Option<String>,
 }
 
 // =============================================================================

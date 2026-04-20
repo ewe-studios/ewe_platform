@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,28 +22,23 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GetVersionOperationMetadata` type.
+/// `NetworkEndpointGroupPscData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadata {
-    /// inlineSbomInfo property.
-    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
-}
-
-/// `ErrorInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
+pub struct NetworkEndpointGroupPscData {
+    /// consumerPscAddress property.
+    pub consumer_psc_address: Option<String>,
+    /// producerPort property.
+    pub producer_port: Option<i64>,
+    /// pscConnectionId property.
+    pub psc_connection_id: Option<String>,
+    /// pscConnectionStatus property.
+    pub psc_connection_status: Option<String>,
 }
 
 /// `QuotaExceededInfo` type.
@@ -60,6 +56,15 @@ pub struct QuotaExceededInfo {
     pub metric_name: Option<String>,
     /// rolloutStatus property.
     pub rollout_status: Option<String>,
+}
+
+/// `NetworkEndpointGroupCloudFunction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkEndpointGroupCloudFunction {
+    /// function property.
+    pub function: Option<String>,
+    /// urlMask property.
+    pub url_mask: Option<String>,
 }
 
 /// `NetworkEndpointGroupAggregatedList` type.
@@ -81,68 +86,13 @@ pub struct NetworkEndpointGroupAggregatedList {
     pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `NetworkEndpointGroupPscData` type.
+/// `HelpLink` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkEndpointGroupPscData {
-    /// consumerPscAddress property.
-    pub consumer_psc_address: Option<String>,
-    /// producerPort property.
-    pub producer_port: Option<i64>,
-    /// pscConnectionId property.
-    pub psc_connection_id: Option<String>,
-    /// pscConnectionStatus property.
-    pub psc_connection_status: Option<String>,
-}
-
-/// `Help` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
-}
-
-/// `InstancesBulkInsertOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
-}
-
-/// `NetworkEndpointGroupCloudRun` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkEndpointGroupCloudRun {
-    /// service property.
-    pub service: Option<String>,
-    /// tag property.
-    pub tag: Option<String>,
-    /// urlMask property.
-    pub url_mask: Option<String>,
-}
-
-/// `GetVersionOperationMetadataSbomInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
-}
-
-/// `NetworkEndpointGroupList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkEndpointGroupList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<NetworkEndpointGroup>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
 }
 
 /// `NetworkEndpointGroup` type.
@@ -188,22 +138,22 @@ pub struct NetworkEndpointGroup {
     pub zone: Option<String>,
 }
 
-/// `LocalizedMessage` type.
+/// `Help` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
 }
 
-/// `HelpLink` type.
+/// `NetworkEndpointGroupCloudRun` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
+pub struct NetworkEndpointGroupCloudRun {
+    /// service property.
+    pub service: Option<String>,
+    /// tag property.
+    pub tag: Option<String>,
+    /// urlMask property.
+    pub url_mask: Option<String>,
 }
 
 /// `SetCommonInstanceMetadataOperationMetadata` type.
@@ -215,13 +165,37 @@ pub struct SetCommonInstanceMetadataOperationMetadata {
     pub per_location_operations: Option<serde_json::Value>,
 }
 
-/// `NetworkEndpointGroupCloudFunction` type.
+/// `InstancesBulkInsertOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkEndpointGroupCloudFunction {
-    /// function property.
-    pub function: Option<String>,
-    /// urlMask property.
-    pub url_mask: Option<String>,
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `NetworkEndpointGroupList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkEndpointGroupList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<NetworkEndpointGroup>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `GetVersionOperationMetadataSbomInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
 }
 
 /// `NetworkEndpointGroupAppEngine` type.
@@ -233,6 +207,33 @@ pub struct NetworkEndpointGroupAppEngine {
     pub url_mask: Option<String>,
     /// version property.
     pub version: Option<String>,
+}
+
+/// `GetVersionOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadata {
+    /// inlineSbomInfo property.
+    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+}
+
+/// `LocalizedMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ErrorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
 }
 
 // =============================================================================

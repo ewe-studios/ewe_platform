@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudDialogflowCxV3ListContinuousTestResultsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ListContinuousTestResultsResponse {
+    /// continuousTestResults property.
+    pub continuous_test_results: Option<Vec<GoogleCloudDialogflowCxV3ContinuousTestResult>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `GoogleCloudDialogflowCxV3ContinuousTestResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -35,15 +45,6 @@ pub struct GoogleCloudDialogflowCxV3ContinuousTestResult {
     pub run_time: Option<String>,
     /// testCaseResults property.
     pub test_case_results: Option<Vec<String>>,
-}
-
-/// `GoogleCloudDialogflowCxV3ListContinuousTestResultsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ListContinuousTestResultsResponse {
-    /// continuousTestResults property.
-    pub continuous_test_results: Option<Vec<GoogleCloudDialogflowCxV3ContinuousTestResult>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

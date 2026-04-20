@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `SearchAssignmentsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchAssignmentsResponse {
-    /// assignments property.
-    pub assignments: Option<Vec<Assignment>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `SearchAllAssignmentsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -42,13 +34,13 @@ pub struct SearchAllAssignmentsResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `SchedulingPolicy` type.
+/// `SearchAssignmentsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SchedulingPolicy {
-    /// concurrency property.
-    pub concurrency: Option<String>,
-    /// maxSlots property.
-    pub max_slots: Option<String>,
+pub struct SearchAssignmentsResponse {
+    /// assignments property.
+    pub assignments: Option<Vec<Assignment>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `Assignment` type.
@@ -68,6 +60,15 @@ pub struct Assignment {
     pub scheduling_policy: Option<SchedulingPolicy>,
     /// state property.
     pub state: Option<String>,
+}
+
+/// `SchedulingPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SchedulingPolicy {
+    /// concurrency property.
+    pub concurrency: Option<String>,
+    /// maxSlots property.
+    pub max_slots: Option<String>,
 }
 
 // =============================================================================

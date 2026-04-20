@@ -12,42 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Customer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Customer {
-    /// alternateEmail property.
-    pub alternate_email: Option<String>,
-    /// customerDomain property.
-    pub customer_domain: Option<String>,
-    /// customerDomainVerified property.
-    pub customer_domain_verified: Option<bool>,
-    /// customerId property.
-    pub customer_id: Option<String>,
-    /// customerType property.
-    pub customer_type: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// phoneNumber property.
-    pub phone_number: Option<String>,
-    /// postalAddress property.
-    pub postal_address: Option<Address>,
-    /// primaryAdmin property.
-    pub primary_admin: Option<PrimaryAdmin>,
-    /// resourceUiUrl property.
-    pub resource_ui_url: Option<String>,
-}
 
 /// `Address` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -79,6 +55,31 @@ pub struct Address {
 pub struct PrimaryAdmin {
     /// primaryEmail property.
     pub primary_email: Option<String>,
+}
+
+/// `Customer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Customer {
+    /// alternateEmail property.
+    pub alternate_email: Option<String>,
+    /// customerDomain property.
+    pub customer_domain: Option<String>,
+    /// customerDomainVerified property.
+    pub customer_domain_verified: Option<bool>,
+    /// customerId property.
+    pub customer_id: Option<String>,
+    /// customerType property.
+    pub customer_type: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// phoneNumber property.
+    pub phone_number: Option<String>,
+    /// postalAddress property.
+    pub postal_address: Option<Address>,
+    /// primaryAdmin property.
+    pub primary_admin: Option<PrimaryAdmin>,
+    /// resourceUiUrl property.
+    pub resource_ui_url: Option<String>,
 }
 
 // =============================================================================

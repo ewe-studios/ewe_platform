@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,22 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
 
 /// `CloudExadataInfrastructureProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -103,11 +93,50 @@ pub struct CloudExadataInfrastructureProperties {
     pub total_storage_size_gb: Option<i64>,
 }
 
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ListCloudExadataInfrastructuresResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListCloudExadataInfrastructuresResponse {
+    /// cloudExadataInfrastructures property.
+    pub cloud_exadata_infrastructures: Option<Vec<CloudExadataInfrastructure>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
 /// `CustomerContact` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerContact {
     /// email property.
     pub email: Option<String>,
+}
+
+/// `CloudExadataInfrastructure` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudExadataInfrastructure {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// entitlementId property.
+    pub entitlement_id: Option<String>,
+    /// gcpOracleZone property.
+    pub gcp_oracle_zone: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// properties property.
+    pub properties: Option<CloudExadataInfrastructureProperties>,
 }
 
 /// `MaintenanceWindow` type.
@@ -131,34 +160,6 @@ pub struct MaintenanceWindow {
     pub preference: Option<String>,
     /// weeksOfMonth property.
     pub weeks_of_month: Option<Vec<i64>>,
-}
-
-/// `CloudExadataInfrastructure` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudExadataInfrastructure {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// entitlementId property.
-    pub entitlement_id: Option<String>,
-    /// gcpOracleZone property.
-    pub gcp_oracle_zone: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// properties property.
-    pub properties: Option<CloudExadataInfrastructureProperties>,
-}
-
-/// `ListCloudExadataInfrastructuresResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCloudExadataInfrastructuresResponse {
-    /// cloudExadataInfrastructures property.
-    pub cloud_exadata_infrastructures: Option<Vec<CloudExadataInfrastructure>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

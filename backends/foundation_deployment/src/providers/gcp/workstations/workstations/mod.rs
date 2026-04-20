@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,11 +24,20 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
 
 /// `ListWorkstationsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -51,6 +61,15 @@ pub struct Expr {
     pub location: Option<String>,
     /// title property.
     pub title: Option<String>,
+}
+
+/// `GenerateAccessTokenResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GenerateAccessTokenResponse {
+    /// accessToken property.
+    pub access_token: Option<String>,
+    /// expireTime property.
+    pub expire_time: Option<String>,
 }
 
 /// `Workstation` type.
@@ -92,6 +111,15 @@ pub struct Workstation {
     pub update_time: Option<String>,
 }
 
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
 /// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
@@ -101,22 +129,6 @@ pub struct Binding {
     pub members: Option<Vec<String>>,
     /// role property.
     pub role: Option<String>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `RuntimeHost` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RuntimeHost {
-    /// gceInstanceHost property.
-    pub gce_instance_host: Option<GceInstanceHost>,
 }
 
 /// `Status` type.
@@ -141,22 +153,11 @@ pub struct GceInstanceHost {
     pub zone: Option<String>,
 }
 
-/// `GenerateAccessTokenResponse` type.
+/// `RuntimeHost` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GenerateAccessTokenResponse {
-    /// accessToken property.
-    pub access_token: Option<String>,
-    /// expireTime property.
-    pub expire_time: Option<String>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
+pub struct RuntimeHost {
+    /// gceInstanceHost property.
+    pub gce_instance_host: Option<GceInstanceHost>,
 }
 
 // =============================================================================

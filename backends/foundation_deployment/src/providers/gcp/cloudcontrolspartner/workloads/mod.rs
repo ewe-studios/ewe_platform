@@ -12,17 +12,41 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Workload` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Workload {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// folder property.
+    pub folder: Option<String>,
+    /// folderId property.
+    pub folder_id: Option<String>,
+    /// isOnboarded property.
+    pub is_onboarded: Option<bool>,
+    /// keyManagementProjectId property.
+    pub key_management_project_id: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// partner property.
+    pub partner: Option<String>,
+    /// workloadOnboardingState property.
+    pub workload_onboarding_state: Option<WorkloadOnboardingState>,
+}
 
 /// `ListWorkloadsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -53,29 +77,6 @@ pub struct WorkloadOnboardingStep {
 pub struct WorkloadOnboardingState {
     /// onboardingSteps property.
     pub onboarding_steps: Option<Vec<WorkloadOnboardingStep>>,
-}
-
-/// `Workload` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Workload {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// folder property.
-    pub folder: Option<String>,
-    /// folderId property.
-    pub folder_id: Option<String>,
-    /// isOnboarded property.
-    pub is_onboarded: Option<bool>,
-    /// keyManagementProjectId property.
-    pub key_management_project_id: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// partner property.
-    pub partner: Option<String>,
-    /// workloadOnboardingState property.
-    pub workload_onboarding_state: Option<WorkloadOnboardingState>,
 }
 
 // =============================================================================

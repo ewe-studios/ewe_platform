@@ -6,6 +6,7 @@
 #![cfg(feature = "gcp_compute")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
 #![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(unused_imports)]
 
 pub mod shared;
 
@@ -245,8 +246,8 @@ pub mod list_xpn_hosts;
 pub mod machine_images;
 #[cfg(feature = "gcp_compute_machine_types")]
 pub mod machine_types;
-#[cfg(feature = "gcp_compute_move")]
-pub mod move;
+#[cfg(feature = "gcp_compute_move_mod")]
+pub mod move_mod;
 #[cfg(feature = "gcp_compute_move_disk")]
 pub mod move_disk;
 #[cfg(feature = "gcp_compute_move_instance")]

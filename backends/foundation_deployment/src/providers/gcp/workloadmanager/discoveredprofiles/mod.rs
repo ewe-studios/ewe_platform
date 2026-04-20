@@ -12,17 +12,62 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `CloudResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudResource {
+    /// instanceProperties property.
+    pub instance_properties: Option<InstanceProperties>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `DatabaseProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseProperties {
+    /// backupProperties property.
+    pub backup_properties: Option<BackupProperties>,
+    /// databaseType property.
+    pub database_type: Option<String>,
+}
+
+/// `SapWorkload` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SapWorkload {
+    /// application property.
+    pub application: Option<SapComponent>,
+    /// architecture property.
+    pub architecture: Option<String>,
+    /// database property.
+    pub database: Option<SapComponent>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// products property.
+    pub products: Option<Vec<Product>>,
+}
+
+/// `Product` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Product {
+    /// name property.
+    pub name: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
 
 /// `AgentStates` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -41,33 +86,6 @@ pub struct AgentStates {
     pub system_discovery: Option<ServiceStates>,
 }
 
-/// `ServiceStates` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceStates {
-    /// iamPermissions property.
-    pub iam_permissions: Option<Vec<IAMPermission>>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `IAMPermission` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IAMPermission {
-    /// granted property.
-    pub granted: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `BackupProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupProperties {
-    /// latestBackupStatus property.
-    pub latest_backup_status: Option<String>,
-    /// latestBackupTime property.
-    pub latest_backup_time: Option<String>,
-}
-
 /// `ListDiscoveredProfilesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDiscoveredProfilesResponse {
@@ -77,15 +95,6 @@ pub struct ListDiscoveredProfilesResponse {
     pub unreachable: Option<Vec<String>>,
     /// workloadProfiles property.
     pub workload_profiles: Option<Vec<WorkloadProfile>>,
-}
-
-/// `Product` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Product {
-    /// name property.
-    pub name: Option<String>,
-    /// version property.
-    pub version: Option<String>,
 }
 
 /// `WorkloadProfile` type.
@@ -101,32 +110,6 @@ pub struct WorkloadProfile {
     pub sap_workload: Option<SapWorkload>,
     /// workloadType property.
     pub workload_type: Option<String>,
-}
-
-/// `CloudResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudResource {
-    /// instanceProperties property.
-    pub instance_properties: Option<InstanceProperties>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `SapComponent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SapComponent {
-    /// databaseProperties property.
-    pub database_properties: Option<DatabaseProperties>,
-    /// haHosts property.
-    pub ha_hosts: Option<Vec<String>>,
-    /// resources property.
-    pub resources: Option<Vec<CloudResource>>,
-    /// sid property.
-    pub sid: Option<String>,
-    /// topologyType property.
-    pub topology_type: Option<String>,
 }
 
 /// `InstanceProperties` type.
@@ -146,30 +129,6 @@ pub struct InstanceProperties {
     pub upcoming_maintenance_event: Option<UpcomingMaintenanceEvent>,
 }
 
-/// `SapWorkload` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SapWorkload {
-    /// application property.
-    pub application: Option<SapComponent>,
-    /// architecture property.
-    pub architecture: Option<String>,
-    /// database property.
-    pub database: Option<SapComponent>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// products property.
-    pub products: Option<Vec<Product>>,
-}
-
-/// `DatabaseProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseProperties {
-    /// backupProperties property.
-    pub backup_properties: Option<BackupProperties>,
-    /// databaseType property.
-    pub database_type: Option<String>,
-}
-
 /// `SapInstanceProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapInstanceProperties {
@@ -177,6 +136,33 @@ pub struct SapInstanceProperties {
     pub agent_states: Option<AgentStates>,
     /// numbers property.
     pub numbers: Option<Vec<String>>,
+}
+
+/// `BackupProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupProperties {
+    /// latestBackupStatus property.
+    pub latest_backup_status: Option<String>,
+    /// latestBackupTime property.
+    pub latest_backup_time: Option<String>,
+}
+
+/// `IAMPermission` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IAMPermission {
+    /// granted property.
+    pub granted: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `ServiceStates` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceStates {
+    /// iamPermissions property.
+    pub iam_permissions: Option<Vec<IAMPermission>>,
+    /// state property.
+    pub state: Option<String>,
 }
 
 /// `UpcomingMaintenanceEvent` type.
@@ -192,6 +178,21 @@ pub struct UpcomingMaintenanceEvent {
     pub start_time: Option<String>,
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `SapComponent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SapComponent {
+    /// databaseProperties property.
+    pub database_properties: Option<DatabaseProperties>,
+    /// haHosts property.
+    pub ha_hosts: Option<Vec<String>>,
+    /// resources property.
+    pub resources: Option<Vec<CloudResource>>,
+    /// sid property.
+    pub sid: Option<String>,
+    /// topologyType property.
+    pub topology_type: Option<String>,
 }
 
 // =============================================================================

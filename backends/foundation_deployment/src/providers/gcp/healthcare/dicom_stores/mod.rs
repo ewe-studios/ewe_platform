@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -24,36 +25,27 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DicomStore` type.
+/// `DicomStoreMetrics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DicomStore {
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
+pub struct DicomStoreMetrics {
+    /// blobStorageSizeBytes property.
+    pub blob_storage_size_bytes: Option<String>,
+    /// instanceCount property.
+    pub instance_count: Option<String>,
     /// name property.
     pub name: Option<String>,
-    /// notificationConfig property.
-    pub notification_config: Option<NotificationConfig>,
-    /// notificationConfigs property.
-    pub notification_configs: Option<Vec<DicomNotificationConfig>>,
-    /// streamConfigs property.
-    pub stream_configs: Option<Vec<GoogleCloudHealthcareV1DicomStreamConfig>>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+    /// seriesCount property.
+    pub series_count: Option<String>,
+    /// structuredStorageSizeBytes property.
+    pub structured_storage_size_bytes: Option<String>,
+    /// studyCount property.
+    pub study_count: Option<String>,
 }
 
 /// `GoogleCloudHealthcareV1DicomBigQueryDestination` type.
@@ -73,6 +65,40 @@ pub struct GoogleCloudHealthcareV1DicomBigQueryDestination {
     pub write_disposition: Option<String>,
 }
 
+/// `GoogleCloudHealthcareV1DicomStreamConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudHealthcareV1DicomStreamConfig {
+    /// bigqueryDestination property.
+    pub bigquery_destination: Option<GoogleCloudHealthcareV1DicomBigQueryDestination>,
+}
+
+/// `NotificationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NotificationConfig {
+    /// pubsubTopic property.
+    pub pubsub_topic: Option<String>,
+    /// sendForBulkImport property.
+    pub send_for_bulk_import: Option<bool>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `DicomNotificationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DicomNotificationConfig {
+    /// pubsubTopic property.
+    pub pubsub_topic: Option<String>,
+}
+
 /// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
@@ -84,39 +110,13 @@ pub struct Binding {
     pub role: Option<String>,
 }
 
-/// `AuditLogConfig` type.
+/// `SchemaFlattened` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
+pub struct SchemaFlattened {}
 
-/// `DicomNotificationConfig` type.
+/// `SchemaJSON` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DicomNotificationConfig {
-    /// pubsubTopic property.
-    pub pubsub_topic: Option<String>,
-}
-
-/// `ListDicomStoresResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDicomStoresResponse {
-    /// dicomStores property.
-    pub dicom_stores: Option<Vec<DicomStore>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
+pub struct SchemaJSON {}
 
 /// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -131,45 +131,46 @@ pub struct Expr {
     pub title: Option<String>,
 }
 
-/// `SchemaFlattened` type.
+/// `DicomStore` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SchemaFlattened {}
-
-/// `GoogleCloudHealthcareV1DicomStreamConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudHealthcareV1DicomStreamConfig {
-    /// bigqueryDestination property.
-    pub bigquery_destination: Option<GoogleCloudHealthcareV1DicomBigQueryDestination>,
-}
-
-/// `DicomStoreMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DicomStoreMetrics {
-    /// blobStorageSizeBytes property.
-    pub blob_storage_size_bytes: Option<String>,
-    /// instanceCount property.
-    pub instance_count: Option<String>,
+pub struct DicomStore {
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
     /// name property.
     pub name: Option<String>,
-    /// seriesCount property.
-    pub series_count: Option<String>,
-    /// structuredStorageSizeBytes property.
-    pub structured_storage_size_bytes: Option<String>,
-    /// studyCount property.
-    pub study_count: Option<String>,
+    /// notificationConfig property.
+    pub notification_config: Option<NotificationConfig>,
+    /// notificationConfigs property.
+    pub notification_configs: Option<Vec<DicomNotificationConfig>>,
+    /// streamConfigs property.
+    pub stream_configs: Option<Vec<GoogleCloudHealthcareV1DicomStreamConfig>>,
 }
 
-/// `SchemaJSON` type.
+/// `AuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SchemaJSON {}
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
 
-/// `NotificationConfig` type.
+/// `ListDicomStoresResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NotificationConfig {
-    /// pubsubTopic property.
-    pub pubsub_topic: Option<String>,
-    /// sendForBulkImport property.
-    pub send_for_bulk_import: Option<bool>,
+pub struct ListDicomStoresResponse {
+    /// dicomStores property.
+    pub dicom_stores: Option<Vec<DicomStore>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
 // =============================================================================

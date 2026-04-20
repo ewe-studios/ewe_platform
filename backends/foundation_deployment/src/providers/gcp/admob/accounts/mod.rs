@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListPublisherAccountsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListPublisherAccountsResponse {
-    /// account property.
-    pub account: Option<Vec<PublisherAccount>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `PublisherAccount` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,6 +36,15 @@ pub struct PublisherAccount {
     pub publisher_id: Option<String>,
     /// reportingTimeZone property.
     pub reporting_time_zone: Option<String>,
+}
+
+/// `ListPublisherAccountsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListPublisherAccountsResponse {
+    /// account property.
+    pub account: Option<Vec<PublisherAccount>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,165 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ConsistentHashLoadBalancerSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConsistentHashLoadBalancerSettings {
-    /// httpCookie property.
-    pub http_cookie: Option<ConsistentHashLoadBalancerSettingsHttpCookie>,
-    /// httpHeaderName property.
-    pub http_header_name: Option<String>,
-    /// minimumRingSize property.
-    pub minimum_ring_size: Option<String>,
-}
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GetVersionOperationMetadataSbomInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
-}
-
-/// `BackendServiceHAPolicyLeader` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendServiceHAPolicyLeader {
-    /// backendGroup property.
-    pub backend_group: Option<String>,
-    /// networkEndpoint property.
-    pub network_endpoint: Option<BackendServiceHAPolicyLeaderNetworkEndpoint>,
-}
-
-/// `AWSV4Signature` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AWSV4Signature {
-    /// accessKey property.
-    pub access_key: Option<String>,
-    /// accessKeyId property.
-    pub access_key_id: Option<String>,
-    /// accessKeyVersion property.
-    pub access_key_version: Option<String>,
-    /// originRegion property.
-    pub origin_region: Option<String>,
-}
-
-/// `HelpLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `BackendServiceTlsSettingsSubjectAltName` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendServiceTlsSettingsSubjectAltName {
-    /// dnsName property.
-    pub dns_name: Option<String>,
-    /// uniformResourceIdentifier property.
-    pub uniform_resource_identifier: Option<String>,
-}
-
-/// `BackendServiceUsedBy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendServiceUsedBy {
-    /// reference property.
-    pub reference: Option<String>,
-}
-
-/// `SecuritySettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecuritySettings {
-    /// awsV4Authentication property.
-    pub aws_v4_authentication: Option<AWSV4Signature>,
-    /// clientTlsPolicy property.
-    pub client_tls_policy: Option<String>,
-    /// subjectAltNames property.
-    pub subject_alt_names: Option<Vec<String>>,
-}
-
-/// `BackendServiceTlsSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendServiceTlsSettings {
-    /// authenticationConfig property.
-    pub authentication_config: Option<String>,
-    /// sni property.
-    pub sni: Option<String>,
-    /// subjectAltNames property.
-    pub subject_alt_names: Option<Vec<BackendServiceTlsSettingsSubjectAltName>>,
-}
-
-/// `CircuitBreakers` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CircuitBreakers {
-    /// maxConnections property.
-    pub max_connections: Option<i64>,
-    /// maxPendingRequests property.
-    pub max_pending_requests: Option<i64>,
-    /// maxRequests property.
-    pub max_requests: Option<i64>,
-    /// maxRequestsPerConnection property.
-    pub max_requests_per_connection: Option<i64>,
-    /// maxRetries property.
-    pub max_retries: Option<i64>,
-}
-
-/// `Subsetting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Subsetting {
-    /// policy property.
-    pub policy: Option<String>,
-}
-
-/// `BackendServiceOrchestrationInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendServiceOrchestrationInfo {
-    /// resourceUri property.
-    pub resource_uri: Option<String>,
-}
-
-/// `OutlierDetection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OutlierDetection {
-    /// baseEjectionTime property.
-    pub base_ejection_time: Option<Duration>,
-    /// consecutiveErrors property.
-    pub consecutive_errors: Option<i64>,
-    /// consecutiveGatewayFailure property.
-    pub consecutive_gateway_failure: Option<i64>,
-    /// enforcingConsecutiveErrors property.
-    pub enforcing_consecutive_errors: Option<i64>,
-    /// enforcingConsecutiveGatewayFailure property.
-    pub enforcing_consecutive_gateway_failure: Option<i64>,
-    /// enforcingSuccessRate property.
-    pub enforcing_success_rate: Option<i64>,
-    /// interval property.
-    pub interval: Option<Duration>,
-    /// maxEjectionPercent property.
-    pub max_ejection_percent: Option<i64>,
-    /// successRateMinimumHosts property.
-    pub success_rate_minimum_hosts: Option<i64>,
-    /// successRateRequestVolume property.
-    pub success_rate_request_volume: Option<i64>,
-    /// successRateStdevFactor property.
-    pub success_rate_stdev_factor: Option<i64>,
-}
 
 /// `BackendServiceLocalityLoadBalancingPolicyConfigCustomPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -188,42 +35,6 @@ pub struct BackendServiceLocalityLoadBalancingPolicyConfigCustomPolicy {
     pub data: Option<String>,
     /// name property.
     pub name: Option<String>,
-}
-
-/// `BackendCustomMetric` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendCustomMetric {
-    /// dryRun property.
-    pub dry_run: Option<bool>,
-    /// maxUtilization property.
-    pub max_utilization: Option<f64>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GetVersionOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadata {
-    /// inlineSbomInfo property.
-    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
-}
-
-/// `ConsistentHashLoadBalancerSettingsHttpCookie` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConsistentHashLoadBalancerSettingsHttpCookie {
-    /// name property.
-    pub name: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-    /// ttl property.
-    pub ttl: Option<Duration>,
-}
-
-/// `BackendServiceNetworkPassThroughLbTrafficPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendServiceNetworkPassThroughLbTrafficPolicy {
-    /// zonalAffinity property.
-    pub zonal_affinity: Option<BackendServiceNetworkPassThroughLbTrafficPolicyZonalAffinity>,
 }
 
 /// `CacheKeyPolicy` type.
@@ -245,6 +56,62 @@ pub struct CacheKeyPolicy {
     pub query_string_whitelist: Option<Vec<String>>,
 }
 
+/// `Help` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
+}
+
+/// `LocalizedMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `BackendServiceTlsSettingsSubjectAltName` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendServiceTlsSettingsSubjectAltName {
+    /// dnsName property.
+    pub dns_name: Option<String>,
+    /// uniformResourceIdentifier property.
+    pub uniform_resource_identifier: Option<String>,
+}
+
+/// `CircuitBreakers` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CircuitBreakers {
+    /// maxConnections property.
+    pub max_connections: Option<i64>,
+    /// maxPendingRequests property.
+    pub max_pending_requests: Option<i64>,
+    /// maxRequests property.
+    pub max_requests: Option<i64>,
+    /// maxRequestsPerConnection property.
+    pub max_requests_per_connection: Option<i64>,
+    /// maxRetries property.
+    pub max_retries: Option<i64>,
+}
+
+/// `GetVersionOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadata {
+    /// inlineSbomInfo property.
+    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+}
+
+/// `SetCommonInstanceMetadataOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetCommonInstanceMetadataOperationMetadata {
+    /// clientOperationId property.
+    pub client_operation_id: Option<String>,
+    /// perLocationOperations property.
+    pub per_location_operations: Option<serde_json::Value>,
+}
+
 /// `BackendServiceList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceList {
@@ -262,54 +129,6 @@ pub struct BackendServiceList {
     pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `BackendServiceLocalityLoadBalancingPolicyConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendServiceLocalityLoadBalancingPolicyConfig {
-    /// customPolicy property.
-    pub custom_policy: Option<BackendServiceLocalityLoadBalancingPolicyConfigCustomPolicy>,
-    /// policy property.
-    pub policy: Option<BackendServiceLocalityLoadBalancingPolicyConfigPolicy>,
-}
-
-/// `BackendServiceParams` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendServiceParams {
-    /// resourceManagerTags property.
-    pub resource_manager_tags: Option<serde_json::Value>,
-}
-
-/// `Duration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Duration {
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<String>,
-}
-
-/// `BackendServiceNetworkPassThroughLbTrafficPolicyZonalAffinity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendServiceNetworkPassThroughLbTrafficPolicyZonalAffinity {
-    /// spillover property.
-    pub spillover: Option<String>,
-    /// spilloverRatio property.
-    pub spillover_ratio: Option<f64>,
-}
-
-/// `ConnectionDraining` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionDraining {
-    /// drainingTimeoutSec property.
-    pub draining_timeout_sec: Option<i64>,
-}
-
-/// `BackendServiceLocalityLoadBalancingPolicyConfigPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendServiceLocalityLoadBalancingPolicyConfigPolicy {
-    /// name property.
-    pub name: Option<String>,
-}
-
 /// `BackendServiceIAP` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceIAP {
@@ -323,20 +142,111 @@ pub struct BackendServiceIAP {
     pub oauth2_client_secret_sha256: Option<String>,
 }
 
-/// `BackendServiceCdnPolicyNegativeCachingPolicy` type.
+/// `BackendServiceOrchestrationInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendServiceCdnPolicyNegativeCachingPolicy {
-    /// code property.
-    pub code: Option<i64>,
-    /// ttl property.
-    pub ttl: Option<i64>,
+pub struct BackendServiceOrchestrationInfo {
+    /// resourceUri property.
+    pub resource_uri: Option<String>,
 }
 
-/// `Help` type.
+/// `BackendServiceTlsSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
+pub struct BackendServiceTlsSettings {
+    /// authenticationConfig property.
+    pub authentication_config: Option<String>,
+    /// sni property.
+    pub sni: Option<String>,
+    /// subjectAltNames property.
+    pub subject_alt_names: Option<Vec<BackendServiceTlsSettingsSubjectAltName>>,
+}
+
+/// `GetVersionOperationMetadataSbomInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
+}
+
+/// `BackendBackendOrchestrationInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendBackendOrchestrationInfo {
+    /// resourceUri property.
+    pub resource_uri: Option<String>,
+}
+
+/// `QuotaExceededInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuotaExceededInfo {
+    /// dimensions property.
+    pub dimensions: Option<serde_json::Value>,
+    /// futureLimit property.
+    pub future_limit: Option<f64>,
+    /// limit property.
+    pub limit: Option<f64>,
+    /// limitName property.
+    pub limit_name: Option<String>,
+    /// metricName property.
+    pub metric_name: Option<String>,
+    /// rolloutStatus property.
+    pub rollout_status: Option<String>,
+}
+
+/// `BackendServiceCustomMetric` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendServiceCustomMetric {
+    /// dryRun property.
+    pub dry_run: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `AWSV4Signature` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AWSV4Signature {
+    /// accessKey property.
+    pub access_key: Option<String>,
+    /// accessKeyId property.
+    pub access_key_id: Option<String>,
+    /// accessKeyVersion property.
+    pub access_key_version: Option<String>,
+    /// originRegion property.
+    pub origin_region: Option<String>,
+}
+
+/// `ConsistentHashLoadBalancerSettingsHttpCookie` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConsistentHashLoadBalancerSettingsHttpCookie {
+    /// name property.
+    pub name: Option<String>,
+    /// path property.
+    pub path: Option<String>,
+    /// ttl property.
+    pub ttl: Option<Duration>,
+}
+
+/// `BackendServiceHAPolicyLeaderNetworkEndpoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendServiceHAPolicyLeaderNetworkEndpoint {
+    /// instance property.
+    pub instance: Option<String>,
+}
+
+/// `Subsetting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Subsetting {
+    /// policy property.
+    pub policy: Option<String>,
+}
+
+/// `BackendServiceNetworkPassThroughLbTrafficPolicyZonalAffinity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendServiceNetworkPassThroughLbTrafficPolicyZonalAffinity {
+    /// spillover property.
+    pub spillover: Option<String>,
+    /// spilloverRatio property.
+    pub spillover_ratio: Option<f64>,
 }
 
 /// `BackendService` type.
@@ -449,6 +359,17 @@ pub struct BackendService {
     pub used_by: Option<Vec<BackendServiceUsedBy>>,
 }
 
+/// `ErrorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
 /// `Backend` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Backend {
@@ -492,34 +413,83 @@ pub struct Backend {
     pub traffic_duration: Option<String>,
 }
 
-/// `BackendServiceAggregatedList` type.
+/// `BackendServiceLocalityLoadBalancingPolicyConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendServiceAggregatedList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<serde_json::Value>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// unreachables property.
-    pub unreachables: Option<Vec<String>>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+pub struct BackendServiceLocalityLoadBalancingPolicyConfig {
+    /// customPolicy property.
+    pub custom_policy: Option<BackendServiceLocalityLoadBalancingPolicyConfigCustomPolicy>,
+    /// policy property.
+    pub policy: Option<BackendServiceLocalityLoadBalancingPolicyConfigPolicy>,
 }
 
-/// `ErrorInfo` type.
+/// `SecuritySettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
+pub struct SecuritySettings {
+    /// awsV4Authentication property.
+    pub aws_v4_authentication: Option<AWSV4Signature>,
+    /// clientTlsPolicy property.
+    pub client_tls_policy: Option<String>,
+    /// subjectAltNames property.
+    pub subject_alt_names: Option<Vec<String>>,
+}
+
+/// `OutlierDetection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OutlierDetection {
+    /// baseEjectionTime property.
+    pub base_ejection_time: Option<Duration>,
+    /// consecutiveErrors property.
+    pub consecutive_errors: Option<i64>,
+    /// consecutiveGatewayFailure property.
+    pub consecutive_gateway_failure: Option<i64>,
+    /// enforcingConsecutiveErrors property.
+    pub enforcing_consecutive_errors: Option<i64>,
+    /// enforcingConsecutiveGatewayFailure property.
+    pub enforcing_consecutive_gateway_failure: Option<i64>,
+    /// enforcingSuccessRate property.
+    pub enforcing_success_rate: Option<i64>,
+    /// interval property.
+    pub interval: Option<Duration>,
+    /// maxEjectionPercent property.
+    pub max_ejection_percent: Option<i64>,
+    /// successRateMinimumHosts property.
+    pub success_rate_minimum_hosts: Option<i64>,
+    /// successRateRequestVolume property.
+    pub success_rate_request_volume: Option<i64>,
+    /// successRateStdevFactor property.
+    pub success_rate_stdev_factor: Option<i64>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `BackendServiceCdnPolicyBypassCacheOnRequestHeader` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendServiceCdnPolicyBypassCacheOnRequestHeader {
+    /// headerName property.
+    pub header_name: Option<String>,
+}
+
+/// `BackendCustomMetric` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendCustomMetric {
+    /// dryRun property.
+    pub dry_run: Option<bool>,
+    /// maxUtilization property.
+    pub max_utilization: Option<f64>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `BackendServiceParams` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendServiceParams {
+    /// resourceManagerTags property.
+    pub resource_manager_tags: Option<serde_json::Value>,
 }
 
 /// `BackendServiceHttpCookie` type.
@@ -533,11 +503,27 @@ pub struct BackendServiceHttpCookie {
     pub ttl: Option<Duration>,
 }
 
-/// `BackendServiceHAPolicyLeaderNetworkEndpoint` type.
+/// `BackendServiceLocalityLoadBalancingPolicyConfigPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendServiceHAPolicyLeaderNetworkEndpoint {
-    /// instance property.
-    pub instance: Option<String>,
+pub struct BackendServiceLocalityLoadBalancingPolicyConfigPolicy {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `ConnectionDraining` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectionDraining {
+    /// drainingTimeoutSec property.
+    pub draining_timeout_sec: Option<i64>,
+}
+
+/// `HelpLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
 }
 
 /// `BackendServiceConnectionTrackingPolicy` type.
@@ -553,93 +539,13 @@ pub struct BackendServiceConnectionTrackingPolicy {
     pub tracking_mode: Option<String>,
 }
 
-/// `BackendServiceHAPolicy` type.
+/// `BackendServiceCdnPolicyNegativeCachingPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendServiceHAPolicy {
-    /// fastIPMove property.
-    pub fast_ip_move: Option<String>,
-    /// leader property.
-    pub leader: Option<BackendServiceHAPolicyLeader>,
-}
-
-/// `BackendServiceCustomMetric` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendServiceCustomMetric {
-    /// dryRun property.
-    pub dry_run: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `QuotaExceededInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotaExceededInfo {
-    /// dimensions property.
-    pub dimensions: Option<serde_json::Value>,
-    /// futureLimit property.
-    pub future_limit: Option<f64>,
-    /// limit property.
-    pub limit: Option<f64>,
-    /// limitName property.
-    pub limit_name: Option<String>,
-    /// metricName property.
-    pub metric_name: Option<String>,
-    /// rolloutStatus property.
-    pub rollout_status: Option<String>,
-}
-
-/// `SetCommonInstanceMetadataOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetCommonInstanceMetadataOperationMetadata {
-    /// clientOperationId property.
-    pub client_operation_id: Option<String>,
-    /// perLocationOperations property.
-    pub per_location_operations: Option<serde_json::Value>,
-}
-
-/// `InstancesBulkInsertOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
-}
-
-/// `BackendBackendOrchestrationInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendBackendOrchestrationInfo {
-    /// resourceUri property.
-    pub resource_uri: Option<String>,
-}
-
-/// `BackendServiceFailoverPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendServiceFailoverPolicy {
-    /// disableConnectionDrainOnFailover property.
-    pub disable_connection_drain_on_failover: Option<bool>,
-    /// dropTrafficIfUnhealthy property.
-    pub drop_traffic_if_unhealthy: Option<bool>,
-    /// failoverRatio property.
-    pub failover_ratio: Option<f64>,
-}
-
-/// `BackendServiceLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendServiceLogConfig {
-    /// enable property.
-    pub enable: Option<bool>,
-    /// optionalFields property.
-    pub optional_fields: Option<Vec<String>>,
-    /// optionalMode property.
-    pub optional_mode: Option<String>,
-    /// sampleRate property.
-    pub sample_rate: Option<f64>,
-}
-
-/// `BackendServiceCdnPolicyBypassCacheOnRequestHeader` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendServiceCdnPolicyBypassCacheOnRequestHeader {
-    /// headerName property.
-    pub header_name: Option<String>,
+pub struct BackendServiceCdnPolicyNegativeCachingPolicy {
+    /// code property.
+    pub code: Option<i64>,
+    /// ttl property.
+    pub ttl: Option<i64>,
 }
 
 /// `BackendServiceCdnPolicy` type.
@@ -670,6 +576,101 @@ pub struct BackendServiceCdnPolicy {
     pub signed_url_cache_max_age_sec: Option<String>,
     /// signedUrlKeyNames property.
     pub signed_url_key_names: Option<Vec<String>>,
+}
+
+/// `BackendServiceFailoverPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendServiceFailoverPolicy {
+    /// disableConnectionDrainOnFailover property.
+    pub disable_connection_drain_on_failover: Option<bool>,
+    /// dropTrafficIfUnhealthy property.
+    pub drop_traffic_if_unhealthy: Option<bool>,
+    /// failoverRatio property.
+    pub failover_ratio: Option<f64>,
+}
+
+/// `ConsistentHashLoadBalancerSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConsistentHashLoadBalancerSettings {
+    /// httpCookie property.
+    pub http_cookie: Option<ConsistentHashLoadBalancerSettingsHttpCookie>,
+    /// httpHeaderName property.
+    pub http_header_name: Option<String>,
+    /// minimumRingSize property.
+    pub minimum_ring_size: Option<String>,
+}
+
+/// `Duration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Duration {
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<String>,
+}
+
+/// `BackendServiceNetworkPassThroughLbTrafficPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendServiceNetworkPassThroughLbTrafficPolicy {
+    /// zonalAffinity property.
+    pub zonal_affinity: Option<BackendServiceNetworkPassThroughLbTrafficPolicyZonalAffinity>,
+}
+
+/// `BackendServiceHAPolicyLeader` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendServiceHAPolicyLeader {
+    /// backendGroup property.
+    pub backend_group: Option<String>,
+    /// networkEndpoint property.
+    pub network_endpoint: Option<BackendServiceHAPolicyLeaderNetworkEndpoint>,
+}
+
+/// `BackendServiceAggregatedList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendServiceAggregatedList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<serde_json::Value>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// unreachables property.
+    pub unreachables: Option<Vec<String>>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `BackendServiceLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendServiceLogConfig {
+    /// enable property.
+    pub enable: Option<bool>,
+    /// optionalFields property.
+    pub optional_fields: Option<Vec<String>>,
+    /// optionalMode property.
+    pub optional_mode: Option<String>,
+    /// sampleRate property.
+    pub sample_rate: Option<f64>,
+}
+
+/// `BackendServiceUsedBy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendServiceUsedBy {
+    /// reference property.
+    pub reference: Option<String>,
+}
+
+/// `BackendServiceHAPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendServiceHAPolicy {
+    /// fastIPMove property.
+    pub fast_ip_move: Option<String>,
+    /// leader property.
+    pub leader: Option<BackendServiceHAPolicyLeader>,
 }
 
 // =============================================================================

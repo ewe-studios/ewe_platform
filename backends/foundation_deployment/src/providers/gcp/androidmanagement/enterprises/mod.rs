@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,90 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `TermsAndConditions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TermsAndConditions {
-    /// content property.
-    pub content: Option<UserFacingMessage>,
-    /// header property.
-    pub header: Option<UserFacingMessage>,
-}
-
-/// `GenerateEnterpriseUpgradeUrlResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GenerateEnterpriseUpgradeUrlResponse {
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `UserFacingMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserFacingMessage {
-    /// defaultMessage property.
-    pub default_message: Option<String>,
-    /// localizedMessages property.
-    pub localized_messages: Option<serde_json::Value>,
-}
-
-/// `ContactInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContactInfo {
-    /// contactEmail property.
-    pub contact_email: Option<String>,
-    /// dataProtectionOfficerEmail property.
-    pub data_protection_officer_email: Option<String>,
-    /// dataProtectionOfficerName property.
-    pub data_protection_officer_name: Option<String>,
-    /// dataProtectionOfficerPhone property.
-    pub data_protection_officer_phone: Option<String>,
-    /// euRepresentativeEmail property.
-    pub eu_representative_email: Option<String>,
-    /// euRepresentativeName property.
-    pub eu_representative_name: Option<String>,
-    /// euRepresentativePhone property.
-    pub eu_representative_phone: Option<String>,
-}
-
-/// `ListEnterprisesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListEnterprisesResponse {
-    /// enterprises property.
-    pub enterprises: Option<Vec<Enterprise>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `SigninDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SigninDetail {
-    /// allowPersonalUsage property.
-    pub allow_personal_usage: Option<String>,
-    /// defaultStatus property.
-    pub default_status: Option<String>,
-    /// qrCode property.
-    pub qr_code: Option<String>,
-    /// signinEnrollmentToken property.
-    pub signin_enrollment_token: Option<String>,
-    /// signinUrl property.
-    pub signin_url: Option<String>,
-    /// tokenTag property.
-    pub token_tag: Option<String>,
-}
-
-/// `ExternalData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExternalData {
-    /// sha256Hash property.
-    pub sha256_hash: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
 
 /// `Enterprise` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -139,11 +61,90 @@ pub struct Enterprise {
     pub terms_and_conditions: Option<Vec<TermsAndConditions>>,
 }
 
+/// `ListEnterprisesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListEnterprisesResponse {
+    /// enterprises property.
+    pub enterprises: Option<Vec<Enterprise>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `UserFacingMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UserFacingMessage {
+    /// defaultMessage property.
+    pub default_message: Option<String>,
+    /// localizedMessages property.
+    pub localized_messages: Option<serde_json::Value>,
+}
+
+/// `SigninDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SigninDetail {
+    /// allowPersonalUsage property.
+    pub allow_personal_usage: Option<String>,
+    /// defaultStatus property.
+    pub default_status: Option<String>,
+    /// qrCode property.
+    pub qr_code: Option<String>,
+    /// signinEnrollmentToken property.
+    pub signin_enrollment_token: Option<String>,
+    /// signinUrl property.
+    pub signin_url: Option<String>,
+    /// tokenTag property.
+    pub token_tag: Option<String>,
+}
+
+/// `ContactInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContactInfo {
+    /// contactEmail property.
+    pub contact_email: Option<String>,
+    /// dataProtectionOfficerEmail property.
+    pub data_protection_officer_email: Option<String>,
+    /// dataProtectionOfficerName property.
+    pub data_protection_officer_name: Option<String>,
+    /// dataProtectionOfficerPhone property.
+    pub data_protection_officer_phone: Option<String>,
+    /// euRepresentativeEmail property.
+    pub eu_representative_email: Option<String>,
+    /// euRepresentativeName property.
+    pub eu_representative_name: Option<String>,
+    /// euRepresentativePhone property.
+    pub eu_representative_phone: Option<String>,
+}
+
 /// `GoogleAuthenticationSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAuthenticationSettings {
     /// googleAuthenticationRequired property.
     pub google_authentication_required: Option<String>,
+}
+
+/// `GenerateEnterpriseUpgradeUrlResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GenerateEnterpriseUpgradeUrlResponse {
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `ExternalData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExternalData {
+    /// sha256Hash property.
+    pub sha256_hash: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `TermsAndConditions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TermsAndConditions {
+    /// content property.
+    pub content: Option<UserFacingMessage>,
+    /// header property.
+    pub header: Option<UserFacingMessage>,
 }
 
 // =============================================================================

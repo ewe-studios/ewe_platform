@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,19 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudContentwarehouseV1TextTypeOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1TextTypeOptions {}
-
-/// `GoogleCloudContentwarehouseV1MapTypeOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1MapTypeOptions {}
 
 /// `GoogleCloudContentwarehouseV1DocumentSchema` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,27 +42,36 @@ pub struct GoogleCloudContentwarehouseV1DocumentSchema {
     /// name property.
     pub name: Option<String>,
     /// propertyDefinitions property.
-    pub property_definitions: Option<Vec<GoogleCloudContentwarehouseV1PropertyDefinition>>,
+    pub property_definitions: Option<Vec<Box<GoogleCloudContentwarehouseV1PropertyDefinition>>>,
     /// updateTime property.
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudContentwarehouseV1IntegerTypeOptions` type.
+/// `GoogleCloudContentwarehouseV1ListDocumentSchemasResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1IntegerTypeOptions {}
-
-/// `GoogleCloudContentwarehouseV1TimestampTypeOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1TimestampTypeOptions {}
-
-/// `GoogleCloudContentwarehouseV1PropertyDefinitionSchemaSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1PropertyDefinitionSchemaSource {
-    /// name property.
-    pub name: Option<String>,
-    /// processorType property.
-    pub processor_type: Option<String>,
+pub struct GoogleCloudContentwarehouseV1ListDocumentSchemasResponse {
+    /// documentSchemas property.
+    pub document_schemas: Option<Vec<GoogleCloudContentwarehouseV1DocumentSchema>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
+
+/// `GoogleCloudContentwarehouseV1EnumTypeOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1EnumTypeOptions {
+    /// possibleValues property.
+    pub possible_values: Option<Vec<String>>,
+    /// validationCheckDisabled property.
+    pub validation_check_disabled: Option<bool>,
+}
+
+/// `GoogleCloudContentwarehouseV1MapTypeOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1MapTypeOptions {}
+
+/// `GoogleCloudContentwarehouseV1DateTimeTypeOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1DateTimeTypeOptions {}
 
 /// `GoogleCloudContentwarehouseV1PropertyDefinition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -99,7 +101,7 @@ pub struct GoogleCloudContentwarehouseV1PropertyDefinition {
     /// name property.
     pub name: Option<String>,
     /// propertyTypeOptions property.
-    pub property_type_options: Option<GoogleCloudContentwarehouseV1PropertyTypeOptions>,
+    pub property_type_options: Option<Box<GoogleCloudContentwarehouseV1PropertyTypeOptions>>,
     /// retrievalImportance property.
     pub retrieval_importance: Option<String>,
     /// schemaSources property.
@@ -110,38 +112,37 @@ pub struct GoogleCloudContentwarehouseV1PropertyDefinition {
     pub timestamp_type_options: Option<GoogleCloudContentwarehouseV1TimestampTypeOptions>,
 }
 
-/// `GoogleCloudContentwarehouseV1ListDocumentSchemasResponse` type.
+/// `GoogleCloudContentwarehouseV1TextTypeOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1ListDocumentSchemasResponse {
-    /// documentSchemas property.
-    pub document_schemas: Option<Vec<GoogleCloudContentwarehouseV1DocumentSchema>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct GoogleCloudContentwarehouseV1TextTypeOptions {}
+
+/// `GoogleCloudContentwarehouseV1PropertyTypeOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1PropertyTypeOptions {
+    /// propertyDefinitions property.
+    pub property_definitions: Option<Vec<Box<GoogleCloudContentwarehouseV1PropertyDefinition>>>,
 }
 
-/// `GoogleCloudContentwarehouseV1DateTimeTypeOptions` type.
+/// `GoogleCloudContentwarehouseV1TimestampTypeOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1DateTimeTypeOptions {}
+pub struct GoogleCloudContentwarehouseV1TimestampTypeOptions {}
 
-/// `GoogleCloudContentwarehouseV1EnumTypeOptions` type.
+/// `GoogleCloudContentwarehouseV1PropertyDefinitionSchemaSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1EnumTypeOptions {
-    /// possibleValues property.
-    pub possible_values: Option<Vec<String>>,
-    /// validationCheckDisabled property.
-    pub validation_check_disabled: Option<bool>,
+pub struct GoogleCloudContentwarehouseV1PropertyDefinitionSchemaSource {
+    /// name property.
+    pub name: Option<String>,
+    /// processorType property.
+    pub processor_type: Option<String>,
 }
 
 /// `GoogleCloudContentwarehouseV1FloatTypeOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1FloatTypeOptions {}
 
-/// `GoogleCloudContentwarehouseV1PropertyTypeOptions` type.
+/// `GoogleCloudContentwarehouseV1IntegerTypeOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1PropertyTypeOptions {
-    /// propertyDefinitions property.
-    pub property_definitions: Option<Vec<GoogleCloudContentwarehouseV1PropertyDefinition>>,
-}
+pub struct GoogleCloudContentwarehouseV1IntegerTypeOptions {}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

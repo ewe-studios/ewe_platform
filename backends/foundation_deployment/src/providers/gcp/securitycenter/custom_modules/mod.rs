@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,47 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudSecuritycenterV1CustomConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudSecuritycenterV1CustomConfig {
+    /// customOutput property.
+    pub custom_output: Option<GoogleCloudSecuritycenterV1CustomOutputSpec>,
+    /// description property.
+    pub description: Option<String>,
+    /// predicate property.
+    pub predicate: Option<Expr>,
+    /// recommendation property.
+    pub recommendation: Option<String>,
+    /// resourceSelector property.
+    pub resource_selector: Option<GoogleCloudSecuritycenterV1ResourceSelector>,
+    /// severity property.
+    pub severity: Option<String>,
+}
+
+/// `GoogleCloudSecuritycenterV1Property` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudSecuritycenterV1Property {
+    /// name property.
+    pub name: Option<String>,
+    /// valueExpression property.
+    pub value_expression: Option<Expr>,
+}
+
+/// `ListSecurityHealthAnalyticsCustomModulesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListSecurityHealthAnalyticsCustomModulesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// securityHealthAnalyticsCustomModules property.
+    pub security_health_analytics_custom_modules:
+        Option<Vec<GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule>>,
+}
 
 /// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,21 +77,25 @@ pub struct Expr {
     pub title: Option<String>,
 }
 
-/// `GoogleCloudSecuritycenterV1CustomOutputSpec` type.
+/// `GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudSecuritycenterV1CustomOutputSpec {
-    /// properties property.
-    pub properties: Option<Vec<GoogleCloudSecuritycenterV1Property>>,
-}
-
-/// `ListSecurityHealthAnalyticsCustomModulesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSecurityHealthAnalyticsCustomModulesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// securityHealthAnalyticsCustomModules property.
-    pub security_health_analytics_custom_modules:
-        Option<Vec<GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule>>,
+pub struct GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule {
+    /// ancestorModule property.
+    pub ancestor_module: Option<String>,
+    /// cloudProvider property.
+    pub cloud_provider: Option<String>,
+    /// customConfig property.
+    pub custom_config: Option<GoogleCloudSecuritycenterV1CustomConfig>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// enablementState property.
+    pub enablement_state: Option<String>,
+    /// lastEditor property.
+    pub last_editor: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
 }
 
 /// `EventThreatDetectionCustomModule` type.
@@ -82,32 +123,11 @@ pub struct EventThreatDetectionCustomModule {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule` type.
+/// `GoogleCloudSecuritycenterV1CustomOutputSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule {
-    /// ancestorModule property.
-    pub ancestor_module: Option<String>,
-    /// cloudProvider property.
-    pub cloud_provider: Option<String>,
-    /// customConfig property.
-    pub custom_config: Option<GoogleCloudSecuritycenterV1CustomConfig>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// enablementState property.
-    pub enablement_state: Option<String>,
-    /// lastEditor property.
-    pub last_editor: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `GoogleCloudSecuritycenterV1ResourceSelector` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudSecuritycenterV1ResourceSelector {
-    /// resourceTypes property.
-    pub resource_types: Option<Vec<String>>,
+pub struct GoogleCloudSecuritycenterV1CustomOutputSpec {
+    /// properties property.
+    pub properties: Option<Vec<GoogleCloudSecuritycenterV1Property>>,
 }
 
 /// `ListEventThreatDetectionCustomModulesResponse` type.
@@ -119,30 +139,11 @@ pub struct ListEventThreatDetectionCustomModulesResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `GoogleCloudSecuritycenterV1Property` type.
+/// `GoogleCloudSecuritycenterV1ResourceSelector` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudSecuritycenterV1Property {
-    /// name property.
-    pub name: Option<String>,
-    /// valueExpression property.
-    pub value_expression: Option<Expr>,
-}
-
-/// `GoogleCloudSecuritycenterV1CustomConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudSecuritycenterV1CustomConfig {
-    /// customOutput property.
-    pub custom_output: Option<GoogleCloudSecuritycenterV1CustomOutputSpec>,
-    /// description property.
-    pub description: Option<String>,
-    /// predicate property.
-    pub predicate: Option<Expr>,
-    /// recommendation property.
-    pub recommendation: Option<String>,
-    /// resourceSelector property.
-    pub resource_selector: Option<GoogleCloudSecuritycenterV1ResourceSelector>,
-    /// severity property.
-    pub severity: Option<String>,
+pub struct GoogleCloudSecuritycenterV1ResourceSelector {
+    /// resourceTypes property.
+    pub resource_types: Option<Vec<String>>,
 }
 
 // =============================================================================

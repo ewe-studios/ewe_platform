@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,33 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ContactCenterQuota` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContactCenterQuota {
-    /// contactCenterCountLimit property.
-    pub contact_center_count_limit: Option<i64>,
-    /// contactCenterCountSum property.
-    pub contact_center_count_sum: Option<i64>,
-    /// quotas property.
-    pub quotas: Option<Vec<Quota>>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
 
 /// `Quota` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -60,13 +39,15 @@ pub struct Quota {
     pub contact_center_instance_size: Option<String>,
 }
 
-/// `ListLocationsResponse` type.
+/// `ContactCenterQuota` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListLocationsResponse {
-    /// locations property.
-    pub locations: Option<Vec<Location>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct ContactCenterQuota {
+    /// contactCenterCountLimit property.
+    pub contact_center_count_limit: Option<i64>,
+    /// contactCenterCountSum property.
+    pub contact_center_count_sum: Option<i64>,
+    /// quotas property.
+    pub quotas: Option<Vec<Quota>>,
 }
 
 /// `Location` type.
@@ -82,6 +63,26 @@ pub struct Location {
     pub metadata: Option<serde_json::Value>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ListLocationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListLocationsResponse {
+    /// locations property.
+    pub locations: Option<Vec<Location>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

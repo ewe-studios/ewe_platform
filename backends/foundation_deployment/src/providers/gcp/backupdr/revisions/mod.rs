@@ -12,39 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListBackupPlanRevisionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListBackupPlanRevisionsResponse {
-    /// backupPlanRevisions property.
-    pub backup_plan_revisions: Option<Vec<BackupPlanRevision>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `BackupRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupRule {
-    /// backupRetentionDays property.
-    pub backup_retention_days: Option<i64>,
-    /// ruleId property.
-    pub rule_id: Option<String>,
-    /// standardSchedule property.
-    pub standard_schedule: Option<StandardSchedule>,
-}
 
 /// `BackupPlanRevision` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -61,9 +40,9 @@ pub struct BackupPlanRevision {
     pub state: Option<String>,
 }
 
-/// `DiskBackupPlanProperties` type.
+/// `ComputeInstanceBackupPlanProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskBackupPlanProperties {
+pub struct ComputeInstanceBackupPlanProperties {
     /// guestFlush property.
     pub guest_flush: Option<bool>,
 }
@@ -89,20 +68,15 @@ pub struct StandardSchedule {
     pub week_day_of_month: Option<WeekDayOfMonth>,
 }
 
-/// `WeekDayOfMonth` type.
+/// `ListBackupPlanRevisionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WeekDayOfMonth {
-    /// dayOfWeek property.
-    pub day_of_week: Option<String>,
-    /// weekOfMonth property.
-    pub week_of_month: Option<String>,
-}
-
-/// `ComputeInstanceBackupPlanProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeInstanceBackupPlanProperties {
-    /// guestFlush property.
-    pub guest_flush: Option<bool>,
+pub struct ListBackupPlanRevisionsResponse {
+    /// backupPlanRevisions property.
+    pub backup_plan_revisions: Option<Vec<BackupPlanRevision>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `BackupWindow` type.
@@ -112,6 +86,17 @@ pub struct BackupWindow {
     pub end_hour_of_day: Option<i64>,
     /// startHourOfDay property.
     pub start_hour_of_day: Option<i64>,
+}
+
+/// `BackupRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupRule {
+    /// backupRetentionDays property.
+    pub backup_retention_days: Option<i64>,
+    /// ruleId property.
+    pub rule_id: Option<String>,
+    /// standardSchedule property.
+    pub standard_schedule: Option<StandardSchedule>,
 }
 
 /// `BackupPlan` type.
@@ -153,6 +138,22 @@ pub struct BackupPlan {
     pub supported_resource_types: Option<Vec<String>>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `DiskBackupPlanProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskBackupPlanProperties {
+    /// guestFlush property.
+    pub guest_flush: Option<bool>,
+}
+
+/// `WeekDayOfMonth` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WeekDayOfMonth {
+    /// dayOfWeek property.
+    pub day_of_week: Option<String>,
+    /// weekOfMonth property.
+    pub week_of_month: Option<String>,
 }
 
 // =============================================================================

@@ -12,17 +12,31 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `OtherRegionsSubscriptionOfferPhaseFreePriceOverride` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OtherRegionsSubscriptionOfferPhaseFreePriceOverride {}
+
+/// `ListSubscriptionOffersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListSubscriptionOffersResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// subscriptionOffers property.
+    pub subscription_offers: Option<Vec<SubscriptionOffer>>,
+}
 
 /// `OneTimeProductPreOrderOffer` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -37,33 +51,152 @@ pub struct OneTimeProductPreOrderOffer {
     pub start_time: Option<String>,
 }
 
-/// `SubscriptionOfferPhase` type.
+/// `OneTimeProductOfferRegionalPricingAndAvailabilityConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubscriptionOfferPhase {
-    /// duration property.
-    pub duration: Option<String>,
+pub struct OneTimeProductOfferRegionalPricingAndAvailabilityConfig {
+    /// absoluteDiscount property.
+    pub absolute_discount: Option<Money>,
+    /// availability property.
+    pub availability: Option<String>,
+    /// noOverride property.
+    pub no_override: Option<OneTimeProductOfferNoPriceOverrideOptions>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+    /// relativeDiscount property.
+    pub relative_discount: Option<f64>,
+}
+
+/// `TargetingRuleScopeThisSubscription` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TargetingRuleScopeThisSubscription {}
+
+/// `OneTimeProductOfferNoPriceOverrideOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OneTimeProductOfferNoPriceOverrideOptions {}
+
+/// `OtherRegionsSubscriptionOfferConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OtherRegionsSubscriptionOfferConfig {
+    /// otherRegionsNewSubscriberAvailability property.
+    pub other_regions_new_subscriber_availability: Option<bool>,
+}
+
+/// `TargetingRuleScope` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TargetingRuleScope {
+    /// anySubscriptionInApp property.
+    pub any_subscription_in_app: Option<TargetingRuleScopeAnySubscriptionInApp>,
+    /// specificSubscriptionInApp property.
+    pub specific_subscription_in_app: Option<String>,
+    /// thisSubscription property.
+    pub this_subscription: Option<TargetingRuleScopeThisSubscription>,
+}
+
+/// `TargetingRuleScopeAnySubscriptionInApp` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TargetingRuleScopeAnySubscriptionInApp {}
+
+/// `OneTimeProductDiscountedOffer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OneTimeProductDiscountedOffer {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// redemptionLimit property.
+    pub redemption_limit: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `SubscriptionOffer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SubscriptionOffer {
+    /// basePlanId property.
+    pub base_plan_id: Option<String>,
+    /// offerId property.
+    pub offer_id: Option<String>,
+    /// offerTags property.
+    pub offer_tags: Option<Vec<OfferTag>>,
     /// otherRegionsConfig property.
-    pub other_regions_config: Option<OtherRegionsSubscriptionOfferPhaseConfig>,
-    /// recurrenceCount property.
-    pub recurrence_count: Option<i64>,
+    pub other_regions_config: Option<OtherRegionsSubscriptionOfferConfig>,
+    /// packageName property.
+    pub package_name: Option<String>,
+    /// phases property.
+    pub phases: Option<Vec<SubscriptionOfferPhase>>,
+    /// productId property.
+    pub product_id: Option<String>,
     /// regionalConfigs property.
-    pub regional_configs: Option<Vec<RegionalSubscriptionOfferPhaseConfig>>,
+    pub regional_configs: Option<Vec<RegionalSubscriptionOfferConfig>>,
+    /// state property.
+    pub state: Option<String>,
+    /// targeting property.
+    pub targeting: Option<SubscriptionOfferTargeting>,
 }
 
-/// `SubscriptionOfferTargeting` type.
+/// `RegionsVersion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubscriptionOfferTargeting {
-    /// acquisitionRule property.
-    pub acquisition_rule: Option<AcquisitionTargetingRule>,
-    /// upgradeRule property.
-    pub upgrade_rule: Option<UpgradeTargetingRule>,
+pub struct RegionsVersion {
+    /// version property.
+    pub version: Option<String>,
 }
 
-/// `OfferTag` type.
+/// `AcquisitionTargetingRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OfferTag {
-    /// tag property.
-    pub tag: Option<String>,
+pub struct AcquisitionTargetingRule {
+    /// scope property.
+    pub scope: Option<TargetingRuleScope>,
+}
+
+/// `RegionalSubscriptionOfferConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegionalSubscriptionOfferConfig {
+    /// newSubscriberAvailability property.
+    pub new_subscriber_availability: Option<bool>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+}
+
+/// `OtherRegionsSubscriptionOfferPhaseConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OtherRegionsSubscriptionOfferPhaseConfig {
+    /// absoluteDiscounts property.
+    pub absolute_discounts: Option<OtherRegionsSubscriptionOfferPhasePrices>,
+    /// free property.
+    pub free: Option<OtherRegionsSubscriptionOfferPhaseFreePriceOverride>,
+    /// otherRegionsPrices property.
+    pub other_regions_prices: Option<OtherRegionsSubscriptionOfferPhasePrices>,
+    /// relativeDiscount property.
+    pub relative_discount: Option<f64>,
+}
+
+/// `ListOneTimeProductOffersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListOneTimeProductOffersResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// oneTimeProductOffers property.
+    pub one_time_product_offers: Option<Vec<OneTimeProductOffer>>,
+}
+
+/// `UpgradeTargetingRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpgradeTargetingRule {
+    /// billingPeriodDuration property.
+    pub billing_period_duration: Option<String>,
+    /// oncePerUser property.
+    pub once_per_user: Option<bool>,
+    /// scope property.
+    pub scope: Option<TargetingRuleScope>,
+}
+
+/// `Money` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Money {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// units property.
+    pub units: Option<String>,
 }
 
 /// `OneTimeProductOffer` type.
@@ -92,170 +225,37 @@ pub struct OneTimeProductOffer {
     pub state: Option<String>,
 }
 
-/// `OtherRegionsSubscriptionOfferConfig` type.
+/// `SubscriptionOfferPhase` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OtherRegionsSubscriptionOfferConfig {
-    /// otherRegionsNewSubscriberAvailability property.
-    pub other_regions_new_subscriber_availability: Option<bool>,
-}
-
-/// `ListSubscriptionOffersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSubscriptionOffersResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// subscriptionOffers property.
-    pub subscription_offers: Option<Vec<SubscriptionOffer>>,
-}
-
-/// `SubscriptionOffer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubscriptionOffer {
-    /// basePlanId property.
-    pub base_plan_id: Option<String>,
-    /// offerId property.
-    pub offer_id: Option<String>,
-    /// offerTags property.
-    pub offer_tags: Option<Vec<OfferTag>>,
+pub struct SubscriptionOfferPhase {
+    /// duration property.
+    pub duration: Option<String>,
     /// otherRegionsConfig property.
-    pub other_regions_config: Option<OtherRegionsSubscriptionOfferConfig>,
-    /// packageName property.
-    pub package_name: Option<String>,
-    /// phases property.
-    pub phases: Option<Vec<SubscriptionOfferPhase>>,
-    /// productId property.
-    pub product_id: Option<String>,
+    pub other_regions_config: Option<OtherRegionsSubscriptionOfferPhaseConfig>,
+    /// recurrenceCount property.
+    pub recurrence_count: Option<i64>,
     /// regionalConfigs property.
-    pub regional_configs: Option<Vec<RegionalSubscriptionOfferConfig>>,
-    /// state property.
-    pub state: Option<String>,
-    /// targeting property.
-    pub targeting: Option<SubscriptionOfferTargeting>,
+    pub regional_configs: Option<Vec<RegionalSubscriptionOfferPhaseConfig>>,
 }
 
-/// `OneTimeProductOfferRegionalPricingAndAvailabilityConfig` type.
+/// `OfferTag` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OneTimeProductOfferRegionalPricingAndAvailabilityConfig {
-    /// absoluteDiscount property.
-    pub absolute_discount: Option<Money>,
-    /// availability property.
-    pub availability: Option<String>,
-    /// noOverride property.
-    pub no_override: Option<OneTimeProductOfferNoPriceOverrideOptions>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-    /// relativeDiscount property.
-    pub relative_discount: Option<f64>,
+pub struct OfferTag {
+    /// tag property.
+    pub tag: Option<String>,
 }
-
-/// `UpgradeTargetingRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpgradeTargetingRule {
-    /// billingPeriodDuration property.
-    pub billing_period_duration: Option<String>,
-    /// oncePerUser property.
-    pub once_per_user: Option<bool>,
-    /// scope property.
-    pub scope: Option<TargetingRuleScope>,
-}
-
-/// `TargetingRuleScopeAnySubscriptionInApp` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TargetingRuleScopeAnySubscriptionInApp {}
-
-/// `OtherRegionsSubscriptionOfferPhaseConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OtherRegionsSubscriptionOfferPhaseConfig {
-    /// absoluteDiscounts property.
-    pub absolute_discounts: Option<OtherRegionsSubscriptionOfferPhasePrices>,
-    /// free property.
-    pub free: Option<OtherRegionsSubscriptionOfferPhaseFreePriceOverride>,
-    /// otherRegionsPrices property.
-    pub other_regions_prices: Option<OtherRegionsSubscriptionOfferPhasePrices>,
-    /// relativeDiscount property.
-    pub relative_discount: Option<f64>,
-}
-
-/// `AcquisitionTargetingRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcquisitionTargetingRule {
-    /// scope property.
-    pub scope: Option<TargetingRuleScope>,
-}
-
-/// `TargetingRuleScope` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TargetingRuleScope {
-    /// anySubscriptionInApp property.
-    pub any_subscription_in_app: Option<TargetingRuleScopeAnySubscriptionInApp>,
-    /// specificSubscriptionInApp property.
-    pub specific_subscription_in_app: Option<String>,
-    /// thisSubscription property.
-    pub this_subscription: Option<TargetingRuleScopeThisSubscription>,
-}
-
-/// `OneTimeProductOfferNoPriceOverrideOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OneTimeProductOfferNoPriceOverrideOptions {}
 
 /// `RegionalSubscriptionOfferPhaseFreePriceOverride` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionalSubscriptionOfferPhaseFreePriceOverride {}
 
-/// `OtherRegionsSubscriptionOfferPhasePrices` type.
+/// `SubscriptionOfferTargeting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OtherRegionsSubscriptionOfferPhasePrices {
-    /// eurPrice property.
-    pub eur_price: Option<Money>,
-    /// usdPrice property.
-    pub usd_price: Option<Money>,
-}
-
-/// `ListOneTimeProductOffersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListOneTimeProductOffersResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// oneTimeProductOffers property.
-    pub one_time_product_offers: Option<Vec<OneTimeProductOffer>>,
-}
-
-/// `RegionalSubscriptionOfferConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegionalSubscriptionOfferConfig {
-    /// newSubscriberAvailability property.
-    pub new_subscriber_availability: Option<bool>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-}
-
-/// `RegionsVersion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegionsVersion {
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `OneTimeProductDiscountedOffer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OneTimeProductDiscountedOffer {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// redemptionLimit property.
-    pub redemption_limit: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `Money` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Money {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// units property.
-    pub units: Option<String>,
+pub struct SubscriptionOfferTargeting {
+    /// acquisitionRule property.
+    pub acquisition_rule: Option<AcquisitionTargetingRule>,
+    /// upgradeRule property.
+    pub upgrade_rule: Option<UpgradeTargetingRule>,
 }
 
 /// `RegionalSubscriptionOfferPhaseConfig` type.
@@ -273,13 +273,14 @@ pub struct RegionalSubscriptionOfferPhaseConfig {
     pub relative_discount: Option<f64>,
 }
 
-/// `OtherRegionsSubscriptionOfferPhaseFreePriceOverride` type.
+/// `OtherRegionsSubscriptionOfferPhasePrices` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OtherRegionsSubscriptionOfferPhaseFreePriceOverride {}
-
-/// `TargetingRuleScopeThisSubscription` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TargetingRuleScopeThisSubscription {}
+pub struct OtherRegionsSubscriptionOfferPhasePrices {
+    /// eurPrice property.
+    pub eur_price: Option<Money>,
+    /// usdPrice property.
+    pub usd_price: Option<Money>,
+}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

@@ -12,55 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Filters` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Filters {
-    /// items property.
-    pub items: Option<Vec<Filter>>,
-    /// itemsPerPage property.
-    pub items_per_page: Option<i64>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextLink property.
-    pub next_link: Option<String>,
-    /// previousLink property.
-    pub previous_link: Option<String>,
-    /// startIndex property.
-    pub start_index: Option<i64>,
-    /// totalResults property.
-    pub total_results: Option<i64>,
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `FilterExpression` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FilterExpression {
-    /// caseSensitive property.
-    pub case_sensitive: Option<bool>,
-    /// expressionValue property.
-    pub expression_value: Option<String>,
-    /// field property.
-    pub field: Option<String>,
-    /// fieldIndex property.
-    pub field_index: Option<i64>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// matchType property.
-    pub match_type: Option<String>,
-}
 
 /// `Filter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -95,6 +58,44 @@ pub struct Filter {
     pub updated: Option<String>,
     /// uppercaseDetails property.
     pub uppercase_details: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `FilterExpression` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FilterExpression {
+    /// caseSensitive property.
+    pub case_sensitive: Option<bool>,
+    /// expressionValue property.
+    pub expression_value: Option<String>,
+    /// field property.
+    pub field: Option<String>,
+    /// fieldIndex property.
+    pub field_index: Option<i64>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// matchType property.
+    pub match_type: Option<String>,
+}
+
+/// `Filters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Filters {
+    /// items property.
+    pub items: Option<Vec<Filter>>,
+    /// itemsPerPage property.
+    pub items_per_page: Option<i64>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextLink property.
+    pub next_link: Option<String>,
+    /// previousLink property.
+    pub previous_link: Option<String>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+    /// totalResults property.
+    pub total_results: Option<i64>,
+    /// username property.
+    pub username: Option<String>,
 }
 
 // =============================================================================

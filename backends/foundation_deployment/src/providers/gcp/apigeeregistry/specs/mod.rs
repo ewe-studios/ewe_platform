@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -24,7 +25,7 @@ use super::shared::HttpBody;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -39,13 +40,15 @@ pub struct ListApiSpecsResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `ListApiSpecRevisionsResponse` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListApiSpecRevisionsResponse {
-    /// apiSpecs property.
-    pub api_specs: Option<Vec<ApiSpec>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `ApiSpec` type.
@@ -81,15 +84,13 @@ pub struct ApiSpec {
     pub source_uri: Option<String>,
 }
 
-/// `Binding` type.
+/// `ListApiSpecRevisionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct ListApiSpecRevisionsResponse {
+    /// apiSpecs property.
+    pub api_specs: Option<Vec<ApiSpec>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `Expr` type.

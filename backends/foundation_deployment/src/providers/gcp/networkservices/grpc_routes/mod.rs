@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,66 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GrpcRouteRouteAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GrpcRouteRouteAction {
+    /// destinations property.
+    pub destinations: Option<Vec<GrpcRouteDestination>>,
+    /// faultInjectionPolicy property.
+    pub fault_injection_policy: Option<GrpcRouteFaultInjectionPolicy>,
+    /// idleTimeout property.
+    pub idle_timeout: Option<String>,
+    /// retryPolicy property.
+    pub retry_policy: Option<GrpcRouteRetryPolicy>,
+    /// statefulSessionAffinity property.
+    pub stateful_session_affinity: Option<GrpcRouteStatefulSessionAffinityPolicy>,
+    /// timeout property.
+    pub timeout: Option<String>,
+}
+
+/// `GrpcRouteHeaderMatch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GrpcRouteHeaderMatch {
+    /// key property.
+    pub key: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GrpcRouteDestination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GrpcRouteDestination {
+    /// serviceName property.
+    pub service_name: Option<String>,
+    /// weight property.
+    pub weight: Option<i64>,
+}
+
+/// `GrpcRouteFaultInjectionPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GrpcRouteFaultInjectionPolicy {
+    /// abort property.
+    pub abort: Option<GrpcRouteFaultInjectionPolicyAbort>,
+    /// delay property.
+    pub delay: Option<GrpcRouteFaultInjectionPolicyDelay>,
+}
+
+/// `GrpcRouteRetryPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GrpcRouteRetryPolicy {
+    /// numRetries property.
+    pub num_retries: Option<i64>,
+    /// retryConditions property.
+    pub retry_conditions: Option<Vec<String>>,
+}
 
 /// `GrpcRouteRouteRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -34,6 +90,26 @@ pub struct GrpcRouteRouteRule {
     pub action: Option<GrpcRouteRouteAction>,
     /// matches property.
     pub matches: Option<Vec<GrpcRouteRouteMatch>>,
+}
+
+/// `ListGrpcRoutesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListGrpcRoutesResponse {
+    /// grpcRoutes property.
+    pub grpc_routes: Option<Vec<GrpcRoute>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `GrpcRouteRouteMatch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GrpcRouteRouteMatch {
+    /// headers property.
+    pub headers: Option<Vec<GrpcRouteHeaderMatch>>,
+    /// method property.
+    pub method: Option<GrpcRouteMethodMatch>,
 }
 
 /// `GrpcRoute` type.
@@ -61,88 +137,13 @@ pub struct GrpcRoute {
     pub update_time: Option<String>,
 }
 
-/// `GrpcRouteRetryPolicy` type.
+/// `GrpcRouteFaultInjectionPolicyAbort` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GrpcRouteRetryPolicy {
-    /// numRetries property.
-    pub num_retries: Option<i64>,
-    /// retryConditions property.
-    pub retry_conditions: Option<Vec<String>>,
-}
-
-/// `GrpcRouteHeaderMatch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GrpcRouteHeaderMatch {
-    /// key property.
-    pub key: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `GrpcRouteStatefulSessionAffinityPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GrpcRouteStatefulSessionAffinityPolicy {
-    /// cookieTtl property.
-    pub cookie_ttl: Option<String>,
-}
-
-/// `ListGrpcRoutesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListGrpcRoutesResponse {
-    /// grpcRoutes property.
-    pub grpc_routes: Option<Vec<GrpcRoute>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GrpcRouteDestination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GrpcRouteDestination {
-    /// serviceName property.
-    pub service_name: Option<String>,
-    /// weight property.
-    pub weight: Option<i64>,
-}
-
-/// `GrpcRouteFaultInjectionPolicyDelay` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GrpcRouteFaultInjectionPolicyDelay {
-    /// fixedDelay property.
-    pub fixed_delay: Option<String>,
+pub struct GrpcRouteFaultInjectionPolicyAbort {
+    /// httpStatus property.
+    pub http_status: Option<i64>,
     /// percentage property.
     pub percentage: Option<i64>,
-}
-
-/// `GrpcRouteRouteAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GrpcRouteRouteAction {
-    /// destinations property.
-    pub destinations: Option<Vec<GrpcRouteDestination>>,
-    /// faultInjectionPolicy property.
-    pub fault_injection_policy: Option<GrpcRouteFaultInjectionPolicy>,
-    /// idleTimeout property.
-    pub idle_timeout: Option<String>,
-    /// retryPolicy property.
-    pub retry_policy: Option<GrpcRouteRetryPolicy>,
-    /// statefulSessionAffinity property.
-    pub stateful_session_affinity: Option<GrpcRouteStatefulSessionAffinityPolicy>,
-    /// timeout property.
-    pub timeout: Option<String>,
 }
 
 /// `GrpcRouteMethodMatch` type.
@@ -158,29 +159,29 @@ pub struct GrpcRouteMethodMatch {
     pub r#type: Option<String>,
 }
 
-/// `GrpcRouteFaultInjectionPolicy` type.
+/// `GrpcRouteStatefulSessionAffinityPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GrpcRouteFaultInjectionPolicy {
-    /// abort property.
-    pub abort: Option<GrpcRouteFaultInjectionPolicyAbort>,
-    /// delay property.
-    pub delay: Option<GrpcRouteFaultInjectionPolicyDelay>,
+pub struct GrpcRouteStatefulSessionAffinityPolicy {
+    /// cookieTtl property.
+    pub cookie_ttl: Option<String>,
 }
 
-/// `GrpcRouteRouteMatch` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GrpcRouteRouteMatch {
-    /// headers property.
-    pub headers: Option<Vec<GrpcRouteHeaderMatch>>,
-    /// method property.
-    pub method: Option<GrpcRouteMethodMatch>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
-/// `GrpcRouteFaultInjectionPolicyAbort` type.
+/// `GrpcRouteFaultInjectionPolicyDelay` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GrpcRouteFaultInjectionPolicyAbort {
-    /// httpStatus property.
-    pub http_status: Option<i64>,
+pub struct GrpcRouteFaultInjectionPolicyDelay {
+    /// fixedDelay property.
+    pub fixed_delay: Option<String>,
     /// percentage property.
     pub percentage: Option<i64>,
 }

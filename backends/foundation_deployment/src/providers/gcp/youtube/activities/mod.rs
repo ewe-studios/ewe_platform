@@ -12,76 +12,38 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ActivityContentDetailsLike` type.
+/// `ActivitySnippet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActivityContentDetailsLike {
-    /// resourceId property.
-    pub resource_id: Option<ResourceId>,
-}
-
-/// `Activity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Activity {
-    /// contentDetails property.
-    pub content_details: Option<ActivityContentDetails>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// snippet property.
-    pub snippet: Option<ActivitySnippet>,
-}
-
-/// `ActivityContentDetailsComment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActivityContentDetailsComment {
-    /// resourceId property.
-    pub resource_id: Option<ResourceId>,
-}
-
-/// `ActivityContentDetailsSubscription` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActivityContentDetailsSubscription {
-    /// resourceId property.
-    pub resource_id: Option<ResourceId>,
-}
-
-/// `ResourceId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceId {
+pub struct ActivitySnippet {
     /// channelId property.
     pub channel_id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// playlistId property.
-    pub playlist_id: Option<String>,
-    /// videoId property.
-    pub video_id: Option<String>,
-}
-
-/// `ActivityContentDetailsRecommendation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActivityContentDetailsRecommendation {
-    /// reason property.
-    pub reason: Option<String>,
-    /// resourceId property.
-    pub resource_id: Option<ResourceId>,
-    /// seedResourceId property.
-    pub seed_resource_id: Option<ResourceId>,
+    /// channelTitle property.
+    pub channel_title: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// groupId property.
+    pub group_id: Option<String>,
+    /// publishedAt property.
+    pub published_at: Option<String>,
+    /// thumbnails property.
+    pub thumbnails: Option<ThumbnailDetails>,
+    /// title property.
+    pub title: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `ThumbnailDetails` type.
@@ -99,22 +61,50 @@ pub struct ThumbnailDetails {
     pub standard: Option<Thumbnail>,
 }
 
-/// `ActivityContentDetailsPlaylistItem` type.
+/// `ActivityContentDetailsChannelItem` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActivityContentDetailsPlaylistItem {
-    /// playlistId property.
-    pub playlist_id: Option<String>,
-    /// playlistItemId property.
-    pub playlist_item_id: Option<String>,
+pub struct ActivityContentDetailsChannelItem {
     /// resourceId property.
     pub resource_id: Option<ResourceId>,
 }
 
-/// `ActivityContentDetailsUpload` type.
+/// `Thumbnail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActivityContentDetailsUpload {
-    /// videoId property.
-    pub video_id: Option<String>,
+pub struct Thumbnail {
+    /// height property.
+    pub height: Option<i64>,
+    /// url property.
+    pub url: Option<String>,
+    /// width property.
+    pub width: Option<i64>,
+}
+
+/// `ActivityContentDetailsComment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActivityContentDetailsComment {
+    /// resourceId property.
+    pub resource_id: Option<ResourceId>,
+}
+
+/// `ActivityContentDetailsFavorite` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActivityContentDetailsFavorite {
+    /// resourceId property.
+    pub resource_id: Option<ResourceId>,
+}
+
+/// `ActivityContentDetailsLike` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActivityContentDetailsLike {
+    /// resourceId property.
+    pub resource_id: Option<ResourceId>,
+}
+
+/// `ActivityContentDetailsSubscription` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActivityContentDetailsSubscription {
+    /// resourceId property.
+    pub resource_id: Option<ResourceId>,
 }
 
 /// `PageInfo` type.
@@ -124,36 +114,6 @@ pub struct PageInfo {
     pub results_per_page: Option<i64>,
     /// totalResults property.
     pub total_results: Option<i64>,
-}
-
-/// `ActivityListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActivityListResponse {
-    /// etag property.
-    pub etag: Option<String>,
-    /// eventId property.
-    pub event_id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<Activity>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// pageInfo property.
-    pub page_info: Option<PageInfo>,
-    /// prevPageToken property.
-    pub prev_page_token: Option<String>,
-    /// tokenPagination property.
-    pub token_pagination: Option<TokenPagination>,
-    /// visitorId property.
-    pub visitor_id: Option<String>,
-}
-
-/// `ActivityContentDetailsBulletin` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActivityContentDetailsBulletin {
-    /// resourceId property.
-    pub resource_id: Option<ResourceId>,
 }
 
 /// `ActivityContentDetails` type.
@@ -183,51 +143,80 @@ pub struct ActivityContentDetails {
     pub upload: Option<ActivityContentDetailsUpload>,
 }
 
-/// `ActivitySnippet` type.
+/// `ActivityListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActivitySnippet {
+pub struct ActivityListResponse {
+    /// etag property.
+    pub etag: Option<String>,
+    /// eventId property.
+    pub event_id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<Activity>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// pageInfo property.
+    pub page_info: Option<PageInfo>,
+    /// prevPageToken property.
+    pub prev_page_token: Option<String>,
+    /// tokenPagination property.
+    pub token_pagination: Option<TokenPagination>,
+    /// visitorId property.
+    pub visitor_id: Option<String>,
+}
+
+/// `ResourceId` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceId {
     /// channelId property.
     pub channel_id: Option<String>,
-    /// channelTitle property.
-    pub channel_title: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// groupId property.
-    pub group_id: Option<String>,
-    /// publishedAt property.
-    pub published_at: Option<String>,
-    /// thumbnails property.
-    pub thumbnails: Option<ThumbnailDetails>,
-    /// title property.
-    pub title: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// playlistId property.
+    pub playlist_id: Option<String>,
+    /// videoId property.
+    pub video_id: Option<String>,
 }
 
-/// `Thumbnail` type.
+/// `ActivityContentDetailsBulletin` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Thumbnail {
-    /// height property.
-    pub height: Option<i64>,
-    /// url property.
-    pub url: Option<String>,
-    /// width property.
-    pub width: Option<i64>,
-}
-
-/// `ActivityContentDetailsSocial` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActivityContentDetailsSocial {
-    /// author property.
-    pub author: Option<String>,
-    /// imageUrl property.
-    pub image_url: Option<String>,
-    /// referenceUrl property.
-    pub reference_url: Option<String>,
+pub struct ActivityContentDetailsBulletin {
     /// resourceId property.
     pub resource_id: Option<ResourceId>,
-    /// type property.
-    pub r#type: Option<String>,
+}
+
+/// `Activity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Activity {
+    /// contentDetails property.
+    pub content_details: Option<ActivityContentDetails>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// snippet property.
+    pub snippet: Option<ActivitySnippet>,
+}
+
+/// `ActivityContentDetailsPlaylistItem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActivityContentDetailsPlaylistItem {
+    /// playlistId property.
+    pub playlist_id: Option<String>,
+    /// playlistItemId property.
+    pub playlist_item_id: Option<String>,
+    /// resourceId property.
+    pub resource_id: Option<ResourceId>,
+}
+
+/// `ActivityContentDetailsUpload` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActivityContentDetailsUpload {
+    /// videoId property.
+    pub video_id: Option<String>,
 }
 
 /// `TokenPagination` type.
@@ -259,18 +248,30 @@ pub struct ActivityContentDetailsPromotedItem {
     pub video_id: Option<String>,
 }
 
-/// `ActivityContentDetailsFavorite` type.
+/// `ActivityContentDetailsSocial` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActivityContentDetailsFavorite {
+pub struct ActivityContentDetailsSocial {
+    /// author property.
+    pub author: Option<String>,
+    /// imageUrl property.
+    pub image_url: Option<String>,
+    /// referenceUrl property.
+    pub reference_url: Option<String>,
     /// resourceId property.
     pub resource_id: Option<ResourceId>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
-/// `ActivityContentDetailsChannelItem` type.
+/// `ActivityContentDetailsRecommendation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActivityContentDetailsChannelItem {
+pub struct ActivityContentDetailsRecommendation {
+    /// reason property.
+    pub reason: Option<String>,
     /// resourceId property.
     pub resource_id: Option<ResourceId>,
+    /// seedResourceId property.
+    pub seed_resource_id: Option<ResourceId>,
 }
 
 // =============================================================================

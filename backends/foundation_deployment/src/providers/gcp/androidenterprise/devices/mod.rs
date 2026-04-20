@@ -12,17 +12,40 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::ManagedConfiguration;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ManagedProperty` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedProperty {
+    /// key property.
+    pub key: Option<String>,
+    /// valueBool property.
+    pub value_bool: Option<bool>,
+    /// valueBundle property.
+    pub value_bundle: Option<Box<ManagedPropertyBundle>>,
+    /// valueBundleArray property.
+    pub value_bundle_array: Option<Vec<Box<ManagedPropertyBundle>>>,
+    /// valueInteger property.
+    pub value_integer: Option<i64>,
+    /// valueString property.
+    pub value_string: Option<String>,
+    /// valueStringArray property.
+    pub value_string_array: Option<Vec<String>>,
+}
 
 /// `AutoInstallConstraint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -39,150 +62,7 @@ pub struct AutoInstallConstraint {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedPropertyBundle {
     /// managedProperty property.
-    pub managed_property: Option<Vec<ManagedProperty>>,
-}
-
-/// `DeviceReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceReport {
-    /// appState property.
-    pub app_state: Option<Vec<AppState>>,
-    /// lastUpdatedTimestampMillis property.
-    pub last_updated_timestamp_millis: Option<String>,
-}
-
-/// `AppState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppState {
-    /// keyedAppState property.
-    pub keyed_app_state: Option<Vec<KeyedAppState>>,
-    /// packageName property.
-    pub package_name: Option<String>,
-}
-
-/// `MaintenanceWindow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaintenanceWindow {
-    /// durationMs property.
-    pub duration_ms: Option<String>,
-    /// startTimeAfterMidnightMs property.
-    pub start_time_after_midnight_ms: Option<String>,
-}
-
-/// `ManagedProperty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedProperty {
-    /// key property.
-    pub key: Option<String>,
-    /// valueBool property.
-    pub value_bool: Option<bool>,
-    /// valueBundle property.
-    pub value_bundle: Option<ManagedPropertyBundle>,
-    /// valueBundleArray property.
-    pub value_bundle_array: Option<Vec<ManagedPropertyBundle>>,
-    /// valueInteger property.
-    pub value_integer: Option<i64>,
-    /// valueString property.
-    pub value_string: Option<String>,
-    /// valueStringArray property.
-    pub value_string_array: Option<Vec<String>>,
-}
-
-/// `AutoInstallPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoInstallPolicy {
-    /// autoInstallConstraint property.
-    pub auto_install_constraint: Option<Vec<AutoInstallConstraint>>,
-    /// autoInstallMode property.
-    pub auto_install_mode: Option<String>,
-    /// autoInstallPriority property.
-    pub auto_install_priority: Option<i64>,
-    /// minimumVersionCode property.
-    pub minimum_version_code: Option<i64>,
-}
-
-/// `KeyedAppState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KeyedAppState {
-    /// data property.
-    pub data: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// severity property.
-    pub severity: Option<String>,
-    /// stateTimestampMillis property.
-    pub state_timestamp_millis: Option<String>,
-}
-
-/// `ProductPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductPolicy {
-    /// autoInstallPolicy property.
-    pub auto_install_policy: Option<AutoInstallPolicy>,
-    /// autoUpdateMode property.
-    pub auto_update_mode: Option<String>,
-    /// enterpriseAuthenticationAppLinkConfigs property.
-    pub enterprise_authentication_app_link_configs:
-        Option<Vec<EnterpriseAuthenticationAppLinkConfig>>,
-    /// managedConfiguration property.
-    pub managed_configuration: Option<ManagedConfiguration>,
-    /// productId property.
-    pub product_id: Option<String>,
-    /// trackIds property.
-    pub track_ids: Option<Vec<String>>,
-    /// tracks property.
-    pub tracks: Option<Vec<String>>,
-}
-
-/// `Policy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Policy {
-    /// autoUpdatePolicy property.
-    pub auto_update_policy: Option<String>,
-    /// deviceReportPolicy property.
-    pub device_report_policy: Option<String>,
-    /// maintenanceWindow property.
-    pub maintenance_window: Option<MaintenanceWindow>,
-    /// policyId property.
-    pub policy_id: Option<String>,
-    /// productAvailabilityPolicy property.
-    pub product_availability_policy: Option<String>,
-    /// productPolicy property.
-    pub product_policy: Option<Vec<ProductPolicy>>,
-}
-
-/// `VariableSet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VariableSet {
-    /// placeholder property.
-    pub placeholder: Option<String>,
-    /// userValue property.
-    pub user_value: Option<String>,
-}
-
-/// `ConfigurationVariables` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigurationVariables {
-    /// mcmId property.
-    pub mcm_id: Option<String>,
-    /// variableSet property.
-    pub variable_set: Option<Vec<VariableSet>>,
-}
-
-/// `DevicesListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DevicesListResponse {
-    /// device property.
-    pub device: Option<Vec<Device>>,
-}
-
-/// `EnterpriseAuthenticationAppLinkConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseAuthenticationAppLinkConfig {
-    /// uri property.
-    pub uri: Option<String>,
+    pub managed_property: Option<Vec<Box<ManagedProperty>>>,
 }
 
 /// `Device` type.
@@ -210,6 +90,130 @@ pub struct Device {
     pub retail_brand: Option<String>,
     /// sdkVersion property.
     pub sdk_version: Option<i64>,
+}
+
+/// `ProductPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductPolicy {
+    /// autoInstallPolicy property.
+    pub auto_install_policy: Option<AutoInstallPolicy>,
+    /// autoUpdateMode property.
+    pub auto_update_mode: Option<String>,
+    /// enterpriseAuthenticationAppLinkConfigs property.
+    pub enterprise_authentication_app_link_configs:
+        Option<Vec<EnterpriseAuthenticationAppLinkConfig>>,
+    /// managedConfiguration property.
+    pub managed_configuration: Option<ManagedConfiguration>,
+    /// productId property.
+    pub product_id: Option<String>,
+    /// trackIds property.
+    pub track_ids: Option<Vec<String>>,
+    /// tracks property.
+    pub tracks: Option<Vec<String>>,
+}
+
+/// `DeviceReport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceReport {
+    /// appState property.
+    pub app_state: Option<Vec<AppState>>,
+    /// lastUpdatedTimestampMillis property.
+    pub last_updated_timestamp_millis: Option<String>,
+}
+
+/// `AppState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppState {
+    /// keyedAppState property.
+    pub keyed_app_state: Option<Vec<KeyedAppState>>,
+    /// packageName property.
+    pub package_name: Option<String>,
+}
+
+/// `KeyedAppState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KeyedAppState {
+    /// data property.
+    pub data: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// severity property.
+    pub severity: Option<String>,
+    /// stateTimestampMillis property.
+    pub state_timestamp_millis: Option<String>,
+}
+
+/// `MaintenanceWindow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MaintenanceWindow {
+    /// durationMs property.
+    pub duration_ms: Option<String>,
+    /// startTimeAfterMidnightMs property.
+    pub start_time_after_midnight_ms: Option<String>,
+}
+
+/// `Policy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Policy {
+    /// autoUpdatePolicy property.
+    pub auto_update_policy: Option<String>,
+    /// deviceReportPolicy property.
+    pub device_report_policy: Option<String>,
+    /// maintenanceWindow property.
+    pub maintenance_window: Option<MaintenanceWindow>,
+    /// policyId property.
+    pub policy_id: Option<String>,
+    /// productAvailabilityPolicy property.
+    pub product_availability_policy: Option<String>,
+    /// productPolicy property.
+    pub product_policy: Option<Vec<ProductPolicy>>,
+}
+
+/// `DevicesListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DevicesListResponse {
+    /// device property.
+    pub device: Option<Vec<Device>>,
+}
+
+/// `ConfigurationVariables` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigurationVariables {
+    /// mcmId property.
+    pub mcm_id: Option<String>,
+    /// variableSet property.
+    pub variable_set: Option<Vec<VariableSet>>,
+}
+
+/// `AutoInstallPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutoInstallPolicy {
+    /// autoInstallConstraint property.
+    pub auto_install_constraint: Option<Vec<AutoInstallConstraint>>,
+    /// autoInstallMode property.
+    pub auto_install_mode: Option<String>,
+    /// autoInstallPriority property.
+    pub auto_install_priority: Option<i64>,
+    /// minimumVersionCode property.
+    pub minimum_version_code: Option<i64>,
+}
+
+/// `EnterpriseAuthenticationAppLinkConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseAuthenticationAppLinkConfig {
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `VariableSet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VariableSet {
+    /// placeholder property.
+    pub placeholder: Option<String>,
+    /// userValue property.
+    pub user_value: Option<String>,
 }
 
 // =============================================================================

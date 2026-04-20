@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,93 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `AdaptMessageResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdaptMessageResponse {
+    /// last property.
+    pub last: Option<bool>,
+    /// payload property.
+    pub payload: Option<String>,
+    /// stateUpdates property.
+    pub state_updates: Option<serde_json::Value>,
+}
+
+/// `MultiplexedSessionPrecommitToken` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MultiplexedSessionPrecommitToken {
+    /// precommitToken property.
+    pub precommit_token: Option<String>,
+    /// seqNum property.
+    pub seq_num: Option<i64>,
+}
+
+/// `Transaction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Transaction {
+    /// id property.
+    pub id: Option<String>,
+    /// precommitToken property.
+    pub precommit_token: Option<MultiplexedSessionPrecommitToken>,
+    /// readTimestamp property.
+    pub read_timestamp: Option<String>,
+}
+
+/// `ShortRepresentation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShortRepresentation {
+    /// description property.
+    pub description: Option<String>,
+    /// subqueries property.
+    pub subqueries: Option<serde_json::Value>,
+}
+
+/// `ResultSetMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResultSetMetadata {
+    /// rowType property.
+    pub row_type: Option<Box<StructType>>,
+    /// transaction property.
+    pub transaction: Option<Transaction>,
+    /// undeclaredParameters property.
+    pub undeclared_parameters: Option<Box<StructType>>,
+}
+
+/// `StructType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StructType {
+    /// fields property.
+    pub fields: Option<Vec<Box<Field>>>,
+}
+
+/// `ResultSet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResultSet {
+    /// metadata property.
+    pub metadata: Option<ResultSetMetadata>,
+    /// precommitToken property.
+    pub precommit_token: Option<MultiplexedSessionPrecommitToken>,
+    /// rows property.
+    pub rows: Option<Vec<Vec<serde_json::Value>>>,
+    /// stats property.
+    pub stats: Option<ResultSetStats>,
+}
 
 /// `ExecuteBatchDmlResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -38,11 +121,42 @@ pub struct ExecuteBatchDmlResponse {
     pub status: Option<Status>,
 }
 
-/// `CommitStats` type.
+/// `PartitionResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CommitStats {
-    /// mutationCount property.
-    pub mutation_count: Option<String>,
+pub struct PartitionResponse {
+    /// partitions property.
+    pub partitions: Option<Vec<Partition>>,
+    /// transaction property.
+    pub transaction: Option<Transaction>,
+}
+
+/// `BatchWriteResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BatchWriteResponse {
+    /// commitTimestamp property.
+    pub commit_timestamp: Option<String>,
+    /// indexes property.
+    pub indexes: Option<Vec<i64>>,
+    /// status property.
+    pub status: Option<Status>,
+}
+
+/// `IndexAdvice` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IndexAdvice {
+    /// ddl property.
+    pub ddl: Option<Vec<String>>,
+    /// improvementFactor property.
+    pub improvement_factor: Option<f64>,
+}
+
+/// `Field` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Field {
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<Box<Type>>,
 }
 
 /// `CommitResponse` type.
@@ -58,17 +172,21 @@ pub struct CommitResponse {
     pub snapshot_timestamp: Option<String>,
 }
 
-/// `ResultSet` type.
+/// `Session` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResultSet {
-    /// metadata property.
-    pub metadata: Option<ResultSetMetadata>,
-    /// precommitToken property.
-    pub precommit_token: Option<MultiplexedSessionPrecommitToken>,
-    /// rows property.
-    pub rows: Option<Vec<Vec<serde_json::Value>>>,
-    /// stats property.
-    pub stats: Option<ResultSetStats>,
+pub struct Session {
+    /// approximateLastUseTime property.
+    pub approximate_last_use_time: Option<String>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// creatorRole property.
+    pub creator_role: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// multiplexed property.
+    pub multiplexed: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 /// `PartialResultSet` type.
@@ -90,56 +208,6 @@ pub struct PartialResultSet {
     pub values: Option<Vec<serde_json::Value>>,
 }
 
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `Session` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Session {
-    /// approximateLastUseTime property.
-    pub approximate_last_use_time: Option<String>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// creatorRole property.
-    pub creator_role: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// multiplexed property.
-    pub multiplexed: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `PartitionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PartitionResponse {
-    /// partitions property.
-    pub partitions: Option<Vec<Partition>>,
-    /// transaction property.
-    pub transaction: Option<Transaction>,
-}
-
-/// `ResultSetStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResultSetStats {
-    /// queryPlan property.
-    pub query_plan: Option<QueryPlan>,
-    /// queryStats property.
-    pub query_stats: Option<serde_json::Value>,
-    /// rowCountExact property.
-    pub row_count_exact: Option<String>,
-    /// rowCountLowerBound property.
-    pub row_count_lower_bound: Option<String>,
-}
-
 /// `QueryPlan` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryPlan {
@@ -149,62 +217,29 @@ pub struct QueryPlan {
     pub query_advice: Option<QueryAdvisorResult>,
 }
 
-/// `ShortRepresentation` type.
+/// `ChildLink` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShortRepresentation {
-    /// description property.
-    pub description: Option<String>,
-    /// subqueries property.
-    pub subqueries: Option<serde_json::Value>,
-}
-
-/// `AdaptMessageResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdaptMessageResponse {
-    /// last property.
-    pub last: Option<bool>,
-    /// payload property.
-    pub payload: Option<String>,
-    /// stateUpdates property.
-    pub state_updates: Option<serde_json::Value>,
-}
-
-/// `Transaction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Transaction {
-    /// id property.
-    pub id: Option<String>,
-    /// precommitToken property.
-    pub precommit_token: Option<MultiplexedSessionPrecommitToken>,
-    /// readTimestamp property.
-    pub read_timestamp: Option<String>,
-}
-
-/// `IndexAdvice` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IndexAdvice {
-    /// ddl property.
-    pub ddl: Option<Vec<String>>,
-    /// improvementFactor property.
-    pub improvement_factor: Option<f64>,
-}
-
-/// `Field` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Field {
-    /// name property.
-    pub name: Option<String>,
+pub struct ChildLink {
+    /// childIndex property.
+    pub child_index: Option<i64>,
     /// type property.
-    pub r#type: Option<Type>,
+    pub r#type: Option<String>,
+    /// variable property.
+    pub variable: Option<String>,
 }
 
-/// `MultiplexedSessionPrecommitToken` type.
+/// `CommitStats` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MultiplexedSessionPrecommitToken {
-    /// precommitToken property.
-    pub precommit_token: Option<String>,
-    /// seqNum property.
-    pub seq_num: Option<i64>,
+pub struct CommitStats {
+    /// mutationCount property.
+    pub mutation_count: Option<String>,
+}
+
+/// `QueryAdvisorResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueryAdvisorResult {
+    /// indexAdvice property.
+    pub index_advice: Option<Vec<IndexAdvice>>,
 }
 
 /// `ListSessionsResponse` type.
@@ -214,17 +249,6 @@ pub struct ListSessionsResponse {
     pub next_page_token: Option<String>,
     /// sessions property.
     pub sessions: Option<Vec<Session>>,
-}
-
-/// `ResultSetMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResultSetMetadata {
-    /// rowType property.
-    pub row_type: Option<StructType>,
-    /// transaction property.
-    pub transaction: Option<Transaction>,
-    /// undeclaredParameters property.
-    pub undeclared_parameters: Option<StructType>,
 }
 
 /// `PlanNode` type.
@@ -246,13 +270,6 @@ pub struct PlanNode {
     pub short_representation: Option<ShortRepresentation>,
 }
 
-/// `QueryAdvisorResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryAdvisorResult {
-    /// indexAdvice property.
-    pub index_advice: Option<Vec<IndexAdvice>>,
-}
-
 /// `Partition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Partition {
@@ -260,46 +277,30 @@ pub struct Partition {
     pub partition_token: Option<String>,
 }
 
-/// `BatchWriteResponse` type.
+/// `ResultSetStats` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BatchWriteResponse {
-    /// commitTimestamp property.
-    pub commit_timestamp: Option<String>,
-    /// indexes property.
-    pub indexes: Option<Vec<i64>>,
-    /// status property.
-    pub status: Option<Status>,
-}
-
-/// `ChildLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChildLink {
-    /// childIndex property.
-    pub child_index: Option<i64>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// variable property.
-    pub variable: Option<String>,
-}
-
-/// `StructType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StructType {
-    /// fields property.
-    pub fields: Option<Vec<Field>>,
+pub struct ResultSetStats {
+    /// queryPlan property.
+    pub query_plan: Option<QueryPlan>,
+    /// queryStats property.
+    pub query_stats: Option<serde_json::Value>,
+    /// rowCountExact property.
+    pub row_count_exact: Option<String>,
+    /// rowCountLowerBound property.
+    pub row_count_lower_bound: Option<String>,
 }
 
 /// `Type` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Type {
     /// arrayElementType property.
-    pub array_element_type: Option<Type>,
+    pub array_element_type: Option<Box<Type>>,
     /// code property.
     pub code: Option<String>,
     /// protoTypeFqn property.
     pub proto_type_fqn: Option<String>,
     /// structType property.
-    pub struct_type: Option<StructType>,
+    pub struct_type: Option<Box<StructType>>,
     /// typeAnnotation property.
     pub type_annotation: Option<String>,
 }

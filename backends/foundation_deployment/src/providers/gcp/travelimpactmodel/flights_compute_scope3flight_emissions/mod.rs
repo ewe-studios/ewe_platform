@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ComputeScope3FlightEmissionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeScope3FlightEmissionsResponse {
+    /// flightEmissions property.
+    pub flight_emissions: Option<Vec<Scope3FlightEmissions>>,
+    /// modelVersion property.
+    pub model_version: Option<ModelVersion>,
+}
 
 /// `ModelVersion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -80,15 +90,6 @@ pub struct Scope3FlightEmissions {
     pub wtt_emissions_grams_per_pax: Option<String>,
     /// wtwEmissionsGramsPerPax property.
     pub wtw_emissions_grams_per_pax: Option<String>,
-}
-
-/// `ComputeScope3FlightEmissionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeScope3FlightEmissionsResponse {
-    /// flightEmissions property.
-    pub flight_emissions: Option<Vec<Scope3FlightEmissions>>,
-    /// modelVersion property.
-    pub model_version: Option<ModelVersion>,
 }
 
 // =============================================================================

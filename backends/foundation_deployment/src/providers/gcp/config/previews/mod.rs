@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,55 +22,23 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `PreviewArtifacts` type.
+/// `TerraformError` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreviewArtifacts {
-    /// artifacts property.
-    pub artifacts: Option<String>,
-    /// content property.
-    pub content: Option<String>,
-}
-
-/// `ExportPreviewResultResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExportPreviewResultResponse {
-    /// result property.
-    pub result: Option<PreviewResult>,
-}
-
-/// `ProviderConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProviderConfig {
-    /// sourceType property.
-    pub source_type: Option<String>,
-}
-
-/// `PreviewResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreviewResult {
-    /// binarySignedUri property.
-    pub binary_signed_uri: Option<String>,
-    /// jsonSignedUri property.
-    pub json_signed_uri: Option<String>,
-}
-
-/// `TerraformBlueprint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TerraformBlueprint {
-    /// externalValues property.
-    pub external_values: Option<serde_json::Value>,
-    /// gcsSource property.
-    pub gcs_source: Option<String>,
-    /// gitSource property.
-    pub git_source: Option<GitSource>,
-    /// inputValues property.
-    pub input_values: Option<serde_json::Value>,
+pub struct TerraformError {
+    /// error property.
+    pub error: Option<Status>,
+    /// errorDescription property.
+    pub error_description: Option<String>,
+    /// httpResponseCode property.
+    pub http_response_code: Option<i64>,
+    /// resourceAddress property.
+    pub resource_address: Option<String>,
 }
 
 /// `Preview` type.
@@ -130,17 +99,20 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `TerraformError` type.
+/// `PreviewResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TerraformError {
-    /// error property.
-    pub error: Option<Status>,
-    /// errorDescription property.
-    pub error_description: Option<String>,
-    /// httpResponseCode property.
-    pub http_response_code: Option<i64>,
-    /// resourceAddress property.
-    pub resource_address: Option<String>,
+pub struct PreviewResult {
+    /// binarySignedUri property.
+    pub binary_signed_uri: Option<String>,
+    /// jsonSignedUri property.
+    pub json_signed_uri: Option<String>,
+}
+
+/// `ExportPreviewResultResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExportPreviewResultResponse {
+    /// result property.
+    pub result: Option<PreviewResult>,
 }
 
 /// `ListPreviewsResponse` type.
@@ -154,6 +126,13 @@ pub struct ListPreviewsResponse {
     pub unreachable: Option<Vec<String>>,
 }
 
+/// `ProviderConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProviderConfig {
+    /// sourceType property.
+    pub source_type: Option<String>,
+}
+
 /// `GitSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GitSource {
@@ -163,6 +142,28 @@ pub struct GitSource {
     pub r#ref: Option<String>,
     /// repo property.
     pub repo: Option<String>,
+}
+
+/// `TerraformBlueprint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TerraformBlueprint {
+    /// externalValues property.
+    pub external_values: Option<serde_json::Value>,
+    /// gcsSource property.
+    pub gcs_source: Option<String>,
+    /// gitSource property.
+    pub git_source: Option<GitSource>,
+    /// inputValues property.
+    pub input_values: Option<serde_json::Value>,
+}
+
+/// `PreviewArtifacts` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PreviewArtifacts {
+    /// artifacts property.
+    pub artifacts: Option<String>,
+    /// content property.
+    pub content: Option<String>,
 }
 
 // =============================================================================

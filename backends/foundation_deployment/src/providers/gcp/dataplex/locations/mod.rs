@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,79 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleCloudDataplexV1Entry;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudLocationLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudLocationLocation {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// locationId property.
+    pub location_id: Option<String>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1LookupContextResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1LookupContextResponse {
+    /// context property.
+    pub context: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1EntryLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1EntryLink {
+    /// aspects property.
+    pub aspects: Option<serde_json::Value>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// entryLinkType property.
+    pub entry_link_type: Option<String>,
+    /// entryReferences property.
+    pub entry_references: Option<Vec<GoogleCloudDataplexV1EntryLinkEntryReference>>,
+    /// name property.
+    pub name: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1SearchEntriesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1SearchEntriesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// results property.
+    pub results: Option<Vec<GoogleCloudDataplexV1SearchEntriesResult>>,
+    /// totalSize property.
+    pub total_size: Option<i64>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `GoogleCloudDataplexV1LookupEntryLinksResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1LookupEntryLinksResponse {
+    /// entryLinks property.
+    pub entry_links: Option<Vec<GoogleCloudDataplexV1EntryLink>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1SearchEntriesResultSnippets` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1SearchEntriesResultSnippets {
+    /// dataplexEntry property.
+    pub dataplex_entry: Option<GoogleCloudDataplexV1Entry>,
+}
 
 /// `GoogleCloudDataplexV1EntryLinkEntryReference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -72,52 +141,6 @@ pub struct GoogleCloudDataplexV1EntrySourceAncestor {
     pub r#type: Option<String>,
 }
 
-/// `GoogleCloudDataplexV1SearchEntriesResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1SearchEntriesResult {
-    /// dataplexEntry property.
-    pub dataplex_entry: Option<GoogleCloudDataplexV1Entry>,
-    /// linkedResource property.
-    pub linked_resource: Option<String>,
-    /// snippets property.
-    pub snippets: Option<GoogleCloudDataplexV1SearchEntriesResultSnippets>,
-}
-
-/// `GoogleCloudDataplexV1SearchEntriesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1SearchEntriesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// results property.
-    pub results: Option<Vec<GoogleCloudDataplexV1SearchEntriesResult>>,
-    /// totalSize property.
-    pub total_size: Option<i64>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `GoogleCloudLocationLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudLocationLocation {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// locationId property.
-    pub location_id: Option<String>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1SearchEntriesResultSnippets` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1SearchEntriesResultSnippets {
-    /// dataplexEntry property.
-    pub dataplex_entry: Option<GoogleCloudDataplexV1Entry>,
-}
-
 /// `GoogleCloudLocationListLocationsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudLocationListLocationsResponse {
@@ -127,37 +150,15 @@ pub struct GoogleCloudLocationListLocationsResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `GoogleCloudDataplexV1LookupEntryLinksResponse` type.
+/// `GoogleCloudDataplexV1SearchEntriesResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1LookupEntryLinksResponse {
-    /// entryLinks property.
-    pub entry_links: Option<Vec<GoogleCloudDataplexV1EntryLink>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1EntryLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1EntryLink {
-    /// aspects property.
-    pub aspects: Option<serde_json::Value>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// entryLinkType property.
-    pub entry_link_type: Option<String>,
-    /// entryReferences property.
-    pub entry_references: Option<Vec<GoogleCloudDataplexV1EntryLinkEntryReference>>,
-    /// name property.
-    pub name: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1LookupContextResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1LookupContextResponse {
-    /// context property.
-    pub context: Option<String>,
+pub struct GoogleCloudDataplexV1SearchEntriesResult {
+    /// dataplexEntry property.
+    pub dataplex_entry: Option<GoogleCloudDataplexV1Entry>,
+    /// linkedResource property.
+    pub linked_resource: Option<String>,
+    /// snippets property.
+    pub snippets: Option<GoogleCloudDataplexV1SearchEntriesResultSnippets>,
 }
 
 // =============================================================================

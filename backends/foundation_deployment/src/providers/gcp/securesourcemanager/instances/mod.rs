@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,58 +24,41 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `WorkforceIdentityFederationConfig` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkforceIdentityFederationConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
-/// `CustomHostConfig` type.
+/// `ListInstancesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomHostConfig {
-    /// api property.
-    pub api: Option<String>,
-    /// gitHttp property.
-    pub git_http: Option<String>,
-    /// gitSsh property.
-    pub git_ssh: Option<String>,
-    /// html property.
-    pub html: Option<String>,
+pub struct ListInstancesResponse {
+    /// instances property.
+    pub instances: Option<Vec<Instance>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
-/// `PrivateConfig` type.
+/// `AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrivateConfig {
-    /// caPool property.
-    pub ca_pool: Option<String>,
-    /// customHostConfig property.
-    pub custom_host_config: Option<CustomHostConfig>,
-    /// httpServiceAttachment property.
-    pub http_service_attachment: Option<String>,
-    /// isPrivate property.
-    pub is_private: Option<bool>,
-    /// pscAllowedProjects property.
-    pub psc_allowed_projects: Option<Vec<String>>,
-    /// sshServiceAttachment property.
-    pub ssh_service_attachment: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
 /// `Instance` type.
@@ -102,37 +86,6 @@ pub struct Instance {
     pub workforce_identity_federation_config: Option<WorkforceIdentityFederationConfig>,
 }
 
-/// `ListInstancesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListInstancesResponse {
-    /// instances property.
-    pub instances: Option<Vec<Instance>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
 /// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
@@ -146,13 +99,37 @@ pub struct Expr {
     pub title: Option<String>,
 }
 
-/// `AuditLogConfig` type.
+/// `WorkforceIdentityFederationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
+pub struct WorkforceIdentityFederationConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `PrivateConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrivateConfig {
+    /// caPool property.
+    pub ca_pool: Option<String>,
+    /// customHostConfig property.
+    pub custom_host_config: Option<CustomHostConfig>,
+    /// httpServiceAttachment property.
+    pub http_service_attachment: Option<String>,
+    /// isPrivate property.
+    pub is_private: Option<bool>,
+    /// pscAllowedProjects property.
+    pub psc_allowed_projects: Option<Vec<String>>,
+    /// sshServiceAttachment property.
+    pub ssh_service_attachment: Option<String>,
 }
 
 /// `HostConfig` type.
@@ -166,6 +143,30 @@ pub struct HostConfig {
     pub git_ssh: Option<String>,
     /// html property.
     pub html: Option<String>,
+}
+
+/// `CustomHostConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomHostConfig {
+    /// api property.
+    pub api: Option<String>,
+    /// gitHttp property.
+    pub git_http: Option<String>,
+    /// gitSsh property.
+    pub git_ssh: Option<String>,
+    /// html property.
+    pub html: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

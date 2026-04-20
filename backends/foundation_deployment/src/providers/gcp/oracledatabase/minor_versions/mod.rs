@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListMinorVersionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListMinorVersionsResponse {
-    /// minorVersions property.
-    pub minor_versions: Option<Vec<MinorVersion>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `MinorVersion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -42,6 +34,15 @@ pub struct MinorVersion {
     pub name: Option<String>,
     /// version property.
     pub version: Option<String>,
+}
+
+/// `ListMinorVersionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListMinorVersionsResponse {
+    /// minorVersions property.
+    pub minor_versions: Option<Vec<MinorVersion>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

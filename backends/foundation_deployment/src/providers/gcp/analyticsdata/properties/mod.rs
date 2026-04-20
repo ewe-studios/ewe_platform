@@ -12,109 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `RunRealtimeReportResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RunRealtimeReportResponse {
-    /// dimensionHeaders property.
-    pub dimension_headers: Option<Vec<DimensionHeader>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// maximums property.
-    pub maximums: Option<Vec<Row>>,
-    /// metricHeaders property.
-    pub metric_headers: Option<Vec<MetricHeader>>,
-    /// minimums property.
-    pub minimums: Option<Vec<Row>>,
-    /// propertyQuota property.
-    pub property_quota: Option<PropertyQuota>,
-    /// rowCount property.
-    pub row_count: Option<i64>,
-    /// rows property.
-    pub rows: Option<Vec<Row>>,
-    /// totals property.
-    pub totals: Option<Vec<Row>>,
-}
-
-/// `BatchRunReportsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BatchRunReportsResponse {
-    /// kind property.
-    pub kind: Option<String>,
-    /// reports property.
-    pub reports: Option<Vec<RunReportResponse>>,
-}
-
-/// `ActiveMetricRestriction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActiveMetricRestriction {
-    /// metricName property.
-    pub metric_name: Option<String>,
-    /// restrictedMetricTypes property.
-    pub restricted_metric_types: Option<Vec<String>>,
-}
-
-/// `MetricHeader` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetricHeader {
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `SchemaRestrictionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SchemaRestrictionResponse {
-    /// activeMetricRestrictions property.
-    pub active_metric_restrictions: Option<Vec<ActiveMetricRestriction>>,
-}
-
-/// `DimensionMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DimensionMetadata {
-    /// apiName property.
-    pub api_name: Option<String>,
-    /// category property.
-    pub category: Option<String>,
-    /// customDefinition property.
-    pub custom_definition: Option<bool>,
-    /// deprecatedApiNames property.
-    pub deprecated_api_names: Option<Vec<String>>,
-    /// description property.
-    pub description: Option<String>,
-    /// uiName property.
-    pub ui_name: Option<String>,
-}
-
-/// `PivotHeader` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PivotHeader {
-    /// pivotDimensionHeaders property.
-    pub pivot_dimension_headers: Option<Vec<PivotDimensionHeader>>,
-    /// rowCount property.
-    pub row_count: Option<i64>,
-}
-
-/// `BatchRunPivotReportsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BatchRunPivotReportsResponse {
-    /// kind property.
-    pub kind: Option<String>,
-    /// pivotReports property.
-    pub pivot_reports: Option<Vec<RunPivotReportResponse>>,
-}
 
 /// `MetricValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -128,23 +37,6 @@ pub struct MetricValue {
 pub struct DimensionHeader {
     /// name property.
     pub name: Option<String>,
-}
-
-/// `PropertyQuota` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PropertyQuota {
-    /// concurrentRequests property.
-    pub concurrent_requests: Option<QuotaStatus>,
-    /// potentiallyThresholdedRequestsPerHour property.
-    pub potentially_thresholded_requests_per_hour: Option<QuotaStatus>,
-    /// serverErrorsPerProjectPerHour property.
-    pub server_errors_per_project_per_hour: Option<QuotaStatus>,
-    /// tokensPerDay property.
-    pub tokens_per_day: Option<QuotaStatus>,
-    /// tokensPerHour property.
-    pub tokens_per_hour: Option<QuotaStatus>,
-    /// tokensPerProjectPerHour property.
-    pub tokens_per_project_per_hour: Option<QuotaStatus>,
 }
 
 /// `DimensionCompatibility` type.
@@ -165,6 +57,34 @@ pub struct MetricCompatibility {
     pub metric_metadata: Option<MetricMetadata>,
 }
 
+/// `Row` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Row {
+    /// dimensionValues property.
+    pub dimension_values: Option<Vec<DimensionValue>>,
+    /// metricValues property.
+    pub metric_values: Option<Vec<MetricValue>>,
+}
+
+/// `ResponseMetaData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResponseMetaData {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// dataLossFromOtherRow property.
+    pub data_loss_from_other_row: Option<bool>,
+    /// emptyReason property.
+    pub empty_reason: Option<String>,
+    /// samplingMetadatas property.
+    pub sampling_metadatas: Option<Vec<SamplingMetadata>>,
+    /// schemaRestrictionResponse property.
+    pub schema_restriction_response: Option<SchemaRestrictionResponse>,
+    /// subjectToThresholding property.
+    pub subject_to_thresholding: Option<bool>,
+    /// timeZone property.
+    pub time_zone: Option<String>,
+}
+
 /// `RunReportResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunReportResponse {
@@ -176,6 +96,85 @@ pub struct RunReportResponse {
     pub maximums: Option<Vec<Row>>,
     /// metadata property.
     pub metadata: Option<ResponseMetaData>,
+    /// metricHeaders property.
+    pub metric_headers: Option<Vec<MetricHeader>>,
+    /// minimums property.
+    pub minimums: Option<Vec<Row>>,
+    /// propertyQuota property.
+    pub property_quota: Option<PropertyQuota>,
+    /// rowCount property.
+    pub row_count: Option<i64>,
+    /// rows property.
+    pub rows: Option<Vec<Row>>,
+    /// totals property.
+    pub totals: Option<Vec<Row>>,
+}
+
+/// `PropertyQuota` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PropertyQuota {
+    /// concurrentRequests property.
+    pub concurrent_requests: Option<QuotaStatus>,
+    /// potentiallyThresholdedRequestsPerHour property.
+    pub potentially_thresholded_requests_per_hour: Option<QuotaStatus>,
+    /// serverErrorsPerProjectPerHour property.
+    pub server_errors_per_project_per_hour: Option<QuotaStatus>,
+    /// tokensPerDay property.
+    pub tokens_per_day: Option<QuotaStatus>,
+    /// tokensPerHour property.
+    pub tokens_per_hour: Option<QuotaStatus>,
+    /// tokensPerProjectPerHour property.
+    pub tokens_per_project_per_hour: Option<QuotaStatus>,
+}
+
+/// `BatchRunPivotReportsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BatchRunPivotReportsResponse {
+    /// kind property.
+    pub kind: Option<String>,
+    /// pivotReports property.
+    pub pivot_reports: Option<Vec<RunPivotReportResponse>>,
+}
+
+/// `SchemaRestrictionResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SchemaRestrictionResponse {
+    /// activeMetricRestrictions property.
+    pub active_metric_restrictions: Option<Vec<ActiveMetricRestriction>>,
+}
+
+/// `MetricMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetricMetadata {
+    /// apiName property.
+    pub api_name: Option<String>,
+    /// blockedReasons property.
+    pub blocked_reasons: Option<Vec<String>>,
+    /// category property.
+    pub category: Option<String>,
+    /// customDefinition property.
+    pub custom_definition: Option<bool>,
+    /// deprecatedApiNames property.
+    pub deprecated_api_names: Option<Vec<String>>,
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// uiName property.
+    pub ui_name: Option<String>,
+}
+
+/// `RunRealtimeReportResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RunRealtimeReportResponse {
+    /// dimensionHeaders property.
+    pub dimension_headers: Option<Vec<DimensionHeader>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// maximums property.
+    pub maximums: Option<Vec<Row>>,
     /// metricHeaders property.
     pub metric_headers: Option<Vec<MetricHeader>>,
     /// minimums property.
@@ -211,6 +210,50 @@ pub struct RunPivotReportResponse {
     pub rows: Option<Vec<Row>>,
 }
 
+/// `SamplingMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SamplingMetadata {
+    /// samplesReadCount property.
+    pub samples_read_count: Option<String>,
+    /// samplingSpaceSize property.
+    pub sampling_space_size: Option<String>,
+}
+
+/// `ActiveMetricRestriction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActiveMetricRestriction {
+    /// metricName property.
+    pub metric_name: Option<String>,
+    /// restrictedMetricTypes property.
+    pub restricted_metric_types: Option<Vec<String>>,
+}
+
+/// `PivotHeader` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PivotHeader {
+    /// pivotDimensionHeaders property.
+    pub pivot_dimension_headers: Option<Vec<PivotDimensionHeader>>,
+    /// rowCount property.
+    pub row_count: Option<i64>,
+}
+
+/// `DimensionMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DimensionMetadata {
+    /// apiName property.
+    pub api_name: Option<String>,
+    /// category property.
+    pub category: Option<String>,
+    /// customDefinition property.
+    pub custom_definition: Option<bool>,
+    /// deprecatedApiNames property.
+    pub deprecated_api_names: Option<Vec<String>>,
+    /// description property.
+    pub description: Option<String>,
+    /// uiName property.
+    pub ui_name: Option<String>,
+}
+
 /// `PivotDimensionHeader` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PivotDimensionHeader {
@@ -218,32 +261,22 @@ pub struct PivotDimensionHeader {
     pub dimension_values: Option<Vec<DimensionValue>>,
 }
 
-/// `ResponseMetaData` type.
+/// `BatchRunReportsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResponseMetaData {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// dataLossFromOtherRow property.
-    pub data_loss_from_other_row: Option<bool>,
-    /// emptyReason property.
-    pub empty_reason: Option<String>,
-    /// samplingMetadatas property.
-    pub sampling_metadatas: Option<Vec<SamplingMetadata>>,
-    /// schemaRestrictionResponse property.
-    pub schema_restriction_response: Option<SchemaRestrictionResponse>,
-    /// subjectToThresholding property.
-    pub subject_to_thresholding: Option<bool>,
-    /// timeZone property.
-    pub time_zone: Option<String>,
+pub struct BatchRunReportsResponse {
+    /// kind property.
+    pub kind: Option<String>,
+    /// reports property.
+    pub reports: Option<Vec<RunReportResponse>>,
 }
 
-/// `QuotaStatus` type.
+/// `MetricHeader` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotaStatus {
-    /// consumed property.
-    pub consumed: Option<i64>,
-    /// remaining property.
-    pub remaining: Option<i64>,
+pub struct MetricHeader {
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `DimensionValue` type.
@@ -253,45 +286,13 @@ pub struct DimensionValue {
     pub value: Option<String>,
 }
 
-/// `Row` type.
+/// `QuotaStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Row {
-    /// dimensionValues property.
-    pub dimension_values: Option<Vec<DimensionValue>>,
-    /// metricValues property.
-    pub metric_values: Option<Vec<MetricValue>>,
-}
-
-/// `MetricMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetricMetadata {
-    /// apiName property.
-    pub api_name: Option<String>,
-    /// blockedReasons property.
-    pub blocked_reasons: Option<Vec<String>>,
-    /// category property.
-    pub category: Option<String>,
-    /// customDefinition property.
-    pub custom_definition: Option<bool>,
-    /// deprecatedApiNames property.
-    pub deprecated_api_names: Option<Vec<String>>,
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// uiName property.
-    pub ui_name: Option<String>,
-}
-
-/// `SamplingMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SamplingMetadata {
-    /// samplesReadCount property.
-    pub samples_read_count: Option<String>,
-    /// samplingSpaceSize property.
-    pub sampling_space_size: Option<String>,
+pub struct QuotaStatus {
+    /// consumed property.
+    pub consumed: Option<i64>,
+    /// remaining property.
+    pub remaining: Option<i64>,
 }
 
 /// `CheckCompatibilityResponse` type.

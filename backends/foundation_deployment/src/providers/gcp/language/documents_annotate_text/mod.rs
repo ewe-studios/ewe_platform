@@ -12,17 +12,33 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Entity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Entity {
+    /// mentions property.
+    pub mentions: Option<Vec<EntityMention>>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// sentiment property.
+    pub sentiment: Option<Sentiment>,
+    /// type property.
+    pub r#type: Option<String>,
+}
 
 /// `Sentence` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -31,28 +47,6 @@ pub struct Sentence {
     pub sentiment: Option<Sentiment>,
     /// text property.
     pub text: Option<TextSpan>,
-}
-
-/// `Sentiment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Sentiment {
-    /// magnitude property.
-    pub magnitude: Option<f64>,
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `EntityMention` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EntityMention {
-    /// probability property.
-    pub probability: Option<f64>,
-    /// sentiment property.
-    pub sentiment: Option<Sentiment>,
-    /// text property.
-    pub text: Option<TextSpan>,
-    /// type property.
-    pub r#type: Option<String>,
 }
 
 /// `TextSpan` type.
@@ -94,19 +88,26 @@ pub struct AnnotateTextResponse {
     pub sentences: Option<Vec<Sentence>>,
 }
 
-/// `Entity` type.
+/// `EntityMention` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Entity {
-    /// mentions property.
-    pub mentions: Option<Vec<EntityMention>>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
+pub struct EntityMention {
+    /// probability property.
+    pub probability: Option<f64>,
     /// sentiment property.
     pub sentiment: Option<Sentiment>,
+    /// text property.
+    pub text: Option<TextSpan>,
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `Sentiment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Sentiment {
+    /// magnitude property.
+    pub magnitude: Option<f64>,
+    /// score property.
+    pub score: Option<f64>,
 }
 
 // =============================================================================

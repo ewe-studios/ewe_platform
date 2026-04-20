@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -24,21 +25,19 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `WorkspaceCompilationOverrides` type.
+/// `SshAuthenticationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkspaceCompilationOverrides {
-    /// defaultDatabase property.
-    pub default_database: Option<String>,
-    /// schemaSuffix property.
-    pub schema_suffix: Option<String>,
-    /// tablePrefix property.
-    pub table_prefix: Option<String>,
+pub struct SshAuthenticationConfig {
+    /// hostPublicKey property.
+    pub host_public_key: Option<String>,
+    /// userPrivateKeySecretVersion property.
+    pub user_private_key_secret_version: Option<String>,
 }
 
 /// `Binding` type.
@@ -61,25 +60,39 @@ pub struct QueryTeamFolderContentsResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `Folder` type.
+/// `TeamFolderContentsEntry` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Folder {
-    /// containingFolder property.
-    pub containing_folder: Option<String>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// creatorIamPrincipal property.
-    pub creator_iam_principal: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// internalMetadata property.
-    pub internal_metadata: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// teamFolderName property.
-    pub team_folder_name: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
+pub struct TeamFolderContentsEntry {
+    /// folder property.
+    pub folder: Option<Folder>,
+    /// repository property.
+    pub repository: Option<Repository>,
+}
+
+/// `GitRemoteSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GitRemoteSettings {
+    /// authenticationTokenSecretVersion property.
+    pub authentication_token_secret_version: Option<String>,
+    /// defaultBranch property.
+    pub default_branch: Option<String>,
+    /// sshAuthenticationConfig property.
+    pub ssh_authentication_config: Option<SshAuthenticationConfig>,
+    /// tokenStatus property.
+    pub token_status: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `WorkspaceCompilationOverrides` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkspaceCompilationOverrides {
+    /// defaultDatabase property.
+    pub default_database: Option<String>,
+    /// schemaSuffix property.
+    pub schema_suffix: Option<String>,
+    /// tablePrefix property.
+    pub table_prefix: Option<String>,
 }
 
 /// `Repository` type.
@@ -115,30 +128,11 @@ pub struct Repository {
     pub workspace_compilation_overrides: Option<WorkspaceCompilationOverrides>,
 }
 
-/// `TeamFolder` type.
+/// `DataEncryptionState` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TeamFolder {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// creatorIamPrincipal property.
-    pub creator_iam_principal: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// internalMetadata property.
-    pub internal_metadata: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `TeamFolderContentsEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TeamFolderContentsEntry {
-    /// folder property.
-    pub folder: Option<Folder>,
-    /// repository property.
-    pub repository: Option<Repository>,
+pub struct DataEncryptionState {
+    /// kmsKeyVersionName property.
+    pub kms_key_version_name: Option<String>,
 }
 
 /// `Status` type.
@@ -152,11 +146,25 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `DataEncryptionState` type.
+/// `Folder` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataEncryptionState {
-    /// kmsKeyVersionName property.
-    pub kms_key_version_name: Option<String>,
+pub struct Folder {
+    /// containingFolder property.
+    pub containing_folder: Option<String>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// creatorIamPrincipal property.
+    pub creator_iam_principal: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// internalMetadata property.
+    pub internal_metadata: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// teamFolderName property.
+    pub team_folder_name: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
 }
 
 /// `Expr` type.
@@ -172,28 +180,21 @@ pub struct Expr {
     pub title: Option<String>,
 }
 
-/// `GitRemoteSettings` type.
+/// `TeamFolder` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GitRemoteSettings {
-    /// authenticationTokenSecretVersion property.
-    pub authentication_token_secret_version: Option<String>,
-    /// defaultBranch property.
-    pub default_branch: Option<String>,
-    /// sshAuthenticationConfig property.
-    pub ssh_authentication_config: Option<SshAuthenticationConfig>,
-    /// tokenStatus property.
-    pub token_status: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `SshAuthenticationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SshAuthenticationConfig {
-    /// hostPublicKey property.
-    pub host_public_key: Option<String>,
-    /// userPrivateKeySecretVersion property.
-    pub user_private_key_secret_version: Option<String>,
+pub struct TeamFolder {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// creatorIamPrincipal property.
+    pub creator_iam_principal: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// internalMetadata property.
+    pub internal_metadata: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
 }
 
 // =============================================================================

@@ -12,17 +12,25 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfigRiskAnalysis` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfigRiskAnalysis {
+    /// minValidScore property.
+    pub min_valid_score: Option<f64>,
+}
 
 /// `GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -35,13 +43,6 @@ pub struct GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfig {
     pub site_key: Option<String>,
     /// tokenTtl property.
     pub token_ttl: Option<String>,
-}
-
-/// `GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfigRiskAnalysis` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfigRiskAnalysis {
-    /// minValidScore property.
-    pub min_valid_score: Option<f64>,
 }
 
 // =============================================================================

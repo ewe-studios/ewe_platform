@@ -12,49 +12,22 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleFirebaseFcmDataV1Beta1AndroidDeliveryData` response type.
+/// `GoogleFirebaseFcmDataV1Beta1MessageInsightPercents` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirebaseFcmDataV1Beta1AndroidDeliveryData {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleTypeDate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeDate {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `GoogleFirebaseFcmDataV1beta1ListAndroidDeliveryDataResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirebaseFcmDataV1beta1ListAndroidDeliveryDataResponse {
-    /// androidDeliveryData property.
-    pub android_delivery_data: Option<Vec<GoogleFirebaseFcmDataV1Beta1AndroidDeliveryData>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleFirebaseFcmDataV1Beta1MessageOutcomePercents` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirebaseFcmDataV1Beta1MessageOutcomePercents {
+pub struct GoogleFirebaseFcmDataV1Beta1MessageInsightPercents {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -68,14 +41,6 @@ pub struct GoogleFirebaseFcmDataV1Beta1ProxyNotificationInsightPercents {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleFirebaseFcmDataV1Beta1DeliveryPerformancePercents` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirebaseFcmDataV1Beta1DeliveryPerformancePercents {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `GoogleFirebaseFcmDataV1Beta1Data` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseFcmDataV1Beta1Data {
@@ -84,9 +49,45 @@ pub struct GoogleFirebaseFcmDataV1Beta1Data {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleFirebaseFcmDataV1Beta1MessageInsightPercents` response type.
+/// `GoogleFirebaseFcmDataV1Beta1DeliveryPerformancePercents` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirebaseFcmDataV1Beta1MessageInsightPercents {
+pub struct GoogleFirebaseFcmDataV1Beta1DeliveryPerformancePercents {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleFirebaseFcmDataV1beta1ListAndroidDeliveryDataResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirebaseFcmDataV1beta1ListAndroidDeliveryDataResponse {
+    /// androidDeliveryData property.
+    pub android_delivery_data: Option<Vec<GoogleFirebaseFcmDataV1Beta1AndroidDeliveryData>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleTypeDate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeDate {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `GoogleFirebaseFcmDataV1Beta1MessageOutcomePercents` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirebaseFcmDataV1Beta1MessageOutcomePercents {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleFirebaseFcmDataV1Beta1AndroidDeliveryData` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirebaseFcmDataV1Beta1AndroidDeliveryData {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

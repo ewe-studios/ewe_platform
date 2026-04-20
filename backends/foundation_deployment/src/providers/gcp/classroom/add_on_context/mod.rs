@@ -12,24 +12,22 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `StudentContext` type.
+/// `TeacherContext` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StudentContext {
-    /// submissionId property.
-    pub submission_id: Option<String>,
-}
+pub struct TeacherContext {}
 
 /// `AddOnContext` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -48,9 +46,12 @@ pub struct AddOnContext {
     pub teacher_context: Option<TeacherContext>,
 }
 
-/// `TeacherContext` type.
+/// `StudentContext` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TeacherContext {}
+pub struct StudentContext {
+    /// submissionId property.
+    pub submission_id: Option<String>,
+}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

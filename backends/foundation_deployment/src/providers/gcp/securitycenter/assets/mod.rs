@@ -12,29 +12,24 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListAssetsResponse` type.
+/// `IamPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAssetsResponse {
-    /// listAssetsResults property.
-    pub list_assets_results: Option<Vec<ListAssetsResult>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// readTime property.
-    pub read_time: Option<String>,
-    /// totalSize property.
-    pub total_size: Option<i64>,
+pub struct IamPolicy {
+    /// policyBlob property.
+    pub policy_blob: Option<String>,
 }
 
 /// `SecurityMarks` type.
@@ -66,34 +61,6 @@ pub struct ListAssetsResult {
     pub state_change: Option<String>,
 }
 
-/// `Asset` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Asset {
-    /// canonicalName property.
-    pub canonical_name: Option<String>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// iamPolicy property.
-    pub iam_policy: Option<IamPolicy>,
-    /// name property.
-    pub name: Option<String>,
-    /// resourceProperties property.
-    pub resource_properties: Option<serde_json::Value>,
-    /// securityCenterProperties property.
-    pub security_center_properties: Option<SecurityCenterProperties>,
-    /// securityMarks property.
-    pub security_marks: Option<SecurityMarks>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `IamPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IamPolicy {
-    /// policyBlob property.
-    pub policy_blob: Option<String>,
-}
-
 /// `SecurityCenterProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityCenterProperties {
@@ -115,6 +82,40 @@ pub struct SecurityCenterProperties {
     pub resource_project_display_name: Option<String>,
     /// resourceType property.
     pub resource_type: Option<String>,
+}
+
+/// `ListAssetsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAssetsResponse {
+    /// listAssetsResults property.
+    pub list_assets_results: Option<Vec<ListAssetsResult>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// readTime property.
+    pub read_time: Option<String>,
+    /// totalSize property.
+    pub total_size: Option<i64>,
+}
+
+/// `Asset` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Asset {
+    /// canonicalName property.
+    pub canonical_name: Option<String>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// iamPolicy property.
+    pub iam_policy: Option<IamPolicy>,
+    /// name property.
+    pub name: Option<String>,
+    /// resourceProperties property.
+    pub resource_properties: Option<serde_json::Value>,
+    /// securityCenterProperties property.
+    pub security_center_properties: Option<SecurityCenterProperties>,
+    /// securityMarks property.
+    pub security_marks: Option<SecurityMarks>,
+    /// updateTime property.
+    pub update_time: Option<String>,
 }
 
 // =============================================================================

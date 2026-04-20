@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -38,18 +39,18 @@ pub struct VersionsStart {
     pub preview_domain: String,
 }
 
-/// `ComputeservicesVersionsStartPostResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeservicesVersionsStartPostResponse {
-    /// data property.
-    pub data: ComputeservicesVersionsStart,
-}
-
 /// `VersionsStartPostResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VersionsStartPostResponse {
     /// data property.
     pub data: VersionsStart,
+}
+
+/// `ComputeservicesVersionsStartPostResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeservicesVersionsStartPostResponse {
+    /// data property.
+    pub data: ComputeservicesVersionsStart,
 }
 
 // =============================================================================

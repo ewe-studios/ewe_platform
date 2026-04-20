@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,15 +22,38 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DeleteServiceStrategy` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteServiceStrategy {}
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `TrafficPercentStrategy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TrafficPercentStrategy {
+    /// percentages property.
+    pub percentages: Option<serde_json::Value>,
+}
+
+/// `ListServiceRolloutsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListServiceRolloutsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// rollouts property.
+    pub rollouts: Option<Vec<Rollout>>,
+}
 
 /// `Rollout` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -50,32 +74,9 @@ pub struct Rollout {
     pub traffic_percent_strategy: Option<TrafficPercentStrategy>,
 }
 
-/// `ListServiceRolloutsResponse` type.
+/// `DeleteServiceStrategy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListServiceRolloutsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// rollouts property.
-    pub rollouts: Option<Vec<Rollout>>,
-}
-
-/// `TrafficPercentStrategy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TrafficPercentStrategy {
-    /// percentages property.
-    pub percentages: Option<serde_json::Value>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
+pub struct DeleteServiceStrategy {}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

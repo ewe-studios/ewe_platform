@@ -12,17 +12,450 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ProductCertification` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductCertification {
+    /// certificationAuthority property.
+    pub certification_authority: Option<String>,
+    /// certificationCode property.
+    pub certification_code: Option<String>,
+    /// certificationName property.
+    pub certification_name: Option<String>,
+    /// certificationValue property.
+    pub certification_value: Option<String>,
+}
+
+/// `LocalinventoryCustomBatchResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalinventoryCustomBatchResponse {
+    /// entries property.
+    pub entries: Option<Vec<LocalinventoryCustomBatchResponseEntry>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `PosCustomBatchResponseEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PosCustomBatchResponseEntry {
+    /// batchId property.
+    pub batch_id: Option<i64>,
+    /// errors property.
+    pub errors: Option<Errors>,
+    /// inventory property.
+    pub inventory: Option<PosInventory>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// sale property.
+    pub sale: Option<PosSale>,
+    /// store property.
+    pub store: Option<PosStore>,
+}
+
+/// `AccountstatusesCustomBatchResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountstatusesCustomBatchResponse {
+    /// entries property.
+    pub entries: Option<Vec<AccountstatusesCustomBatchResponseEntry>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `ServiceStoreConfigCutoffConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceStoreConfigCutoffConfig {
+    /// localCutoffTime property.
+    pub local_cutoff_time: Option<ServiceStoreConfigCutoffConfigLocalCutoffTime>,
+    /// noDeliveryPostCutoff property.
+    pub no_delivery_post_cutoff: Option<bool>,
+    /// storeCloseOffsetHours property.
+    pub store_close_offset_hours: Option<String>,
+}
+
+/// `PostalCodeRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostalCodeRange {
+    /// postalCodeRangeBegin property.
+    pub postal_code_range_begin: Option<String>,
+    /// postalCodeRangeEnd property.
+    pub postal_code_range_end: Option<String>,
+}
+
+/// `LiaInventorySettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiaInventorySettings {
+    /// inventoryVerificationContactEmail property.
+    pub inventory_verification_contact_email: Option<String>,
+    /// inventoryVerificationContactName property.
+    pub inventory_verification_contact_name: Option<String>,
+    /// inventoryVerificationContactStatus property.
+    pub inventory_verification_contact_status: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+}
+
+/// `DatafeedStatusError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatafeedStatusError {
+    /// code property.
+    pub code: Option<String>,
+    /// count property.
+    pub count: Option<String>,
+    /// examples property.
+    pub examples: Option<Vec<DatafeedStatusExample>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `AccountStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountStatus {
+    /// accountId property.
+    pub account_id: Option<String>,
+    /// accountLevelIssues property.
+    pub account_level_issues: Option<Vec<AccountStatusAccountLevelIssue>>,
+    /// accountManagement property.
+    pub account_management: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// products property.
+    pub products: Option<Vec<AccountStatusProducts>>,
+    /// websiteClaimed property.
+    pub website_claimed: Option<bool>,
+}
+
+/// `AccountConversionSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountConversionSettings {
+    /// freeListingsAutoTaggingEnabled property.
+    pub free_listings_auto_tagging_enabled: Option<bool>,
+}
+
+/// `RegionalinventoryCustomBatchResponseEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegionalinventoryCustomBatchResponseEntry {
+    /// batchId property.
+    pub batch_id: Option<i64>,
+    /// errors property.
+    pub errors: Option<Errors>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// regionalInventory property.
+    pub regional_inventory: Option<RegionalInventory>,
+}
+
+/// `ProductTax` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductTax {
+    /// country property.
+    pub country: Option<String>,
+    /// locationId property.
+    pub location_id: Option<String>,
+    /// postalCode property.
+    pub postal_code: Option<String>,
+    /// rate property.
+    pub rate: Option<f64>,
+    /// region property.
+    pub region: Option<String>,
+    /// taxShip property.
+    pub tax_ship: Option<bool>,
+}
+
+/// `AccountShippingImprovements` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountShippingImprovements {
+    /// allowShippingImprovements property.
+    pub allow_shipping_improvements: Option<bool>,
+}
+
+/// `LiaPosDataProvider` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiaPosDataProvider {
+    /// posDataProviderId property.
+    pub pos_data_provider_id: Option<String>,
+    /// posExternalAccountId property.
+    pub pos_external_account_id: Option<String>,
+}
+
+/// `AccountItemUpdates` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountItemUpdates {
+    /// accountItemUpdatesSettings property.
+    pub account_item_updates_settings: Option<AccountItemUpdatesSettings>,
+    /// effectiveAllowAvailabilityUpdates property.
+    pub effective_allow_availability_updates: Option<bool>,
+    /// effectiveAllowConditionUpdates property.
+    pub effective_allow_condition_updates: Option<bool>,
+    /// effectiveAllowPriceUpdates property.
+    pub effective_allow_price_updates: Option<bool>,
+    /// effectiveAllowStrictAvailabilityUpdates property.
+    pub effective_allow_strict_availability_updates: Option<bool>,
+}
+
+/// `Price` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Price {
+    /// currency property.
+    pub currency: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Headers` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Headers {
+    /// locations property.
+    pub locations: Option<Vec<LocationIdSet>>,
+    /// numberOfItems property.
+    pub number_of_items: Option<Vec<String>>,
+    /// postalCodeGroupNames property.
+    pub postal_code_group_names: Option<Vec<String>>,
+    /// prices property.
+    pub prices: Option<Vec<Price>>,
+    /// weights property.
+    pub weights: Option<Vec<Weight>>,
+}
+
+/// `AccountStatusStatistics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountStatusStatistics {
+    /// active property.
+    pub active: Option<String>,
+    /// disapproved property.
+    pub disapproved: Option<String>,
+    /// expiring property.
+    pub expiring: Option<String>,
+    /// pending property.
+    pub pending: Option<String>,
+}
+
+/// `WarehouseCutoffTime` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WarehouseCutoffTime {
+    /// hour property.
+    pub hour: Option<i64>,
+    /// minute property.
+    pub minute: Option<i64>,
+}
+
+/// `CarrierRate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CarrierRate {
+    /// carrierName property.
+    pub carrier_name: Option<String>,
+    /// carrierService property.
+    pub carrier_service: Option<String>,
+    /// flatAdjustment property.
+    pub flat_adjustment: Option<Price>,
+    /// name property.
+    pub name: Option<String>,
+    /// originPostalCode property.
+    pub origin_postal_code: Option<String>,
+    /// percentageAdjustment property.
+    pub percentage_adjustment: Option<String>,
+}
+
+/// `WarehouseBasedDeliveryTime` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WarehouseBasedDeliveryTime {
+    /// carrier property.
+    pub carrier: Option<String>,
+    /// carrierService property.
+    pub carrier_service: Option<String>,
+    /// originAdministrativeArea property.
+    pub origin_administrative_area: Option<String>,
+    /// originCity property.
+    pub origin_city: Option<String>,
+    /// originCountry property.
+    pub origin_country: Option<String>,
+    /// originPostalCode property.
+    pub origin_postal_code: Option<String>,
+    /// originStreetAddress property.
+    pub origin_street_address: Option<String>,
+    /// warehouseName property.
+    pub warehouse_name: Option<String>,
+}
+
+/// `AccounttaxCustomBatchResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccounttaxCustomBatchResponse {
+    /// entries property.
+    pub entries: Option<Vec<AccounttaxCustomBatchResponseEntry>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `AccounttaxCustomBatchResponseEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccounttaxCustomBatchResponseEntry {
+    /// accountTax property.
+    pub account_tax: Option<AccountTax>,
+    /// batchId property.
+    pub batch_id: Option<i64>,
+    /// errors property.
+    pub errors: Option<Errors>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `Address` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Address {
+    /// administrativeArea property.
+    pub administrative_area: Option<String>,
+    /// city property.
+    pub city: Option<String>,
+    /// country property.
+    pub country: Option<String>,
+    /// postalCode property.
+    pub postal_code: Option<String>,
+    /// streetAddress property.
+    pub street_address: Option<String>,
+}
+
+/// `TransitTable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TransitTable {
+    /// postalCodeGroupNames property.
+    pub postal_code_group_names: Option<Vec<String>>,
+    /// rows property.
+    pub rows: Option<Vec<TransitTableTransitTimeRow>>,
+    /// transitTimeLabels property.
+    pub transit_time_labels: Option<Vec<String>>,
+}
+
+/// `PostalCodeGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostalCodeGroup {
+    /// country property.
+    pub country: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// postalCodeRanges property.
+    pub postal_code_ranges: Option<Vec<PostalCodeRange>>,
+}
+
+/// `DeliveryTime` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeliveryTime {
+    /// cutoffTime property.
+    pub cutoff_time: Option<CutoffTime>,
+    /// handlingBusinessDayConfig property.
+    pub handling_business_day_config: Option<BusinessDayConfig>,
+    /// holidayCutoffs property.
+    pub holiday_cutoffs: Option<Vec<HolidayCutoff>>,
+    /// maxHandlingTimeInDays property.
+    pub max_handling_time_in_days: Option<i64>,
+    /// maxTransitTimeInDays property.
+    pub max_transit_time_in_days: Option<i64>,
+    /// minHandlingTimeInDays property.
+    pub min_handling_time_in_days: Option<i64>,
+    /// minTransitTimeInDays property.
+    pub min_transit_time_in_days: Option<i64>,
+    /// transitBusinessDayConfig property.
+    pub transit_business_day_config: Option<BusinessDayConfig>,
+    /// transitTimeTable property.
+    pub transit_time_table: Option<TransitTable>,
+    /// warehouseBasedDeliveryTimes property.
+    pub warehouse_based_delivery_times: Option<Vec<WarehouseBasedDeliveryTime>>,
+}
+
+/// `ProductUnitPricingBaseMeasure` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductUnitPricingBaseMeasure {
+    /// unit property.
+    pub unit: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `LiaOnDisplayToOrderSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiaOnDisplayToOrderSettings {
+    /// shippingCostPolicyUrl property.
+    pub shipping_cost_policy_url: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+}
+
+/// `PosSale` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PosSale {
+    /// contentLanguage property.
+    pub content_language: Option<String>,
+    /// gtin property.
+    pub gtin: Option<String>,
+    /// itemId property.
+    pub item_id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// price property.
+    pub price: Option<Price>,
+    /// quantity property.
+    pub quantity: Option<String>,
+    /// saleId property.
+    pub sale_id: Option<String>,
+    /// storeCode property.
+    pub store_code: Option<String>,
+    /// targetCountry property.
+    pub target_country: Option<String>,
+    /// timestamp property.
+    pub timestamp: Option<String>,
+}
+
+/// `DatafeedstatusesCustomBatchResponseEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatafeedstatusesCustomBatchResponseEntry {
+    /// batchId property.
+    pub batch_id: Option<i64>,
+    /// datafeedStatus property.
+    pub datafeed_status: Option<DatafeedStatus>,
+    /// errors property.
+    pub errors: Option<Errors>,
+}
+
+/// `Row` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Row {
+    /// cells property.
+    pub cells: Option<Vec<Value>>,
+}
+
+/// `AccountBusinessInformation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountBusinessInformation {
+    /// address property.
+    pub address: Option<AccountAddress>,
+    /// customerService property.
+    pub customer_service: Option<AccountCustomerService>,
+    /// koreanBusinessRegistrationNumber property.
+    pub korean_business_registration_number: Option<String>,
+    /// phoneNumber property.
+    pub phone_number: Option<String>,
+    /// phoneVerificationStatus property.
+    pub phone_verification_status: Option<String>,
+}
+
+/// `ProductsCustomBatchResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductsCustomBatchResponse {
+    /// entries property.
+    pub entries: Option<Vec<ProductsCustomBatchResponseEntry>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
 
 /// `Service` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -53,335 +486,32 @@ pub struct Service {
     pub store_config: Option<ServiceStoreConfig>,
 }
 
-/// `AccountAutomaticImprovements` type.
+/// `RegionalInventory` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountAutomaticImprovements {
-    /// imageImprovements property.
-    pub image_improvements: Option<AccountImageImprovements>,
-    /// itemUpdates property.
-    pub item_updates: Option<AccountItemUpdates>,
-    /// shippingImprovements property.
-    pub shipping_improvements: Option<AccountShippingImprovements>,
-}
-
-/// `AccountShippingImprovements` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountShippingImprovements {
-    /// allowShippingImprovements property.
-    pub allow_shipping_improvements: Option<bool>,
-}
-
-/// `WarehouseBasedDeliveryTime` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WarehouseBasedDeliveryTime {
-    /// carrier property.
-    pub carrier: Option<String>,
-    /// carrierService property.
-    pub carrier_service: Option<String>,
-    /// originAdministrativeArea property.
-    pub origin_administrative_area: Option<String>,
-    /// originCity property.
-    pub origin_city: Option<String>,
-    /// originCountry property.
-    pub origin_country: Option<String>,
-    /// originPostalCode property.
-    pub origin_postal_code: Option<String>,
-    /// originStreetAddress property.
-    pub origin_street_address: Option<String>,
-    /// warehouseName property.
-    pub warehouse_name: Option<String>,
-}
-
-/// `AccountImageImprovements` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountImageImprovements {
-    /// accountImageImprovementsSettings property.
-    pub account_image_improvements_settings: Option<AccountImageImprovementsSettings>,
-    /// effectiveAllowAutomaticImageImprovements property.
-    pub effective_allow_automatic_image_improvements: Option<bool>,
-}
-
-/// `CloudExportAdditionalProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudExportAdditionalProperties {
-    /// boolValue property.
-    pub bool_value: Option<bool>,
-    /// floatValue property.
-    pub float_value: Option<Vec<f64>>,
-    /// intValue property.
-    pub int_value: Option<Vec<String>>,
-    /// maxValue property.
-    pub max_value: Option<f64>,
-    /// minValue property.
-    pub min_value: Option<f64>,
-    /// propertyName property.
-    pub property_name: Option<String>,
-    /// textValue property.
-    pub text_value: Option<Vec<String>>,
-    /// unitCode property.
-    pub unit_code: Option<String>,
-}
-
-/// `AccountConversionSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountConversionSettings {
-    /// freeListingsAutoTaggingEnabled property.
-    pub free_listings_auto_tagging_enabled: Option<bool>,
-}
-
-/// `ProductstatusesCustomBatchResponseEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductstatusesCustomBatchResponseEntry {
-    /// batchId property.
-    pub batch_id: Option<i64>,
-    /// errors property.
-    pub errors: Option<Errors>,
+pub struct RegionalInventory {
+    /// availability property.
+    pub availability: Option<String>,
+    /// customAttributes property.
+    pub custom_attributes: Option<Vec<Box<CustomAttribute>>>,
     /// kind property.
     pub kind: Option<String>,
-    /// productStatus property.
-    pub product_status: Option<ProductStatus>,
-}
-
-/// `LiaAboutPageSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiaAboutPageSettings {
-    /// status property.
-    pub status: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `TransitTable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransitTable {
-    /// postalCodeGroupNames property.
-    pub postal_code_group_names: Option<Vec<String>>,
-    /// rows property.
-    pub rows: Option<Vec<TransitTableTransitTimeRow>>,
-    /// transitTimeLabels property.
-    pub transit_time_labels: Option<Vec<String>>,
-}
-
-/// `ProductTax` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductTax {
-    /// country property.
-    pub country: Option<String>,
-    /// locationId property.
-    pub location_id: Option<String>,
-    /// postalCode property.
-    pub postal_code: Option<String>,
-    /// rate property.
-    pub rate: Option<f64>,
-    /// region property.
-    pub region: Option<String>,
-    /// taxShip property.
-    pub tax_ship: Option<bool>,
-}
-
-/// `ProductsCustomBatchResponseEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductsCustomBatchResponseEntry {
-    /// batchId property.
-    pub batch_id: Option<i64>,
-    /// errors property.
-    pub errors: Option<Errors>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// product property.
-    pub product: Option<Product>,
-}
-
-/// `DatafeedsCustomBatchResponseEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatafeedsCustomBatchResponseEntry {
-    /// batchId property.
-    pub batch_id: Option<i64>,
-    /// datafeed property.
-    pub datafeed: Option<Datafeed>,
-    /// errors property.
-    pub errors: Option<Errors>,
-}
-
-/// `AccountCustomerService` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountCustomerService {
-    /// email property.
-    pub email: Option<String>,
-    /// phoneNumber property.
-    pub phone_number: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `TransitTableTransitTimeRowTransitTimeValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransitTableTransitTimeRowTransitTimeValue {
-    /// maxTransitTimeInDays property.
-    pub max_transit_time_in_days: Option<i64>,
-    /// minTransitTimeInDays property.
-    pub min_transit_time_in_days: Option<i64>,
-}
-
-/// `AccountStatusAccountLevelIssue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountStatusAccountLevelIssue {
-    /// country property.
-    pub country: Option<String>,
-    /// destination property.
-    pub destination: Option<String>,
-    /// detail property.
-    pub detail: Option<String>,
-    /// documentation property.
-    pub documentation: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// severity property.
-    pub severity: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `ShippingsettingsCustomBatchResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShippingsettingsCustomBatchResponse {
-    /// entries property.
-    pub entries: Option<Vec<ShippingsettingsCustomBatchResponseEntry>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `DatafeedTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatafeedTarget {
-    /// country property.
-    pub country: Option<String>,
-    /// excludedDestinations property.
-    pub excluded_destinations: Option<Vec<String>>,
-    /// feedLabel property.
-    pub feed_label: Option<String>,
-    /// includedDestinations property.
-    pub included_destinations: Option<Vec<String>>,
-    /// language property.
-    pub language: Option<String>,
-    /// targetCountries property.
-    pub target_countries: Option<Vec<String>>,
-}
-
-/// `ServiceStoreConfigCutoffConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceStoreConfigCutoffConfig {
-    /// localCutoffTime property.
-    pub local_cutoff_time: Option<ServiceStoreConfigCutoffConfigLocalCutoffTime>,
-    /// noDeliveryPostCutoff property.
-    pub no_delivery_post_cutoff: Option<bool>,
-    /// storeCloseOffsetHours property.
-    pub store_close_offset_hours: Option<String>,
-}
-
-/// `DatafeedstatusesCustomBatchResponseEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatafeedstatusesCustomBatchResponseEntry {
-    /// batchId property.
-    pub batch_id: Option<i64>,
-    /// datafeedStatus property.
-    pub datafeed_status: Option<DatafeedStatus>,
-    /// errors property.
-    pub errors: Option<Errors>,
-}
-
-/// `ShippingSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShippingSettings {
-    /// accountId property.
-    pub account_id: Option<String>,
-    /// postalCodeGroups property.
-    pub postal_code_groups: Option<Vec<PostalCodeGroup>>,
-    /// services property.
-    pub services: Option<Vec<Service>>,
-    /// warehouses property.
-    pub warehouses: Option<Vec<Warehouse>>,
-}
-
-/// `CutoffTime` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CutoffTime {
-    /// hour property.
-    pub hour: Option<i64>,
-    /// minute property.
-    pub minute: Option<i64>,
-    /// timezone property.
-    pub timezone: Option<String>,
-}
-
-/// `ServiceStoreConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceStoreConfig {
-    /// cutoffConfig property.
-    pub cutoff_config: Option<ServiceStoreConfigCutoffConfig>,
-    /// serviceRadius property.
-    pub service_radius: Option<Distance>,
-    /// storeCodes property.
-    pub store_codes: Option<Vec<String>>,
-    /// storeServiceType property.
-    pub store_service_type: Option<String>,
-}
-
-/// `PosInventory` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PosInventory {
-    /// contentLanguage property.
-    pub content_language: Option<String>,
-    /// gtin property.
-    pub gtin: Option<String>,
-    /// itemId property.
-    pub item_id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// pickupMethod property.
-    pub pickup_method: Option<String>,
-    /// pickupSla property.
-    pub pickup_sla: Option<String>,
     /// price property.
     pub price: Option<Price>,
-    /// quantity property.
-    pub quantity: Option<String>,
-    /// storeCode property.
-    pub store_code: Option<String>,
-    /// targetCountry property.
-    pub target_country: Option<String>,
-    /// timestamp property.
-    pub timestamp: Option<String>,
+    /// regionId property.
+    pub region_id: Option<String>,
+    /// salePrice property.
+    pub sale_price: Option<Price>,
+    /// salePriceEffectiveDate property.
+    pub sale_price_effective_date: Option<String>,
 }
 
-/// `AccountItemUpdates` type.
+/// `FreeShippingThreshold` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountItemUpdates {
-    /// accountItemUpdatesSettings property.
-    pub account_item_updates_settings: Option<AccountItemUpdatesSettings>,
-    /// effectiveAllowAvailabilityUpdates property.
-    pub effective_allow_availability_updates: Option<bool>,
-    /// effectiveAllowConditionUpdates property.
-    pub effective_allow_condition_updates: Option<bool>,
-    /// effectiveAllowPriceUpdates property.
-    pub effective_allow_price_updates: Option<bool>,
-    /// effectiveAllowStrictAvailabilityUpdates property.
-    pub effective_allow_strict_availability_updates: Option<bool>,
-}
-
-/// `Value` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Value {
-    /// carrierRateName property.
-    pub carrier_rate_name: Option<String>,
-    /// flatRate property.
-    pub flat_rate: Option<Price>,
-    /// noShipping property.
-    pub no_shipping: Option<bool>,
-    /// pricePercentage property.
-    pub price_percentage: Option<String>,
-    /// subtableName property.
-    pub subtable_name: Option<String>,
+pub struct FreeShippingThreshold {
+    /// country property.
+    pub country: Option<String>,
+    /// priceThreshold property.
+    pub price_threshold: Option<Price>,
 }
 
 /// `Installment` type.
@@ -397,200 +527,116 @@ pub struct Installment {
     pub months: Option<String>,
 }
 
-/// `DatafeedsCustomBatchResponse` type.
+/// `ProductShipping` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatafeedsCustomBatchResponse {
-    /// entries property.
-    pub entries: Option<Vec<DatafeedsCustomBatchResponseEntry>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `ProductSustainabilityIncentive` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductSustainabilityIncentive {
-    /// amount property.
-    pub amount: Option<Price>,
-    /// percentage property.
-    pub percentage: Option<f64>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `AccountStatusProducts` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountStatusProducts {
-    /// channel property.
-    pub channel: Option<String>,
+pub struct ProductShipping {
     /// country property.
     pub country: Option<String>,
-    /// destination property.
-    pub destination: Option<String>,
-    /// itemLevelIssues property.
-    pub item_level_issues: Option<Vec<AccountStatusItemLevelIssue>>,
-    /// statistics property.
-    pub statistics: Option<AccountStatusStatistics>,
-}
-
-/// `AccountUser` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountUser {
-    /// admin property.
-    pub admin: Option<bool>,
-    /// emailAddress property.
-    pub email_address: Option<String>,
-    /// orderManager property.
-    pub order_manager: Option<bool>,
-    /// paymentsAnalyst property.
-    pub payments_analyst: Option<bool>,
-    /// paymentsManager property.
-    pub payments_manager: Option<bool>,
-    /// readOnly property.
-    pub read_only: Option<bool>,
-    /// reportingManager property.
-    pub reporting_manager: Option<bool>,
-}
-
-/// `PosDataProvidersPosDataProvider` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PosDataProvidersPosDataProvider {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// fullName property.
-    pub full_name: Option<String>,
-    /// providerId property.
-    pub provider_id: Option<String>,
-}
-
-/// `Address` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Address {
-    /// administrativeArea property.
-    pub administrative_area: Option<String>,
-    /// city property.
-    pub city: Option<String>,
-    /// country property.
-    pub country: Option<String>,
+    /// locationGroupName property.
+    pub location_group_name: Option<String>,
+    /// locationId property.
+    pub location_id: Option<String>,
+    /// maxHandlingTime property.
+    pub max_handling_time: Option<String>,
+    /// maxTransitTime property.
+    pub max_transit_time: Option<String>,
+    /// minHandlingTime property.
+    pub min_handling_time: Option<String>,
+    /// minTransitTime property.
+    pub min_transit_time: Option<String>,
     /// postalCode property.
     pub postal_code: Option<String>,
-    /// streetAddress property.
-    pub street_address: Option<String>,
-}
-
-/// `AccountStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountStatus {
-    /// accountId property.
-    pub account_id: Option<String>,
-    /// accountLevelIssues property.
-    pub account_level_issues: Option<Vec<AccountStatusAccountLevelIssue>>,
-    /// accountManagement property.
-    pub account_management: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// products property.
-    pub products: Option<Vec<AccountStatusProducts>>,
-    /// websiteClaimed property.
-    pub website_claimed: Option<bool>,
-}
-
-/// `LoyaltyProgram` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoyaltyProgram {
-    /// cashbackForFutureUse property.
-    pub cashback_for_future_use: Option<Price>,
-    /// loyaltyPoints property.
-    pub loyalty_points: Option<String>,
-    /// memberPriceEffectiveDate property.
-    pub member_price_effective_date: Option<String>,
     /// price property.
     pub price: Option<Price>,
-    /// programLabel property.
-    pub program_label: Option<String>,
-    /// shippingLabel property.
-    pub shipping_label: Option<String>,
-    /// tierLabel property.
-    pub tier_label: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// service property.
+    pub service: Option<String>,
 }
 
-/// `ProductShippingWeight` type.
+/// `ProductstatusesCustomBatchResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductShippingWeight {
-    /// unit property.
-    pub unit: Option<String>,
-    /// value property.
-    pub value: Option<f64>,
-}
-
-/// `ProductUnitPricingBaseMeasure` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductUnitPricingBaseMeasure {
-    /// unit property.
-    pub unit: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `CarrierRate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CarrierRate {
-    /// carrierName property.
-    pub carrier_name: Option<String>,
-    /// carrierService property.
-    pub carrier_service: Option<String>,
-    /// flatAdjustment property.
-    pub flat_adjustment: Option<Price>,
-    /// name property.
-    pub name: Option<String>,
-    /// originPostalCode property.
-    pub origin_postal_code: Option<String>,
-    /// percentageAdjustment property.
-    pub percentage_adjustment: Option<String>,
-}
-
-/// `Weight` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Weight {
-    /// unit property.
-    pub unit: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `LiaInventorySettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiaInventorySettings {
-    /// inventoryVerificationContactEmail property.
-    pub inventory_verification_contact_email: Option<String>,
-    /// inventoryVerificationContactName property.
-    pub inventory_verification_contact_name: Option<String>,
-    /// inventoryVerificationContactStatus property.
-    pub inventory_verification_contact_status: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-}
-
-/// `Datafeed` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Datafeed {
-    /// attributeLanguage property.
-    pub attribute_language: Option<String>,
-    /// contentType property.
-    pub content_type: Option<String>,
-    /// fetchSchedule property.
-    pub fetch_schedule: Option<DatafeedFetchSchedule>,
-    /// fileName property.
-    pub file_name: Option<String>,
-    /// format property.
-    pub format: Option<DatafeedFormat>,
-    /// id property.
-    pub id: Option<String>,
+pub struct ProductstatusesCustomBatchResponse {
+    /// entries property.
+    pub entries: Option<Vec<ProductstatusesCustomBatchResponseEntry>>,
     /// kind property.
     pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// targets property.
-    pub targets: Option<Vec<DatafeedTarget>>,
+}
+
+/// `ProductStructuredTitle` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductStructuredTitle {
+    /// content property.
+    pub content: Option<String>,
+    /// digitalSourceType property.
+    pub digital_source_type: Option<String>,
+}
+
+/// `DatafeedFormat` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatafeedFormat {
+    /// columnDelimiter property.
+    pub column_delimiter: Option<String>,
+    /// fileEncoding property.
+    pub file_encoding: Option<String>,
+    /// quotingMode property.
+    pub quoting_mode: Option<String>,
+}
+
+/// `AccountsCustomBatchResponseEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountsCustomBatchResponseEntry {
+    /// account property.
+    pub account: Option<Account>,
+    /// batchId property.
+    pub batch_id: Option<i64>,
+    /// errors property.
+    pub errors: Option<Errors>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `BusinessDayConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BusinessDayConfig {
+    /// businessDays property.
+    pub business_days: Option<Vec<String>>,
+}
+
+/// `AccountstatusesCustomBatchResponseEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountstatusesCustomBatchResponseEntry {
+    /// accountStatus property.
+    pub account_status: Option<AccountStatus>,
+    /// batchId property.
+    pub batch_id: Option<i64>,
+    /// errors property.
+    pub errors: Option<Errors>,
+}
+
+/// `AccountsCustomBatchResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountsCustomBatchResponse {
+    /// entries property.
+    pub entries: Option<Vec<AccountsCustomBatchResponseEntry>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `ProductStructuredDescription` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductStructuredDescription {
+    /// content property.
+    pub content: Option<String>,
+    /// digitalSourceType property.
+    pub digital_source_type: Option<String>,
+}
+
+/// `TransitTableTransitTimeRow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TransitTableTransitTimeRow {
+    /// values property.
+    pub values: Option<Vec<TransitTableTransitTimeRowTransitTimeValue>>,
 }
 
 /// `LiasettingsCustomBatchResponseEntry` type.
@@ -612,528 +658,68 @@ pub struct LiasettingsCustomBatchResponseEntry {
     pub pos_data_providers: Option<Vec<PosDataProviders>>,
 }
 
-/// `WarehouseCutoffTime` type.
+/// `AccountAutomaticImprovements` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WarehouseCutoffTime {
-    /// hour property.
-    pub hour: Option<i64>,
-    /// minute property.
-    pub minute: Option<i64>,
+pub struct AccountAutomaticImprovements {
+    /// imageImprovements property.
+    pub image_improvements: Option<AccountImageImprovements>,
+    /// itemUpdates property.
+    pub item_updates: Option<AccountItemUpdates>,
+    /// shippingImprovements property.
+    pub shipping_improvements: Option<AccountShippingImprovements>,
 }
 
-/// `PosCustomBatchResponseEntry` type.
+/// `AccountAdsLink` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PosCustomBatchResponseEntry {
-    /// batchId property.
-    pub batch_id: Option<i64>,
-    /// errors property.
-    pub errors: Option<Errors>,
-    /// inventory property.
-    pub inventory: Option<PosInventory>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// sale property.
-    pub sale: Option<PosSale>,
-    /// store property.
-    pub store: Option<PosStore>,
-}
-
-/// `ProductStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductStatus {
-    /// creationDate property.
-    pub creation_date: Option<String>,
-    /// destinationStatuses property.
-    pub destination_statuses: Option<Vec<ProductStatusDestinationStatus>>,
-    /// googleExpirationDate property.
-    pub google_expiration_date: Option<String>,
-    /// itemLevelIssues property.
-    pub item_level_issues: Option<Vec<ProductStatusItemLevelIssue>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// lastUpdateDate property.
-    pub last_update_date: Option<String>,
-    /// link property.
-    pub link: Option<String>,
-    /// productId property.
-    pub product_id: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `RateGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RateGroup {
-    /// applicableShippingLabels property.
-    pub applicable_shipping_labels: Option<Vec<String>>,
-    /// carrierRates property.
-    pub carrier_rates: Option<Vec<CarrierRate>>,
-    /// mainTable property.
-    pub main_table: Option<Table>,
-    /// name property.
-    pub name: Option<String>,
-    /// singleValue property.
-    pub single_value: Option<Value>,
-    /// subtables property.
-    pub subtables: Option<Vec<Table>>,
-}
-
-/// `AccountYouTubeChannelLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountYouTubeChannelLink {
-    /// channelId property.
-    pub channel_id: Option<String>,
+pub struct AccountAdsLink {
+    /// adsId property.
+    pub ads_id: Option<String>,
     /// status property.
     pub status: Option<String>,
 }
 
-/// `AccountImageImprovementsSettings` type.
+/// `AccountIdentityType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountImageImprovementsSettings {
-    /// allowAutomaticImageImprovements property.
-    pub allow_automatic_image_improvements: Option<bool>,
+pub struct AccountIdentityType {
+    /// selfIdentified property.
+    pub self_identified: Option<bool>,
 }
 
-/// `DatafeedFormat` type.
+/// `MinimumOrderValueTableStoreCodeSetWithMov` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatafeedFormat {
-    /// columnDelimiter property.
-    pub column_delimiter: Option<String>,
-    /// fileEncoding property.
-    pub file_encoding: Option<String>,
-    /// quotingMode property.
-    pub quoting_mode: Option<String>,
+pub struct MinimumOrderValueTableStoreCodeSetWithMov {
+    /// storeCodes property.
+    pub store_codes: Option<Vec<String>>,
+    /// value property.
+    pub value: Option<Price>,
 }
 
-/// `LocalinventoryCustomBatchResponseEntry` type.
+/// `ProductUnitPricingMeasure` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalinventoryCustomBatchResponseEntry {
-    /// batchId property.
-    pub batch_id: Option<i64>,
-    /// errors property.
-    pub errors: Option<Errors>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `PosDataProviders` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PosDataProviders {
-    /// country property.
-    pub country: Option<String>,
-    /// posDataProviders property.
-    pub pos_data_providers: Option<Vec<PosDataProvidersPosDataProvider>>,
-}
-
-/// `ProductstatusesCustomBatchResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductstatusesCustomBatchResponse {
-    /// entries property.
-    pub entries: Option<Vec<ProductstatusesCustomBatchResponseEntry>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `AccountsCustomBatchResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountsCustomBatchResponse {
-    /// entries property.
-    pub entries: Option<Vec<AccountsCustomBatchResponseEntry>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `PosCustomBatchResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PosCustomBatchResponse {
-    /// entries property.
-    pub entries: Option<Vec<PosCustomBatchResponseEntry>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `DatafeedStatusError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatafeedStatusError {
-    /// code property.
-    pub code: Option<String>,
-    /// count property.
-    pub count: Option<String>,
-    /// examples property.
-    pub examples: Option<Vec<DatafeedStatusExample>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `Distance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Distance {
+pub struct ProductUnitPricingMeasure {
     /// unit property.
     pub unit: Option<String>,
     /// value property.
-    pub value: Option<String>,
+    pub value: Option<f64>,
 }
 
-/// `DatafeedFetchSchedule` type.
+/// `AccountUser` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatafeedFetchSchedule {
-    /// dayOfMonth property.
-    pub day_of_month: Option<i64>,
-    /// fetchUrl property.
-    pub fetch_url: Option<String>,
-    /// hour property.
-    pub hour: Option<i64>,
-    /// minuteOfHour property.
-    pub minute_of_hour: Option<i64>,
-    /// password property.
-    pub password: Option<String>,
-    /// paused property.
-    pub paused: Option<bool>,
-    /// timeZone property.
-    pub time_zone: Option<String>,
-    /// username property.
-    pub username: Option<String>,
-    /// weekday property.
-    pub weekday: Option<String>,
-}
-
-/// `Headers` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Headers {
-    /// locations property.
-    pub locations: Option<Vec<LocationIdSet>>,
-    /// numberOfItems property.
-    pub number_of_items: Option<Vec<String>>,
-    /// postalCodeGroupNames property.
-    pub postal_code_group_names: Option<Vec<String>>,
-    /// prices property.
-    pub prices: Option<Vec<Price>>,
-    /// weights property.
-    pub weights: Option<Vec<Weight>>,
-}
-
-/// `TransitTableTransitTimeRow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransitTableTransitTimeRow {
-    /// values property.
-    pub values: Option<Vec<TransitTableTransitTimeRowTransitTimeValue>>,
-}
-
-/// `DatafeedstatusesCustomBatchResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatafeedstatusesCustomBatchResponse {
-    /// entries property.
-    pub entries: Option<Vec<DatafeedstatusesCustomBatchResponseEntry>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `AccountGoogleMyBusinessLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountGoogleMyBusinessLink {
-    /// gmbAccountId property.
-    pub gmb_account_id: Option<String>,
-    /// gmbEmail property.
-    pub gmb_email: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-}
-
-/// `PickupCarrierService` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PickupCarrierService {
-    /// carrierName property.
-    pub carrier_name: Option<String>,
-    /// serviceName property.
-    pub service_name: Option<String>,
-}
-
-/// `LocationIdSet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocationIdSet {
-    /// locationIds property.
-    pub location_ids: Option<Vec<String>>,
-}
-
-/// `GmbAccountsGmbAccount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GmbAccountsGmbAccount {
-    /// email property.
-    pub email: Option<String>,
-    /// listingCount property.
-    pub listing_count: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `RegionalinventoryCustomBatchResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegionalinventoryCustomBatchResponse {
-    /// entries property.
-    pub entries: Option<Vec<RegionalinventoryCustomBatchResponseEntry>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `AccountItemUpdatesSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountItemUpdatesSettings {
-    /// allowAvailabilityUpdates property.
-    pub allow_availability_updates: Option<bool>,
-    /// allowConditionUpdates property.
-    pub allow_condition_updates: Option<bool>,
-    /// allowPriceUpdates property.
-    pub allow_price_updates: Option<bool>,
-    /// allowStrictAvailabilityUpdates property.
-    pub allow_strict_availability_updates: Option<bool>,
-}
-
-/// `ProductProductDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductProductDetail {
-    /// attributeName property.
-    pub attribute_name: Option<String>,
-    /// attributeValue property.
-    pub attribute_value: Option<String>,
-    /// sectionName property.
-    pub section_name: Option<String>,
-}
-
-/// `AccountBusinessInformation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountBusinessInformation {
-    /// address property.
-    pub address: Option<AccountAddress>,
-    /// customerService property.
-    pub customer_service: Option<AccountCustomerService>,
-    /// koreanBusinessRegistrationNumber property.
-    pub korean_business_registration_number: Option<String>,
-    /// phoneNumber property.
-    pub phone_number: Option<String>,
-    /// phoneVerificationStatus property.
-    pub phone_verification_status: Option<String>,
-}
-
-/// `AccountstatusesCustomBatchResponseEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountstatusesCustomBatchResponseEntry {
-    /// accountStatus property.
-    pub account_status: Option<AccountStatus>,
-    /// batchId property.
-    pub batch_id: Option<i64>,
-    /// errors property.
-    pub errors: Option<Errors>,
-}
-
-/// `MinimumOrderValueTable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MinimumOrderValueTable {
-    /// storeCodeSetWithMovs property.
-    pub store_code_set_with_movs: Option<Vec<MinimumOrderValueTableStoreCodeSetWithMov>>,
-}
-
-/// `LiaPosDataProvider` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiaPosDataProvider {
-    /// posDataProviderId property.
-    pub pos_data_provider_id: Option<String>,
-    /// posExternalAccountId property.
-    pub pos_external_account_id: Option<String>,
-}
-
-/// `Table` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Table {
-    /// columnHeaders property.
-    pub column_headers: Option<Headers>,
-    /// name property.
-    pub name: Option<String>,
-    /// rowHeaders property.
-    pub row_headers: Option<Headers>,
-    /// rows property.
-    pub rows: Option<Vec<Row>>,
-}
-
-/// `DatafeedStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatafeedStatus {
-    /// country property.
-    pub country: Option<String>,
-    /// datafeedId property.
-    pub datafeed_id: Option<String>,
-    /// errors property.
-    pub errors: Option<Vec<DatafeedStatusError>>,
-    /// feedLabel property.
-    pub feed_label: Option<String>,
-    /// itemsTotal property.
-    pub items_total: Option<String>,
-    /// itemsValid property.
-    pub items_valid: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// language property.
-    pub language: Option<String>,
-    /// lastUploadDate property.
-    pub last_upload_date: Option<String>,
-    /// processingStatus property.
-    pub processing_status: Option<String>,
-    /// warnings property.
-    pub warnings: Option<Vec<DatafeedStatusError>>,
-}
-
-/// `PosSale` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PosSale {
-    /// contentLanguage property.
-    pub content_language: Option<String>,
-    /// gtin property.
-    pub gtin: Option<String>,
-    /// itemId property.
-    pub item_id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// price property.
-    pub price: Option<Price>,
-    /// quantity property.
-    pub quantity: Option<String>,
-    /// saleId property.
-    pub sale_id: Option<String>,
-    /// storeCode property.
-    pub store_code: Option<String>,
-    /// targetCountry property.
-    pub target_country: Option<String>,
-    /// timestamp property.
-    pub timestamp: Option<String>,
-}
-
-/// `PostalCodeGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostalCodeGroup {
-    /// country property.
-    pub country: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// postalCodeRanges property.
-    pub postal_code_ranges: Option<Vec<PostalCodeRange>>,
-}
-
-/// `LocalinventoryCustomBatchResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalinventoryCustomBatchResponse {
-    /// entries property.
-    pub entries: Option<Vec<LocalinventoryCustomBatchResponseEntry>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `RegionalInventory` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegionalInventory {
-    /// availability property.
-    pub availability: Option<String>,
-    /// customAttributes property.
-    pub custom_attributes: Option<Vec<CustomAttribute>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// price property.
-    pub price: Option<Price>,
-    /// regionId property.
-    pub region_id: Option<String>,
-    /// salePrice property.
-    pub sale_price: Option<Price>,
-    /// salePriceEffectiveDate property.
-    pub sale_price_effective_date: Option<String>,
-}
-
-/// `BusinessDayConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BusinessDayConfig {
-    /// businessDays property.
-    pub business_days: Option<Vec<String>>,
-}
-
-/// `AccounttaxCustomBatchResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccounttaxCustomBatchResponse {
-    /// entries property.
-    pub entries: Option<Vec<AccounttaxCustomBatchResponseEntry>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `CustomAttribute` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomAttribute {
-    /// groupValues property.
-    pub group_values: Option<Vec<CustomAttribute>>,
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `DeliveryTime` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeliveryTime {
-    /// cutoffTime property.
-    pub cutoff_time: Option<CutoffTime>,
-    /// handlingBusinessDayConfig property.
-    pub handling_business_day_config: Option<BusinessDayConfig>,
-    /// holidayCutoffs property.
-    pub holiday_cutoffs: Option<Vec<HolidayCutoff>>,
-    /// maxHandlingTimeInDays property.
-    pub max_handling_time_in_days: Option<i64>,
-    /// maxTransitTimeInDays property.
-    pub max_transit_time_in_days: Option<i64>,
-    /// minHandlingTimeInDays property.
-    pub min_handling_time_in_days: Option<i64>,
-    /// minTransitTimeInDays property.
-    pub min_transit_time_in_days: Option<i64>,
-    /// transitBusinessDayConfig property.
-    pub transit_business_day_config: Option<BusinessDayConfig>,
-    /// transitTimeTable property.
-    pub transit_time_table: Option<TransitTable>,
-    /// warehouseBasedDeliveryTimes property.
-    pub warehouse_based_delivery_times: Option<Vec<WarehouseBasedDeliveryTime>>,
-}
-
-/// `AccountsCustomBatchResponseEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountsCustomBatchResponseEntry {
-    /// account property.
-    pub account: Option<Account>,
-    /// batchId property.
-    pub batch_id: Option<i64>,
-    /// errors property.
-    pub errors: Option<Errors>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `LiaOnDisplayToOrderSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiaOnDisplayToOrderSettings {
-    /// shippingCostPolicyUrl property.
-    pub shipping_cost_policy_url: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-}
-
-/// `AccountTaxTaxRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountTaxTaxRule {
-    /// country property.
-    pub country: Option<String>,
-    /// locationId property.
-    pub location_id: Option<String>,
-    /// ratePercent property.
-    pub rate_percent: Option<String>,
-    /// shippingTaxed property.
-    pub shipping_taxed: Option<bool>,
-    /// useGlobalRate property.
-    pub use_global_rate: Option<bool>,
+pub struct AccountUser {
+    /// admin property.
+    pub admin: Option<bool>,
+    /// emailAddress property.
+    pub email_address: Option<String>,
+    /// orderManager property.
+    pub order_manager: Option<bool>,
+    /// paymentsAnalyst property.
+    pub payments_analyst: Option<bool>,
+    /// paymentsManager property.
+    pub payments_manager: Option<bool>,
+    /// readOnly property.
+    pub read_only: Option<bool>,
+    /// reportingManager property.
+    pub reporting_manager: Option<bool>,
 }
 
 /// `Product` type.
@@ -1178,7 +764,7 @@ pub struct Product {
     /// costOfGoodsSold property.
     pub cost_of_goods_sold: Option<Price>,
     /// customAttributes property.
-    pub custom_attributes: Option<Vec<CustomAttribute>>,
+    pub custom_attributes: Option<Vec<Box<CustomAttribute>>>,
     /// customLabel0 property.
     pub custom_label0: Option<String>,
     /// customLabel1 property.
@@ -1349,348 +935,19 @@ pub struct Product {
     pub virtual_model_link: Option<String>,
 }
 
-/// `Errors` type.
+/// `AccountStatusProducts` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Errors {
-    /// code property.
-    pub code: Option<i64>,
-    /// errors property.
-    pub errors: Option<Vec<Error>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `RegionalinventoryCustomBatchResponseEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegionalinventoryCustomBatchResponseEntry {
-    /// batchId property.
-    pub batch_id: Option<i64>,
-    /// errors property.
-    pub errors: Option<Errors>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// regionalInventory property.
-    pub regional_inventory: Option<RegionalInventory>,
-}
-
-/// `AccountBusinessIdentity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountBusinessIdentity {
-    /// blackOwned property.
-    pub black_owned: Option<AccountIdentityType>,
-    /// includeForPromotions property.
-    pub include_for_promotions: Option<bool>,
-    /// latinoOwned property.
-    pub latino_owned: Option<AccountIdentityType>,
-    /// smallBusiness property.
-    pub small_business: Option<AccountIdentityType>,
-    /// veteranOwned property.
-    pub veteran_owned: Option<AccountIdentityType>,
-    /// womenOwned property.
-    pub women_owned: Option<AccountIdentityType>,
-}
-
-/// `DatafeedStatusExample` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatafeedStatusExample {
-    /// itemId property.
-    pub item_id: Option<String>,
-    /// lineNumber property.
-    pub line_number: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `ShippingsettingsCustomBatchResponseEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShippingsettingsCustomBatchResponseEntry {
-    /// batchId property.
-    pub batch_id: Option<i64>,
-    /// errors property.
-    pub errors: Option<Errors>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// shippingSettings property.
-    pub shipping_settings: Option<ShippingSettings>,
-}
-
-/// `HolidayCutoff` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HolidayCutoff {
-    /// deadlineDate property.
-    pub deadline_date: Option<String>,
-    /// deadlineHour property.
-    pub deadline_hour: Option<i64>,
-    /// deadlineTimezone property.
-    pub deadline_timezone: Option<String>,
-    /// holidayId property.
-    pub holiday_id: Option<String>,
-    /// visibleFromDate property.
-    pub visible_from_date: Option<String>,
-}
-
-/// `PostalCodeRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostalCodeRange {
-    /// postalCodeRangeBegin property.
-    pub postal_code_range_begin: Option<String>,
-    /// postalCodeRangeEnd property.
-    pub postal_code_range_end: Option<String>,
-}
-
-/// `GmbAccounts` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GmbAccounts {
-    /// accountId property.
-    pub account_id: Option<String>,
-    /// gmbAccounts property.
-    pub gmb_accounts: Option<Vec<GmbAccountsGmbAccount>>,
-}
-
-/// `MinimumOrderValueTableStoreCodeSetWithMov` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MinimumOrderValueTableStoreCodeSetWithMov {
-    /// storeCodes property.
-    pub store_codes: Option<Vec<String>>,
-    /// value property.
-    pub value: Option<Price>,
-}
-
-/// `AccountTax` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountTax {
-    /// accountId property.
-    pub account_id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// rules property.
-    pub rules: Option<Vec<AccountTaxTaxRule>>,
-}
-
-/// `ProductWeight` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductWeight {
-    /// unit property.
-    pub unit: Option<String>,
-    /// value property.
-    pub value: Option<f64>,
-}
-
-/// `ProductShippingDimension` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductShippingDimension {
-    /// unit property.
-    pub unit: Option<String>,
-    /// value property.
-    pub value: Option<f64>,
-}
-
-/// `ProductDimension` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductDimension {
-    /// unit property.
-    pub unit: Option<String>,
-    /// value property.
-    pub value: Option<f64>,
-}
-
-/// `ProductUnitPricingMeasure` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductUnitPricingMeasure {
-    /// unit property.
-    pub unit: Option<String>,
-    /// value property.
-    pub value: Option<f64>,
-}
-
-/// `FreeShippingThreshold` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FreeShippingThreshold {
-    /// country property.
-    pub country: Option<String>,
-    /// priceThreshold property.
-    pub price_threshold: Option<Price>,
-}
-
-/// `ProductStructuredDescription` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductStructuredDescription {
-    /// content property.
-    pub content: Option<String>,
-    /// digitalSourceType property.
-    pub digital_source_type: Option<String>,
-}
-
-/// `ProductStatusDestinationStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductStatusDestinationStatus {
-    /// approvedCountries property.
-    pub approved_countries: Option<Vec<String>>,
+pub struct AccountStatusProducts {
     /// channel property.
     pub channel: Option<String>,
+    /// country property.
+    pub country: Option<String>,
     /// destination property.
     pub destination: Option<String>,
-    /// disapprovedCountries property.
-    pub disapproved_countries: Option<Vec<String>>,
-    /// pendingCountries property.
-    pub pending_countries: Option<Vec<String>>,
-    /// status property.
-    pub status: Option<String>,
-}
-
-/// `ServiceStoreConfigCutoffConfigLocalCutoffTime` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceStoreConfigCutoffConfigLocalCutoffTime {
-    /// hour property.
-    pub hour: Option<String>,
-    /// minute property.
-    pub minute: Option<String>,
-}
-
-/// `ProductCertification` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductCertification {
-    /// certificationAuthority property.
-    pub certification_authority: Option<String>,
-    /// certificationCode property.
-    pub certification_code: Option<String>,
-    /// certificationName property.
-    pub certification_name: Option<String>,
-    /// certificationValue property.
-    pub certification_value: Option<String>,
-}
-
-/// `ProductSubscriptionCost` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductSubscriptionCost {
-    /// amount property.
-    pub amount: Option<Price>,
-    /// period property.
-    pub period: Option<String>,
-    /// periodLength property.
-    pub period_length: Option<String>,
-}
-
-/// `AccountstatusesCustomBatchResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountstatusesCustomBatchResponse {
-    /// entries property.
-    pub entries: Option<Vec<AccountstatusesCustomBatchResponseEntry>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `Error` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Error {
-    /// domain property.
-    pub domain: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `LiaOmnichannelExperience` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiaOmnichannelExperience {
-    /// country property.
-    pub country: Option<String>,
-    /// lsfType property.
-    pub lsf_type: Option<String>,
-    /// pickupTypes property.
-    pub pickup_types: Option<Vec<String>>,
-}
-
-/// `LiasettingsCustomBatchResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiasettingsCustomBatchResponse {
-    /// entries property.
-    pub entries: Option<Vec<LiasettingsCustomBatchResponseEntry>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `ProductStructuredTitle` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductStructuredTitle {
-    /// content property.
-    pub content: Option<String>,
-    /// digitalSourceType property.
-    pub digital_source_type: Option<String>,
-}
-
-/// `AccountStatusItemLevelIssue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountStatusItemLevelIssue {
-    /// attributeName property.
-    pub attribute_name: Option<String>,
-    /// code property.
-    pub code: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// detail property.
-    pub detail: Option<String>,
-    /// documentation property.
-    pub documentation: Option<String>,
-    /// numItems property.
-    pub num_items: Option<String>,
-    /// resolution property.
-    pub resolution: Option<String>,
-    /// servability property.
-    pub servability: Option<String>,
-}
-
-/// `Price` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Price {
-    /// currency property.
-    pub currency: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `AccounttaxCustomBatchResponseEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccounttaxCustomBatchResponseEntry {
-    /// accountTax property.
-    pub account_tax: Option<AccountTax>,
-    /// batchId property.
-    pub batch_id: Option<i64>,
-    /// errors property.
-    pub errors: Option<Errors>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `LiaCountrySettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiaCountrySettings {
-    /// about property.
-    pub about: Option<LiaAboutPageSettings>,
-    /// country property.
-    pub country: Option<String>,
-    /// hostedLocalStorefrontActive property.
-    pub hosted_local_storefront_active: Option<bool>,
-    /// inventory property.
-    pub inventory: Option<LiaInventorySettings>,
-    /// omnichannelExperience property.
-    pub omnichannel_experience: Option<LiaOmnichannelExperience>,
-    /// onDisplayToOrder property.
-    pub on_display_to_order: Option<LiaOnDisplayToOrderSettings>,
-    /// posDataProvider property.
-    pub pos_data_provider: Option<LiaPosDataProvider>,
-    /// storePickupActive property.
-    pub store_pickup_active: Option<bool>,
-}
-
-/// `ProductsCustomBatchResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductsCustomBatchResponse {
-    /// entries property.
-    pub entries: Option<Vec<ProductsCustomBatchResponseEntry>>,
-    /// kind property.
-    pub kind: Option<String>,
+    /// itemLevelIssues property.
+    pub item_level_issues: Option<Vec<AccountStatusItemLevelIssue>>,
+    /// statistics property.
+    pub statistics: Option<AccountStatusStatistics>,
 }
 
 /// `PosStore` type.
@@ -1718,44 +975,460 @@ pub struct PosStore {
     pub website_url: Option<String>,
 }
 
-/// `ProductShipping` type.
+/// `LoyaltyProgram` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductShipping {
-    /// country property.
-    pub country: Option<String>,
-    /// locationGroupName property.
-    pub location_group_name: Option<String>,
-    /// locationId property.
-    pub location_id: Option<String>,
-    /// maxHandlingTime property.
-    pub max_handling_time: Option<String>,
-    /// maxTransitTime property.
-    pub max_transit_time: Option<String>,
-    /// minHandlingTime property.
-    pub min_handling_time: Option<String>,
-    /// minTransitTime property.
-    pub min_transit_time: Option<String>,
-    /// postalCode property.
-    pub postal_code: Option<String>,
+pub struct LoyaltyProgram {
+    /// cashbackForFutureUse property.
+    pub cashback_for_future_use: Option<Price>,
+    /// loyaltyPoints property.
+    pub loyalty_points: Option<String>,
+    /// memberPriceEffectiveDate property.
+    pub member_price_effective_date: Option<String>,
     /// price property.
     pub price: Option<Price>,
-    /// region property.
-    pub region: Option<String>,
-    /// service property.
-    pub service: Option<String>,
+    /// programLabel property.
+    pub program_label: Option<String>,
+    /// shippingLabel property.
+    pub shipping_label: Option<String>,
+    /// tierLabel property.
+    pub tier_label: Option<String>,
 }
 
-/// `AccountStatusStatistics` type.
+/// `AccountTaxTaxRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountStatusStatistics {
-    /// active property.
-    pub active: Option<String>,
-    /// disapproved property.
-    pub disapproved: Option<String>,
-    /// expiring property.
-    pub expiring: Option<String>,
-    /// pending property.
-    pub pending: Option<String>,
+pub struct AccountTaxTaxRule {
+    /// country property.
+    pub country: Option<String>,
+    /// locationId property.
+    pub location_id: Option<String>,
+    /// ratePercent property.
+    pub rate_percent: Option<String>,
+    /// shippingTaxed property.
+    pub shipping_taxed: Option<bool>,
+    /// useGlobalRate property.
+    pub use_global_rate: Option<bool>,
+}
+
+/// `HolidayCutoff` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HolidayCutoff {
+    /// deadlineDate property.
+    pub deadline_date: Option<String>,
+    /// deadlineHour property.
+    pub deadline_hour: Option<i64>,
+    /// deadlineTimezone property.
+    pub deadline_timezone: Option<String>,
+    /// holidayId property.
+    pub holiday_id: Option<String>,
+    /// visibleFromDate property.
+    pub visible_from_date: Option<String>,
+}
+
+/// `ProductstatusesCustomBatchResponseEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductstatusesCustomBatchResponseEntry {
+    /// batchId property.
+    pub batch_id: Option<i64>,
+    /// errors property.
+    pub errors: Option<Errors>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// productStatus property.
+    pub product_status: Option<ProductStatus>,
+}
+
+/// `ShippingsettingsCustomBatchResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShippingsettingsCustomBatchResponse {
+    /// entries property.
+    pub entries: Option<Vec<ShippingsettingsCustomBatchResponseEntry>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `DatafeedFetchSchedule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatafeedFetchSchedule {
+    /// dayOfMonth property.
+    pub day_of_month: Option<i64>,
+    /// fetchUrl property.
+    pub fetch_url: Option<String>,
+    /// hour property.
+    pub hour: Option<i64>,
+    /// minuteOfHour property.
+    pub minute_of_hour: Option<i64>,
+    /// password property.
+    pub password: Option<String>,
+    /// paused property.
+    pub paused: Option<bool>,
+    /// timeZone property.
+    pub time_zone: Option<String>,
+    /// username property.
+    pub username: Option<String>,
+    /// weekday property.
+    pub weekday: Option<String>,
+}
+
+/// `AccountBusinessIdentity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountBusinessIdentity {
+    /// blackOwned property.
+    pub black_owned: Option<AccountIdentityType>,
+    /// includeForPromotions property.
+    pub include_for_promotions: Option<bool>,
+    /// latinoOwned property.
+    pub latino_owned: Option<AccountIdentityType>,
+    /// smallBusiness property.
+    pub small_business: Option<AccountIdentityType>,
+    /// veteranOwned property.
+    pub veteran_owned: Option<AccountIdentityType>,
+    /// womenOwned property.
+    pub women_owned: Option<AccountIdentityType>,
+}
+
+/// `AccountImageImprovements` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountImageImprovements {
+    /// accountImageImprovementsSettings property.
+    pub account_image_improvements_settings: Option<AccountImageImprovementsSettings>,
+    /// effectiveAllowAutomaticImageImprovements property.
+    pub effective_allow_automatic_image_improvements: Option<bool>,
+}
+
+/// `DatafeedTarget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatafeedTarget {
+    /// country property.
+    pub country: Option<String>,
+    /// excludedDestinations property.
+    pub excluded_destinations: Option<Vec<String>>,
+    /// feedLabel property.
+    pub feed_label: Option<String>,
+    /// includedDestinations property.
+    pub included_destinations: Option<Vec<String>>,
+    /// language property.
+    pub language: Option<String>,
+    /// targetCountries property.
+    pub target_countries: Option<Vec<String>>,
+}
+
+/// `DatafeedsCustomBatchResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatafeedsCustomBatchResponse {
+    /// entries property.
+    pub entries: Option<Vec<DatafeedsCustomBatchResponseEntry>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `ServiceStoreConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceStoreConfig {
+    /// cutoffConfig property.
+    pub cutoff_config: Option<ServiceStoreConfigCutoffConfig>,
+    /// serviceRadius property.
+    pub service_radius: Option<Distance>,
+    /// storeCodes property.
+    pub store_codes: Option<Vec<String>>,
+    /// storeServiceType property.
+    pub store_service_type: Option<String>,
+}
+
+/// `ProductProductDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductProductDetail {
+    /// attributeName property.
+    pub attribute_name: Option<String>,
+    /// attributeValue property.
+    pub attribute_value: Option<String>,
+    /// sectionName property.
+    pub section_name: Option<String>,
+}
+
+/// `Table` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Table {
+    /// columnHeaders property.
+    pub column_headers: Option<Headers>,
+    /// name property.
+    pub name: Option<String>,
+    /// rowHeaders property.
+    pub row_headers: Option<Headers>,
+    /// rows property.
+    pub rows: Option<Vec<Row>>,
+}
+
+/// `ShippingSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShippingSettings {
+    /// accountId property.
+    pub account_id: Option<String>,
+    /// postalCodeGroups property.
+    pub postal_code_groups: Option<Vec<PostalCodeGroup>>,
+    /// services property.
+    pub services: Option<Vec<Service>>,
+    /// warehouses property.
+    pub warehouses: Option<Vec<Warehouse>>,
+}
+
+/// `GmbAccounts` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GmbAccounts {
+    /// accountId property.
+    pub account_id: Option<String>,
+    /// gmbAccounts property.
+    pub gmb_accounts: Option<Vec<GmbAccountsGmbAccount>>,
+}
+
+/// `RegionalinventoryCustomBatchResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegionalinventoryCustomBatchResponse {
+    /// entries property.
+    pub entries: Option<Vec<RegionalinventoryCustomBatchResponseEntry>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `AccountStatusAccountLevelIssue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountStatusAccountLevelIssue {
+    /// country property.
+    pub country: Option<String>,
+    /// destination property.
+    pub destination: Option<String>,
+    /// detail property.
+    pub detail: Option<String>,
+    /// documentation property.
+    pub documentation: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// severity property.
+    pub severity: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `RateGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RateGroup {
+    /// applicableShippingLabels property.
+    pub applicable_shipping_labels: Option<Vec<String>>,
+    /// carrierRates property.
+    pub carrier_rates: Option<Vec<CarrierRate>>,
+    /// mainTable property.
+    pub main_table: Option<Table>,
+    /// name property.
+    pub name: Option<String>,
+    /// singleValue property.
+    pub single_value: Option<Value>,
+    /// subtables property.
+    pub subtables: Option<Vec<Table>>,
+}
+
+/// `ProductWeight` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductWeight {
+    /// unit property.
+    pub unit: Option<String>,
+    /// value property.
+    pub value: Option<f64>,
+}
+
+/// `MinimumOrderValueTable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MinimumOrderValueTable {
+    /// storeCodeSetWithMovs property.
+    pub store_code_set_with_movs: Option<Vec<MinimumOrderValueTableStoreCodeSetWithMov>>,
+}
+
+/// `PickupCarrierService` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PickupCarrierService {
+    /// carrierName property.
+    pub carrier_name: Option<String>,
+    /// serviceName property.
+    pub service_name: Option<String>,
+}
+
+/// `LiasettingsCustomBatchResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiasettingsCustomBatchResponse {
+    /// entries property.
+    pub entries: Option<Vec<LiasettingsCustomBatchResponseEntry>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `Value` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Value {
+    /// carrierRateName property.
+    pub carrier_rate_name: Option<String>,
+    /// flatRate property.
+    pub flat_rate: Option<Price>,
+    /// noShipping property.
+    pub no_shipping: Option<bool>,
+    /// pricePercentage property.
+    pub price_percentage: Option<String>,
+    /// subtableName property.
+    pub subtable_name: Option<String>,
+}
+
+/// `Errors` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Errors {
+    /// code property.
+    pub code: Option<i64>,
+    /// errors property.
+    pub errors: Option<Vec<Error>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `LocalinventoryCustomBatchResponseEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalinventoryCustomBatchResponseEntry {
+    /// batchId property.
+    pub batch_id: Option<i64>,
+    /// errors property.
+    pub errors: Option<Errors>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `ProductSustainabilityIncentive` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductSustainabilityIncentive {
+    /// amount property.
+    pub amount: Option<Price>,
+    /// percentage property.
+    pub percentage: Option<f64>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `PosDataProvidersPosDataProvider` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PosDataProvidersPosDataProvider {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// fullName property.
+    pub full_name: Option<String>,
+    /// providerId property.
+    pub provider_id: Option<String>,
+}
+
+/// `AccountYouTubeChannelLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountYouTubeChannelLink {
+    /// channelId property.
+    pub channel_id: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+}
+
+/// `LocationIdSet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocationIdSet {
+    /// locationIds property.
+    pub location_ids: Option<Vec<String>>,
+}
+
+/// `ProductDimension` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductDimension {
+    /// unit property.
+    pub unit: Option<String>,
+    /// value property.
+    pub value: Option<f64>,
+}
+
+/// `PosDataProviders` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PosDataProviders {
+    /// country property.
+    pub country: Option<String>,
+    /// posDataProviders property.
+    pub pos_data_providers: Option<Vec<PosDataProvidersPosDataProvider>>,
+}
+
+/// `DatafeedsCustomBatchResponseEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatafeedsCustomBatchResponseEntry {
+    /// batchId property.
+    pub batch_id: Option<i64>,
+    /// datafeed property.
+    pub datafeed: Option<Datafeed>,
+    /// errors property.
+    pub errors: Option<Errors>,
+}
+
+/// `Error` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Error {
+    /// domain property.
+    pub domain: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `ShippingsettingsCustomBatchResponseEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShippingsettingsCustomBatchResponseEntry {
+    /// batchId property.
+    pub batch_id: Option<i64>,
+    /// errors property.
+    pub errors: Option<Errors>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// shippingSettings property.
+    pub shipping_settings: Option<ShippingSettings>,
+}
+
+/// `AccountAddress` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountAddress {
+    /// country property.
+    pub country: Option<String>,
+    /// locality property.
+    pub locality: Option<String>,
+    /// postalCode property.
+    pub postal_code: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// streetAddress property.
+    pub street_address: Option<String>,
+}
+
+/// `ProductShippingDimension` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductShippingDimension {
+    /// unit property.
+    pub unit: Option<String>,
+    /// value property.
+    pub value: Option<f64>,
+}
+
+/// `TransitTableTransitTimeRowTransitTimeValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TransitTableTransitTimeRowTransitTimeValue {
+    /// maxTransitTimeInDays property.
+    pub max_transit_time_in_days: Option<i64>,
+    /// minTransitTimeInDays property.
+    pub min_transit_time_in_days: Option<i64>,
+}
+
+/// `DatafeedStatusExample` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatafeedStatusExample {
+    /// itemId property.
+    pub item_id: Option<String>,
+    /// lineNumber property.
+    pub line_number: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
 /// `ProductStatusItemLevelIssue` type.
@@ -1781,61 +1454,100 @@ pub struct ProductStatusItemLevelIssue {
     pub servability: Option<String>,
 }
 
-/// `AccountAdsLink` type.
+/// `ProductSubscriptionCost` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountAdsLink {
-    /// adsId property.
-    pub ads_id: Option<String>,
-    /// status property.
-    pub status: Option<String>,
+pub struct ProductSubscriptionCost {
+    /// amount property.
+    pub amount: Option<Price>,
+    /// period property.
+    pub period: Option<String>,
+    /// periodLength property.
+    pub period_length: Option<String>,
 }
 
-/// `AccountAddress` type.
+/// `DatafeedstatusesCustomBatchResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountAddress {
-    /// country property.
-    pub country: Option<String>,
-    /// locality property.
-    pub locality: Option<String>,
-    /// postalCode property.
-    pub postal_code: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-    /// streetAddress property.
-    pub street_address: Option<String>,
-}
-
-/// `LiaSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiaSettings {
-    /// accountId property.
-    pub account_id: Option<String>,
-    /// countrySettings property.
-    pub country_settings: Option<Vec<LiaCountrySettings>>,
+pub struct DatafeedstatusesCustomBatchResponse {
+    /// entries property.
+    pub entries: Option<Vec<DatafeedstatusesCustomBatchResponseEntry>>,
     /// kind property.
     pub kind: Option<String>,
 }
 
-/// `Row` type.
+/// `DatafeedStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Row {
-    /// cells property.
-    pub cells: Option<Vec<Value>>,
+pub struct DatafeedStatus {
+    /// country property.
+    pub country: Option<String>,
+    /// datafeedId property.
+    pub datafeed_id: Option<String>,
+    /// errors property.
+    pub errors: Option<Vec<DatafeedStatusError>>,
+    /// feedLabel property.
+    pub feed_label: Option<String>,
+    /// itemsTotal property.
+    pub items_total: Option<String>,
+    /// itemsValid property.
+    pub items_valid: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// language property.
+    pub language: Option<String>,
+    /// lastUploadDate property.
+    pub last_upload_date: Option<String>,
+    /// processingStatus property.
+    pub processing_status: Option<String>,
+    /// warnings property.
+    pub warnings: Option<Vec<DatafeedStatusError>>,
 }
 
-/// `Warehouse` type.
+/// `PosCustomBatchResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Warehouse {
-    /// businessDayConfig property.
-    pub business_day_config: Option<BusinessDayConfig>,
-    /// cutoffTime property.
-    pub cutoff_time: Option<WarehouseCutoffTime>,
-    /// handlingDays property.
-    pub handling_days: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// shippingAddress property.
-    pub shipping_address: Option<Address>,
+pub struct PosCustomBatchResponse {
+    /// entries property.
+    pub entries: Option<Vec<PosCustomBatchResponseEntry>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `AccountGoogleMyBusinessLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountGoogleMyBusinessLink {
+    /// gmbAccountId property.
+    pub gmb_account_id: Option<String>,
+    /// gmbEmail property.
+    pub gmb_email: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+}
+
+/// `AccountTax` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountTax {
+    /// accountId property.
+    pub account_id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// rules property.
+    pub rules: Option<Vec<AccountTaxTaxRule>>,
+}
+
+/// `AccountCustomerService` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountCustomerService {
+    /// email property.
+    pub email: Option<String>,
+    /// phoneNumber property.
+    pub phone_number: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `AccountImageImprovementsSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountImageImprovementsSettings {
+    /// allowAutomaticImageImprovements property.
+    pub allow_automatic_image_improvements: Option<bool>,
 }
 
 /// `Account` type.
@@ -1879,11 +1591,300 @@ pub struct Account {
     pub youtube_channel_links: Option<Vec<AccountYouTubeChannelLink>>,
 }
 
-/// `AccountIdentityType` type.
+/// `Warehouse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountIdentityType {
-    /// selfIdentified property.
-    pub self_identified: Option<bool>,
+pub struct Warehouse {
+    /// businessDayConfig property.
+    pub business_day_config: Option<BusinessDayConfig>,
+    /// cutoffTime property.
+    pub cutoff_time: Option<WarehouseCutoffTime>,
+    /// handlingDays property.
+    pub handling_days: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// shippingAddress property.
+    pub shipping_address: Option<Address>,
+}
+
+/// `ProductShippingWeight` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductShippingWeight {
+    /// unit property.
+    pub unit: Option<String>,
+    /// value property.
+    pub value: Option<f64>,
+}
+
+/// `CloudExportAdditionalProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudExportAdditionalProperties {
+    /// boolValue property.
+    pub bool_value: Option<bool>,
+    /// floatValue property.
+    pub float_value: Option<Vec<f64>>,
+    /// intValue property.
+    pub int_value: Option<Vec<String>>,
+    /// maxValue property.
+    pub max_value: Option<f64>,
+    /// minValue property.
+    pub min_value: Option<f64>,
+    /// propertyName property.
+    pub property_name: Option<String>,
+    /// textValue property.
+    pub text_value: Option<Vec<String>>,
+    /// unitCode property.
+    pub unit_code: Option<String>,
+}
+
+/// `GmbAccountsGmbAccount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GmbAccountsGmbAccount {
+    /// email property.
+    pub email: Option<String>,
+    /// listingCount property.
+    pub listing_count: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `Datafeed` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Datafeed {
+    /// attributeLanguage property.
+    pub attribute_language: Option<String>,
+    /// contentType property.
+    pub content_type: Option<String>,
+    /// fetchSchedule property.
+    pub fetch_schedule: Option<DatafeedFetchSchedule>,
+    /// fileName property.
+    pub file_name: Option<String>,
+    /// format property.
+    pub format: Option<DatafeedFormat>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// targets property.
+    pub targets: Option<Vec<DatafeedTarget>>,
+}
+
+/// `AccountStatusItemLevelIssue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountStatusItemLevelIssue {
+    /// attributeName property.
+    pub attribute_name: Option<String>,
+    /// code property.
+    pub code: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// detail property.
+    pub detail: Option<String>,
+    /// documentation property.
+    pub documentation: Option<String>,
+    /// numItems property.
+    pub num_items: Option<String>,
+    /// resolution property.
+    pub resolution: Option<String>,
+    /// servability property.
+    pub servability: Option<String>,
+}
+
+/// `ServiceStoreConfigCutoffConfigLocalCutoffTime` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceStoreConfigCutoffConfigLocalCutoffTime {
+    /// hour property.
+    pub hour: Option<String>,
+    /// minute property.
+    pub minute: Option<String>,
+}
+
+/// `AccountItemUpdatesSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountItemUpdatesSettings {
+    /// allowAvailabilityUpdates property.
+    pub allow_availability_updates: Option<bool>,
+    /// allowConditionUpdates property.
+    pub allow_condition_updates: Option<bool>,
+    /// allowPriceUpdates property.
+    pub allow_price_updates: Option<bool>,
+    /// allowStrictAvailabilityUpdates property.
+    pub allow_strict_availability_updates: Option<bool>,
+}
+
+/// `PosInventory` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PosInventory {
+    /// contentLanguage property.
+    pub content_language: Option<String>,
+    /// gtin property.
+    pub gtin: Option<String>,
+    /// itemId property.
+    pub item_id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// pickupMethod property.
+    pub pickup_method: Option<String>,
+    /// pickupSla property.
+    pub pickup_sla: Option<String>,
+    /// price property.
+    pub price: Option<Price>,
+    /// quantity property.
+    pub quantity: Option<String>,
+    /// storeCode property.
+    pub store_code: Option<String>,
+    /// targetCountry property.
+    pub target_country: Option<String>,
+    /// timestamp property.
+    pub timestamp: Option<String>,
+}
+
+/// `LiaSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiaSettings {
+    /// accountId property.
+    pub account_id: Option<String>,
+    /// countrySettings property.
+    pub country_settings: Option<Vec<LiaCountrySettings>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `LiaAboutPageSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiaAboutPageSettings {
+    /// status property.
+    pub status: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `LiaCountrySettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiaCountrySettings {
+    /// about property.
+    pub about: Option<LiaAboutPageSettings>,
+    /// country property.
+    pub country: Option<String>,
+    /// hostedLocalStorefrontActive property.
+    pub hosted_local_storefront_active: Option<bool>,
+    /// inventory property.
+    pub inventory: Option<LiaInventorySettings>,
+    /// omnichannelExperience property.
+    pub omnichannel_experience: Option<LiaOmnichannelExperience>,
+    /// onDisplayToOrder property.
+    pub on_display_to_order: Option<LiaOnDisplayToOrderSettings>,
+    /// posDataProvider property.
+    pub pos_data_provider: Option<LiaPosDataProvider>,
+    /// storePickupActive property.
+    pub store_pickup_active: Option<bool>,
+}
+
+/// `LiaOmnichannelExperience` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiaOmnichannelExperience {
+    /// country property.
+    pub country: Option<String>,
+    /// lsfType property.
+    pub lsf_type: Option<String>,
+    /// pickupTypes property.
+    pub pickup_types: Option<Vec<String>>,
+}
+
+/// `ProductStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductStatus {
+    /// creationDate property.
+    pub creation_date: Option<String>,
+    /// destinationStatuses property.
+    pub destination_statuses: Option<Vec<ProductStatusDestinationStatus>>,
+    /// googleExpirationDate property.
+    pub google_expiration_date: Option<String>,
+    /// itemLevelIssues property.
+    pub item_level_issues: Option<Vec<ProductStatusItemLevelIssue>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// lastUpdateDate property.
+    pub last_update_date: Option<String>,
+    /// link property.
+    pub link: Option<String>,
+    /// productId property.
+    pub product_id: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `Distance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Distance {
+    /// unit property.
+    pub unit: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Weight` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Weight {
+    /// unit property.
+    pub unit: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `CutoffTime` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CutoffTime {
+    /// hour property.
+    pub hour: Option<i64>,
+    /// minute property.
+    pub minute: Option<i64>,
+    /// timezone property.
+    pub timezone: Option<String>,
+}
+
+/// `ProductsCustomBatchResponseEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductsCustomBatchResponseEntry {
+    /// batchId property.
+    pub batch_id: Option<i64>,
+    /// errors property.
+    pub errors: Option<Errors>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// product property.
+    pub product: Option<Product>,
+}
+
+/// `ProductStatusDestinationStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductStatusDestinationStatus {
+    /// approvedCountries property.
+    pub approved_countries: Option<Vec<String>>,
+    /// channel property.
+    pub channel: Option<String>,
+    /// destination property.
+    pub destination: Option<String>,
+    /// disapprovedCountries property.
+    pub disapproved_countries: Option<Vec<String>>,
+    /// pendingCountries property.
+    pub pending_countries: Option<Vec<String>>,
+    /// status property.
+    pub status: Option<String>,
+}
+
+/// `CustomAttribute` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomAttribute {
+    /// groupValues property.
+    pub group_values: Option<Vec<Box<CustomAttribute>>>,
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
 // =============================================================================

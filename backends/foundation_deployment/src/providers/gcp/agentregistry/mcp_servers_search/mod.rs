@@ -12,40 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `McpServer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct McpServer {
-    /// attributes property.
-    pub attributes: Option<serde_json::Value>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// interfaces property.
-    pub interfaces: Option<Vec<Interface>>,
-    /// mcpServerId property.
-    pub mcp_server_id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// tools property.
-    pub tools: Option<Vec<Tool>>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
 
 /// `SearchMcpServersResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -71,15 +49,6 @@ pub struct Annotations {
     pub title: Option<String>,
 }
 
-/// `Interface` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Interface {
-    /// protocolBinding property.
-    pub protocol_binding: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
 /// `Tool` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tool {
@@ -89,6 +58,38 @@ pub struct Tool {
     pub description: Option<String>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `McpServer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct McpServer {
+    /// attributes property.
+    pub attributes: Option<serde_json::Value>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// interfaces property.
+    pub interfaces: Option<Vec<Interface>>,
+    /// mcpServerId property.
+    pub mcp_server_id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// tools property.
+    pub tools: Option<Vec<Tool>>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `Interface` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Interface {
+    /// protocolBinding property.
+    pub protocol_binding: Option<String>,
+    /// url property.
+    pub url: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,18 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Task;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `SpaceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpaceInfo {
-    /// space property.
-    pub space: Option<String>,
-}
 
 /// `Tasks` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -47,6 +41,22 @@ pub struct Tasks {
     pub next_page_token: Option<String>,
 }
 
+/// `DriveResourceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DriveResourceInfo {
+    /// driveFileId property.
+    pub drive_file_id: Option<String>,
+    /// resourceKey property.
+    pub resource_key: Option<String>,
+}
+
+/// `SpaceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpaceInfo {
+    /// space property.
+    pub space: Option<String>,
+}
+
 /// `AssignmentInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssignmentInfo {
@@ -58,15 +68,6 @@ pub struct AssignmentInfo {
     pub space_info: Option<SpaceInfo>,
     /// surfaceType property.
     pub surface_type: Option<String>,
-}
-
-/// `DriveResourceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DriveResourceInfo {
-    /// driveFileId property.
-    pub drive_file_id: Option<String>,
-    /// resourceKey property.
-    pub resource_key: Option<String>,
 }
 
 // =============================================================================

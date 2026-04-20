@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,42 +24,31 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DumpFlags` type.
+/// `PostgresSourceConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DumpFlags {
-    /// dumpFlags property.
-    pub dump_flags: Option<Vec<DumpFlag>>,
+pub struct PostgresSourceConfig {
+    /// skipFullDump property.
+    pub skip_full_dump: Option<bool>,
 }
 
-/// `StaticIpConnectivity` type.
+/// `SqlServerDestinationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StaticIpConnectivity {}
-
-/// `SourceObjectConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceObjectConfig {
-    /// objectIdentifier property.
-    pub object_identifier: Option<SourceObjectIdentifier>,
+pub struct SqlServerDestinationConfig {
+    /// maxConcurrentConnections property.
+    pub max_concurrent_connections: Option<i64>,
+    /// transactionTimeout property.
+    pub transaction_timeout: Option<String>,
 }
 
-/// `SourceObjectIdentifier` type.
+/// `LogMiner` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceObjectIdentifier {
-    /// database property.
-    pub database: Option<String>,
-    /// schema property.
-    pub schema: Option<String>,
-    /// table property.
-    pub table: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
+pub struct LogMiner {}
 
 /// `MigrationJob` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -133,29 +123,91 @@ pub struct MigrationJob {
     pub vpc_peering_connectivity: Option<VpcPeeringConnectivity>,
 }
 
-/// `Binding` type.
+/// `SourceObjectConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct SourceObjectConfig {
+    /// objectIdentifier property.
+    pub object_identifier: Option<SourceObjectIdentifier>,
 }
 
-/// `AuditConfig` type.
+/// `MigrationJobObjectsConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
+pub struct MigrationJobObjectsConfig {
+    /// sourceObjectsConfig property.
+    pub source_objects_config: Option<SourceObjectsConfig>,
+}
+
+/// `DumpFlags` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DumpFlags {
+    /// dumpFlags property.
+    pub dump_flags: Option<Vec<DumpFlag>>,
+}
+
+/// `SqlServerHomogeneousMigrationJobConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerHomogeneousMigrationJobConfig {
+    /// backupFilePattern property.
+    pub backup_file_pattern: Option<String>,
+    /// dagConfig property.
+    pub dag_config: Option<SqlServerDagConfig>,
+    /// databaseBackups property.
+    pub database_backups: Option<Vec<SqlServerDatabaseBackup>>,
+    /// promoteWhenReady property.
+    pub promote_when_ready: Option<bool>,
+    /// useDiffBackup property.
+    pub use_diff_backup: Option<bool>,
 }
 
 /// `OracleAsmLogFileAccess` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OracleAsmLogFileAccess {}
+
+/// `StaticIpConnectivity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StaticIpConnectivity {}
+
+/// `SqlServerSourceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerSourceConfig {
+    /// cdcStartPosition property.
+    pub cdc_start_position: Option<String>,
+    /// maxConcurrentCdcConnections property.
+    pub max_concurrent_cdc_connections: Option<i64>,
+    /// maxConcurrentFullDumpConnections property.
+    pub max_concurrent_full_dump_connections: Option<i64>,
+    /// skipFullDump property.
+    pub skip_full_dump: Option<bool>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `LogFileDirectories` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogFileDirectories {
+    /// archivedLogDirectory property.
+    pub archived_log_directory: Option<String>,
+    /// onlineLogDirectory property.
+    pub online_log_directory: Option<String>,
+}
+
+/// `DumpFlag` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DumpFlag {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
 
 /// `SqlServerEncryptionOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -168,20 +220,53 @@ pub struct SqlServerEncryptionOptions {
     pub pvk_path: Option<String>,
 }
 
-/// `DumpFlag` type.
+/// `OracleToPostgresConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DumpFlag {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct OracleToPostgresConfig {
+    /// oracleSourceConfig property.
+    pub oracle_source_config: Option<OracleSourceConfig>,
+    /// postgresDestinationConfig property.
+    pub postgres_destination_config: Option<PostgresDestinationConfig>,
 }
 
-/// `MigrationJobObjectsConfig` type.
+/// `SourceObjectsConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MigrationJobObjectsConfig {
-    /// sourceObjectsConfig property.
-    pub source_objects_config: Option<SourceObjectsConfig>,
+pub struct SourceObjectsConfig {
+    /// objectConfigs property.
+    pub object_configs: Option<Vec<SourceObjectConfig>>,
+    /// objectsSelectionType property.
+    pub objects_selection_type: Option<String>,
+}
+
+/// `ConversionWorkspaceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConversionWorkspaceInfo {
+    /// commitId property.
+    pub commit_id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `SqlServerToPostgresConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerToPostgresConfig {
+    /// postgresDestinationConfig property.
+    pub postgres_destination_config: Option<PostgresDestinationConfig>,
+    /// sqlserverSourceConfig property.
+    pub sqlserver_source_config: Option<SqlServerSourceConfig>,
 }
 
 /// `OracleSourceConfig` type.
@@ -201,55 +286,13 @@ pub struct OracleSourceConfig {
     pub skip_full_dump: Option<bool>,
 }
 
-/// `BinaryLogParser` type.
+/// `SqlServerDatabaseBackup` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BinaryLogParser {
-    /// logFileDirectories property.
-    pub log_file_directories: Option<LogFileDirectories>,
-    /// oracleAsmLogFileAccess property.
-    pub oracle_asm_log_file_access: Option<OracleAsmLogFileAccess>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `OracleToPostgresConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OracleToPostgresConfig {
-    /// oracleSourceConfig property.
-    pub oracle_source_config: Option<OracleSourceConfig>,
-    /// postgresDestinationConfig property.
-    pub postgres_destination_config: Option<PostgresDestinationConfig>,
-}
-
-/// `DatabaseType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseType {
-    /// engine property.
-    pub engine: Option<String>,
-    /// provider property.
-    pub provider: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct SqlServerDatabaseBackup {
+    /// database property.
+    pub database: Option<String>,
+    /// encryptionOptions property.
+    pub encryption_options: Option<SqlServerEncryptionOptions>,
 }
 
 /// `ListMigrationJobsResponse` type.
@@ -261,6 +304,38 @@ pub struct ListMigrationJobsResponse {
     pub next_page_token: Option<String>,
     /// unreachable property.
     pub unreachable: Option<Vec<String>>,
+}
+
+/// `DatabaseType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseType {
+    /// engine property.
+    pub engine: Option<String>,
+    /// provider property.
+    pub provider: Option<String>,
+}
+
+/// `SshScript` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SshScript {
+    /// script property.
+    pub script: Option<String>,
+}
+
+/// `VpcPeeringConnectivity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VpcPeeringConnectivity {
+    /// vpc property.
+    pub vpc: Option<String>,
+}
+
+/// `PostgresToSqlServerConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostgresToSqlServerConfig {
+    /// postgresSourceConfig property.
+    pub postgres_source_config: Option<PostgresSourceConfig>,
+    /// sqlserverDestinationConfig property.
+    pub sqlserver_destination_config: Option<SqlServerDestinationConfig>,
 }
 
 /// `ReverseSshConnectivity` type.
@@ -276,125 +351,11 @@ pub struct ReverseSshConnectivity {
     pub vpc: Option<String>,
 }
 
-/// `SqlServerToPostgresConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerToPostgresConfig {
-    /// postgresDestinationConfig property.
-    pub postgres_destination_config: Option<PostgresDestinationConfig>,
-    /// sqlserverSourceConfig property.
-    pub sqlserver_source_config: Option<SqlServerSourceConfig>,
-}
-
-/// `VpcPeeringConnectivity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VpcPeeringConnectivity {
-    /// vpc property.
-    pub vpc: Option<String>,
-}
-
-/// `PostgresSourceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostgresSourceConfig {
-    /// skipFullDump property.
-    pub skip_full_dump: Option<bool>,
-}
-
-/// `SqlServerSourceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerSourceConfig {
-    /// cdcStartPosition property.
-    pub cdc_start_position: Option<String>,
-    /// maxConcurrentCdcConnections property.
-    pub max_concurrent_cdc_connections: Option<i64>,
-    /// maxConcurrentFullDumpConnections property.
-    pub max_concurrent_full_dump_connections: Option<i64>,
-    /// skipFullDump property.
-    pub skip_full_dump: Option<bool>,
-}
-
-/// `PostgresDestinationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostgresDestinationConfig {
-    /// maxConcurrentConnections property.
-    pub max_concurrent_connections: Option<i64>,
-    /// transactionTimeout property.
-    pub transaction_timeout: Option<String>,
-}
-
-/// `LogFileDirectories` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LogFileDirectories {
-    /// archivedLogDirectory property.
-    pub archived_log_directory: Option<String>,
-    /// onlineLogDirectory property.
-    pub online_log_directory: Option<String>,
-}
-
-/// `SqlServerHomogeneousMigrationJobConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerHomogeneousMigrationJobConfig {
-    /// backupFilePattern property.
-    pub backup_file_pattern: Option<String>,
-    /// dagConfig property.
-    pub dag_config: Option<SqlServerDagConfig>,
-    /// databaseBackups property.
-    pub database_backups: Option<Vec<SqlServerDatabaseBackup>>,
-    /// promoteWhenReady property.
-    pub promote_when_ready: Option<bool>,
-    /// useDiffBackup property.
-    pub use_diff_backup: Option<bool>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `ConversionWorkspaceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConversionWorkspaceInfo {
-    /// commitId property.
-    pub commit_id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
 /// `TcpProxyScript` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TcpProxyScript {
     /// script property.
     pub script: Option<String>,
-}
-
-/// `PerformanceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PerformanceConfig {
-    /// dumpParallelLevel property.
-    pub dump_parallel_level: Option<String>,
-}
-
-/// `SshScript` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SshScript {
-    /// script property.
-    pub script: Option<String>,
-}
-
-/// `LogMiner` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LogMiner {}
-
-/// `PostgresToSqlServerConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostgresToSqlServerConfig {
-    /// postgresSourceConfig property.
-    pub postgres_source_config: Option<PostgresSourceConfig>,
-    /// sqlserverDestinationConfig property.
-    pub sqlserver_destination_config: Option<SqlServerDestinationConfig>,
 }
 
 /// `SqlServerDagConfig` type.
@@ -406,31 +367,71 @@ pub struct SqlServerDagConfig {
     pub source_ag: Option<String>,
 }
 
-/// `SqlServerDatabaseBackup` type.
+/// `BinaryLogParser` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerDatabaseBackup {
-    /// database property.
-    pub database: Option<String>,
-    /// encryptionOptions property.
-    pub encryption_options: Option<SqlServerEncryptionOptions>,
+pub struct BinaryLogParser {
+    /// logFileDirectories property.
+    pub log_file_directories: Option<LogFileDirectories>,
+    /// oracleAsmLogFileAccess property.
+    pub oracle_asm_log_file_access: Option<OracleAsmLogFileAccess>,
 }
 
-/// `SourceObjectsConfig` type.
+/// `PostgresDestinationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceObjectsConfig {
-    /// objectConfigs property.
-    pub object_configs: Option<Vec<SourceObjectConfig>>,
-    /// objectsSelectionType property.
-    pub objects_selection_type: Option<String>,
-}
-
-/// `SqlServerDestinationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerDestinationConfig {
+pub struct PostgresDestinationConfig {
     /// maxConcurrentConnections property.
     pub max_concurrent_connections: Option<i64>,
     /// transactionTimeout property.
     pub transaction_timeout: Option<String>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `SourceObjectIdentifier` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SourceObjectIdentifier {
+    /// database property.
+    pub database: Option<String>,
+    /// schema property.
+    pub schema: Option<String>,
+    /// table property.
+    pub table: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `PerformanceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PerformanceConfig {
+    /// dumpParallelLevel property.
+    pub dump_parallel_level: Option<String>,
 }
 
 // =============================================================================

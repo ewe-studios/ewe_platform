@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,17 +22,149 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudApihubV1CustomCuration` type.
+/// `GoogleCloudApihubV1CurationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1CustomCuration {
-    /// curation property.
-    pub curation: Option<String>,
+pub struct GoogleCloudApihubV1CurationConfig {
+    /// curationType property.
+    pub curation_type: Option<String>,
+    /// customCuration property.
+    pub custom_curation: Option<GoogleCloudApihubV1CustomCuration>,
+}
+
+/// `GoogleCloudApihubV1ExecutionStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1ExecutionStatus {
+    /// currentExecutionState property.
+    pub current_execution_state: Option<String>,
+    /// lastExecution property.
+    pub last_execution: Option<GoogleCloudApihubV1LastExecution>,
+}
+
+/// `GoogleCloudApihubV1ApiKeyConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1ApiKeyConfig {
+    /// apiKey property.
+    pub api_key: Option<GoogleCloudApihubV1Secret>,
+    /// httpElementLocation property.
+    pub http_element_location: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GoogleCloudApihubV1UserPasswordConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1UserPasswordConfig {
+    /// password property.
+    pub password: Option<GoogleCloudApihubV1Secret>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `GoogleCloudApihubV1AuthConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1AuthConfig {
+    /// apiKeyConfig property.
+    pub api_key_config: Option<GoogleCloudApihubV1ApiKeyConfig>,
+    /// authType property.
+    pub auth_type: Option<String>,
+    /// googleServiceAccountConfig property.
+    pub google_service_account_config: Option<GoogleCloudApihubV1GoogleServiceAccountConfig>,
+    /// oauth2ClientCredentialsConfig property.
+    pub oauth2_client_credentials_config: Option<GoogleCloudApihubV1Oauth2ClientCredentialsConfig>,
+    /// userPasswordConfig property.
+    pub user_password_config: Option<GoogleCloudApihubV1UserPasswordConfig>,
+}
+
+/// `GoogleCloudApihubV1ResourceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1ResourceConfig {
+    /// actionType property.
+    pub action_type: Option<String>,
+    /// pubsubTopic property.
+    pub pubsub_topic: Option<String>,
+}
+
+/// `GoogleCloudApihubV1PluginInstanceAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1PluginInstanceAction {
+    /// actionId property.
+    pub action_id: Option<String>,
+    /// curationConfig property.
+    pub curation_config: Option<GoogleCloudApihubV1CurationConfig>,
+    /// hubInstanceAction property.
+    pub hub_instance_action: Option<GoogleCloudApihubV1ExecutionStatus>,
+    /// resourceConfig property.
+    pub resource_config: Option<GoogleCloudApihubV1ResourceConfig>,
+    /// scheduleCronExpression property.
+    pub schedule_cron_expression: Option<String>,
+    /// scheduleTimeZone property.
+    pub schedule_time_zone: Option<String>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `GoogleCloudApihubV1ListPluginInstancesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1ListPluginInstancesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// pluginInstances property.
+    pub plugin_instances: Option<Vec<GoogleCloudApihubV1PluginInstance>>,
+}
+
+/// `GoogleCloudApihubV1ManagePluginInstanceSourceDataResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1ManagePluginInstanceSourceDataResponse {}
+
+/// `GoogleCloudApihubV1GoogleServiceAccountConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1GoogleServiceAccountConfig {
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+}
+
+/// `GoogleCloudApihubV1Oauth2ClientCredentialsConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1Oauth2ClientCredentialsConfig {
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// clientSecret property.
+    pub client_secret: Option<GoogleCloudApihubV1Secret>,
+}
+
+/// `GoogleCloudApihubV1PluginInstance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1PluginInstance {
+    /// actions property.
+    pub actions: Option<Vec<GoogleCloudApihubV1PluginInstanceAction>>,
+    /// additionalConfig property.
+    pub additional_config: Option<serde_json::Value>,
+    /// authConfig property.
+    pub auth_config: Option<GoogleCloudApihubV1AuthConfig>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// sourceEnvironmentsConfig property.
+    pub source_environments_config: Option<serde_json::Value>,
+    /// sourceProjectId property.
+    pub source_project_id: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
 }
 
 /// `GoogleCloudApihubV1Secret` type.
@@ -67,143 +200,11 @@ pub struct GoogleCloudApihubV1LastExecution {
     pub start_time: Option<String>,
 }
 
-/// `GoogleCloudApihubV1GoogleServiceAccountConfig` type.
+/// `GoogleCloudApihubV1CustomCuration` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1GoogleServiceAccountConfig {
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-}
-
-/// `GoogleCloudApihubV1ExecutionStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1ExecutionStatus {
-    /// currentExecutionState property.
-    pub current_execution_state: Option<String>,
-    /// lastExecution property.
-    pub last_execution: Option<GoogleCloudApihubV1LastExecution>,
-}
-
-/// `GoogleCloudApihubV1PluginInstanceAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1PluginInstanceAction {
-    /// actionId property.
-    pub action_id: Option<String>,
-    /// curationConfig property.
-    pub curation_config: Option<GoogleCloudApihubV1CurationConfig>,
-    /// hubInstanceAction property.
-    pub hub_instance_action: Option<GoogleCloudApihubV1ExecutionStatus>,
-    /// resourceConfig property.
-    pub resource_config: Option<GoogleCloudApihubV1ResourceConfig>,
-    /// scheduleCronExpression property.
-    pub schedule_cron_expression: Option<String>,
-    /// scheduleTimeZone property.
-    pub schedule_time_zone: Option<String>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `GoogleCloudApihubV1CurationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1CurationConfig {
-    /// curationType property.
-    pub curation_type: Option<String>,
-    /// customCuration property.
-    pub custom_curation: Option<GoogleCloudApihubV1CustomCuration>,
-}
-
-/// `GoogleCloudApihubV1PluginInstance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1PluginInstance {
-    /// actions property.
-    pub actions: Option<Vec<GoogleCloudApihubV1PluginInstanceAction>>,
-    /// additionalConfig property.
-    pub additional_config: Option<serde_json::Value>,
-    /// authConfig property.
-    pub auth_config: Option<GoogleCloudApihubV1AuthConfig>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// errorMessage property.
-    pub error_message: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// sourceEnvironmentsConfig property.
-    pub source_environments_config: Option<serde_json::Value>,
-    /// sourceProjectId property.
-    pub source_project_id: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `GoogleCloudApihubV1ApiKeyConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1ApiKeyConfig {
-    /// apiKey property.
-    pub api_key: Option<GoogleCloudApihubV1Secret>,
-    /// httpElementLocation property.
-    pub http_element_location: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GoogleCloudApihubV1Oauth2ClientCredentialsConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1Oauth2ClientCredentialsConfig {
-    /// clientId property.
-    pub client_id: Option<String>,
-    /// clientSecret property.
-    pub client_secret: Option<GoogleCloudApihubV1Secret>,
-}
-
-/// `GoogleCloudApihubV1AuthConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1AuthConfig {
-    /// apiKeyConfig property.
-    pub api_key_config: Option<GoogleCloudApihubV1ApiKeyConfig>,
-    /// authType property.
-    pub auth_type: Option<String>,
-    /// googleServiceAccountConfig property.
-    pub google_service_account_config: Option<GoogleCloudApihubV1GoogleServiceAccountConfig>,
-    /// oauth2ClientCredentialsConfig property.
-    pub oauth2_client_credentials_config: Option<GoogleCloudApihubV1Oauth2ClientCredentialsConfig>,
-    /// userPasswordConfig property.
-    pub user_password_config: Option<GoogleCloudApihubV1UserPasswordConfig>,
-}
-
-/// `GoogleCloudApihubV1ManagePluginInstanceSourceDataResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1ManagePluginInstanceSourceDataResponse {}
-
-/// `GoogleCloudApihubV1ResourceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1ResourceConfig {
-    /// actionType property.
-    pub action_type: Option<String>,
-    /// pubsubTopic property.
-    pub pubsub_topic: Option<String>,
-}
-
-/// `GoogleCloudApihubV1ListPluginInstancesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1ListPluginInstancesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// pluginInstances property.
-    pub plugin_instances: Option<Vec<GoogleCloudApihubV1PluginInstance>>,
-}
-
-/// `GoogleCloudApihubV1UserPasswordConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1UserPasswordConfig {
-    /// password property.
-    pub password: Option<GoogleCloudApihubV1Secret>,
-    /// username property.
-    pub username: Option<String>,
+pub struct GoogleCloudApihubV1CustomCuration {
+    /// curation property.
+    pub curation: Option<String>,
 }
 
 // =============================================================================

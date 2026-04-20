@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,34 +22,45 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `SortOptions` type.
+/// `ValueFilter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SortOptions {
+pub struct ValueFilter {
     /// operatorName property.
     pub operator_name: Option<String>,
-    /// sortOrder property.
-    pub sort_order: Option<String>,
+    /// value property.
+    pub value: Option<Value>,
 }
 
-/// `FacetOptions` type.
+/// `Value` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FacetOptions {
-    /// integerFacetingOptions property.
-    pub integer_faceting_options: Option<IntegerFacetingOptions>,
-    /// numFacetBuckets property.
-    pub num_facet_buckets: Option<i64>,
-    /// objectType property.
-    pub object_type: Option<String>,
-    /// operatorName property.
-    pub operator_name: Option<String>,
-    /// sourceName property.
-    pub source_name: Option<String>,
+pub struct Value {
+    /// booleanValue property.
+    pub boolean_value: Option<bool>,
+    /// dateValue property.
+    pub date_value: Option<Date>,
+    /// doubleValue property.
+    pub double_value: Option<f64>,
+    /// integerValue property.
+    pub integer_value: Option<String>,
+    /// stringValue property.
+    pub string_value: Option<String>,
+    /// timestampValue property.
+    pub timestamp_value: Option<String>,
+}
+
+/// `SearchApplicationQueryStats` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchApplicationQueryStats {
+    /// date property.
+    pub date: Option<Date>,
+    /// queryCountByStatus property.
+    pub query_count_by_status: Option<Vec<QueryCountByStatus>>,
 }
 
 /// `SourceConfig` type.
@@ -62,60 +74,11 @@ pub struct SourceConfig {
     pub source: Option<Source>,
 }
 
-/// `Filter` type.
+/// `GetSearchApplicationSessionStatsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Filter {
-    /// compositeFilter property.
-    pub composite_filter: Option<CompositeFilter>,
-    /// valueFilter property.
-    pub value_filter: Option<ValueFilter>,
-}
-
-/// `SearchApplicationUserStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchApplicationUserStats {
-    /// date property.
-    pub date: Option<Date>,
-    /// oneDayActiveUsersCount property.
-    pub one_day_active_users_count: Option<String>,
-    /// sevenDaysActiveUsersCount property.
-    pub seven_days_active_users_count: Option<String>,
-    /// thirtyDaysActiveUsersCount property.
-    pub thirty_days_active_users_count: Option<String>,
-}
-
-/// `ValueFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValueFilter {
-    /// operatorName property.
-    pub operator_name: Option<String>,
-    /// value property.
-    pub value: Option<Value>,
-}
-
-/// `SourceScoringConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceScoringConfig {
-    /// sourceImportance property.
-    pub source_importance: Option<String>,
-}
-
-/// `ListSearchApplicationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSearchApplicationsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// searchApplications property.
-    pub search_applications: Option<Vec<SearchApplication>>,
-}
-
-/// `QueryCountByStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryCountByStatus {
-    /// count property.
-    pub count: Option<String>,
-    /// statusCode property.
-    pub status_code: Option<i64>,
+pub struct GetSearchApplicationSessionStatsResponse {
+    /// stats property.
+    pub stats: Option<Vec<SearchApplicationSessionStats>>,
 }
 
 /// `SearchApplication` type.
@@ -145,11 +108,136 @@ pub struct SearchApplication {
     pub source_config: Option<Vec<SourceConfig>>,
 }
 
-/// `GetSearchApplicationSessionStatsResponse` type.
+/// `SourceScoringConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetSearchApplicationSessionStatsResponse {
+pub struct SourceScoringConfig {
+    /// sourceImportance property.
+    pub source_importance: Option<String>,
+}
+
+/// `DataSourceRestriction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceRestriction {
+    /// filterOptions property.
+    pub filter_options: Option<Vec<FilterOptions>>,
+    /// source property.
+    pub source: Option<Source>,
+}
+
+/// `QueryCountByStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueryCountByStatus {
+    /// count property.
+    pub count: Option<String>,
+    /// statusCode property.
+    pub status_code: Option<i64>,
+}
+
+/// `FacetOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FacetOptions {
+    /// integerFacetingOptions property.
+    pub integer_faceting_options: Option<IntegerFacetingOptions>,
+    /// numFacetBuckets property.
+    pub num_facet_buckets: Option<i64>,
+    /// objectType property.
+    pub object_type: Option<String>,
+    /// operatorName property.
+    pub operator_name: Option<String>,
+    /// sourceName property.
+    pub source_name: Option<String>,
+}
+
+/// `SourceCrowdingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SourceCrowdingConfig {
+    /// numResults property.
+    pub num_results: Option<i64>,
+    /// numSuggestions property.
+    pub num_suggestions: Option<i64>,
+}
+
+/// `GetSearchApplicationUserStatsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetSearchApplicationUserStatsResponse {
     /// stats property.
-    pub stats: Option<Vec<SearchApplicationSessionStats>>,
+    pub stats: Option<Vec<SearchApplicationUserStats>>,
+}
+
+/// `Source` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Source {
+    /// name property.
+    pub name: Option<String>,
+    /// predefinedSource property.
+    pub predefined_source: Option<String>,
+}
+
+/// `FilterOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FilterOptions {
+    /// filter property.
+    pub filter: Option<Box<Filter>>,
+    /// objectType property.
+    pub object_type: Option<String>,
+}
+
+/// `Filter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Filter {
+    /// compositeFilter property.
+    pub composite_filter: Option<Box<CompositeFilter>>,
+    /// valueFilter property.
+    pub value_filter: Option<ValueFilter>,
+}
+
+/// `SearchApplicationSessionStats` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchApplicationSessionStats {
+    /// date property.
+    pub date: Option<Date>,
+    /// searchSessionsCount property.
+    pub search_sessions_count: Option<String>,
+}
+
+/// `SortOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SortOptions {
+    /// operatorName property.
+    pub operator_name: Option<String>,
+    /// sortOrder property.
+    pub sort_order: Option<String>,
+}
+
+/// `SearchApplicationUserStats` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchApplicationUserStats {
+    /// date property.
+    pub date: Option<Date>,
+    /// oneDayActiveUsersCount property.
+    pub one_day_active_users_count: Option<String>,
+    /// sevenDaysActiveUsersCount property.
+    pub seven_days_active_users_count: Option<String>,
+    /// thirtyDaysActiveUsersCount property.
+    pub thirty_days_active_users_count: Option<String>,
+}
+
+/// `QueryInterpretationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueryInterpretationConfig {
+    /// forceDisableSupplementalResults property.
+    pub force_disable_supplemental_results: Option<bool>,
+    /// forceVerbatimMode property.
+    pub force_verbatim_mode: Option<bool>,
+}
+
+/// `CompositeFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CompositeFilter {
+    /// logicOperator property.
+    pub logic_operator: Option<String>,
+    /// subFilters property.
+    pub sub_filters: Option<Vec<Box<Filter>>>,
 }
 
 /// `Date` type.
@@ -163,48 +251,11 @@ pub struct Date {
     pub year: Option<i64>,
 }
 
-/// `SearchApplicationSessionStats` type.
+/// `IntegerFacetingOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchApplicationSessionStats {
-    /// date property.
-    pub date: Option<Date>,
-    /// searchSessionsCount property.
-    pub search_sessions_count: Option<String>,
-}
-
-/// `QueryInterpretationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryInterpretationConfig {
-    /// forceDisableSupplementalResults property.
-    pub force_disable_supplemental_results: Option<bool>,
-    /// forceVerbatimMode property.
-    pub force_verbatim_mode: Option<bool>,
-}
-
-/// `FilterOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FilterOptions {
-    /// filter property.
-    pub filter: Option<Filter>,
-    /// objectType property.
-    pub object_type: Option<String>,
-}
-
-/// `Value` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Value {
-    /// booleanValue property.
-    pub boolean_value: Option<bool>,
-    /// dateValue property.
-    pub date_value: Option<Date>,
-    /// doubleValue property.
-    pub double_value: Option<f64>,
-    /// integerValue property.
-    pub integer_value: Option<String>,
-    /// stringValue property.
-    pub string_value: Option<String>,
-    /// timestampValue property.
-    pub timestamp_value: Option<String>,
+pub struct IntegerFacetingOptions {
+    /// integerBuckets property.
+    pub integer_buckets: Option<Vec<String>>,
 }
 
 /// `Status` type.
@@ -218,13 +269,13 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `SourceCrowdingConfig` type.
+/// `ListSearchApplicationsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceCrowdingConfig {
-    /// numResults property.
-    pub num_results: Option<i64>,
-    /// numSuggestions property.
-    pub num_suggestions: Option<i64>,
+pub struct ListSearchApplicationsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// searchApplications property.
+    pub search_applications: Option<Vec<SearchApplication>>,
 }
 
 /// `ScoringConfig` type.
@@ -236,13 +287,6 @@ pub struct ScoringConfig {
     pub disable_personalization: Option<bool>,
 }
 
-/// `IntegerFacetingOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntegerFacetingOptions {
-    /// integerBuckets property.
-    pub integer_buckets: Option<Vec<String>>,
-}
-
 /// `GetSearchApplicationQueryStatsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetSearchApplicationQueryStatsResponse {
@@ -250,49 +294,6 @@ pub struct GetSearchApplicationQueryStatsResponse {
     pub stats: Option<Vec<SearchApplicationQueryStats>>,
     /// totalQueryCount property.
     pub total_query_count: Option<String>,
-}
-
-/// `GetSearchApplicationUserStatsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetSearchApplicationUserStatsResponse {
-    /// stats property.
-    pub stats: Option<Vec<SearchApplicationUserStats>>,
-}
-
-/// `CompositeFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompositeFilter {
-    /// logicOperator property.
-    pub logic_operator: Option<String>,
-    /// subFilters property.
-    pub sub_filters: Option<Vec<Filter>>,
-}
-
-/// `DataSourceRestriction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSourceRestriction {
-    /// filterOptions property.
-    pub filter_options: Option<Vec<FilterOptions>>,
-    /// source property.
-    pub source: Option<Source>,
-}
-
-/// `SearchApplicationQueryStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchApplicationQueryStats {
-    /// date property.
-    pub date: Option<Date>,
-    /// queryCountByStatus property.
-    pub query_count_by_status: Option<Vec<QueryCountByStatus>>,
-}
-
-/// `Source` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Source {
-    /// name property.
-    pub name: Option<String>,
-    /// predefinedSource property.
-    pub predefined_source: Option<String>,
 }
 
 // =============================================================================

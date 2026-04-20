@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,20 +23,11 @@ use serde::{Deserialize, Serialize};
 use super::shared::GoogleCloudAiplatformV1Study;
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudAiplatformV1StudySpecParameterSpecCategoricalValueSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudySpecParameterSpecCategoricalValueSpec {
-    /// defaultValue property.
-    pub default_value: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
 
 /// `GoogleCloudAiplatformV1StudySpecMetricSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -48,13 +40,24 @@ pub struct GoogleCloudAiplatformV1StudySpecMetricSpec {
     pub safety_config: Option<GoogleCloudAiplatformV1StudySpecMetricSpecSafetyMetricConfig>,
 }
 
-/// `GoogleCloudAiplatformV1StudyTimeConstraint` type.
+/// `GoogleCloudAiplatformV1StudySpecMetricSpecSafetyMetricConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudyTimeConstraint {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// maxDuration property.
-    pub max_duration: Option<String>,
+pub struct GoogleCloudAiplatformV1StudySpecMetricSpecSafetyMetricConfig {
+    /// desiredMinSafeTrialsFraction property.
+    pub desired_min_safe_trials_fraction: Option<f64>,
+    /// safetyThreshold property.
+    pub safety_threshold: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1StudySpecParameterSpecDoubleValueSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1StudySpecParameterSpecDoubleValueSpec {
+    /// defaultValue property.
+    pub default_value: Option<f64>,
+    /// maxValue property.
+    pub max_value: Option<f64>,
+    /// minValue property.
+    pub min_value: Option<f64>,
 }
 
 /// `GoogleCloudAiplatformV1StudySpecDecayCurveAutomatedStoppingSpec` type.
@@ -81,6 +84,69 @@ pub struct GoogleCloudAiplatformV1StudySpecStudyStoppingConfig {
     pub minimum_runtime_constraint: Option<GoogleCloudAiplatformV1StudyTimeConstraint>,
     /// shouldStopAsap property.
     pub should_stop_asap: Option<bool>,
+}
+
+/// `GoogleCloudAiplatformV1StudySpecMedianAutomatedStoppingSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1StudySpecMedianAutomatedStoppingSpec {
+    /// useElapsedDuration property.
+    pub use_elapsed_duration: Option<bool>,
+}
+
+/// `GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecDiscreteValueCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecDiscreteValueCondition
+{
+    /// values property.
+    pub values: Option<Vec<f64>>,
+}
+
+/// `GoogleCloudAiplatformV1ListStudiesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ListStudiesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// studies property.
+    pub studies: Option<Vec<GoogleCloudAiplatformV1Study>>,
+}
+
+/// `GoogleCloudAiplatformV1StudyTimeConstraint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1StudyTimeConstraint {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// maxDuration property.
+    pub max_duration: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1StudySpecConvexAutomatedStoppingSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1StudySpecConvexAutomatedStoppingSpec {
+    /// learningRateParameterName property.
+    pub learning_rate_parameter_name: Option<String>,
+    /// maxStepCount property.
+    pub max_step_count: Option<String>,
+    /// minMeasurementCount property.
+    pub min_measurement_count: Option<String>,
+    /// minStepCount property.
+    pub min_step_count: Option<String>,
+    /// updateAllStoppedTrials property.
+    pub update_all_stopped_trials: Option<bool>,
+    /// useElapsedDuration property.
+    pub use_elapsed_duration: Option<bool>,
+}
+
+/// `GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec {
+    /// parameterSpec property.
+    pub parameter_spec: Option<Box<GoogleCloudAiplatformV1StudySpecParameterSpec>>,
+    /// parentCategoricalValues property.
+    pub parent_categorical_values: Option<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecCategoricalValueCondition>,
+    /// parentDiscreteValues property.
+    pub parent_discrete_values: Option<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecDiscreteValueCondition>,
+    /// parentIntValues property.
+    pub parent_int_values: Option<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecIntValueCondition>,
 }
 
 /// `GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecCategoricalValueCondition` type.
@@ -118,6 +184,15 @@ pub struct GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec
     pub values: Option<Vec<String>>,
 }
 
+/// `GoogleCloudAiplatformV1StudySpecParameterSpecCategoricalValueSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1StudySpecParameterSpecCategoricalValueSpec {
+    /// defaultValue property.
+    pub default_value: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
 /// `GoogleCloudAiplatformV1StudySpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StudySpec {
@@ -139,27 +214,9 @@ pub struct GoogleCloudAiplatformV1StudySpec {
     /// observationNoise property.
     pub observation_noise: Option<String>,
     /// parameters property.
-    pub parameters: Option<Vec<GoogleCloudAiplatformV1StudySpecParameterSpec>>,
+    pub parameters: Option<Vec<Box<GoogleCloudAiplatformV1StudySpecParameterSpec>>>,
     /// studyStoppingConfig property.
     pub study_stopping_config: Option<GoogleCloudAiplatformV1StudySpecStudyStoppingConfig>,
-}
-
-/// `GoogleCloudAiplatformV1StudySpecParameterSpecDoubleValueSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudySpecParameterSpecDoubleValueSpec {
-    /// defaultValue property.
-    pub default_value: Option<f64>,
-    /// maxValue property.
-    pub max_value: Option<f64>,
-    /// minValue property.
-    pub min_value: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1StudySpecMedianAutomatedStoppingSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudySpecMedianAutomatedStoppingSpec {
-    /// useElapsedDuration property.
-    pub use_elapsed_duration: Option<bool>,
 }
 
 /// `GoogleCloudAiplatformV1StudySpecParameterSpec` type.
@@ -170,7 +227,7 @@ pub struct GoogleCloudAiplatformV1StudySpecParameterSpec {
         Option<GoogleCloudAiplatformV1StudySpecParameterSpecCategoricalValueSpec>,
     /// conditionalParameterSpecs property.
     pub conditional_parameter_specs:
-        Option<Vec<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec>>,
+        Option<Vec<Box<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec>>>,
     /// discreteValueSpec property.
     pub discrete_value_spec: Option<GoogleCloudAiplatformV1StudySpecParameterSpecDiscreteValueSpec>,
     /// doubleValueSpec property.
@@ -181,62 +238,6 @@ pub struct GoogleCloudAiplatformV1StudySpecParameterSpec {
     pub parameter_id: Option<String>,
     /// scaleType property.
     pub scale_type: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecDiscreteValueCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecDiscreteValueCondition
-{
-    /// values property.
-    pub values: Option<Vec<f64>>,
-}
-
-/// `GoogleCloudAiplatformV1StudySpecMetricSpecSafetyMetricConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudySpecMetricSpecSafetyMetricConfig {
-    /// desiredMinSafeTrialsFraction property.
-    pub desired_min_safe_trials_fraction: Option<f64>,
-    /// safetyThreshold property.
-    pub safety_threshold: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1ListStudiesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListStudiesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// studies property.
-    pub studies: Option<Vec<GoogleCloudAiplatformV1Study>>,
-}
-
-/// `GoogleCloudAiplatformV1StudySpecConvexAutomatedStoppingSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudySpecConvexAutomatedStoppingSpec {
-    /// learningRateParameterName property.
-    pub learning_rate_parameter_name: Option<String>,
-    /// maxStepCount property.
-    pub max_step_count: Option<String>,
-    /// minMeasurementCount property.
-    pub min_measurement_count: Option<String>,
-    /// minStepCount property.
-    pub min_step_count: Option<String>,
-    /// updateAllStoppedTrials property.
-    pub update_all_stopped_trials: Option<bool>,
-    /// useElapsedDuration property.
-    pub use_elapsed_duration: Option<bool>,
-}
-
-/// `GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec {
-    /// parameterSpec property.
-    pub parameter_spec: Option<GoogleCloudAiplatformV1StudySpecParameterSpec>,
-    /// parentCategoricalValues property.
-    pub parent_categorical_values: Option<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecCategoricalValueCondition>,
-    /// parentDiscreteValues property.
-    pub parent_discrete_values: Option<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecDiscreteValueCondition>,
-    /// parentIntValues property.
-    pub parent_int_values: Option<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecIntValueCondition>,
 }
 
 // =============================================================================

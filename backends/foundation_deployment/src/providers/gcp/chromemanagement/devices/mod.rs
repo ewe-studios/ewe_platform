@@ -12,17 +12,210 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleTypeDate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeDate {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `GoogleChromeManagementV1AudioStatusReport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1AudioStatusReport {
+    /// inputDevice property.
+    pub input_device: Option<String>,
+    /// inputGain property.
+    pub input_gain: Option<i64>,
+    /// inputMute property.
+    pub input_mute: Option<bool>,
+    /// outputDevice property.
+    pub output_device: Option<String>,
+    /// outputMute property.
+    pub output_mute: Option<bool>,
+    /// outputVolume property.
+    pub output_volume: Option<i64>,
+    /// reportTime property.
+    pub report_time: Option<String>,
+}
+
+/// `GoogleChromeManagementV1CpuInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1CpuInfo {
+    /// architecture property.
+    pub architecture: Option<String>,
+    /// keylockerConfigured property.
+    pub keylocker_configured: Option<bool>,
+    /// keylockerSupported property.
+    pub keylocker_supported: Option<bool>,
+    /// maxClockSpeed property.
+    pub max_clock_speed: Option<i64>,
+    /// model property.
+    pub model: Option<String>,
+}
+
+/// `GoogleChromeManagementV1TouchScreenDevice` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1TouchScreenDevice {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// stylusCapable property.
+    pub stylus_capable: Option<bool>,
+    /// touchPointCount property.
+    pub touch_point_count: Option<i64>,
+}
+
+/// `GoogleChromeManagementV1RuntimeCountersReport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1RuntimeCountersReport {
+    /// enterHibernationCount property.
+    pub enter_hibernation_count: Option<String>,
+    /// enterPoweroffCount property.
+    pub enter_poweroff_count: Option<String>,
+    /// enterSleepCount property.
+    pub enter_sleep_count: Option<String>,
+    /// reportTime property.
+    pub report_time: Option<String>,
+    /// uptimeRuntimeDuration property.
+    pub uptime_runtime_duration: Option<String>,
+}
+
+/// `GoogleChromeManagementV1KioskAppStatusReport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1KioskAppStatusReport {
+    /// appId property.
+    pub app_id: Option<String>,
+    /// appVersion property.
+    pub app_version: Option<String>,
+    /// reportTime property.
+    pub report_time: Option<String>,
+}
+
+/// `GoogleChromeManagementV1AppReport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1AppReport {
+    /// reportTime property.
+    pub report_time: Option<String>,
+    /// usageData property.
+    pub usage_data: Option<Vec<GoogleChromeManagementV1AppUsageData>>,
+}
+
+/// `GoogleChromeManagementV1StorageInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1StorageInfo {
+    /// availableDiskBytes property.
+    pub available_disk_bytes: Option<String>,
+    /// totalDiskBytes property.
+    pub total_disk_bytes: Option<String>,
+    /// volume property.
+    pub volume: Option<Vec<GoogleChromeManagementV1StorageInfoDiskVolume>>,
+}
+
+/// `GoogleChromeManagementV1BatterySampleReport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1BatterySampleReport {
+    /// chargeRate property.
+    pub charge_rate: Option<i64>,
+    /// current property.
+    pub current: Option<String>,
+    /// dischargeRate property.
+    pub discharge_rate: Option<i64>,
+    /// remainingCapacity property.
+    pub remaining_capacity: Option<String>,
+    /// reportTime property.
+    pub report_time: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+    /// temperature property.
+    pub temperature: Option<i64>,
+    /// voltage property.
+    pub voltage: Option<String>,
+}
+
+/// `GoogleChromeManagementV1CpuTemperatureInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1CpuTemperatureInfo {
+    /// label property.
+    pub label: Option<String>,
+    /// temperatureCelsius property.
+    pub temperature_celsius: Option<i64>,
+}
+
+/// `GoogleChromeManagementV1TouchScreenInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1TouchScreenInfo {
+    /// devices property.
+    pub devices: Option<Vec<GoogleChromeManagementV1TouchScreenDevice>>,
+    /// touchpadLibrary property.
+    pub touchpad_library: Option<String>,
+}
+
+/// `GoogleChromeManagementV1PeripheralsReport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1PeripheralsReport {
+    /// reportTime property.
+    pub report_time: Option<String>,
+    /// usbPeripheralReport property.
+    pub usb_peripheral_report: Option<Vec<GoogleChromeManagementV1UsbPeripheralReport>>,
+}
+
+/// `GoogleChromeManagementV1NetworkBandwidthReport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1NetworkBandwidthReport {
+    /// downloadSpeedKbps property.
+    pub download_speed_kbps: Option<String>,
+    /// reportTime property.
+    pub report_time: Option<String>,
+}
+
+/// `GoogleChromeManagementV1NetworkDiagnosticsReport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1NetworkDiagnosticsReport {
+    /// httpsLatencyData property.
+    pub https_latency_data: Option<GoogleChromeManagementV1HttpsLatencyRoutineData>,
+    /// reportTime property.
+    pub report_time: Option<String>,
+}
+
+/// `GoogleChromeManagementV1ThunderboltInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1ThunderboltInfo {
+    /// securityLevel property.
+    pub security_level: Option<String>,
+}
+
+/// `GoogleChromeManagementV1BootPerformanceReport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1BootPerformanceReport {
+    /// bootUpDuration property.
+    pub boot_up_duration: Option<String>,
+    /// bootUpTime property.
+    pub boot_up_time: Option<String>,
+    /// reportTime property.
+    pub report_time: Option<String>,
+    /// shutdownDuration property.
+    pub shutdown_duration: Option<String>,
+    /// shutdownReason property.
+    pub shutdown_reason: Option<String>,
+    /// shutdownTime property.
+    pub shutdown_time: Option<String>,
+}
 
 /// `GoogleChromeManagementV1BatteryInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -41,46 +234,246 @@ pub struct GoogleChromeManagementV1BatteryInfo {
     pub technology: Option<String>,
 }
 
-/// `GoogleChromeManagementV1ThunderboltInfo` type.
+/// `GoogleChromeManagementV1BatteryStatusReport` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1ThunderboltInfo {
-    /// securityLevel property.
-    pub security_level: Option<String>,
+pub struct GoogleChromeManagementV1BatteryStatusReport {
+    /// batteryHealth property.
+    pub battery_health: Option<String>,
+    /// cycleCount property.
+    pub cycle_count: Option<i64>,
+    /// fullChargeCapacity property.
+    pub full_charge_capacity: Option<String>,
+    /// reportTime property.
+    pub report_time: Option<String>,
+    /// sample property.
+    pub sample: Option<Vec<GoogleChromeManagementV1BatterySampleReport>>,
+    /// serialNumber property.
+    pub serial_number: Option<String>,
 }
 
-/// `GoogleChromeManagementV1NetworkBandwidthReport` type.
+/// `GoogleChromeManagementV1GraphicsInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1NetworkBandwidthReport {
-    /// downloadSpeedKbps property.
-    pub download_speed_kbps: Option<String>,
+pub struct GoogleChromeManagementV1GraphicsInfo {
+    /// adapterInfo property.
+    pub adapter_info: Option<GoogleChromeManagementV1GraphicsAdapterInfo>,
+    /// displayDevices property.
+    pub display_devices: Option<Vec<GoogleChromeManagementV1DisplayDevice>>,
+    /// eprivacySupported property.
+    pub eprivacy_supported: Option<bool>,
+    /// touchScreenInfo property.
+    pub touch_screen_info: Option<GoogleChromeManagementV1TouchScreenInfo>,
+}
+
+/// `GoogleChromeManagementV1HeartbeatStatusReport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1HeartbeatStatusReport {
+    /// reportTime property.
+    pub report_time: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `GoogleChromeManagementV1DisplayDevice` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1DisplayDevice {
+    /// displayHeightMm property.
+    pub display_height_mm: Option<i64>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// displayWidthMm property.
+    pub display_width_mm: Option<i64>,
+    /// edidVersion property.
+    pub edid_version: Option<String>,
+    /// internal property.
+    pub internal: Option<bool>,
+    /// manufactureYear property.
+    pub manufacture_year: Option<i64>,
+    /// manufacturerId property.
+    pub manufacturer_id: Option<String>,
+    /// modelId property.
+    pub model_id: Option<i64>,
+    /// serialNumber property.
+    pub serial_number: Option<i64>,
+}
+
+/// `GoogleChromeManagementV1StorageStatusReport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1StorageStatusReport {
+    /// disk property.
+    pub disk: Option<Vec<GoogleChromeManagementV1DiskInfo>>,
     /// reportTime property.
     pub report_time: Option<String>,
 }
 
-/// `GoogleChromeManagementV1KioskAppStatusReport` type.
+/// `GoogleChromeManagementV1GraphicsAdapterInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1KioskAppStatusReport {
+pub struct GoogleChromeManagementV1GraphicsAdapterInfo {
+    /// adapter property.
+    pub adapter: Option<String>,
+    /// deviceId property.
+    pub device_id: Option<String>,
+    /// driverVersion property.
+    pub driver_version: Option<String>,
+}
+
+/// `GoogleChromeManagementV1NetworkStatusReport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1NetworkStatusReport {
+    /// connectionState property.
+    pub connection_state: Option<String>,
+    /// connectionType property.
+    pub connection_type: Option<String>,
+    /// encryptionOn property.
+    pub encryption_on: Option<bool>,
+    /// gatewayIpAddress property.
+    pub gateway_ip_address: Option<String>,
+    /// gatewayIpv6Address property.
+    pub gateway_ipv6_address: Option<String>,
+    /// guid property.
+    pub guid: Option<String>,
+    /// ipv6Address property.
+    pub ipv6_address: Option<Vec<String>>,
+    /// lanIpAddress property.
+    pub lan_ip_address: Option<String>,
+    /// linkDownSpeedKbps property.
+    pub link_down_speed_kbps: Option<String>,
+    /// metered property.
+    pub metered: Option<bool>,
+    /// receivingBitRateMbps property.
+    pub receiving_bit_rate_mbps: Option<String>,
+    /// reportTime property.
+    pub report_time: Option<String>,
+    /// sampleFrequency property.
+    pub sample_frequency: Option<String>,
+    /// signalStrengthDbm property.
+    pub signal_strength_dbm: Option<i64>,
+    /// transmissionBitRateMbps property.
+    pub transmission_bit_rate_mbps: Option<String>,
+    /// transmissionPowerDbm property.
+    pub transmission_power_dbm: Option<i64>,
+    /// wifiLinkQuality property.
+    pub wifi_link_quality: Option<String>,
+    /// wifiPowerManagementEnabled property.
+    pub wifi_power_management_enabled: Option<bool>,
+}
+
+/// `GoogleChromeManagementV1AppUsageData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1AppUsageData {
     /// appId property.
     pub app_id: Option<String>,
-    /// appVersion property.
-    pub app_version: Option<String>,
-    /// reportTime property.
-    pub report_time: Option<String>,
+    /// appInstanceId property.
+    pub app_instance_id: Option<String>,
+    /// appType property.
+    pub app_type: Option<String>,
+    /// runningDuration property.
+    pub running_duration: Option<String>,
 }
 
-/// `GoogleChromeManagementV1CpuInfo` type.
+/// `GoogleChromeManagementV1TotalMemoryEncryptionInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1CpuInfo {
-    /// architecture property.
-    pub architecture: Option<String>,
-    /// keylockerConfigured property.
-    pub keylocker_configured: Option<bool>,
-    /// keylockerSupported property.
-    pub keylocker_supported: Option<bool>,
-    /// maxClockSpeed property.
-    pub max_clock_speed: Option<i64>,
-    /// model property.
-    pub model: Option<String>,
+pub struct GoogleChromeManagementV1TotalMemoryEncryptionInfo {
+    /// encryptionAlgorithm property.
+    pub encryption_algorithm: Option<String>,
+    /// encryptionState property.
+    pub encryption_state: Option<String>,
+    /// keyLength property.
+    pub key_length: Option<String>,
+    /// maxKeys property.
+    pub max_keys: Option<String>,
+}
+
+/// `GoogleChromeManagementV1StorageInfoDiskVolume` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1StorageInfoDiskVolume {
+    /// storageFreeBytes property.
+    pub storage_free_bytes: Option<String>,
+    /// storageTotalBytes property.
+    pub storage_total_bytes: Option<String>,
+    /// volumeId property.
+    pub volume_id: Option<String>,
+}
+
+/// `GoogleChromeManagementV1ListTelemetryDevicesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1ListTelemetryDevicesResponse {
+    /// devices property.
+    pub devices: Option<Vec<GoogleChromeManagementV1TelemetryDevice>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleChromeManagementV1OsUpdateStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1OsUpdateStatus {
+    /// lastRebootTime property.
+    pub last_reboot_time: Option<String>,
+    /// lastUpdateCheckTime property.
+    pub last_update_check_time: Option<String>,
+    /// lastUpdateTime property.
+    pub last_update_time: Option<String>,
+    /// newPlatformVersion property.
+    pub new_platform_version: Option<String>,
+    /// newRequestedPlatformVersion property.
+    pub new_requested_platform_version: Option<String>,
+    /// updateState property.
+    pub update_state: Option<String>,
+}
+
+/// `GoogleChromeManagementV1UsbPeripheralReport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1UsbPeripheralReport {
+    /// categories property.
+    pub categories: Option<Vec<String>>,
+    /// classId property.
+    pub class_id: Option<i64>,
+    /// firmwareVersion property.
+    pub firmware_version: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// pid property.
+    pub pid: Option<i64>,
+    /// subclassId property.
+    pub subclass_id: Option<i64>,
+    /// vendor property.
+    pub vendor: Option<String>,
+    /// vid property.
+    pub vid: Option<i64>,
+}
+
+/// `GoogleChromeManagementV1MemoryInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1MemoryInfo {
+    /// availableRamBytes property.
+    pub available_ram_bytes: Option<String>,
+    /// totalMemoryEncryption property.
+    pub total_memory_encryption: Option<GoogleChromeManagementV1TotalMemoryEncryptionInfo>,
+    /// totalRamBytes property.
+    pub total_ram_bytes: Option<String>,
+}
+
+/// `GoogleChromeManagementV1NetworkDevice` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1NetworkDevice {
+    /// iccid property.
+    pub iccid: Option<String>,
+    /// imei property.
+    pub imei: Option<String>,
+    /// macAddress property.
+    pub mac_address: Option<String>,
+    /// mdn property.
+    pub mdn: Option<String>,
+    /// meid property.
+    pub meid: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleChromeManagementV1NetworkInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1NetworkInfo {
+    /// networkDevices property.
+    pub network_devices: Option<Vec<GoogleChromeManagementV1NetworkDevice>>,
 }
 
 /// `GoogleChromeManagementV1TelemetryDevice` type.
@@ -144,169 +537,6 @@ pub struct GoogleChromeManagementV1TelemetryDevice {
     pub thunderbolt_info: Option<Vec<GoogleChromeManagementV1ThunderboltInfo>>,
 }
 
-/// `GoogleChromeManagementV1NetworkDiagnosticsReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1NetworkDiagnosticsReport {
-    /// httpsLatencyData property.
-    pub https_latency_data: Option<GoogleChromeManagementV1HttpsLatencyRoutineData>,
-    /// reportTime property.
-    pub report_time: Option<String>,
-}
-
-/// `GoogleChromeManagementV1StorageInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1StorageInfo {
-    /// availableDiskBytes property.
-    pub available_disk_bytes: Option<String>,
-    /// totalDiskBytes property.
-    pub total_disk_bytes: Option<String>,
-    /// volume property.
-    pub volume: Option<Vec<GoogleChromeManagementV1StorageInfoDiskVolume>>,
-}
-
-/// `GoogleChromeManagementV1CpuStatusReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1CpuStatusReport {
-    /// cpuTemperatureInfo property.
-    pub cpu_temperature_info: Option<Vec<GoogleChromeManagementV1CpuTemperatureInfo>>,
-    /// cpuUtilizationPct property.
-    pub cpu_utilization_pct: Option<i64>,
-    /// reportTime property.
-    pub report_time: Option<String>,
-    /// sampleFrequency property.
-    pub sample_frequency: Option<String>,
-}
-
-/// `GoogleChromeManagementV1PeripheralsReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1PeripheralsReport {
-    /// reportTime property.
-    pub report_time: Option<String>,
-    /// usbPeripheralReport property.
-    pub usb_peripheral_report: Option<Vec<GoogleChromeManagementV1UsbPeripheralReport>>,
-}
-
-/// `GoogleChromeManagementV1NetworkStatusReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1NetworkStatusReport {
-    /// connectionState property.
-    pub connection_state: Option<String>,
-    /// connectionType property.
-    pub connection_type: Option<String>,
-    /// encryptionOn property.
-    pub encryption_on: Option<bool>,
-    /// gatewayIpAddress property.
-    pub gateway_ip_address: Option<String>,
-    /// gatewayIpv6Address property.
-    pub gateway_ipv6_address: Option<String>,
-    /// guid property.
-    pub guid: Option<String>,
-    /// ipv6Address property.
-    pub ipv6_address: Option<Vec<String>>,
-    /// lanIpAddress property.
-    pub lan_ip_address: Option<String>,
-    /// linkDownSpeedKbps property.
-    pub link_down_speed_kbps: Option<String>,
-    /// metered property.
-    pub metered: Option<bool>,
-    /// receivingBitRateMbps property.
-    pub receiving_bit_rate_mbps: Option<String>,
-    /// reportTime property.
-    pub report_time: Option<String>,
-    /// sampleFrequency property.
-    pub sample_frequency: Option<String>,
-    /// signalStrengthDbm property.
-    pub signal_strength_dbm: Option<i64>,
-    /// transmissionBitRateMbps property.
-    pub transmission_bit_rate_mbps: Option<String>,
-    /// transmissionPowerDbm property.
-    pub transmission_power_dbm: Option<i64>,
-    /// wifiLinkQuality property.
-    pub wifi_link_quality: Option<String>,
-    /// wifiPowerManagementEnabled property.
-    pub wifi_power_management_enabled: Option<bool>,
-}
-
-/// `GoogleChromeManagementV1GraphicsInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1GraphicsInfo {
-    /// adapterInfo property.
-    pub adapter_info: Option<GoogleChromeManagementV1GraphicsAdapterInfo>,
-    /// displayDevices property.
-    pub display_devices: Option<Vec<GoogleChromeManagementV1DisplayDevice>>,
-    /// eprivacySupported property.
-    pub eprivacy_supported: Option<bool>,
-    /// touchScreenInfo property.
-    pub touch_screen_info: Option<GoogleChromeManagementV1TouchScreenInfo>,
-}
-
-/// `GoogleChromeManagementV1UsbPeripheralReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1UsbPeripheralReport {
-    /// categories property.
-    pub categories: Option<Vec<String>>,
-    /// classId property.
-    pub class_id: Option<i64>,
-    /// firmwareVersion property.
-    pub firmware_version: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// pid property.
-    pub pid: Option<i64>,
-    /// subclassId property.
-    pub subclass_id: Option<i64>,
-    /// vendor property.
-    pub vendor: Option<String>,
-    /// vid property.
-    pub vid: Option<i64>,
-}
-
-/// `GoogleChromeManagementV1TouchScreenInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1TouchScreenInfo {
-    /// devices property.
-    pub devices: Option<Vec<GoogleChromeManagementV1TouchScreenDevice>>,
-    /// touchpadLibrary property.
-    pub touchpad_library: Option<String>,
-}
-
-/// `GoogleChromeManagementV1ListTelemetryDevicesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1ListTelemetryDevicesResponse {
-    /// devices property.
-    pub devices: Option<Vec<GoogleChromeManagementV1TelemetryDevice>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleChromeManagementV1MemoryInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1MemoryInfo {
-    /// availableRamBytes property.
-    pub available_ram_bytes: Option<String>,
-    /// totalMemoryEncryption property.
-    pub total_memory_encryption: Option<GoogleChromeManagementV1TotalMemoryEncryptionInfo>,
-    /// totalRamBytes property.
-    pub total_ram_bytes: Option<String>,
-}
-
-/// `GoogleChromeManagementV1BootPerformanceReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1BootPerformanceReport {
-    /// bootUpDuration property.
-    pub boot_up_duration: Option<String>,
-    /// bootUpTime property.
-    pub boot_up_time: Option<String>,
-    /// reportTime property.
-    pub report_time: Option<String>,
-    /// shutdownDuration property.
-    pub shutdown_duration: Option<String>,
-    /// shutdownReason property.
-    pub shutdown_reason: Option<String>,
-    /// shutdownTime property.
-    pub shutdown_time: Option<String>,
-}
-
 /// `GoogleChromeManagementV1DiskInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1DiskInfo {
@@ -338,177 +568,6 @@ pub struct GoogleChromeManagementV1DiskInfo {
     pub write_time_this_session: Option<String>,
 }
 
-/// `GoogleChromeManagementV1StorageInfoDiskVolume` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1StorageInfoDiskVolume {
-    /// storageFreeBytes property.
-    pub storage_free_bytes: Option<String>,
-    /// storageTotalBytes property.
-    pub storage_total_bytes: Option<String>,
-    /// volumeId property.
-    pub volume_id: Option<String>,
-}
-
-/// `GoogleChromeManagementV1HeartbeatStatusReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1HeartbeatStatusReport {
-    /// reportTime property.
-    pub report_time: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `GoogleChromeManagementV1MemoryStatusReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1MemoryStatusReport {
-    /// pageFaults property.
-    pub page_faults: Option<i64>,
-    /// reportTime property.
-    pub report_time: Option<String>,
-    /// sampleFrequency property.
-    pub sample_frequency: Option<String>,
-    /// systemRamFreeBytes property.
-    pub system_ram_free_bytes: Option<String>,
-}
-
-/// `GoogleChromeManagementV1BatterySampleReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1BatterySampleReport {
-    /// chargeRate property.
-    pub charge_rate: Option<i64>,
-    /// current property.
-    pub current: Option<String>,
-    /// dischargeRate property.
-    pub discharge_rate: Option<i64>,
-    /// remainingCapacity property.
-    pub remaining_capacity: Option<String>,
-    /// reportTime property.
-    pub report_time: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-    /// temperature property.
-    pub temperature: Option<i64>,
-    /// voltage property.
-    pub voltage: Option<String>,
-}
-
-/// `GoogleChromeManagementV1AudioStatusReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1AudioStatusReport {
-    /// inputDevice property.
-    pub input_device: Option<String>,
-    /// inputGain property.
-    pub input_gain: Option<i64>,
-    /// inputMute property.
-    pub input_mute: Option<bool>,
-    /// outputDevice property.
-    pub output_device: Option<String>,
-    /// outputMute property.
-    pub output_mute: Option<bool>,
-    /// outputVolume property.
-    pub output_volume: Option<i64>,
-    /// reportTime property.
-    pub report_time: Option<String>,
-}
-
-/// `GoogleChromeManagementV1AppUsageData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1AppUsageData {
-    /// appId property.
-    pub app_id: Option<String>,
-    /// appInstanceId property.
-    pub app_instance_id: Option<String>,
-    /// appType property.
-    pub app_type: Option<String>,
-    /// runningDuration property.
-    pub running_duration: Option<String>,
-}
-
-/// `GoogleChromeManagementV1AppReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1AppReport {
-    /// reportTime property.
-    pub report_time: Option<String>,
-    /// usageData property.
-    pub usage_data: Option<Vec<GoogleChromeManagementV1AppUsageData>>,
-}
-
-/// `GoogleChromeManagementV1RuntimeCountersReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1RuntimeCountersReport {
-    /// enterHibernationCount property.
-    pub enter_hibernation_count: Option<String>,
-    /// enterPoweroffCount property.
-    pub enter_poweroff_count: Option<String>,
-    /// enterSleepCount property.
-    pub enter_sleep_count: Option<String>,
-    /// reportTime property.
-    pub report_time: Option<String>,
-    /// uptimeRuntimeDuration property.
-    pub uptime_runtime_duration: Option<String>,
-}
-
-/// `GoogleChromeManagementV1NetworkInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1NetworkInfo {
-    /// networkDevices property.
-    pub network_devices: Option<Vec<GoogleChromeManagementV1NetworkDevice>>,
-}
-
-/// `GoogleChromeManagementV1NetworkDevice` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1NetworkDevice {
-    /// iccid property.
-    pub iccid: Option<String>,
-    /// imei property.
-    pub imei: Option<String>,
-    /// macAddress property.
-    pub mac_address: Option<String>,
-    /// mdn property.
-    pub mdn: Option<String>,
-    /// meid property.
-    pub meid: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleChromeManagementV1OsUpdateStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1OsUpdateStatus {
-    /// lastRebootTime property.
-    pub last_reboot_time: Option<String>,
-    /// lastUpdateCheckTime property.
-    pub last_update_check_time: Option<String>,
-    /// lastUpdateTime property.
-    pub last_update_time: Option<String>,
-    /// newPlatformVersion property.
-    pub new_platform_version: Option<String>,
-    /// newRequestedPlatformVersion property.
-    pub new_requested_platform_version: Option<String>,
-    /// updateState property.
-    pub update_state: Option<String>,
-}
-
-/// `GoogleChromeManagementV1GraphicsAdapterInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1GraphicsAdapterInfo {
-    /// adapter property.
-    pub adapter: Option<String>,
-    /// deviceId property.
-    pub device_id: Option<String>,
-    /// driverVersion property.
-    pub driver_version: Option<String>,
-}
-
-/// `GoogleChromeManagementV1HttpsLatencyRoutineData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1HttpsLatencyRoutineData {
-    /// latency property.
-    pub latency: Option<String>,
-    /// problem property.
-    pub problem: Option<String>,
-}
-
 /// `GoogleChromeManagementV1DisplayInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1DisplayInfo {
@@ -530,88 +589,13 @@ pub struct GoogleChromeManagementV1DisplayInfo {
     pub serial_number: Option<i64>,
 }
 
-/// `GoogleChromeManagementV1TotalMemoryEncryptionInfo` type.
+/// `GoogleChromeManagementV1HttpsLatencyRoutineData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1TotalMemoryEncryptionInfo {
-    /// encryptionAlgorithm property.
-    pub encryption_algorithm: Option<String>,
-    /// encryptionState property.
-    pub encryption_state: Option<String>,
-    /// keyLength property.
-    pub key_length: Option<String>,
-    /// maxKeys property.
-    pub max_keys: Option<String>,
-}
-
-/// `GoogleChromeManagementV1DisplayDevice` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1DisplayDevice {
-    /// displayHeightMm property.
-    pub display_height_mm: Option<i64>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// displayWidthMm property.
-    pub display_width_mm: Option<i64>,
-    /// edidVersion property.
-    pub edid_version: Option<String>,
-    /// internal property.
-    pub internal: Option<bool>,
-    /// manufactureYear property.
-    pub manufacture_year: Option<i64>,
-    /// manufacturerId property.
-    pub manufacturer_id: Option<String>,
-    /// modelId property.
-    pub model_id: Option<i64>,
-    /// serialNumber property.
-    pub serial_number: Option<i64>,
-}
-
-/// `GoogleChromeManagementV1TouchScreenDevice` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1TouchScreenDevice {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// stylusCapable property.
-    pub stylus_capable: Option<bool>,
-    /// touchPointCount property.
-    pub touch_point_count: Option<i64>,
-}
-
-/// `GoogleChromeManagementV1StorageStatusReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1StorageStatusReport {
-    /// disk property.
-    pub disk: Option<Vec<GoogleChromeManagementV1DiskInfo>>,
-    /// reportTime property.
-    pub report_time: Option<String>,
-}
-
-/// `GoogleChromeManagementV1BatteryStatusReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1BatteryStatusReport {
-    /// batteryHealth property.
-    pub battery_health: Option<String>,
-    /// cycleCount property.
-    pub cycle_count: Option<i64>,
-    /// fullChargeCapacity property.
-    pub full_charge_capacity: Option<String>,
-    /// reportTime property.
-    pub report_time: Option<String>,
-    /// sample property.
-    pub sample: Option<Vec<GoogleChromeManagementV1BatterySampleReport>>,
-    /// serialNumber property.
-    pub serial_number: Option<String>,
-}
-
-/// `GoogleTypeDate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeDate {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
+pub struct GoogleChromeManagementV1HttpsLatencyRoutineData {
+    /// latency property.
+    pub latency: Option<String>,
+    /// problem property.
+    pub problem: Option<String>,
 }
 
 /// `GoogleChromeManagementV1GraphicsStatusReport` type.
@@ -623,13 +607,30 @@ pub struct GoogleChromeManagementV1GraphicsStatusReport {
     pub report_time: Option<String>,
 }
 
-/// `GoogleChromeManagementV1CpuTemperatureInfo` type.
+/// `GoogleChromeManagementV1MemoryStatusReport` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1CpuTemperatureInfo {
-    /// label property.
-    pub label: Option<String>,
-    /// temperatureCelsius property.
-    pub temperature_celsius: Option<i64>,
+pub struct GoogleChromeManagementV1MemoryStatusReport {
+    /// pageFaults property.
+    pub page_faults: Option<i64>,
+    /// reportTime property.
+    pub report_time: Option<String>,
+    /// sampleFrequency property.
+    pub sample_frequency: Option<String>,
+    /// systemRamFreeBytes property.
+    pub system_ram_free_bytes: Option<String>,
+}
+
+/// `GoogleChromeManagementV1CpuStatusReport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1CpuStatusReport {
+    /// cpuTemperatureInfo property.
+    pub cpu_temperature_info: Option<Vec<GoogleChromeManagementV1CpuTemperatureInfo>>,
+    /// cpuUtilizationPct property.
+    pub cpu_utilization_pct: Option<i64>,
+    /// reportTime property.
+    pub report_time: Option<String>,
+    /// sampleFrequency property.
+    pub sample_frequency: Option<String>,
 }
 
 // =============================================================================

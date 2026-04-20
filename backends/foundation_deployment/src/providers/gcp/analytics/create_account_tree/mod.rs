@@ -12,17 +12,61 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Webproperty` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Webproperty {
+    /// accountId property.
+    pub account_id: Option<String>,
+    /// childLink property.
+    pub child_link: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// created property.
+    pub created: Option<String>,
+    /// dataRetentionResetOnNewActivity property.
+    pub data_retention_reset_on_new_activity: Option<bool>,
+    /// dataRetentionTtl property.
+    pub data_retention_ttl: Option<String>,
+    /// defaultProfileId property.
+    pub default_profile_id: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// industryVertical property.
+    pub industry_vertical: Option<String>,
+    /// internalWebPropertyId property.
+    pub internal_web_property_id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// level property.
+    pub level: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// parentLink property.
+    pub parent_link: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// permissions property.
+    pub permissions: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// profileCount property.
+    pub profile_count: Option<i64>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// starred property.
+    pub starred: Option<bool>,
+    /// updated property.
+    pub updated: Option<String>,
+    /// websiteUrl property.
+    pub website_url: Option<String>,
+}
 
 /// `Profile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -115,49 +159,6 @@ pub struct AccountTreeResponse {
     pub profile: Option<Profile>,
     /// webproperty property.
     pub webproperty: Option<Webproperty>,
-}
-
-/// `Webproperty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Webproperty {
-    /// accountId property.
-    pub account_id: Option<String>,
-    /// childLink property.
-    pub child_link: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// created property.
-    pub created: Option<String>,
-    /// dataRetentionResetOnNewActivity property.
-    pub data_retention_reset_on_new_activity: Option<bool>,
-    /// dataRetentionTtl property.
-    pub data_retention_ttl: Option<String>,
-    /// defaultProfileId property.
-    pub default_profile_id: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// industryVertical property.
-    pub industry_vertical: Option<String>,
-    /// internalWebPropertyId property.
-    pub internal_web_property_id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// level property.
-    pub level: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// parentLink property.
-    pub parent_link: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// permissions property.
-    pub permissions: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// profileCount property.
-    pub profile_count: Option<i64>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// starred property.
-    pub starred: Option<bool>,
-    /// updated property.
-    pub updated: Option<String>,
-    /// websiteUrl property.
-    pub website_url: Option<String>,
 }
 
 // =============================================================================

@@ -12,42 +12,63 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `NetworkMountPoint` type.
+/// `NetworkUsage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkMountPoint {
-    /// defaultGateway property.
-    pub default_gateway: Option<bool>,
-    /// instance property.
-    pub instance: Option<String>,
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// logicalInterface property.
-    pub logical_interface: Option<String>,
+pub struct NetworkUsage {
+    /// network property.
+    pub network: Option<Network>,
+    /// usedIps property.
+    pub used_ips: Option<Vec<String>>,
 }
 
-/// `VRF` type.
+/// `NetworkAddressReservation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VRF {
-    /// name property.
-    pub name: Option<String>,
+pub struct NetworkAddressReservation {
+    /// endAddress property.
+    pub end_address: Option<String>,
+    /// note property.
+    pub note: Option<String>,
+    /// startAddress property.
+    pub start_address: Option<String>,
+}
+
+/// `ListNetworkUsageResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListNetworkUsageResponse {
+    /// networks property.
+    pub networks: Option<Vec<NetworkUsage>>,
+}
+
+/// `VlanAttachment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VlanAttachment {
+    /// id property.
+    pub id: Option<String>,
+    /// interconnectAttachment property.
+    pub interconnect_attachment: Option<String>,
+    /// pairingKey property.
+    pub pairing_key: Option<String>,
+    /// peerIp property.
+    pub peer_ip: Option<String>,
+    /// peerVlanId property.
+    pub peer_vlan_id: Option<String>,
     /// qosPolicy property.
     pub qos_policy: Option<QosPolicy>,
-    /// state property.
-    pub state: Option<String>,
-    /// vlanAttachments property.
-    pub vlan_attachments: Option<Vec<VlanAttachment>>,
+    /// routerIp property.
+    pub router_ip: Option<String>,
 }
 
 /// `Network` type.
@@ -89,41 +110,6 @@ pub struct Network {
     pub vrf_attachment: Option<String>,
 }
 
-/// `ListNetworkUsageResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListNetworkUsageResponse {
-    /// networks property.
-    pub networks: Option<Vec<NetworkUsage>>,
-}
-
-/// `NetworkUsage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkUsage {
-    /// network property.
-    pub network: Option<Network>,
-    /// usedIps property.
-    pub used_ips: Option<Vec<String>>,
-}
-
-/// `VlanAttachment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VlanAttachment {
-    /// id property.
-    pub id: Option<String>,
-    /// interconnectAttachment property.
-    pub interconnect_attachment: Option<String>,
-    /// pairingKey property.
-    pub pairing_key: Option<String>,
-    /// peerIp property.
-    pub peer_ip: Option<String>,
-    /// peerVlanId property.
-    pub peer_vlan_id: Option<String>,
-    /// qosPolicy property.
-    pub qos_policy: Option<QosPolicy>,
-    /// routerIp property.
-    pub router_ip: Option<String>,
-}
-
 /// `QosPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QosPolicy {
@@ -131,15 +117,30 @@ pub struct QosPolicy {
     pub bandwidth_gbps: Option<f64>,
 }
 
-/// `NetworkAddressReservation` type.
+/// `NetworkMountPoint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkAddressReservation {
-    /// endAddress property.
-    pub end_address: Option<String>,
-    /// note property.
-    pub note: Option<String>,
-    /// startAddress property.
-    pub start_address: Option<String>,
+pub struct NetworkMountPoint {
+    /// defaultGateway property.
+    pub default_gateway: Option<bool>,
+    /// instance property.
+    pub instance: Option<String>,
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// logicalInterface property.
+    pub logical_interface: Option<String>,
+}
+
+/// `VRF` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VRF {
+    /// name property.
+    pub name: Option<String>,
+    /// qosPolicy property.
+    pub qos_policy: Option<QosPolicy>,
+    /// state property.
+    pub state: Option<String>,
+    /// vlanAttachments property.
+    pub vlan_attachments: Option<Vec<VlanAttachment>>,
 }
 
 // =============================================================================

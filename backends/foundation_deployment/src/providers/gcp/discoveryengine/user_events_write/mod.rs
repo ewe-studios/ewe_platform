@@ -12,60 +12,36 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudDiscoveryengineV1UserInfoPreciseLocation` type.
+/// `GoogleCloudDiscoveryengineV1DocumentInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1UserInfoPreciseLocation {
-    /// address property.
-    pub address: Option<String>,
-    /// point property.
-    pub point: Option<GoogleTypeLatLng>,
-}
-
-/// `GoogleCloudDiscoveryengineV1SearchInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SearchInfo {
-    /// offset property.
-    pub offset: Option<i64>,
-    /// orderBy property.
-    pub order_by: Option<String>,
-    /// searchQuery property.
-    pub search_query: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1PanelInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1PanelInfo {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// documents property.
-    pub documents: Option<Vec<GoogleCloudDiscoveryengineV1DocumentInfo>>,
-    /// panelId property.
-    pub panel_id: Option<String>,
-    /// panelPosition property.
-    pub panel_position: Option<i64>,
-    /// totalPanels property.
-    pub total_panels: Option<i64>,
-}
-
-/// `GoogleCloudDiscoveryengineV1MediaInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1MediaInfo {
-    /// mediaProgressDuration property.
-    pub media_progress_duration: Option<String>,
-    /// mediaProgressPercentage property.
-    pub media_progress_percentage: Option<f64>,
+pub struct GoogleCloudDiscoveryengineV1DocumentInfo {
+    /// conversionValue property.
+    pub conversion_value: Option<f64>,
+    /// id property.
+    pub id: Option<String>,
+    /// joined property.
+    pub joined: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+    /// promotionIds property.
+    pub promotion_ids: Option<Vec<String>>,
+    /// quantity property.
+    pub quantity: Option<i64>,
+    /// uri property.
+    pub uri: Option<String>,
 }
 
 /// `GoogleCloudDiscoveryengineV1CompletionInfo` type.
@@ -90,21 +66,46 @@ pub struct GoogleCloudDiscoveryengineV1PageInfo {
     pub uri: Option<String>,
 }
 
-/// `GoogleCloudDiscoveryengineV1TransactionInfo` type.
+/// `GoogleCloudDiscoveryengineV1SearchInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1TransactionInfo {
-    /// cost property.
-    pub cost: Option<f64>,
-    /// currency property.
-    pub currency: Option<String>,
-    /// discountValue property.
-    pub discount_value: Option<f64>,
-    /// tax property.
-    pub tax: Option<f64>,
-    /// transactionId property.
-    pub transaction_id: Option<String>,
-    /// value property.
-    pub value: Option<f64>,
+pub struct GoogleCloudDiscoveryengineV1SearchInfo {
+    /// offset property.
+    pub offset: Option<i64>,
+    /// orderBy property.
+    pub order_by: Option<String>,
+    /// searchQuery property.
+    pub search_query: Option<String>,
+}
+
+/// `GoogleTypeLatLng` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeLatLng {
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
+}
+
+/// `GoogleCloudDiscoveryengineV1UserInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1UserInfo {
+    /// preciseLocation property.
+    pub precise_location: Option<GoogleCloudDiscoveryengineV1UserInfoPreciseLocation>,
+    /// timeZone property.
+    pub time_zone: Option<String>,
+    /// userAgent property.
+    pub user_agent: Option<String>,
+    /// userId property.
+    pub user_id: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1MediaInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1MediaInfo {
+    /// mediaProgressDuration property.
+    pub media_progress_duration: Option<String>,
+    /// mediaProgressPercentage property.
+    pub media_progress_percentage: Option<f64>,
 }
 
 /// `GoogleCloudDiscoveryengineV1UserEvent` type.
@@ -158,45 +159,45 @@ pub struct GoogleCloudDiscoveryengineV1UserEvent {
     pub user_pseudo_id: Option<String>,
 }
 
-/// `GoogleCloudDiscoveryengineV1UserInfo` type.
+/// `GoogleCloudDiscoveryengineV1PanelInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1UserInfo {
-    /// preciseLocation property.
-    pub precise_location: Option<GoogleCloudDiscoveryengineV1UserInfoPreciseLocation>,
-    /// timeZone property.
-    pub time_zone: Option<String>,
-    /// userAgent property.
-    pub user_agent: Option<String>,
-    /// userId property.
-    pub user_id: Option<String>,
+pub struct GoogleCloudDiscoveryengineV1PanelInfo {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// documents property.
+    pub documents: Option<Vec<GoogleCloudDiscoveryengineV1DocumentInfo>>,
+    /// panelId property.
+    pub panel_id: Option<String>,
+    /// panelPosition property.
+    pub panel_position: Option<i64>,
+    /// totalPanels property.
+    pub total_panels: Option<i64>,
 }
 
-/// `GoogleTypeLatLng` type.
+/// `GoogleCloudDiscoveryengineV1TransactionInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeLatLng {
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
+pub struct GoogleCloudDiscoveryengineV1TransactionInfo {
+    /// cost property.
+    pub cost: Option<f64>,
+    /// currency property.
+    pub currency: Option<String>,
+    /// discountValue property.
+    pub discount_value: Option<f64>,
+    /// tax property.
+    pub tax: Option<f64>,
+    /// transactionId property.
+    pub transaction_id: Option<String>,
+    /// value property.
+    pub value: Option<f64>,
 }
 
-/// `GoogleCloudDiscoveryengineV1DocumentInfo` type.
+/// `GoogleCloudDiscoveryengineV1UserInfoPreciseLocation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DocumentInfo {
-    /// conversionValue property.
-    pub conversion_value: Option<f64>,
-    /// id property.
-    pub id: Option<String>,
-    /// joined property.
-    pub joined: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-    /// promotionIds property.
-    pub promotion_ids: Option<Vec<String>>,
-    /// quantity property.
-    pub quantity: Option<i64>,
-    /// uri property.
-    pub uri: Option<String>,
+pub struct GoogleCloudDiscoveryengineV1UserInfoPreciseLocation {
+    /// address property.
+    pub address: Option<String>,
+    /// point property.
+    pub point: Option<GoogleTypeLatLng>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,124 +22,33 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `SqlSubOperationType` type.
+/// `ImportContext` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlSubOperationType {
-    /// maintenanceType property.
-    pub maintenance_type: Option<String>,
-}
-
-/// `ExportContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExportContext {
-    /// bakExportOptions property.
-    pub bak_export_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// csvExportOptions property.
-    pub csv_export_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// databases property.
-    pub databases: Option<Vec<String>>,
+pub struct ImportContext {
+    /// bakImportOptions property.
+    pub bak_import_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// csvImportOptions property.
+    pub csv_import_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// database property.
+    pub database: Option<String>,
     /// fileType property.
     pub file_type: Option<String>,
+    /// importUser property.
+    pub import_user: Option<String>,
     /// kind property.
     pub kind: Option<String>,
-    /// offload property.
-    pub offload: Option<bool>,
-    /// sqlExportOptions property.
-    pub sql_export_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// tdeExportOptions property.
-    pub tde_export_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// sqlImportOptions property.
+    pub sql_import_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// tdeImportOptions property.
+    pub tde_import_options: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// uri property.
     pub uri: Option<String>,
-}
-
-/// `AcquireSsrsLeaseContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcquireSsrsLeaseContext {
-    /// duration property.
-    pub duration: Option<String>,
-    /// reportDatabase property.
-    pub report_database: Option<String>,
-    /// serviceLogin property.
-    pub service_login: Option<String>,
-    /// setupLogin property.
-    pub setup_login: Option<String>,
-}
-
-/// `DiskEncryptionConfiguration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskEncryptionConfiguration {
-    /// kind property.
-    pub kind: Option<String>,
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-}
-
-/// `ApiWarning` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApiWarning {
-    /// code property.
-    pub code: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-}
-
-/// `OperationErrors` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperationErrors {
-    /// errors property.
-    pub errors: Option<Vec<OperationError>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `PreCheckResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreCheckResponse {
-    /// actionsRequired property.
-    pub actions_required: Option<Vec<String>>,
-    /// message property.
-    pub message: Option<String>,
-    /// messageType property.
-    pub message_type: Option<String>,
-}
-
-/// `DiskEncryptionStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskEncryptionStatus {
-    /// kind property.
-    pub kind: Option<String>,
-    /// kmsKeyVersionName property.
-    pub kms_key_version_name: Option<String>,
-}
-
-/// `PreCheckMajorVersionUpgradeContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreCheckMajorVersionUpgradeContext {
-    /// kind property.
-    pub kind: Option<String>,
-    /// preCheckResponse property.
-    pub pre_check_response: Option<Vec<PreCheckResponse>>,
-    /// targetDatabaseVersion property.
-    pub target_database_version: Option<String>,
-}
-
-/// `BackupRunsListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupRunsListResponse {
-    /// items property.
-    pub items: Option<Vec<BackupRun>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 /// `OperationError` type.
@@ -195,27 +105,85 @@ pub struct BackupRun {
     pub window_start_time: Option<String>,
 }
 
-/// `ImportContext` type.
+/// `BackupRunsListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImportContext {
-    /// bakImportOptions property.
-    pub bak_import_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// csvImportOptions property.
-    pub csv_import_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// database property.
-    pub database: Option<String>,
-    /// fileType property.
-    pub file_type: Option<String>,
-    /// importUser property.
-    pub import_user: Option<String>,
+pub struct BackupRunsListResponse {
+    /// items property.
+    pub items: Option<Vec<BackupRun>>,
     /// kind property.
     pub kind: Option<String>,
-    /// sqlImportOptions property.
-    pub sql_import_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// tdeImportOptions property.
-    pub tde_import_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `DiskEncryptionConfiguration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskEncryptionConfiguration {
+    /// kind property.
+    pub kind: Option<String>,
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+}
+
+/// `ApiWarning` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiWarning {
+    /// code property.
+    pub code: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+}
+
+/// `SqlSubOperationType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlSubOperationType {
+    /// maintenanceType property.
+    pub maintenance_type: Option<String>,
+}
+
+/// `ExportContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExportContext {
+    /// bakExportOptions property.
+    pub bak_export_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// csvExportOptions property.
+    pub csv_export_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// databases property.
+    pub databases: Option<Vec<String>>,
+    /// fileType property.
+    pub file_type: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// offload property.
+    pub offload: Option<bool>,
+    /// sqlExportOptions property.
+    pub sql_export_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// tdeExportOptions property.
+    pub tde_export_options: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// uri property.
     pub uri: Option<String>,
+}
+
+/// `PreCheckResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PreCheckResponse {
+    /// actionsRequired property.
+    pub actions_required: Option<Vec<String>>,
+    /// message property.
+    pub message: Option<String>,
+    /// messageType property.
+    pub message_type: Option<String>,
+}
+
+/// `DiskEncryptionStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskEncryptionStatus {
+    /// kind property.
+    pub kind: Option<String>,
+    /// kmsKeyVersionName property.
+    pub kms_key_version_name: Option<String>,
 }
 
 /// `BackupContext` type.
@@ -227,6 +195,39 @@ pub struct BackupContext {
     pub kind: Option<String>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `PreCheckMajorVersionUpgradeContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PreCheckMajorVersionUpgradeContext {
+    /// kind property.
+    pub kind: Option<String>,
+    /// preCheckResponse property.
+    pub pre_check_response: Option<Vec<PreCheckResponse>>,
+    /// targetDatabaseVersion property.
+    pub target_database_version: Option<String>,
+}
+
+/// `AcquireSsrsLeaseContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AcquireSsrsLeaseContext {
+    /// duration property.
+    pub duration: Option<String>,
+    /// reportDatabase property.
+    pub report_database: Option<String>,
+    /// serviceLogin property.
+    pub service_login: Option<String>,
+    /// setupLogin property.
+    pub setup_login: Option<String>,
+}
+
+/// `OperationErrors` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OperationErrors {
+    /// errors property.
+    pub errors: Option<Vec<OperationError>>,
+    /// kind property.
+    pub kind: Option<String>,
 }
 
 // =============================================================================

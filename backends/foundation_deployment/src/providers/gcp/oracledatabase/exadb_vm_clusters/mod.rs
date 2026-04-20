@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,20 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListExadbVmClustersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListExadbVmClustersResponse {
+    /// exadbVmClusters property.
+    pub exadb_vm_clusters: Option<Vec<ExadbVmCluster>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `ExadbVmCluster` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -52,17 +62,6 @@ pub struct ExadbVmCluster {
     pub properties: Option<ExadbVmClusterProperties>,
 }
 
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
 /// `TimeZone` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeZone {
@@ -70,22 +69,6 @@ pub struct TimeZone {
     pub id: Option<String>,
     /// version property.
     pub version: Option<String>,
-}
-
-/// `ExadbVmClusterStorageDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExadbVmClusterStorageDetails {
-    /// sizeInGbsPerNode property.
-    pub size_in_gbs_per_node: Option<i64>,
-}
-
-/// `ListExadbVmClustersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListExadbVmClustersResponse {
-    /// exadbVmClusters property.
-    pub exadb_vm_clusters: Option<Vec<ExadbVmCluster>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 /// `ExadbVmClusterProperties` type.
@@ -129,6 +112,24 @@ pub struct ExadbVmClusterProperties {
     pub time_zone: Option<TimeZone>,
     /// vmFileSystemStorage property.
     pub vm_file_system_storage: Option<ExadbVmClusterStorageDetails>,
+}
+
+/// `ExadbVmClusterStorageDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExadbVmClusterStorageDetails {
+    /// sizeInGbsPerNode property.
+    pub size_in_gbs_per_node: Option<i64>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `DataCollectionOptionsCommon` type.

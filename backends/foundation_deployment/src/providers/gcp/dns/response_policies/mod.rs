@@ -12,57 +12,24 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ResponsePoliciesListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResponsePoliciesListResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// responsePolicies property.
-    pub response_policies: Option<Vec<ResponsePolicy>>,
-}
-
-/// `ResponsePoliciesPatchResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResponsePoliciesPatchResponse {
-    /// responsePolicy property.
-    pub response_policy: Option<ResponsePolicy>,
-}
-
-/// `ResponsePolicyGKECluster` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResponsePolicyGKECluster {
-    /// gkeClusterName property.
-    pub gke_cluster_name: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-}
 
 /// `ResponsePoliciesUpdateResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResponsePoliciesUpdateResponse {
     /// responsePolicy property.
     pub response_policy: Option<ResponsePolicy>,
-}
-
-/// `ResponsePolicyNetwork` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResponsePolicyNetwork {
-    /// kind property.
-    pub kind: Option<String>,
-    /// networkUrl property.
-    pub network_url: Option<String>,
 }
 
 /// `ResponsePolicy` type.
@@ -82,6 +49,40 @@ pub struct ResponsePolicy {
     pub networks: Option<Vec<ResponsePolicyNetwork>>,
     /// responsePolicyName property.
     pub response_policy_name: Option<String>,
+}
+
+/// `ResponsePolicyGKECluster` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResponsePolicyGKECluster {
+    /// gkeClusterName property.
+    pub gke_cluster_name: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `ResponsePoliciesListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResponsePoliciesListResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// responsePolicies property.
+    pub response_policies: Option<Vec<ResponsePolicy>>,
+}
+
+/// `ResponsePolicyNetwork` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResponsePolicyNetwork {
+    /// kind property.
+    pub kind: Option<String>,
+    /// networkUrl property.
+    pub network_url: Option<String>,
+}
+
+/// `ResponsePoliciesPatchResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResponsePoliciesPatchResponse {
+    /// responsePolicy property.
+    pub response_policy: Option<ResponsePolicy>,
 }
 
 // =============================================================================

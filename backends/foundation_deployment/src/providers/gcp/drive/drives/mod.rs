@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,20 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Drive;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `DownloadRestriction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DownloadRestriction {
-    /// restrictedForReaders property.
-    pub restricted_for_readers: Option<bool>,
-    /// restrictedForWriters property.
-    pub restricted_for_writers: Option<bool>,
-}
 
 /// `DriveList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,6 +37,15 @@ pub struct DriveList {
     pub kind: Option<String>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `DownloadRestriction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DownloadRestriction {
+    /// restrictedForReaders property.
+    pub restricted_for_readers: Option<bool>,
+    /// restrictedForWriters property.
+    pub restricted_for_writers: Option<bool>,
 }
 
 // =============================================================================

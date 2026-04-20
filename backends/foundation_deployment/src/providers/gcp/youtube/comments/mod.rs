@@ -12,30 +12,22 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Comment` type.
+/// `TokenPagination` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Comment {
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// snippet property.
-    pub snippet: Option<CommentSnippet>,
-}
+pub struct TokenPagination {}
 
 /// `CommentSnippet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -81,6 +73,19 @@ pub struct CommentSnippetAuthorChannelId {
     pub value: Option<String>,
 }
 
+/// `Comment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Comment {
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// snippet property.
+    pub snippet: Option<CommentSnippet>,
+}
+
 /// `PageInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PageInfo {
@@ -89,10 +94,6 @@ pub struct PageInfo {
     /// totalResults property.
     pub total_results: Option<i64>,
 }
-
-/// `TokenPagination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TokenPagination {}
 
 /// `CommentListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

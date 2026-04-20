@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -50,15 +51,26 @@ pub struct WorkspacesIntegrations {
     pub url: String,
 }
 
-/// `IntegrationsClient` type.
+/// `WorkspacesIntegrationsClient` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntegrationsClient {
+pub struct WorkspacesIntegrationsClient {
     /// createdAt property.
     pub created_at: String,
     /// id property.
     pub id: String,
     /// name property.
     pub name: String,
+}
+
+/// `IntegrationsCreatedByUser` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntegrationsCreatedByUser {
+    /// displayName property.
+    pub display_name: String,
+    /// email property.
+    pub email: String,
+    /// id property.
+    pub id: String,
 }
 
 /// `WorkspacesIntegrationsCreatedByUser` type.
@@ -72,15 +84,22 @@ pub struct WorkspacesIntegrationsCreatedByUser {
     pub id: String,
 }
 
-/// `IntegrationsCreatedByUser` type.
+/// `IntegrationsGetResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntegrationsCreatedByUser {
-    /// displayName property.
-    pub display_name: String,
-    /// email property.
-    pub email: String,
+pub struct IntegrationsGetResponse {
+    /// data property.
+    pub data: Integrations,
+}
+
+/// `IntegrationsClient` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntegrationsClient {
+    /// createdAt property.
+    pub created_at: String,
     /// id property.
     pub id: String,
+    /// name property.
+    pub name: String,
 }
 
 /// `Integrations` type.
@@ -98,24 +117,6 @@ pub struct Integrations {
     pub scopes: Vec<String>,
     /// url property.
     pub url: String,
-}
-
-/// `IntegrationsGetResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntegrationsGetResponse {
-    /// data property.
-    pub data: Integrations,
-}
-
-/// `WorkspacesIntegrationsClient` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkspacesIntegrationsClient {
-    /// createdAt property.
-    pub created_at: String,
-    /// id property.
-    pub id: String,
-    /// name property.
-    pub name: String,
 }
 
 // =============================================================================

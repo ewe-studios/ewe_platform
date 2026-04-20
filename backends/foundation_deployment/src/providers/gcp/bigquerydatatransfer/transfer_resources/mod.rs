@@ -12,51 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `TransferStatusSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransferStatusSummary {
-    /// metrics property.
-    pub metrics: Option<Vec<TransferStatusMetric>>,
-    /// progressUnit property.
-    pub progress_unit: Option<String>,
-}
-
-/// `HierarchyDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HierarchyDetail {
-    /// partitionDetail property.
-    pub partition_detail: Option<PartitionDetail>,
-    /// tableDetail property.
-    pub table_detail: Option<TableDetail>,
-}
-
-/// `TableDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableDetail {
-    /// partitionCount property.
-    pub partition_count: Option<String>,
-}
-
-/// `TransferRunBrief` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransferRunBrief {
-    /// run property.
-    pub run: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
 
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -67,6 +34,15 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
+}
+
+/// `TransferRunBrief` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TransferRunBrief {
+    /// run property.
+    pub run: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
 }
 
 /// `TransferResource` type.
@@ -90,6 +66,13 @@ pub struct TransferResource {
     pub update_time: Option<String>,
 }
 
+/// `PartitionDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PartitionDetail {
+    /// table property.
+    pub table: Option<String>,
+}
+
 /// `ListTransferResourcesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTransferResourcesResponse {
@@ -97,6 +80,44 @@ pub struct ListTransferResourcesResponse {
     pub next_page_token: Option<String>,
     /// transferResources property.
     pub transfer_resources: Option<Vec<TransferResource>>,
+}
+
+/// `TableDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableDetail {
+    /// partitionCount property.
+    pub partition_count: Option<String>,
+}
+
+/// `TransferStatusSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TransferStatusSummary {
+    /// metrics property.
+    pub metrics: Option<Vec<TransferStatusMetric>>,
+    /// progressUnit property.
+    pub progress_unit: Option<String>,
+}
+
+/// `HierarchyDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HierarchyDetail {
+    /// partitionDetail property.
+    pub partition_detail: Option<PartitionDetail>,
+    /// tableDetail property.
+    pub table_detail: Option<TableDetail>,
+}
+
+/// `TransferResourceStatusDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TransferResourceStatusDetail {
+    /// completedPercentage property.
+    pub completed_percentage: Option<f64>,
+    /// error property.
+    pub error: Option<Status>,
+    /// state property.
+    pub state: Option<String>,
+    /// summary property.
+    pub summary: Option<TransferStatusSummary>,
 }
 
 /// `TransferStatusMetric` type.
@@ -112,26 +133,6 @@ pub struct TransferStatusMetric {
     pub total: Option<String>,
     /// unit property.
     pub unit: Option<String>,
-}
-
-/// `PartitionDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PartitionDetail {
-    /// table property.
-    pub table: Option<String>,
-}
-
-/// `TransferResourceStatusDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransferResourceStatusDetail {
-    /// completedPercentage property.
-    pub completed_percentage: Option<f64>,
-    /// error property.
-    pub error: Option<Status>,
-    /// state property.
-    pub state: Option<String>,
-    /// summary property.
-    pub summary: Option<TransferStatusSummary>,
 }
 
 // =============================================================================

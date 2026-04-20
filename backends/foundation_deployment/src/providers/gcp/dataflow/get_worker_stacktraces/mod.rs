@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Sdk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Sdk {
-    /// sdkId property.
-    pub sdk_id: Option<String>,
-    /// stacks property.
-    pub stacks: Option<Vec<Stack>>,
-}
 
 /// `Stack` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -53,6 +45,15 @@ pub struct Stack {
 pub struct GetWorkerStacktracesResponse {
     /// sdks property.
     pub sdks: Option<Vec<Sdk>>,
+}
+
+/// `Sdk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Sdk {
+    /// sdkId property.
+    pub sdk_id: Option<String>,
+    /// stacks property.
+    pub stacks: Option<Vec<Stack>>,
 }
 
 // =============================================================================

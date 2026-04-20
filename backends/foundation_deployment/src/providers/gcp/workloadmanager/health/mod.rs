@@ -12,31 +12,46 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ComponentHealth` type.
+/// `WorkloadProfileHealth` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComponentHealth {
-    /// component property.
-    pub component: Option<String>,
-    /// componentHealthChecks property.
-    pub component_health_checks: Option<Vec<HealthCheck>>,
-    /// componentHealthType property.
-    pub component_health_type: Option<String>,
+pub struct WorkloadProfileHealth {
+    /// checkTime property.
+    pub check_time: Option<String>,
+    /// componentsHealth property.
+    pub components_health: Option<Vec<Box<ComponentHealth>>>,
     /// state property.
     pub state: Option<String>,
-    /// subComponentsHealth property.
-    pub sub_components_health: Option<Vec<ComponentHealth>>,
+}
+
+/// `IAMPermission` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IAMPermission {
+    /// granted property.
+    pub granted: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `SapInstanceProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SapInstanceProperties {
+    /// agentStates property.
+    pub agent_states: Option<AgentStates>,
+    /// numbers property.
+    pub numbers: Option<Vec<String>>,
 }
 
 /// `InstanceProperties` type.
@@ -56,50 +71,6 @@ pub struct InstanceProperties {
     pub upcoming_maintenance_event: Option<UpcomingMaintenanceEvent>,
 }
 
-/// `HealthCheck` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HealthCheck {
-    /// message property.
-    pub message: Option<String>,
-    /// metric property.
-    pub metric: Option<String>,
-    /// resource property.
-    pub resource: Option<CloudResource>,
-    /// source property.
-    pub source: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `IAMPermission` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IAMPermission {
-    /// granted property.
-    pub granted: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `CloudResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudResource {
-    /// instanceProperties property.
-    pub instance_properties: Option<InstanceProperties>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `SapInstanceProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SapInstanceProperties {
-    /// agentStates property.
-    pub agent_states: Option<AgentStates>,
-    /// numbers property.
-    pub numbers: Option<Vec<String>>,
-}
-
 /// `UpcomingMaintenanceEvent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpcomingMaintenanceEvent {
@@ -115,15 +86,54 @@ pub struct UpcomingMaintenanceEvent {
     pub r#type: Option<String>,
 }
 
-/// `WorkloadProfileHealth` type.
+/// `CloudResource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkloadProfileHealth {
-    /// checkTime property.
-    pub check_time: Option<String>,
-    /// componentsHealth property.
-    pub components_health: Option<Vec<ComponentHealth>>,
+pub struct CloudResource {
+    /// instanceProperties property.
+    pub instance_properties: Option<InstanceProperties>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `ServiceStates` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceStates {
+    /// iamPermissions property.
+    pub iam_permissions: Option<Vec<IAMPermission>>,
     /// state property.
     pub state: Option<String>,
+}
+
+/// `HealthCheck` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HealthCheck {
+    /// message property.
+    pub message: Option<String>,
+    /// metric property.
+    pub metric: Option<String>,
+    /// resource property.
+    pub resource: Option<CloudResource>,
+    /// source property.
+    pub source: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `ComponentHealth` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComponentHealth {
+    /// component property.
+    pub component: Option<String>,
+    /// componentHealthChecks property.
+    pub component_health_checks: Option<Vec<HealthCheck>>,
+    /// componentHealthType property.
+    pub component_health_type: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// subComponentsHealth property.
+    pub sub_components_health: Option<Vec<Box<ComponentHealth>>>,
 }
 
 /// `AgentStates` type.
@@ -141,15 +151,6 @@ pub struct AgentStates {
     pub process_metrics: Option<ServiceStates>,
     /// systemDiscovery property.
     pub system_discovery: Option<ServiceStates>,
-}
-
-/// `ServiceStates` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceStates {
-    /// iamPermissions property.
-    pub iam_permissions: Option<Vec<IAMPermission>>,
-    /// state property.
-    pub state: Option<String>,
 }
 
 // =============================================================================

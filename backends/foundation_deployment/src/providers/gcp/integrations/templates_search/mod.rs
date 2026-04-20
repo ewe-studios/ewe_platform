@@ -12,63 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `EnterpriseCrmEventbusStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusStats {
-    /// dimensions property.
-    pub dimensions: Option<EnterpriseCrmEventbusStatsDimensions>,
-    /// durationInSeconds property.
-    pub duration_in_seconds: Option<f64>,
-    /// errorRate property.
-    pub error_rate: Option<f64>,
-    /// qps property.
-    pub qps: Option<f64>,
-    /// warningRate property.
-    pub warning_rate: Option<f64>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaStringParameterArray` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaStringParameterArray {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoTriggerConfigVariables` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoTriggerConfigVariables {
-    /// names property.
-    pub names: Option<Vec<String>>,
-}
-
-/// `EnterpriseCrmEventbusProtoDoubleArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoDoubleArray {
-    /// values property.
-    pub values: Option<Vec<f64>>,
-}
-
-/// `EnterpriseCrmEventbusProtoPropertyEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoPropertyEntry {
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<EnterpriseCrmEventbusProtoValueType>,
-}
 
 /// `EnterpriseCrmFrontendsEventbusProtoParamSpecEntry` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -97,207 +52,6 @@ pub struct EnterpriseCrmFrontendsEventbusProtoParamSpecEntry {
     pub required: Option<bool>,
     /// validationRule property.
     pub validation_rule: Option<EnterpriseCrmEventbusProtoParamSpecEntryValidationRule>,
-}
-
-/// `EnterpriseCrmEventbusProtoTaskUiConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoTaskUiConfig {
-    /// taskUiModuleConfigs property.
-    pub task_ui_module_configs: Option<Vec<EnterpriseCrmEventbusProtoTaskUiModuleConfig>>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaIntegrationVersion` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaIntegrationVersion {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EnterpriseCrmEventbusProtoTaskMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoTaskMetadata {
-    /// activeTaskName property.
-    pub active_task_name: Option<String>,
-    /// admins property.
-    pub admins: Option<Vec<EnterpriseCrmEventbusProtoTaskMetadataAdmin>>,
-    /// category property.
-    pub category: Option<String>,
-    /// codeSearchLink property.
-    pub code_search_link: Option<String>,
-    /// defaultJsonValidationOption property.
-    pub default_json_validation_option: Option<String>,
-    /// defaultSpec property.
-    pub default_spec: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// descriptiveName property.
-    pub descriptive_name: Option<String>,
-    /// docMarkdown property.
-    pub doc_markdown: Option<String>,
-    /// externalCategory property.
-    pub external_category: Option<String>,
-    /// externalCategorySequence property.
-    pub external_category_sequence: Option<i64>,
-    /// externalDocHtml property.
-    pub external_doc_html: Option<String>,
-    /// externalDocLink property.
-    pub external_doc_link: Option<String>,
-    /// externalDocMarkdown property.
-    pub external_doc_markdown: Option<String>,
-    /// g3DocLink property.
-    pub g3_doc_link: Option<String>,
-    /// iconLink property.
-    pub icon_link: Option<String>,
-    /// isDeprecated property.
-    pub is_deprecated: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-    /// standaloneExternalDocHtml property.
-    pub standalone_external_doc_html: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-    /// system property.
-    pub system: Option<String>,
-    /// tags property.
-    pub tags: Option<Vec<String>>,
-}
-
-/// `GoogleCloudIntegrationsV1alphaSearchTemplatesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1alphaSearchTemplatesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// templates property.
-    pub templates: Option<Vec<GoogleCloudIntegrationsV1AlphaTemplate>>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaCloudLoggingDetails` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaCloudLoggingDetails {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoParameterValueType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoParameterValueType {
-    /// booleanArray property.
-    pub boolean_array: Option<EnterpriseCrmFrontendsEventbusProtoBooleanParameterArray>,
-    /// booleanValue property.
-    pub boolean_value: Option<bool>,
-    /// doubleArray property.
-    pub double_array: Option<EnterpriseCrmFrontendsEventbusProtoDoubleParameterArray>,
-    /// doubleValue property.
-    pub double_value: Option<f64>,
-    /// intArray property.
-    pub int_array: Option<EnterpriseCrmFrontendsEventbusProtoIntParameterArray>,
-    /// intValue property.
-    pub int_value: Option<String>,
-    /// jsonValue property.
-    pub json_value: Option<String>,
-    /// protoArray property.
-    pub proto_array: Option<EnterpriseCrmFrontendsEventbusProtoProtoParameterArray>,
-    /// protoValue property.
-    pub proto_value: Option<serde_json::Value>,
-    /// serializedObjectValue property.
-    pub serialized_object_value:
-        Option<EnterpriseCrmFrontendsEventbusProtoSerializedObjectParameter>,
-    /// stringArray property.
-    pub string_array: Option<EnterpriseCrmFrontendsEventbusProtoStringParameterArray>,
-    /// stringValue property.
-    pub string_value: Option<String>,
-}
-
-/// `EnterpriseCrmEventbusProtoAttributes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoAttributes {
-    /// dataType property.
-    pub data_type: Option<String>,
-    /// defaultValue property.
-    pub default_value: Option<EnterpriseCrmEventbusProtoValueType>,
-    /// isRequired property.
-    pub is_required: Option<bool>,
-    /// isSearchable property.
-    pub is_searchable: Option<bool>,
-    /// logSettings property.
-    pub log_settings: Option<EnterpriseCrmEventbusProtoLogSettings>,
-    /// masked property.
-    pub masked: Option<bool>,
-    /// readOnly property.
-    pub read_only: Option<bool>,
-    /// searchable property.
-    pub searchable: Option<String>,
-    /// taskVisibility property.
-    pub task_visibility: Option<Vec<String>>,
-}
-
-/// `EnterpriseCrmEventbusProtoConditionalFailurePolicies` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoConditionalFailurePolicies {
-    /// defaultFailurePolicy property.
-    pub default_failure_policy: Option<EnterpriseCrmEventbusProtoFailurePolicy>,
-    /// failurePolicies property.
-    pub failure_policies: Option<Vec<EnterpriseCrmEventbusProtoFailurePolicy>>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry {
-    /// attributes property.
-    pub attributes: Option<EnterpriseCrmEventbusProtoAttributes>,
-    /// children property.
-    pub children: Option<Vec<EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry>>,
-    /// containsLargeData property.
-    pub contains_large_data: Option<bool>,
-    /// dataType property.
-    pub data_type: Option<String>,
-    /// defaultValue property.
-    pub default_value: Option<EnterpriseCrmFrontendsEventbusProtoParameterValueType>,
-    /// description property.
-    pub description: Option<String>,
-    /// inOutType property.
-    pub in_out_type: Option<String>,
-    /// isTransient property.
-    pub is_transient: Option<bool>,
-    /// jsonSchema property.
-    pub json_schema: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// producedBy property.
-    pub produced_by: Option<EnterpriseCrmEventbusProtoNodeIdentifier>,
-    /// producer property.
-    pub producer: Option<String>,
-    /// protoDefName property.
-    pub proto_def_name: Option<String>,
-    /// protoDefPath property.
-    pub proto_def_path: Option<String>,
-    /// required property.
-    pub required: Option<bool>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaValueType` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaValueType {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoParameterEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoParameterEntry {
-    /// dataType property.
-    pub data_type: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// masked property.
-    pub masked: Option<bool>,
-    /// value property.
-    pub value: Option<EnterpriseCrmFrontendsEventbusProtoParameterValueType>,
 }
 
 /// `EnterpriseCrmEventbusProtoWorkflowAlertConfig` type.
@@ -331,67 +85,51 @@ pub struct EnterpriseCrmEventbusProtoWorkflowAlertConfig {
     pub warning_enum_list: Option<EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList>,
 }
 
-/// `EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList` type.
+/// `EnterpriseCrmFrontendsEventbusProtoParameterValueType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList {
-    /// enumStrings property.
-    pub enum_strings: Option<Vec<String>>,
-    /// filterType property.
-    pub filter_type: Option<String>,
+pub struct EnterpriseCrmFrontendsEventbusProtoParameterValueType {
+    /// booleanArray property.
+    pub boolean_array: Option<EnterpriseCrmFrontendsEventbusProtoBooleanParameterArray>,
+    /// booleanValue property.
+    pub boolean_value: Option<bool>,
+    /// doubleArray property.
+    pub double_array: Option<EnterpriseCrmFrontendsEventbusProtoDoubleParameterArray>,
+    /// doubleValue property.
+    pub double_value: Option<f64>,
+    /// intArray property.
+    pub int_array: Option<EnterpriseCrmFrontendsEventbusProtoIntParameterArray>,
+    /// intValue property.
+    pub int_value: Option<String>,
+    /// jsonValue property.
+    pub json_value: Option<String>,
+    /// protoArray property.
+    pub proto_array: Option<EnterpriseCrmFrontendsEventbusProtoProtoParameterArray>,
+    /// protoValue property.
+    pub proto_value: Option<serde_json::Value>,
+    /// serializedObjectValue property.
+    pub serialized_object_value:
+        Option<EnterpriseCrmFrontendsEventbusProtoSerializedObjectParameter>,
+    /// stringArray property.
+    pub string_array: Option<EnterpriseCrmFrontendsEventbusProtoStringParameterArray>,
+    /// stringValue property.
+    pub string_value: Option<String>,
 }
 
-/// `EnterpriseCrmEventbusProtoNextTask` type.
+/// `GoogleCloudIntegrationsV1alphaSearchTemplatesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoNextTask {
-    /// combinedConditions property.
-    pub combined_conditions: Option<Vec<EnterpriseCrmEventbusProtoCombinedCondition>>,
-    /// condition property.
-    pub condition: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// label property.
-    pub label: Option<String>,
-    /// taskConfigId property.
-    pub task_config_id: Option<String>,
-    /// taskNumber property.
-    pub task_number: Option<String>,
+pub struct GoogleCloudIntegrationsV1alphaSearchTemplatesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// templates property.
+    pub templates: Option<Vec<GoogleCloudIntegrationsV1AlphaTemplate>>,
 }
 
-/// `EnterpriseCrmEventbusProtoParamSpecEntryProtoDefinition` type.
+/// `GoogleCloudIntegrationsV1AlphaBooleanParameterArray` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoParamSpecEntryProtoDefinition {
-    /// fullName property.
-    pub full_name: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoIntParameterArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoIntParameterArray {
-    /// intValues property.
-    pub int_values: Option<Vec<String>>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoProtoParameterArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoProtoParameterArray {
-    /// protoValues property.
-    pub proto_values: Option<Vec<serde_json::Value>>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoBooleanParameterArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoBooleanParameterArray {
-    /// booleanValues property.
-    pub boolean_values: Option<Vec<bool>>,
-}
-
-/// `EnterpriseCrmEventbusProtoBooleanParameterArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoBooleanParameterArray {
-    /// booleanValues property.
-    pub boolean_values: Option<Vec<bool>>,
+pub struct GoogleCloudIntegrationsV1AlphaBooleanParameterArray {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `EnterpriseCrmFrontendsEventbusProtoTaskConfig` type.
@@ -457,133 +195,6 @@ pub struct EnterpriseCrmFrontendsEventbusProtoTaskConfig {
     pub task_type: Option<String>,
 }
 
-/// `EnterpriseCrmEventbusProtoBaseAlertConfigThresholdValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoBaseAlertConfigThresholdValue {
-    /// absolute property.
-    pub absolute: Option<String>,
-    /// percentage property.
-    pub percentage: Option<i64>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaIntegrationAlertConfig` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaIntegrationAlertConfig {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EnterpriseCrmEventbusProtoEventBusProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoEventBusProperties {
-    /// properties property.
-    pub properties: Option<Vec<EnterpriseCrmEventbusProtoPropertyEntry>>,
-}
-
-/// `EnterpriseCrmEventbusProtoSerializedObjectParameter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoSerializedObjectParameter {
-    /// objectValue property.
-    pub object_value: Option<String>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaNextTask` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaNextTask {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EnterpriseCrmEventbusProtoIntParameterArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoIntParameterArray {
-    /// intValues property.
-    pub int_values: Option<Vec<String>>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaIntegrationVersionTemplate` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaIntegrationVersionTemplate {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaTaskConfig` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaTaskConfig {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EnterpriseCrmEventbusProtoDoubleParameterArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoDoubleParameterArray {
-    /// doubleValues property.
-    pub double_values: Option<Vec<f64>>,
-}
-
-/// `EnterpriseCrmEventbusProtoTeardownTaskConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoTeardownTaskConfig {
-    /// creatorEmail property.
-    pub creator_email: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// nextTeardownTask property.
-    pub next_teardown_task: Option<EnterpriseCrmEventbusProtoNextTeardownTask>,
-    /// parameters property.
-    pub parameters: Option<EnterpriseCrmEventbusProtoEventParameters>,
-    /// properties property.
-    pub properties: Option<EnterpriseCrmEventbusProtoEventBusProperties>,
-    /// teardownTaskImplementationClassName property.
-    pub teardown_task_implementation_class_name: Option<String>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaSuccessPolicy` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaSuccessPolicy {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleIntRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleIntRange {
-    /// max property.
-    pub max: Option<String>,
-    /// min property.
-    pub min: Option<String>,
-}
-
-/// `EnterpriseCrmEventbusProtoTaskUiModuleConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoTaskUiModuleConfig {
-    /// moduleId property.
-    pub module_id: Option<String>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaIntegrationParameter` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaIntegrationParameter {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EnterpriseCrmEventbusProtoNodeIdentifier` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoNodeIdentifier {
-    /// elementIdentifier property.
-    pub element_identifier: Option<String>,
-    /// elementType property.
-    pub element_type: Option<String>,
-}
-
 /// `EnterpriseCrmEventbusProtoParamSpecEntryConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoParamSpecEntryConfig {
@@ -607,9 +218,49 @@ pub struct EnterpriseCrmEventbusProtoParamSpecEntryConfig {
     pub ui_placeholder_text: Option<String>,
 }
 
-/// `GoogleCloudIntegrationsV1AlphaDoubleParameterArray` response type.
+/// `EnterpriseCrmEventbusProtoDoubleParameterArray` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaDoubleParameterArray {
+pub struct EnterpriseCrmEventbusProtoDoubleParameterArray {
+    /// doubleValues property.
+    pub double_values: Option<Vec<f64>>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaTriggerConfigVariables` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaTriggerConfigVariables {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoTaskEntity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoTaskEntity {
+    /// disabledForVpcSc property.
+    pub disabled_for_vpc_sc: Option<bool>,
+    /// metadata property.
+    pub metadata: Option<EnterpriseCrmEventbusProtoTaskMetadata>,
+    /// paramSpecs property.
+    pub param_specs: Option<EnterpriseCrmFrontendsEventbusProtoParamSpecsMessage>,
+    /// stats property.
+    pub stats: Option<EnterpriseCrmEventbusStats>,
+    /// taskType property.
+    pub task_type: Option<String>,
+    /// uiConfig property.
+    pub ui_config: Option<EnterpriseCrmEventbusProtoTaskUiConfig>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaTemplateComponent` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaTemplateComponent {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaErrorCatcherConfig` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaErrorCatcherConfig {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -622,11 +273,619 @@ pub struct EnterpriseCrmEventbusProtoTeardown {
     pub teardown_task_configs: Option<Vec<EnterpriseCrmEventbusProtoTeardownTaskConfig>>,
 }
 
+/// `EnterpriseCrmEventbusProtoValueType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoValueType {
+    /// booleanValue property.
+    pub boolean_value: Option<bool>,
+    /// doubleArray property.
+    pub double_array: Option<EnterpriseCrmEventbusProtoDoubleArray>,
+    /// doubleValue property.
+    pub double_value: Option<f64>,
+    /// intArray property.
+    pub int_array: Option<EnterpriseCrmEventbusProtoIntArray>,
+    /// intValue property.
+    pub int_value: Option<String>,
+    /// protoValue property.
+    pub proto_value: Option<serde_json::Value>,
+    /// stringArray property.
+    pub string_array: Option<EnterpriseCrmEventbusProtoStringArray>,
+    /// stringValue property.
+    pub string_value: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoBaseAlertConfigThresholdValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoBaseAlertConfigThresholdValue {
+    /// absolute property.
+    pub absolute: Option<String>,
+    /// percentage property.
+    pub percentage: Option<i64>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaSuccessPolicy` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaSuccessPolicy {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoEventParameters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoEventParameters {
+    /// parameters property.
+    pub parameters: Option<Vec<EnterpriseCrmEventbusProtoParameterEntry>>,
+}
+
+/// `EnterpriseCrmEventbusProtoPropertyEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoPropertyEntry {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<EnterpriseCrmEventbusProtoValueType>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoTriggerConfigVariables` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoTriggerConfigVariables {
+    /// names property.
+    pub names: Option<Vec<String>>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaTriggerConfig` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaTriggerConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoIntParameterArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoIntParameterArray {
+    /// intValues property.
+    pub int_values: Option<Vec<String>>,
+}
+
+/// `EnterpriseCrmEventbusProtoTeardownTaskConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoTeardownTaskConfig {
+    /// creatorEmail property.
+    pub creator_email: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// nextTeardownTask property.
+    pub next_teardown_task: Option<EnterpriseCrmEventbusProtoNextTeardownTask>,
+    /// parameters property.
+    pub parameters: Option<EnterpriseCrmEventbusProtoEventParameters>,
+    /// properties property.
+    pub properties: Option<EnterpriseCrmEventbusProtoEventBusProperties>,
+    /// teardownTaskImplementationClassName property.
+    pub teardown_task_implementation_class_name: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoFailurePolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoFailurePolicy {
+    /// intervalInSeconds property.
+    pub interval_in_seconds: Option<String>,
+    /// maxNumRetries property.
+    pub max_num_retries: Option<i64>,
+    /// retryCondition property.
+    pub retry_condition: Option<String>,
+    /// retryStrategy property.
+    pub retry_strategy: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoNextTeardownTask` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoNextTeardownTask {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaTemplateBundle` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaTemplateBundle {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleStringRegex` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleStringRegex {
+    /// exclusive property.
+    pub exclusive: Option<bool>,
+    /// regex property.
+    pub regex: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaIntegrationConfigParameter` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaIntegrationConfigParameter {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaTaskConfig` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaTaskConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoCoordinate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoCoordinate {
+    /// x property.
+    pub x: Option<i64>,
+    /// y property.
+    pub y: Option<i64>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaIntegrationParameter` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaIntegrationParameter {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoIntArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoIntArray {
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList {
+    /// enumStrings property.
+    pub enum_strings: Option<Vec<String>>,
+    /// filterType property.
+    pub filter_type: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoParamSpecEntryProtoDefinition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoParamSpecEntryProtoDefinition {
+    /// fullName property.
+    pub full_name: Option<String>,
+    /// path property.
+    pub path: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleDoubleRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleDoubleRange {
+    /// max property.
+    pub max: Option<f64>,
+    /// min property.
+    pub min: Option<f64>,
+}
+
+/// `EnterpriseCrmEventbusProtoSuccessPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoSuccessPolicy {
+    /// finalState property.
+    pub final_state: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaTemplate` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaTemplate {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoNodeIdentifier` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoNodeIdentifier {
+    /// elementIdentifier property.
+    pub element_identifier: Option<String>,
+    /// elementType property.
+    pub element_type: Option<String>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoBooleanParameterArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoBooleanParameterArray {
+    /// booleanValues property.
+    pub boolean_values: Option<Vec<bool>>,
+}
+
+/// `EnterpriseCrmEventbusProtoTaskMetadataAdmin` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoTaskMetadataAdmin {
+    /// googleGroupEmail property.
+    pub google_group_email: Option<String>,
+    /// userEmail property.
+    pub user_email: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaDoubleParameterArray` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaDoubleParameterArray {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaConditionalFailurePolicies` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaConditionalFailurePolicies {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoIntParameterArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoIntParameterArray {
+    /// intValues property.
+    pub int_values: Option<Vec<String>>,
+}
+
+/// `EnterpriseCrmEventbusProtoParameterEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoParameterEntry {
+    /// key property.
+    pub key: Option<String>,
+    /// masked property.
+    pub masked: Option<bool>,
+    /// value property.
+    pub value: Option<EnterpriseCrmEventbusProtoParameterValueType>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaIntegrationAlertConfig` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaIntegrationAlertConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoCondition {
+    /// eventPropertyKey property.
+    pub event_property_key: Option<String>,
+    /// operator property.
+    pub operator: Option<String>,
+    /// value property.
+    pub value: Option<EnterpriseCrmEventbusProtoValueType>,
+}
+
+/// `EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleIntRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleIntRange {
+    /// max property.
+    pub max: Option<String>,
+    /// min property.
+    pub min: Option<String>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoParameterEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoParameterEntry {
+    /// dataType property.
+    pub data_type: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// masked property.
+    pub masked: Option<bool>,
+    /// value property.
+    pub value: Option<EnterpriseCrmFrontendsEventbusProtoParameterValueType>,
+}
+
+/// `EnterpriseCrmEventbusProtoTriggerCriteria` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoTriggerCriteria {
+    /// condition property.
+    pub condition: Option<String>,
+    /// parameters property.
+    pub parameters: Option<EnterpriseCrmEventbusProtoEventParameters>,
+    /// triggerCriteriaTaskImplementationClassName property.
+    pub trigger_criteria_task_implementation_class_name: Option<String>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoProtoParameterArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoProtoParameterArray {
+    /// protoValues property.
+    pub proto_values: Option<Vec<serde_json::Value>>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaValueType` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaValueType {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaIntegrationVersionTemplate` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaIntegrationVersionTemplate {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoRollbackStrategy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoRollbackStrategy {
+    /// parameters property.
+    pub parameters: Option<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    /// rollbackTaskImplementationClassName property.
+    pub rollback_task_implementation_class_name: Option<String>,
+    /// taskNumbersToRollback property.
+    pub task_numbers_to_rollback: Option<Vec<String>>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaStringParameterArray` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaStringParameterArray {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoTaskMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoTaskMetadata {
+    /// activeTaskName property.
+    pub active_task_name: Option<String>,
+    /// admins property.
+    pub admins: Option<Vec<EnterpriseCrmEventbusProtoTaskMetadataAdmin>>,
+    /// category property.
+    pub category: Option<String>,
+    /// codeSearchLink property.
+    pub code_search_link: Option<String>,
+    /// defaultJsonValidationOption property.
+    pub default_json_validation_option: Option<String>,
+    /// defaultSpec property.
+    pub default_spec: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// descriptiveName property.
+    pub descriptive_name: Option<String>,
+    /// docMarkdown property.
+    pub doc_markdown: Option<String>,
+    /// externalCategory property.
+    pub external_category: Option<String>,
+    /// externalCategorySequence property.
+    pub external_category_sequence: Option<i64>,
+    /// externalDocHtml property.
+    pub external_doc_html: Option<String>,
+    /// externalDocLink property.
+    pub external_doc_link: Option<String>,
+    /// externalDocMarkdown property.
+    pub external_doc_markdown: Option<String>,
+    /// g3DocLink property.
+    pub g3_doc_link: Option<String>,
+    /// iconLink property.
+    pub icon_link: Option<String>,
+    /// isDeprecated property.
+    pub is_deprecated: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+    /// standaloneExternalDocHtml property.
+    pub standalone_external_doc_html: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+    /// system property.
+    pub system: Option<String>,
+    /// tags property.
+    pub tags: Option<Vec<String>>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoEventParameters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoEventParameters {
+    /// parameters property.
+    pub parameters: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+}
+
+/// `EnterpriseCrmEventbusProtoTaskUiModuleConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoTaskUiModuleConfig {
+    /// moduleId property.
+    pub module_id: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaFailurePolicy` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaFailurePolicy {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoLogSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoLogSettings {
+    /// logFieldName property.
+    pub log_field_name: Option<String>,
+    /// seedPeriod property.
+    pub seed_period: Option<String>,
+    /// seedScope property.
+    pub seed_scope: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusStats` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusStats {
+    /// dimensions property.
+    pub dimensions: Option<EnterpriseCrmEventbusStatsDimensions>,
+    /// durationInSeconds property.
+    pub duration_in_seconds: Option<f64>,
+    /// errorRate property.
+    pub error_rate: Option<f64>,
+    /// qps property.
+    pub qps: Option<f64>,
+    /// warningRate property.
+    pub warning_rate: Option<f64>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoSerializedObjectParameter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoSerializedObjectParameter {
+    /// objectValue property.
+    pub object_value: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoTaskAlertConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoTaskAlertConfig {
+    /// aggregationPeriod property.
+    pub aggregation_period: Option<String>,
+    /// alertDisabled property.
+    pub alert_disabled: Option<bool>,
+    /// alertName property.
+    pub alert_name: Option<String>,
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// durationThresholdMs property.
+    pub duration_threshold_ms: Option<String>,
+    /// errorEnumList property.
+    pub error_enum_list: Option<EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList>,
+    /// metricType property.
+    pub metric_type: Option<String>,
+    /// numAggregationPeriods property.
+    pub num_aggregation_periods: Option<i64>,
+    /// onlyFinalAttempt property.
+    pub only_final_attempt: Option<bool>,
+    /// playbookUrl property.
+    pub playbook_url: Option<String>,
+    /// thresholdType property.
+    pub threshold_type: Option<String>,
+    /// thresholdValue property.
+    pub threshold_value: Option<EnterpriseCrmEventbusProtoBaseAlertConfigThresholdValue>,
+    /// warningEnumList property.
+    pub warning_enum_list: Option<EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaIntParameterArray` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaIntParameterArray {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusStatsDimensions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusStatsDimensions {
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// enumFilterType property.
+    pub enum_filter_type: Option<String>,
+    /// errorEnumString property.
+    pub error_enum_string: Option<String>,
+    /// retryAttempt property.
+    pub retry_attempt: Option<String>,
+    /// taskName property.
+    pub task_name: Option<String>,
+    /// taskNumber property.
+    pub task_number: Option<String>,
+    /// triggerId property.
+    pub trigger_id: Option<String>,
+    /// warningEnumString property.
+    pub warning_enum_string: Option<String>,
+    /// workflowId property.
+    pub workflow_id: Option<String>,
+    /// workflowName property.
+    pub workflow_name: Option<String>,
+}
+
 /// `EnterpriseCrmEventbusProtoProtoParameterArray` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoProtoParameterArray {
     /// protoValues property.
     pub proto_values: Option<Vec<serde_json::Value>>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoWorkflowParameters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoWorkflowParameters {
+    /// parameters property.
+    pub parameters: Option<Vec<Box<EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry>>>,
+}
+
+/// `EnterpriseCrmEventbusProtoCombinedCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoCombinedCondition {
+    /// conditions property.
+    pub conditions: Option<Vec<EnterpriseCrmEventbusProtoCondition>>,
+}
+
+/// `EnterpriseCrmEventbusProtoNextTask` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoNextTask {
+    /// combinedConditions property.
+    pub combined_conditions: Option<Vec<EnterpriseCrmEventbusProtoCombinedCondition>>,
+    /// condition property.
+    pub condition: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// label property.
+    pub label: Option<String>,
+    /// taskConfigId property.
+    pub task_config_id: Option<String>,
+    /// taskNumber property.
+    pub task_number: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoStringArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoStringArray {
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry {
+    /// attributes property.
+    pub attributes: Option<EnterpriseCrmEventbusProtoAttributes>,
+    /// children property.
+    pub children: Option<Vec<Box<EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry>>>,
+    /// containsLargeData property.
+    pub contains_large_data: Option<bool>,
+    /// dataType property.
+    pub data_type: Option<String>,
+    /// defaultValue property.
+    pub default_value: Option<EnterpriseCrmFrontendsEventbusProtoParameterValueType>,
+    /// description property.
+    pub description: Option<String>,
+    /// inOutType property.
+    pub in_out_type: Option<String>,
+    /// isTransient property.
+    pub is_transient: Option<bool>,
+    /// jsonSchema property.
+    pub json_schema: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// producedBy property.
+    pub produced_by: Option<EnterpriseCrmEventbusProtoNodeIdentifier>,
+    /// producer property.
+    pub producer: Option<String>,
+    /// protoDefName property.
+    pub proto_def_name: Option<String>,
+    /// protoDefPath property.
+    pub proto_def_path: Option<String>,
+    /// required property.
+    pub required: Option<bool>,
 }
 
 /// `GoogleCloudIntegrationsV1AlphaIntegrationAlertConfigThresholdValue` response type.
@@ -637,33 +896,71 @@ pub struct GoogleCloudIntegrationsV1AlphaIntegrationAlertConfigThresholdValue {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `EnterpriseCrmEventbusProtoStringParameterArray` type.
+/// `EnterpriseCrmEventbusProtoSerializedObjectParameter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoStringParameterArray {
-    /// stringValues property.
-    pub string_values: Option<Vec<String>>,
-}
-
-/// `EnterpriseCrmEventbusProtoEventParameters` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoEventParameters {
-    /// parameters property.
-    pub parameters: Option<Vec<EnterpriseCrmEventbusProtoParameterEntry>>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoSerializedObjectParameter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoSerializedObjectParameter {
+pub struct EnterpriseCrmEventbusProtoSerializedObjectParameter {
     /// objectValue property.
     pub object_value: Option<String>,
 }
 
-/// `GoogleCloudIntegrationsV1AlphaTriggerConfig` response type.
+/// `GoogleCloudIntegrationsV1AlphaIntegrationVersion` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaTriggerConfig {
+pub struct GoogleCloudIntegrationsV1AlphaIntegrationVersion {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoStringParameterArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoStringParameterArray {
+    /// stringValues property.
+    pub string_values: Option<Vec<String>>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaCoordinate` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaCoordinate {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoTaskUiConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoTaskUiConfig {
+    /// taskUiModuleConfigs property.
+    pub task_ui_module_configs: Option<Vec<EnterpriseCrmEventbusProtoTaskUiModuleConfig>>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaCloudSchedulerConfig` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaCloudSchedulerConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoEventBusProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoEventBusProperties {
+    /// properties property.
+    pub properties: Option<Vec<EnterpriseCrmEventbusProtoPropertyEntry>>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaCloudLoggingDetails` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaCloudLoggingDetails {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoBooleanParameterArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoBooleanParameterArray {
+    /// booleanValues property.
+    pub boolean_values: Option<Vec<bool>>,
 }
 
 /// `EnterpriseCrmFrontendsEventbusProtoTriggerConfig` type.
@@ -707,6 +1004,76 @@ pub struct EnterpriseCrmFrontendsEventbusProtoTriggerConfig {
     pub trigger_type: Option<String>,
 }
 
+/// `EnterpriseCrmEventbusProtoStringParameterArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoStringParameterArray {
+    /// stringValues property.
+    pub string_values: Option<Vec<String>>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoDoubleParameterArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoDoubleParameterArray {
+    /// doubleValues property.
+    pub double_values: Option<Vec<f64>>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaNextTask` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaNextTask {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EnterpriseCrmEventbusProtoDoubleArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoDoubleArray {
+    /// values property.
+    pub values: Option<Vec<f64>>,
+}
+
+/// `EnterpriseCrmEventbusProtoParamSpecEntryValidationRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRule {
+    /// doubleRange property.
+    pub double_range: Option<EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleDoubleRange>,
+    /// intRange property.
+    pub int_range: Option<EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleIntRange>,
+    /// stringRegex property.
+    pub string_regex: Option<EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleStringRegex>,
+}
+
+/// `EnterpriseCrmEventbusProtoAttributes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoAttributes {
+    /// dataType property.
+    pub data_type: Option<String>,
+    /// defaultValue property.
+    pub default_value: Option<EnterpriseCrmEventbusProtoValueType>,
+    /// isRequired property.
+    pub is_required: Option<bool>,
+    /// isSearchable property.
+    pub is_searchable: Option<bool>,
+    /// logSettings property.
+    pub log_settings: Option<EnterpriseCrmEventbusProtoLogSettings>,
+    /// masked property.
+    pub masked: Option<bool>,
+    /// readOnly property.
+    pub read_only: Option<bool>,
+    /// searchable property.
+    pub searchable: Option<String>,
+    /// taskVisibility property.
+    pub task_visibility: Option<Vec<String>>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoParamSpecsMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoParamSpecsMessage {
+    /// parameters property.
+    pub parameters: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParamSpecEntry>>,
+}
+
 /// `EnterpriseCrmEventbusProtoParameterValueType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoParameterValueType {
@@ -734,135 +1101,6 @@ pub struct EnterpriseCrmEventbusProtoParameterValueType {
     pub string_value: Option<String>,
 }
 
-/// `GoogleCloudIntegrationsV1AlphaTemplate` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaTemplate {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EnterpriseCrmEventbusProtoParameterEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoParameterEntry {
-    /// key property.
-    pub key: Option<String>,
-    /// masked property.
-    pub masked: Option<bool>,
-    /// value property.
-    pub value: Option<EnterpriseCrmEventbusProtoParameterValueType>,
-}
-
-/// `EnterpriseCrmEventbusProtoTaskMetadataAdmin` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoTaskMetadataAdmin {
-    /// googleGroupEmail property.
-    pub google_group_email: Option<String>,
-    /// userEmail property.
-    pub user_email: Option<String>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaFailurePolicy` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaFailurePolicy {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaIntParameterArray` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaIntParameterArray {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaTemplateComponent` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaTemplateComponent {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EnterpriseCrmEventbusProtoCoordinate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoCoordinate {
-    /// x property.
-    pub x: Option<i64>,
-    /// y property.
-    pub y: Option<i64>,
-}
-
-/// `EnterpriseCrmEventbusProtoCombinedCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoCombinedCondition {
-    /// conditions property.
-    pub conditions: Option<Vec<EnterpriseCrmEventbusProtoCondition>>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaIntegrationConfigParameter` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaIntegrationConfigParameter {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaErrorCatcherConfig` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaErrorCatcherConfig {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoRollbackStrategy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoRollbackStrategy {
-    /// parameters property.
-    pub parameters: Option<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
-    /// rollbackTaskImplementationClassName property.
-    pub rollback_task_implementation_class_name: Option<String>,
-    /// taskNumbersToRollback property.
-    pub task_numbers_to_rollback: Option<Vec<String>>,
-}
-
-/// `EnterpriseCrmEventbusProtoParamSpecEntryValidationRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRule {
-    /// doubleRange property.
-    pub double_range: Option<EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleDoubleRange>,
-    /// intRange property.
-    pub int_range: Option<EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleIntRange>,
-    /// stringRegex property.
-    pub string_regex: Option<EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleStringRegex>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoEventParameters` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoEventParameters {
-    /// parameters property.
-    pub parameters: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaCloudSchedulerConfig` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaCloudSchedulerConfig {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaTemplateBundle` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaTemplateBundle {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `EnterpriseCrmEventbusProtoCloudSchedulerConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoCloudSchedulerConfig {
@@ -876,250 +1114,13 @@ pub struct EnterpriseCrmEventbusProtoCloudSchedulerConfig {
     pub service_account_email: Option<String>,
 }
 
-/// `EnterpriseCrmFrontendsEventbusProtoParamSpecsMessage` type.
+/// `EnterpriseCrmEventbusProtoConditionalFailurePolicies` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoParamSpecsMessage {
-    /// parameters property.
-    pub parameters: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParamSpecEntry>>,
-}
-
-/// `EnterpriseCrmEventbusStatsDimensions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusStatsDimensions {
-    /// clientId property.
-    pub client_id: Option<String>,
-    /// enumFilterType property.
-    pub enum_filter_type: Option<String>,
-    /// errorEnumString property.
-    pub error_enum_string: Option<String>,
-    /// retryAttempt property.
-    pub retry_attempt: Option<String>,
-    /// taskName property.
-    pub task_name: Option<String>,
-    /// taskNumber property.
-    pub task_number: Option<String>,
-    /// triggerId property.
-    pub trigger_id: Option<String>,
-    /// warningEnumString property.
-    pub warning_enum_string: Option<String>,
-    /// workflowId property.
-    pub workflow_id: Option<String>,
-    /// workflowName property.
-    pub workflow_name: Option<String>,
-}
-
-/// `EnterpriseCrmEventbusProtoNextTeardownTask` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoNextTeardownTask {
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoDoubleParameterArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoDoubleParameterArray {
-    /// doubleValues property.
-    pub double_values: Option<Vec<f64>>,
-}
-
-/// `EnterpriseCrmEventbusProtoCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoCondition {
-    /// eventPropertyKey property.
-    pub event_property_key: Option<String>,
-    /// operator property.
-    pub operator: Option<String>,
-    /// value property.
-    pub value: Option<EnterpriseCrmEventbusProtoValueType>,
-}
-
-/// `EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleStringRegex` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleStringRegex {
-    /// exclusive property.
-    pub exclusive: Option<bool>,
-    /// regex property.
-    pub regex: Option<String>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaConditionalFailurePolicies` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaConditionalFailurePolicies {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EnterpriseCrmEventbusProtoSuccessPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoSuccessPolicy {
-    /// finalState property.
-    pub final_state: Option<String>,
-}
-
-/// `EnterpriseCrmEventbusProtoFailurePolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoFailurePolicy {
-    /// intervalInSeconds property.
-    pub interval_in_seconds: Option<String>,
-    /// maxNumRetries property.
-    pub max_num_retries: Option<i64>,
-    /// retryCondition property.
-    pub retry_condition: Option<String>,
-    /// retryStrategy property.
-    pub retry_strategy: Option<String>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoTaskEntity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoTaskEntity {
-    /// disabledForVpcSc property.
-    pub disabled_for_vpc_sc: Option<bool>,
-    /// metadata property.
-    pub metadata: Option<EnterpriseCrmEventbusProtoTaskMetadata>,
-    /// paramSpecs property.
-    pub param_specs: Option<EnterpriseCrmFrontendsEventbusProtoParamSpecsMessage>,
-    /// stats property.
-    pub stats: Option<EnterpriseCrmEventbusStats>,
-    /// taskType property.
-    pub task_type: Option<String>,
-    /// uiConfig property.
-    pub ui_config: Option<EnterpriseCrmEventbusProtoTaskUiConfig>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoWorkflowParameters` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoWorkflowParameters {
-    /// parameters property.
-    pub parameters: Option<Vec<EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry>>,
-}
-
-/// `EnterpriseCrmEventbusProtoLogSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoLogSettings {
-    /// logFieldName property.
-    pub log_field_name: Option<String>,
-    /// seedPeriod property.
-    pub seed_period: Option<String>,
-    /// seedScope property.
-    pub seed_scope: Option<String>,
-}
-
-/// `EnterpriseCrmEventbusProtoIntArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoIntArray {
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `EnterpriseCrmEventbusProtoStringArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoStringArray {
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaCoordinate` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaCoordinate {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EnterpriseCrmEventbusProtoTaskAlertConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoTaskAlertConfig {
-    /// aggregationPeriod property.
-    pub aggregation_period: Option<String>,
-    /// alertDisabled property.
-    pub alert_disabled: Option<bool>,
-    /// alertName property.
-    pub alert_name: Option<String>,
-    /// clientId property.
-    pub client_id: Option<String>,
-    /// durationThresholdMs property.
-    pub duration_threshold_ms: Option<String>,
-    /// errorEnumList property.
-    pub error_enum_list: Option<EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList>,
-    /// metricType property.
-    pub metric_type: Option<String>,
-    /// numAggregationPeriods property.
-    pub num_aggregation_periods: Option<i64>,
-    /// onlyFinalAttempt property.
-    pub only_final_attempt: Option<bool>,
-    /// playbookUrl property.
-    pub playbook_url: Option<String>,
-    /// thresholdType property.
-    pub threshold_type: Option<String>,
-    /// thresholdValue property.
-    pub threshold_value: Option<EnterpriseCrmEventbusProtoBaseAlertConfigThresholdValue>,
-    /// warningEnumList property.
-    pub warning_enum_list: Option<EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList>,
-}
-
-/// `EnterpriseCrmEventbusProtoTriggerCriteria` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoTriggerCriteria {
-    /// condition property.
-    pub condition: Option<String>,
-    /// parameters property.
-    pub parameters: Option<EnterpriseCrmEventbusProtoEventParameters>,
-    /// triggerCriteriaTaskImplementationClassName property.
-    pub trigger_criteria_task_implementation_class_name: Option<String>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoStringParameterArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoStringParameterArray {
-    /// stringValues property.
-    pub string_values: Option<Vec<String>>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaTriggerConfigVariables` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaTriggerConfigVariables {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaBooleanParameterArray` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaBooleanParameterArray {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EnterpriseCrmEventbusProtoValueType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoValueType {
-    /// booleanValue property.
-    pub boolean_value: Option<bool>,
-    /// doubleArray property.
-    pub double_array: Option<EnterpriseCrmEventbusProtoDoubleArray>,
-    /// doubleValue property.
-    pub double_value: Option<f64>,
-    /// intArray property.
-    pub int_array: Option<EnterpriseCrmEventbusProtoIntArray>,
-    /// intValue property.
-    pub int_value: Option<String>,
-    /// protoValue property.
-    pub proto_value: Option<serde_json::Value>,
-    /// stringArray property.
-    pub string_array: Option<EnterpriseCrmEventbusProtoStringArray>,
-    /// stringValue property.
-    pub string_value: Option<String>,
-}
-
-/// `EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleDoubleRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleDoubleRange {
-    /// max property.
-    pub max: Option<f64>,
-    /// min property.
-    pub min: Option<f64>,
+pub struct EnterpriseCrmEventbusProtoConditionalFailurePolicies {
+    /// defaultFailurePolicy property.
+    pub default_failure_policy: Option<EnterpriseCrmEventbusProtoFailurePolicy>,
+    /// failurePolicies property.
+    pub failure_policies: Option<Vec<EnterpriseCrmEventbusProtoFailurePolicy>>,
 }
 
 // =============================================================================

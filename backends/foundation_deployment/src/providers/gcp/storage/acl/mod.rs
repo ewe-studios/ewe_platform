@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,20 +23,11 @@ use serde::{Deserialize, Serialize};
 use super::shared::ObjectAccessControl;
 use super::shared::ObjectAccessControls;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `BucketAccessControls` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BucketAccessControls {
-    /// items property.
-    pub items: Option<Vec<BucketAccessControl>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
 
 /// `BucketAccessControl` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -62,6 +54,15 @@ pub struct BucketAccessControl {
     pub role: Option<String>,
     /// selfLink property.
     pub self_link: Option<String>,
+}
+
+/// `BucketAccessControls` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BucketAccessControls {
+    /// items property.
+    pub items: Option<Vec<BucketAccessControl>>,
+    /// kind property.
+    pub kind: Option<String>,
 }
 
 // =============================================================================

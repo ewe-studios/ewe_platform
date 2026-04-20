@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,41 +22,45 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `AuthenticationConfig` type.
+/// `PeripheralsConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthenticationConfig {
-    /// userWorkloadAuthenticationType property.
-    pub user_workload_authentication_type: Option<String>,
+pub struct PeripheralsConfig {
+    /// metastoreService property.
+    pub metastore_service: Option<String>,
+    /// sparkHistoryServerConfig property.
+    pub spark_history_server_config: Option<SparkHistoryServerConfig>,
 }
 
-/// `ExecutionConfig` type.
+/// `AutotuningConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExecutionConfig {
-    /// authenticationConfig property.
-    pub authentication_config: Option<AuthenticationConfig>,
-    /// idleTtl property.
-    pub idle_ttl: Option<String>,
-    /// kmsKey property.
-    pub kms_key: Option<String>,
-    /// networkTags property.
-    pub network_tags: Option<Vec<String>>,
-    /// networkUri property.
-    pub network_uri: Option<String>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-    /// stagingBucket property.
-    pub staging_bucket: Option<String>,
-    /// subnetworkUri property.
-    pub subnetwork_uri: Option<String>,
-    /// ttl property.
-    pub ttl: Option<String>,
+pub struct AutotuningConfig {
+    /// scenarios property.
+    pub scenarios: Option<Vec<String>>,
 }
+
+/// `RepositoryConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RepositoryConfig {
+    /// pypiRepositoryConfig property.
+    pub pypi_repository_config: Option<PyPiRepositoryConfig>,
+}
+
+/// `PyPiRepositoryConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PyPiRepositoryConfig {
+    /// pypiRepository property.
+    pub pypi_repository: Option<String>,
+}
+
+/// `SparkConnectConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkConnectConfig {}
 
 /// `EnvironmentConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -65,10 +70,6 @@ pub struct EnvironmentConfig {
     /// peripheralsConfig property.
     pub peripherals_config: Option<PeripheralsConfig>,
 }
-
-/// `SparkConnectConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkConnectConfig {}
 
 /// `RuntimeConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -87,27 +88,11 @@ pub struct RuntimeConfig {
     pub version: Option<String>,
 }
 
-/// `PyPiRepositoryConfig` type.
+/// `SparkHistoryServerConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PyPiRepositoryConfig {
-    /// pypiRepository property.
-    pub pypi_repository: Option<String>,
-}
-
-/// `AutotuningConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutotuningConfig {
-    /// scenarios property.
-    pub scenarios: Option<Vec<String>>,
-}
-
-/// `PeripheralsConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PeripheralsConfig {
-    /// metastoreService property.
-    pub metastore_service: Option<String>,
-    /// sparkHistoryServerConfig property.
-    pub spark_history_server_config: Option<SparkHistoryServerConfig>,
+pub struct SparkHistoryServerConfig {
+    /// dataprocCluster property.
+    pub dataproc_cluster: Option<String>,
 }
 
 /// `SessionTemplate` type.
@@ -137,22 +122,6 @@ pub struct SessionTemplate {
     pub uuid: Option<String>,
 }
 
-/// `JupyterConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JupyterConfig {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// kernel property.
-    pub kernel: Option<String>,
-}
-
-/// `SparkHistoryServerConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkHistoryServerConfig {
-    /// dataprocCluster property.
-    pub dataproc_cluster: Option<String>,
-}
-
 /// `ListSessionTemplatesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSessionTemplatesResponse {
@@ -162,11 +131,43 @@ pub struct ListSessionTemplatesResponse {
     pub session_templates: Option<Vec<SessionTemplate>>,
 }
 
-/// `RepositoryConfig` type.
+/// `ExecutionConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RepositoryConfig {
-    /// pypiRepositoryConfig property.
-    pub pypi_repository_config: Option<PyPiRepositoryConfig>,
+pub struct ExecutionConfig {
+    /// authenticationConfig property.
+    pub authentication_config: Option<AuthenticationConfig>,
+    /// idleTtl property.
+    pub idle_ttl: Option<String>,
+    /// kmsKey property.
+    pub kms_key: Option<String>,
+    /// networkTags property.
+    pub network_tags: Option<Vec<String>>,
+    /// networkUri property.
+    pub network_uri: Option<String>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// stagingBucket property.
+    pub staging_bucket: Option<String>,
+    /// subnetworkUri property.
+    pub subnetwork_uri: Option<String>,
+    /// ttl property.
+    pub ttl: Option<String>,
+}
+
+/// `JupyterConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JupyterConfig {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// kernel property.
+    pub kernel: Option<String>,
+}
+
+/// `AuthenticationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthenticationConfig {
+    /// userWorkloadAuthenticationType property.
+    pub user_workload_authentication_type: Option<String>,
 }
 
 // =============================================================================

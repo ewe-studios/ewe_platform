@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -29,13 +30,6 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 pub struct VpnGatewayStatus {
     /// vpnConnections property.
     pub vpn_connections: Option<Vec<VpnGatewayStatusVpnConnection>>,
-}
-
-/// `VpnGatewaysGetStatusResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VpnGatewaysGetStatusResponse {
-    /// result property.
-    pub result: Option<VpnGatewayStatus>,
 }
 
 /// `VpnGatewayStatusVpnConnection` type.
@@ -51,15 +45,6 @@ pub struct VpnGatewayStatusVpnConnection {
     pub tunnels: Option<Vec<VpnGatewayStatusTunnel>>,
 }
 
-/// `VpnGatewayStatusHighAvailabilityRequirementState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VpnGatewayStatusHighAvailabilityRequirementState {
-    /// state property.
-    pub state: Option<String>,
-    /// unsatisfiedReason property.
-    pub unsatisfied_reason: Option<String>,
-}
-
 /// `VpnGatewayStatusTunnel` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnGatewayStatusTunnel {
@@ -69,6 +54,22 @@ pub struct VpnGatewayStatusTunnel {
     pub peer_gateway_interface: Option<i64>,
     /// tunnelUrl property.
     pub tunnel_url: Option<String>,
+}
+
+/// `VpnGatewayStatusHighAvailabilityRequirementState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VpnGatewayStatusHighAvailabilityRequirementState {
+    /// state property.
+    pub state: Option<String>,
+    /// unsatisfiedReason property.
+    pub unsatisfied_reason: Option<String>,
+}
+
+/// `VpnGatewaysGetStatusResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VpnGatewaysGetStatusResponse {
+    /// result property.
+    pub result: Option<VpnGatewayStatus>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -36,6 +37,15 @@ pub struct GoogleCloudOrgpolicyV2PolicySpecPolicyRuleStringValues {
     pub denied_values: Option<Vec<String>>,
 }
 
+/// `GoogleCloudOrgpolicyV2AlternatePolicySpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudOrgpolicyV2AlternatePolicySpec {
+    /// launch property.
+    pub launch: Option<String>,
+    /// spec property.
+    pub spec: Option<GoogleCloudOrgpolicyV2PolicySpec>,
+}
+
 /// `GoogleTypeExpr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeExpr {
@@ -47,21 +57,6 @@ pub struct GoogleTypeExpr {
     pub location: Option<String>,
     /// title property.
     pub title: Option<String>,
-}
-
-/// `GoogleCloudOrgpolicyV2Policy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudOrgpolicyV2Policy {
-    /// alternate property.
-    pub alternate: Option<GoogleCloudOrgpolicyV2AlternatePolicySpec>,
-    /// dryRunSpec property.
-    pub dry_run_spec: Option<GoogleCloudOrgpolicyV2PolicySpec>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// spec property.
-    pub spec: Option<GoogleCloudOrgpolicyV2PolicySpec>,
 }
 
 /// `GoogleCloudOrgpolicyV2PolicySpec` type.
@@ -105,11 +100,17 @@ pub struct GoogleCloudOrgpolicyV2ListPoliciesResponse {
     pub policies: Option<Vec<GoogleCloudOrgpolicyV2Policy>>,
 }
 
-/// `GoogleCloudOrgpolicyV2AlternatePolicySpec` type.
+/// `GoogleCloudOrgpolicyV2Policy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudOrgpolicyV2AlternatePolicySpec {
-    /// launch property.
-    pub launch: Option<String>,
+pub struct GoogleCloudOrgpolicyV2Policy {
+    /// alternate property.
+    pub alternate: Option<GoogleCloudOrgpolicyV2AlternatePolicySpec>,
+    /// dryRunSpec property.
+    pub dry_run_spec: Option<GoogleCloudOrgpolicyV2PolicySpec>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// name property.
+    pub name: Option<String>,
     /// spec property.
     pub spec: Option<GoogleCloudOrgpolicyV2PolicySpec>,
 }

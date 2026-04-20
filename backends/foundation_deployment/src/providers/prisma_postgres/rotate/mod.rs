@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -24,17 +25,6 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ConnectionsRotateEndpointsDirect` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionsRotateEndpointsDirect {
-    /// connectionString property.
-    pub connection_string: String,
-    /// host property.
-    pub host: String,
-    /// port property.
-    pub port: f64,
-}
-
 /// `ConnectionsRotateEndpointsPooled` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectionsRotateEndpointsPooled {
@@ -46,11 +36,37 @@ pub struct ConnectionsRotateEndpointsPooled {
     pub port: f64,
 }
 
-/// `ConnectionsRotatePostResponse` type.
+/// `ConnectionsRotateEndpointsAccelerate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionsRotatePostResponse {
-    /// data property.
-    pub data: ConnectionsRotate,
+pub struct ConnectionsRotateEndpointsAccelerate {
+    /// connectionString property.
+    pub connection_string: String,
+    /// host property.
+    pub host: String,
+    /// port property.
+    pub port: f64,
+}
+
+/// `ConnectionsRotateEndpoints` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectionsRotateEndpoints {
+    /// accelerate property.
+    pub accelerate: Option<ConnectionsRotateEndpointsAccelerate>,
+    /// direct property.
+    pub direct: Option<ConnectionsRotateEndpointsDirect>,
+    /// pooled property.
+    pub pooled: Option<ConnectionsRotateEndpointsPooled>,
+}
+
+/// `ConnectionsRotateEndpointsDirect` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectionsRotateEndpointsDirect {
+    /// connectionString property.
+    pub connection_string: String,
+    /// host property.
+    pub host: String,
+    /// port property.
+    pub port: f64,
 }
 
 /// `ConnectionsRotate` type.
@@ -84,26 +100,11 @@ pub struct ConnectionsRotate {
     pub user: String,
 }
 
-/// `ConnectionsRotateEndpointsAccelerate` type.
+/// `ConnectionsRotatePostResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionsRotateEndpointsAccelerate {
-    /// connectionString property.
-    pub connection_string: String,
-    /// host property.
-    pub host: String,
-    /// port property.
-    pub port: f64,
-}
-
-/// `ConnectionsRotateEndpoints` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionsRotateEndpoints {
-    /// accelerate property.
-    pub accelerate: Option<ConnectionsRotateEndpointsAccelerate>,
-    /// direct property.
-    pub direct: Option<ConnectionsRotateEndpointsDirect>,
-    /// pooled property.
-    pub pooled: Option<ConnectionsRotateEndpointsPooled>,
+pub struct ConnectionsRotatePostResponse {
+    /// data property.
+    pub data: ConnectionsRotate,
 }
 
 /// `ConnectionsRotateDatabase` type.

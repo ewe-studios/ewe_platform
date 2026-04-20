@@ -12,28 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ObjectFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObjectFilter {
-    /// kind property.
-    pub kind: Option<String>,
-    /// objectIds property.
-    pub object_ids: Option<Vec<String>>,
-    /// status property.
-    pub status: Option<String>,
-}
 
 /// `AccountUserProfile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -70,6 +60,17 @@ pub struct AccountUserProfile {
     pub user_role_filter: Option<ObjectFilter>,
     /// userRoleId property.
     pub user_role_id: Option<String>,
+}
+
+/// `ObjectFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ObjectFilter {
+    /// kind property.
+    pub kind: Option<String>,
+    /// objectIds property.
+    pub object_ids: Option<Vec<String>>,
+    /// status property.
+    pub status: Option<String>,
 }
 
 /// `AccountUserProfilesListResponse` type.

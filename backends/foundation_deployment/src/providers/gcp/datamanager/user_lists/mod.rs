@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,20 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `SizeInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SizeInfo {
+    /// displayNetworkMembersCount property.
+    pub display_network_members_count: Option<String>,
+    /// searchNetworkMembersCount property.
+    pub search_network_members_count: Option<String>,
+}
 
 /// `UserList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -60,15 +70,6 @@ pub struct UserList {
     pub target_network_info: Option<TargetNetworkInfo>,
 }
 
-/// `ListUserListsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListUserListsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// userLists property.
-    pub user_lists: Option<Vec<UserList>>,
-}
-
 /// `MobileIdInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MobileIdInfo {
@@ -80,48 +81,6 @@ pub struct MobileIdInfo {
     pub key_space: Option<String>,
 }
 
-/// `PairIdInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PairIdInfo {
-    /// advertiserIdentifierCount property.
-    pub advertiser_identifier_count: Option<String>,
-    /// cleanRoomIdentifier property.
-    pub clean_room_identifier: Option<String>,
-    /// matchRatePercentage property.
-    pub match_rate_percentage: Option<i64>,
-    /// publisherId property.
-    pub publisher_id: Option<String>,
-    /// publisherName property.
-    pub publisher_name: Option<String>,
-}
-
-/// `ContactIdInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContactIdInfo {
-    /// dataSourceType property.
-    pub data_source_type: Option<String>,
-    /// matchRatePercentage property.
-    pub match_rate_percentage: Option<i64>,
-}
-
-/// `PartnerAudienceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PartnerAudienceInfo {
-    /// commercePartner property.
-    pub commerce_partner: Option<String>,
-    /// partnerAudienceSource property.
-    pub partner_audience_source: Option<String>,
-}
-
-/// `TargetNetworkInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TargetNetworkInfo {
-    /// eligibleForDisplay property.
-    pub eligible_for_display: Option<bool>,
-    /// eligibleForSearch property.
-    pub eligible_for_search: Option<bool>,
-}
-
 /// `PseudonymousIdInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PseudonymousIdInfo {
@@ -131,11 +90,22 @@ pub struct PseudonymousIdInfo {
     pub sync_status: Option<String>,
 }
 
-/// `UserIdInfo` type.
+/// `ListUserListsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserIdInfo {
-    /// dataSourceType property.
-    pub data_source_type: Option<String>,
+pub struct ListUserListsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// userLists property.
+    pub user_lists: Option<Vec<UserList>>,
+}
+
+/// `TargetNetworkInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TargetNetworkInfo {
+    /// eligibleForDisplay property.
+    pub eligible_for_display: Option<bool>,
+    /// eligibleForSearch property.
+    pub eligible_for_search: Option<bool>,
 }
 
 /// `IngestedUserListInfo` type.
@@ -157,13 +127,44 @@ pub struct IngestedUserListInfo {
     pub user_id_info: Option<UserIdInfo>,
 }
 
-/// `SizeInfo` type.
+/// `PairIdInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SizeInfo {
-    /// displayNetworkMembersCount property.
-    pub display_network_members_count: Option<String>,
-    /// searchNetworkMembersCount property.
-    pub search_network_members_count: Option<String>,
+pub struct PairIdInfo {
+    /// advertiserIdentifierCount property.
+    pub advertiser_identifier_count: Option<String>,
+    /// cleanRoomIdentifier property.
+    pub clean_room_identifier: Option<String>,
+    /// matchRatePercentage property.
+    pub match_rate_percentage: Option<i64>,
+    /// publisherId property.
+    pub publisher_id: Option<String>,
+    /// publisherName property.
+    pub publisher_name: Option<String>,
+}
+
+/// `PartnerAudienceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PartnerAudienceInfo {
+    /// commercePartner property.
+    pub commerce_partner: Option<String>,
+    /// partnerAudienceSource property.
+    pub partner_audience_source: Option<String>,
+}
+
+/// `UserIdInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UserIdInfo {
+    /// dataSourceType property.
+    pub data_source_type: Option<String>,
+}
+
+/// `ContactIdInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContactIdInfo {
+    /// dataSourceType property.
+    pub data_source_type: Option<String>,
+    /// matchRatePercentage property.
+    pub match_rate_percentage: Option<i64>,
 }
 
 // =============================================================================

@@ -12,189 +12,37 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `PartnerGeneralConfig` type.
+/// `SensitiveCategoryAssignedTargetingOptionDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PartnerGeneralConfig {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// timeZone property.
-    pub time_zone: Option<String>,
+pub struct SensitiveCategoryAssignedTargetingOptionDetails {
+    /// excludedSensitiveCategory property.
+    pub excluded_sensitive_category: Option<String>,
 }
 
-/// `CategoryAssignedTargetingOptionDetails` type.
+/// `AppAssignedTargetingOptionDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CategoryAssignedTargetingOptionDetails {
+pub struct AppAssignedTargetingOptionDetails {
+    /// appId property.
+    pub app_id: Option<String>,
+    /// appPlatform property.
+    pub app_platform: Option<String>,
     /// displayName property.
     pub display_name: Option<String>,
     /// negative property.
     pub negative: Option<bool>,
-    /// targetingOptionId property.
-    pub targeting_option_id: Option<String>,
-}
-
-/// `ExchangeAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExchangeAssignedTargetingOptionDetails {
-    /// exchange property.
-    pub exchange: Option<String>,
-}
-
-/// `KeywordAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KeywordAssignedTargetingOptionDetails {
-    /// exemptedPolicyNames property.
-    pub exempted_policy_names: Option<Vec<String>>,
-    /// keyword property.
-    pub keyword: Option<String>,
-    /// negative property.
-    pub negative: Option<bool>,
-}
-
-/// `IntegralAdScience` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntegralAdScience {
-    /// customSegmentId property.
-    pub custom_segment_id: Option<Vec<String>>,
-    /// displayViewability property.
-    pub display_viewability: Option<String>,
-    /// excludeUnrateable property.
-    pub exclude_unrateable: Option<bool>,
-    /// excludedAdFraudRisk property.
-    pub excluded_ad_fraud_risk: Option<String>,
-    /// excludedAdultRisk property.
-    pub excluded_adult_risk: Option<String>,
-    /// excludedAlcoholRisk property.
-    pub excluded_alcohol_risk: Option<String>,
-    /// excludedDrugsRisk property.
-    pub excluded_drugs_risk: Option<String>,
-    /// excludedGamblingRisk property.
-    pub excluded_gambling_risk: Option<String>,
-    /// excludedHateSpeechRisk property.
-    pub excluded_hate_speech_risk: Option<String>,
-    /// excludedIllegalDownloadsRisk property.
-    pub excluded_illegal_downloads_risk: Option<String>,
-    /// excludedOffensiveLanguageRisk property.
-    pub excluded_offensive_language_risk: Option<String>,
-    /// excludedViolenceRisk property.
-    pub excluded_violence_risk: Option<String>,
-    /// qualitySyncCustomSegmentId property.
-    pub quality_sync_custom_segment_id: Option<Vec<String>>,
-    /// traqScoreOption property.
-    pub traq_score_option: Option<String>,
-    /// videoViewability property.
-    pub video_viewability: Option<String>,
-}
-
-/// `DoubleVerifyBrandSafetyCategories` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DoubleVerifyBrandSafetyCategories {
-    /// avoidUnknownBrandSafetyCategory property.
-    pub avoid_unknown_brand_safety_category: Option<bool>,
-    /// avoidedHighSeverityCategories property.
-    pub avoided_high_severity_categories: Option<Vec<String>>,
-    /// avoidedMediumSeverityCategories property.
-    pub avoided_medium_severity_categories: Option<Vec<String>>,
-}
-
-/// `ContentStreamTypeAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContentStreamTypeAssignedTargetingOptionDetails {
-    /// contentStreamType property.
-    pub content_stream_type: Option<String>,
-    /// targetingOptionId property.
-    pub targeting_option_id: Option<String>,
-}
-
-/// `CombinedAudienceTargetingSetting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CombinedAudienceTargetingSetting {
-    /// combinedAudienceId property.
-    pub combined_audience_id: Option<String>,
-}
-
-/// `HouseholdIncomeAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HouseholdIncomeAssignedTargetingOptionDetails {
-    /// householdIncome property.
-    pub household_income: Option<String>,
-}
-
-/// `YoutubeChannelAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct YoutubeChannelAssignedTargetingOptionDetails {
-    /// channelId property.
-    pub channel_id: Option<String>,
-    /// negative property.
-    pub negative: Option<bool>,
-}
-
-/// `ParentalStatusAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ParentalStatusAssignedTargetingOptionDetails {
-    /// parentalStatus property.
-    pub parental_status: Option<String>,
-}
-
-/// `DigitalContentLabelAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DigitalContentLabelAssignedTargetingOptionDetails {
-    /// excludedContentRatingTier property.
-    pub excluded_content_rating_tier: Option<String>,
-}
-
-/// `CarrierAndIspAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CarrierAndIspAssignedTargetingOptionDetails {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// negative property.
-    pub negative: Option<bool>,
-    /// targetingOptionId property.
-    pub targeting_option_id: Option<String>,
-}
-
-/// `InventorySourceGroupAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InventorySourceGroupAssignedTargetingOptionDetails {
-    /// inventorySourceGroupId property.
-    pub inventory_source_group_id: Option<String>,
-}
-
-/// `Partner` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Partner {
-    /// adServerConfig property.
-    pub ad_server_config: Option<PartnerAdServerConfig>,
-    /// billingConfig property.
-    pub billing_config: Option<PartnerBillingConfig>,
-    /// dataAccessConfig property.
-    pub data_access_config: Option<PartnerDataAccessConfig>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// entityStatus property.
-    pub entity_status: Option<String>,
-    /// exchangeConfig property.
-    pub exchange_config: Option<ExchangeConfig>,
-    /// generalConfig property.
-    pub general_config: Option<PartnerGeneralConfig>,
-    /// name property.
-    pub name: Option<String>,
-    /// partnerId property.
-    pub partner_id: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
 }
 
 /// `AssignedTargetingOption` type.
@@ -317,17 +165,165 @@ pub struct AssignedTargetingOption {
     pub youtube_video_details: Option<YoutubeVideoAssignedTargetingOptionDetails>,
 }
 
-/// `GeoRegionAssignedTargetingOptionDetails` type.
+/// `HouseholdIncomeAssignedTargetingOptionDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeoRegionAssignedTargetingOptionDetails {
+pub struct HouseholdIncomeAssignedTargetingOptionDetails {
+    /// householdIncome property.
+    pub household_income: Option<String>,
+}
+
+/// `DeviceTypeAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceTypeAssignedTargetingOptionDetails {
+    /// deviceType property.
+    pub device_type: Option<String>,
+    /// youtubeAndPartnersBidMultiplier property.
+    pub youtube_and_partners_bid_multiplier: Option<f64>,
+}
+
+/// `DoubleVerifyFraudInvalidTraffic` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DoubleVerifyFraudInvalidTraffic {
+    /// avoidInsufficientOption property.
+    pub avoid_insufficient_option: Option<bool>,
+    /// avoidedFraudOption property.
+    pub avoided_fraud_option: Option<String>,
+}
+
+/// `DoubleVerifyBrandSafetyCategories` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DoubleVerifyBrandSafetyCategories {
+    /// avoidUnknownBrandSafetyCategory property.
+    pub avoid_unknown_brand_safety_category: Option<bool>,
+    /// avoidedHighSeverityCategories property.
+    pub avoided_high_severity_categories: Option<Vec<String>>,
+    /// avoidedMediumSeverityCategories property.
+    pub avoided_medium_severity_categories: Option<Vec<String>>,
+}
+
+/// `CustomListGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomListGroup {
+    /// settings property.
+    pub settings: Option<Vec<CustomListTargetingSetting>>,
+}
+
+/// `PartnerAdServerConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PartnerAdServerConfig {
+    /// measurementConfig property.
+    pub measurement_config: Option<MeasurementConfig>,
+}
+
+/// `Partner` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Partner {
+    /// adServerConfig property.
+    pub ad_server_config: Option<PartnerAdServerConfig>,
+    /// billingConfig property.
+    pub billing_config: Option<PartnerBillingConfig>,
+    /// dataAccessConfig property.
+    pub data_access_config: Option<PartnerDataAccessConfig>,
     /// displayName property.
     pub display_name: Option<String>,
-    /// geoRegionType property.
-    pub geo_region_type: Option<String>,
+    /// entityStatus property.
+    pub entity_status: Option<String>,
+    /// exchangeConfig property.
+    pub exchange_config: Option<ExchangeConfig>,
+    /// generalConfig property.
+    pub general_config: Option<PartnerGeneralConfig>,
+    /// name property.
+    pub name: Option<String>,
+    /// partnerId property.
+    pub partner_id: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `InventorySourceGroupAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InventorySourceGroupAssignedTargetingOptionDetails {
+    /// inventorySourceGroupId property.
+    pub inventory_source_group_id: Option<String>,
+}
+
+/// `AudioContentTypeAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AudioContentTypeAssignedTargetingOptionDetails {
+    /// audioContentType property.
+    pub audio_content_type: Option<String>,
+}
+
+/// `KeywordAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KeywordAssignedTargetingOptionDetails {
+    /// exemptedPolicyNames property.
+    pub exempted_policy_names: Option<Vec<String>>,
+    /// keyword property.
+    pub keyword: Option<String>,
+    /// negative property.
+    pub negative: Option<bool>,
+}
+
+/// `PartnerGeneralConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PartnerGeneralConfig {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// timeZone property.
+    pub time_zone: Option<String>,
+}
+
+/// `AgeRangeAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AgeRangeAssignedTargetingOptionDetails {
+    /// ageRange property.
+    pub age_range: Option<String>,
+}
+
+/// `AuthorizedSellerStatusAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthorizedSellerStatusAssignedTargetingOptionDetails {
+    /// authorizedSellerStatus property.
+    pub authorized_seller_status: Option<String>,
+    /// targetingOptionId property.
+    pub targeting_option_id: Option<String>,
+}
+
+/// `LanguageAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LanguageAssignedTargetingOptionDetails {
+    /// displayName property.
+    pub display_name: Option<String>,
     /// negative property.
     pub negative: Option<bool>,
     /// targetingOptionId property.
     pub targeting_option_id: Option<String>,
+}
+
+/// `GenderAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GenderAssignedTargetingOptionDetails {
+    /// gender property.
+    pub gender: Option<String>,
+}
+
+/// `ContentStreamTypeAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContentStreamTypeAssignedTargetingOptionDetails {
+    /// contentStreamType property.
+    pub content_stream_type: Option<String>,
+    /// targetingOptionId property.
+    pub targeting_option_id: Option<String>,
+}
+
+/// `YoutubeVideoAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct YoutubeVideoAssignedTargetingOptionDetails {
+    /// negative property.
+    pub negative: Option<bool>,
+    /// videoId property.
+    pub video_id: Option<String>,
 }
 
 /// `AudienceGroupAssignedTargetingOptionDetails` type.
@@ -348,13 +344,47 @@ pub struct AudienceGroupAssignedTargetingOptionDetails {
     pub included_google_audience_group: Option<GoogleAudienceGroup>,
 }
 
-/// `AuthorizedSellerStatusAssignedTargetingOptionDetails` type.
+/// `DoubleVerifyDisplayViewability` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthorizedSellerStatusAssignedTargetingOptionDetails {
-    /// authorizedSellerStatus property.
-    pub authorized_seller_status: Option<String>,
+pub struct DoubleVerifyDisplayViewability {
+    /// iab property.
+    pub iab: Option<String>,
+    /// viewableDuring property.
+    pub viewable_during: Option<String>,
+}
+
+/// `VideoPlayerSizeAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoPlayerSizeAssignedTargetingOptionDetails {
+    /// videoPlayerSize property.
+    pub video_player_size: Option<String>,
+}
+
+/// `CustomListTargetingSetting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomListTargetingSetting {
+    /// customListId property.
+    pub custom_list_id: Option<String>,
+}
+
+/// `OperatingSystemAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OperatingSystemAssignedTargetingOptionDetails {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// negative property.
+    pub negative: Option<bool>,
     /// targetingOptionId property.
     pub targeting_option_id: Option<String>,
+}
+
+/// `UserRewardedContentAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UserRewardedContentAssignedTargetingOptionDetails {
+    /// targetingOptionId property.
+    pub targeting_option_id: Option<String>,
+    /// userRewardedContent property.
+    pub user_rewarded_content: Option<String>,
 }
 
 /// `ContentOutstreamPositionAssignedTargetingOptionDetails` type.
@@ -373,54 +403,13 @@ pub struct OmidAssignedTargetingOptionDetails {
     pub omid: Option<String>,
 }
 
-/// `ListPartnersResponse` type.
+/// `GeoRegionAssignedTargetingOptionDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListPartnersResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// partners property.
-    pub partners: Option<Vec<Partner>>,
-}
-
-/// `DeviceMakeModelAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceMakeModelAssignedTargetingOptionDetails {
+pub struct GeoRegionAssignedTargetingOptionDetails {
     /// displayName property.
     pub display_name: Option<String>,
-    /// negative property.
-    pub negative: Option<bool>,
-    /// targetingOptionId property.
-    pub targeting_option_id: Option<String>,
-}
-
-/// `EnvironmentAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnvironmentAssignedTargetingOptionDetails {
-    /// environment property.
-    pub environment: Option<String>,
-}
-
-/// `NegativeKeywordListAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NegativeKeywordListAssignedTargetingOptionDetails {
-    /// negativeKeywordListId property.
-    pub negative_keyword_list_id: Option<String>,
-}
-
-/// `DoubleVerifyFraudInvalidTraffic` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DoubleVerifyFraudInvalidTraffic {
-    /// avoidInsufficientOption property.
-    pub avoid_insufficient_option: Option<bool>,
-    /// avoidedFraudOption property.
-    pub avoided_fraud_option: Option<String>,
-}
-
-/// `LanguageAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LanguageAssignedTargetingOptionDetails {
-    /// displayName property.
-    pub display_name: Option<String>,
+    /// geoRegionType property.
+    pub geo_region_type: Option<String>,
     /// negative property.
     pub negative: Option<bool>,
     /// targetingOptionId property.
@@ -440,18 +429,106 @@ pub struct ExchangeConfigEnabledExchange {
     pub seat_id: Option<String>,
 }
 
-/// `PartnerAdServerConfig` type.
+/// `InventorySourceAssignedTargetingOptionDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PartnerAdServerConfig {
-    /// measurementConfig property.
-    pub measurement_config: Option<MeasurementConfig>,
+pub struct InventorySourceAssignedTargetingOptionDetails {
+    /// inventorySourceId property.
+    pub inventory_source_id: Option<String>,
 }
 
-/// `AudioContentTypeAssignedTargetingOptionDetails` type.
+/// `OnScreenPositionAssignedTargetingOptionDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AudioContentTypeAssignedTargetingOptionDetails {
-    /// audioContentType property.
-    pub audio_content_type: Option<String>,
+pub struct OnScreenPositionAssignedTargetingOptionDetails {
+    /// adType property.
+    pub ad_type: Option<String>,
+    /// onScreenPosition property.
+    pub on_screen_position: Option<String>,
+    /// targetingOptionId property.
+    pub targeting_option_id: Option<String>,
+}
+
+/// `ContentInstreamPositionAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContentInstreamPositionAssignedTargetingOptionDetails {
+    /// adType property.
+    pub ad_type: Option<String>,
+    /// contentInstreamPosition property.
+    pub content_instream_position: Option<String>,
+}
+
+/// `ContentThemeAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContentThemeAssignedTargetingOptionDetails {
+    /// contentTheme property.
+    pub content_theme: Option<String>,
+    /// excludedContentTheme property.
+    pub excluded_content_theme: Option<String>,
+    /// excludedTargetingOptionId property.
+    pub excluded_targeting_option_id: Option<String>,
+}
+
+/// `DoubleVerifyAppStarRating` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DoubleVerifyAppStarRating {
+    /// avoidInsufficientStarRating property.
+    pub avoid_insufficient_star_rating: Option<bool>,
+    /// avoidedStarRating property.
+    pub avoided_star_rating: Option<String>,
+}
+
+/// `FirstPartyAndPartnerAudienceTargetingSetting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FirstPartyAndPartnerAudienceTargetingSetting {
+    /// firstPartyAndPartnerAudienceId property.
+    pub first_party_and_partner_audience_id: Option<String>,
+    /// recency property.
+    pub recency: Option<String>,
+}
+
+/// `ViewabilityAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ViewabilityAssignedTargetingOptionDetails {
+    /// viewability property.
+    pub viewability: Option<String>,
+}
+
+/// `PartnerDataAccessConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PartnerDataAccessConfig {
+    /// sdfConfig property.
+    pub sdf_config: Option<SdfConfig>,
+}
+
+/// `NativeContentPositionAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NativeContentPositionAssignedTargetingOptionDetails {
+    /// contentPosition property.
+    pub content_position: Option<String>,
+}
+
+/// `PartnerBillingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PartnerBillingConfig {
+    /// billingProfileId property.
+    pub billing_profile_id: Option<String>,
+}
+
+/// `DoubleVerifyVideoViewability` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DoubleVerifyVideoViewability {
+    /// playerImpressionRate property.
+    pub player_impression_rate: Option<String>,
+    /// videoIab property.
+    pub video_iab: Option<String>,
+    /// videoViewableRate property.
+    pub video_viewable_rate: Option<String>,
+}
+
+/// `CombinedAudienceGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CombinedAudienceGroup {
+    /// settings property.
+    pub settings: Option<Vec<CombinedAudienceTargetingSetting>>,
 }
 
 /// `DayAndTimeAssignedTargetingOptionDetails` type.
@@ -467,11 +544,11 @@ pub struct DayAndTimeAssignedTargetingOptionDetails {
     pub time_zone_resolution: Option<String>,
 }
 
-/// `SensitiveCategoryAssignedTargetingOptionDetails` type.
+/// `CombinedAudienceTargetingSetting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SensitiveCategoryAssignedTargetingOptionDetails {
-    /// excludedSensitiveCategory property.
-    pub excluded_sensitive_category: Option<String>,
+pub struct CombinedAudienceTargetingSetting {
+    /// combinedAudienceId property.
+    pub combined_audience_id: Option<String>,
 }
 
 /// `SessionPositionAssignedTargetingOptionDetails` type.
@@ -479,6 +556,257 @@ pub struct SensitiveCategoryAssignedTargetingOptionDetails {
 pub struct SessionPositionAssignedTargetingOptionDetails {
     /// sessionPosition property.
     pub session_position: Option<String>,
+}
+
+/// `ProximityLocationListAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProximityLocationListAssignedTargetingOptionDetails {
+    /// proximityLocationListId property.
+    pub proximity_location_list_id: Option<String>,
+    /// proximityRadius property.
+    pub proximity_radius: Option<f64>,
+    /// proximityRadiusUnit property.
+    pub proximity_radius_unit: Option<String>,
+}
+
+/// `DeviceMakeModelAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceMakeModelAssignedTargetingOptionDetails {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// negative property.
+    pub negative: Option<bool>,
+    /// targetingOptionId property.
+    pub targeting_option_id: Option<String>,
+}
+
+/// `IntegralAdScience` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntegralAdScience {
+    /// customSegmentId property.
+    pub custom_segment_id: Option<Vec<String>>,
+    /// displayViewability property.
+    pub display_viewability: Option<String>,
+    /// excludeUnrateable property.
+    pub exclude_unrateable: Option<bool>,
+    /// excludedAdFraudRisk property.
+    pub excluded_ad_fraud_risk: Option<String>,
+    /// excludedAdultRisk property.
+    pub excluded_adult_risk: Option<String>,
+    /// excludedAlcoholRisk property.
+    pub excluded_alcohol_risk: Option<String>,
+    /// excludedDrugsRisk property.
+    pub excluded_drugs_risk: Option<String>,
+    /// excludedGamblingRisk property.
+    pub excluded_gambling_risk: Option<String>,
+    /// excludedHateSpeechRisk property.
+    pub excluded_hate_speech_risk: Option<String>,
+    /// excludedIllegalDownloadsRisk property.
+    pub excluded_illegal_downloads_risk: Option<String>,
+    /// excludedOffensiveLanguageRisk property.
+    pub excluded_offensive_language_risk: Option<String>,
+    /// excludedViolenceRisk property.
+    pub excluded_violence_risk: Option<String>,
+    /// qualitySyncCustomSegmentId property.
+    pub quality_sync_custom_segment_id: Option<Vec<String>>,
+    /// traqScoreOption property.
+    pub traq_score_option: Option<String>,
+    /// videoViewability property.
+    pub video_viewability: Option<String>,
+}
+
+/// `AppCategoryAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppCategoryAssignedTargetingOptionDetails {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// negative property.
+    pub negative: Option<bool>,
+    /// targetingOptionId property.
+    pub targeting_option_id: Option<String>,
+}
+
+/// `EnvironmentAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnvironmentAssignedTargetingOptionDetails {
+    /// environment property.
+    pub environment: Option<String>,
+}
+
+/// `BulkEditPartnerAssignedTargetingOptionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BulkEditPartnerAssignedTargetingOptionsResponse {
+    /// createdAssignedTargetingOptions property.
+    pub created_assigned_targeting_options: Option<Vec<AssignedTargetingOption>>,
+}
+
+/// `MeasurementConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MeasurementConfig {
+    /// dv360ToCmCostReportingEnabled property.
+    pub dv360_to_cm_cost_reporting_enabled: Option<bool>,
+    /// dv360ToCmDataSharingEnabled property.
+    pub dv360_to_cm_data_sharing_enabled: Option<bool>,
+}
+
+/// `FirstPartyAndPartnerAudienceGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FirstPartyAndPartnerAudienceGroup {
+    /// settings property.
+    pub settings: Option<Vec<FirstPartyAndPartnerAudienceTargetingSetting>>,
+}
+
+/// `SubExchangeAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SubExchangeAssignedTargetingOptionDetails {
+    /// targetingOptionId property.
+    pub targeting_option_id: Option<String>,
+}
+
+/// `ChannelAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChannelAssignedTargetingOptionDetails {
+    /// channelId property.
+    pub channel_id: Option<String>,
+    /// negative property.
+    pub negative: Option<bool>,
+}
+
+/// `CarrierAndIspAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CarrierAndIspAssignedTargetingOptionDetails {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// negative property.
+    pub negative: Option<bool>,
+    /// targetingOptionId property.
+    pub targeting_option_id: Option<String>,
+}
+
+/// `CategoryAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CategoryAssignedTargetingOptionDetails {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// negative property.
+    pub negative: Option<bool>,
+    /// targetingOptionId property.
+    pub targeting_option_id: Option<String>,
+}
+
+/// `ExchangeAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExchangeAssignedTargetingOptionDetails {
+    /// exchange property.
+    pub exchange: Option<String>,
+}
+
+/// `PoiAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PoiAssignedTargetingOptionDetails {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
+    /// proximityRadiusAmount property.
+    pub proximity_radius_amount: Option<f64>,
+    /// proximityRadiusUnit property.
+    pub proximity_radius_unit: Option<String>,
+    /// targetingOptionId property.
+    pub targeting_option_id: Option<String>,
+}
+
+/// `ContentGenreAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContentGenreAssignedTargetingOptionDetails {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// negative property.
+    pub negative: Option<bool>,
+    /// targetingOptionId property.
+    pub targeting_option_id: Option<String>,
+}
+
+/// `ParentalStatusAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ParentalStatusAssignedTargetingOptionDetails {
+    /// parentalStatus property.
+    pub parental_status: Option<String>,
+}
+
+/// `NegativeKeywordListAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NegativeKeywordListAssignedTargetingOptionDetails {
+    /// negativeKeywordListId property.
+    pub negative_keyword_list_id: Option<String>,
+}
+
+/// `GoogleAudienceGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAudienceGroup {
+    /// settings property.
+    pub settings: Option<Vec<GoogleAudienceTargetingSetting>>,
+}
+
+/// `ThirdPartyVerifierAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ThirdPartyVerifierAssignedTargetingOptionDetails {
+    /// adloox property.
+    pub adloox: Option<Adloox>,
+    /// doubleVerify property.
+    pub double_verify: Option<DoubleVerify>,
+    /// integralAdScience property.
+    pub integral_ad_science: Option<IntegralAdScience>,
+}
+
+/// `BusinessChainAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BusinessChainAssignedTargetingOptionDetails {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// proximityRadiusAmount property.
+    pub proximity_radius_amount: Option<f64>,
+    /// proximityRadiusUnit property.
+    pub proximity_radius_unit: Option<String>,
+    /// targetingOptionId property.
+    pub targeting_option_id: Option<String>,
+}
+
+/// `DoubleVerify` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DoubleVerify {
+    /// appStarRating property.
+    pub app_star_rating: Option<DoubleVerifyAppStarRating>,
+    /// avoidedAgeRatings property.
+    pub avoided_age_ratings: Option<Vec<String>>,
+    /// brandSafetyCategories property.
+    pub brand_safety_categories: Option<DoubleVerifyBrandSafetyCategories>,
+    /// customSegmentId property.
+    pub custom_segment_id: Option<String>,
+    /// displayViewability property.
+    pub display_viewability: Option<DoubleVerifyDisplayViewability>,
+    /// fraudInvalidTraffic property.
+    pub fraud_invalid_traffic: Option<DoubleVerifyFraudInvalidTraffic>,
+    /// videoViewability property.
+    pub video_viewability: Option<DoubleVerifyVideoViewability>,
+}
+
+/// `YoutubeChannelAssignedTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct YoutubeChannelAssignedTargetingOptionDetails {
+    /// channelId property.
+    pub channel_id: Option<String>,
+    /// negative property.
+    pub negative: Option<bool>,
+}
+
+/// `ExchangeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExchangeConfig {
+    /// enabledExchanges property.
+    pub enabled_exchanges: Option<Vec<ExchangeConfigEnabledExchange>>,
 }
 
 /// `SdfConfig` type.
@@ -490,36 +818,11 @@ pub struct SdfConfig {
     pub version: Option<String>,
 }
 
-/// `BulkEditPartnerAssignedTargetingOptionsResponse` type.
+/// `ContentDurationAssignedTargetingOptionDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BulkEditPartnerAssignedTargetingOptionsResponse {
-    /// createdAssignedTargetingOptions property.
-    pub created_assigned_targeting_options: Option<Vec<AssignedTargetingOption>>,
-}
-
-/// `GoogleAudienceGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAudienceGroup {
-    /// settings property.
-    pub settings: Option<Vec<GoogleAudienceTargetingSetting>>,
-}
-
-/// `ContentInstreamPositionAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContentInstreamPositionAssignedTargetingOptionDetails {
-    /// adType property.
-    pub ad_type: Option<String>,
-    /// contentInstreamPosition property.
-    pub content_instream_position: Option<String>,
-}
-
-/// `OperatingSystemAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperatingSystemAssignedTargetingOptionDetails {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// negative property.
-    pub negative: Option<bool>,
+pub struct ContentDurationAssignedTargetingOptionDetails {
+    /// contentDuration property.
+    pub content_duration: Option<String>,
     /// targetingOptionId property.
     pub targeting_option_id: Option<String>,
 }
@@ -544,186 +847,6 @@ pub struct UrlAssignedTargetingOptionDetails {
     pub url: Option<String>,
 }
 
-/// `DoubleVerifyVideoViewability` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DoubleVerifyVideoViewability {
-    /// playerImpressionRate property.
-    pub player_impression_rate: Option<String>,
-    /// videoIab property.
-    pub video_iab: Option<String>,
-    /// videoViewableRate property.
-    pub video_viewable_rate: Option<String>,
-}
-
-/// `MeasurementConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MeasurementConfig {
-    /// dv360ToCmCostReportingEnabled property.
-    pub dv360_to_cm_cost_reporting_enabled: Option<bool>,
-    /// dv360ToCmDataSharingEnabled property.
-    pub dv360_to_cm_data_sharing_enabled: Option<bool>,
-}
-
-/// `ExchangeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExchangeConfig {
-    /// enabledExchanges property.
-    pub enabled_exchanges: Option<Vec<ExchangeConfigEnabledExchange>>,
-}
-
-/// `BusinessChainAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BusinessChainAssignedTargetingOptionDetails {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// proximityRadiusAmount property.
-    pub proximity_radius_amount: Option<f64>,
-    /// proximityRadiusUnit property.
-    pub proximity_radius_unit: Option<String>,
-    /// targetingOptionId property.
-    pub targeting_option_id: Option<String>,
-}
-
-/// `ContentThemeAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContentThemeAssignedTargetingOptionDetails {
-    /// contentTheme property.
-    pub content_theme: Option<String>,
-    /// excludedContentTheme property.
-    pub excluded_content_theme: Option<String>,
-    /// excludedTargetingOptionId property.
-    pub excluded_targeting_option_id: Option<String>,
-}
-
-/// `ContentGenreAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContentGenreAssignedTargetingOptionDetails {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// negative property.
-    pub negative: Option<bool>,
-    /// targetingOptionId property.
-    pub targeting_option_id: Option<String>,
-}
-
-/// `GenderAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GenderAssignedTargetingOptionDetails {
-    /// gender property.
-    pub gender: Option<String>,
-}
-
-/// `ContentDurationAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContentDurationAssignedTargetingOptionDetails {
-    /// contentDuration property.
-    pub content_duration: Option<String>,
-    /// targetingOptionId property.
-    pub targeting_option_id: Option<String>,
-}
-
-/// `ThirdPartyVerifierAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ThirdPartyVerifierAssignedTargetingOptionDetails {
-    /// adloox property.
-    pub adloox: Option<Adloox>,
-    /// doubleVerify property.
-    pub double_verify: Option<DoubleVerify>,
-    /// integralAdScience property.
-    pub integral_ad_science: Option<IntegralAdScience>,
-}
-
-/// `DoubleVerifyDisplayViewability` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DoubleVerifyDisplayViewability {
-    /// iab property.
-    pub iab: Option<String>,
-    /// viewableDuring property.
-    pub viewable_during: Option<String>,
-}
-
-/// `ProximityLocationListAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProximityLocationListAssignedTargetingOptionDetails {
-    /// proximityLocationListId property.
-    pub proximity_location_list_id: Option<String>,
-    /// proximityRadius property.
-    pub proximity_radius: Option<f64>,
-    /// proximityRadiusUnit property.
-    pub proximity_radius_unit: Option<String>,
-}
-
-/// `AppCategoryAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppCategoryAssignedTargetingOptionDetails {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// negative property.
-    pub negative: Option<bool>,
-    /// targetingOptionId property.
-    pub targeting_option_id: Option<String>,
-}
-
-/// `NativeContentPositionAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NativeContentPositionAssignedTargetingOptionDetails {
-    /// contentPosition property.
-    pub content_position: Option<String>,
-}
-
-/// `AgeRangeAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AgeRangeAssignedTargetingOptionDetails {
-    /// ageRange property.
-    pub age_range: Option<String>,
-}
-
-/// `AppAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppAssignedTargetingOptionDetails {
-    /// appId property.
-    pub app_id: Option<String>,
-    /// appPlatform property.
-    pub app_platform: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// negative property.
-    pub negative: Option<bool>,
-}
-
-/// `ChannelAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelAssignedTargetingOptionDetails {
-    /// channelId property.
-    pub channel_id: Option<String>,
-    /// negative property.
-    pub negative: Option<bool>,
-}
-
-/// `CustomListTargetingSetting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomListTargetingSetting {
-    /// customListId property.
-    pub custom_list_id: Option<String>,
-}
-
-/// `PoiAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PoiAssignedTargetingOptionDetails {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
-    /// proximityRadiusAmount property.
-    pub proximity_radius_amount: Option<f64>,
-    /// proximityRadiusUnit property.
-    pub proximity_radius_unit: Option<String>,
-    /// targetingOptionId property.
-    pub targeting_option_id: Option<String>,
-}
-
 /// `RegionalLocationListAssignedTargetingOptionDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionalLocationListAssignedTargetingOptionDetails {
@@ -733,68 +856,27 @@ pub struct RegionalLocationListAssignedTargetingOptionDetails {
     pub regional_location_list_id: Option<String>,
 }
 
-/// `UserRewardedContentAssignedTargetingOptionDetails` type.
+/// `ListPartnersResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserRewardedContentAssignedTargetingOptionDetails {
-    /// targetingOptionId property.
-    pub targeting_option_id: Option<String>,
-    /// userRewardedContent property.
-    pub user_rewarded_content: Option<String>,
+pub struct ListPartnersResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// partners property.
+    pub partners: Option<Vec<Partner>>,
 }
 
-/// `OnScreenPositionAssignedTargetingOptionDetails` type.
+/// `GoogleAudienceTargetingSetting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OnScreenPositionAssignedTargetingOptionDetails {
-    /// adType property.
-    pub ad_type: Option<String>,
-    /// onScreenPosition property.
-    pub on_screen_position: Option<String>,
-    /// targetingOptionId property.
-    pub targeting_option_id: Option<String>,
+pub struct GoogleAudienceTargetingSetting {
+    /// googleAudienceId property.
+    pub google_audience_id: Option<String>,
 }
 
-/// `DeviceTypeAssignedTargetingOptionDetails` type.
+/// `DigitalContentLabelAssignedTargetingOptionDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceTypeAssignedTargetingOptionDetails {
-    /// deviceType property.
-    pub device_type: Option<String>,
-    /// youtubeAndPartnersBidMultiplier property.
-    pub youtube_and_partners_bid_multiplier: Option<f64>,
-}
-
-/// `ViewabilityAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ViewabilityAssignedTargetingOptionDetails {
-    /// viewability property.
-    pub viewability: Option<String>,
-}
-
-/// `DoubleVerify` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DoubleVerify {
-    /// appStarRating property.
-    pub app_star_rating: Option<DoubleVerifyAppStarRating>,
-    /// avoidedAgeRatings property.
-    pub avoided_age_ratings: Option<Vec<String>>,
-    /// brandSafetyCategories property.
-    pub brand_safety_categories: Option<DoubleVerifyBrandSafetyCategories>,
-    /// customSegmentId property.
-    pub custom_segment_id: Option<String>,
-    /// displayViewability property.
-    pub display_viewability: Option<DoubleVerifyDisplayViewability>,
-    /// fraudInvalidTraffic property.
-    pub fraud_invalid_traffic: Option<DoubleVerifyFraudInvalidTraffic>,
-    /// videoViewability property.
-    pub video_viewability: Option<DoubleVerifyVideoViewability>,
-}
-
-/// `DoubleVerifyAppStarRating` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DoubleVerifyAppStarRating {
-    /// avoidInsufficientStarRating property.
-    pub avoid_insufficient_star_rating: Option<bool>,
-    /// avoidedStarRating property.
-    pub avoided_star_rating: Option<String>,
+pub struct DigitalContentLabelAssignedTargetingOptionDetails {
+    /// excludedContentRatingTier property.
+    pub excluded_content_rating_tier: Option<String>,
 }
 
 /// `Adloox` type.
@@ -832,87 +914,6 @@ pub struct Adloox {
     pub terrorism_content: Option<String>,
     /// videoIabViewability property.
     pub video_iab_viewability: Option<String>,
-}
-
-/// `GoogleAudienceTargetingSetting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAudienceTargetingSetting {
-    /// googleAudienceId property.
-    pub google_audience_id: Option<String>,
-}
-
-/// `PartnerBillingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PartnerBillingConfig {
-    /// billingProfileId property.
-    pub billing_profile_id: Option<String>,
-}
-
-/// `InventorySourceAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InventorySourceAssignedTargetingOptionDetails {
-    /// inventorySourceId property.
-    pub inventory_source_id: Option<String>,
-}
-
-/// `SubExchangeAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubExchangeAssignedTargetingOptionDetails {
-    /// targetingOptionId property.
-    pub targeting_option_id: Option<String>,
-}
-
-/// `PartnerDataAccessConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PartnerDataAccessConfig {
-    /// sdfConfig property.
-    pub sdf_config: Option<SdfConfig>,
-}
-
-/// `VideoPlayerSizeAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoPlayerSizeAssignedTargetingOptionDetails {
-    /// videoPlayerSize property.
-    pub video_player_size: Option<String>,
-}
-
-/// `FirstPartyAndPartnerAudienceGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirstPartyAndPartnerAudienceGroup {
-    /// settings property.
-    pub settings: Option<Vec<FirstPartyAndPartnerAudienceTargetingSetting>>,
-}
-
-/// `CombinedAudienceGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CombinedAudienceGroup {
-    /// settings property.
-    pub settings: Option<Vec<CombinedAudienceTargetingSetting>>,
-}
-
-/// `YoutubeVideoAssignedTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct YoutubeVideoAssignedTargetingOptionDetails {
-    /// negative property.
-    pub negative: Option<bool>,
-    /// videoId property.
-    pub video_id: Option<String>,
-}
-
-/// `FirstPartyAndPartnerAudienceTargetingSetting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirstPartyAndPartnerAudienceTargetingSetting {
-    /// firstPartyAndPartnerAudienceId property.
-    pub first_party_and_partner_audience_id: Option<String>,
-    /// recency property.
-    pub recency: Option<String>,
-}
-
-/// `CustomListGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomListGroup {
-    /// settings property.
-    pub settings: Option<Vec<CustomListTargetingSetting>>,
 }
 
 // =============================================================================

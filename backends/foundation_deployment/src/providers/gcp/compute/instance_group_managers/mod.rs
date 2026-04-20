@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,146 +22,26 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `InstanceGroupManagerStatusAllInstancesConfig` type.
+/// `GetVersionOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerStatusAllInstancesConfig {
-    /// currentRevision property.
-    pub current_revision: Option<String>,
-    /// effective property.
-    pub effective: Option<bool>,
+pub struct GetVersionOperationMetadata {
+    /// inlineSbomInfo property.
+    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
 }
 
-/// `InstanceGroupManagerResourcePolicies` type.
+/// `HelpLink` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerResourcePolicies {
-    /// workloadPolicy property.
-    pub workload_policy: Option<String>,
-}
-
-/// `InstanceGroupManagerActionsSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerActionsSummary {
-    /// abandoning property.
-    pub abandoning: Option<i64>,
-    /// creating property.
-    pub creating: Option<i64>,
-    /// creatingWithoutRetries property.
-    pub creating_without_retries: Option<i64>,
-    /// deleting property.
-    pub deleting: Option<i64>,
-    /// none property.
-    pub none: Option<i64>,
-    /// recreating property.
-    pub recreating: Option<i64>,
-    /// refreshing property.
-    pub refreshing: Option<i64>,
-    /// restarting property.
-    pub restarting: Option<i64>,
-    /// resuming property.
-    pub resuming: Option<i64>,
-    /// starting property.
-    pub starting: Option<i64>,
-    /// stopping property.
-    pub stopping: Option<i64>,
-    /// suspending property.
-    pub suspending: Option<i64>,
-    /// verifying property.
-    pub verifying: Option<i64>,
-}
-
-/// `FixedOrPercent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FixedOrPercent {
-    /// calculated property.
-    pub calculated: Option<i64>,
-    /// fixed property.
-    pub fixed: Option<i64>,
-    /// percent property.
-    pub percent: Option<i64>,
-}
-
-/// `QuotaExceededInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotaExceededInfo {
-    /// dimensions property.
-    pub dimensions: Option<serde_json::Value>,
-    /// futureLimit property.
-    pub future_limit: Option<f64>,
-    /// limit property.
-    pub limit: Option<f64>,
-    /// limitName property.
-    pub limit_name: Option<String>,
-    /// metricName property.
-    pub metric_name: Option<String>,
-    /// rolloutStatus property.
-    pub rollout_status: Option<String>,
-}
-
-/// `InstanceGroupManagerStatusAcceleratorTopologyAcceleratorTopologyStateDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerStatusAcceleratorTopologyAcceleratorTopologyStateDetails {
-    /// error property.
-    pub error: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// timestamp property.
-    pub timestamp: Option<String>,
-}
-
-/// `StatefulPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StatefulPolicy {
-    /// preservedState property.
-    pub preserved_state: Option<StatefulPolicyPreservedState>,
-}
-
-/// `InstanceGroupManagerList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<InstanceGroupManager>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `InstanceGroupManagerAggregatedList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerAggregatedList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<serde_json::Value>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// unreachables property.
-    pub unreachables: Option<Vec<String>>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `DistributionPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DistributionPolicy {
-    /// targetShape property.
-    pub target_shape: Option<String>,
-    /// zones property.
-    pub zones: Option<Vec<DistributionPolicyZoneConfiguration>>,
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
 }
 
 /// `InstanceGroupManagerVersion` type.
@@ -172,6 +53,41 @@ pub struct InstanceGroupManagerVersion {
     pub name: Option<String>,
     /// targetSize property.
     pub target_size: Option<FixedOrPercent>,
+}
+
+/// `InstanceGroupManagerAutoHealingPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerAutoHealingPolicy {
+    /// healthCheck property.
+    pub health_check: Option<String>,
+    /// initialDelaySec property.
+    pub initial_delay_sec: Option<i64>,
+}
+
+/// `InstanceGroupManagerStatusBulkInstanceOperation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerStatusBulkInstanceOperation {
+    /// inProgress property.
+    pub in_progress: Option<bool>,
+    /// lastProgressCheck property.
+    pub last_progress_check:
+        Option<InstanceGroupManagerStatusBulkInstanceOperationLastProgressCheck>,
+}
+
+/// `StatefulPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StatefulPolicy {
+    /// preservedState property.
+    pub preserved_state: Option<StatefulPolicyPreservedState>,
+}
+
+/// `SetCommonInstanceMetadataOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetCommonInstanceMetadataOperationMetadata {
+    /// clientOperationId property.
+    pub client_operation_id: Option<String>,
+    /// perLocationOperations property.
+    pub per_location_operations: Option<serde_json::Value>,
 }
 
 /// `InstanceGroupManagerStatusInstanceStatusSummary` type.
@@ -203,245 +119,6 @@ pub struct InstanceGroupManagerStatusInstanceStatusSummary {
     pub suspending: Option<i64>,
     /// terminated property.
     pub terminated: Option<i64>,
-}
-
-/// `InstanceGroupManagerStatusStatefulPerInstanceConfigs` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerStatusStatefulPerInstanceConfigs {
-    /// allEffective property.
-    pub all_effective: Option<bool>,
-}
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `DistributionPolicyZoneConfiguration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DistributionPolicyZoneConfiguration {
-    /// zone property.
-    pub zone: Option<String>,
-}
-
-/// `StatefulPolicyPreservedState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StatefulPolicyPreservedState {
-    /// disks property.
-    pub disks: Option<serde_json::Value>,
-    /// externalIPs property.
-    pub external_i_ps: Option<serde_json::Value>,
-    /// internalIPs property.
-    pub internal_i_ps: Option<serde_json::Value>,
-}
-
-/// `InstancePropertiesPatch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancePropertiesPatch {
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-}
-
-/// `GetVersionOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadata {
-    /// inlineSbomInfo property.
-    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
-}
-
-/// `InstancesBulkInsertOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
-}
-
-/// `NamedPort` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NamedPort {
-    /// name property.
-    pub name: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
-}
-
-/// `ErrorInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `InstanceGroupManagerStandbyPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerStandbyPolicy {
-    /// initialDelaySec property.
-    pub initial_delay_sec: Option<i64>,
-    /// mode property.
-    pub mode: Option<String>,
-}
-
-/// `GetVersionOperationMetadataSbomInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
-}
-
-/// `InstanceGroupManagerStatusVersionTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerStatusVersionTarget {
-    /// isReached property.
-    pub is_reached: Option<bool>,
-}
-
-/// `SetCommonInstanceMetadataOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetCommonInstanceMetadataOperationMetadata {
-    /// clientOperationId property.
-    pub client_operation_id: Option<String>,
-    /// perLocationOperations property.
-    pub per_location_operations: Option<serde_json::Value>,
-}
-
-/// `InstanceGroupManagerStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerStatus {
-    /// allInstancesConfig property.
-    pub all_instances_config: Option<InstanceGroupManagerStatusAllInstancesConfig>,
-    /// appliedAcceleratorTopologies property.
-    pub applied_accelerator_topologies: Option<Vec<InstanceGroupManagerStatusAcceleratorTopology>>,
-    /// autoscaler property.
-    pub autoscaler: Option<String>,
-    /// bulkInstanceOperation property.
-    pub bulk_instance_operation: Option<InstanceGroupManagerStatusBulkInstanceOperation>,
-    /// currentInstanceStatuses property.
-    pub current_instance_statuses: Option<InstanceGroupManagerStatusInstanceStatusSummary>,
-    /// isStable property.
-    pub is_stable: Option<bool>,
-    /// stateful property.
-    pub stateful: Option<InstanceGroupManagerStatusStateful>,
-    /// versionTarget property.
-    pub version_target: Option<InstanceGroupManagerStatusVersionTarget>,
-}
-
-/// `Help` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
-}
-
-/// `InstanceGroupManagerAllInstancesConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerAllInstancesConfig {
-    /// properties property.
-    pub properties: Option<InstancePropertiesPatch>,
-}
-
-/// `HelpLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `InstanceGroupManagerStatusAcceleratorTopology` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerStatusAcceleratorTopology {
-    /// acceleratorTopology property.
-    pub accelerator_topology: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// stateDetails property.
-    pub state_details:
-        Option<InstanceGroupManagerStatusAcceleratorTopologyAcceleratorTopologyStateDetails>,
-}
-
-/// `InstanceGroupManagerStatusStateful` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerStatusStateful {
-    /// hasStatefulConfig property.
-    pub has_stateful_config: Option<bool>,
-    /// perInstanceConfigs property.
-    pub per_instance_configs: Option<InstanceGroupManagerStatusStatefulPerInstanceConfigs>,
-}
-
-/// `InstanceGroupManagerAutoHealingPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerAutoHealingPolicy {
-    /// healthCheck property.
-    pub health_check: Option<String>,
-    /// initialDelaySec property.
-    pub initial_delay_sec: Option<i64>,
-}
-
-/// `InstanceGroupManagerTargetSizePolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerTargetSizePolicy {
-    /// mode property.
-    pub mode: Option<String>,
-}
-
-/// `InstanceGroupManagerUpdatePolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerUpdatePolicy {
-    /// instanceRedistributionType property.
-    pub instance_redistribution_type: Option<String>,
-    /// maxSurge property.
-    pub max_surge: Option<FixedOrPercent>,
-    /// maxUnavailable property.
-    pub max_unavailable: Option<FixedOrPercent>,
-    /// minimalAction property.
-    pub minimal_action: Option<String>,
-    /// mostDisruptiveAllowedAction property.
-    pub most_disruptive_allowed_action: Option<String>,
-    /// replacementMethod property.
-    pub replacement_method: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `InstanceGroupManagerInstanceLifecyclePolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerInstanceLifecyclePolicy {
-    /// defaultActionOnFailure property.
-    pub default_action_on_failure: Option<String>,
-    /// forceUpdateOnRepair property.
-    pub force_update_on_repair: Option<String>,
-    /// onFailedHealthCheck property.
-    pub on_failed_health_check: Option<String>,
-}
-
-/// `InstanceGroupManagerStatusBulkInstanceOperation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerStatusBulkInstanceOperation {
-    /// inProgress property.
-    pub in_progress: Option<bool>,
-    /// lastProgressCheck property.
-    pub last_progress_check:
-        Option<InstanceGroupManagerStatusBulkInstanceOperationLastProgressCheck>,
-}
-
-/// `InstanceGroupManagerInstanceFlexibilityPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerInstanceFlexibilityPolicy {
-    /// instanceSelections property.
-    pub instance_selections: Option<serde_json::Value>,
 }
 
 /// `InstanceGroupManager` type.
@@ -515,6 +192,83 @@ pub struct InstanceGroupManager {
     pub zone: Option<String>,
 }
 
+/// `InstanceGroupManagerStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerStatus {
+    /// allInstancesConfig property.
+    pub all_instances_config: Option<InstanceGroupManagerStatusAllInstancesConfig>,
+    /// appliedAcceleratorTopologies property.
+    pub applied_accelerator_topologies: Option<Vec<InstanceGroupManagerStatusAcceleratorTopology>>,
+    /// autoscaler property.
+    pub autoscaler: Option<String>,
+    /// bulkInstanceOperation property.
+    pub bulk_instance_operation: Option<InstanceGroupManagerStatusBulkInstanceOperation>,
+    /// currentInstanceStatuses property.
+    pub current_instance_statuses: Option<InstanceGroupManagerStatusInstanceStatusSummary>,
+    /// isStable property.
+    pub is_stable: Option<bool>,
+    /// stateful property.
+    pub stateful: Option<InstanceGroupManagerStatusStateful>,
+    /// versionTarget property.
+    pub version_target: Option<InstanceGroupManagerStatusVersionTarget>,
+}
+
+/// `InstanceGroupManagerInstanceFlexibilityPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerInstanceFlexibilityPolicy {
+    /// instanceSelections property.
+    pub instance_selections: Option<serde_json::Value>,
+}
+
+/// `InstanceGroupManagerInstanceLifecyclePolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerInstanceLifecyclePolicy {
+    /// defaultActionOnFailure property.
+    pub default_action_on_failure: Option<String>,
+    /// forceUpdateOnRepair property.
+    pub force_update_on_repair: Option<String>,
+    /// onFailedHealthCheck property.
+    pub on_failed_health_check: Option<String>,
+}
+
+/// `StatefulPolicyPreservedState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StatefulPolicyPreservedState {
+    /// disks property.
+    pub disks: Option<serde_json::Value>,
+    /// externalIPs property.
+    pub external_i_ps: Option<serde_json::Value>,
+    /// internalIPs property.
+    pub internal_i_ps: Option<serde_json::Value>,
+}
+
+/// `FixedOrPercent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FixedOrPercent {
+    /// calculated property.
+    pub calculated: Option<i64>,
+    /// fixed property.
+    pub fixed: Option<i64>,
+    /// percent property.
+    pub percent: Option<i64>,
+}
+
+/// `DistributionPolicyZoneConfiguration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DistributionPolicyZoneConfiguration {
+    /// zone property.
+    pub zone: Option<String>,
+}
+
+/// `InstanceGroupManagerStatusAcceleratorTopologyAcceleratorTopologyStateDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerStatusAcceleratorTopologyAcceleratorTopologyStateDetails {
+    /// error property.
+    pub error: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// timestamp property.
+    pub timestamp: Option<String>,
+}
+
 /// `InstanceGroupManagerStatusBulkInstanceOperationLastProgressCheck` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerStatusBulkInstanceOperationLastProgressCheck {
@@ -522,6 +276,113 @@ pub struct InstanceGroupManagerStatusBulkInstanceOperationLastProgressCheck {
     pub error: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// timestamp property.
     pub timestamp: Option<String>,
+}
+
+/// `LocalizedMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `QuotaExceededInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuotaExceededInfo {
+    /// dimensions property.
+    pub dimensions: Option<serde_json::Value>,
+    /// futureLimit property.
+    pub future_limit: Option<f64>,
+    /// limit property.
+    pub limit: Option<f64>,
+    /// limitName property.
+    pub limit_name: Option<String>,
+    /// metricName property.
+    pub metric_name: Option<String>,
+    /// rolloutStatus property.
+    pub rollout_status: Option<String>,
+}
+
+/// `InstanceGroupManagerStatusStatefulPerInstanceConfigs` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerStatusStatefulPerInstanceConfigs {
+    /// allEffective property.
+    pub all_effective: Option<bool>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `DistributionPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DistributionPolicy {
+    /// targetShape property.
+    pub target_shape: Option<String>,
+    /// zones property.
+    pub zones: Option<Vec<DistributionPolicyZoneConfiguration>>,
+}
+
+/// `InstanceGroupManagerTargetSizePolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerTargetSizePolicy {
+    /// mode property.
+    pub mode: Option<String>,
+}
+
+/// `InstanceGroupManagerStatusAllInstancesConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerStatusAllInstancesConfig {
+    /// currentRevision property.
+    pub current_revision: Option<String>,
+    /// effective property.
+    pub effective: Option<bool>,
+}
+
+/// `InstancePropertiesPatch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancePropertiesPatch {
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+}
+
+/// `InstanceGroupManagerStatusStateful` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerStatusStateful {
+    /// hasStatefulConfig property.
+    pub has_stateful_config: Option<bool>,
+    /// perInstanceConfigs property.
+    pub per_instance_configs: Option<InstanceGroupManagerStatusStatefulPerInstanceConfigs>,
+}
+
+/// `InstanceGroupManagerList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<InstanceGroupManager>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `InstanceGroupManagerAllInstancesConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerAllInstancesConfig {
+    /// properties property.
+    pub properties: Option<InstancePropertiesPatch>,
 }
 
 /// `RegionInstanceGroupManagerList` type.
@@ -539,6 +400,146 @@ pub struct RegionInstanceGroupManagerList {
     pub self_link: Option<String>,
     /// warning property.
     pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `InstanceGroupManagerActionsSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerActionsSummary {
+    /// abandoning property.
+    pub abandoning: Option<i64>,
+    /// creating property.
+    pub creating: Option<i64>,
+    /// creatingWithoutRetries property.
+    pub creating_without_retries: Option<i64>,
+    /// deleting property.
+    pub deleting: Option<i64>,
+    /// none property.
+    pub none: Option<i64>,
+    /// recreating property.
+    pub recreating: Option<i64>,
+    /// refreshing property.
+    pub refreshing: Option<i64>,
+    /// restarting property.
+    pub restarting: Option<i64>,
+    /// resuming property.
+    pub resuming: Option<i64>,
+    /// starting property.
+    pub starting: Option<i64>,
+    /// stopping property.
+    pub stopping: Option<i64>,
+    /// suspending property.
+    pub suspending: Option<i64>,
+    /// verifying property.
+    pub verifying: Option<i64>,
+}
+
+/// `InstanceGroupManagerStandbyPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerStandbyPolicy {
+    /// initialDelaySec property.
+    pub initial_delay_sec: Option<i64>,
+    /// mode property.
+    pub mode: Option<String>,
+}
+
+/// `Help` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
+}
+
+/// `GetVersionOperationMetadataSbomInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
+}
+
+/// `InstanceGroupManagerResourcePolicies` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerResourcePolicies {
+    /// workloadPolicy property.
+    pub workload_policy: Option<String>,
+}
+
+/// `InstanceGroupManagerAggregatedList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerAggregatedList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<serde_json::Value>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// unreachables property.
+    pub unreachables: Option<Vec<String>>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `InstanceGroupManagerStatusAcceleratorTopology` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerStatusAcceleratorTopology {
+    /// acceleratorTopology property.
+    pub accelerator_topology: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// stateDetails property.
+    pub state_details:
+        Option<InstanceGroupManagerStatusAcceleratorTopologyAcceleratorTopologyStateDetails>,
+}
+
+/// `NamedPort` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NamedPort {
+    /// name property.
+    pub name: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
+}
+
+/// `ErrorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `InstanceGroupManagerUpdatePolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerUpdatePolicy {
+    /// instanceRedistributionType property.
+    pub instance_redistribution_type: Option<String>,
+    /// maxSurge property.
+    pub max_surge: Option<FixedOrPercent>,
+    /// maxUnavailable property.
+    pub max_unavailable: Option<FixedOrPercent>,
+    /// minimalAction property.
+    pub minimal_action: Option<String>,
+    /// mostDisruptiveAllowedAction property.
+    pub most_disruptive_allowed_action: Option<String>,
+    /// replacementMethod property.
+    pub replacement_method: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `InstanceGroupManagerStatusVersionTarget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerStatusVersionTarget {
+    /// isReached property.
+    pub is_reached: Option<bool>,
 }
 
 // =============================================================================

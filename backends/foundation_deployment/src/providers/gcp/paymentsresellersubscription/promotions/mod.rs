@@ -12,17 +12,36 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Duration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Duration {
+    /// count property.
+    pub count: Option<i64>,
+    /// unit property.
+    pub unit: Option<String>,
+}
+
+/// `ListPromotionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListPromotionsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// promotions property.
+    pub promotions: Option<Vec<Promotion>>,
+}
 
 /// `PromotionIntroductoryPricingDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -61,24 +80,6 @@ pub struct Amount {
     pub amount_micros: Option<String>,
     /// currencyCode property.
     pub currency_code: Option<String>,
-}
-
-/// `Duration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Duration {
-    /// count property.
-    pub count: Option<i64>,
-    /// unit property.
-    pub unit: Option<String>,
-}
-
-/// `ListPromotionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListPromotionsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// promotions property.
-    pub promotions: Option<Vec<Promotion>>,
 }
 
 /// `Promotion` type.

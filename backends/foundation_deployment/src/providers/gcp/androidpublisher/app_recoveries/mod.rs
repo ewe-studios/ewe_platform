@@ -12,32 +12,32 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `RemoteInAppUpdateDataPerBundle` type.
+/// `AppVersionList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemoteInAppUpdateDataPerBundle {
-    /// recoveredDeviceCount property.
-    pub recovered_device_count: Option<String>,
-    /// totalDeviceCount property.
-    pub total_device_count: Option<String>,
-    /// versionCode property.
-    pub version_code: Option<String>,
+pub struct AppVersionList {
+    /// versionCodes property.
+    pub version_codes: Option<Vec<String>>,
 }
 
-/// `AddTargetingResponse` type.
+/// `RemoteInAppUpdateData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AddTargetingResponse {}
+pub struct RemoteInAppUpdateData {
+    /// remoteAppUpdateDataPerBundle property.
+    pub remote_app_update_data_per_bundle: Option<Vec<RemoteInAppUpdateDataPerBundle>>,
+}
 
 /// `AppRecoveryAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -60,23 +60,19 @@ pub struct AppRecoveryAction {
     pub targeting: Option<Targeting>,
 }
 
-/// `AndroidSdks` type.
+/// `AllUsers` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AndroidSdks {
-    /// sdkLevels property.
-    pub sdk_levels: Option<Vec<String>>,
+pub struct AllUsers {
+    /// isAllUsersRequested property.
+    pub is_all_users_requested: Option<bool>,
 }
 
-/// `RemoteInAppUpdateData` type.
+/// `ListAppRecoveriesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemoteInAppUpdateData {
-    /// remoteAppUpdateDataPerBundle property.
-    pub remote_app_update_data_per_bundle: Option<Vec<RemoteInAppUpdateDataPerBundle>>,
+pub struct ListAppRecoveriesResponse {
+    /// recoveryActions property.
+    pub recovery_actions: Option<Vec<AppRecoveryAction>>,
 }
-
-/// `CancelAppRecoveryResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelAppRecoveryResponse {}
 
 /// `DeployAppRecoveryResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -97,32 +93,15 @@ pub struct Targeting {
     pub version_range: Option<AppVersionRange>,
 }
 
-/// `AllUsers` type.
+/// `AddTargetingResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AllUsers {
-    /// isAllUsersRequested property.
-    pub is_all_users_requested: Option<bool>,
-}
+pub struct AddTargetingResponse {}
 
-/// `Regions` type.
+/// `AndroidSdks` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Regions {
-    /// regionCode property.
-    pub region_code: Option<Vec<String>>,
-}
-
-/// `ListAppRecoveriesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAppRecoveriesResponse {
-    /// recoveryActions property.
-    pub recovery_actions: Option<Vec<AppRecoveryAction>>,
-}
-
-/// `AppVersionList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppVersionList {
-    /// versionCodes property.
-    pub version_codes: Option<Vec<String>>,
+pub struct AndroidSdks {
+    /// sdkLevels property.
+    pub sdk_levels: Option<Vec<String>>,
 }
 
 /// `AppVersionRange` type.
@@ -132,6 +111,28 @@ pub struct AppVersionRange {
     pub version_code_end: Option<String>,
     /// versionCodeStart property.
     pub version_code_start: Option<String>,
+}
+
+/// `RemoteInAppUpdateDataPerBundle` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RemoteInAppUpdateDataPerBundle {
+    /// recoveredDeviceCount property.
+    pub recovered_device_count: Option<String>,
+    /// totalDeviceCount property.
+    pub total_device_count: Option<String>,
+    /// versionCode property.
+    pub version_code: Option<String>,
+}
+
+/// `CancelAppRecoveryResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CancelAppRecoveryResponse {}
+
+/// `Regions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Regions {
+    /// regionCode property.
+    pub region_code: Option<Vec<String>>,
 }
 
 // =============================================================================

@@ -12,25 +12,24 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListCustomBiddingAlgorithmRulesResponse` type.
+/// `CustomBiddingAlgorithmRulesError` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCustomBiddingAlgorithmRulesResponse {
-    /// customBiddingRules property.
-    pub custom_bidding_rules: Option<Vec<CustomBiddingAlgorithmRules>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct CustomBiddingAlgorithmRulesError {
+    /// errorCode property.
+    pub error_code: Option<String>,
 }
 
 /// `CustomBiddingAlgorithmRules` type.
@@ -54,18 +53,20 @@ pub struct CustomBiddingAlgorithmRules {
     pub state: Option<String>,
 }
 
-/// `CustomBiddingAlgorithmRulesError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomBiddingAlgorithmRulesError {
-    /// errorCode property.
-    pub error_code: Option<String>,
-}
-
 /// `CustomBiddingAlgorithmRulesRef` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomBiddingAlgorithmRulesRef {
     /// resourceName property.
     pub resource_name: Option<String>,
+}
+
+/// `ListCustomBiddingAlgorithmRulesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListCustomBiddingAlgorithmRulesResponse {
+    /// customBiddingRules property.
+    pub custom_bidding_rules: Option<Vec<CustomBiddingAlgorithmRules>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

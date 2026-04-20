@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,43 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudContentwarehouseV1DataUpdateAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1DataUpdateAction {
-    /// entries property.
-    pub entries: Option<serde_json::Value>,
-}
-
-/// `GoogleCloudContentwarehouseV1PublishAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1PublishAction {
-    /// messages property.
-    pub messages: Option<Vec<String>>,
-    /// topicId property.
-    pub topic_id: Option<String>,
-}
-
-/// `GoogleCloudContentwarehouseV1RemoveFromFolderAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1RemoveFromFolderAction {
-    /// condition property.
-    pub condition: Option<String>,
-    /// folder property.
-    pub folder: Option<String>,
-}
-
-/// `GoogleCloudContentwarehouseV1DataValidationAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1DataValidationAction {
-    /// conditions property.
-    pub conditions: Option<serde_json::Value>,
-}
 
 /// `GoogleCloudContentwarehouseV1Action` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -80,17 +49,11 @@ pub struct GoogleCloudContentwarehouseV1Action {
     pub remove_from_folder_action: Option<GoogleCloudContentwarehouseV1RemoveFromFolderAction>,
 }
 
-/// `GoogleCloudContentwarehouseV1RuleSet` type.
+/// `GoogleCloudContentwarehouseV1DataUpdateAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1RuleSet {
-    /// description property.
-    pub description: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// rules property.
-    pub rules: Option<Vec<GoogleCloudContentwarehouseV1Rule>>,
-    /// source property.
-    pub source: Option<String>,
+pub struct GoogleCloudContentwarehouseV1DataUpdateAction {
+    /// entries property.
+    pub entries: Option<serde_json::Value>,
 }
 
 /// `GoogleIamV1AuditConfig` type.
@@ -102,29 +65,13 @@ pub struct GoogleIamV1AuditConfig {
     pub service: Option<String>,
 }
 
-/// `GoogleIamV1Binding` type.
+/// `GoogleCloudContentwarehouseV1ListRuleSetsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Binding {
-    /// condition property.
-    pub condition: Option<GoogleTypeExpr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `GoogleCloudContentwarehouseV1DeleteDocumentAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1DeleteDocumentAction {
-    /// enableHardDelete property.
-    pub enable_hard_delete: Option<bool>,
-}
-
-/// `GoogleCloudContentwarehouseV1AddToFolderAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1AddToFolderAction {
-    /// folders property.
-    pub folders: Option<Vec<String>>,
+pub struct GoogleCloudContentwarehouseV1ListRuleSetsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// ruleSets property.
+    pub rule_sets: Option<Vec<GoogleCloudContentwarehouseV1RuleSet>>,
 }
 
 /// `GoogleIamV1AuditLogConfig` type.
@@ -134,6 +81,37 @@ pub struct GoogleIamV1AuditLogConfig {
     pub exempted_members: Option<Vec<String>>,
     /// logType property.
     pub log_type: Option<String>,
+}
+
+/// `GoogleCloudContentwarehouseV1DataValidationAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1DataValidationAction {
+    /// conditions property.
+    pub conditions: Option<serde_json::Value>,
+}
+
+/// `GoogleTypeExpr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeExpr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleIamV1Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1Binding {
+    /// condition property.
+    pub condition: Option<GoogleTypeExpr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `GoogleCloudContentwarehouseV1Rule` type.
@@ -151,28 +129,6 @@ pub struct GoogleCloudContentwarehouseV1Rule {
     pub trigger_type: Option<String>,
 }
 
-/// `GoogleTypeExpr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeExpr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleCloudContentwarehouseV1ListRuleSetsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1ListRuleSetsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// ruleSets property.
-    pub rule_sets: Option<Vec<GoogleCloudContentwarehouseV1RuleSet>>,
-}
-
 /// `GoogleIamV1Policy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Policy {
@@ -186,6 +142,38 @@ pub struct GoogleIamV1Policy {
     pub version: Option<i64>,
 }
 
+/// `GoogleCloudContentwarehouseV1AddToFolderAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1AddToFolderAction {
+    /// folders property.
+    pub folders: Option<Vec<String>>,
+}
+
+/// `GoogleCloudContentwarehouseV1DeleteDocumentAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1DeleteDocumentAction {
+    /// enableHardDelete property.
+    pub enable_hard_delete: Option<bool>,
+}
+
+/// `GoogleCloudContentwarehouseV1RemoveFromFolderAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1RemoveFromFolderAction {
+    /// condition property.
+    pub condition: Option<String>,
+    /// folder property.
+    pub folder: Option<String>,
+}
+
+/// `GoogleCloudContentwarehouseV1PublishAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1PublishAction {
+    /// messages property.
+    pub messages: Option<Vec<String>>,
+    /// topicId property.
+    pub topic_id: Option<String>,
+}
+
 /// `GoogleCloudContentwarehouseV1AccessControlAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1AccessControlAction {
@@ -193,6 +181,19 @@ pub struct GoogleCloudContentwarehouseV1AccessControlAction {
     pub operation_type: Option<String>,
     /// policy property.
     pub policy: Option<GoogleIamV1Policy>,
+}
+
+/// `GoogleCloudContentwarehouseV1RuleSet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1RuleSet {
+    /// description property.
+    pub description: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// rules property.
+    pub rules: Option<Vec<GoogleCloudContentwarehouseV1Rule>>,
+    /// source property.
+    pub source: Option<String>,
 }
 
 // =============================================================================

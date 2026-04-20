@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,18 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ManagedZoneReverseLookupConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedZoneReverseLookupConfig {
+    /// kind property.
+    pub kind: Option<String>,
+}
 
 /// `DnsKey` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -54,13 +62,13 @@ pub struct DnsKey {
     pub r#type: Option<String>,
 }
 
-/// `ManagedZonePeeringConfig` type.
+/// `GoogleIamV1AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZonePeeringConfig {
-    /// kind property.
-    pub kind: Option<String>,
-    /// targetNetwork property.
-    pub target_network: Option<ManagedZonePeeringConfigTargetNetwork>,
+pub struct GoogleIamV1AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
 /// `ManagedZoneServiceDirectoryConfigNamespace` type.
@@ -74,86 +82,22 @@ pub struct ManagedZoneServiceDirectoryConfigNamespace {
     pub namespace_url: Option<String>,
 }
 
-/// `GoogleIamV1TestIamPermissionsResponse` type.
+/// `ManagedZoneServiceDirectoryConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1TestIamPermissionsResponse {
-    /// permissions property.
-    pub permissions: Option<Vec<String>>,
-}
-
-/// `DnsKeyDigest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsKeyDigest {
-    /// digest property.
-    pub digest: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `ManagedZonePrivateVisibilityConfigGKECluster` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZonePrivateVisibilityConfigGKECluster {
-    /// gkeClusterName property.
-    pub gke_cluster_name: Option<String>,
+pub struct ManagedZoneServiceDirectoryConfig {
     /// kind property.
     pub kind: Option<String>,
+    /// namespace property.
+    pub namespace: Option<ManagedZoneServiceDirectoryConfigNamespace>,
 }
 
-/// `ManagedZoneReverseLookupConfig` type.
+/// `ManagedZonePeeringConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZoneReverseLookupConfig {
+pub struct ManagedZonePeeringConfig {
     /// kind property.
     pub kind: Option<String>,
-}
-
-/// `ManagedZoneForwardingConfigNameServerTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZoneForwardingConfigNameServerTarget {
-    /// domainName property.
-    pub domain_name: Option<String>,
-    /// forwardingPath property.
-    pub forwarding_path: Option<String>,
-    /// ipv4Address property.
-    pub ipv4_address: Option<String>,
-    /// ipv6Address property.
-    pub ipv6_address: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleIamV1Policy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Policy {
-    /// auditConfigs property.
-    pub audit_configs: Option<Vec<GoogleIamV1AuditConfig>>,
-    /// bindings property.
-    pub bindings: Option<Vec<GoogleIamV1Binding>>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// version property.
-    pub version: Option<i64>,
-}
-
-/// `OperationDnsKeyContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperationDnsKeyContext {
-    /// newValue property.
-    pub new_value: Option<DnsKey>,
-    /// oldValue property.
-    pub old_value: Option<DnsKey>,
+    /// targetNetwork property.
+    pub target_network: Option<ManagedZonePeeringConfigTargetNetwork>,
 }
 
 /// `ManagedZonePrivateVisibilityConfig` type.
@@ -167,15 +111,33 @@ pub struct ManagedZonePrivateVisibilityConfig {
     pub networks: Option<Vec<ManagedZonePrivateVisibilityConfigNetwork>>,
 }
 
-/// `ManagedZonePeeringConfigTargetNetwork` type.
+/// `ManagedZonesListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZonePeeringConfigTargetNetwork {
-    /// deactivateTime property.
-    pub deactivate_time: Option<String>,
+pub struct ManagedZonesListResponse {
+    /// kind property.
+    pub kind: Option<String>,
+    /// managedZones property.
+    pub managed_zones: Option<Vec<ManagedZone>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `ManagedZonePrivateVisibilityConfigNetwork` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedZonePrivateVisibilityConfigNetwork {
     /// kind property.
     pub kind: Option<String>,
     /// networkUrl property.
     pub network_url: Option<String>,
+}
+
+/// `OperationDnsKeyContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OperationDnsKeyContext {
+    /// newValue property.
+    pub new_value: Option<DnsKey>,
+    /// oldValue property.
+    pub old_value: Option<DnsKey>,
 }
 
 /// `ManagedZoneDnsSecConfig` type.
@@ -189,57 +151,6 @@ pub struct ManagedZoneDnsSecConfig {
     pub non_existence: Option<String>,
     /// state property.
     pub state: Option<String>,
-}
-
-/// `GoogleIamV1AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `GoogleIamV1AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `DnsKeySpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsKeySpec {
-    /// algorithm property.
-    pub algorithm: Option<String>,
-    /// keyLength property.
-    pub key_length: Option<i64>,
-    /// keyType property.
-    pub key_type: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `ManagedZonesListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZonesListResponse {
-    /// kind property.
-    pub kind: Option<String>,
-    /// managedZones property.
-    pub managed_zones: Option<Vec<ManagedZone>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `ManagedZoneForwardingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZoneForwardingConfig {
-    /// kind property.
-    pub kind: Option<String>,
-    /// targetNameServers property.
-    pub target_name_servers: Option<Vec<ManagedZoneForwardingConfigNameServerTarget>>,
 }
 
 /// `ManagedZone` type.
@@ -281,31 +192,99 @@ pub struct ManagedZone {
     pub visibility: Option<String>,
 }
 
-/// `ManagedZoneCloudLoggingConfig` type.
+/// `GoogleIamV1Policy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZoneCloudLoggingConfig {
-    /// enableLogging property.
-    pub enable_logging: Option<bool>,
+pub struct GoogleIamV1Policy {
+    /// auditConfigs property.
+    pub audit_configs: Option<Vec<GoogleIamV1AuditConfig>>,
+    /// bindings property.
+    pub bindings: Option<Vec<GoogleIamV1Binding>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// version property.
+    pub version: Option<i64>,
+}
+
+/// `ManagedZoneForwardingConfigNameServerTarget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedZoneForwardingConfigNameServerTarget {
+    /// domainName property.
+    pub domain_name: Option<String>,
+    /// forwardingPath property.
+    pub forwarding_path: Option<String>,
+    /// ipv4Address property.
+    pub ipv4_address: Option<String>,
+    /// ipv6Address property.
+    pub ipv6_address: Option<String>,
     /// kind property.
     pub kind: Option<String>,
 }
 
-/// `ManagedZoneServiceDirectoryConfig` type.
+/// `GoogleIamV1AuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZoneServiceDirectoryConfig {
-    /// kind property.
-    pub kind: Option<String>,
-    /// namespace property.
-    pub namespace: Option<ManagedZoneServiceDirectoryConfigNamespace>,
+pub struct GoogleIamV1AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
 }
 
-/// `ManagedZonePrivateVisibilityConfigNetwork` type.
+/// `DnsKeyDigest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZonePrivateVisibilityConfigNetwork {
+pub struct DnsKeyDigest {
+    /// digest property.
+    pub digest: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ManagedZoneForwardingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedZoneForwardingConfig {
+    /// kind property.
+    pub kind: Option<String>,
+    /// targetNameServers property.
+    pub target_name_servers: Option<Vec<ManagedZoneForwardingConfigNameServerTarget>>,
+}
+
+/// `OperationManagedZoneContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OperationManagedZoneContext {
+    /// newValue property.
+    pub new_value: Option<ManagedZone>,
+    /// oldValue property.
+    pub old_value: Option<ManagedZone>,
+}
+
+/// `DnsKeySpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsKeySpec {
+    /// algorithm property.
+    pub algorithm: Option<String>,
+    /// keyLength property.
+    pub key_length: Option<i64>,
+    /// keyType property.
+    pub key_type: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `ManagedZonePeeringConfigTargetNetwork` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedZonePeeringConfigTargetNetwork {
+    /// deactivateTime property.
+    pub deactivate_time: Option<String>,
     /// kind property.
     pub kind: Option<String>,
     /// networkUrl property.
     pub network_url: Option<String>,
+}
+
+/// `GoogleIamV1TestIamPermissionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1TestIamPermissionsResponse {
+    /// permissions property.
+    pub permissions: Option<Vec<String>>,
 }
 
 /// `GoogleIamV1Binding` type.
@@ -319,13 +298,35 @@ pub struct GoogleIamV1Binding {
     pub role: Option<String>,
 }
 
-/// `OperationManagedZoneContext` type.
+/// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperationManagedZoneContext {
-    /// newValue property.
-    pub new_value: Option<ManagedZone>,
-    /// oldValue property.
-    pub old_value: Option<ManagedZone>,
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `ManagedZonePrivateVisibilityConfigGKECluster` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedZonePrivateVisibilityConfigGKECluster {
+    /// gkeClusterName property.
+    pub gke_cluster_name: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `ManagedZoneCloudLoggingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedZoneCloudLoggingConfig {
+    /// enableLogging property.
+    pub enable_logging: Option<bool>,
+    /// kind property.
+    pub kind: Option<String>,
 }
 
 // =============================================================================

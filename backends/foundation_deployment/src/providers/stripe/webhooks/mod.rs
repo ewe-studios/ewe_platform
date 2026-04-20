@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -24,17 +25,17 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DeletedWebhookEndpoint` response type.
+/// `WebhookEndpoint` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeletedWebhookEndpoint {
+pub struct WebhookEndpoint {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `WebhookEndpoint` response type.
+/// `DeletedWebhookEndpoint` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WebhookEndpoint {
+pub struct DeletedWebhookEndpoint {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

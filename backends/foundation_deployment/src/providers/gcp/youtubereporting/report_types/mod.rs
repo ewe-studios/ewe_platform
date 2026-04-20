@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListReportTypesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListReportTypesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// reportTypes property.
-    pub report_types: Option<Vec<ReportType>>,
-}
 
 /// `ReportType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,6 +36,15 @@ pub struct ReportType {
     pub name: Option<String>,
     /// systemManaged property.
     pub system_managed: Option<bool>,
+}
+
+/// `ListReportTypesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListReportTypesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// reportTypes property.
+    pub report_types: Option<Vec<ReportType>>,
 }
 
 // =============================================================================

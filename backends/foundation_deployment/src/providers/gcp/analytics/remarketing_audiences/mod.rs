@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -47,6 +48,21 @@ pub struct LinkedForeignAccount {
     pub r#type: Option<String>,
     /// webPropertyId property.
     pub web_property_id: Option<String>,
+}
+
+/// `IncludeConditions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IncludeConditions {
+    /// daysToLookBack property.
+    pub days_to_look_back: Option<i64>,
+    /// isSmartList property.
+    pub is_smart_list: Option<bool>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// membershipDurationDays property.
+    pub membership_duration_days: Option<i64>,
+    /// segment property.
+    pub segment: Option<String>,
 }
 
 /// `RemarketingAudience` type.
@@ -81,21 +97,6 @@ pub struct RemarketingAudience {
     pub updated: Option<String>,
     /// webPropertyId property.
     pub web_property_id: Option<String>,
-}
-
-/// `IncludeConditions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IncludeConditions {
-    /// daysToLookBack property.
-    pub days_to_look_back: Option<i64>,
-    /// isSmartList property.
-    pub is_smart_list: Option<bool>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// membershipDurationDays property.
-    pub membership_duration_days: Option<i64>,
-    /// segment property.
-    pub segment: Option<String>,
 }
 
 /// `RemarketingAudiences` type.

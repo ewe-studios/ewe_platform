@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,21 +24,56 @@ use super::shared::GoogleIamV1Policy;
 use super::shared::GoogleIamV1TestIamPermissionsResponse;
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleRpcStatus` type.
+/// `GoogleCloudAiplatformV1SearchDataItemsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct GoogleCloudAiplatformV1SearchDataItemsResponse {
+    /// dataItemViews property.
+    pub data_item_views: Option<Vec<GoogleCloudAiplatformV1DataItemView>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1Dataset` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1Dataset {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// dataItemCount property.
+    pub data_item_count: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// encryptionSpec property.
+    pub encryption_spec: Option<GoogleCloudAiplatformV1EncryptionSpec>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// metadataArtifact property.
+    pub metadata_artifact: Option<String>,
+    /// metadataSchemaUri property.
+    pub metadata_schema_uri: Option<String>,
+    /// modelReference property.
+    pub model_reference: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// satisfiesPzi property.
+    pub satisfies_pzi: Option<bool>,
+    /// satisfiesPzs property.
+    pub satisfies_pzs: Option<bool>,
+    /// savedQueries property.
+    pub saved_queries: Option<Vec<GoogleCloudAiplatformV1SavedQuery>>,
+    /// updateTime property.
+    pub update_time: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1Annotation` type.
@@ -82,6 +118,55 @@ pub struct GoogleCloudAiplatformV1DataItem {
     pub update_time: Option<String>,
 }
 
+/// `GoogleCloudAiplatformV1DataItemView` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1DataItemView {
+    /// annotations property.
+    pub annotations: Option<Vec<GoogleCloudAiplatformV1Annotation>>,
+    /// dataItem property.
+    pub data_item: Option<GoogleCloudAiplatformV1DataItem>,
+    /// hasTruncatedAnnotations property.
+    pub has_truncated_annotations: Option<bool>,
+}
+
+/// `GoogleCloudAiplatformV1EncryptionSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1EncryptionSpec {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+}
+
+/// `GoogleIamV1Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1Binding {
+    /// condition property.
+    pub condition: Option<GoogleTypeExpr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1UserActionReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1UserActionReference {
+    /// dataLabelingJob property.
+    pub data_labeling_job: Option<String>,
+    /// method property.
+    pub method: Option<String>,
+    /// operation property.
+    pub operation: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ListDatasetsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ListDatasetsResponse {
+    /// datasets property.
+    pub datasets: Option<Vec<GoogleCloudAiplatformV1Dataset>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
 /// `GoogleTypeExpr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeExpr {
@@ -95,33 +180,15 @@ pub struct GoogleTypeExpr {
     pub title: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1SearchDataItemsResponse` type.
+/// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SearchDataItemsResponse {
-    /// dataItemViews property.
-    pub data_item_views: Option<Vec<GoogleCloudAiplatformV1DataItemView>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ListDatasetsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListDatasetsResponse {
-    /// datasets property.
-    pub datasets: Option<Vec<GoogleCloudAiplatformV1Dataset>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleIamV1Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Binding {
-    /// condition property.
-    pub condition: Option<GoogleTypeExpr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1SavedQuery` type.
@@ -147,72 +214,6 @@ pub struct GoogleCloudAiplatformV1SavedQuery {
     pub support_automl_training: Option<bool>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1Dataset` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Dataset {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// dataItemCount property.
-    pub data_item_count: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// encryptionSpec property.
-    pub encryption_spec: Option<GoogleCloudAiplatformV1EncryptionSpec>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// metadataArtifact property.
-    pub metadata_artifact: Option<String>,
-    /// metadataSchemaUri property.
-    pub metadata_schema_uri: Option<String>,
-    /// modelReference property.
-    pub model_reference: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// satisfiesPzi property.
-    pub satisfies_pzi: Option<bool>,
-    /// satisfiesPzs property.
-    pub satisfies_pzs: Option<bool>,
-    /// savedQueries property.
-    pub saved_queries: Option<Vec<GoogleCloudAiplatformV1SavedQuery>>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1EncryptionSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EncryptionSpec {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1UserActionReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1UserActionReference {
-    /// dataLabelingJob property.
-    pub data_labeling_job: Option<String>,
-    /// method property.
-    pub method: Option<String>,
-    /// operation property.
-    pub operation: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1DataItemView` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DataItemView {
-    /// annotations property.
-    pub annotations: Option<Vec<GoogleCloudAiplatformV1Annotation>>,
-    /// dataItem property.
-    pub data_item: Option<GoogleCloudAiplatformV1DataItem>,
-    /// hasTruncatedAnnotations property.
-    pub has_truncated_annotations: Option<bool>,
 }
 
 // =============================================================================

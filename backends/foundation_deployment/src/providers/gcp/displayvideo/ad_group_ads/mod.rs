@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,37 +22,39 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `AdPolicy` type.
+/// `VideoPerformanceAd` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdPolicy {
-    /// adPolicyApprovalStatus property.
-    pub ad_policy_approval_status: Option<String>,
-    /// adPolicyReviewStatus property.
-    pub ad_policy_review_status: Option<String>,
-    /// adPolicyTopicEntry property.
-    pub ad_policy_topic_entry: Option<Vec<AdPolicyTopicEntry>>,
-}
-
-/// `AdPolicyTopicEvidenceLegalRemovalLocalLegal` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdPolicyTopicEvidenceLegalRemovalLocalLegal {
-    /// lawType property.
-    pub law_type: Option<String>,
-}
-
-/// `InStreamAd` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InStreamAd {
-    /// commonInStreamAttribute property.
-    pub common_in_stream_attribute: Option<CommonInStreamAttribute>,
+pub struct VideoPerformanceAd {
+    /// actionButtonLabels property.
+    pub action_button_labels: Option<Vec<String>>,
+    /// companionBanners property.
+    pub companion_banners: Option<Vec<ImageAsset>>,
     /// customParameters property.
     pub custom_parameters: Option<serde_json::Value>,
+    /// descriptions property.
+    pub descriptions: Option<Vec<String>>,
+    /// displayUrlBreadcrumb1 property.
+    pub display_url_breadcrumb1: Option<String>,
+    /// displayUrlBreadcrumb2 property.
+    pub display_url_breadcrumb2: Option<String>,
+    /// domain property.
+    pub domain: Option<String>,
+    /// finalUrl property.
+    pub final_url: Option<String>,
+    /// headlines property.
+    pub headlines: Option<Vec<String>>,
+    /// longHeadlines property.
+    pub long_headlines: Option<Vec<String>>,
+    /// trackingUrl property.
+    pub tracking_url: Option<String>,
+    /// videos property.
+    pub videos: Option<Vec<YoutubeVideoDetails>>,
 }
 
 /// `AdPolicyTopicConstraintAdPolicyGlobalCertificateDomainMismatchConstraint` type.
@@ -84,103 +87,22 @@ pub struct DcmTrackingInfo {
     pub tracking_ad_id: Option<String>,
 }
 
-/// `DemandGenVideoAd` type.
+/// `AdPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DemandGenVideoAd {
-    /// businessName property.
-    pub business_name: Option<String>,
-    /// callToAction property.
-    pub call_to_action: Option<String>,
-    /// companionBanner property.
-    pub companion_banner: Option<ImageAsset>,
-    /// customParameters property.
-    pub custom_parameters: Option<serde_json::Value>,
-    /// descriptions property.
-    pub descriptions: Option<Vec<String>>,
-    /// displayUrlBreadcrumb1 property.
-    pub display_url_breadcrumb1: Option<String>,
-    /// displayUrlBreadcrumb2 property.
-    pub display_url_breadcrumb2: Option<String>,
-    /// finalMobileUrl property.
-    pub final_mobile_url: Option<String>,
-    /// finalUrl property.
-    pub final_url: Option<String>,
-    /// finalUrlSuffix property.
-    pub final_url_suffix: Option<String>,
-    /// headlines property.
-    pub headlines: Option<Vec<String>>,
-    /// logo property.
-    pub logo: Option<ImageAsset>,
-    /// longHeadlines property.
-    pub long_headlines: Option<Vec<String>>,
-    /// trackingUrl property.
-    pub tracking_url: Option<String>,
-    /// userSpecifiedTrackingUrl property.
-    pub user_specified_tracking_url: Option<String>,
-    /// videos property.
-    pub videos: Option<Vec<YoutubeVideoDetails>>,
+pub struct AdPolicy {
+    /// adPolicyApprovalStatus property.
+    pub ad_policy_approval_status: Option<String>,
+    /// adPolicyReviewStatus property.
+    pub ad_policy_review_status: Option<String>,
+    /// adPolicyTopicEntry property.
+    pub ad_policy_topic_entry: Option<Vec<AdPolicyTopicEntry>>,
 }
 
-/// `AdPolicyTopicConstraint` type.
+/// `AdPolicyTopicEvidenceLegalRemovalLocalLegal` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdPolicyTopicConstraint {
-    /// certificateDomainMismatchCountryList property.
-    pub certificate_domain_mismatch_country_list:
-        Option<AdPolicyTopicConstraintAdPolicyCountryConstraintList>,
-    /// certificateMissingCountryList property.
-    pub certificate_missing_country_list:
-        Option<AdPolicyTopicConstraintAdPolicyCountryConstraintList>,
-    /// countryConstraint property.
-    pub country_constraint: Option<AdPolicyTopicConstraintAdPolicyCountryConstraintList>,
-    /// globalCertificateDomainMismatch property.
-    pub global_certificate_domain_mismatch:
-        Option<AdPolicyTopicConstraintAdPolicyGlobalCertificateDomainMismatchConstraint>,
-    /// globalCertificateMissing property.
-    pub global_certificate_missing:
-        Option<AdPolicyTopicConstraintAdPolicyGlobalCertificateMissingConstraint>,
-    /// requestCertificateFormLink property.
-    pub request_certificate_form_link: Option<String>,
-    /// resellerConstraint property.
-    pub reseller_constraint: Option<AdPolicyTopicConstraintAdPolicyResellerConstraint>,
-}
-
-/// `AdPolicyTopicConstraintAdPolicyResellerConstraint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdPolicyTopicConstraintAdPolicyResellerConstraint {}
-
-/// `AdPolicyTopicEvidenceLegalRemovalDmca` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdPolicyTopicEvidenceLegalRemovalDmca {
-    /// complainant property.
-    pub complainant: Option<String>,
-}
-
-/// `AdPolicyTopicEvidenceDestinationMismatch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdPolicyTopicEvidenceDestinationMismatch {
-    /// uriTypes property.
-    pub uri_types: Option<Vec<String>>,
-}
-
-/// `AdPolicyTopicEvidenceRegionalRequirements` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdPolicyTopicEvidenceRegionalRequirements {
-    /// regionalRequirementsEntries property.
-    pub regional_requirements_entries:
-        Option<Vec<AdPolicyTopicEvidenceRegionalRequirementsRegionalRequirementsEntry>>,
-}
-
-/// `ImageAsset` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImageAsset {
-    /// assetId property.
-    pub asset_id: Option<String>,
-    /// fileSize property.
-    pub file_size: Option<String>,
-    /// fullSize property.
-    pub full_size: Option<Dimensions>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
+pub struct AdPolicyTopicEvidenceLegalRemovalLocalLegal {
+    /// lawType property.
+    pub law_type: Option<String>,
 }
 
 /// `AdPolicyTopicConstraintAdPolicyCountryConstraintList` type.
@@ -190,72 +112,6 @@ pub struct AdPolicyTopicConstraintAdPolicyCountryConstraintList {
     pub countries: Option<Vec<AdPolicyCriterionRestriction>>,
 }
 
-/// `AdPolicyCriterionRestriction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdPolicyCriterionRestriction {
-    /// countryCriterionId property.
-    pub country_criterion_id: Option<String>,
-    /// countryLabel property.
-    pub country_label: Option<String>,
-}
-
-/// `Dimensions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Dimensions {
-    /// heightPixels property.
-    pub height_pixels: Option<i64>,
-    /// widthPixels property.
-    pub width_pixels: Option<i64>,
-}
-
-/// `CommonInStreamAttribute` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CommonInStreamAttribute {
-    /// actionButtonLabel property.
-    pub action_button_label: Option<String>,
-    /// actionHeadline property.
-    pub action_headline: Option<String>,
-    /// companionBanner property.
-    pub companion_banner: Option<ImageAsset>,
-    /// displayUrl property.
-    pub display_url: Option<String>,
-    /// finalUrl property.
-    pub final_url: Option<String>,
-    /// trackingUrl property.
-    pub tracking_url: Option<String>,
-    /// video property.
-    pub video: Option<YoutubeVideoDetails>,
-}
-
-/// `VideoPerformanceAd` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoPerformanceAd {
-    /// actionButtonLabels property.
-    pub action_button_labels: Option<Vec<String>>,
-    /// companionBanners property.
-    pub companion_banners: Option<Vec<ImageAsset>>,
-    /// customParameters property.
-    pub custom_parameters: Option<serde_json::Value>,
-    /// descriptions property.
-    pub descriptions: Option<Vec<String>>,
-    /// displayUrlBreadcrumb1 property.
-    pub display_url_breadcrumb1: Option<String>,
-    /// displayUrlBreadcrumb2 property.
-    pub display_url_breadcrumb2: Option<String>,
-    /// domain property.
-    pub domain: Option<String>,
-    /// finalUrl property.
-    pub final_url: Option<String>,
-    /// headlines property.
-    pub headlines: Option<Vec<String>>,
-    /// longHeadlines property.
-    pub long_headlines: Option<Vec<String>>,
-    /// trackingUrl property.
-    pub tracking_url: Option<String>,
-    /// videos property.
-    pub videos: Option<Vec<YoutubeVideoDetails>>,
-}
-
 /// `ListAdGroupAdsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAdGroupAdsResponse {
@@ -263,119 +119,6 @@ pub struct ListAdGroupAdsResponse {
     pub ad_group_ads: Option<Vec<AdGroupAd>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-}
-
-/// `NonSkippableAd` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NonSkippableAd {
-    /// commonInStreamAttribute property.
-    pub common_in_stream_attribute: Option<CommonInStreamAttribute>,
-    /// customParameters property.
-    pub custom_parameters: Option<serde_json::Value>,
-}
-
-/// `DemandGenImageAd` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DemandGenImageAd {
-    /// businessName property.
-    pub business_name: Option<String>,
-    /// callToAction property.
-    pub call_to_action: Option<String>,
-    /// customParameters property.
-    pub custom_parameters: Option<serde_json::Value>,
-    /// descriptions property.
-    pub descriptions: Option<Vec<String>>,
-    /// finalMobileUrl property.
-    pub final_mobile_url: Option<String>,
-    /// finalUrl property.
-    pub final_url: Option<String>,
-    /// finalUrlSuffix property.
-    pub final_url_suffix: Option<String>,
-    /// headlines property.
-    pub headlines: Option<Vec<String>>,
-    /// logoImages property.
-    pub logo_images: Option<Vec<ImageAsset>>,
-    /// marketingImages property.
-    pub marketing_images: Option<Vec<ImageAsset>>,
-    /// portraitMarketingImages property.
-    pub portrait_marketing_images: Option<Vec<ImageAsset>>,
-    /// squareMarketingImages property.
-    pub square_marketing_images: Option<Vec<ImageAsset>>,
-    /// trackingUrl property.
-    pub tracking_url: Option<String>,
-    /// userSpecifiedTrackingUrl property.
-    pub user_specified_tracking_url: Option<String>,
-}
-
-/// `AdPolicyTopicEvidenceWebsiteList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdPolicyTopicEvidenceWebsiteList {
-    /// websites property.
-    pub websites: Option<Vec<String>>,
-}
-
-/// `VideoDiscoveryAd` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoDiscoveryAd {
-    /// description1 property.
-    pub description1: Option<String>,
-    /// description2 property.
-    pub description2: Option<String>,
-    /// headline property.
-    pub headline: Option<String>,
-    /// thumbnail property.
-    pub thumbnail: Option<String>,
-    /// video property.
-    pub video: Option<YoutubeVideoDetails>,
-}
-
-/// `AudioAd` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AudioAd {
-    /// displayUrl property.
-    pub display_url: Option<String>,
-    /// finalUrl property.
-    pub final_url: Option<String>,
-    /// trackingUrl property.
-    pub tracking_url: Option<String>,
-    /// video property.
-    pub video: Option<YoutubeVideoDetails>,
-}
-
-/// `DisplayVideoSourceAd` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DisplayVideoSourceAd {
-    /// creativeId property.
-    pub creative_id: Option<String>,
-}
-
-/// `DemandGenProductAd` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DemandGenProductAd {
-    /// businessName property.
-    pub business_name: Option<String>,
-    /// callToAction property.
-    pub call_to_action: Option<String>,
-    /// customParameters property.
-    pub custom_parameters: Option<serde_json::Value>,
-    /// description property.
-    pub description: Option<String>,
-    /// displayUrlBreadcrumb1 property.
-    pub display_url_breadcrumb1: Option<String>,
-    /// displayUrlBreadcrumb2 property.
-    pub display_url_breadcrumb2: Option<String>,
-    /// finalUrl property.
-    pub final_url: Option<String>,
-    /// finalUrlSuffix property.
-    pub final_url_suffix: Option<String>,
-    /// headline property.
-    pub headline: Option<String>,
-    /// logo property.
-    pub logo: Option<ImageAsset>,
-    /// trackingUrl property.
-    pub tracking_url: Option<String>,
-    /// userSpecifiedTrackingUrl property.
-    pub user_specified_tracking_url: Option<String>,
 }
 
 /// `AdPolicyTopicEvidenceDestinationNotWorking` type.
@@ -391,6 +134,46 @@ pub struct AdPolicyTopicEvidenceDestinationNotWorking {
     pub http_error_code: Option<String>,
     /// lastCheckedTime property.
     pub last_checked_time: Option<String>,
+}
+
+/// `AudioAd` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AudioAd {
+    /// displayUrl property.
+    pub display_url: Option<String>,
+    /// finalUrl property.
+    pub final_url: Option<String>,
+    /// trackingUrl property.
+    pub tracking_url: Option<String>,
+    /// video property.
+    pub video: Option<YoutubeVideoDetails>,
+}
+
+/// `Dimensions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Dimensions {
+    /// heightPixels property.
+    pub height_pixels: Option<i64>,
+    /// widthPixels property.
+    pub width_pixels: Option<i64>,
+}
+
+/// `AdPolicyTopicAppealInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdPolicyTopicAppealInfo {
+    /// appealFormLink property.
+    pub appeal_form_link: Option<String>,
+    /// appealType property.
+    pub appeal_type: Option<String>,
+}
+
+/// `AdPolicyTopicEvidenceRegionalRequirementsRegionalRequirementsEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdPolicyTopicEvidenceRegionalRequirementsRegionalRequirementsEntry {
+    /// countryRestrictions property.
+    pub country_restrictions: Option<Vec<AdPolicyCriterionRestriction>>,
+    /// legalPolicy property.
+    pub legal_policy: Option<String>,
 }
 
 /// `AdGroupAd` type.
@@ -440,6 +223,119 @@ pub struct AdGroupAd {
     pub video_performance_ad: Option<VideoPerformanceAd>,
 }
 
+/// `DemandGenProductAd` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DemandGenProductAd {
+    /// businessName property.
+    pub business_name: Option<String>,
+    /// callToAction property.
+    pub call_to_action: Option<String>,
+    /// customParameters property.
+    pub custom_parameters: Option<serde_json::Value>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayUrlBreadcrumb1 property.
+    pub display_url_breadcrumb1: Option<String>,
+    /// displayUrlBreadcrumb2 property.
+    pub display_url_breadcrumb2: Option<String>,
+    /// finalUrl property.
+    pub final_url: Option<String>,
+    /// finalUrlSuffix property.
+    pub final_url_suffix: Option<String>,
+    /// headline property.
+    pub headline: Option<String>,
+    /// logo property.
+    pub logo: Option<ImageAsset>,
+    /// trackingUrl property.
+    pub tracking_url: Option<String>,
+    /// userSpecifiedTrackingUrl property.
+    pub user_specified_tracking_url: Option<String>,
+}
+
+/// `AdPolicyTopicConstraint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdPolicyTopicConstraint {
+    /// certificateDomainMismatchCountryList property.
+    pub certificate_domain_mismatch_country_list:
+        Option<AdPolicyTopicConstraintAdPolicyCountryConstraintList>,
+    /// certificateMissingCountryList property.
+    pub certificate_missing_country_list:
+        Option<AdPolicyTopicConstraintAdPolicyCountryConstraintList>,
+    /// countryConstraint property.
+    pub country_constraint: Option<AdPolicyTopicConstraintAdPolicyCountryConstraintList>,
+    /// globalCertificateDomainMismatch property.
+    pub global_certificate_domain_mismatch:
+        Option<AdPolicyTopicConstraintAdPolicyGlobalCertificateDomainMismatchConstraint>,
+    /// globalCertificateMissing property.
+    pub global_certificate_missing:
+        Option<AdPolicyTopicConstraintAdPolicyGlobalCertificateMissingConstraint>,
+    /// requestCertificateFormLink property.
+    pub request_certificate_form_link: Option<String>,
+    /// resellerConstraint property.
+    pub reseller_constraint: Option<AdPolicyTopicConstraintAdPolicyResellerConstraint>,
+}
+
+/// `AdPolicyTopicConstraintAdPolicyResellerConstraint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdPolicyTopicConstraintAdPolicyResellerConstraint {}
+
+/// `AdPolicyTopicEvidenceTextList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdPolicyTopicEvidenceTextList {
+    /// texts property.
+    pub texts: Option<Vec<String>>,
+}
+
+/// `VideoDiscoveryAd` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoDiscoveryAd {
+    /// description1 property.
+    pub description1: Option<String>,
+    /// description2 property.
+    pub description2: Option<String>,
+    /// headline property.
+    pub headline: Option<String>,
+    /// thumbnail property.
+    pub thumbnail: Option<String>,
+    /// video property.
+    pub video: Option<YoutubeVideoDetails>,
+}
+
+/// `AdPolicyTopicEvidenceRegionalRequirements` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdPolicyTopicEvidenceRegionalRequirements {
+    /// regionalRequirementsEntries property.
+    pub regional_requirements_entries:
+        Option<Vec<AdPolicyTopicEvidenceRegionalRequirementsRegionalRequirementsEntry>>,
+}
+
+/// `BumperAd` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BumperAd {
+    /// commonInStreamAttribute property.
+    pub common_in_stream_attribute: Option<CommonInStreamAttribute>,
+}
+
+/// `AdPolicyTopicEvidenceDestinationMismatch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdPolicyTopicEvidenceDestinationMismatch {
+    /// uriTypes property.
+    pub uri_types: Option<Vec<String>>,
+}
+
+/// `AdPolicyTopicConstraintAdPolicyGlobalCertificateMissingConstraint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdPolicyTopicConstraintAdPolicyGlobalCertificateMissingConstraint {}
+
+/// `AdUrl` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdUrl {
+    /// type property.
+    pub r#type: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
 /// `YoutubeVideoDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YoutubeVideoDetails {
@@ -451,13 +347,71 @@ pub struct YoutubeVideoDetails {
     pub video_asset_id: Option<String>,
 }
 
-/// `AdPolicyTopicAppealInfo` type.
+/// `DemandGenCarouselAd` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdPolicyTopicAppealInfo {
-    /// appealFormLink property.
-    pub appeal_form_link: Option<String>,
-    /// appealType property.
-    pub appeal_type: Option<String>,
+pub struct DemandGenCarouselAd {
+    /// businessName property.
+    pub business_name: Option<String>,
+    /// cards property.
+    pub cards: Option<Vec<CarouselCard>>,
+    /// customParameters property.
+    pub custom_parameters: Option<serde_json::Value>,
+    /// description property.
+    pub description: Option<String>,
+    /// finalUrl property.
+    pub final_url: Option<String>,
+    /// finalUrlSuffix property.
+    pub final_url_suffix: Option<String>,
+    /// headline property.
+    pub headline: Option<String>,
+    /// logo property.
+    pub logo: Option<ImageAsset>,
+    /// trackingUrl property.
+    pub tracking_url: Option<String>,
+    /// userSpecifiedTrackingUrl property.
+    pub user_specified_tracking_url: Option<String>,
+}
+
+/// `CommonInStreamAttribute` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CommonInStreamAttribute {
+    /// actionButtonLabel property.
+    pub action_button_label: Option<String>,
+    /// actionHeadline property.
+    pub action_headline: Option<String>,
+    /// companionBanner property.
+    pub companion_banner: Option<ImageAsset>,
+    /// displayUrl property.
+    pub display_url: Option<String>,
+    /// finalUrl property.
+    pub final_url: Option<String>,
+    /// trackingUrl property.
+    pub tracking_url: Option<String>,
+    /// video property.
+    pub video: Option<YoutubeVideoDetails>,
+}
+
+/// `AdPolicyTopicEvidenceCounterfeit` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdPolicyTopicEvidenceCounterfeit {
+    /// owners property.
+    pub owners: Option<Vec<String>>,
+}
+
+/// `AdPolicyCriterionRestriction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdPolicyCriterionRestriction {
+    /// countryCriterionId property.
+    pub country_criterion_id: Option<String>,
+    /// countryLabel property.
+    pub country_label: Option<String>,
+}
+
+/// `DisplayVideoSourceAd` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DisplayVideoSourceAd {
+    /// creativeId property.
+    pub creative_id: Option<String>,
 }
 
 /// `MastheadAd` type.
@@ -514,15 +468,13 @@ pub struct AdPolicyTopicEvidence {
     pub website_list: Option<AdPolicyTopicEvidenceWebsiteList>,
 }
 
-/// `AdPolicyTopicEvidenceTrademark` type.
+/// `InStreamAd` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdPolicyTopicEvidenceTrademark {
-    /// countryRestrictions property.
-    pub country_restrictions: Option<Vec<AdPolicyCriterionRestriction>>,
-    /// owner property.
-    pub owner: Option<String>,
-    /// term property.
-    pub term: Option<String>,
+pub struct InStreamAd {
+    /// commonInStreamAttribute property.
+    pub common_in_stream_attribute: Option<CommonInStreamAttribute>,
+    /// customParameters property.
+    pub custom_parameters: Option<serde_json::Value>,
 }
 
 /// `AdPolicyTopicEntry` type.
@@ -550,11 +502,128 @@ pub struct AdPolicyTopicEntry {
     pub policy_topic_type: Option<String>,
 }
 
-/// `AdPolicyTopicEvidenceTextList` type.
+/// `AdPolicyTopicEvidenceDestinationTextList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdPolicyTopicEvidenceTextList {
-    /// texts property.
-    pub texts: Option<Vec<String>>,
+pub struct AdPolicyTopicEvidenceDestinationTextList {
+    /// destinationTexts property.
+    pub destination_texts: Option<Vec<String>>,
+}
+
+/// `AdPolicyTopicEvidenceTrademark` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdPolicyTopicEvidenceTrademark {
+    /// countryRestrictions property.
+    pub country_restrictions: Option<Vec<AdPolicyCriterionRestriction>>,
+    /// owner property.
+    pub owner: Option<String>,
+    /// term property.
+    pub term: Option<String>,
+}
+
+/// `DemandGenVideoAd` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DemandGenVideoAd {
+    /// businessName property.
+    pub business_name: Option<String>,
+    /// callToAction property.
+    pub call_to_action: Option<String>,
+    /// companionBanner property.
+    pub companion_banner: Option<ImageAsset>,
+    /// customParameters property.
+    pub custom_parameters: Option<serde_json::Value>,
+    /// descriptions property.
+    pub descriptions: Option<Vec<String>>,
+    /// displayUrlBreadcrumb1 property.
+    pub display_url_breadcrumb1: Option<String>,
+    /// displayUrlBreadcrumb2 property.
+    pub display_url_breadcrumb2: Option<String>,
+    /// finalMobileUrl property.
+    pub final_mobile_url: Option<String>,
+    /// finalUrl property.
+    pub final_url: Option<String>,
+    /// finalUrlSuffix property.
+    pub final_url_suffix: Option<String>,
+    /// headlines property.
+    pub headlines: Option<Vec<String>>,
+    /// logo property.
+    pub logo: Option<ImageAsset>,
+    /// longHeadlines property.
+    pub long_headlines: Option<Vec<String>>,
+    /// trackingUrl property.
+    pub tracking_url: Option<String>,
+    /// userSpecifiedTrackingUrl property.
+    pub user_specified_tracking_url: Option<String>,
+    /// videos property.
+    pub videos: Option<Vec<YoutubeVideoDetails>>,
+}
+
+/// `AdPolicyTopicEvidenceWebsiteList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdPolicyTopicEvidenceWebsiteList {
+    /// websites property.
+    pub websites: Option<Vec<String>>,
+}
+
+/// `NonSkippableAd` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NonSkippableAd {
+    /// commonInStreamAttribute property.
+    pub common_in_stream_attribute: Option<CommonInStreamAttribute>,
+    /// customParameters property.
+    pub custom_parameters: Option<serde_json::Value>,
+}
+
+/// `DemandGenImageAd` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DemandGenImageAd {
+    /// businessName property.
+    pub business_name: Option<String>,
+    /// callToAction property.
+    pub call_to_action: Option<String>,
+    /// customParameters property.
+    pub custom_parameters: Option<serde_json::Value>,
+    /// descriptions property.
+    pub descriptions: Option<Vec<String>>,
+    /// finalMobileUrl property.
+    pub final_mobile_url: Option<String>,
+    /// finalUrl property.
+    pub final_url: Option<String>,
+    /// finalUrlSuffix property.
+    pub final_url_suffix: Option<String>,
+    /// headlines property.
+    pub headlines: Option<Vec<String>>,
+    /// logoImages property.
+    pub logo_images: Option<Vec<ImageAsset>>,
+    /// marketingImages property.
+    pub marketing_images: Option<Vec<ImageAsset>>,
+    /// portraitMarketingImages property.
+    pub portrait_marketing_images: Option<Vec<ImageAsset>>,
+    /// squareMarketingImages property.
+    pub square_marketing_images: Option<Vec<ImageAsset>>,
+    /// trackingUrl property.
+    pub tracking_url: Option<String>,
+    /// userSpecifiedTrackingUrl property.
+    pub user_specified_tracking_url: Option<String>,
+}
+
+/// `ImageAsset` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImageAsset {
+    /// assetId property.
+    pub asset_id: Option<String>,
+    /// fileSize property.
+    pub file_size: Option<String>,
+    /// fullSize property.
+    pub full_size: Option<Dimensions>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+}
+
+/// `AdPolicyTopicEvidenceLegalRemovalDmca` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdPolicyTopicEvidenceLegalRemovalDmca {
+    /// complainant property.
+    pub complainant: Option<String>,
 }
 
 /// `CarouselCard` type.
@@ -574,74 +643,6 @@ pub struct CarouselCard {
     pub portrait_marketing_image: Option<ImageAsset>,
     /// squareMarketingImage property.
     pub square_marketing_image: Option<ImageAsset>,
-}
-
-/// `BumperAd` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BumperAd {
-    /// commonInStreamAttribute property.
-    pub common_in_stream_attribute: Option<CommonInStreamAttribute>,
-}
-
-/// `AdPolicyTopicEvidenceRegionalRequirementsRegionalRequirementsEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdPolicyTopicEvidenceRegionalRequirementsRegionalRequirementsEntry {
-    /// countryRestrictions property.
-    pub country_restrictions: Option<Vec<AdPolicyCriterionRestriction>>,
-    /// legalPolicy property.
-    pub legal_policy: Option<String>,
-}
-
-/// `AdPolicyTopicEvidenceCounterfeit` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdPolicyTopicEvidenceCounterfeit {
-    /// owners property.
-    pub owners: Option<Vec<String>>,
-}
-
-/// `AdPolicyTopicConstraintAdPolicyGlobalCertificateMissingConstraint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdPolicyTopicConstraintAdPolicyGlobalCertificateMissingConstraint {}
-
-/// `AdUrl` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdUrl {
-    /// type property.
-    pub r#type: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `AdPolicyTopicEvidenceDestinationTextList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdPolicyTopicEvidenceDestinationTextList {
-    /// destinationTexts property.
-    pub destination_texts: Option<Vec<String>>,
-}
-
-/// `DemandGenCarouselAd` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DemandGenCarouselAd {
-    /// businessName property.
-    pub business_name: Option<String>,
-    /// cards property.
-    pub cards: Option<Vec<CarouselCard>>,
-    /// customParameters property.
-    pub custom_parameters: Option<serde_json::Value>,
-    /// description property.
-    pub description: Option<String>,
-    /// finalUrl property.
-    pub final_url: Option<String>,
-    /// finalUrlSuffix property.
-    pub final_url_suffix: Option<String>,
-    /// headline property.
-    pub headline: Option<String>,
-    /// logo property.
-    pub logo: Option<ImageAsset>,
-    /// trackingUrl property.
-    pub tracking_url: Option<String>,
-    /// userSpecifiedTrackingUrl property.
-    pub user_specified_tracking_url: Option<String>,
 }
 
 // =============================================================================

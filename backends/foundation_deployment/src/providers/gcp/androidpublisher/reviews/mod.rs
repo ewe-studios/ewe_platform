@@ -12,17 +12,103 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Review` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Review {
+    /// authorName property.
+    pub author_name: Option<String>,
+    /// comments property.
+    pub comments: Option<Vec<Comment>>,
+    /// reviewId property.
+    pub review_id: Option<String>,
+}
+
+/// `DeveloperComment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeveloperComment {
+    /// lastModified property.
+    pub last_modified: Option<Timestamp>,
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `Comment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Comment {
+    /// developerComment property.
+    pub developer_comment: Option<DeveloperComment>,
+    /// userComment property.
+    pub user_comment: Option<UserComment>,
+}
+
+/// `ReviewsListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReviewsListResponse {
+    /// pageInfo property.
+    pub page_info: Option<PageInfo>,
+    /// reviews property.
+    pub reviews: Option<Vec<Review>>,
+    /// tokenPagination property.
+    pub token_pagination: Option<TokenPagination>,
+}
+
+/// `PageInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PageInfo {
+    /// resultPerPage property.
+    pub result_per_page: Option<i64>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+    /// totalResults property.
+    pub total_results: Option<i64>,
+}
+
+/// `ReviewsReplyResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReviewsReplyResponse {
+    /// result property.
+    pub result: Option<ReviewReplyResult>,
+}
+
+/// `ReviewReplyResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReviewReplyResult {
+    /// lastEdited property.
+    pub last_edited: Option<Timestamp>,
+    /// replyText property.
+    pub reply_text: Option<String>,
+}
+
+/// `Timestamp` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Timestamp {
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<String>,
+}
+
+/// `TokenPagination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TokenPagination {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// previousPageToken property.
+    pub previous_page_token: Option<String>,
+}
 
 /// `UserComment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -53,71 +139,6 @@ pub struct UserComment {
     pub thumbs_up_count: Option<i64>,
 }
 
-/// `Review` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Review {
-    /// authorName property.
-    pub author_name: Option<String>,
-    /// comments property.
-    pub comments: Option<Vec<Comment>>,
-    /// reviewId property.
-    pub review_id: Option<String>,
-}
-
-/// `DeveloperComment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeveloperComment {
-    /// lastModified property.
-    pub last_modified: Option<Timestamp>,
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `ReviewReplyResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReviewReplyResult {
-    /// lastEdited property.
-    pub last_edited: Option<Timestamp>,
-    /// replyText property.
-    pub reply_text: Option<String>,
-}
-
-/// `ReviewsReplyResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReviewsReplyResponse {
-    /// result property.
-    pub result: Option<ReviewReplyResult>,
-}
-
-/// `ReviewsListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReviewsListResponse {
-    /// pageInfo property.
-    pub page_info: Option<PageInfo>,
-    /// reviews property.
-    pub reviews: Option<Vec<Review>>,
-    /// tokenPagination property.
-    pub token_pagination: Option<TokenPagination>,
-}
-
-/// `Comment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Comment {
-    /// developerComment property.
-    pub developer_comment: Option<DeveloperComment>,
-    /// userComment property.
-    pub user_comment: Option<UserComment>,
-}
-
-/// `Timestamp` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Timestamp {
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<String>,
-}
-
 /// `DeviceMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceMetadata {
@@ -143,26 +164,6 @@ pub struct DeviceMetadata {
     pub screen_height_px: Option<i64>,
     /// screenWidthPx property.
     pub screen_width_px: Option<i64>,
-}
-
-/// `TokenPagination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TokenPagination {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// previousPageToken property.
-    pub previous_page_token: Option<String>,
-}
-
-/// `PageInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PageInfo {
-    /// resultPerPage property.
-    pub result_per_page: Option<i64>,
-    /// startIndex property.
-    pub start_index: Option<i64>,
-    /// totalResults property.
-    pub total_results: Option<i64>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,87 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `InterconnectGroupIntent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectGroupIntent {
+    /// topologyCapability property.
+    pub topology_capability: Option<String>,
+}
+
+/// `Help` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
+}
+
+/// `InterconnectGroupPhysicalStructure` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectGroupPhysicalStructure {
+    /// metros property.
+    pub metros: Option<Vec<InterconnectGroupPhysicalStructureMetros>>,
+}
+
+/// `InterconnectGroupConfiguredTopologyCapabilityIntendedCapabilityBlockers` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectGroupConfiguredTopologyCapabilityIntendedCapabilityBlockers {
+    /// blockerType property.
+    pub blocker_type: Option<String>,
+    /// documentationLink property.
+    pub documentation_link: Option<String>,
+    /// explanation property.
+    pub explanation: Option<String>,
+    /// facilities property.
+    pub facilities: Option<Vec<String>>,
+    /// interconnects property.
+    pub interconnects: Option<Vec<String>>,
+    /// metros property.
+    pub metros: Option<Vec<String>>,
+    /// zones property.
+    pub zones: Option<Vec<String>>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `InterconnectGroupPhysicalStructureMetrosFacilities` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectGroupPhysicalStructureMetrosFacilities {
+    /// facility property.
+    pub facility: Option<String>,
+    /// zones property.
+    pub zones: Option<Vec<InterconnectGroupPhysicalStructureMetrosFacilitiesZones>>,
+}
+
+/// `ErrorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `GetVersionOperationMetadataSbomInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
+}
 
 /// `QuotaExceededInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,52 +121,6 @@ pub struct QuotaExceededInfo {
     pub rollout_status: Option<String>,
 }
 
-/// `InterconnectGroupConfiguredTopologyCapability` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectGroupConfiguredTopologyCapability {
-    /// intendedCapabilityBlockers property.
-    pub intended_capability_blockers:
-        Option<Vec<InterconnectGroupConfiguredTopologyCapabilityIntendedCapabilityBlockers>>,
-    /// supportedSla property.
-    pub supported_sla: Option<String>,
-}
-
-/// `InstancesBulkInsertOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
-}
-
-/// `GetVersionOperationMetadataSbomInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
-}
-
-/// `ErrorInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `InterconnectGroupPhysicalStructureMetrosFacilities` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectGroupPhysicalStructureMetrosFacilities {
-    /// facility property.
-    pub facility: Option<String>,
-    /// zones property.
-    pub zones: Option<Vec<InterconnectGroupPhysicalStructureMetrosFacilitiesZones>>,
-}
-
 /// `SetCommonInstanceMetadataOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetCommonInstanceMetadataOperationMetadata {
@@ -106,6 +137,22 @@ pub struct HelpLink {
     pub description: Option<String>,
     /// url property.
     pub url: Option<String>,
+}
+
+/// `GetVersionOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadata {
+    /// inlineSbomInfo property.
+    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+}
+
+/// `LocalizedMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `InterconnectGroupsListResponse` type.
@@ -138,27 +185,6 @@ pub struct InterconnectGroupPhysicalStructureMetrosFacilitiesZones {
     pub zone: Option<String>,
 }
 
-/// `InterconnectGroupIntent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectGroupIntent {
-    /// topologyCapability property.
-    pub topology_capability: Option<String>,
-}
-
-/// `GetVersionOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadata {
-    /// inlineSbomInfo property.
-    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
-}
-
-/// `InterconnectGroupConfigured` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectGroupConfigured {
-    /// topologyCapability property.
-    pub topology_capability: Option<InterconnectGroupConfiguredTopologyCapability>,
-}
-
 /// `InterconnectGroupPhysicalStructureMetros` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectGroupPhysicalStructureMetros {
@@ -168,32 +194,14 @@ pub struct InterconnectGroupPhysicalStructureMetros {
     pub metro: Option<String>,
 }
 
-/// `InterconnectGroupConfiguredTopologyCapabilityIntendedCapabilityBlockers` type.
+/// `InterconnectGroupConfiguredTopologyCapability` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectGroupConfiguredTopologyCapabilityIntendedCapabilityBlockers {
-    /// blockerType property.
-    pub blocker_type: Option<String>,
-    /// documentationLink property.
-    pub documentation_link: Option<String>,
-    /// explanation property.
-    pub explanation: Option<String>,
-    /// facilities property.
-    pub facilities: Option<Vec<String>>,
-    /// interconnects property.
-    pub interconnects: Option<Vec<String>>,
-    /// metros property.
-    pub metros: Option<Vec<String>>,
-    /// zones property.
-    pub zones: Option<Vec<String>>,
-}
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
+pub struct InterconnectGroupConfiguredTopologyCapability {
+    /// intendedCapabilityBlockers property.
+    pub intended_capability_blockers:
+        Option<Vec<InterconnectGroupConfiguredTopologyCapabilityIntendedCapabilityBlockers>>,
+    /// supportedSla property.
+    pub supported_sla: Option<String>,
 }
 
 /// `InterconnectGroup` type.
@@ -223,18 +231,11 @@ pub struct InterconnectGroup {
     pub self_link: Option<String>,
 }
 
-/// `InterconnectGroupPhysicalStructure` type.
+/// `InterconnectGroupConfigured` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectGroupPhysicalStructure {
-    /// metros property.
-    pub metros: Option<Vec<InterconnectGroupPhysicalStructureMetros>>,
-}
-
-/// `Help` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
+pub struct InterconnectGroupConfigured {
+    /// topologyCapability property.
+    pub topology_capability: Option<InterconnectGroupConfiguredTopologyCapability>,
 }
 
 // =============================================================================

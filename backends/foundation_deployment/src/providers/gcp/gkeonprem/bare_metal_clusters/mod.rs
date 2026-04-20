@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,200 +24,11 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ValidationCheckResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValidationCheckResult {
-    /// category property.
-    pub category: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// details property.
-    pub details: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `Versions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Versions {
-    /// versions property.
-    pub versions: Option<Vec<Version>>,
-}
-
-/// `BareMetalLoadBalancerNodePoolConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalLoadBalancerNodePoolConfig {
-    /// nodePoolConfig property.
-    pub node_pool_config: Option<BareMetalNodePoolConfig>,
-}
-
-/// `ListBareMetalClustersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListBareMetalClustersResponse {
-    /// bareMetalClusters property.
-    pub bare_metal_clusters: Option<Vec<BareMetalCluster>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `BareMetalManualLbConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalManualLbConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `ValidationCheckStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValidationCheckStatus {
-    /// result property.
-    pub result: Option<Vec<ValidationCheckResult>>,
-}
-
-/// `ValidationCheck` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValidationCheck {
-    /// option property.
-    pub option: Option<String>,
-    /// scenario property.
-    pub scenario: Option<String>,
-    /// status property.
-    pub status: Option<ValidationCheckStatus>,
-}
-
-/// `BareMetalKubeletConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalKubeletConfig {
-    /// registryBurst property.
-    pub registry_burst: Option<i64>,
-    /// registryPullQps property.
-    pub registry_pull_qps: Option<i64>,
-    /// serializeImagePullsDisabled property.
-    pub serialize_image_pulls_disabled: Option<bool>,
-}
-
-/// `BareMetalSecurityConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalSecurityConfig {
-    /// authorization property.
-    pub authorization: Option<Authorization>,
-}
-
-/// `BareMetalLvpShareConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalLvpShareConfig {
-    /// lvpConfig property.
-    pub lvp_config: Option<BareMetalLvpConfig>,
-    /// sharedPathPvCount property.
-    pub shared_path_pv_count: Option<i64>,
-}
-
-/// `BareMetalStorageConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalStorageConfig {
-    /// lvpNodeMountsConfig property.
-    pub lvp_node_mounts_config: Option<BareMetalLvpConfig>,
-    /// lvpShareConfig property.
-    pub lvp_share_config: Option<BareMetalLvpShareConfig>,
-}
-
-/// `Version` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Version {
-    /// count property.
-    pub count: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `BareMetalLoadBalancerConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalLoadBalancerConfig {
-    /// bgpLbConfig property.
-    pub bgp_lb_config: Option<BareMetalBgpLbConfig>,
-    /// manualLbConfig property.
-    pub manual_lb_config: Option<BareMetalManualLbConfig>,
-    /// metalLbConfig property.
-    pub metal_lb_config: Option<BareMetalMetalLbConfig>,
-    /// portConfig property.
-    pub port_config: Option<BareMetalPortConfig>,
-    /// vipConfig property.
-    pub vip_config: Option<BareMetalVipConfig>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `BareMetalProxyConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalProxyConfig {
-    /// noProxy property.
-    pub no_proxy: Option<Vec<String>>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `BareMetalSrIovConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalSrIovConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `BareMetalBgpLbConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalBgpLbConfig {
-    /// addressPools property.
-    pub address_pools: Option<Vec<BareMetalLoadBalancerAddressPool>>,
-    /// asn property.
-    pub asn: Option<String>,
-    /// bgpPeerConfigs property.
-    pub bgp_peer_configs: Option<Vec<BareMetalBgpPeerConfig>>,
-    /// loadBalancerNodePoolConfig property.
-    pub load_balancer_node_pool_config: Option<BareMetalLoadBalancerNodePoolConfig>,
-}
 
 /// `BareMetalNetworkConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -231,29 +43,29 @@ pub struct BareMetalNetworkConfig {
     pub sr_iov_config: Option<BareMetalSrIovConfig>,
 }
 
-/// `BareMetalClusterUpgradePolicy` type.
+/// `BareMetalMaintenanceConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalClusterUpgradePolicy {
-    /// pause property.
-    pub pause: Option<bool>,
-    /// policy property.
-    pub policy: Option<String>,
+pub struct BareMetalMaintenanceConfig {
+    /// maintenanceAddressCidrBlocks property.
+    pub maintenance_address_cidr_blocks: Option<Vec<String>>,
 }
 
-/// `BareMetalClusterOperationsConfig` type.
+/// `ValidationCheck` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalClusterOperationsConfig {
-    /// enableApplicationLogs property.
-    pub enable_application_logs: Option<bool>,
+pub struct ValidationCheck {
+    /// option property.
+    pub option: Option<String>,
+    /// scenario property.
+    pub scenario: Option<String>,
+    /// status property.
+    pub status: Option<ValidationCheckStatus>,
 }
 
-/// `BareMetalIslandModeCidrConfig` type.
+/// `BareMetalControlPlaneNodePoolConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalIslandModeCidrConfig {
-    /// podAddressCidrBlocks property.
-    pub pod_address_cidr_blocks: Option<Vec<String>>,
-    /// serviceAddressCidrBlocks property.
-    pub service_address_cidr_blocks: Option<Vec<String>>,
+pub struct BareMetalControlPlaneNodePoolConfig {
+    /// nodePoolConfig property.
+    pub node_pool_config: Option<BareMetalNodePoolConfig>,
 }
 
 /// `BareMetalMachineDrainStatus` type.
@@ -265,20 +77,65 @@ pub struct BareMetalMachineDrainStatus {
     pub draining_machines: Option<Vec<BareMetalDrainingMachine>>,
 }
 
-/// `BareMetalVipConfig` type.
+/// `BareMetalApiServerArgument` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalVipConfig {
-    /// controlPlaneVip property.
-    pub control_plane_vip: Option<String>,
-    /// ingressVip property.
-    pub ingress_vip: Option<String>,
+pub struct BareMetalApiServerArgument {
+    /// argument property.
+    pub argument: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
-/// `BareMetalOsEnvironmentConfig` type.
+/// `Authorization` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalOsEnvironmentConfig {
-    /// packageRepoExcluded property.
-    pub package_repo_excluded: Option<bool>,
+pub struct Authorization {
+    /// adminUsers property.
+    pub admin_users: Option<Vec<ClusterUser>>,
+}
+
+/// `NodeTaint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodeTaint {
+    /// effect property.
+    pub effect: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `BareMetalNodeAccessConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalNodeAccessConfig {
+    /// loginUser property.
+    pub login_user: Option<String>,
+}
+
+/// `BareMetalStorageConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalStorageConfig {
+    /// lvpNodeMountsConfig property.
+    pub lvp_node_mounts_config: Option<BareMetalLvpConfig>,
+    /// lvpShareConfig property.
+    pub lvp_share_config: Option<BareMetalLvpShareConfig>,
+}
+
+/// `Versions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Versions {
+    /// versions property.
+    pub versions: Option<Vec<Version>>,
 }
 
 /// `BareMetalLoadBalancerAddressPool` type.
@@ -294,11 +151,27 @@ pub struct BareMetalLoadBalancerAddressPool {
     pub pool: Option<String>,
 }
 
-/// `BareMetalNodeAccessConfig` type.
+/// `BareMetalLoadBalancerNodePoolConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalNodeAccessConfig {
-    /// loginUser property.
-    pub login_user: Option<String>,
+pub struct BareMetalLoadBalancerNodePoolConfig {
+    /// nodePoolConfig property.
+    pub node_pool_config: Option<BareMetalNodePoolConfig>,
+}
+
+/// `BareMetalNodeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalNodeConfig {
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// nodeIp property.
+    pub node_ip: Option<String>,
+}
+
+/// `Fleet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Fleet {
+    /// membership property.
+    pub membership: Option<String>,
 }
 
 /// `BareMetalNodePoolConfig` type.
@@ -316,18 +189,179 @@ pub struct BareMetalNodePoolConfig {
     pub taints: Option<Vec<NodeTaint>>,
 }
 
-/// `BareMetalControlPlaneNodePoolConfig` type.
+/// `Version` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalControlPlaneNodePoolConfig {
-    /// nodePoolConfig property.
-    pub node_pool_config: Option<BareMetalNodePoolConfig>,
+pub struct Version {
+    /// count property.
+    pub count: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
-/// `BareMetalMaintenanceConfig` type.
+/// `BareMetalBgpLbConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalMaintenanceConfig {
-    /// maintenanceAddressCidrBlocks property.
-    pub maintenance_address_cidr_blocks: Option<Vec<String>>,
+pub struct BareMetalBgpLbConfig {
+    /// addressPools property.
+    pub address_pools: Option<Vec<BareMetalLoadBalancerAddressPool>>,
+    /// asn property.
+    pub asn: Option<String>,
+    /// bgpPeerConfigs property.
+    pub bgp_peer_configs: Option<Vec<BareMetalBgpPeerConfig>>,
+    /// loadBalancerNodePoolConfig property.
+    pub load_balancer_node_pool_config: Option<BareMetalLoadBalancerNodePoolConfig>,
+}
+
+/// `BareMetalLvpShareConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalLvpShareConfig {
+    /// lvpConfig property.
+    pub lvp_config: Option<BareMetalLvpConfig>,
+    /// sharedPathPvCount property.
+    pub shared_path_pv_count: Option<i64>,
+}
+
+/// `BareMetalMaintenanceStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalMaintenanceStatus {
+    /// machineDrainStatus property.
+    pub machine_drain_status: Option<BareMetalMachineDrainStatus>,
+}
+
+/// `BareMetalWorkloadNodeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalWorkloadNodeConfig {
+    /// containerRuntime property.
+    pub container_runtime: Option<String>,
+    /// maxPodsPerNode property.
+    pub max_pods_per_node: Option<String>,
+}
+
+/// `BareMetalProxyConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalProxyConfig {
+    /// noProxy property.
+    pub no_proxy: Option<Vec<String>>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `BareMetalDrainedMachine` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalDrainedMachine {
+    /// nodeIp property.
+    pub node_ip: Option<String>,
+}
+
+/// `BareMetalDrainingMachine` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalDrainingMachine {
+    /// nodeIp property.
+    pub node_ip: Option<String>,
+    /// podCount property.
+    pub pod_count: Option<i64>,
+}
+
+/// `BareMetalManualLbConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalManualLbConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `BareMetalPortConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalPortConfig {
+    /// controlPlaneLoadBalancerPort property.
+    pub control_plane_load_balancer_port: Option<i64>,
+}
+
+/// `BareMetalControlPlaneConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalControlPlaneConfig {
+    /// apiServerArgs property.
+    pub api_server_args: Option<Vec<BareMetalApiServerArgument>>,
+    /// controlPlaneNodePoolConfig property.
+    pub control_plane_node_pool_config: Option<BareMetalControlPlaneNodePoolConfig>,
+}
+
+/// `BareMetalVipConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalVipConfig {
+    /// controlPlaneVip property.
+    pub control_plane_vip: Option<String>,
+    /// ingressVip property.
+    pub ingress_vip: Option<String>,
+}
+
+/// `ListBareMetalClustersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListBareMetalClustersResponse {
+    /// bareMetalClusters property.
+    pub bare_metal_clusters: Option<Vec<BareMetalCluster>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `BareMetalMultipleNetworkInterfacesConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalMultipleNetworkInterfacesConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `BareMetalLoadBalancerConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalLoadBalancerConfig {
+    /// bgpLbConfig property.
+    pub bgp_lb_config: Option<BareMetalBgpLbConfig>,
+    /// manualLbConfig property.
+    pub manual_lb_config: Option<BareMetalManualLbConfig>,
+    /// metalLbConfig property.
+    pub metal_lb_config: Option<BareMetalMetalLbConfig>,
+    /// portConfig property.
+    pub port_config: Option<BareMetalPortConfig>,
+    /// vipConfig property.
+    pub vip_config: Option<BareMetalVipConfig>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ValidationCheckStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ValidationCheckStatus {
+    /// result property.
+    pub result: Option<Vec<ValidationCheckResult>>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `BareMetalClusterOperationsConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalClusterOperationsConfig {
+    /// enableApplicationLogs property.
+    pub enable_application_logs: Option<bool>,
 }
 
 /// `BareMetalCluster` type.
@@ -401,38 +435,29 @@ pub struct BareMetalCluster {
     pub validation_check: Option<ValidationCheck>,
 }
 
-/// `BareMetalDrainedMachine` type.
+/// `BareMetalIslandModeCidrConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalDrainedMachine {
-    /// nodeIp property.
-    pub node_ip: Option<String>,
+pub struct BareMetalIslandModeCidrConfig {
+    /// podAddressCidrBlocks property.
+    pub pod_address_cidr_blocks: Option<Vec<String>>,
+    /// serviceAddressCidrBlocks property.
+    pub service_address_cidr_blocks: Option<Vec<String>>,
 }
 
-/// `BareMetalDrainingMachine` type.
+/// `BareMetalSrIovConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalDrainingMachine {
-    /// nodeIp property.
-    pub node_ip: Option<String>,
-    /// podCount property.
-    pub pod_count: Option<i64>,
+pub struct BareMetalSrIovConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
 }
 
-/// `BareMetalPortConfig` type.
+/// `BareMetalMetalLbConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalPortConfig {
-    /// controlPlaneLoadBalancerPort property.
-    pub control_plane_load_balancer_port: Option<i64>,
-}
-
-/// `NodeTaint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeTaint {
-    /// effect property.
-    pub effect: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct BareMetalMetalLbConfig {
+    /// addressPools property.
+    pub address_pools: Option<Vec<BareMetalLoadBalancerAddressPool>>,
+    /// loadBalancerNodePoolConfig property.
+    pub load_balancer_node_pool_config: Option<BareMetalLoadBalancerNodePoolConfig>,
 }
 
 /// `BareMetalBgpPeerConfig` type.
@@ -446,13 +471,40 @@ pub struct BareMetalBgpPeerConfig {
     pub ip_address: Option<String>,
 }
 
-/// `BareMetalApiServerArgument` type.
+/// `ResourceStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalApiServerArgument {
-    /// argument property.
-    pub argument: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct ResourceStatus {
+    /// conditions property.
+    pub conditions: Option<Vec<ResourceCondition>>,
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+    /// versions property.
+    pub versions: Option<Versions>,
+}
+
+/// `BinaryAuthorization` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BinaryAuthorization {
+    /// evaluationMode property.
+    pub evaluation_mode: Option<String>,
+}
+
+/// `BareMetalLvpConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalLvpConfig {
+    /// path property.
+    pub path: Option<String>,
+    /// storageClass property.
+    pub storage_class: Option<String>,
+}
+
+/// `ClusterUser` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterUser {
+    /// username property.
+    pub username: Option<String>,
 }
 
 /// `ResourceCondition` type.
@@ -470,104 +522,53 @@ pub struct ResourceCondition {
     pub r#type: Option<String>,
 }
 
-/// `BareMetalMetalLbConfig` type.
+/// `BareMetalOsEnvironmentConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalMetalLbConfig {
-    /// addressPools property.
-    pub address_pools: Option<Vec<BareMetalLoadBalancerAddressPool>>,
-    /// loadBalancerNodePoolConfig property.
-    pub load_balancer_node_pool_config: Option<BareMetalLoadBalancerNodePoolConfig>,
+pub struct BareMetalOsEnvironmentConfig {
+    /// packageRepoExcluded property.
+    pub package_repo_excluded: Option<bool>,
 }
 
-/// `BareMetalControlPlaneConfig` type.
+/// `BareMetalSecurityConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalControlPlaneConfig {
-    /// apiServerArgs property.
-    pub api_server_args: Option<Vec<BareMetalApiServerArgument>>,
-    /// controlPlaneNodePoolConfig property.
-    pub control_plane_node_pool_config: Option<BareMetalControlPlaneNodePoolConfig>,
+pub struct BareMetalSecurityConfig {
+    /// authorization property.
+    pub authorization: Option<Authorization>,
 }
 
-/// `Fleet` type.
+/// `ValidationCheckResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Fleet {
-    /// membership property.
-    pub membership: Option<String>,
+pub struct ValidationCheckResult {
+    /// category property.
+    pub category: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// details property.
+    pub details: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+    /// state property.
+    pub state: Option<String>,
 }
 
-/// `BareMetalMultipleNetworkInterfacesConfig` type.
+/// `BareMetalClusterUpgradePolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalMultipleNetworkInterfacesConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
+pub struct BareMetalClusterUpgradePolicy {
+    /// pause property.
+    pub pause: Option<bool>,
+    /// policy property.
+    pub policy: Option<String>,
 }
 
-/// `BareMetalLvpConfig` type.
+/// `BareMetalKubeletConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalLvpConfig {
-    /// path property.
-    pub path: Option<String>,
-    /// storageClass property.
-    pub storage_class: Option<String>,
-}
-
-/// `BinaryAuthorization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BinaryAuthorization {
-    /// evaluationMode property.
-    pub evaluation_mode: Option<String>,
-}
-
-/// `Authorization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Authorization {
-    /// adminUsers property.
-    pub admin_users: Option<Vec<ClusterUser>>,
-}
-
-/// `ClusterUser` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterUser {
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `ResourceStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceStatus {
-    /// conditions property.
-    pub conditions: Option<Vec<ResourceCondition>>,
-    /// errorMessage property.
-    pub error_message: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-    /// versions property.
-    pub versions: Option<Versions>,
-}
-
-/// `BareMetalMaintenanceStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalMaintenanceStatus {
-    /// machineDrainStatus property.
-    pub machine_drain_status: Option<BareMetalMachineDrainStatus>,
-}
-
-/// `BareMetalWorkloadNodeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalWorkloadNodeConfig {
-    /// containerRuntime property.
-    pub container_runtime: Option<String>,
-    /// maxPodsPerNode property.
-    pub max_pods_per_node: Option<String>,
-}
-
-/// `BareMetalNodeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalNodeConfig {
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// nodeIp property.
-    pub node_ip: Option<String>,
+pub struct BareMetalKubeletConfig {
+    /// registryBurst property.
+    pub registry_burst: Option<i64>,
+    /// registryPullQps property.
+    pub registry_pull_qps: Option<i64>,
+    /// serializeImagePullsDisabled property.
+    pub serialize_image_pulls_disabled: Option<bool>,
 }
 
 // =============================================================================

@@ -12,71 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `InterconnectAttachmentConfigurationConstraints` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachmentConfigurationConstraints {
-    /// bgpMd5 property.
-    pub bgp_md5: Option<String>,
-    /// bgpPeerAsnRanges property.
-    pub bgp_peer_asn_ranges:
-        Option<Vec<InterconnectAttachmentConfigurationConstraintsBgpPeerASNRange>>,
-}
-
-/// `InterconnectRemoteLocationPermittedConnections` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectRemoteLocationPermittedConnections {
-    /// interconnectLocation property.
-    pub interconnect_location: Option<String>,
-}
-
-/// `InterconnectAttachmentConfigurationConstraintsBgpPeerASNRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachmentConfigurationConstraintsBgpPeerASNRange {
-    /// max property.
-    pub max: Option<i64>,
-    /// min property.
-    pub min: Option<i64>,
-}
-
-/// `InterconnectRemoteLocationList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectRemoteLocationList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<InterconnectRemoteLocation>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `InterconnectRemoteLocationConstraints` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectRemoteLocationConstraints {
-    /// portPairRemoteLocation property.
-    pub port_pair_remote_location: Option<String>,
-    /// portPairVlan property.
-    pub port_pair_vlan: Option<String>,
-    /// subnetLengthRange property.
-    pub subnet_length_range: Option<InterconnectRemoteLocationConstraintsSubnetLengthRange>,
-}
 
 /// `InterconnectRemoteLocation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -126,6 +73,15 @@ pub struct InterconnectRemoteLocation {
     pub status: Option<String>,
 }
 
+/// `InterconnectAttachmentConfigurationConstraintsBgpPeerASNRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectAttachmentConfigurationConstraintsBgpPeerASNRange {
+    /// max property.
+    pub max: Option<i64>,
+    /// min property.
+    pub min: Option<i64>,
+}
+
 /// `InterconnectRemoteLocationConstraintsSubnetLengthRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectRemoteLocationConstraintsSubnetLengthRange {
@@ -133,6 +89,51 @@ pub struct InterconnectRemoteLocationConstraintsSubnetLengthRange {
     pub max: Option<i64>,
     /// min property.
     pub min: Option<i64>,
+}
+
+/// `InterconnectAttachmentConfigurationConstraints` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectAttachmentConfigurationConstraints {
+    /// bgpMd5 property.
+    pub bgp_md5: Option<String>,
+    /// bgpPeerAsnRanges property.
+    pub bgp_peer_asn_ranges:
+        Option<Vec<InterconnectAttachmentConfigurationConstraintsBgpPeerASNRange>>,
+}
+
+/// `InterconnectRemoteLocationList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectRemoteLocationList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<InterconnectRemoteLocation>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `InterconnectRemoteLocationConstraints` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectRemoteLocationConstraints {
+    /// portPairRemoteLocation property.
+    pub port_pair_remote_location: Option<String>,
+    /// portPairVlan property.
+    pub port_pair_vlan: Option<String>,
+    /// subnetLengthRange property.
+    pub subnet_length_range: Option<InterconnectRemoteLocationConstraintsSubnetLengthRange>,
+}
+
+/// `InterconnectRemoteLocationPermittedConnections` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectRemoteLocationPermittedConnections {
+    /// interconnectLocation property.
+    pub interconnect_location: Option<String>,
 }
 
 // =============================================================================

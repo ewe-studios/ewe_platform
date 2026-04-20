@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,26 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListFilterSetsResponse` type.
+/// `AbsoluteDateRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListFilterSetsResponse {
-    /// filterSets property.
-    pub filter_sets: Option<Vec<FilterSet>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `RealtimeTimeRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RealtimeTimeRange {
-    /// startTimestamp property.
-    pub start_timestamp: Option<String>,
+pub struct AbsoluteDateRange {
+    /// endDate property.
+    pub end_date: Option<Date>,
+    /// startDate property.
+    pub start_date: Option<Date>,
 }
 
 /// `FilterSet` type.
@@ -76,6 +70,22 @@ pub struct FilterSet {
     pub time_series_granularity: Option<String>,
 }
 
+/// `ListFilterSetsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListFilterSetsResponse {
+    /// filterSets property.
+    pub filter_sets: Option<Vec<FilterSet>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `RealtimeTimeRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RealtimeTimeRange {
+    /// startTimestamp property.
+    pub start_timestamp: Option<String>,
+}
+
 /// `RelativeDateRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RelativeDateRange {
@@ -83,15 +93,6 @@ pub struct RelativeDateRange {
     pub duration_days: Option<i64>,
     /// offsetDays property.
     pub offset_days: Option<i64>,
-}
-
-/// `AbsoluteDateRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AbsoluteDateRange {
-    /// endDate property.
-    pub end_date: Option<Date>,
-    /// startDate property.
-    pub start_date: Option<Date>,
 }
 
 /// `Date` type.

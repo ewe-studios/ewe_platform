@@ -12,17 +12,29 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `QueryOrgVpcFlowLogsConfigsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueryOrgVpcFlowLogsConfigsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+    /// vpcFlowLogsConfigs property.
+    pub vpc_flow_logs_configs: Option<Vec<VpcFlowLogsConfig>>,
+}
 
 /// `VpcFlowLogsConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -61,17 +73,6 @@ pub struct VpcFlowLogsConfig {
     pub update_time: Option<String>,
     /// vpnTunnel property.
     pub vpn_tunnel: Option<String>,
-}
-
-/// `QueryOrgVpcFlowLogsConfigsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryOrgVpcFlowLogsConfigsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-    /// vpcFlowLogsConfigs property.
-    pub vpc_flow_logs_configs: Option<Vec<VpcFlowLogsConfig>>,
 }
 
 // =============================================================================

@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `EventChild` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventChild {
-    /// childId property.
-    pub child_id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-}
 
 /// `EventDefinition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -52,6 +44,15 @@ pub struct EventDefinition {
     pub kind: Option<String>,
     /// visibility property.
     pub visibility: Option<String>,
+}
+
+/// `EventChild` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EventChild {
+    /// childId property.
+    pub child_id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
 }
 
 /// `EventDefinitionListResponse` type.

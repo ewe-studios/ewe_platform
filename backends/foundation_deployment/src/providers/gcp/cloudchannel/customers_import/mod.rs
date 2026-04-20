@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,39 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleCloudChannelV1Customer;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudChannelV1ContactInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1ContactInfo {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// email property.
-    pub email: Option<String>,
-    /// firstName property.
-    pub first_name: Option<String>,
-    /// lastName property.
-    pub last_name: Option<String>,
-    /// phone property.
-    pub phone: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleCloudChannelV1EduData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1EduData {
-    /// instituteSize property.
-    pub institute_size: Option<String>,
-    /// instituteType property.
-    pub institute_type: Option<String>,
-    /// website property.
-    pub website: Option<String>,
-}
 
 /// `GoogleCloudChannelV1CloudIdentityInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -74,6 +47,17 @@ pub struct GoogleCloudChannelV1CloudIdentityInfo {
     pub phone_number: Option<String>,
     /// primaryDomain property.
     pub primary_domain: Option<String>,
+}
+
+/// `GoogleCloudChannelV1EduData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1EduData {
+    /// instituteSize property.
+    pub institute_size: Option<String>,
+    /// instituteType property.
+    pub institute_type: Option<String>,
+    /// website property.
+    pub website: Option<String>,
 }
 
 /// `GoogleTypePostalAddress` type.
@@ -101,6 +85,23 @@ pub struct GoogleTypePostalAddress {
     pub sorting_code: Option<String>,
     /// sublocality property.
     pub sublocality: Option<String>,
+}
+
+/// `GoogleCloudChannelV1ContactInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1ContactInfo {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// email property.
+    pub email: Option<String>,
+    /// firstName property.
+    pub first_name: Option<String>,
+    /// lastName property.
+    pub last_name: Option<String>,
+    /// phone property.
+    pub phone: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 // =============================================================================

@@ -12,17 +12,35 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ProfileFilterLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProfileFilterLink {
+    /// filterRef property.
+    pub filter_ref: Option<FilterRef>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// profileRef property.
+    pub profile_ref: Option<ProfileRef>,
+    /// rank property.
+    pub rank: Option<i64>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+}
 
 /// `FilterRef` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -56,23 +74,6 @@ pub struct ProfileRef {
     pub name: Option<String>,
     /// webPropertyId property.
     pub web_property_id: Option<String>,
-}
-
-/// `ProfileFilterLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProfileFilterLink {
-    /// filterRef property.
-    pub filter_ref: Option<FilterRef>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// profileRef property.
-    pub profile_ref: Option<ProfileRef>,
-    /// rank property.
-    pub rank: Option<i64>,
-    /// selfLink property.
-    pub self_link: Option<String>,
 }
 
 /// `ProfileFilterLinks` type.

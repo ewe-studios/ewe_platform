@@ -12,37 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListPublisherProfilesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListPublisherProfilesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// publisherProfiles property.
-    pub publisher_profiles: Option<Vec<PublisherProfile>>,
-}
-
-/// `PublisherProfileMobileApplication` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PublisherProfileMobileApplication {
-    /// appStore property.
-    pub app_store: Option<String>,
-    /// externalAppId property.
-    pub external_app_id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
 
 /// `PublisherProfile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -77,6 +58,26 @@ pub struct PublisherProfile {
     pub sample_page_url: Option<String>,
     /// topHeadlines property.
     pub top_headlines: Option<Vec<String>>,
+}
+
+/// `PublisherProfileMobileApplication` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PublisherProfileMobileApplication {
+    /// appStore property.
+    pub app_store: Option<String>,
+    /// externalAppId property.
+    pub external_app_id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `ListPublisherProfilesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListPublisherProfilesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// publisherProfiles property.
+    pub publisher_profiles: Option<Vec<PublisherProfile>>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -32,6 +33,15 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 pub struct StreamingConfig {
     /// filter property.
     pub filter: Option<String>,
+}
+
+/// `ListNotificationConfigsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListNotificationConfigsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// notificationConfigs property.
+    pub notification_configs: Option<Vec<NotificationConfig>>,
 }
 
 /// `NotificationConfig` type.
@@ -47,15 +57,6 @@ pub struct NotificationConfig {
     pub service_account: Option<String>,
     /// streamingConfig property.
     pub streaming_config: Option<StreamingConfig>,
-}
-
-/// `ListNotificationConfigsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListNotificationConfigsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// notificationConfigs property.
-    pub notification_configs: Option<Vec<NotificationConfig>>,
 }
 
 // =============================================================================

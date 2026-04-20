@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -29,40 +30,32 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `V1GetUsageApiRequestsCountResponse` type.
+/// `V1PostgrestConfigResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1GetUsageApiRequestsCountResponse {
-    /// error property.
-    pub error: Option<serde_json::Value>,
-    /// result property.
-    pub result: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+pub struct V1PostgrestConfigResponse {
+    /// db_extra_search_path property.
+    pub db_extra_search_path: String,
+    /// db_pool property.
+    pub db_pool: i64,
+    /// db_schema property.
+    pub db_schema: String,
+    /// max_rows property.
+    pub max_rows: i64,
 }
 
-/// `OrganizationResponseV1` type.
+/// `V1OrganizationSlugResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OrganizationResponseV1 {
+pub struct V1OrganizationSlugResponse {
+    /// allowed_release_channels property.
+    pub allowed_release_channels: Vec<String>,
     /// id property.
     pub id: String,
     /// name property.
     pub name: String,
-    /// slug property.
-    pub slug: String,
-}
-
-/// `CreateRoleBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateRoleBody {
-    /// read_only property.
-    pub read_only: bool,
-}
-
-/// `UpgradeDatabaseBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpgradeDatabaseBody {
-    /// release_channel property.
-    pub release_channel: Option<String>,
-    /// target_version property.
-    pub target_version: String,
+    /// opt_in_tags property.
+    pub opt_in_tags: Vec<String>,
+    /// plan property.
+    pub plan: Option<String>,
 }
 
 /// `PostgrestConfigWithJWTSecretResponse` type.
@@ -80,19 +73,6 @@ pub struct PostgrestConfigWithJWTSecretResponse {
     pub max_rows: i64,
 }
 
-/// `V1PostgrestConfigResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1PostgrestConfigResponse {
-    /// db_extra_search_path property.
-    pub db_extra_search_path: String,
-    /// db_pool property.
-    pub db_pool: i64,
-    /// db_schema property.
-    pub db_schema: String,
-    /// max_rows property.
-    pub max_rows: i64,
-}
-
 /// `LegacyApiKeysResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LegacyApiKeysResponse {
@@ -100,25 +80,13 @@ pub struct LegacyApiKeysResponse {
     pub enabled: bool,
 }
 
-/// `NetworkBanResponse` type.
+/// `ListProjectAddonsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkBanResponse {
-    /// banned_ipv4_addresses property.
-    pub banned_ipv4_addresses: Vec<String>,
-}
-
-/// `V1ListEntitlementsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1ListEntitlementsResponse {
-    /// entitlements property.
-    pub entitlements: Vec<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `ListActionRunResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListActionRunResponse {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct ListProjectAddonsResponse {
+    /// available_addons property.
+    pub available_addons: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// selected_addons property.
+    pub selected_addons: Vec<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `ProjectUpgradeEligibilityResponse` type.
@@ -148,22 +116,63 @@ pub struct ProjectUpgradeEligibilityResponse {
     pub validation_errors: Vec<serde_json::Value>,
 }
 
-/// `ListProjectAddonsResponse` type.
+/// `V1UpdateProjectBody` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListProjectAddonsResponse {
-    /// available_addons property.
-    pub available_addons: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// selected_addons property.
-    pub selected_addons: Vec<std::collections::HashMap<String, serde_json::Value>>,
+pub struct V1UpdateProjectBody {
+    /// name property.
+    pub name: String,
 }
 
-/// `RegionsInfo` type.
+/// `ActionRunResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegionsInfo {
-    /// all property.
-    pub all: std::collections::HashMap<String, serde_json::Value>,
-    /// recommendations property.
-    pub recommendations: std::collections::HashMap<String, serde_json::Value>,
+pub struct ActionRunResponse {
+    /// branch_id property.
+    pub branch_id: String,
+    /// check_run_id property.
+    pub check_run_id: f64,
+    /// created_at property.
+    pub created_at: String,
+    /// git_config property.
+    pub git_config: Option<serde_json::Value>,
+    /// id property.
+    pub id: String,
+    /// run_steps property.
+    pub run_steps: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// updated_at property.
+    pub updated_at: String,
+    /// workdir property.
+    pub workdir: String,
+}
+
+/// `DiskAutoscaleConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskAutoscaleConfig {
+    /// growth_percent property.
+    pub growth_percent: i64,
+    /// max_size_gb property.
+    pub max_size_gb: i64,
+    /// min_increment_gb property.
+    pub min_increment_gb: i64,
+}
+
+/// `CreateApiKeyBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateApiKeyBody {
+    /// description property.
+    pub description: Option<String>,
+    /// name property.
+    pub name: String,
+    /// secret_jwt_template property.
+    pub secret_jwt_template: Option<serde_json::Value>,
+    /// type property.
+    pub r#type: String,
+}
+
+/// `RemoveReadReplicaBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RemoveReadReplicaBody {
+    /// database_identifier property.
+    pub database_identifier: String,
 }
 
 /// `ApiKeyResponse` type.
@@ -191,147 +200,27 @@ pub struct ApiKeyResponse {
     pub updated_at: Option<String>,
 }
 
-/// `NetworkBanResponseEnriched` type.
+/// `SetUpReadReplicaBody` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkBanResponseEnriched {
-    /// banned_ipv4_addresses property.
-    pub banned_ipv4_addresses: Vec<std::collections::HashMap<String, serde_json::Value>>,
+pub struct SetUpReadReplicaBody {
+    /// read_replica_region property.
+    pub read_replica_region: String,
 }
 
-/// `UpdateRunStatusBody` type.
+/// `TypescriptResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateRunStatusBody {
-    /// clone property.
-    pub clone: Option<String>,
-    /// configure property.
-    pub configure: Option<String>,
-    /// deploy property.
-    pub deploy: Option<String>,
-    /// health property.
-    pub health: Option<String>,
-    /// migrate property.
-    pub migrate: Option<String>,
-    /// pull property.
-    pub pull: Option<String>,
-    /// seed property.
-    pub seed: Option<String>,
+pub struct TypescriptResponse {
+    /// types property.
+    pub types: String,
 }
 
-/// `V1ProjectRefResponse` type.
+/// `NetworkRestrictionsPatchRequest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1ProjectRefResponse {
-    /// id property.
-    pub id: i64,
-    /// name property.
-    pub name: String,
-    /// ref property.
-    pub r#ref: String,
-}
-
-/// `RemoveReadReplicaBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemoveReadReplicaBody {
-    /// database_identifier property.
-    pub database_identifier: String,
-}
-
-/// `UpdateRunStatusResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateRunStatusResponse {
-    /// message property.
-    pub message: String,
-}
-
-/// `V1UpdatePostgrestConfigBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1UpdatePostgrestConfigBody {
-    /// db_extra_search_path property.
-    pub db_extra_search_path: Option<String>,
-    /// db_pool property.
-    pub db_pool: Option<i64>,
-    /// db_schema property.
-    pub db_schema: Option<String>,
-    /// max_rows property.
-    pub max_rows: Option<i64>,
-}
-
-/// `JitAccessRequestRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JitAccessRequestRequest {
-    /// state property.
-    pub state: String,
-}
-
-/// `DiskUtilMetricsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskUtilMetricsResponse {
-    /// metrics property.
-    pub metrics: std::collections::HashMap<String, serde_json::Value>,
-    /// timestamp property.
-    pub timestamp: String,
-}
-
-/// `SslEnforcementResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SslEnforcementResponse {
-    /// appliedSuccessfully property.
-    pub applied_successfully: bool,
-    /// currentConfig property.
-    pub current_config: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `NetworkRestrictionsRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkRestrictionsRequest {
-    /// dbAllowedCidrs property.
-    pub db_allowed_cidrs: Option<Vec<String>>,
-    /// dbAllowedCidrsV6 property.
-    pub db_allowed_cidrs_v6: Option<Vec<String>>,
-}
-
-/// `V1OrganizationSlugResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1OrganizationSlugResponse {
-    /// allowed_release_channels property.
-    pub allowed_release_channels: Vec<String>,
-    /// id property.
-    pub id: String,
-    /// name property.
-    pub name: String,
-    /// opt_in_tags property.
-    pub opt_in_tags: Vec<String>,
-    /// plan property.
-    pub plan: Option<String>,
-}
-
-/// `V1ProjectWithDatabaseResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1ProjectWithDatabaseResponse {
-    /// created_at property.
-    pub created_at: String,
-    /// database property.
-    pub database: std::collections::HashMap<String, serde_json::Value>,
-    /// id property.
-    pub id: String,
-    /// name property.
-    pub name: String,
-    /// organization_id property.
-    pub organization_id: String,
-    /// organization_slug property.
-    pub organization_slug: String,
-    /// ref property.
-    pub r#ref: String,
-    /// region property.
-    pub region: String,
-    /// status property.
-    pub status: String,
-}
-
-/// `SubdomainAvailabilityResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubdomainAvailabilityResponse {
-    /// available property.
-    pub available: bool,
+pub struct NetworkRestrictionsPatchRequest {
+    /// add property.
+    pub add: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// remove property.
+    pub remove: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `V1GetUsageApiCountResponse` type.
@@ -352,25 +241,79 @@ pub struct OrganizationProjectsResponse {
     pub projects: Vec<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `UpdatePgsodiumConfigBody` type.
+/// `OrganizationResponseV1` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdatePgsodiumConfigBody {
-    /// root_key property.
-    pub root_key: String,
-}
-
-/// `V1UpdateProjectBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1UpdateProjectBody {
+pub struct OrganizationResponseV1 {
+    /// id property.
+    pub id: String,
     /// name property.
     pub name: String,
+    /// slug property.
+    pub slug: String,
 }
 
-/// `ActivateVanitySubdomainResponse` type.
+/// `V1GetUsageApiRequestsCountResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActivateVanitySubdomainResponse {
-    /// custom_domain property.
-    pub custom_domain: String,
+pub struct V1GetUsageApiRequestsCountResponse {
+    /// error property.
+    pub error: Option<serde_json::Value>,
+    /// result property.
+    pub result: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+}
+
+/// `NetworkRestrictionsRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkRestrictionsRequest {
+    /// dbAllowedCidrs property.
+    pub db_allowed_cidrs: Option<Vec<String>>,
+    /// dbAllowedCidrsV6 property.
+    pub db_allowed_cidrs_v6: Option<Vec<String>>,
+}
+
+/// `SslEnforcementRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SslEnforcementRequest {
+    /// requestedConfig property.
+    pub requested_config: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RemoveNetworkBanRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RemoveNetworkBanRequest {
+    /// identifier property.
+    pub identifier: Option<String>,
+    /// ipv4_addresses property.
+    pub ipv4_addresses: Vec<String>,
+    /// requester_ip property.
+    pub requester_ip: Option<bool>,
+}
+
+/// `CreateRoleBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateRoleBody {
+    /// read_only property.
+    pub read_only: bool,
+}
+
+/// `V1ProjectResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct V1ProjectResponse {
+    /// created_at property.
+    pub created_at: String,
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+    /// organization_id property.
+    pub organization_id: String,
+    /// organization_slug property.
+    pub organization_slug: String,
+    /// ref property.
+    pub r#ref: String,
+    /// region property.
+    pub region: String,
+    /// status property.
+    pub status: String,
 }
 
 /// `CreateRoleResponse` type.
@@ -384,124 +327,24 @@ pub struct CreateRoleResponse {
     pub ttl_seconds: i64,
 }
 
-/// `SslEnforcementRequest` type.
+/// `V1UpdatePostgrestConfigBody` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SslEnforcementRequest {
-    /// requestedConfig property.
-    pub requested_config: std::collections::HashMap<String, serde_json::Value>,
+pub struct V1UpdatePostgrestConfigBody {
+    /// db_extra_search_path property.
+    pub db_extra_search_path: Option<String>,
+    /// db_pool property.
+    pub db_pool: Option<i64>,
+    /// db_schema property.
+    pub db_schema: Option<String>,
+    /// max_rows property.
+    pub max_rows: Option<i64>,
 }
 
-/// `TypescriptResponse` type.
+/// `ListActionRunResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TypescriptResponse {
-    /// types property.
-    pub types: String,
-}
-
-/// `NetworkRestrictionsPatchRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkRestrictionsPatchRequest {
-    /// add property.
-    pub add: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// remove property.
-    pub remove: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `NetworkRestrictionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkRestrictionsResponse {
-    /// applied_at property.
-    pub applied_at: Option<String>,
-    /// config property.
-    pub config: std::collections::HashMap<String, serde_json::Value>,
-    /// entitlement property.
-    pub entitlement: String,
-    /// old_config property.
-    pub old_config: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// status property.
-    pub status: String,
-    /// updated_at property.
-    pub updated_at: Option<String>,
-}
-
-/// `VanitySubdomainConfigResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VanitySubdomainConfigResponse {
-    /// custom_domain property.
-    pub custom_domain: Option<String>,
-    /// status property.
-    pub status: String,
-}
-
-/// `UpdateCustomHostnameResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateCustomHostnameResponse {
-    /// custom_hostname property.
-    pub custom_hostname: String,
-    /// data property.
+pub struct ListActionRunResponse {
+    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
-    /// status property.
-    pub status: String,
-}
-
-/// `VanitySubdomainBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VanitySubdomainBody {
-    /// vanity_subdomain property.
-    pub vanity_subdomain: String,
-}
-
-/// `DiskAutoscaleConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskAutoscaleConfig {
-    /// growth_percent property.
-    pub growth_percent: i64,
-    /// max_size_gb property.
-    pub max_size_gb: i64,
-    /// min_increment_gb property.
-    pub min_increment_gb: i64,
-}
-
-/// `UpdateApiKeyBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateApiKeyBody {
-    /// description property.
-    pub description: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// secret_jwt_template property.
-    pub secret_jwt_template: Option<serde_json::Value>,
-}
-
-/// `ProjectUpgradeInitiateResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectUpgradeInitiateResponse {
-    /// tracking_id property.
-    pub tracking_id: String,
-}
-
-/// `NetworkRestrictionsV2Response` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkRestrictionsV2Response {
-    /// applied_at property.
-    pub applied_at: Option<String>,
-    /// config property.
-    pub config: std::collections::HashMap<String, serde_json::Value>,
-    /// entitlement property.
-    pub entitlement: String,
-    /// old_config property.
-    pub old_config: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// status property.
-    pub status: String,
-    /// updated_at property.
-    pub updated_at: Option<String>,
-}
-
-/// `PgsodiumConfigResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PgsodiumConfigResponse {
-    /// root_key property.
-    pub root_key: String,
 }
 
 /// `DatabaseUpgradeStatusResponse` type.
@@ -509,82 +352,6 @@ pub struct PgsodiumConfigResponse {
 pub struct DatabaseUpgradeStatusResponse {
     /// databaseUpgradeStatus property.
     pub database_upgrade_status: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ReadOnlyStatusResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReadOnlyStatusResponse {
-    /// enabled property.
-    pub enabled: bool,
-    /// override_active_until property.
-    pub override_active_until: String,
-    /// override_enabled property.
-    pub override_enabled: bool,
-}
-
-/// `StringType` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StringType {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CreateApiKeyBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateApiKeyBody {
-    /// description property.
-    pub description: Option<String>,
-    /// name property.
-    pub name: String,
-    /// secret_jwt_template property.
-    pub secret_jwt_template: Option<serde_json::Value>,
-    /// type property.
-    pub r#type: String,
-}
-
-/// `ApplyProjectAddonBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApplyProjectAddonBody {
-    /// addon_type property.
-    pub addon_type: String,
-    /// addon_variant property.
-    pub addon_variant: serde_json::Value,
-}
-
-/// `ActionRunResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActionRunResponse {
-    /// branch_id property.
-    pub branch_id: String,
-    /// check_run_id property.
-    pub check_run_id: f64,
-    /// created_at property.
-    pub created_at: String,
-    /// git_config property.
-    pub git_config: Option<serde_json::Value>,
-    /// id property.
-    pub id: String,
-    /// run_steps property.
-    pub run_steps: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// updated_at property.
-    pub updated_at: String,
-    /// workdir property.
-    pub workdir: String,
-}
-
-/// `UpdateCustomHostnameBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateCustomHostnameBody {
-    /// custom_hostname property.
-    pub custom_hostname: String,
-}
-
-/// `SetUpReadReplicaBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetUpReadReplicaBody {
-    /// read_replica_region property.
-    pub read_replica_region: String,
 }
 
 /// `CreateBranchBody` type.
@@ -614,6 +381,29 @@ pub struct CreateBranchBody {
     pub with_data: Option<bool>,
 }
 
+/// `V1ProjectWithDatabaseResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct V1ProjectWithDatabaseResponse {
+    /// created_at property.
+    pub created_at: String,
+    /// database property.
+    pub database: std::collections::HashMap<String, serde_json::Value>,
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+    /// organization_id property.
+    pub organization_id: String,
+    /// organization_slug property.
+    pub organization_slug: String,
+    /// ref property.
+    pub r#ref: String,
+    /// region property.
+    pub region: String,
+    /// status property.
+    pub status: String,
+}
+
 /// `V1CreateProjectBody` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1CreateProjectBody {
@@ -639,6 +429,54 @@ pub struct V1CreateProjectBody {
     pub template_url: Option<String>,
 }
 
+/// `V1ListEntitlementsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct V1ListEntitlementsResponse {
+    /// entitlements property.
+    pub entitlements: Vec<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `VanitySubdomainBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VanitySubdomainBody {
+    /// vanity_subdomain property.
+    pub vanity_subdomain: String,
+}
+
+/// `UpgradeDatabaseBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpgradeDatabaseBody {
+    /// release_channel property.
+    pub release_channel: Option<String>,
+    /// target_version property.
+    pub target_version: String,
+}
+
+/// `NetworkBanResponseEnriched` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkBanResponseEnriched {
+    /// banned_ipv4_addresses property.
+    pub banned_ipv4_addresses: Vec<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `UpdateCustomHostnameResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateCustomHostnameResponse {
+    /// custom_hostname property.
+    pub custom_hostname: String,
+    /// data property.
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+    /// status property.
+    pub status: String,
+}
+
+/// `UpdatePgsodiumConfigBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdatePgsodiumConfigBody {
+    /// root_key property.
+    pub root_key: String,
+}
+
 /// `GetProjectAvailableRestoreVersionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetProjectAvailableRestoreVersionsResponse {
@@ -646,11 +484,144 @@ pub struct GetProjectAvailableRestoreVersionsResponse {
     pub available_versions: Vec<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `DeleteRolesResponse` type.
+/// `NetworkRestrictionsV2Response` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteRolesResponse {
-    /// message property.
-    pub message: String,
+pub struct NetworkRestrictionsV2Response {
+    /// applied_at property.
+    pub applied_at: Option<String>,
+    /// config property.
+    pub config: std::collections::HashMap<String, serde_json::Value>,
+    /// entitlement property.
+    pub entitlement: String,
+    /// old_config property.
+    pub old_config: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// status property.
+    pub status: String,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+}
+
+/// `UpdateApiKeyBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateApiKeyBody {
+    /// description property.
+    pub description: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// secret_jwt_template property.
+    pub secret_jwt_template: Option<serde_json::Value>,
+}
+
+/// `PgsodiumConfigResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PgsodiumConfigResponse {
+    /// root_key property.
+    pub root_key: String,
+}
+
+/// `ProjectUpgradeInitiateResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectUpgradeInitiateResponse {
+    /// tracking_id property.
+    pub tracking_id: String,
+}
+
+/// `V1ProjectRefResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct V1ProjectRefResponse {
+    /// id property.
+    pub id: i64,
+    /// name property.
+    pub name: String,
+    /// ref property.
+    pub r#ref: String,
+}
+
+/// `DiskUtilMetricsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskUtilMetricsResponse {
+    /// metrics property.
+    pub metrics: std::collections::HashMap<String, serde_json::Value>,
+    /// timestamp property.
+    pub timestamp: String,
+}
+
+/// `RegionsInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegionsInfo {
+    /// all property.
+    pub all: std::collections::HashMap<String, serde_json::Value>,
+    /// recommendations property.
+    pub recommendations: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ReadOnlyStatusResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReadOnlyStatusResponse {
+    /// enabled property.
+    pub enabled: bool,
+    /// override_active_until property.
+    pub override_active_until: String,
+    /// override_enabled property.
+    pub override_enabled: bool,
+}
+
+/// `JitAccessRequestRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JitAccessRequestRequest {
+    /// state property.
+    pub state: String,
+}
+
+/// `UpdateRunStatusBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateRunStatusBody {
+    /// clone property.
+    pub clone: Option<String>,
+    /// configure property.
+    pub configure: Option<String>,
+    /// deploy property.
+    pub deploy: Option<String>,
+    /// health property.
+    pub health: Option<String>,
+    /// migrate property.
+    pub migrate: Option<String>,
+    /// pull property.
+    pub pull: Option<String>,
+    /// seed property.
+    pub seed: Option<String>,
+}
+
+/// `ApplyProjectAddonBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApplyProjectAddonBody {
+    /// addon_type property.
+    pub addon_type: String,
+    /// addon_variant property.
+    pub addon_variant: serde_json::Value,
+}
+
+/// `VanitySubdomainConfigResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VanitySubdomainConfigResponse {
+    /// custom_domain property.
+    pub custom_domain: Option<String>,
+    /// status property.
+    pub status: String,
+}
+
+/// `SubdomainAvailabilityResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SubdomainAvailabilityResponse {
+    /// available property.
+    pub available: bool,
+}
+
+/// `ActivateVanitySubdomainResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActivateVanitySubdomainResponse {
+    /// custom_domain property.
+    pub custom_domain: String,
 }
 
 /// `CreateOrganizationV1` type.
@@ -660,36 +631,66 @@ pub struct CreateOrganizationV1 {
     pub name: String,
 }
 
-/// `V1ProjectResponse` type.
+/// `NetworkBanResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1ProjectResponse {
-    /// created_at property.
-    pub created_at: String,
-    /// id property.
-    pub id: String,
-    /// name property.
-    pub name: String,
-    /// organization_id property.
-    pub organization_id: String,
-    /// organization_slug property.
-    pub organization_slug: String,
-    /// ref property.
-    pub r#ref: String,
-    /// region property.
-    pub region: String,
-    /// status property.
-    pub status: String,
+pub struct NetworkBanResponse {
+    /// banned_ipv4_addresses property.
+    pub banned_ipv4_addresses: Vec<String>,
 }
 
-/// `RemoveNetworkBanRequest` type.
+/// `UpdateRunStatusResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemoveNetworkBanRequest {
-    /// identifier property.
-    pub identifier: Option<String>,
-    /// ipv4_addresses property.
-    pub ipv4_addresses: Vec<String>,
-    /// requester_ip property.
-    pub requester_ip: Option<bool>,
+pub struct UpdateRunStatusResponse {
+    /// message property.
+    pub message: String,
+}
+
+/// `SslEnforcementResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SslEnforcementResponse {
+    /// appliedSuccessfully property.
+    pub applied_successfully: bool,
+    /// currentConfig property.
+    pub current_config: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DeleteRolesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeleteRolesResponse {
+    /// message property.
+    pub message: String,
+}
+
+/// `NetworkRestrictionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkRestrictionsResponse {
+    /// applied_at property.
+    pub applied_at: Option<String>,
+    /// config property.
+    pub config: std::collections::HashMap<String, serde_json::Value>,
+    /// entitlement property.
+    pub entitlement: String,
+    /// old_config property.
+    pub old_config: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// status property.
+    pub status: String,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+}
+
+/// `StringType` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StringType {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `UpdateCustomHostnameBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateCustomHostnameBody {
+    /// custom_hostname property.
+    pub custom_hostname: String,
 }
 
 // =============================================================================

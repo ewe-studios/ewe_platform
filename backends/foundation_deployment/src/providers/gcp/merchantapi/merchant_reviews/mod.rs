@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,7 +23,7 @@ use serde::{Deserialize, Serialize};
 use super::shared::Empty;
 use super::shared::MerchantReview;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -35,24 +36,11 @@ pub struct MerchantReviewDestinationStatus {
     pub reporting_context: Option<String>,
 }
 
-/// `MerchantReviewStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MerchantReviewStatus {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// destinationStatuses property.
-    pub destination_statuses: Option<Vec<MerchantReviewDestinationStatus>>,
-    /// itemLevelIssues property.
-    pub item_level_issues: Option<Vec<MerchantReviewItemLevelIssue>>,
-    /// lastUpdateTime property.
-    pub last_update_time: Option<String>,
-}
-
 /// `CustomAttribute` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomAttribute {
     /// groupValues property.
-    pub group_values: Option<Vec<CustomAttribute>>,
+    pub group_values: Option<Vec<Box<CustomAttribute>>>,
     /// name property.
     pub name: Option<String>,
     /// value property.
@@ -103,6 +91,19 @@ pub struct MerchantReviewAttributes {
     pub reviewer_username: Option<String>,
     /// title property.
     pub title: Option<String>,
+}
+
+/// `MerchantReviewStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MerchantReviewStatus {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// destinationStatuses property.
+    pub destination_statuses: Option<Vec<MerchantReviewDestinationStatus>>,
+    /// itemLevelIssues property.
+    pub item_level_issues: Option<Vec<MerchantReviewItemLevelIssue>>,
+    /// lastUpdateTime property.
+    pub last_update_time: Option<String>,
 }
 
 /// `MerchantReviewItemLevelIssue` type.

@@ -12,17 +12,69 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `LightSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LightSettings {
+    /// color property.
+    pub color: Option<Color>,
+    /// lightOffDuration property.
+    pub light_off_duration: Option<String>,
+    /// lightOnDuration property.
+    pub light_on_duration: Option<String>,
+}
+
+/// `WebpushFcmOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WebpushFcmOptions {
+    /// analyticsLabel property.
+    pub analytics_label: Option<String>,
+    /// link property.
+    pub link: Option<String>,
+}
+
+/// `WebpushConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WebpushConfig {
+    /// data property.
+    pub data: Option<serde_json::Value>,
+    /// fcmOptions property.
+    pub fcm_options: Option<WebpushFcmOptions>,
+    /// headers property.
+    pub headers: Option<serde_json::Value>,
+    /// notification property.
+    pub notification: Option<serde_json::Value>,
+}
+
+/// `Notification` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Notification {
+    /// body property.
+    pub body: Option<String>,
+    /// image property.
+    pub image: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `FcmOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FcmOptions {
+    /// analyticsLabel property.
+    pub analytics_label: Option<String>,
+}
 
 /// `Message` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -63,44 +115,6 @@ pub struct ApnsFcmOptions {
     pub analytics_label: Option<String>,
     /// image property.
     pub image: Option<String>,
-}
-
-/// `ApnsConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApnsConfig {
-    /// fcmOptions property.
-    pub fcm_options: Option<ApnsFcmOptions>,
-    /// headers property.
-    pub headers: Option<serde_json::Value>,
-    /// liveActivityToken property.
-    pub live_activity_token: Option<String>,
-    /// payload property.
-    pub payload: Option<serde_json::Value>,
-}
-
-/// `AndroidConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AndroidConfig {
-    /// bandwidthConstrainedOk property.
-    pub bandwidth_constrained_ok: Option<bool>,
-    /// collapseKey property.
-    pub collapse_key: Option<String>,
-    /// data property.
-    pub data: Option<serde_json::Value>,
-    /// directBootOk property.
-    pub direct_boot_ok: Option<bool>,
-    /// fcmOptions property.
-    pub fcm_options: Option<AndroidFcmOptions>,
-    /// notification property.
-    pub notification: Option<AndroidNotification>,
-    /// priority property.
-    pub priority: Option<String>,
-    /// restrictedPackageName property.
-    pub restricted_package_name: Option<String>,
-    /// restrictedSatelliteOk property.
-    pub restricted_satellite_ok: Option<bool>,
-    /// ttl property.
-    pub ttl: Option<String>,
 }
 
 /// `AndroidNotification` type.
@@ -160,15 +174,42 @@ pub struct AndroidNotification {
     pub visibility: Option<String>,
 }
 
-/// `LightSettings` type.
+/// `AndroidConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LightSettings {
-    /// color property.
-    pub color: Option<Color>,
-    /// lightOffDuration property.
-    pub light_off_duration: Option<String>,
-    /// lightOnDuration property.
-    pub light_on_duration: Option<String>,
+pub struct AndroidConfig {
+    /// bandwidthConstrainedOk property.
+    pub bandwidth_constrained_ok: Option<bool>,
+    /// collapseKey property.
+    pub collapse_key: Option<String>,
+    /// data property.
+    pub data: Option<serde_json::Value>,
+    /// directBootOk property.
+    pub direct_boot_ok: Option<bool>,
+    /// fcmOptions property.
+    pub fcm_options: Option<AndroidFcmOptions>,
+    /// notification property.
+    pub notification: Option<AndroidNotification>,
+    /// priority property.
+    pub priority: Option<String>,
+    /// restrictedPackageName property.
+    pub restricted_package_name: Option<String>,
+    /// restrictedSatelliteOk property.
+    pub restricted_satellite_ok: Option<bool>,
+    /// ttl property.
+    pub ttl: Option<String>,
+}
+
+/// `ApnsConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApnsConfig {
+    /// fcmOptions property.
+    pub fcm_options: Option<ApnsFcmOptions>,
+    /// headers property.
+    pub headers: Option<serde_json::Value>,
+    /// liveActivityToken property.
+    pub live_activity_token: Option<String>,
+    /// payload property.
+    pub payload: Option<serde_json::Value>,
 }
 
 /// `Color` type.
@@ -182,46 +223,6 @@ pub struct Color {
     pub green: Option<f64>,
     /// red property.
     pub red: Option<f64>,
-}
-
-/// `WebpushConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WebpushConfig {
-    /// data property.
-    pub data: Option<serde_json::Value>,
-    /// fcmOptions property.
-    pub fcm_options: Option<WebpushFcmOptions>,
-    /// headers property.
-    pub headers: Option<serde_json::Value>,
-    /// notification property.
-    pub notification: Option<serde_json::Value>,
-}
-
-/// `Notification` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Notification {
-    /// body property.
-    pub body: Option<String>,
-    /// image property.
-    pub image: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `FcmOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FcmOptions {
-    /// analyticsLabel property.
-    pub analytics_label: Option<String>,
-}
-
-/// `WebpushFcmOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WebpushFcmOptions {
-    /// analyticsLabel property.
-    pub analytics_label: Option<String>,
-    /// link property.
-    pub link: Option<String>,
 }
 
 // =============================================================================

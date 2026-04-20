@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,19 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudRecommendationengineV1Beta1CatalogItemCategoryHierarchy` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecommendationengineV1Beta1CatalogItemCategoryHierarchy {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
 
 /// `GoogleCloudRecommendationengineV1Beta1ProductCatalogItemExactPrice` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -84,9 +77,9 @@ pub struct GoogleCloudRecommendationengineV1Beta1FeatureMap {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleCloudRecommendationengineV1Beta1ProductCatalogItemPriceRange` response type.
+/// `GoogleCloudRecommendationengineV1Beta1CatalogItemCategoryHierarchy` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecommendationengineV1Beta1ProductCatalogItemPriceRange {
+pub struct GoogleCloudRecommendationengineV1Beta1CatalogItemCategoryHierarchy {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -103,6 +96,14 @@ pub struct GoogleCloudRecommendationengineV1Beta1ProductCatalogItem {
 /// `GoogleCloudRecommendationengineV1Beta1Image` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1Beta1Image {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudRecommendationengineV1Beta1ProductCatalogItemPriceRange` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecommendationengineV1Beta1ProductCatalogItemPriceRange {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

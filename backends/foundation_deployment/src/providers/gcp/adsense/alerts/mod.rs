@@ -12,17 +12,25 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListAlertsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAlertsResponse {
+    /// alerts property.
+    pub alerts: Option<Vec<Alert>>,
+}
 
 /// `Alert` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -35,13 +43,6 @@ pub struct Alert {
     pub severity: Option<String>,
     /// type property.
     pub r#type: Option<String>,
-}
-
-/// `ListAlertsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAlertsResponse {
-    /// alerts property.
-    pub alerts: Option<Vec<Alert>>,
 }
 
 // =============================================================================

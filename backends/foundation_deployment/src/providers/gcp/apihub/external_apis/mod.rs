@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,18 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudApihubV1Documentation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1Documentation {
-    /// externalUri property.
-    pub external_uri: Option<String>,
-}
 
 /// `GoogleCloudApihubV1ExternalApi` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -55,6 +49,13 @@ pub struct GoogleCloudApihubV1ExternalApi {
     pub paths: Option<Vec<String>>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `GoogleCloudApihubV1Documentation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1Documentation {
+    /// externalUri property.
+    pub external_uri: Option<String>,
 }
 
 /// `GoogleCloudApihubV1ListExternalApisResponse` type.

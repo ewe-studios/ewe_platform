@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,45 +22,36 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Deployment` type.
+/// `ChannelProfileWebWidgetConfigSecuritySettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Deployment {
-    /// appVersion property.
-    pub app_version: Option<String>,
-    /// channelProfile property.
-    pub channel_profile: Option<ChannelProfile>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
+pub struct ChannelProfileWebWidgetConfigSecuritySettings {
+    /// allowedOrigins property.
+    pub allowed_origins: Option<Vec<String>>,
+    /// enableOriginCheck property.
+    pub enable_origin_check: Option<bool>,
+    /// enablePublicAccess property.
+    pub enable_public_access: Option<bool>,
+    /// enableRecaptcha property.
+    pub enable_recaptcha: Option<bool>,
 }
 
-/// `ListDeploymentsResponse` type.
+/// `ChannelProfileWebWidgetConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDeploymentsResponse {
-    /// deployments property.
-    pub deployments: Option<Vec<Deployment>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `ChannelProfilePersonaProperty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelProfilePersonaProperty {
-    /// persona property.
-    pub persona: Option<String>,
+pub struct ChannelProfileWebWidgetConfig {
+    /// modality property.
+    pub modality: Option<String>,
+    /// securitySettings property.
+    pub security_settings: Option<ChannelProfileWebWidgetConfigSecuritySettings>,
+    /// theme property.
+    pub theme: Option<String>,
+    /// webWidgetTitle property.
+    pub web_widget_title: Option<String>,
 }
 
 /// `ChannelProfile` type.
@@ -81,30 +73,39 @@ pub struct ChannelProfile {
     pub web_widget_config: Option<ChannelProfileWebWidgetConfig>,
 }
 
-/// `ChannelProfileWebWidgetConfig` type.
+/// `ListDeploymentsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelProfileWebWidgetConfig {
-    /// modality property.
-    pub modality: Option<String>,
-    /// securitySettings property.
-    pub security_settings: Option<ChannelProfileWebWidgetConfigSecuritySettings>,
-    /// theme property.
-    pub theme: Option<String>,
-    /// webWidgetTitle property.
-    pub web_widget_title: Option<String>,
+pub struct ListDeploymentsResponse {
+    /// deployments property.
+    pub deployments: Option<Vec<Deployment>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
-/// `ChannelProfileWebWidgetConfigSecuritySettings` type.
+/// `ChannelProfilePersonaProperty` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelProfileWebWidgetConfigSecuritySettings {
-    /// allowedOrigins property.
-    pub allowed_origins: Option<Vec<String>>,
-    /// enableOriginCheck property.
-    pub enable_origin_check: Option<bool>,
-    /// enablePublicAccess property.
-    pub enable_public_access: Option<bool>,
-    /// enableRecaptcha property.
-    pub enable_recaptcha: Option<bool>,
+pub struct ChannelProfilePersonaProperty {
+    /// persona property.
+    pub persona: Option<String>,
+}
+
+/// `Deployment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Deployment {
+    /// appVersion property.
+    pub app_version: Option<String>,
+    /// channelProfile property.
+    pub channel_profile: Option<ChannelProfile>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
 }
 
 // =============================================================================

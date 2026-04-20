@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,58 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GuardrailModelSafety` type.
+/// `ListGuardrailsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GuardrailModelSafety {
-    /// safetySettings property.
-    pub safety_settings: Option<Vec<GuardrailModelSafetySafetySetting>>,
-}
-
-/// `GuardrailModelSafetySafetySetting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GuardrailModelSafetySafetySetting {
-    /// category property.
-    pub category: Option<String>,
-    /// threshold property.
-    pub threshold: Option<String>,
-}
-
-/// `GuardrailLlmPromptSecurity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GuardrailLlmPromptSecurity {
-    /// customPolicy property.
-    pub custom_policy: Option<GuardrailLlmPolicy>,
-    /// defaultSettings property.
-    pub default_settings: Option<GuardrailLlmPromptSecurityDefaultSecuritySettings>,
-    /// failOpen property.
-    pub fail_open: Option<bool>,
-}
-
-/// `TriggerActionGenerativeAnswer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TriggerActionGenerativeAnswer {
-    /// prompt property.
-    pub prompt: Option<String>,
-}
-
-/// `GuardrailLlmPromptSecurityDefaultSecuritySettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GuardrailLlmPromptSecurityDefaultSecuritySettings {
-    /// defaultPromptTemplate property.
-    pub default_prompt_template: Option<String>,
-}
-
-/// `TriggerActionRespondImmediately` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TriggerActionRespondImmediately {
-    /// responses property.
-    pub responses: Option<Vec<TriggerActionResponse>>,
+pub struct ListGuardrailsResponse {
+    /// guardrails property.
+    pub guardrails: Option<Vec<Guardrail>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `GuardrailCodeCallback` type.
@@ -88,6 +50,33 @@ pub struct GuardrailCodeCallback {
     pub before_model_callback: Option<Callback>,
 }
 
+/// `GuardrailModelSafety` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GuardrailModelSafety {
+    /// safetySettings property.
+    pub safety_settings: Option<Vec<GuardrailModelSafetySafetySetting>>,
+}
+
+/// `Callback` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Callback {
+    /// description property.
+    pub description: Option<String>,
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// proactiveExecutionEnabled property.
+    pub proactive_execution_enabled: Option<bool>,
+    /// pythonCode property.
+    pub python_code: Option<String>,
+}
+
+/// `TriggerActionGenerativeAnswer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TriggerActionGenerativeAnswer {
+    /// prompt property.
+    pub prompt: Option<String>,
+}
+
 /// `ModelSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModelSettings {
@@ -97,28 +86,22 @@ pub struct ModelSettings {
     pub temperature: Option<f64>,
 }
 
-/// `ListGuardrailsResponse` type.
+/// `GuardrailLlmPromptSecurity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListGuardrailsResponse {
-    /// guardrails property.
-    pub guardrails: Option<Vec<Guardrail>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct GuardrailLlmPromptSecurity {
+    /// customPolicy property.
+    pub custom_policy: Option<GuardrailLlmPolicy>,
+    /// defaultSettings property.
+    pub default_settings: Option<GuardrailLlmPromptSecurityDefaultSecuritySettings>,
+    /// failOpen property.
+    pub fail_open: Option<bool>,
 }
 
-/// `GuardrailContentFilter` type.
+/// `GuardrailLlmPromptSecurityDefaultSecuritySettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GuardrailContentFilter {
-    /// bannedContents property.
-    pub banned_contents: Option<Vec<String>>,
-    /// bannedContentsInAgentResponse property.
-    pub banned_contents_in_agent_response: Option<Vec<String>>,
-    /// bannedContentsInUserInput property.
-    pub banned_contents_in_user_input: Option<Vec<String>>,
-    /// disregardDiacritics property.
-    pub disregard_diacritics: Option<bool>,
-    /// matchType property.
-    pub match_type: Option<String>,
+pub struct GuardrailLlmPromptSecurityDefaultSecuritySettings {
+    /// defaultPromptTemplate property.
+    pub default_prompt_template: Option<String>,
 }
 
 /// `GuardrailLlmPolicy` type.
@@ -147,6 +130,38 @@ pub struct TriggerAction {
     pub respond_immediately: Option<TriggerActionRespondImmediately>,
     /// transferAgent property.
     pub transfer_agent: Option<TriggerActionTransferAgent>,
+}
+
+/// `TriggerActionRespondImmediately` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TriggerActionRespondImmediately {
+    /// responses property.
+    pub responses: Option<Vec<TriggerActionResponse>>,
+}
+
+/// `TriggerActionTransferAgent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TriggerActionTransferAgent {
+    /// agent property.
+    pub agent: Option<String>,
+}
+
+/// `TriggerActionResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TriggerActionResponse {
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `GuardrailModelSafetySafetySetting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GuardrailModelSafetySafetySetting {
+    /// category property.
+    pub category: Option<String>,
+    /// threshold property.
+    pub threshold: Option<String>,
 }
 
 /// `Guardrail` type.
@@ -180,33 +195,19 @@ pub struct Guardrail {
     pub update_time: Option<String>,
 }
 
-/// `TriggerActionTransferAgent` type.
+/// `GuardrailContentFilter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TriggerActionTransferAgent {
-    /// agent property.
-    pub agent: Option<String>,
-}
-
-/// `TriggerActionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TriggerActionResponse {
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `Callback` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Callback {
-    /// description property.
-    pub description: Option<String>,
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// proactiveExecutionEnabled property.
-    pub proactive_execution_enabled: Option<bool>,
-    /// pythonCode property.
-    pub python_code: Option<String>,
+pub struct GuardrailContentFilter {
+    /// bannedContents property.
+    pub banned_contents: Option<Vec<String>>,
+    /// bannedContentsInAgentResponse property.
+    pub banned_contents_in_agent_response: Option<Vec<String>>,
+    /// bannedContentsInUserInput property.
+    pub banned_contents_in_user_input: Option<Vec<String>>,
+    /// disregardDiacritics property.
+    pub disregard_diacritics: Option<bool>,
+    /// matchType property.
+    pub match_type: Option<String>,
 }
 
 // =============================================================================

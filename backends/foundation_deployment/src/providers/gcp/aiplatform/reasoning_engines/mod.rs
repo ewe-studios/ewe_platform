@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -24,65 +25,73 @@ use super::shared::GoogleIamV1Policy;
 use super::shared::GoogleIamV1TestIamPermissionsResponse;
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExampleConversationSourceEvent` type.
+/// `GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecInlineSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExampleConversationSourceEvent
-{
-    /// content property.
-    pub content: Option<GoogleCloudAiplatformV1Content>,
+pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecInlineSource {
+    /// sourceArchive property.
+    pub source_archive: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigTtlConfig` type.
+/// `GoogleCloudAiplatformV1PscInterfaceConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigTtlConfig {
-    /// defaultTtl property.
-    pub default_ttl: Option<String>,
-    /// granularTtlConfig property.
-    pub granular_ttl_config: Option<
-        GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigTtlConfigGranularTtlConfig,
-    >,
-    /// memoryRevisionDefaultTtl property.
-    pub memory_revision_default_ttl: Option<String>,
+pub struct GoogleCloudAiplatformV1PscInterfaceConfig {
+    /// dnsPeeringConfigs property.
+    pub dns_peering_configs: Option<Vec<GoogleCloudAiplatformV1DnsPeeringConfig>>,
+    /// networkAttachment property.
+    pub network_attachment: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1KeepAliveProbeHttpGet` type.
+/// `GoogleCloudAiplatformV1QueryReasoningEngineResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1KeepAliveProbeHttpGet {
-    /// path property.
-    pub path: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
+pub struct GoogleCloudAiplatformV1QueryReasoningEngineResponse {
+    /// output property.
+    pub output: Option<serde_json::Value>,
 }
 
-/// `GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigSimilaritySearchConfig` type.
+/// `GoogleCloudAiplatformV1VideoMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigSimilaritySearchConfig {
-    /// embeddingModel property.
-    pub embedding_model: Option<String>,
+pub struct GoogleCloudAiplatformV1VideoMetadata {
+    /// endOffset property.
+    pub end_offset: Option<String>,
+    /// fps property.
+    pub fps: Option<f64>,
+    /// startOffset property.
+    pub start_offset: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1MemoryBankCustomizationConfigConsolidationConfig` type.
+/// `GoogleCloudAiplatformV1SecretEnvVar` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigConsolidationConfig {
-    /// revisionsPerCandidateCount property.
-    pub revisions_per_candidate_count: Option<i64>,
+pub struct GoogleCloudAiplatformV1SecretEnvVar {
+    /// name property.
+    pub name: Option<String>,
+    /// secretRef property.
+    pub secret_ref: Option<GoogleCloudAiplatformV1SecretRef>,
 }
 
-/// `GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecDeveloperConnectConfig` type.
+/// `GoogleTypeExpr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecDeveloperConnectConfig {
-    /// dir property.
-    pub dir: Option<String>,
-    /// gitRepositoryLink property.
-    pub git_repository_link: Option<String>,
-    /// revision property.
-    pub revision: Option<String>,
+pub struct GoogleTypeExpr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1Metadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1Metadata {
+    /// attributes property.
+    pub attributes: Option<serde_json::Value>,
 }
 
 /// `GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecImageSpec` type.
@@ -92,57 +101,13 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecImageSpec {
     pub build_args: Option<serde_json::Value>,
 }
 
-/// `GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigTtlConfigGranularTtlConfig` type.
+/// `GoogleCloudAiplatformV1Content` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigTtlConfigGranularTtlConfig
-{
-    /// createTtl property.
-    pub create_ttl: Option<String>,
-    /// generateCreatedTtl property.
-    pub generate_created_ttl: Option<String>,
-    /// generateUpdatedTtl property.
-    pub generate_updated_ttl: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1FunctionResponseFileData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FunctionResponseFileData {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// fileUri property.
-    pub file_uri: Option<String>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecAgentConfigSourceAdkConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecAgentConfigSourceAdkConfig {
-    /// jsonConfig property.
-    pub json_config: Option<serde_json::Value>,
-}
-
-/// `GoogleCloudAiplatformV1FunctionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FunctionResponse {
-    /// name property.
-    pub name: Option<String>,
+pub struct GoogleCloudAiplatformV1Content {
     /// parts property.
-    pub parts: Option<Vec<GoogleCloudAiplatformV1FunctionResponsePart>>,
-    /// response property.
-    pub response: Option<serde_json::Value>,
-    /// scheduling property.
-    pub scheduling: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExampleGeneratedMemory` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExampleGeneratedMemory
-{
-    /// fact property.
-    pub fact: Option<String>,
-    /// topics property.
-    pub topics: Option<Vec<GoogleCloudAiplatformV1MemoryTopicId>>,
+    pub parts: Option<Vec<GoogleCloudAiplatformV1Part>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1FunctionCall` type.
@@ -158,6 +123,60 @@ pub struct GoogleCloudAiplatformV1FunctionCall {
     pub will_continue: Option<bool>,
 }
 
+/// `GoogleCloudAiplatformV1PartialArg` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PartialArg {
+    /// boolValue property.
+    pub bool_value: Option<bool>,
+    /// jsonPath property.
+    pub json_path: Option<String>,
+    /// nullValue property.
+    pub null_value: Option<String>,
+    /// numberValue property.
+    pub number_value: Option<f64>,
+    /// stringValue property.
+    pub string_value: Option<String>,
+    /// willContinue property.
+    pub will_continue: Option<bool>,
+}
+
+/// `GoogleCloudAiplatformV1KeepAliveProbeHttpGet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1KeepAliveProbeHttpGet {
+    /// path property.
+    pub path: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
+}
+
+/// `GoogleCloudAiplatformV1ExecutableCode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ExecutableCode {
+    /// code property.
+    pub code: Option<String>,
+    /// language property.
+    pub language: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfig {
+    /// customizationConfigs property.
+    pub customization_configs: Option<Vec<GoogleCloudAiplatformV1MemoryBankCustomizationConfig>>,
+    /// disableMemoryRevisions property.
+    pub disable_memory_revisions: Option<bool>,
+    /// generationConfig property.
+    pub generation_config:
+        Option<GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigGenerationConfig>,
+    /// similaritySearchConfig property.
+    pub similarity_search_config: Option<
+        GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigSimilaritySearchConfig,
+    >,
+    /// ttlConfig property.
+    pub ttl_config:
+        Option<GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigTtlConfig>,
+}
+
 /// `GoogleCloudAiplatformV1PartMediaResolution` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PartMediaResolution {
@@ -165,15 +184,163 @@ pub struct GoogleCloudAiplatformV1PartMediaResolution {
     pub level: Option<String>,
 }
 
-/// `GoogleIamV1Binding` type.
+/// `GoogleCloudAiplatformV1ReasoningEngineContextSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Binding {
-    /// condition property.
-    pub condition: Option<GoogleTypeExpr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpec {
+    /// memoryBankConfig property.
+    pub memory_bank_config:
+        Option<GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfig>,
+}
+
+/// `GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopic` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopic {
+    /// customMemoryTopic property.
+    pub custom_memory_topic:
+        Option<GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopicCustomMemoryTopic>,
+    /// managedMemoryTopic property.
+    pub managed_memory_topic:
+        Option<GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopicManagedMemoryTopic>,
+}
+
+/// `GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopicCustomMemoryTopic` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopicCustomMemoryTopic {
+    /// description property.
+    pub description: Option<String>,
+    /// label property.
+    pub label: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecAgentConfigSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecAgentConfigSource {
+    /// adkConfig property.
+    pub adk_config:
+        Option<GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecAgentConfigSourceAdkConfig>,
+    /// inlineSource property.
+    pub inline_source: Option<GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecInlineSource>,
+}
+
+/// `GoogleCloudAiplatformV1FunctionResponsePart` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FunctionResponsePart {
+    /// fileData property.
+    pub file_data: Option<GoogleCloudAiplatformV1FunctionResponseFileData>,
+    /// inlineData property.
+    pub inline_data: Option<GoogleCloudAiplatformV1FunctionResponseBlob>,
+}
+
+/// `GoogleCloudAiplatformV1FunctionResponseBlob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FunctionResponseBlob {
+    /// data property.
+    pub data: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopicManagedMemoryTopic` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopicManagedMemoryTopic {
+    /// managedTopicEnum property.
+    pub managed_topic_enum: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecDeveloperConnectConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecDeveloperConnectConfig {
+    /// dir property.
+    pub dir: Option<String>,
+    /// gitRepositoryLink property.
+    pub git_repository_link: Option<String>,
+    /// revision property.
+    pub revision: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1DnsPeeringConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1DnsPeeringConfig {
+    /// domain property.
+    pub domain: Option<String>,
+    /// targetNetwork property.
+    pub target_network: Option<String>,
+    /// targetProject property.
+    pub target_project: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1Chunk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1Chunk {
+    /// data property.
+    pub data: Option<String>,
+    /// metadata property.
+    pub metadata: Option<GoogleCloudAiplatformV1Metadata>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ExecuteCodeResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ExecuteCodeResponse {
+    /// outputs property.
+    pub outputs: Option<Vec<GoogleCloudAiplatformV1Chunk>>,
+}
+
+/// `GoogleCloudAiplatformV1FileData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FileData {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// fileUri property.
+    pub file_uri: Option<String>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1EnvVar` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1EnvVar {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExampleConversationSourceEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExampleConversationSourceEvent
+{
+    /// content property.
+    pub content: Option<GoogleCloudAiplatformV1Content>,
+}
+
+/// `GoogleCloudAiplatformV1KeepAliveProbe` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1KeepAliveProbe {
+    /// httpGet property.
+    pub http_get: Option<GoogleCloudAiplatformV1KeepAliveProbeHttpGet>,
+    /// maxSeconds property.
+    pub max_seconds: Option<i64>,
+}
+
+/// `GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpec {
+    /// agentConfigSource property.
+    pub agent_config_source:
+        Option<GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecAgentConfigSource>,
+    /// developerConnectSource property.
+    pub developer_connect_source:
+        Option<GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecDeveloperConnectSource>,
+    /// imageSpec property.
+    pub image_spec: Option<GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecImageSpec>,
+    /// inlineSource property.
+    pub inline_source: Option<GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecInlineSource>,
+    /// pythonSpec property.
+    pub python_spec: Option<GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecPythonSpec>,
 }
 
 /// `GoogleCloudAiplatformV1ReasoningEngineSpec` type.
@@ -199,47 +366,25 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineSpec {
     pub source_code_spec: Option<GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpec>,
 }
 
-/// `GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfig` type.
+/// `GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecDeveloperConnectSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfig {
-    /// customizationConfigs property.
-    pub customization_configs: Option<Vec<GoogleCloudAiplatformV1MemoryBankCustomizationConfig>>,
-    /// disableMemoryRevisions property.
-    pub disable_memory_revisions: Option<bool>,
-    /// generationConfig property.
-    pub generation_config:
-        Option<GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigGenerationConfig>,
-    /// similaritySearchConfig property.
-    pub similarity_search_config: Option<
-        GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigSimilaritySearchConfig,
-    >,
-    /// ttlConfig property.
-    pub ttl_config:
-        Option<GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigTtlConfig>,
+pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecDeveloperConnectSource {
+    /// config property.
+    pub config:
+        Option<GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecDeveloperConnectConfig>,
 }
 
-/// `GoogleCloudAiplatformV1CodeExecutionResult` type.
+/// `GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecPythonSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1CodeExecutionResult {
-    /// outcome property.
-    pub outcome: Option<String>,
-    /// output property.
-    pub output: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigGenerationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigGenerationConfig {
-    /// model property.
-    pub model: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ReasoningEngineContextSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpec {
-    /// memoryBankConfig property.
-    pub memory_bank_config:
-        Option<GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfig>,
+pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecPythonSpec {
+    /// entrypointModule property.
+    pub entrypoint_module: Option<String>,
+    /// entrypointObject property.
+    pub entrypoint_object: Option<String>,
+    /// requirementsFile property.
+    pub requirements_file: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1ReasoningEngineSpecDeploymentSpec` type.
@@ -263,59 +408,31 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineSpecDeploymentSpec {
     pub secret_env: Option<Vec<GoogleCloudAiplatformV1SecretEnvVar>>,
 }
 
-/// `GoogleCloudAiplatformV1FunctionResponsePart` type.
+/// `GoogleCloudAiplatformV1EncryptionSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FunctionResponsePart {
-    /// fileData property.
-    pub file_data: Option<GoogleCloudAiplatformV1FunctionResponseFileData>,
-    /// inlineData property.
-    pub inline_data: Option<GoogleCloudAiplatformV1FunctionResponseBlob>,
+pub struct GoogleCloudAiplatformV1EncryptionSpec {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1VideoMetadata` type.
+/// `GoogleIamV1Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1VideoMetadata {
-    /// endOffset property.
-    pub end_offset: Option<String>,
-    /// fps property.
-    pub fps: Option<f64>,
-    /// startOffset property.
-    pub start_offset: Option<String>,
+pub struct GoogleIamV1Binding {
+    /// condition property.
+    pub condition: Option<GoogleTypeExpr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecPythonSpec` type.
+/// `GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExample` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecPythonSpec {
-    /// entrypointModule property.
-    pub entrypoint_module: Option<String>,
-    /// entrypointObject property.
-    pub entrypoint_object: Option<String>,
-    /// requirementsFile property.
-    pub requirements_file: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopic` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopic {
-    /// customMemoryTopic property.
-    pub custom_memory_topic:
-        Option<GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopicCustomMemoryTopic>,
-    /// managedMemoryTopic property.
-    pub managed_memory_topic:
-        Option<GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopicManagedMemoryTopic>,
-}
-
-/// `GoogleCloudAiplatformV1FunctionResponseBlob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FunctionResponseBlob {
-    /// data property.
-    pub data: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
+pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExample {
+    /// conversationSource property.
+    pub conversation_source: Option<GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExampleConversationSource>,
+    /// generatedMemories property.
+    pub generated_memories: Option<Vec<GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExampleGeneratedMemory>>,
 }
 
 /// `GoogleCloudAiplatformV1MemoryTopicId` type.
@@ -327,172 +444,34 @@ pub struct GoogleCloudAiplatformV1MemoryTopicId {
     pub managed_memory_topic: Option<String>,
 }
 
-/// `GoogleTypeExpr` type.
+/// `GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigTtlConfigGranularTtlConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeExpr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigTtlConfigGranularTtlConfig
+{
+    /// createTtl property.
+    pub create_ttl: Option<String>,
+    /// generateCreatedTtl property.
+    pub generate_created_ttl: Option<String>,
+    /// generateUpdatedTtl property.
+    pub generate_updated_ttl: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1ReasoningEngineSpecContainerSpec` type.
+/// `GoogleCloudAiplatformV1CodeExecutionResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReasoningEngineSpecContainerSpec {
-    /// imageUri property.
-    pub image_uri: Option<String>,
+pub struct GoogleCloudAiplatformV1CodeExecutionResult {
+    /// outcome property.
+    pub outcome: Option<String>,
+    /// output property.
+    pub output: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1PscInterfaceConfig` type.
+/// `GoogleCloudAiplatformV1Blob` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PscInterfaceConfig {
-    /// dnsPeeringConfigs property.
-    pub dns_peering_configs: Option<Vec<GoogleCloudAiplatformV1DnsPeeringConfig>>,
-    /// networkAttachment property.
-    pub network_attachment: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1Chunk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Chunk {
+pub struct GoogleCloudAiplatformV1Blob {
     /// data property.
     pub data: Option<String>,
-    /// metadata property.
-    pub metadata: Option<GoogleCloudAiplatformV1Metadata>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ListReasoningEnginesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListReasoningEnginesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// reasoningEngines property.
-    pub reasoning_engines: Option<Vec<GoogleCloudAiplatformV1ReasoningEngine>>,
-}
-
-/// `GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecDeveloperConnectSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecDeveloperConnectSource {
-    /// config property.
-    pub config:
-        Option<GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecDeveloperConnectConfig>,
-}
-
-/// `GoogleCloudAiplatformV1MemoryBankCustomizationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfig {
-    /// consolidationConfig property.
-    pub consolidation_config:
-        Option<GoogleCloudAiplatformV1MemoryBankCustomizationConfigConsolidationConfig>,
-    /// enableThirdPersonMemories property.
-    pub enable_third_person_memories: Option<bool>,
-    /// generateMemoriesExamples property.
-    pub generate_memories_examples:
-        Option<Vec<GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExample>>,
-    /// memoryTopics property.
-    pub memory_topics: Option<Vec<GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopic>>,
-    /// scopeKeys property.
-    pub scope_keys: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpec {
-    /// agentConfigSource property.
-    pub agent_config_source:
-        Option<GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecAgentConfigSource>,
-    /// developerConnectSource property.
-    pub developer_connect_source:
-        Option<GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecDeveloperConnectSource>,
-    /// imageSpec property.
-    pub image_spec: Option<GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecImageSpec>,
-    /// inlineSource property.
-    pub inline_source: Option<GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecInlineSource>,
-    /// pythonSpec property.
-    pub python_spec: Option<GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecPythonSpec>,
-}
-
-/// `GoogleCloudAiplatformV1Content` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Content {
-    /// parts property.
-    pub parts: Option<Vec<GoogleCloudAiplatformV1Part>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1SecretEnvVar` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SecretEnvVar {
-    /// name property.
-    pub name: Option<String>,
-    /// secretRef property.
-    pub secret_ref: Option<GoogleCloudAiplatformV1SecretRef>,
-}
-
-/// `GoogleCloudAiplatformV1SecretRef` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SecretRef {
-    /// secret property.
-    pub secret: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1QueryReasoningEngineResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1QueryReasoningEngineResponse {
-    /// output property.
-    pub output: Option<serde_json::Value>,
-}
-
-/// `GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecInlineSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecInlineSource {
-    /// sourceArchive property.
-    pub source_archive: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1EnvVar` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EnvVar {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1DnsPeeringConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DnsPeeringConfig {
-    /// domain property.
-    pub domain: Option<String>,
-    /// targetNetwork property.
-    pub target_network: Option<String>,
-    /// targetProject property.
-    pub target_project: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExampleConversationSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExampleConversationSource {
-    /// events property.
-    pub events: Option<Vec<GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExampleConversationSourceEvent>>,
-}
-
-/// `GoogleCloudAiplatformV1FileData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FileData {
     /// displayName property.
     pub display_name: Option<String>,
-    /// fileUri property.
-    pub file_uri: Option<String>,
     /// mimeType property.
     pub mime_type: Option<String>,
 }
@@ -508,56 +487,13 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1KeepAliveProbe` type.
+/// `GoogleCloudAiplatformV1FunctionResponseFileData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1KeepAliveProbe {
-    /// httpGet property.
-    pub http_get: Option<GoogleCloudAiplatformV1KeepAliveProbeHttpGet>,
-    /// maxSeconds property.
-    pub max_seconds: Option<i64>,
-}
-
-/// `GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopicManagedMemoryTopic` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopicManagedMemoryTopic {
-    /// managedTopicEnum property.
-    pub managed_topic_enum: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1Part` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Part {
-    /// codeExecutionResult property.
-    pub code_execution_result: Option<GoogleCloudAiplatformV1CodeExecutionResult>,
-    /// executableCode property.
-    pub executable_code: Option<GoogleCloudAiplatformV1ExecutableCode>,
-    /// fileData property.
-    pub file_data: Option<GoogleCloudAiplatformV1FileData>,
-    /// functionCall property.
-    pub function_call: Option<GoogleCloudAiplatformV1FunctionCall>,
-    /// functionResponse property.
-    pub function_response: Option<GoogleCloudAiplatformV1FunctionResponse>,
-    /// inlineData property.
-    pub inline_data: Option<GoogleCloudAiplatformV1Blob>,
-    /// mediaResolution property.
-    pub media_resolution: Option<GoogleCloudAiplatformV1PartMediaResolution>,
-    /// text property.
-    pub text: Option<String>,
-    /// thought property.
-    pub thought: Option<bool>,
-    /// thoughtSignature property.
-    pub thought_signature: Option<String>,
-    /// videoMetadata property.
-    pub video_metadata: Option<GoogleCloudAiplatformV1VideoMetadata>,
-}
-
-/// `GoogleCloudAiplatformV1Blob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Blob {
-    /// data property.
-    pub data: Option<String>,
+pub struct GoogleCloudAiplatformV1FunctionResponseFileData {
     /// displayName property.
     pub display_name: Option<String>,
+    /// fileUri property.
+    pub file_uri: Option<String>,
     /// mimeType property.
     pub mime_type: Option<String>,
 }
@@ -587,72 +523,32 @@ pub struct GoogleCloudAiplatformV1ReasoningEngine {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecAgentConfigSource` type.
+/// `GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExampleGeneratedMemory` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecAgentConfigSource {
-    /// adkConfig property.
-    pub adk_config:
-        Option<GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecAgentConfigSourceAdkConfig>,
-    /// inlineSource property.
-    pub inline_source: Option<GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecInlineSource>,
+pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExampleGeneratedMemory
+{
+    /// fact property.
+    pub fact: Option<String>,
+    /// topics property.
+    pub topics: Option<Vec<GoogleCloudAiplatformV1MemoryTopicId>>,
 }
 
-/// `GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExample` type.
+/// `GoogleCloudAiplatformV1SecretRef` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExample {
-    /// conversationSource property.
-    pub conversation_source: Option<GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExampleConversationSource>,
-    /// generatedMemories property.
-    pub generated_memories: Option<Vec<GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExampleGeneratedMemory>>,
+pub struct GoogleCloudAiplatformV1SecretRef {
+    /// secret property.
+    pub secret: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1PartialArg` type.
+/// `GoogleCloudAiplatformV1ListReasoningEnginesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PartialArg {
-    /// boolValue property.
-    pub bool_value: Option<bool>,
-    /// jsonPath property.
-    pub json_path: Option<String>,
-    /// nullValue property.
-    pub null_value: Option<String>,
-    /// numberValue property.
-    pub number_value: Option<f64>,
-    /// stringValue property.
-    pub string_value: Option<String>,
-    /// willContinue property.
-    pub will_continue: Option<bool>,
-}
-
-/// `GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopicCustomMemoryTopic` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopicCustomMemoryTopic {
-    /// description property.
-    pub description: Option<String>,
-    /// label property.
-    pub label: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ExecutableCode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ExecutableCode {
-    /// code property.
-    pub code: Option<String>,
-    /// language property.
-    pub language: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ExecuteCodeResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ExecuteCodeResponse {
-    /// outputs property.
-    pub outputs: Option<Vec<GoogleCloudAiplatformV1Chunk>>,
-}
-
-/// `GoogleCloudAiplatformV1EncryptionSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EncryptionSpec {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
+pub struct GoogleCloudAiplatformV1ListReasoningEnginesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// reasoningEngines property.
+    pub reasoning_engines: Option<Vec<GoogleCloudAiplatformV1ReasoningEngine>>,
 }
 
 /// `GoogleCloudAiplatformV1ReasoningEngineSpecPackageSpec` type.
@@ -668,11 +564,116 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineSpecPackageSpec {
     pub requirements_gcs_uri: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1Metadata` type.
+/// `GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecAgentConfigSourceAdkConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Metadata {
-    /// attributes property.
-    pub attributes: Option<serde_json::Value>,
+pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecAgentConfigSourceAdkConfig {
+    /// jsonConfig property.
+    pub json_config: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudAiplatformV1MemoryBankCustomizationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfig {
+    /// consolidationConfig property.
+    pub consolidation_config:
+        Option<GoogleCloudAiplatformV1MemoryBankCustomizationConfigConsolidationConfig>,
+    /// enableThirdPersonMemories property.
+    pub enable_third_person_memories: Option<bool>,
+    /// generateMemoriesExamples property.
+    pub generate_memories_examples:
+        Option<Vec<GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExample>>,
+    /// memoryTopics property.
+    pub memory_topics: Option<Vec<GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopic>>,
+    /// scopeKeys property.
+    pub scope_keys: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAiplatformV1MemoryBankCustomizationConfigConsolidationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigConsolidationConfig {
+    /// revisionsPerCandidateCount property.
+    pub revisions_per_candidate_count: Option<i64>,
+}
+
+/// `GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigGenerationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigGenerationConfig {
+    /// model property.
+    pub model: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1FunctionResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FunctionResponse {
+    /// name property.
+    pub name: Option<String>,
+    /// parts property.
+    pub parts: Option<Vec<GoogleCloudAiplatformV1FunctionResponsePart>>,
+    /// response property.
+    pub response: Option<serde_json::Value>,
+    /// scheduling property.
+    pub scheduling: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExampleConversationSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExampleConversationSource {
+    /// events property.
+    pub events: Option<Vec<GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExampleConversationSourceEvent>>,
+}
+
+/// `GoogleCloudAiplatformV1Part` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1Part {
+    /// codeExecutionResult property.
+    pub code_execution_result: Option<GoogleCloudAiplatformV1CodeExecutionResult>,
+    /// executableCode property.
+    pub executable_code: Option<GoogleCloudAiplatformV1ExecutableCode>,
+    /// fileData property.
+    pub file_data: Option<GoogleCloudAiplatformV1FileData>,
+    /// functionCall property.
+    pub function_call: Option<GoogleCloudAiplatformV1FunctionCall>,
+    /// functionResponse property.
+    pub function_response: Option<GoogleCloudAiplatformV1FunctionResponse>,
+    /// inlineData property.
+    pub inline_data: Option<GoogleCloudAiplatformV1Blob>,
+    /// mediaResolution property.
+    pub media_resolution: Option<GoogleCloudAiplatformV1PartMediaResolution>,
+    /// text property.
+    pub text: Option<String>,
+    /// thought property.
+    pub thought: Option<bool>,
+    /// thoughtSignature property.
+    pub thought_signature: Option<String>,
+    /// videoMetadata property.
+    pub video_metadata: Option<GoogleCloudAiplatformV1VideoMetadata>,
+}
+
+/// `GoogleCloudAiplatformV1ReasoningEngineSpecContainerSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ReasoningEngineSpecContainerSpec {
+    /// imageUri property.
+    pub image_uri: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigTtlConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigTtlConfig {
+    /// defaultTtl property.
+    pub default_ttl: Option<String>,
+    /// granularTtlConfig property.
+    pub granular_ttl_config: Option<
+        GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigTtlConfigGranularTtlConfig,
+    >,
+    /// memoryRevisionDefaultTtl property.
+    pub memory_revision_default_ttl: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigSimilaritySearchConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigSimilaritySearchConfig {
+    /// embeddingModel property.
+    pub embedding_model: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,19 +22,30 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Message;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ClassificationLabelValue` type.
+/// `MessagePartBody` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClassificationLabelValue {
-    /// fields property.
-    pub fields: Option<Vec<ClassificationLabelFieldValue>>,
-    /// labelId property.
-    pub label_id: Option<String>,
+pub struct MessagePartBody {
+    /// attachmentId property.
+    pub attachment_id: Option<String>,
+    /// data property.
+    pub data: Option<String>,
+    /// size property.
+    pub size: Option<i64>,
+}
+
+/// `ClassificationLabelFieldValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClassificationLabelFieldValue {
+    /// fieldId property.
+    pub field_id: Option<String>,
+    /// selection property.
+    pub selection: Option<String>,
 }
 
 /// `ListMessagesResponse` type.
@@ -45,15 +57,6 @@ pub struct ListMessagesResponse {
     pub next_page_token: Option<String>,
     /// resultSizeEstimate property.
     pub result_size_estimate: Option<i64>,
-}
-
-/// `ClassificationLabelFieldValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClassificationLabelFieldValue {
-    /// fieldId property.
-    pub field_id: Option<String>,
-    /// selection property.
-    pub selection: Option<String>,
 }
 
 /// `MessagePartHeader` type.
@@ -79,18 +82,16 @@ pub struct MessagePart {
     /// partId property.
     pub part_id: Option<String>,
     /// parts property.
-    pub parts: Option<Vec<MessagePart>>,
+    pub parts: Option<Vec<Box<MessagePart>>>,
 }
 
-/// `MessagePartBody` type.
+/// `ClassificationLabelValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MessagePartBody {
-    /// attachmentId property.
-    pub attachment_id: Option<String>,
-    /// data property.
-    pub data: Option<String>,
-    /// size property.
-    pub size: Option<i64>,
+pub struct ClassificationLabelValue {
+    /// fields property.
+    pub fields: Option<Vec<ClassificationLabelFieldValue>>,
+    /// labelId property.
+    pub label_id: Option<String>,
 }
 
 // =============================================================================

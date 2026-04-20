@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,7 +23,7 @@ use serde::{Deserialize, Serialize};
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -35,15 +36,6 @@ pub struct WrappingPublicKey {
     pub pem: Option<String>,
 }
 
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
 /// `KeyOperationAttestation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyOperationAttestation {
@@ -53,6 +45,44 @@ pub struct KeyOperationAttestation {
     pub content: Option<String>,
     /// format property.
     pub format: Option<String>,
+}
+
+/// `CertificateChains` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CertificateChains {
+    /// caviumCerts property.
+    pub cavium_certs: Option<Vec<String>>,
+    /// googleCardCerts property.
+    pub google_card_certs: Option<Vec<String>>,
+    /// googlePartitionCerts property.
+    pub google_partition_certs: Option<Vec<String>>,
+}
+
+/// `ImportJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImportJob {
+    /// attestation property.
+    pub attestation: Option<KeyOperationAttestation>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// cryptoKeyBackend property.
+    pub crypto_key_backend: Option<String>,
+    /// expireEventTime property.
+    pub expire_event_time: Option<String>,
+    /// expireTime property.
+    pub expire_time: Option<String>,
+    /// generateTime property.
+    pub generate_time: Option<String>,
+    /// importMethod property.
+    pub import_method: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// protectionLevel property.
+    pub protection_level: Option<String>,
+    /// publicKey property.
+    pub public_key: Option<WrappingPublicKey>,
+    /// state property.
+    pub state: Option<String>,
 }
 
 /// `AuditConfig` type.
@@ -86,15 +116,13 @@ pub struct Binding {
     pub role: Option<String>,
 }
 
-/// `CertificateChains` type.
+/// `AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CertificateChains {
-    /// caviumCerts property.
-    pub cavium_certs: Option<Vec<String>>,
-    /// googleCardCerts property.
-    pub google_card_certs: Option<Vec<String>>,
-    /// googlePartitionCerts property.
-    pub google_partition_certs: Option<Vec<String>>,
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
 /// `Expr` type.
@@ -108,33 +136,6 @@ pub struct Expr {
     pub location: Option<String>,
     /// title property.
     pub title: Option<String>,
-}
-
-/// `ImportJob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImportJob {
-    /// attestation property.
-    pub attestation: Option<KeyOperationAttestation>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// cryptoKeyBackend property.
-    pub crypto_key_backend: Option<String>,
-    /// expireEventTime property.
-    pub expire_event_time: Option<String>,
-    /// expireTime property.
-    pub expire_time: Option<String>,
-    /// generateTime property.
-    pub generate_time: Option<String>,
-    /// importMethod property.
-    pub import_method: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// protectionLevel property.
-    pub protection_level: Option<String>,
-    /// publicKey property.
-    pub public_key: Option<WrappingPublicKey>,
-    /// state property.
-    pub state: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,32 +24,19 @@ use super::shared::Empty;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Binding` type.
+/// `ListAutoscalingPoliciesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `InstanceGroupAutoscalingPolicyConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupAutoscalingPolicyConfig {
-    /// maxInstances property.
-    pub max_instances: Option<i64>,
-    /// minInstances property.
-    pub min_instances: Option<i64>,
-    /// weight property.
-    pub weight: Option<i64>,
+pub struct ListAutoscalingPoliciesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// policies property.
+    pub policies: Option<Vec<AutoscalingPolicy>>,
 }
 
 /// `Expr` type.
@@ -62,41 +50,6 @@ pub struct Expr {
     pub location: Option<String>,
     /// title property.
     pub title: Option<String>,
-}
-
-/// `ListAutoscalingPoliciesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAutoscalingPoliciesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// policies property.
-    pub policies: Option<Vec<AutoscalingPolicy>>,
-}
-
-/// `BasicAutoscalingAlgorithm` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BasicAutoscalingAlgorithm {
-    /// cooldownPeriod property.
-    pub cooldown_period: Option<String>,
-    /// sparkStandaloneConfig property.
-    pub spark_standalone_config: Option<SparkStandaloneAutoscalingConfig>,
-    /// yarnConfig property.
-    pub yarn_config: Option<BasicYarnAutoscalingConfig>,
-}
-
-/// `BasicYarnAutoscalingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BasicYarnAutoscalingConfig {
-    /// gracefulDecommissionTimeout property.
-    pub graceful_decommission_timeout: Option<String>,
-    /// scaleDownFactor property.
-    pub scale_down_factor: Option<f64>,
-    /// scaleDownMinWorkerFraction property.
-    pub scale_down_min_worker_fraction: Option<f64>,
-    /// scaleUpFactor property.
-    pub scale_up_factor: Option<f64>,
-    /// scaleUpMinWorkerFraction property.
-    pub scale_up_min_worker_fraction: Option<f64>,
 }
 
 /// `AutoscalingPolicy` type.
@@ -118,6 +71,32 @@ pub struct AutoscalingPolicy {
     pub worker_config: Option<InstanceGroupAutoscalingPolicyConfig>,
 }
 
+/// `BasicYarnAutoscalingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BasicYarnAutoscalingConfig {
+    /// gracefulDecommissionTimeout property.
+    pub graceful_decommission_timeout: Option<String>,
+    /// scaleDownFactor property.
+    pub scale_down_factor: Option<f64>,
+    /// scaleDownMinWorkerFraction property.
+    pub scale_down_min_worker_fraction: Option<f64>,
+    /// scaleUpFactor property.
+    pub scale_up_factor: Option<f64>,
+    /// scaleUpMinWorkerFraction property.
+    pub scale_up_min_worker_fraction: Option<f64>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
 /// `SparkStandaloneAutoscalingConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkStandaloneAutoscalingConfig {
@@ -133,6 +112,28 @@ pub struct SparkStandaloneAutoscalingConfig {
     pub scale_up_factor: Option<f64>,
     /// scaleUpMinWorkerFraction property.
     pub scale_up_min_worker_fraction: Option<f64>,
+}
+
+/// `InstanceGroupAutoscalingPolicyConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupAutoscalingPolicyConfig {
+    /// maxInstances property.
+    pub max_instances: Option<i64>,
+    /// minInstances property.
+    pub min_instances: Option<i64>,
+    /// weight property.
+    pub weight: Option<i64>,
+}
+
+/// `BasicAutoscalingAlgorithm` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BasicAutoscalingAlgorithm {
+    /// cooldownPeriod property.
+    pub cooldown_period: Option<String>,
+    /// sparkStandaloneConfig property.
+    pub spark_standalone_config: Option<SparkStandaloneAutoscalingConfig>,
+    /// yarnConfig property.
+    pub yarn_config: Option<BasicYarnAutoscalingConfig>,
 }
 
 // =============================================================================

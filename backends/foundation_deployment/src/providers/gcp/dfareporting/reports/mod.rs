@@ -12,17 +12,51 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `CustomRichMediaEvents` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomRichMediaEvents {
+    /// filteredEventIds property.
+    pub filtered_event_ids: Option<Vec<DimensionValue>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `Recipient` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Recipient {
+    /// deliveryType property.
+    pub delivery_type: Option<String>,
+    /// email property.
+    pub email: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `DateRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DateRange {
+    /// endDate property.
+    pub end_date: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// relativeDateRange property.
+    pub relative_date_range: Option<String>,
+    /// startDate property.
+    pub start_date: Option<String>,
+}
 
 /// `DimensionValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -39,61 +73,6 @@ pub struct DimensionValue {
     pub match_type: Option<String>,
     /// value property.
     pub value: Option<String>,
-}
-
-/// `DateRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DateRange {
-    /// endDate property.
-    pub end_date: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// relativeDateRange property.
-    pub relative_date_range: Option<String>,
-    /// startDate property.
-    pub start_date: Option<String>,
-}
-
-/// `SortedDimension` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SortedDimension {
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// sortOrder property.
-    pub sort_order: Option<String>,
-}
-
-/// `Activities` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Activities {
-    /// filters property.
-    pub filters: Option<Vec<DimensionValue>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// metricNames property.
-    pub metric_names: Option<Vec<String>>,
-}
-
-/// `Recipient` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Recipient {
-    /// deliveryType property.
-    pub delivery_type: Option<String>,
-    /// email property.
-    pub email: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `CustomRichMediaEvents` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomRichMediaEvents {
-    /// filteredEventIds property.
-    pub filtered_event_ids: Option<Vec<DimensionValue>>,
-    /// kind property.
-    pub kind: Option<String>,
 }
 
 /// `Report` type.
@@ -148,6 +127,28 @@ pub struct ReportList {
     pub kind: Option<String>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `SortedDimension` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SortedDimension {
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// sortOrder property.
+    pub sort_order: Option<String>,
+}
+
+/// `Activities` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Activities {
+    /// filters property.
+    pub filters: Option<Vec<DimensionValue>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// metricNames property.
+    pub metric_names: Option<Vec<String>>,
 }
 
 // =============================================================================

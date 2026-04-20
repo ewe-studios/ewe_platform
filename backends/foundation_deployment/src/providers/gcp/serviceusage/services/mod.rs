@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,175 +22,28 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `AuthenticationRule` type.
+/// `OAuthRequirements` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthenticationRule {
-    /// allowWithoutCredential property.
-    pub allow_without_credential: Option<bool>,
-    /// oauth property.
-    pub oauth: Option<OAuthRequirements>,
-    /// requirements property.
-    pub requirements: Option<Vec<AuthRequirement>>,
+pub struct OAuthRequirements {
+    /// canonicalScopes property.
+    pub canonical_scopes: Option<String>,
+}
+
+/// `UsageRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UsageRule {
+    /// allowUnregisteredCalls property.
+    pub allow_unregistered_calls: Option<bool>,
     /// selector property.
     pub selector: Option<String>,
-}
-
-/// `Api` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Api {
-    /// edition property.
-    pub edition: Option<String>,
-    /// methods property.
-    pub methods: Option<Vec<Method>>,
-    /// mixins property.
-    pub mixins: Option<Vec<Mixin>>,
-    /// name property.
-    pub name: Option<String>,
-    /// options property.
-    pub options: Option<Vec<OptionType>>,
-    /// sourceContext property.
-    pub source_context: Option<SourceContext>,
-    /// syntax property.
-    pub syntax: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `AuthProvider` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthProvider {
-    /// audiences property.
-    pub audiences: Option<String>,
-    /// authorizationUrl property.
-    pub authorization_url: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// issuer property.
-    pub issuer: Option<String>,
-    /// jwksUri property.
-    pub jwks_uri: Option<String>,
-    /// jwtLocations property.
-    pub jwt_locations: Option<Vec<JwtLocation>>,
-}
-
-/// `Page` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Page {
-    /// content property.
-    pub content: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// subpages property.
-    pub subpages: Option<Vec<Page>>,
-}
-
-/// `AuthRequirement` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthRequirement {
-    /// audiences property.
-    pub audiences: Option<String>,
-    /// providerId property.
-    pub provider_id: Option<String>,
-}
-
-/// `SourceContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceContext {
-    /// fileName property.
-    pub file_name: Option<String>,
-}
-
-/// `JwtLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JwtLocation {
-    /// cookie property.
-    pub cookie: Option<String>,
-    /// header property.
-    pub header: Option<String>,
-    /// query property.
-    pub query: Option<String>,
-    /// valuePrefix property.
-    pub value_prefix: Option<String>,
-}
-
-/// `Endpoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Endpoint {
-    /// aliases property.
-    pub aliases: Option<Vec<String>>,
-    /// allowCors property.
-    pub allow_cors: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-    /// target property.
-    pub target: Option<String>,
-}
-
-/// `Method` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Method {
-    /// edition property.
-    pub edition: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// options property.
-    pub options: Option<Vec<OptionType>>,
-    /// requestStreaming property.
-    pub request_streaming: Option<bool>,
-    /// requestTypeUrl property.
-    pub request_type_url: Option<String>,
-    /// responseStreaming property.
-    pub response_streaming: Option<bool>,
-    /// responseTypeUrl property.
-    pub response_type_url: Option<String>,
-    /// syntax property.
-    pub syntax: Option<String>,
-}
-
-/// `Authentication` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Authentication {
-    /// providers property.
-    pub providers: Option<Vec<AuthProvider>>,
-    /// rules property.
-    pub rules: Option<Vec<AuthenticationRule>>,
-}
-
-/// `LabelDescriptor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LabelDescriptor {
-    /// description property.
-    pub description: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// valueType property.
-    pub value_type: Option<String>,
-}
-
-/// `Monitoring` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Monitoring {
-    /// consumerDestinations property.
-    pub consumer_destinations: Option<Vec<MonitoringDestination>>,
-    /// producerDestinations property.
-    pub producer_destinations: Option<Vec<MonitoringDestination>>,
+    /// skipServiceControl property.
+    pub skip_service_control: Option<bool>,
 }
 
 /// `MonitoredResourceDescriptor` type.
@@ -209,130 +63,42 @@ pub struct MonitoredResourceDescriptor {
     pub r#type: Option<String>,
 }
 
-/// `Quota` type.
+/// `Endpoint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Quota {
-    /// limits property.
-    pub limits: Option<Vec<QuotaLimit>>,
-    /// metricRules property.
-    pub metric_rules: Option<Vec<MetricRule>>,
-}
-
-/// `MonitoringDestination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MonitoringDestination {
-    /// metrics property.
-    pub metrics: Option<Vec<String>>,
-    /// monitoredResource property.
-    pub monitored_resource: Option<String>,
-}
-
-/// `DocumentationRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DocumentationRule {
-    /// deprecationDescription property.
-    pub deprecation_description: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// disableReplacementWords property.
-    pub disable_replacement_words: Option<String>,
-    /// selector property.
-    pub selector: Option<String>,
-}
-
-/// `MetricRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetricRule {
-    /// metricCosts property.
-    pub metric_costs: Option<serde_json::Value>,
-    /// selector property.
-    pub selector: Option<String>,
-}
-
-/// `UsageRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UsageRule {
-    /// allowUnregisteredCalls property.
-    pub allow_unregistered_calls: Option<bool>,
-    /// selector property.
-    pub selector: Option<String>,
-    /// skipServiceControl property.
-    pub skip_service_control: Option<bool>,
-}
-
-/// `Mixin` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Mixin {
+pub struct Endpoint {
+    /// aliases property.
+    pub aliases: Option<Vec<String>>,
+    /// allowCors property.
+    pub allow_cors: Option<bool>,
     /// name property.
     pub name: Option<String>,
-    /// root property.
-    pub root: Option<String>,
+    /// target property.
+    pub target: Option<String>,
 }
 
-/// `OptionType` response type.
+/// `SourceContext` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OptionType {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct SourceContext {
+    /// fileName property.
+    pub file_name: Option<String>,
 }
 
-/// `ListServicesResponse` type.
+/// `AuthRequirement` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListServicesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// services property.
-    pub services: Option<Vec<GoogleApiServiceusageV1Service>>,
+pub struct AuthRequirement {
+    /// audiences property.
+    pub audiences: Option<String>,
+    /// providerId property.
+    pub provider_id: Option<String>,
 }
 
-/// `GoogleApiServiceusageV1Service` type.
+/// `Monitoring` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleApiServiceusageV1Service {
-    /// config property.
-    pub config: Option<GoogleApiServiceusageV1ServiceConfig>,
-    /// name property.
-    pub name: Option<String>,
-    /// parent property.
-    pub parent: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `GoogleApiServiceusageV1ServiceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleApiServiceusageV1ServiceConfig {
-    /// apis property.
-    pub apis: Option<Vec<Api>>,
-    /// authentication property.
-    pub authentication: Option<Authentication>,
-    /// documentation property.
-    pub documentation: Option<Documentation>,
-    /// endpoints property.
-    pub endpoints: Option<Vec<Endpoint>>,
-    /// monitoredResources property.
-    pub monitored_resources: Option<Vec<MonitoredResourceDescriptor>>,
-    /// monitoring property.
-    pub monitoring: Option<Monitoring>,
-    /// name property.
-    pub name: Option<String>,
-    /// quota property.
-    pub quota: Option<Quota>,
-    /// title property.
-    pub title: Option<String>,
-    /// usage property.
-    pub usage: Option<Usage>,
-}
-
-/// `Usage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Usage {
-    /// producerNotificationChannel property.
-    pub producer_notification_channel: Option<String>,
-    /// requirements property.
-    pub requirements: Option<Vec<String>>,
-    /// rules property.
-    pub rules: Option<Vec<UsageRule>>,
+pub struct Monitoring {
+    /// consumerDestinations property.
+    pub consumer_destinations: Option<Vec<MonitoringDestination>>,
+    /// producerDestinations property.
+    pub producer_destinations: Option<Vec<MonitoringDestination>>,
 }
 
 /// `QuotaLimit` type.
@@ -360,11 +126,95 @@ pub struct QuotaLimit {
     pub values: Option<serde_json::Value>,
 }
 
-/// `OAuthRequirements` type.
+/// `GoogleApiServiceusageV1Service` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OAuthRequirements {
-    /// canonicalScopes property.
-    pub canonical_scopes: Option<String>,
+pub struct GoogleApiServiceusageV1Service {
+    /// config property.
+    pub config: Option<GoogleApiServiceusageV1ServiceConfig>,
+    /// name property.
+    pub name: Option<String>,
+    /// parent property.
+    pub parent: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `MetricRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetricRule {
+    /// metricCosts property.
+    pub metric_costs: Option<serde_json::Value>,
+    /// selector property.
+    pub selector: Option<String>,
+}
+
+/// `Quota` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Quota {
+    /// limits property.
+    pub limits: Option<Vec<QuotaLimit>>,
+    /// metricRules property.
+    pub metric_rules: Option<Vec<MetricRule>>,
+}
+
+/// `Method` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Method {
+    /// edition property.
+    pub edition: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// options property.
+    pub options: Option<Vec<OptionType>>,
+    /// requestStreaming property.
+    pub request_streaming: Option<bool>,
+    /// requestTypeUrl property.
+    pub request_type_url: Option<String>,
+    /// responseStreaming property.
+    pub response_streaming: Option<bool>,
+    /// responseTypeUrl property.
+    pub response_type_url: Option<String>,
+    /// syntax property.
+    pub syntax: Option<String>,
+}
+
+/// `OptionType` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OptionType {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `Authentication` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Authentication {
+    /// providers property.
+    pub providers: Option<Vec<AuthProvider>>,
+    /// rules property.
+    pub rules: Option<Vec<AuthenticationRule>>,
+}
+
+/// `LabelDescriptor` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LabelDescriptor {
+    /// description property.
+    pub description: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// valueType property.
+    pub value_type: Option<String>,
 }
 
 /// `Documentation` type.
@@ -377,15 +227,166 @@ pub struct Documentation {
     /// overview property.
     pub overview: Option<String>,
     /// pages property.
-    pub pages: Option<Vec<Page>>,
+    pub pages: Option<Vec<Box<Page>>>,
     /// rules property.
     pub rules: Option<Vec<DocumentationRule>>,
     /// sectionOverrides property.
-    pub section_overrides: Option<Vec<Page>>,
+    pub section_overrides: Option<Vec<Box<Page>>>,
     /// serviceRootUrl property.
     pub service_root_url: Option<String>,
     /// summary property.
     pub summary: Option<String>,
+}
+
+/// `ListServicesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListServicesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// services property.
+    pub services: Option<Vec<GoogleApiServiceusageV1Service>>,
+}
+
+/// `AuthenticationRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthenticationRule {
+    /// allowWithoutCredential property.
+    pub allow_without_credential: Option<bool>,
+    /// oauth property.
+    pub oauth: Option<OAuthRequirements>,
+    /// requirements property.
+    pub requirements: Option<Vec<AuthRequirement>>,
+    /// selector property.
+    pub selector: Option<String>,
+}
+
+/// `Mixin` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Mixin {
+    /// name property.
+    pub name: Option<String>,
+    /// root property.
+    pub root: Option<String>,
+}
+
+/// `Api` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Api {
+    /// edition property.
+    pub edition: Option<String>,
+    /// methods property.
+    pub methods: Option<Vec<Method>>,
+    /// mixins property.
+    pub mixins: Option<Vec<Mixin>>,
+    /// name property.
+    pub name: Option<String>,
+    /// options property.
+    pub options: Option<Vec<OptionType>>,
+    /// sourceContext property.
+    pub source_context: Option<SourceContext>,
+    /// syntax property.
+    pub syntax: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `Page` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Page {
+    /// content property.
+    pub content: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// subpages property.
+    pub subpages: Option<Vec<Box<Page>>>,
+}
+
+/// `JwtLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JwtLocation {
+    /// cookie property.
+    pub cookie: Option<String>,
+    /// header property.
+    pub header: Option<String>,
+    /// query property.
+    pub query: Option<String>,
+    /// valuePrefix property.
+    pub value_prefix: Option<String>,
+}
+
+/// `AuthProvider` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthProvider {
+    /// audiences property.
+    pub audiences: Option<String>,
+    /// authorizationUrl property.
+    pub authorization_url: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// issuer property.
+    pub issuer: Option<String>,
+    /// jwksUri property.
+    pub jwks_uri: Option<String>,
+    /// jwtLocations property.
+    pub jwt_locations: Option<Vec<JwtLocation>>,
+}
+
+/// `GoogleApiServiceusageV1ServiceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleApiServiceusageV1ServiceConfig {
+    /// apis property.
+    pub apis: Option<Vec<Api>>,
+    /// authentication property.
+    pub authentication: Option<Authentication>,
+    /// documentation property.
+    pub documentation: Option<Documentation>,
+    /// endpoints property.
+    pub endpoints: Option<Vec<Endpoint>>,
+    /// monitoredResources property.
+    pub monitored_resources: Option<Vec<MonitoredResourceDescriptor>>,
+    /// monitoring property.
+    pub monitoring: Option<Monitoring>,
+    /// name property.
+    pub name: Option<String>,
+    /// quota property.
+    pub quota: Option<Quota>,
+    /// title property.
+    pub title: Option<String>,
+    /// usage property.
+    pub usage: Option<Usage>,
+}
+
+/// `MonitoringDestination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MonitoringDestination {
+    /// metrics property.
+    pub metrics: Option<Vec<String>>,
+    /// monitoredResource property.
+    pub monitored_resource: Option<String>,
+}
+
+/// `DocumentationRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DocumentationRule {
+    /// deprecationDescription property.
+    pub deprecation_description: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// disableReplacementWords property.
+    pub disable_replacement_words: Option<String>,
+    /// selector property.
+    pub selector: Option<String>,
+}
+
+/// `Usage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Usage {
+    /// producerNotificationChannel property.
+    pub producer_notification_channel: Option<String>,
+    /// requirements property.
+    pub requirements: Option<Vec<String>>,
+    /// rules property.
+    pub rules: Option<Vec<UsageRule>>,
 }
 
 // =============================================================================

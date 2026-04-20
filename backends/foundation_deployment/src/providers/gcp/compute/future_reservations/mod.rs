@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,100 +22,39 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `FutureReservationsAggregatedListResponse` type.
+/// `FutureReservationCommitmentInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FutureReservationsAggregatedListResponse {
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<serde_json::Value>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// unreachables property.
-    pub unreachables: Option<Vec<String>>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+pub struct FutureReservationCommitmentInfo {
+    /// commitmentName property.
+    pub commitment_name: Option<String>,
+    /// commitmentPlan property.
+    pub commitment_plan: Option<String>,
+    /// previousCommitmentTerms property.
+    pub previous_commitment_terms: Option<String>,
 }
 
-/// `SetCommonInstanceMetadataOperationMetadata` type.
+/// `FutureReservationStatusLastKnownGoodState` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetCommonInstanceMetadataOperationMetadata {
-    /// clientOperationId property.
-    pub client_operation_id: Option<String>,
-    /// perLocationOperations property.
-    pub per_location_operations: Option<serde_json::Value>,
-}
-
-/// `FutureReservationParams` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FutureReservationParams {
-    /// resourceManagerTags property.
-    pub resource_manager_tags: Option<serde_json::Value>,
-}
-
-/// `GetVersionOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadata {
-    /// inlineSbomInfo property.
-    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
-}
-
-/// `FutureReservationTimeWindow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FutureReservationTimeWindow {
-    /// duration property.
-    pub duration: Option<Duration>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `InstancesBulkInsertOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
-}
-
-/// `FutureReservationsListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FutureReservationsListResponse {
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<FutureReservation>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// unreachables property.
-    pub unreachables: Option<Vec<String>>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `FutureReservationStatusSpecificSKUProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FutureReservationStatusSpecificSKUProperties {
-    /// sourceInstanceTemplateId property.
-    pub source_instance_template_id: Option<String>,
+pub struct FutureReservationStatusLastKnownGoodState {
+    /// description property.
+    pub description: Option<String>,
+    /// existingMatchingUsageInfo property.
+    pub existing_matching_usage_info: Option<FutureReservationStatusExistingMatchingUsageInfo>,
+    /// futureReservationSpecs property.
+    pub future_reservation_specs:
+        Option<FutureReservationStatusLastKnownGoodStateFutureReservationSpecs>,
+    /// lockTime property.
+    pub lock_time: Option<String>,
+    /// namePrefix property.
+    pub name_prefix: Option<String>,
+    /// procurementStatus property.
+    pub procurement_status: Option<String>,
 }
 
 /// `ErrorInfo` type.
@@ -128,30 +68,34 @@ pub struct ErrorInfo {
     pub reason: Option<String>,
 }
 
-/// `QuotaExceededInfo` type.
+/// `FutureReservationStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotaExceededInfo {
-    /// dimensions property.
-    pub dimensions: Option<serde_json::Value>,
-    /// futureLimit property.
-    pub future_limit: Option<f64>,
-    /// limit property.
-    pub limit: Option<f64>,
-    /// limitName property.
-    pub limit_name: Option<String>,
-    /// metricName property.
-    pub metric_name: Option<String>,
-    /// rolloutStatus property.
-    pub rollout_status: Option<String>,
+pub struct FutureReservationStatus {
+    /// amendmentStatus property.
+    pub amendment_status: Option<String>,
+    /// autoCreatedReservations property.
+    pub auto_created_reservations: Option<Vec<String>>,
+    /// existingMatchingUsageInfo property.
+    pub existing_matching_usage_info: Option<FutureReservationStatusExistingMatchingUsageInfo>,
+    /// fulfilledCount property.
+    pub fulfilled_count: Option<String>,
+    /// lastKnownGoodState property.
+    pub last_known_good_state: Option<FutureReservationStatusLastKnownGoodState>,
+    /// lockTime property.
+    pub lock_time: Option<String>,
+    /// procurementStatus property.
+    pub procurement_status: Option<String>,
+    /// specificSkuProperties property.
+    pub specific_sku_properties: Option<FutureReservationStatusSpecificSKUProperties>,
 }
 
-/// `HelpLink` type.
+/// `ShareSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
+pub struct ShareSettings {
+    /// projectMap property.
+    pub project_map: Option<serde_json::Value>,
+    /// shareType property.
+    pub share_type: Option<String>,
 }
 
 /// `FutureReservation` type.
@@ -213,6 +157,158 @@ pub struct FutureReservation {
     pub zone: Option<String>,
 }
 
+/// `FutureReservationsListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FutureReservationsListResponse {
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<FutureReservation>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// unreachables property.
+    pub unreachables: Option<Vec<String>>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `FutureReservationStatusExistingMatchingUsageInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FutureReservationStatusExistingMatchingUsageInfo {
+    /// count property.
+    pub count: Option<String>,
+    /// timestamp property.
+    pub timestamp: Option<String>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `LocalizedMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `QuotaExceededInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuotaExceededInfo {
+    /// dimensions property.
+    pub dimensions: Option<serde_json::Value>,
+    /// futureLimit property.
+    pub future_limit: Option<f64>,
+    /// limit property.
+    pub limit: Option<f64>,
+    /// limitName property.
+    pub limit_name: Option<String>,
+    /// metricName property.
+    pub metric_name: Option<String>,
+    /// rolloutStatus property.
+    pub rollout_status: Option<String>,
+}
+
+/// `GetVersionOperationMetadataSbomInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
+}
+
+/// `FutureReservationsAggregatedListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FutureReservationsAggregatedListResponse {
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<serde_json::Value>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// unreachables property.
+    pub unreachables: Option<Vec<String>>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `Help` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
+}
+
+/// `AllocationSpecificSKUAllocationAllocatedInstancePropertiesReservedDisk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AllocationSpecificSKUAllocationAllocatedInstancePropertiesReservedDisk {
+    /// diskSizeGb property.
+    pub disk_size_gb: Option<String>,
+    /// interface property.
+    pub interface: Option<String>,
+}
+
+/// `FutureReservationTimeWindow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FutureReservationTimeWindow {
+    /// duration property.
+    pub duration: Option<Duration>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `GetVersionOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadata {
+    /// inlineSbomInfo property.
+    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+}
+
+/// `FutureReservationParams` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FutureReservationParams {
+    /// resourceManagerTags property.
+    pub resource_manager_tags: Option<serde_json::Value>,
+}
+
+/// `FutureReservationSpecificSKUProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FutureReservationSpecificSKUProperties {
+    /// instanceProperties property.
+    pub instance_properties: Option<AllocationSpecificSKUAllocationReservedInstanceProperties>,
+    /// sourceInstanceTemplate property.
+    pub source_instance_template: Option<String>,
+    /// totalCount property.
+    pub total_count: Option<String>,
+}
+
+/// `AllocationAggregateReservationReservedResourceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AllocationAggregateReservationReservedResourceInfo {
+    /// accelerator property.
+    pub accelerator: Option<AllocationAggregateReservationReservedResourceInfoAccelerator>,
+}
+
 /// `AllocationAggregateReservation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllocationAggregateReservation {
@@ -226,94 +322,11 @@ pub struct AllocationAggregateReservation {
     pub workload_type: Option<String>,
 }
 
-/// `ShareSettings` type.
+/// `FutureReservationStatusSpecificSKUProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShareSettings {
-    /// projectMap property.
-    pub project_map: Option<serde_json::Value>,
-    /// shareType property.
-    pub share_type: Option<String>,
-}
-
-/// `FutureReservationStatusLastKnownGoodState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FutureReservationStatusLastKnownGoodState {
-    /// description property.
-    pub description: Option<String>,
-    /// existingMatchingUsageInfo property.
-    pub existing_matching_usage_info: Option<FutureReservationStatusExistingMatchingUsageInfo>,
-    /// futureReservationSpecs property.
-    pub future_reservation_specs:
-        Option<FutureReservationStatusLastKnownGoodStateFutureReservationSpecs>,
-    /// lockTime property.
-    pub lock_time: Option<String>,
-    /// namePrefix property.
-    pub name_prefix: Option<String>,
-    /// procurementStatus property.
-    pub procurement_status: Option<String>,
-}
-
-/// `FutureReservationStatusLastKnownGoodStateFutureReservationSpecs` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FutureReservationStatusLastKnownGoodStateFutureReservationSpecs {
-    /// shareSettings property.
-    pub share_settings: Option<ShareSettings>,
-    /// specificSkuProperties property.
-    pub specific_sku_properties: Option<FutureReservationSpecificSKUProperties>,
-    /// timeWindow property.
-    pub time_window: Option<FutureReservationTimeWindow>,
-}
-
-/// `AllocationSpecificSKUAllocationAllocatedInstancePropertiesReservedDisk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AllocationSpecificSKUAllocationAllocatedInstancePropertiesReservedDisk {
-    /// diskSizeGb property.
-    pub disk_size_gb: Option<String>,
-    /// interface property.
-    pub interface: Option<String>,
-}
-
-/// `AllocationAggregateReservationReservedResourceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AllocationAggregateReservationReservedResourceInfo {
-    /// accelerator property.
-    pub accelerator: Option<AllocationAggregateReservationReservedResourceInfoAccelerator>,
-}
-
-/// `AllocationAggregateReservationReservedResourceInfoAccelerator` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AllocationAggregateReservationReservedResourceInfoAccelerator {
-    /// acceleratorCount property.
-    pub accelerator_count: Option<i64>,
-    /// acceleratorType property.
-    pub accelerator_type: Option<String>,
-}
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GetVersionOperationMetadataSbomInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
-}
-
-/// `FutureReservationStatusExistingMatchingUsageInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FutureReservationStatusExistingMatchingUsageInfo {
-    /// count property.
-    pub count: Option<String>,
-    /// timestamp property.
-    pub timestamp: Option<String>,
+pub struct FutureReservationStatusSpecificSKUProperties {
+    /// sourceInstanceTemplateId property.
+    pub source_instance_template_id: Option<String>,
 }
 
 /// `AllocationSpecificSKUAllocationReservedInstanceProperties` type.
@@ -332,43 +345,22 @@ pub struct AllocationSpecificSKUAllocationReservedInstanceProperties {
     pub min_cpu_platform: Option<String>,
 }
 
-/// `Help` type.
+/// `SetCommonInstanceMetadataOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
+pub struct SetCommonInstanceMetadataOperationMetadata {
+    /// clientOperationId property.
+    pub client_operation_id: Option<String>,
+    /// perLocationOperations property.
+    pub per_location_operations: Option<serde_json::Value>,
 }
 
-/// `FutureReservationSpecificSKUProperties` type.
+/// `AcceleratorConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FutureReservationSpecificSKUProperties {
-    /// instanceProperties property.
-    pub instance_properties: Option<AllocationSpecificSKUAllocationReservedInstanceProperties>,
-    /// sourceInstanceTemplate property.
-    pub source_instance_template: Option<String>,
-    /// totalCount property.
-    pub total_count: Option<String>,
-}
-
-/// `FutureReservationStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FutureReservationStatus {
-    /// amendmentStatus property.
-    pub amendment_status: Option<String>,
-    /// autoCreatedReservations property.
-    pub auto_created_reservations: Option<Vec<String>>,
-    /// existingMatchingUsageInfo property.
-    pub existing_matching_usage_info: Option<FutureReservationStatusExistingMatchingUsageInfo>,
-    /// fulfilledCount property.
-    pub fulfilled_count: Option<String>,
-    /// lastKnownGoodState property.
-    pub last_known_good_state: Option<FutureReservationStatusLastKnownGoodState>,
-    /// lockTime property.
-    pub lock_time: Option<String>,
-    /// procurementStatus property.
-    pub procurement_status: Option<String>,
-    /// specificSkuProperties property.
-    pub specific_sku_properties: Option<FutureReservationStatusSpecificSKUProperties>,
+pub struct AcceleratorConfig {
+    /// acceleratorCount property.
+    pub accelerator_count: Option<i64>,
+    /// acceleratorType property.
+    pub accelerator_type: Option<String>,
 }
 
 /// `Duration` type.
@@ -380,20 +372,29 @@ pub struct Duration {
     pub seconds: Option<String>,
 }
 
-/// `FutureReservationCommitmentInfo` type.
+/// `FutureReservationStatusLastKnownGoodStateFutureReservationSpecs` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FutureReservationCommitmentInfo {
-    /// commitmentName property.
-    pub commitment_name: Option<String>,
-    /// commitmentPlan property.
-    pub commitment_plan: Option<String>,
-    /// previousCommitmentTerms property.
-    pub previous_commitment_terms: Option<String>,
+pub struct FutureReservationStatusLastKnownGoodStateFutureReservationSpecs {
+    /// shareSettings property.
+    pub share_settings: Option<ShareSettings>,
+    /// specificSkuProperties property.
+    pub specific_sku_properties: Option<FutureReservationSpecificSKUProperties>,
+    /// timeWindow property.
+    pub time_window: Option<FutureReservationTimeWindow>,
 }
 
-/// `AcceleratorConfig` type.
+/// `HelpLink` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcceleratorConfig {
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `AllocationAggregateReservationReservedResourceInfoAccelerator` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AllocationAggregateReservationReservedResourceInfoAccelerator {
     /// acceleratorCount property.
     pub accelerator_count: Option<i64>,
     /// acceleratorType property.

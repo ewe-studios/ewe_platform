@@ -12,30 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `LicenseAssignmentList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LicenseAssignmentList {
-    /// etag property.
-    pub etag: Option<String>,
-    /// items property.
-    pub items: Option<Vec<LicenseAssignment>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `LicenseAssignment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -56,6 +44,19 @@ pub struct LicenseAssignment {
     pub sku_name: Option<String>,
     /// userId property.
     pub user_id: Option<String>,
+}
+
+/// `LicenseAssignmentList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LicenseAssignmentList {
+    /// etag property.
+    pub etag: Option<String>,
+    /// items property.
+    pub items: Option<Vec<LicenseAssignment>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

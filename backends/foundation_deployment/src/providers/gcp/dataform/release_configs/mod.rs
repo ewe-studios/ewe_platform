@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,22 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ScheduledReleaseRecord` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScheduledReleaseRecord {
-    /// compilationResult property.
-    pub compilation_result: Option<String>,
-    /// errorStatus property.
-    pub error_status: Option<Status>,
-    /// releaseTime property.
-    pub release_time: Option<String>,
-}
 
 /// `ReleaseConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -61,26 +51,6 @@ pub struct ReleaseConfig {
     pub time_zone: Option<String>,
 }
 
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `NotebookRuntimeOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NotebookRuntimeOptions {
-    /// aiPlatformNotebookRuntimeTemplate property.
-    pub ai_platform_notebook_runtime_template: Option<String>,
-    /// gcsOutputBucket property.
-    pub gcs_output_bucket: Option<String>,
-}
-
 /// `ListReleaseConfigsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListReleaseConfigsResponse {
@@ -90,6 +60,28 @@ pub struct ListReleaseConfigsResponse {
     pub release_configs: Option<Vec<ReleaseConfig>>,
     /// unreachable property.
     pub unreachable: Option<Vec<String>>,
+}
+
+/// `ScheduledReleaseRecord` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ScheduledReleaseRecord {
+    /// compilationResult property.
+    pub compilation_result: Option<String>,
+    /// errorStatus property.
+    pub error_status: Option<Status>,
+    /// releaseTime property.
+    pub release_time: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `CodeCompilationConfig` type.
@@ -115,6 +107,15 @@ pub struct CodeCompilationConfig {
     pub table_prefix: Option<String>,
     /// vars property.
     pub vars: Option<serde_json::Value>,
+}
+
+/// `NotebookRuntimeOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NotebookRuntimeOptions {
+    /// aiPlatformNotebookRuntimeTemplate property.
+    pub ai_platform_notebook_runtime_template: Option<String>,
+    /// gcsOutputBucket property.
+    pub gcs_output_bucket: Option<String>,
 }
 
 // =============================================================================

@@ -12,38 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `AppRestrictionsSchemaRestriction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppRestrictionsSchemaRestriction {
-    /// defaultValue property.
-    pub default_value: Option<AppRestrictionsSchemaRestrictionRestrictionValue>,
-    /// description property.
-    pub description: Option<String>,
-    /// entry property.
-    pub entry: Option<Vec<String>>,
-    /// entryValue property.
-    pub entry_value: Option<Vec<String>>,
-    /// key property.
-    pub key: Option<String>,
-    /// nestedRestriction property.
-    pub nested_restriction: Option<Vec<AppRestrictionsSchemaRestriction>>,
-    /// restrictionType property.
-    pub restriction_type: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
 
 /// `AppRestrictionsSchemaRestrictionRestrictionValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -66,7 +46,28 @@ pub struct AppRestrictionsSchema {
     /// kind property.
     pub kind: Option<String>,
     /// restrictions property.
-    pub restrictions: Option<Vec<AppRestrictionsSchemaRestriction>>,
+    pub restrictions: Option<Vec<Box<AppRestrictionsSchemaRestriction>>>,
+}
+
+/// `AppRestrictionsSchemaRestriction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppRestrictionsSchemaRestriction {
+    /// defaultValue property.
+    pub default_value: Option<AppRestrictionsSchemaRestrictionRestrictionValue>,
+    /// description property.
+    pub description: Option<String>,
+    /// entry property.
+    pub entry: Option<Vec<String>>,
+    /// entryValue property.
+    pub entry_value: Option<Vec<String>>,
+    /// key property.
+    pub key: Option<String>,
+    /// nestedRestriction property.
+    pub nested_restriction: Option<Vec<Box<AppRestrictionsSchemaRestriction>>>,
+    /// restrictionType property.
+    pub restriction_type: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 // =============================================================================

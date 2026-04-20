@@ -12,39 +12,244 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Container;
+use super::shared::ContainerVersion;
+use super::shared::CustomTemplate;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Folder` type.
+/// `Variable` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Folder {
+pub struct Variable {
     /// accountId property.
     pub account_id: Option<String>,
     /// containerId property.
     pub container_id: Option<String>,
+    /// disablingTriggerId property.
+    pub disabling_trigger_id: Option<Vec<String>>,
+    /// enablingTriggerId property.
+    pub enabling_trigger_id: Option<Vec<String>>,
     /// fingerprint property.
     pub fingerprint: Option<String>,
-    /// folderId property.
-    pub folder_id: Option<String>,
+    /// formatValue property.
+    pub format_value: Option<VariableFormatValue>,
     /// name property.
     pub name: Option<String>,
     /// notes property.
     pub notes: Option<String>,
+    /// parameter property.
+    pub parameter: Option<Vec<Box<Parameter>>>,
+    /// parentFolderId property.
+    pub parent_folder_id: Option<String>,
+    /// path property.
+    pub path: Option<String>,
+    /// scheduleEndMs property.
+    pub schedule_end_ms: Option<String>,
+    /// scheduleStartMs property.
+    pub schedule_start_ms: Option<String>,
+    /// tagManagerUrl property.
+    pub tag_manager_url: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// variableId property.
+    pub variable_id: Option<String>,
+    /// workspaceId property.
+    pub workspace_id: Option<String>,
+}
+
+/// `CreateContainerVersionResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateContainerVersionResponse {
+    /// compilerError property.
+    pub compiler_error: Option<bool>,
+    /// containerVersion property.
+    pub container_version: Option<ContainerVersion>,
+    /// newWorkspacePath property.
+    pub new_workspace_path: Option<String>,
+    /// syncStatus property.
+    pub sync_status: Option<SyncStatus>,
+}
+
+/// `Workspace` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Workspace {
+    /// accountId property.
+    pub account_id: Option<String>,
+    /// containerId property.
+    pub container_id: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// fingerprint property.
+    pub fingerprint: Option<String>,
+    /// name property.
+    pub name: Option<String>,
     /// path property.
     pub path: Option<String>,
     /// tagManagerUrl property.
     pub tag_manager_url: Option<String>,
     /// workspaceId property.
     pub workspace_id: Option<String>,
+}
+
+/// `ZoneBoundary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ZoneBoundary {
+    /// condition property.
+    pub condition: Option<Vec<Condition>>,
+    /// customEvaluationTriggerId property.
+    pub custom_evaluation_trigger_id: Option<Vec<String>>,
+}
+
+/// `MergeConflict` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MergeConflict {
+    /// entityInBaseVersion property.
+    pub entity_in_base_version: Option<Entity>,
+    /// entityInWorkspace property.
+    pub entity_in_workspace: Option<Entity>,
+}
+
+/// `TeardownTag` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TeardownTag {
+    /// stopTeardownOnFailure property.
+    pub stop_teardown_on_failure: Option<bool>,
+    /// tagName property.
+    pub tag_name: Option<String>,
+}
+
+/// `GalleryReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GalleryReference {
+    /// galleryTemplateId property.
+    pub gallery_template_id: Option<String>,
+    /// host property.
+    pub host: Option<String>,
+    /// isModified property.
+    pub is_modified: Option<bool>,
+    /// owner property.
+    pub owner: Option<String>,
+    /// repository property.
+    pub repository: Option<String>,
+    /// signature property.
+    pub signature: Option<String>,
+    /// templateDeveloperId property.
+    pub template_developer_id: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `Condition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Condition {
+    /// parameter property.
+    pub parameter: Option<Vec<Box<Parameter>>>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `SetupTag` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetupTag {
+    /// stopOnSetupFailure property.
+    pub stop_on_setup_failure: Option<bool>,
+    /// tagName property.
+    pub tag_name: Option<String>,
+}
+
+/// `Tag` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Tag {
+    /// accountId property.
+    pub account_id: Option<String>,
+    /// blockingTriggerId property.
+    pub blocking_trigger_id: Option<Vec<String>>,
+    /// consentSettings property.
+    pub consent_settings: Option<TagConsentSetting>,
+    /// containerId property.
+    pub container_id: Option<String>,
+    /// fingerprint property.
+    pub fingerprint: Option<String>,
+    /// firingTriggerId property.
+    pub firing_trigger_id: Option<Vec<String>>,
+    /// liveOnly property.
+    pub live_only: Option<bool>,
+    /// monitoringMetadata property.
+    pub monitoring_metadata: Option<Box<Parameter>>,
+    /// monitoringMetadataTagNameKey property.
+    pub monitoring_metadata_tag_name_key: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// notes property.
+    pub notes: Option<String>,
+    /// parameter property.
+    pub parameter: Option<Vec<Box<Parameter>>>,
+    /// parentFolderId property.
+    pub parent_folder_id: Option<String>,
+    /// path property.
+    pub path: Option<String>,
+    /// paused property.
+    pub paused: Option<bool>,
+    /// priority property.
+    pub priority: Option<Box<Parameter>>,
+    /// scheduleEndMs property.
+    pub schedule_end_ms: Option<String>,
+    /// scheduleStartMs property.
+    pub schedule_start_ms: Option<String>,
+    /// setupTag property.
+    pub setup_tag: Option<Vec<SetupTag>>,
+    /// tagFiringOption property.
+    pub tag_firing_option: Option<String>,
+    /// tagId property.
+    pub tag_id: Option<String>,
+    /// tagManagerUrl property.
+    pub tag_manager_url: Option<String>,
+    /// teardownTag property.
+    pub teardown_tag: Option<Vec<TeardownTag>>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// workspaceId property.
+    pub workspace_id: Option<String>,
+}
+
+/// `Parameter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Parameter {
+    /// isWeakReference property.
+    pub is_weak_reference: Option<bool>,
+    /// key property.
+    pub key: Option<String>,
+    /// list property.
+    pub list: Option<Vec<Box<Parameter>>>,
+    /// map property.
+    pub map: Option<Vec<Box<Parameter>>>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `QuickPreviewResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuickPreviewResponse {
+    /// compilerError property.
+    pub compiler_error: Option<bool>,
+    /// containerVersion property.
+    pub container_version: Option<ContainerVersion>,
+    /// syncStatus property.
+    pub sync_status: Option<SyncStatus>,
 }
 
 /// `ContainerFeatures` type.
@@ -80,13 +285,49 @@ pub struct ContainerFeatures {
     pub support_zones: Option<bool>,
 }
 
-/// `Condition` type.
+/// `ZoneChildContainer` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Condition {
-    /// parameter property.
-    pub parameter: Option<Vec<Parameter>>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct ZoneChildContainer {
+    /// nickname property.
+    pub nickname: Option<String>,
+    /// publicId property.
+    pub public_id: Option<String>,
+}
+
+/// `ZoneTypeRestriction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ZoneTypeRestriction {
+    /// enable property.
+    pub enable: Option<bool>,
+    /// whitelistedTypeId property.
+    pub whitelisted_type_id: Option<Vec<String>>,
+}
+
+/// `SyncStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SyncStatus {
+    /// mergeConflict property.
+    pub merge_conflict: Option<bool>,
+    /// syncError property.
+    pub sync_error: Option<bool>,
+}
+
+/// `ListWorkspacesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListWorkspacesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// workspace property.
+    pub workspace: Option<Vec<Workspace>>,
+}
+
+/// `SyncWorkspaceResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SyncWorkspaceResponse {
+    /// mergeConflict property.
+    pub merge_conflict: Option<Vec<MergeConflict>>,
+    /// syncStatus property.
+    pub sync_status: Option<SyncStatus>,
 }
 
 /// `BuiltInVariable` type.
@@ -106,142 +347,6 @@ pub struct BuiltInVariable {
     pub workspace_id: Option<String>,
 }
 
-/// `TeardownTag` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TeardownTag {
-    /// stopTeardownOnFailure property.
-    pub stop_teardown_on_failure: Option<bool>,
-    /// tagName property.
-    pub tag_name: Option<String>,
-}
-
-/// `Variable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Variable {
-    /// accountId property.
-    pub account_id: Option<String>,
-    /// containerId property.
-    pub container_id: Option<String>,
-    /// disablingTriggerId property.
-    pub disabling_trigger_id: Option<Vec<String>>,
-    /// enablingTriggerId property.
-    pub enabling_trigger_id: Option<Vec<String>>,
-    /// fingerprint property.
-    pub fingerprint: Option<String>,
-    /// formatValue property.
-    pub format_value: Option<VariableFormatValue>,
-    /// name property.
-    pub name: Option<String>,
-    /// notes property.
-    pub notes: Option<String>,
-    /// parameter property.
-    pub parameter: Option<Vec<Parameter>>,
-    /// parentFolderId property.
-    pub parent_folder_id: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-    /// scheduleEndMs property.
-    pub schedule_end_ms: Option<String>,
-    /// scheduleStartMs property.
-    pub schedule_start_ms: Option<String>,
-    /// tagManagerUrl property.
-    pub tag_manager_url: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// variableId property.
-    pub variable_id: Option<String>,
-    /// workspaceId property.
-    pub workspace_id: Option<String>,
-}
-
-/// `CreateContainerVersionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateContainerVersionResponse {
-    /// compilerError property.
-    pub compiler_error: Option<bool>,
-    /// containerVersion property.
-    pub container_version: Option<ContainerVersion>,
-    /// newWorkspacePath property.
-    pub new_workspace_path: Option<String>,
-    /// syncStatus property.
-    pub sync_status: Option<SyncStatus>,
-}
-
-/// `GalleryReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GalleryReference {
-    /// galleryTemplateId property.
-    pub gallery_template_id: Option<String>,
-    /// host property.
-    pub host: Option<String>,
-    /// isModified property.
-    pub is_modified: Option<bool>,
-    /// owner property.
-    pub owner: Option<String>,
-    /// repository property.
-    pub repository: Option<String>,
-    /// signature property.
-    pub signature: Option<String>,
-    /// templateDeveloperId property.
-    pub template_developer_id: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `ListWorkspacesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListWorkspacesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// workspace property.
-    pub workspace: Option<Vec<Workspace>>,
-}
-
-/// `MergeConflict` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MergeConflict {
-    /// entityInBaseVersion property.
-    pub entity_in_base_version: Option<Entity>,
-    /// entityInWorkspace property.
-    pub entity_in_workspace: Option<Entity>,
-}
-
-/// `ZoneBoundary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ZoneBoundary {
-    /// condition property.
-    pub condition: Option<Vec<Condition>>,
-    /// customEvaluationTriggerId property.
-    pub custom_evaluation_trigger_id: Option<Vec<String>>,
-}
-
-/// `Entity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Entity {
-    /// builtInVariable property.
-    pub built_in_variable: Option<BuiltInVariable>,
-    /// changeStatus property.
-    pub change_status: Option<String>,
-    /// client property.
-    pub client: Option<Client>,
-    /// customTemplate property.
-    pub custom_template: Option<CustomTemplate>,
-    /// folder property.
-    pub folder: Option<Folder>,
-    /// gtagConfig property.
-    pub gtag_config: Option<GtagConfig>,
-    /// tag property.
-    pub tag: Option<Tag>,
-    /// transformation property.
-    pub transformation: Option<Transformation>,
-    /// trigger property.
-    pub trigger: Option<Trigger>,
-    /// variable property.
-    pub variable: Option<Variable>,
-    /// zone property.
-    pub zone: Option<Zone>,
-}
-
 /// `Transformation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Transformation {
@@ -256,7 +361,7 @@ pub struct Transformation {
     /// notes property.
     pub notes: Option<String>,
     /// parameter property.
-    pub parameter: Option<Vec<Parameter>>,
+    pub parameter: Option<Vec<Box<Parameter>>>,
     /// parentFolderId property.
     pub parent_folder_id: Option<String>,
     /// path property.
@@ -271,164 +376,71 @@ pub struct Transformation {
     pub workspace_id: Option<String>,
 }
 
-/// `Parameter` type.
+/// `Trigger` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Parameter {
-    /// isWeakReference property.
-    pub is_weak_reference: Option<bool>,
-    /// key property.
-    pub key: Option<String>,
-    /// list property.
-    pub list: Option<Vec<Parameter>>,
-    /// map property.
-    pub map: Option<Vec<Parameter>>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `ZoneChildContainer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ZoneChildContainer {
-    /// nickname property.
-    pub nickname: Option<String>,
-    /// publicId property.
-    pub public_id: Option<String>,
-}
-
-/// `GtagConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GtagConfig {
+pub struct Trigger {
     /// accountId property.
     pub account_id: Option<String>,
+    /// autoEventFilter property.
+    pub auto_event_filter: Option<Vec<Condition>>,
+    /// checkValidation property.
+    pub check_validation: Option<Box<Parameter>>,
     /// containerId property.
     pub container_id: Option<String>,
+    /// continuousTimeMinMilliseconds property.
+    pub continuous_time_min_milliseconds: Option<Box<Parameter>>,
+    /// customEventFilter property.
+    pub custom_event_filter: Option<Vec<Condition>>,
+    /// eventName property.
+    pub event_name: Option<Box<Parameter>>,
+    /// filter property.
+    pub filter: Option<Vec<Condition>>,
     /// fingerprint property.
     pub fingerprint: Option<String>,
-    /// gtagConfigId property.
-    pub gtag_config_id: Option<String>,
-    /// parameter property.
-    pub parameter: Option<Vec<Parameter>>,
-    /// path property.
-    pub path: Option<String>,
-    /// tagManagerUrl property.
-    pub tag_manager_url: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// workspaceId property.
-    pub workspace_id: Option<String>,
-}
-
-/// `SetupTag` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetupTag {
-    /// stopOnSetupFailure property.
-    pub stop_on_setup_failure: Option<bool>,
-    /// tagName property.
-    pub tag_name: Option<String>,
-}
-
-/// `SyncWorkspaceResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SyncWorkspaceResponse {
-    /// mergeConflict property.
-    pub merge_conflict: Option<Vec<MergeConflict>>,
-    /// syncStatus property.
-    pub sync_status: Option<SyncStatus>,
-}
-
-/// `SyncStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SyncStatus {
-    /// mergeConflict property.
-    pub merge_conflict: Option<bool>,
-    /// syncError property.
-    pub sync_error: Option<bool>,
-}
-
-/// `Client` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Client {
-    /// accountId property.
-    pub account_id: Option<String>,
-    /// clientId property.
-    pub client_id: Option<String>,
-    /// containerId property.
-    pub container_id: Option<String>,
-    /// fingerprint property.
-    pub fingerprint: Option<String>,
+    /// horizontalScrollPercentageList property.
+    pub horizontal_scroll_percentage_list: Option<Box<Parameter>>,
+    /// interval property.
+    pub interval: Option<Box<Parameter>>,
+    /// intervalSeconds property.
+    pub interval_seconds: Option<Box<Parameter>>,
+    /// limit property.
+    pub limit: Option<Box<Parameter>>,
+    /// maxTimerLengthSeconds property.
+    pub max_timer_length_seconds: Option<Box<Parameter>>,
     /// name property.
     pub name: Option<String>,
     /// notes property.
     pub notes: Option<String>,
     /// parameter property.
-    pub parameter: Option<Vec<Parameter>>,
+    pub parameter: Option<Vec<Box<Parameter>>>,
     /// parentFolderId property.
     pub parent_folder_id: Option<String>,
     /// path property.
     pub path: Option<String>,
-    /// priority property.
-    pub priority: Option<i64>,
+    /// selector property.
+    pub selector: Option<Box<Parameter>>,
     /// tagManagerUrl property.
     pub tag_manager_url: Option<String>,
+    /// totalTimeMinMilliseconds property.
+    pub total_time_min_milliseconds: Option<Box<Parameter>>,
+    /// triggerId property.
+    pub trigger_id: Option<String>,
     /// type property.
     pub r#type: Option<String>,
-    /// workspaceId property.
-    pub workspace_id: Option<String>,
-}
-
-/// `Tag` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Tag {
-    /// accountId property.
-    pub account_id: Option<String>,
-    /// blockingTriggerId property.
-    pub blocking_trigger_id: Option<Vec<String>>,
-    /// consentSettings property.
-    pub consent_settings: Option<TagConsentSetting>,
-    /// containerId property.
-    pub container_id: Option<String>,
-    /// fingerprint property.
-    pub fingerprint: Option<String>,
-    /// firingTriggerId property.
-    pub firing_trigger_id: Option<Vec<String>>,
-    /// liveOnly property.
-    pub live_only: Option<bool>,
-    /// monitoringMetadata property.
-    pub monitoring_metadata: Option<Parameter>,
-    /// monitoringMetadataTagNameKey property.
-    pub monitoring_metadata_tag_name_key: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// notes property.
-    pub notes: Option<String>,
-    /// parameter property.
-    pub parameter: Option<Vec<Parameter>>,
-    /// parentFolderId property.
-    pub parent_folder_id: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-    /// paused property.
-    pub paused: Option<bool>,
-    /// priority property.
-    pub priority: Option<Parameter>,
-    /// scheduleEndMs property.
-    pub schedule_end_ms: Option<String>,
-    /// scheduleStartMs property.
-    pub schedule_start_ms: Option<String>,
-    /// setupTag property.
-    pub setup_tag: Option<Vec<SetupTag>>,
-    /// tagFiringOption property.
-    pub tag_firing_option: Option<String>,
-    /// tagId property.
-    pub tag_id: Option<String>,
-    /// tagManagerUrl property.
-    pub tag_manager_url: Option<String>,
-    /// teardownTag property.
-    pub teardown_tag: Option<Vec<TeardownTag>>,
-    /// type property.
-    pub r#type: Option<String>,
+    /// uniqueTriggerId property.
+    pub unique_trigger_id: Option<Box<Parameter>>,
+    /// verticalScrollPercentageList property.
+    pub vertical_scroll_percentage_list: Option<Box<Parameter>>,
+    /// visibilitySelector property.
+    pub visibility_selector: Option<Box<Parameter>>,
+    /// visiblePercentageMax property.
+    pub visible_percentage_max: Option<Box<Parameter>>,
+    /// visiblePercentageMin property.
+    pub visible_percentage_min: Option<Box<Parameter>>,
+    /// waitForTags property.
+    pub wait_for_tags: Option<Box<Parameter>>,
+    /// waitForTagsTimeout property.
+    pub wait_for_tags_timeout: Option<Box<Parameter>>,
     /// workspaceId property.
     pub workspace_id: Option<String>,
 }
@@ -462,133 +474,31 @@ pub struct Zone {
     pub zone_id: Option<String>,
 }
 
-/// `ZoneTypeRestriction` type.
+/// `Entity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ZoneTypeRestriction {
-    /// enable property.
-    pub enable: Option<bool>,
-    /// whitelistedTypeId property.
-    pub whitelisted_type_id: Option<Vec<String>>,
-}
-
-/// `Trigger` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Trigger {
-    /// accountId property.
-    pub account_id: Option<String>,
-    /// autoEventFilter property.
-    pub auto_event_filter: Option<Vec<Condition>>,
-    /// checkValidation property.
-    pub check_validation: Option<Parameter>,
-    /// containerId property.
-    pub container_id: Option<String>,
-    /// continuousTimeMinMilliseconds property.
-    pub continuous_time_min_milliseconds: Option<Parameter>,
-    /// customEventFilter property.
-    pub custom_event_filter: Option<Vec<Condition>>,
-    /// eventName property.
-    pub event_name: Option<Parameter>,
-    /// filter property.
-    pub filter: Option<Vec<Condition>>,
-    /// fingerprint property.
-    pub fingerprint: Option<String>,
-    /// horizontalScrollPercentageList property.
-    pub horizontal_scroll_percentage_list: Option<Parameter>,
-    /// interval property.
-    pub interval: Option<Parameter>,
-    /// intervalSeconds property.
-    pub interval_seconds: Option<Parameter>,
-    /// limit property.
-    pub limit: Option<Parameter>,
-    /// maxTimerLengthSeconds property.
-    pub max_timer_length_seconds: Option<Parameter>,
-    /// name property.
-    pub name: Option<String>,
-    /// notes property.
-    pub notes: Option<String>,
-    /// parameter property.
-    pub parameter: Option<Vec<Parameter>>,
-    /// parentFolderId property.
-    pub parent_folder_id: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-    /// selector property.
-    pub selector: Option<Parameter>,
-    /// tagManagerUrl property.
-    pub tag_manager_url: Option<String>,
-    /// totalTimeMinMilliseconds property.
-    pub total_time_min_milliseconds: Option<Parameter>,
-    /// triggerId property.
-    pub trigger_id: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// uniqueTriggerId property.
-    pub unique_trigger_id: Option<Parameter>,
-    /// verticalScrollPercentageList property.
-    pub vertical_scroll_percentage_list: Option<Parameter>,
-    /// visibilitySelector property.
-    pub visibility_selector: Option<Parameter>,
-    /// visiblePercentageMax property.
-    pub visible_percentage_max: Option<Parameter>,
-    /// visiblePercentageMin property.
-    pub visible_percentage_min: Option<Parameter>,
-    /// waitForTags property.
-    pub wait_for_tags: Option<Parameter>,
-    /// waitForTagsTimeout property.
-    pub wait_for_tags_timeout: Option<Parameter>,
-    /// workspaceId property.
-    pub workspace_id: Option<String>,
-}
-
-/// `Workspace` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Workspace {
-    /// accountId property.
-    pub account_id: Option<String>,
-    /// containerId property.
-    pub container_id: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// fingerprint property.
-    pub fingerprint: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-    /// tagManagerUrl property.
-    pub tag_manager_url: Option<String>,
-    /// workspaceId property.
-    pub workspace_id: Option<String>,
-}
-
-/// `QuickPreviewResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuickPreviewResponse {
-    /// compilerError property.
-    pub compiler_error: Option<bool>,
-    /// containerVersion property.
-    pub container_version: Option<ContainerVersion>,
-    /// syncStatus property.
-    pub sync_status: Option<SyncStatus>,
-}
-
-/// `VariableFormatValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VariableFormatValue {
-    /// caseConversionType property.
-    pub case_conversion_type: Option<String>,
-    /// convertFalseToValue property.
-    pub convert_false_to_value: Option<Parameter>,
-    /// convertNullToValue property.
-    pub convert_null_to_value: Option<Parameter>,
-    /// convertToBoolean property.
-    pub convert_to_boolean: Option<bool>,
-    /// convertToNumber property.
-    pub convert_to_number: Option<String>,
-    /// convertTrueToValue property.
-    pub convert_true_to_value: Option<Parameter>,
-    /// convertUndefinedToValue property.
-    pub convert_undefined_to_value: Option<Parameter>,
+pub struct Entity {
+    /// builtInVariable property.
+    pub built_in_variable: Option<BuiltInVariable>,
+    /// changeStatus property.
+    pub change_status: Option<String>,
+    /// client property.
+    pub client: Option<Client>,
+    /// customTemplate property.
+    pub custom_template: Option<CustomTemplate>,
+    /// folder property.
+    pub folder: Option<Folder>,
+    /// gtagConfig property.
+    pub gtag_config: Option<GtagConfig>,
+    /// tag property.
+    pub tag: Option<Tag>,
+    /// transformation property.
+    pub transformation: Option<Transformation>,
+    /// trigger property.
+    pub trigger: Option<Trigger>,
+    /// variable property.
+    pub variable: Option<Variable>,
+    /// zone property.
+    pub zone: Option<Zone>,
 }
 
 /// `TagConsentSetting` type.
@@ -597,7 +507,103 @@ pub struct TagConsentSetting {
     /// consentStatus property.
     pub consent_status: Option<String>,
     /// consentType property.
-    pub consent_type: Option<Parameter>,
+    pub consent_type: Option<Box<Parameter>>,
+}
+
+/// `Folder` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Folder {
+    /// accountId property.
+    pub account_id: Option<String>,
+    /// containerId property.
+    pub container_id: Option<String>,
+    /// fingerprint property.
+    pub fingerprint: Option<String>,
+    /// folderId property.
+    pub folder_id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// notes property.
+    pub notes: Option<String>,
+    /// path property.
+    pub path: Option<String>,
+    /// tagManagerUrl property.
+    pub tag_manager_url: Option<String>,
+    /// workspaceId property.
+    pub workspace_id: Option<String>,
+}
+
+/// `VariableFormatValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VariableFormatValue {
+    /// caseConversionType property.
+    pub case_conversion_type: Option<String>,
+    /// convertFalseToValue property.
+    pub convert_false_to_value: Option<Box<Parameter>>,
+    /// convertNullToValue property.
+    pub convert_null_to_value: Option<Box<Parameter>>,
+    /// convertToBoolean property.
+    pub convert_to_boolean: Option<bool>,
+    /// convertToNumber property.
+    pub convert_to_number: Option<String>,
+    /// convertTrueToValue property.
+    pub convert_true_to_value: Option<Box<Parameter>>,
+    /// convertUndefinedToValue property.
+    pub convert_undefined_to_value: Option<Box<Parameter>>,
+}
+
+/// `Client` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Client {
+    /// accountId property.
+    pub account_id: Option<String>,
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// containerId property.
+    pub container_id: Option<String>,
+    /// fingerprint property.
+    pub fingerprint: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// notes property.
+    pub notes: Option<String>,
+    /// parameter property.
+    pub parameter: Option<Vec<Box<Parameter>>>,
+    /// parentFolderId property.
+    pub parent_folder_id: Option<String>,
+    /// path property.
+    pub path: Option<String>,
+    /// priority property.
+    pub priority: Option<i64>,
+    /// tagManagerUrl property.
+    pub tag_manager_url: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// workspaceId property.
+    pub workspace_id: Option<String>,
+}
+
+/// `GtagConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GtagConfig {
+    /// accountId property.
+    pub account_id: Option<String>,
+    /// containerId property.
+    pub container_id: Option<String>,
+    /// fingerprint property.
+    pub fingerprint: Option<String>,
+    /// gtagConfigId property.
+    pub gtag_config_id: Option<String>,
+    /// parameter property.
+    pub parameter: Option<Vec<Box<Parameter>>>,
+    /// path property.
+    pub path: Option<String>,
+    /// tagManagerUrl property.
+    pub tag_manager_url: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// workspaceId property.
+    pub workspace_id: Option<String>,
 }
 
 // =============================================================================

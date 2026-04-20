@@ -12,17 +12,25 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `StringRestrictions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StringRestrictions {
+    /// allowedValues property.
+    pub allowed_values: Option<Vec<String>>,
+}
 
 /// `IntegerRestrictions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -31,6 +39,15 @@ pub struct IntegerRestrictions {
     pub max_value: Option<String>,
     /// minValue property.
     pub min_value: Option<String>,
+}
+
+/// `ListSupportedDatabaseFlagsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListSupportedDatabaseFlagsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// supportedDatabaseFlags property.
+    pub supported_database_flags: Option<Vec<SupportedDatabaseFlag>>,
 }
 
 /// `SupportedDatabaseFlag` type.
@@ -58,22 +75,6 @@ pub struct SupportedDatabaseFlag {
     pub supported_db_versions: Option<Vec<String>>,
     /// valueType property.
     pub value_type: Option<String>,
-}
-
-/// `ListSupportedDatabaseFlagsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSupportedDatabaseFlagsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// supportedDatabaseFlags property.
-    pub supported_database_flags: Option<Vec<SupportedDatabaseFlag>>,
-}
-
-/// `StringRestrictions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StringRestrictions {
-    /// allowedValues property.
-    pub allowed_values: Option<Vec<String>>,
 }
 
 // =============================================================================

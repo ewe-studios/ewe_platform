@@ -12,17 +12,84 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListLogEntriesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListLogEntriesResponse {
+    /// entries property.
+    pub entries: Option<Vec<LogEntry>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `HttpRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRequest {
+    /// cacheFillBytes property.
+    pub cache_fill_bytes: Option<String>,
+    /// cacheHit property.
+    pub cache_hit: Option<bool>,
+    /// cacheLookup property.
+    pub cache_lookup: Option<bool>,
+    /// cacheValidatedWithOriginServer property.
+    pub cache_validated_with_origin_server: Option<bool>,
+    /// latency property.
+    pub latency: Option<String>,
+    /// protocol property.
+    pub protocol: Option<String>,
+    /// referer property.
+    pub referer: Option<String>,
+    /// remoteIp property.
+    pub remote_ip: Option<String>,
+    /// requestMethod property.
+    pub request_method: Option<String>,
+    /// requestSize property.
+    pub request_size: Option<String>,
+    /// requestUrl property.
+    pub request_url: Option<String>,
+    /// responseSize property.
+    pub response_size: Option<String>,
+    /// serverIp property.
+    pub server_ip: Option<String>,
+    /// status property.
+    pub status: Option<i64>,
+    /// userAgent property.
+    pub user_agent: Option<String>,
+}
+
+/// `LogEntryOperation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogEntryOperation {
+    /// first property.
+    pub first: Option<bool>,
+    /// id property.
+    pub id: Option<String>,
+    /// last property.
+    pub last: Option<bool>,
+    /// producer property.
+    pub producer: Option<String>,
+}
+
+/// `MonitoredResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MonitoredResource {
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// type property.
+    pub r#type: Option<String>,
+}
 
 /// `LogEntry` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -108,15 +175,13 @@ pub struct AppHubApplication {
     pub location: Option<String>,
 }
 
-/// `AppHubWorkload` type.
+/// `MonitoredResourceMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppHubWorkload {
-    /// criticalityType property.
-    pub criticality_type: Option<String>,
-    /// environmentType property.
-    pub environment_type: Option<String>,
-    /// id property.
-    pub id: Option<String>,
+pub struct MonitoredResourceMetadata {
+    /// systemLabels property.
+    pub system_labels: Option<serde_json::Value>,
+    /// userLabels property.
+    pub user_labels: Option<serde_json::Value>,
 }
 
 /// `AppHubService` type.
@@ -130,77 +195,11 @@ pub struct AppHubService {
     pub id: Option<String>,
 }
 
-/// `ListLogEntriesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListLogEntriesResponse {
-    /// entries property.
-    pub entries: Option<Vec<LogEntry>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `HttpRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRequest {
-    /// cacheFillBytes property.
-    pub cache_fill_bytes: Option<String>,
-    /// cacheHit property.
-    pub cache_hit: Option<bool>,
-    /// cacheLookup property.
-    pub cache_lookup: Option<bool>,
-    /// cacheValidatedWithOriginServer property.
-    pub cache_validated_with_origin_server: Option<bool>,
-    /// latency property.
-    pub latency: Option<String>,
-    /// protocol property.
-    pub protocol: Option<String>,
-    /// referer property.
-    pub referer: Option<String>,
-    /// remoteIp property.
-    pub remote_ip: Option<String>,
-    /// requestMethod property.
-    pub request_method: Option<String>,
-    /// requestSize property.
-    pub request_size: Option<String>,
-    /// requestUrl property.
-    pub request_url: Option<String>,
-    /// responseSize property.
-    pub response_size: Option<String>,
-    /// serverIp property.
-    pub server_ip: Option<String>,
-    /// status property.
-    pub status: Option<i64>,
-    /// userAgent property.
-    pub user_agent: Option<String>,
-}
-
 /// `LogErrorGroup` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogErrorGroup {
     /// id property.
     pub id: Option<String>,
-}
-
-/// `LogEntryOperation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LogEntryOperation {
-    /// first property.
-    pub first: Option<bool>,
-    /// id property.
-    pub id: Option<String>,
-    /// last property.
-    pub last: Option<bool>,
-    /// producer property.
-    pub producer: Option<String>,
-}
-
-/// `MonitoredResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MonitoredResource {
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// type property.
-    pub r#type: Option<String>,
 }
 
 /// `AppHub` type.
@@ -214,13 +213,15 @@ pub struct AppHub {
     pub workload: Option<AppHubWorkload>,
 }
 
-/// `MonitoredResourceMetadata` type.
+/// `AppHubWorkload` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MonitoredResourceMetadata {
-    /// systemLabels property.
-    pub system_labels: Option<serde_json::Value>,
-    /// userLabels property.
-    pub user_labels: Option<serde_json::Value>,
+pub struct AppHubWorkload {
+    /// criticalityType property.
+    pub criticality_type: Option<String>,
+    /// environmentType property.
+    pub environment_type: Option<String>,
+    /// id property.
+    pub id: Option<String>,
 }
 
 // =============================================================================

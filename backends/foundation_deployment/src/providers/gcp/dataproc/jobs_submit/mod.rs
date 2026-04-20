@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,56 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Job;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `JobPlacement` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobPlacement {
-    /// clusterLabels property.
-    pub cluster_labels: Option<serde_json::Value>,
-    /// clusterName property.
-    pub cluster_name: Option<String>,
-    /// clusterUuid property.
-    pub cluster_uuid: Option<String>,
-}
-
-/// `SparkRJob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkRJob {
-    /// archiveUris property.
-    pub archive_uris: Option<Vec<String>>,
-    /// args property.
-    pub args: Option<Vec<String>>,
-    /// fileUris property.
-    pub file_uris: Option<Vec<String>>,
-    /// loggingConfig property.
-    pub logging_config: Option<LoggingConfig>,
-    /// mainRFileUri property.
-    pub main_r_file_uri: Option<String>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
-}
-
-/// `SparkSqlJob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkSqlJob {
-    /// jarFileUris property.
-    pub jar_file_uris: Option<Vec<String>>,
-    /// loggingConfig property.
-    pub logging_config: Option<LoggingConfig>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
-    /// queryFileUri property.
-    pub query_file_uri: Option<String>,
-    /// queryList property.
-    pub query_list: Option<QueryList>,
-    /// scriptVariables property.
-    pub script_variables: Option<serde_json::Value>,
-}
 
 /// `PrestoJob` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -91,6 +47,43 @@ pub struct PrestoJob {
     pub query_list: Option<QueryList>,
 }
 
+/// `JobPlacement` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JobPlacement {
+    /// clusterLabels property.
+    pub cluster_labels: Option<serde_json::Value>,
+    /// clusterName property.
+    pub cluster_name: Option<String>,
+    /// clusterUuid property.
+    pub cluster_uuid: Option<String>,
+}
+
+/// `JobReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JobReference {
+    /// jobId property.
+    pub job_id: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+}
+
+/// `SparkRJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkRJob {
+    /// archiveUris property.
+    pub archive_uris: Option<Vec<String>>,
+    /// args property.
+    pub args: Option<Vec<String>>,
+    /// fileUris property.
+    pub file_uris: Option<Vec<String>>,
+    /// loggingConfig property.
+    pub logging_config: Option<LoggingConfig>,
+    /// mainRFileUri property.
+    pub main_r_file_uri: Option<String>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
+}
+
 /// `PigJob` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PigJob {
@@ -108,40 +101,6 @@ pub struct PigJob {
     pub query_list: Option<QueryList>,
     /// scriptVariables property.
     pub script_variables: Option<serde_json::Value>,
-}
-
-/// `SparkJob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkJob {
-    /// archiveUris property.
-    pub archive_uris: Option<Vec<String>>,
-    /// args property.
-    pub args: Option<Vec<String>>,
-    /// fileUris property.
-    pub file_uris: Option<Vec<String>>,
-    /// jarFileUris property.
-    pub jar_file_uris: Option<Vec<String>>,
-    /// loggingConfig property.
-    pub logging_config: Option<LoggingConfig>,
-    /// mainClass property.
-    pub main_class: Option<String>,
-    /// mainJarFileUri property.
-    pub main_jar_file_uri: Option<String>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
-}
-
-/// `JobStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobStatus {
-    /// details property.
-    pub details: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// stateStartTime property.
-    pub state_start_time: Option<String>,
-    /// substate property.
-    pub substate: Option<String>,
 }
 
 /// `DriverSchedulingConfig` type.
@@ -193,24 +152,6 @@ pub struct PySparkJob {
     pub python_file_uris: Option<Vec<String>>,
 }
 
-/// `JobScheduling` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobScheduling {
-    /// maxFailuresPerHour property.
-    pub max_failures_per_hour: Option<i64>,
-    /// maxFailuresTotal property.
-    pub max_failures_total: Option<i64>,
-}
-
-/// `JobReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobReference {
-    /// jobId property.
-    pub job_id: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-}
-
 /// `HiveJob` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HiveJob {
@@ -218,6 +159,85 @@ pub struct HiveJob {
     pub continue_on_failure: Option<bool>,
     /// jarFileUris property.
     pub jar_file_uris: Option<Vec<String>>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
+    /// queryFileUri property.
+    pub query_file_uri: Option<String>,
+    /// queryList property.
+    pub query_list: Option<QueryList>,
+    /// scriptVariables property.
+    pub script_variables: Option<serde_json::Value>,
+}
+
+/// `HadoopJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HadoopJob {
+    /// archiveUris property.
+    pub archive_uris: Option<Vec<String>>,
+    /// args property.
+    pub args: Option<Vec<String>>,
+    /// fileUris property.
+    pub file_uris: Option<Vec<String>>,
+    /// jarFileUris property.
+    pub jar_file_uris: Option<Vec<String>>,
+    /// loggingConfig property.
+    pub logging_config: Option<LoggingConfig>,
+    /// mainClass property.
+    pub main_class: Option<String>,
+    /// mainJarFileUri property.
+    pub main_jar_file_uri: Option<String>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
+}
+
+/// `LoggingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoggingConfig {
+    /// driverLogLevels property.
+    pub driver_log_levels: Option<serde_json::Value>,
+}
+
+/// `JobStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JobStatus {
+    /// details property.
+    pub details: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// stateStartTime property.
+    pub state_start_time: Option<String>,
+    /// substate property.
+    pub substate: Option<String>,
+}
+
+/// `SparkJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkJob {
+    /// archiveUris property.
+    pub archive_uris: Option<Vec<String>>,
+    /// args property.
+    pub args: Option<Vec<String>>,
+    /// fileUris property.
+    pub file_uris: Option<Vec<String>>,
+    /// jarFileUris property.
+    pub jar_file_uris: Option<Vec<String>>,
+    /// loggingConfig property.
+    pub logging_config: Option<LoggingConfig>,
+    /// mainClass property.
+    pub main_class: Option<String>,
+    /// mainJarFileUri property.
+    pub main_jar_file_uri: Option<String>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
+}
+
+/// `SparkSqlJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkSqlJob {
+    /// jarFileUris property.
+    pub jar_file_uris: Option<Vec<String>>,
+    /// loggingConfig property.
+    pub logging_config: Option<LoggingConfig>,
     /// properties property.
     pub properties: Option<serde_json::Value>,
     /// queryFileUri property.
@@ -247,13 +267,6 @@ pub struct TrinoJob {
     pub query_list: Option<QueryList>,
 }
 
-/// `LoggingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoggingConfig {
-    /// driverLogLevels property.
-    pub driver_log_levels: Option<serde_json::Value>,
-}
-
 /// `QueryList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryList {
@@ -278,25 +291,13 @@ pub struct YarnApplication {
     pub vcore_seconds: Option<String>,
 }
 
-/// `HadoopJob` type.
+/// `JobScheduling` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HadoopJob {
-    /// archiveUris property.
-    pub archive_uris: Option<Vec<String>>,
-    /// args property.
-    pub args: Option<Vec<String>>,
-    /// fileUris property.
-    pub file_uris: Option<Vec<String>>,
-    /// jarFileUris property.
-    pub jar_file_uris: Option<Vec<String>>,
-    /// loggingConfig property.
-    pub logging_config: Option<LoggingConfig>,
-    /// mainClass property.
-    pub main_class: Option<String>,
-    /// mainJarFileUri property.
-    pub main_jar_file_uri: Option<String>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
+pub struct JobScheduling {
+    /// maxFailuresPerHour property.
+    pub max_failures_per_hour: Option<i64>,
+    /// maxFailuresTotal property.
+    pub max_failures_total: Option<i64>,
 }
 
 // =============================================================================

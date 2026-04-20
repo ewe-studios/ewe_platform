@@ -12,44 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListDbSystemInitialStorageSizesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDbSystemInitialStorageSizesResponse {
-    /// dbSystemInitialStorageSizes property.
-    pub db_system_initial_storage_sizes: Option<Vec<DbSystemInitialStorageSize>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `DbSystemInitialStorageSize` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DbSystemInitialStorageSize {
-    /// name property.
-    pub name: Option<String>,
-    /// properties property.
-    pub properties: Option<DbSystemInitialStorageSizeProperties>,
-}
-
-/// `StorageSizeDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StorageSizeDetails {
-    /// dataStorageSizeInGbs property.
-    pub data_storage_size_in_gbs: Option<i64>,
-    /// recoStorageSizeInGbs property.
-    pub reco_storage_size_in_gbs: Option<i64>,
-}
 
 /// `DbSystemInitialStorageSizeProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -62,6 +36,33 @@ pub struct DbSystemInitialStorageSizeProperties {
     pub storage_management: Option<String>,
     /// storageSizeDetails property.
     pub storage_size_details: Option<Vec<StorageSizeDetails>>,
+}
+
+/// `StorageSizeDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StorageSizeDetails {
+    /// dataStorageSizeInGbs property.
+    pub data_storage_size_in_gbs: Option<i64>,
+    /// recoStorageSizeInGbs property.
+    pub reco_storage_size_in_gbs: Option<i64>,
+}
+
+/// `DbSystemInitialStorageSize` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DbSystemInitialStorageSize {
+    /// name property.
+    pub name: Option<String>,
+    /// properties property.
+    pub properties: Option<DbSystemInitialStorageSizeProperties>,
+}
+
+/// `ListDbSystemInitialStorageSizesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDbSystemInitialStorageSizesResponse {
+    /// dbSystemInitialStorageSizes property.
+    pub db_system_initial_storage_sizes: Option<Vec<DbSystemInitialStorageSize>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

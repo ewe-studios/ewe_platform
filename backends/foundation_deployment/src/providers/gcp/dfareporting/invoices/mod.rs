@@ -12,43 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `CampaignSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CampaignSummary {
-    /// billingInvoiceCode property.
-    pub billing_invoice_code: Option<String>,
-    /// campaignId property.
-    pub campaign_id: Option<String>,
-    /// preTaxAmountMicros property.
-    pub pre_tax_amount_micros: Option<String>,
-    /// taxAmountMicros property.
-    pub tax_amount_micros: Option<String>,
-    /// totalAmountMicros property.
-    pub total_amount_micros: Option<String>,
-}
-
-/// `AdvertiserInvoicesListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdvertiserInvoicesListResponse {
-    /// invoices property.
-    pub invoices: Option<Vec<Invoice>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `Invoice` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -89,6 +64,32 @@ pub struct Invoice {
     pub total_amount_micros: Option<String>,
     /// totalTaxAmountMicros property.
     pub total_tax_amount_micros: Option<String>,
+}
+
+/// `CampaignSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CampaignSummary {
+    /// billingInvoiceCode property.
+    pub billing_invoice_code: Option<String>,
+    /// campaignId property.
+    pub campaign_id: Option<String>,
+    /// preTaxAmountMicros property.
+    pub pre_tax_amount_micros: Option<String>,
+    /// taxAmountMicros property.
+    pub tax_amount_micros: Option<String>,
+    /// totalAmountMicros property.
+    pub total_amount_micros: Option<String>,
+}
+
+/// `AdvertiserInvoicesListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdvertiserInvoicesListResponse {
+    /// invoices property.
+    pub invoices: Option<Vec<Invoice>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

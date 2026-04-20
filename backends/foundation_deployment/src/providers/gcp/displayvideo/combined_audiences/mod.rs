@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListCombinedAudiencesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCombinedAudiencesResponse {
-    /// combinedAudiences property.
-    pub combined_audiences: Option<Vec<CombinedAudience>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `CombinedAudience` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -42,6 +34,15 @@ pub struct CombinedAudience {
     pub display_name: Option<String>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `ListCombinedAudiencesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListCombinedAudiencesResponse {
+    /// combinedAudiences property.
+    pub combined_audiences: Option<Vec<CombinedAudience>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

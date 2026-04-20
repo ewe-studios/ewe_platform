@@ -12,44 +12,34 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Image;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `CustomerEncryptionKey` type.
+/// `ImageParams` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerEncryptionKey {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-    /// kmsKeyServiceAccount property.
-    pub kms_key_service_account: Option<String>,
-    /// rawKey property.
-    pub raw_key: Option<String>,
-    /// rsaEncryptedKey property.
-    pub rsa_encrypted_key: Option<String>,
-    /// sha256 property.
-    pub sha256: Option<String>,
+pub struct ImageParams {
+    /// resourceManagerTags property.
+    pub resource_manager_tags: Option<serde_json::Value>,
 }
 
-/// `InitialStateConfig` type.
+/// `ImageFamilyView` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InitialStateConfig {
-    /// dbs property.
-    pub dbs: Option<Vec<FileContentBuffer>>,
-    /// dbxs property.
-    pub dbxs: Option<Vec<FileContentBuffer>>,
-    /// keks property.
-    pub keks: Option<Vec<FileContentBuffer>>,
-    /// pk property.
-    pub pk: Option<FileContentBuffer>,
+pub struct ImageFamilyView {
+    /// image property.
+    pub image: Option<Image>,
 }
 
 /// `DeprecationStatus` type.
@@ -67,18 +57,26 @@ pub struct DeprecationStatus {
     pub state: Option<String>,
 }
 
-/// `ImageFamilyView` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImageFamilyView {
-    /// image property.
-    pub image: Option<Image>,
-}
-
 /// `GuestOsFeature` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuestOsFeature {
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `CustomerEncryptionKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomerEncryptionKey {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+    /// kmsKeyServiceAccount property.
+    pub kms_key_service_account: Option<String>,
+    /// rawKey property.
+    pub raw_key: Option<String>,
+    /// rsaEncryptedKey property.
+    pub rsa_encrypted_key: Option<String>,
+    /// sha256 property.
+    pub sha256: Option<String>,
 }
 
 /// `FileContentBuffer` type.
@@ -90,11 +88,17 @@ pub struct FileContentBuffer {
     pub file_type: Option<String>,
 }
 
-/// `ImageParams` type.
+/// `InitialStateConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImageParams {
-    /// resourceManagerTags property.
-    pub resource_manager_tags: Option<serde_json::Value>,
+pub struct InitialStateConfig {
+    /// dbs property.
+    pub dbs: Option<Vec<FileContentBuffer>>,
+    /// dbxs property.
+    pub dbxs: Option<Vec<FileContentBuffer>>,
+    /// keks property.
+    pub keks: Option<Vec<FileContentBuffer>>,
+    /// pk property.
+    pub pk: Option<FileContentBuffer>,
 }
 
 // =============================================================================

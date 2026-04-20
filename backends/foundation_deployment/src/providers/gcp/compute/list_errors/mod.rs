@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `InstanceGroupManagersListErrorsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagersListErrorsResponse {
-    /// items property.
-    pub items: Option<Vec<InstanceManagedByIgmError>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `RegionInstanceGroupManagersListErrorsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,26 +32,6 @@ pub struct RegionInstanceGroupManagersListErrorsResponse {
     pub items: Option<Vec<InstanceManagedByIgmError>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-}
-
-/// `InstanceManagedByIgmErrorManagedInstanceError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceManagedByIgmErrorManagedInstanceError {
-    /// code property.
-    pub code: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `InstanceManagedByIgmError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceManagedByIgmError {
-    /// error property.
-    pub error: Option<InstanceManagedByIgmErrorManagedInstanceError>,
-    /// instanceActionDetails property.
-    pub instance_action_details: Option<InstanceManagedByIgmErrorInstanceActionDetails>,
-    /// timestamp property.
-    pub timestamp: Option<String>,
 }
 
 /// `InstanceManagedByIgmErrorInstanceActionDetails` type.
@@ -73,6 +45,26 @@ pub struct InstanceManagedByIgmErrorInstanceActionDetails {
     pub version: Option<ManagedInstanceVersion>,
 }
 
+/// `InstanceManagedByIgmError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceManagedByIgmError {
+    /// error property.
+    pub error: Option<InstanceManagedByIgmErrorManagedInstanceError>,
+    /// instanceActionDetails property.
+    pub instance_action_details: Option<InstanceManagedByIgmErrorInstanceActionDetails>,
+    /// timestamp property.
+    pub timestamp: Option<String>,
+}
+
+/// `InstanceGroupManagersListErrorsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagersListErrorsResponse {
+    /// items property.
+    pub items: Option<Vec<InstanceManagedByIgmError>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
 /// `ManagedInstanceVersion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedInstanceVersion {
@@ -80,6 +72,15 @@ pub struct ManagedInstanceVersion {
     pub instance_template: Option<String>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `InstanceManagedByIgmErrorManagedInstanceError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceManagedByIgmErrorManagedInstanceError {
+    /// code property.
+    pub code: Option<String>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

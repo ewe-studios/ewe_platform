@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -33,34 +34,111 @@ pub struct PrimaryStep {
     pub roll_up: Option<String>,
 }
 
-/// `TestSuiteOverview` type.
+/// `SkippedDetail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestSuiteOverview {
-    /// elapsedTime property.
-    pub elapsed_time: Option<Duration>,
-    /// errorCount property.
-    pub error_count: Option<i64>,
-    /// failureCount property.
-    pub failure_count: Option<i64>,
-    /// flakyCount property.
-    pub flaky_count: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-    /// skippedCount property.
-    pub skipped_count: Option<i64>,
-    /// totalCount property.
-    pub total_count: Option<i64>,
-    /// xmlSource property.
-    pub xml_source: Option<FileReference>,
+pub struct SkippedDetail {
+    /// incompatibleAppVersion property.
+    pub incompatible_app_version: Option<bool>,
+    /// incompatibleArchitecture property.
+    pub incompatible_architecture: Option<bool>,
+    /// incompatibleDevice property.
+    pub incompatible_device: Option<bool>,
+    /// pendingTimeout property.
+    pub pending_timeout: Option<bool>,
 }
 
-/// `Timestamp` type.
+/// `MultiStep` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Timestamp {
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<String>,
+pub struct MultiStep {
+    /// multistepNumber property.
+    pub multistep_number: Option<i64>,
+    /// primaryStep property.
+    pub primary_step: Option<PrimaryStep>,
+    /// primaryStepId property.
+    pub primary_step_id: Option<String>,
+}
+
+/// `ListStepAccessibilityClustersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListStepAccessibilityClustersResponse {
+    /// clusters property.
+    pub clusters: Option<Vec<SuggestionClusterProto>>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `IndividualOutcome` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IndividualOutcome {
+    /// multistepNumber property.
+    pub multistep_number: Option<i64>,
+    /// outcomeSummary property.
+    pub outcome_summary: Option<String>,
+    /// runDuration property.
+    pub run_duration: Option<Duration>,
+    /// stepId property.
+    pub step_id: Option<String>,
+}
+
+/// `StepLabelsEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StepLabelsEntry {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `SafeHtmlProto` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SafeHtmlProto {
+    /// privateDoNotAccessOrElseSafeHtmlWrappedValue property.
+    pub private_do_not_access_or_else_safe_html_wrapped_value: Option<String>,
+}
+
+/// `StepDimensionValueEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StepDimensionValueEntry {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `InconclusiveDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InconclusiveDetail {
+    /// abortedByUser property.
+    pub aborted_by_user: Option<bool>,
+    /// hasErrorLogs property.
+    pub has_error_logs: Option<bool>,
+    /// infrastructureFailure property.
+    pub infrastructure_failure: Option<bool>,
+}
+
+/// `ListStepsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListStepsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// steps property.
+    pub steps: Option<Vec<Step>>,
+}
+
+/// `Any` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Any {
+    /// typeUrl property.
+    pub type_url: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `FileReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FileReference {
+    /// fileUri property.
+    pub file_uri: Option<String>,
 }
 
 /// `TestIssue` type.
@@ -80,6 +158,13 @@ pub struct TestIssue {
     pub warning_migration: Option<Any>,
 }
 
+/// `StackTrace` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StackTrace {
+    /// exception property.
+    pub exception: Option<String>,
+}
+
 /// `FailureDetail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FailureDetail {
@@ -97,28 +182,6 @@ pub struct FailureDetail {
     pub timed_out: Option<bool>,
     /// unableToCrawl property.
     pub unable_to_crawl: Option<bool>,
-}
-
-/// `RegionProto` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegionProto {
-    /// heightPx property.
-    pub height_px: Option<i64>,
-    /// leftPx property.
-    pub left_px: Option<i64>,
-    /// topPx property.
-    pub top_px: Option<i64>,
-    /// widthPx property.
-    pub width_px: Option<i64>,
-}
-
-/// `StepDimensionValueEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StepDimensionValueEntry {
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<String>,
 }
 
 /// `Step` type.
@@ -156,31 +219,17 @@ pub struct Step {
     pub tool_execution_step: Option<ToolExecutionStep>,
 }
 
-/// `ToolOutputReference` type.
+/// `TestExecutionStep` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ToolOutputReference {
-    /// creationTime property.
-    pub creation_time: Option<Timestamp>,
-    /// output property.
-    pub output: Option<FileReference>,
-    /// testCase property.
-    pub test_case: Option<TestCaseReference>,
-}
-
-/// `ListStepAccessibilityClustersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListStepAccessibilityClustersResponse {
-    /// clusters property.
-    pub clusters: Option<Vec<SuggestionClusterProto>>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `TestTiming` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestTiming {
-    /// testProcessDuration property.
-    pub test_process_duration: Option<Duration>,
+pub struct TestExecutionStep {
+    /// testIssues property.
+    pub test_issues: Option<Vec<TestIssue>>,
+    /// testSuiteOverviews property.
+    pub test_suite_overviews: Option<Vec<TestSuiteOverview>>,
+    /// testTiming property.
+    pub test_timing: Option<TestTiming>,
+    /// toolExecution property.
+    pub tool_execution: Option<ToolExecution>,
 }
 
 /// `SuggestionProto` type.
@@ -208,57 +257,6 @@ pub struct SuggestionProto {
     pub title: Option<String>,
 }
 
-/// `SafeHtmlProto` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SafeHtmlProto {
-    /// privateDoNotAccessOrElseSafeHtmlWrappedValue property.
-    pub private_do_not_access_or_else_safe_html_wrapped_value: Option<String>,
-}
-
-/// `MultiStep` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MultiStep {
-    /// multistepNumber property.
-    pub multistep_number: Option<i64>,
-    /// primaryStep property.
-    pub primary_step: Option<PrimaryStep>,
-    /// primaryStepId property.
-    pub primary_step_id: Option<String>,
-}
-
-/// `TestExecutionStep` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestExecutionStep {
-    /// testIssues property.
-    pub test_issues: Option<Vec<TestIssue>>,
-    /// testSuiteOverviews property.
-    pub test_suite_overviews: Option<Vec<TestSuiteOverview>>,
-    /// testTiming property.
-    pub test_timing: Option<TestTiming>,
-    /// toolExecution property.
-    pub tool_execution: Option<ToolExecution>,
-}
-
-/// `SkippedDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SkippedDetail {
-    /// incompatibleAppVersion property.
-    pub incompatible_app_version: Option<bool>,
-    /// incompatibleArchitecture property.
-    pub incompatible_architecture: Option<bool>,
-    /// incompatibleDevice property.
-    pub incompatible_device: Option<bool>,
-    /// pendingTimeout property.
-    pub pending_timeout: Option<bool>,
-}
-
-/// `StackTrace` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StackTrace {
-    /// exception property.
-    pub exception: Option<String>,
-}
-
 /// `SuggestionClusterProto` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuggestionClusterProto {
@@ -268,11 +266,51 @@ pub struct SuggestionClusterProto {
     pub suggestions: Option<Vec<SuggestionProto>>,
 }
 
-/// `FileReference` type.
+/// `ToolExitCode` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FileReference {
-    /// fileUri property.
-    pub file_uri: Option<String>,
+pub struct ToolExitCode {
+    /// number property.
+    pub number: Option<i64>,
+}
+
+/// `Duration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Duration {
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<String>,
+}
+
+/// `Timestamp` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Timestamp {
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<String>,
+}
+
+/// `ToolOutputReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ToolOutputReference {
+    /// creationTime property.
+    pub creation_time: Option<Timestamp>,
+    /// output property.
+    pub output: Option<FileReference>,
+    /// testCase property.
+    pub test_case: Option<TestCaseReference>,
+}
+
+/// `TestCaseReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TestCaseReference {
+    /// className property.
+    pub class_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// testSuiteName property.
+    pub test_suite_name: Option<String>,
 }
 
 /// `ToolExecutionStep` type.
@@ -282,18 +320,38 @@ pub struct ToolExecutionStep {
     pub tool_execution: Option<ToolExecution>,
 }
 
-/// `ToolExitCode` type.
+/// `TestSuiteOverview` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ToolExitCode {
-    /// number property.
-    pub number: Option<i64>,
+pub struct TestSuiteOverview {
+    /// elapsedTime property.
+    pub elapsed_time: Option<Duration>,
+    /// errorCount property.
+    pub error_count: Option<i64>,
+    /// failureCount property.
+    pub failure_count: Option<i64>,
+    /// flakyCount property.
+    pub flaky_count: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// skippedCount property.
+    pub skipped_count: Option<i64>,
+    /// totalCount property.
+    pub total_count: Option<i64>,
+    /// xmlSource property.
+    pub xml_source: Option<FileReference>,
 }
 
-/// `SuccessDetail` type.
+/// `RegionProto` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SuccessDetail {
-    /// otherNativeCrash property.
-    pub other_native_crash: Option<bool>,
+pub struct RegionProto {
+    /// heightPx property.
+    pub height_px: Option<i64>,
+    /// leftPx property.
+    pub left_px: Option<i64>,
+    /// topPx property.
+    pub top_px: Option<i64>,
+    /// widthPx property.
+    pub width_px: Option<i64>,
 }
 
 /// `Outcome` type.
@@ -311,68 +369,6 @@ pub struct Outcome {
     pub summary: Option<String>,
 }
 
-/// `TestCaseReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestCaseReference {
-    /// className property.
-    pub class_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// testSuiteName property.
-    pub test_suite_name: Option<String>,
-}
-
-/// `ListStepsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListStepsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// steps property.
-    pub steps: Option<Vec<Step>>,
-}
-
-/// `IndividualOutcome` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IndividualOutcome {
-    /// multistepNumber property.
-    pub multistep_number: Option<i64>,
-    /// outcomeSummary property.
-    pub outcome_summary: Option<String>,
-    /// runDuration property.
-    pub run_duration: Option<Duration>,
-    /// stepId property.
-    pub step_id: Option<String>,
-}
-
-/// `Duration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Duration {
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<String>,
-}
-
-/// `InconclusiveDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InconclusiveDetail {
-    /// abortedByUser property.
-    pub aborted_by_user: Option<bool>,
-    /// hasErrorLogs property.
-    pub has_error_logs: Option<bool>,
-    /// infrastructureFailure property.
-    pub infrastructure_failure: Option<bool>,
-}
-
-/// `StepLabelsEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StepLabelsEntry {
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
 /// `ToolExecution` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToolExecution {
@@ -386,13 +382,18 @@ pub struct ToolExecution {
     pub tool_outputs: Option<Vec<ToolOutputReference>>,
 }
 
-/// `Any` type.
+/// `SuccessDetail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Any {
-    /// typeUrl property.
-    pub type_url: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct SuccessDetail {
+    /// otherNativeCrash property.
+    pub other_native_crash: Option<bool>,
+}
+
+/// `TestTiming` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TestTiming {
+    /// testProcessDuration property.
+    pub test_process_duration: Option<Duration>,
 }
 
 // =============================================================================

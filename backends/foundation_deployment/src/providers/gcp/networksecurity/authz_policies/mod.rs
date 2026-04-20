@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,61 +24,21 @@ use super::shared::GoogleIamV1Policy;
 use super::shared::GoogleIamV1TestIamPermissionsResponse;
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Status` type.
+/// `GoogleIamV1Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `AuthzPolicyAuthzRuleHeaderMatch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthzPolicyAuthzRuleHeaderMatch {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<AuthzPolicyAuthzRuleStringMatch>,
-}
-
-/// `AuthzPolicyAuthzRuleRequestResourceTagValueIdSet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthzPolicyAuthzRuleRequestResourceTagValueIdSet {
-    /// ids property.
-    pub ids: Option<Vec<String>>,
-}
-
-/// `AuthzPolicyAuthzRuleStringMatch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthzPolicyAuthzRuleStringMatch {
-    /// contains property.
-    pub contains: Option<String>,
-    /// exact property.
-    pub exact: Option<String>,
-    /// ignoreCase property.
-    pub ignore_case: Option<bool>,
-    /// prefix property.
-    pub prefix: Option<String>,
-    /// suffix property.
-    pub suffix: Option<String>,
-}
-
-/// `AuthzPolicyAuthzRuleToRequestOperationMCPMethod` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthzPolicyAuthzRuleToRequestOperationMCPMethod {
-    /// name property.
-    pub name: Option<String>,
-    /// params property.
-    pub params: Option<Vec<AuthzPolicyAuthzRuleStringMatch>>,
+pub struct GoogleIamV1Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `AuthzPolicyAuthzRuleFromRequestSource` type.
@@ -91,17 +52,6 @@ pub struct AuthzPolicyAuthzRuleFromRequestSource {
     pub resources: Option<Vec<AuthzPolicyAuthzRuleRequestResource>>,
 }
 
-/// `GoogleIamV1Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
 /// `AuthzPolicyCustomProvider` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzPolicyCustomProvider {
@@ -109,86 +59,6 @@ pub struct AuthzPolicyCustomProvider {
     pub authz_extension: Option<AuthzPolicyCustomProviderAuthzExtension>,
     /// cloudIap property.
     pub cloud_iap: Option<AuthzPolicyCustomProviderCloudIap>,
-}
-
-/// `ListAuthzPoliciesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAuthzPoliciesResponse {
-    /// authzPolicies property.
-    pub authz_policies: Option<Vec<AuthzPolicy>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `AuthzPolicyAuthzRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthzPolicyAuthzRule {
-    /// from property.
-    pub from: Option<AuthzPolicyAuthzRuleFrom>,
-    /// to property.
-    pub to: Option<AuthzPolicyAuthzRuleTo>,
-    /// when property.
-    pub when: Option<String>,
-}
-
-/// `AuthzPolicyAuthzRuleToRequestOperationHeaderSet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthzPolicyAuthzRuleToRequestOperationHeaderSet {
-    /// headers property.
-    pub headers: Option<Vec<AuthzPolicyAuthzRuleHeaderMatch>>,
-}
-
-/// `AuthzPolicyAuthzRuleIpBlock` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthzPolicyAuthzRuleIpBlock {
-    /// length property.
-    pub length: Option<i64>,
-    /// prefix property.
-    pub prefix: Option<String>,
-}
-
-/// `AuthzPolicyAuthzRulePrincipal` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthzPolicyAuthzRulePrincipal {
-    /// principal property.
-    pub principal: Option<AuthzPolicyAuthzRuleStringMatch>,
-    /// principalSelector property.
-    pub principal_selector: Option<String>,
-}
-
-/// `AuthzPolicyAuthzRuleToRequestOperation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthzPolicyAuthzRuleToRequestOperation {
-    /// headerSet property.
-    pub header_set: Option<AuthzPolicyAuthzRuleToRequestOperationHeaderSet>,
-    /// hosts property.
-    pub hosts: Option<Vec<AuthzPolicyAuthzRuleStringMatch>>,
-    /// mcp property.
-    pub mcp: Option<AuthzPolicyAuthzRuleToRequestOperationMCP>,
-    /// methods property.
-    pub methods: Option<Vec<String>>,
-    /// paths property.
-    pub paths: Option<Vec<AuthzPolicyAuthzRuleStringMatch>>,
-}
-
-/// `AuthzPolicyAuthzRuleRequestResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthzPolicyAuthzRuleRequestResource {
-    /// iamServiceAccount property.
-    pub iam_service_account: Option<AuthzPolicyAuthzRuleStringMatch>,
-    /// tagValueIdSet property.
-    pub tag_value_id_set: Option<AuthzPolicyAuthzRuleRequestResourceTagValueIdSet>,
-}
-
-/// `AuthzPolicyAuthzRuleTo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthzPolicyAuthzRuleTo {
-    /// notOperations property.
-    pub not_operations: Option<Vec<AuthzPolicyAuthzRuleToRequestOperation>>,
-    /// operations property.
-    pub operations: Option<Vec<AuthzPolicyAuthzRuleToRequestOperation>>,
 }
 
 /// `AuthzPolicy` type.
@@ -225,35 +95,6 @@ pub struct AuthzPolicyAuthzRuleToRequestOperationMCP {
     pub methods: Option<Vec<AuthzPolicyAuthzRuleToRequestOperationMCPMethod>>,
 }
 
-/// `AuthzPolicyTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthzPolicyTarget {
-    /// loadBalancingScheme property.
-    pub load_balancing_scheme: Option<String>,
-    /// resources property.
-    pub resources: Option<Vec<String>>,
-}
-
-/// `GoogleIamV1AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `AuthzPolicyCustomProviderCloudIap` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthzPolicyCustomProviderCloudIap {}
-
-/// `AuthzPolicyCustomProviderAuthzExtension` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthzPolicyCustomProviderAuthzExtension {
-    /// resources property.
-    pub resources: Option<Vec<String>>,
-}
-
 /// `AuthzPolicyAuthzRuleFrom` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzPolicyAuthzRuleFrom {
@@ -261,6 +102,17 @@ pub struct AuthzPolicyAuthzRuleFrom {
     pub not_sources: Option<Vec<AuthzPolicyAuthzRuleFromRequestSource>>,
     /// sources property.
     pub sources: Option<Vec<AuthzPolicyAuthzRuleFromRequestSource>>,
+}
+
+/// `ListAuthzPoliciesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAuthzPoliciesResponse {
+    /// authzPolicies property.
+    pub authz_policies: Option<Vec<AuthzPolicy>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `Expr` type.
@@ -283,6 +135,155 @@ pub struct GoogleIamV1AuditLogConfig {
     pub exempted_members: Option<Vec<String>>,
     /// logType property.
     pub log_type: Option<String>,
+}
+
+/// `AuthzPolicyAuthzRuleTo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthzPolicyAuthzRuleTo {
+    /// notOperations property.
+    pub not_operations: Option<Vec<AuthzPolicyAuthzRuleToRequestOperation>>,
+    /// operations property.
+    pub operations: Option<Vec<AuthzPolicyAuthzRuleToRequestOperation>>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `AuthzPolicyAuthzRuleToRequestOperationHeaderSet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthzPolicyAuthzRuleToRequestOperationHeaderSet {
+    /// headers property.
+    pub headers: Option<Vec<AuthzPolicyAuthzRuleHeaderMatch>>,
+}
+
+/// `AuthzPolicyTarget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthzPolicyTarget {
+    /// loadBalancingScheme property.
+    pub load_balancing_scheme: Option<String>,
+    /// resources property.
+    pub resources: Option<Vec<String>>,
+}
+
+/// `AuthzPolicyAuthzRuleToRequestOperationMCPMethod` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthzPolicyAuthzRuleToRequestOperationMCPMethod {
+    /// name property.
+    pub name: Option<String>,
+    /// params property.
+    pub params: Option<Vec<AuthzPolicyAuthzRuleStringMatch>>,
+}
+
+/// `AuthzPolicyAuthzRuleHeaderMatch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthzPolicyAuthzRuleHeaderMatch {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<AuthzPolicyAuthzRuleStringMatch>,
+}
+
+/// `AuthzPolicyAuthzRuleToRequestOperation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthzPolicyAuthzRuleToRequestOperation {
+    /// headerSet property.
+    pub header_set: Option<AuthzPolicyAuthzRuleToRequestOperationHeaderSet>,
+    /// hosts property.
+    pub hosts: Option<Vec<AuthzPolicyAuthzRuleStringMatch>>,
+    /// mcp property.
+    pub mcp: Option<AuthzPolicyAuthzRuleToRequestOperationMCP>,
+    /// methods property.
+    pub methods: Option<Vec<String>>,
+    /// paths property.
+    pub paths: Option<Vec<AuthzPolicyAuthzRuleStringMatch>>,
+}
+
+/// `AuthzPolicyAuthzRuleIpBlock` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthzPolicyAuthzRuleIpBlock {
+    /// length property.
+    pub length: Option<i64>,
+    /// prefix property.
+    pub prefix: Option<String>,
+}
+
+/// `AuthzPolicyCustomProviderCloudIap` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthzPolicyCustomProviderCloudIap {}
+
+/// `AuthzPolicyAuthzRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthzPolicyAuthzRule {
+    /// from property.
+    pub from: Option<AuthzPolicyAuthzRuleFrom>,
+    /// to property.
+    pub to: Option<AuthzPolicyAuthzRuleTo>,
+    /// when property.
+    pub when: Option<String>,
+}
+
+/// `AuthzPolicyAuthzRuleRequestResourceTagValueIdSet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthzPolicyAuthzRuleRequestResourceTagValueIdSet {
+    /// ids property.
+    pub ids: Option<Vec<String>>,
+}
+
+/// `GoogleIamV1AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `AuthzPolicyAuthzRuleRequestResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthzPolicyAuthzRuleRequestResource {
+    /// iamServiceAccount property.
+    pub iam_service_account: Option<AuthzPolicyAuthzRuleStringMatch>,
+    /// tagValueIdSet property.
+    pub tag_value_id_set: Option<AuthzPolicyAuthzRuleRequestResourceTagValueIdSet>,
+}
+
+/// `AuthzPolicyAuthzRulePrincipal` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthzPolicyAuthzRulePrincipal {
+    /// principal property.
+    pub principal: Option<AuthzPolicyAuthzRuleStringMatch>,
+    /// principalSelector property.
+    pub principal_selector: Option<String>,
+}
+
+/// `AuthzPolicyCustomProviderAuthzExtension` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthzPolicyCustomProviderAuthzExtension {
+    /// resources property.
+    pub resources: Option<Vec<String>>,
+}
+
+/// `AuthzPolicyAuthzRuleStringMatch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthzPolicyAuthzRuleStringMatch {
+    /// contains property.
+    pub contains: Option<String>,
+    /// exact property.
+    pub exact: Option<String>,
+    /// ignoreCase property.
+    pub ignore_case: Option<bool>,
+    /// prefix property.
+    pub prefix: Option<String>,
+    /// suffix property.
+    pub suffix: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,55 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Attributes;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListAttributeMetadataResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAttributeMetadataResponse {
+    /// attributeMetadata property.
+    pub attribute_metadata: Option<Vec<AttributeMetadata>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `AttributeMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AttributeMetadata {
+    /// deprecated property.
+    pub deprecated: Option<bool>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// groupDisplayName property.
+    pub group_display_name: Option<String>,
+    /// parent property.
+    pub parent: Option<String>,
+    /// repeatable property.
+    pub repeatable: Option<bool>,
+    /// valueMetadata property.
+    pub value_metadata: Option<Vec<AttributeValueMetadata>>,
+    /// valueType property.
+    pub value_type: Option<String>,
+}
+
+/// `AttributeValueMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AttributeValueMetadata {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// value property.
+    pub value: Option<serde_json::Value>,
+}
+
+/// `UriAttributeValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UriAttributeValue {
+    /// uri property.
+    pub uri: Option<String>,
+}
 
 /// `RepeatedEnumAttributeValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,50 +94,6 @@ pub struct Attribute {
     pub value_type: Option<String>,
     /// values property.
     pub values: Option<Vec<serde_json::Value>>,
-}
-
-/// `AttributeMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AttributeMetadata {
-    /// deprecated property.
-    pub deprecated: Option<bool>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// groupDisplayName property.
-    pub group_display_name: Option<String>,
-    /// parent property.
-    pub parent: Option<String>,
-    /// repeatable property.
-    pub repeatable: Option<bool>,
-    /// valueMetadata property.
-    pub value_metadata: Option<Vec<AttributeValueMetadata>>,
-    /// valueType property.
-    pub value_type: Option<String>,
-}
-
-/// `ListAttributeMetadataResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAttributeMetadataResponse {
-    /// attributeMetadata property.
-    pub attribute_metadata: Option<Vec<AttributeMetadata>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `AttributeValueMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AttributeValueMetadata {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// value property.
-    pub value: Option<serde_json::Value>,
-}
-
-/// `UriAttributeValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UriAttributeValue {
-    /// uri property.
-    pub uri: Option<String>,
 }
 
 // =============================================================================

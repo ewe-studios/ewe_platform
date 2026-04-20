@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,18 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `PkixPublicKeySet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PkixPublicKeySet {
-    /// pkixPublicKeys property.
-    pub pkix_public_keys: Option<Vec<PkixPublicKey>>,
-}
 
 /// `Check` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -57,11 +51,21 @@ pub struct Check {
     pub vulnerability_check: Option<VulnerabilityCheck>,
 }
 
-/// `SigstorePublicKey` type.
+/// `CheckResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SigstorePublicKey {
-    /// publicKeyPem property.
-    pub public_key_pem: Option<String>,
+pub struct CheckResult {
+    /// allowlistResult property.
+    pub allowlist_result: Option<AllowlistResult>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// evaluationResult property.
+    pub evaluation_result: Option<EvaluationResult>,
+    /// explanation property.
+    pub explanation: Option<String>,
+    /// index property.
+    pub index: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `AllowlistResult` type.
@@ -71,11 +75,233 @@ pub struct AllowlistResult {
     pub matched_pattern: Option<String>,
 }
 
+/// `GkePolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GkePolicy {
+    /// checkSets property.
+    pub check_sets: Option<Vec<CheckSet>>,
+    /// imageAllowlist property.
+    pub image_allowlist: Option<ImageAllowlist>,
+}
+
+/// `AttestationAuthenticator` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AttestationAuthenticator {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// pkixPublicKeySet property.
+    pub pkix_public_key_set: Option<PkixPublicKeySet>,
+}
+
 /// `CheckResults` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckResults {
     /// results property.
     pub results: Option<Vec<CheckResult>>,
+}
+
+/// `PkixPublicKeySet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PkixPublicKeySet {
+    /// pkixPublicKeys property.
+    pub pkix_public_keys: Option<Vec<PkixPublicKey>>,
+}
+
+/// `SigstoreAuthority` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SigstoreAuthority {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// publicKeySet property.
+    pub public_key_set: Option<SigstorePublicKeySet>,
+}
+
+/// `SlsaCheck` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SlsaCheck {
+    /// rules property.
+    pub rules: Option<Vec<VerificationRule>>,
+}
+
+/// `SigstorePublicKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SigstorePublicKey {
+    /// publicKeyPem property.
+    pub public_key_pem: Option<String>,
+}
+
+/// `EvaluationResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EvaluationResult {
+    /// verdict property.
+    pub verdict: Option<String>,
+}
+
+/// `TrustedDirectoryCheck` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TrustedDirectoryCheck {
+    /// trustedDirPatterns property.
+    pub trusted_dir_patterns: Option<Vec<String>>,
+}
+
+/// `ImageFreshnessCheck` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImageFreshnessCheck {
+    /// maxUploadAgeDays property.
+    pub max_upload_age_days: Option<i64>,
+}
+
+/// `SimpleSigningAttestationCheck` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SimpleSigningAttestationCheck {
+    /// attestationAuthenticators property.
+    pub attestation_authenticators: Option<Vec<AttestationAuthenticator>>,
+    /// containerAnalysisAttestationProjects property.
+    pub container_analysis_attestation_projects: Option<Vec<String>>,
+}
+
+/// `ListPlatformPoliciesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListPlatformPoliciesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// platformPolicies property.
+    pub platform_policies: Option<Vec<PlatformPolicy>>,
+}
+
+/// `EvaluateGkePolicyResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EvaluateGkePolicyResponse {
+    /// results property.
+    pub results: Option<Vec<PodResult>>,
+    /// verdict property.
+    pub verdict: Option<String>,
+}
+
+/// `VerificationRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VerificationRule {
+    /// attestationSource property.
+    pub attestation_source: Option<AttestationSource>,
+    /// configBasedBuildRequired property.
+    pub config_based_build_required: Option<bool>,
+    /// customConstraints property.
+    pub custom_constraints: Option<String>,
+    /// trustedBuilder property.
+    pub trusted_builder: Option<String>,
+    /// trustedSourceRepoPatterns property.
+    pub trusted_source_repo_patterns: Option<Vec<String>>,
+}
+
+/// `AttestationSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AttestationSource {
+    /// containerAnalysisAttestationProjects property.
+    pub container_analysis_attestation_projects: Option<Vec<String>>,
+}
+
+/// `VulnerabilityCheck` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VulnerabilityCheck {
+    /// allowedCves property.
+    pub allowed_cves: Option<Vec<String>>,
+    /// blockedCves property.
+    pub blocked_cves: Option<Vec<String>>,
+    /// containerAnalysisVulnerabilityProjects property.
+    pub container_analysis_vulnerability_projects: Option<Vec<String>>,
+    /// maximumFixableSeverity property.
+    pub maximum_fixable_severity: Option<String>,
+    /// maximumUnfixableSeverity property.
+    pub maximum_unfixable_severity: Option<String>,
+}
+
+/// `CheckSetResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CheckSetResult {
+    /// allowlistResult property.
+    pub allowlist_result: Option<AllowlistResult>,
+    /// checkResults property.
+    pub check_results: Option<CheckResults>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// explanation property.
+    pub explanation: Option<String>,
+    /// index property.
+    pub index: Option<String>,
+    /// scope property.
+    pub scope: Option<Scope>,
+}
+
+/// `CheckSet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CheckSet {
+    /// checks property.
+    pub checks: Option<Vec<Check>>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// imageAllowlist property.
+    pub image_allowlist: Option<ImageAllowlist>,
+    /// scope property.
+    pub scope: Option<Scope>,
+}
+
+/// `ImageResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImageResult {
+    /// allowlistResult property.
+    pub allowlist_result: Option<AllowlistResult>,
+    /// checkSetResult property.
+    pub check_set_result: Option<CheckSetResult>,
+    /// explanation property.
+    pub explanation: Option<String>,
+    /// imageUri property.
+    pub image_uri: Option<String>,
+    /// verdict property.
+    pub verdict: Option<String>,
+}
+
+/// `PlatformPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlatformPolicy {
+    /// description property.
+    pub description: Option<String>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// gkePolicy property.
+    pub gke_policy: Option<GkePolicy>,
+    /// name property.
+    pub name: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `ImageAllowlist` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImageAllowlist {
+    /// allowPattern property.
+    pub allow_pattern: Option<Vec<String>>,
+}
+
+/// `SigstoreSignatureCheck` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SigstoreSignatureCheck {
+    /// sigstoreAuthorities property.
+    pub sigstore_authorities: Option<Vec<SigstoreAuthority>>,
+}
+
+/// `PodResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PodResult {
+    /// imageResults property.
+    pub image_results: Option<Vec<ImageResult>>,
+    /// kubernetesNamespace property.
+    pub kubernetes_namespace: Option<String>,
+    /// kubernetesServiceAccount property.
+    pub kubernetes_service_account: Option<String>,
+    /// podName property.
+    pub pod_name: Option<String>,
+    /// verdict property.
+    pub verdict: Option<String>,
 }
 
 /// `PkixPublicKey` type.
@@ -98,236 +324,11 @@ pub struct Scope {
     pub kubernetes_service_account: Option<String>,
 }
 
-/// `ListPlatformPoliciesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListPlatformPoliciesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// platformPolicies property.
-    pub platform_policies: Option<Vec<PlatformPolicy>>,
-}
-
-/// `ImageResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImageResult {
-    /// allowlistResult property.
-    pub allowlist_result: Option<AllowlistResult>,
-    /// checkSetResult property.
-    pub check_set_result: Option<CheckSetResult>,
-    /// explanation property.
-    pub explanation: Option<String>,
-    /// imageUri property.
-    pub image_uri: Option<String>,
-    /// verdict property.
-    pub verdict: Option<String>,
-}
-
-/// `ImageAllowlist` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImageAllowlist {
-    /// allowPattern property.
-    pub allow_pattern: Option<Vec<String>>,
-}
-
-/// `AttestationSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AttestationSource {
-    /// containerAnalysisAttestationProjects property.
-    pub container_analysis_attestation_projects: Option<Vec<String>>,
-}
-
-/// `PlatformPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlatformPolicy {
-    /// description property.
-    pub description: Option<String>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// gkePolicy property.
-    pub gke_policy: Option<GkePolicy>,
-    /// name property.
-    pub name: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `TrustedDirectoryCheck` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TrustedDirectoryCheck {
-    /// trustedDirPatterns property.
-    pub trusted_dir_patterns: Option<Vec<String>>,
-}
-
-/// `SigstoreAuthority` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SigstoreAuthority {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// publicKeySet property.
-    pub public_key_set: Option<SigstorePublicKeySet>,
-}
-
-/// `CheckResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CheckResult {
-    /// allowlistResult property.
-    pub allowlist_result: Option<AllowlistResult>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// evaluationResult property.
-    pub evaluation_result: Option<EvaluationResult>,
-    /// explanation property.
-    pub explanation: Option<String>,
-    /// index property.
-    pub index: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
 /// `SigstorePublicKeySet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SigstorePublicKeySet {
     /// publicKeys property.
     pub public_keys: Option<Vec<SigstorePublicKey>>,
-}
-
-/// `EvaluationResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EvaluationResult {
-    /// verdict property.
-    pub verdict: Option<String>,
-}
-
-/// `ImageFreshnessCheck` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImageFreshnessCheck {
-    /// maxUploadAgeDays property.
-    pub max_upload_age_days: Option<i64>,
-}
-
-/// `PodResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PodResult {
-    /// imageResults property.
-    pub image_results: Option<Vec<ImageResult>>,
-    /// kubernetesNamespace property.
-    pub kubernetes_namespace: Option<String>,
-    /// kubernetesServiceAccount property.
-    pub kubernetes_service_account: Option<String>,
-    /// podName property.
-    pub pod_name: Option<String>,
-    /// verdict property.
-    pub verdict: Option<String>,
-}
-
-/// `SlsaCheck` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SlsaCheck {
-    /// rules property.
-    pub rules: Option<Vec<VerificationRule>>,
-}
-
-/// `SimpleSigningAttestationCheck` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SimpleSigningAttestationCheck {
-    /// attestationAuthenticators property.
-    pub attestation_authenticators: Option<Vec<AttestationAuthenticator>>,
-    /// containerAnalysisAttestationProjects property.
-    pub container_analysis_attestation_projects: Option<Vec<String>>,
-}
-
-/// `VerificationRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VerificationRule {
-    /// attestationSource property.
-    pub attestation_source: Option<AttestationSource>,
-    /// configBasedBuildRequired property.
-    pub config_based_build_required: Option<bool>,
-    /// customConstraints property.
-    pub custom_constraints: Option<String>,
-    /// trustedBuilder property.
-    pub trusted_builder: Option<String>,
-    /// trustedSourceRepoPatterns property.
-    pub trusted_source_repo_patterns: Option<Vec<String>>,
-}
-
-/// `VulnerabilityCheck` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VulnerabilityCheck {
-    /// allowedCves property.
-    pub allowed_cves: Option<Vec<String>>,
-    /// blockedCves property.
-    pub blocked_cves: Option<Vec<String>>,
-    /// containerAnalysisVulnerabilityProjects property.
-    pub container_analysis_vulnerability_projects: Option<Vec<String>>,
-    /// maximumFixableSeverity property.
-    pub maximum_fixable_severity: Option<String>,
-    /// maximumUnfixableSeverity property.
-    pub maximum_unfixable_severity: Option<String>,
-}
-
-/// `CheckSet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CheckSet {
-    /// checks property.
-    pub checks: Option<Vec<Check>>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// imageAllowlist property.
-    pub image_allowlist: Option<ImageAllowlist>,
-    /// scope property.
-    pub scope: Option<Scope>,
-}
-
-/// `CheckSetResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CheckSetResult {
-    /// allowlistResult property.
-    pub allowlist_result: Option<AllowlistResult>,
-    /// checkResults property.
-    pub check_results: Option<CheckResults>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// explanation property.
-    pub explanation: Option<String>,
-    /// index property.
-    pub index: Option<String>,
-    /// scope property.
-    pub scope: Option<Scope>,
-}
-
-/// `EvaluateGkePolicyResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EvaluateGkePolicyResponse {
-    /// results property.
-    pub results: Option<Vec<PodResult>>,
-    /// verdict property.
-    pub verdict: Option<String>,
-}
-
-/// `SigstoreSignatureCheck` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SigstoreSignatureCheck {
-    /// sigstoreAuthorities property.
-    pub sigstore_authorities: Option<Vec<SigstoreAuthority>>,
-}
-
-/// `AttestationAuthenticator` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AttestationAuthenticator {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// pkixPublicKeySet property.
-    pub pkix_public_key_set: Option<PkixPublicKeySet>,
-}
-
-/// `GkePolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GkePolicy {
-    /// checkSets property.
-    pub check_sets: Option<Vec<CheckSet>>,
-    /// imageAllowlist property.
-    pub image_allowlist: Option<ImageAllowlist>,
 }
 
 // =============================================================================

@@ -12,23 +12,49 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Timing` type.
+/// `ConfigSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Timing {
-    /// total property.
-    pub total: Option<f64>,
+pub struct ConfigSettings {
+    /// channel property.
+    pub channel: Option<String>,
+    /// emulatedFormFactor property.
+    pub emulated_form_factor: Option<String>,
+    /// formFactor property.
+    pub form_factor: Option<String>,
+    /// locale property.
+    pub locale: Option<String>,
+    /// onlyCategories property.
+    pub only_categories: Option<serde_json::Value>,
+}
+
+/// `LhrEntity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LhrEntity {
+    /// category property.
+    pub category: Option<String>,
+    /// homepage property.
+    pub homepage: Option<String>,
+    /// isFirstParty property.
+    pub is_first_party: Option<bool>,
+    /// isUnrecognized property.
+    pub is_unrecognized: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+    /// origins property.
+    pub origins: Option<Vec<String>>,
 }
 
 /// `StackPack` type.
@@ -42,6 +68,135 @@ pub struct StackPack {
     pub id: Option<String>,
     /// title property.
     pub title: Option<String>,
+}
+
+/// `PagespeedVersion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PagespeedVersion {
+    /// major property.
+    pub major: Option<String>,
+    /// minor property.
+    pub minor: Option<String>,
+}
+
+/// `PagespeedApiLoadingExperienceV5` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PagespeedApiLoadingExperienceV5 {
+    /// id property.
+    pub id: Option<String>,
+    /// initial_url property.
+    pub initial_url: Option<String>,
+    /// metrics property.
+    pub metrics: Option<serde_json::Value>,
+    /// origin_fallback property.
+    pub origin_fallback: Option<bool>,
+    /// overall_category property.
+    pub overall_category: Option<String>,
+}
+
+/// `AuditRefs` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditRefs {
+    /// acronym property.
+    pub acronym: Option<String>,
+    /// group property.
+    pub group: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// relevantAudits property.
+    pub relevant_audits: Option<Vec<String>>,
+    /// weight property.
+    pub weight: Option<f64>,
+}
+
+/// `Environment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Environment {
+    /// benchmarkIndex property.
+    pub benchmark_index: Option<f64>,
+    /// credits property.
+    pub credits: Option<serde_json::Value>,
+    /// hostUserAgent property.
+    pub host_user_agent: Option<String>,
+    /// networkUserAgent property.
+    pub network_user_agent: Option<String>,
+}
+
+/// `LighthouseCategoryV5` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LighthouseCategoryV5 {
+    /// auditRefs property.
+    pub audit_refs: Option<Vec<AuditRefs>>,
+    /// description property.
+    pub description: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// manualDescription property.
+    pub manual_description: Option<String>,
+    /// score property.
+    pub score: Option<serde_json::Value>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `Timing` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Timing {
+    /// total property.
+    pub total: Option<f64>,
+}
+
+/// `Categories` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Categories {
+    /// accessibility property.
+    pub accessibility: Option<LighthouseCategoryV5>,
+    /// best-practices property.
+    pub best_practices: Option<LighthouseCategoryV5>,
+    /// performance property.
+    pub performance: Option<LighthouseCategoryV5>,
+    /// pwa property.
+    pub pwa: Option<LighthouseCategoryV5>,
+    /// seo property.
+    pub seo: Option<LighthouseCategoryV5>,
+}
+
+/// `I18N` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct I18N {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `PagespeedApiPagespeedResponseV5` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PagespeedApiPagespeedResponseV5 {
+    /// analysisUTCTimestamp property.
+    pub analysis_utc_timestamp: Option<String>,
+    /// captchaResult property.
+    pub captcha_result: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// lighthouseResult property.
+    pub lighthouse_result: Option<LighthouseResultV5>,
+    /// loadingExperience property.
+    pub loading_experience: Option<PagespeedApiLoadingExperienceV5>,
+    /// originLoadingExperience property.
+    pub origin_loading_experience: Option<PagespeedApiLoadingExperienceV5>,
+    /// version property.
+    pub version: Option<PagespeedVersion>,
+}
+
+/// `RuntimeError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RuntimeError {
+    /// code property.
+    pub code: Option<String>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `RendererFormattedStrings` type.
@@ -145,76 +300,6 @@ pub struct RendererFormattedStrings {
     pub warning_header: Option<String>,
 }
 
-/// `Categories` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Categories {
-    /// accessibility property.
-    pub accessibility: Option<LighthouseCategoryV5>,
-    /// best-practices property.
-    pub best_practices: Option<LighthouseCategoryV5>,
-    /// performance property.
-    pub performance: Option<LighthouseCategoryV5>,
-    /// pwa property.
-    pub pwa: Option<LighthouseCategoryV5>,
-    /// seo property.
-    pub seo: Option<LighthouseCategoryV5>,
-}
-
-/// `ConfigSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigSettings {
-    /// channel property.
-    pub channel: Option<String>,
-    /// emulatedFormFactor property.
-    pub emulated_form_factor: Option<String>,
-    /// formFactor property.
-    pub form_factor: Option<String>,
-    /// locale property.
-    pub locale: Option<String>,
-    /// onlyCategories property.
-    pub only_categories: Option<serde_json::Value>,
-}
-
-/// `LighthouseCategoryV5` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LighthouseCategoryV5 {
-    /// auditRefs property.
-    pub audit_refs: Option<Vec<AuditRefs>>,
-    /// description property.
-    pub description: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// manualDescription property.
-    pub manual_description: Option<String>,
-    /// score property.
-    pub score: Option<serde_json::Value>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `PagespeedApiLoadingExperienceV5` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PagespeedApiLoadingExperienceV5 {
-    /// id property.
-    pub id: Option<String>,
-    /// initial_url property.
-    pub initial_url: Option<String>,
-    /// metrics property.
-    pub metrics: Option<serde_json::Value>,
-    /// origin_fallback property.
-    pub origin_fallback: Option<bool>,
-    /// overall_category property.
-    pub overall_category: Option<String>,
-}
-
-/// `I18N` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct I18N {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `LighthouseResultV5` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LighthouseResultV5 {
@@ -256,90 +341,6 @@ pub struct LighthouseResultV5 {
     pub timing: Option<Timing>,
     /// userAgent property.
     pub user_agent: Option<String>,
-}
-
-/// `AuditRefs` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditRefs {
-    /// acronym property.
-    pub acronym: Option<String>,
-    /// group property.
-    pub group: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// relevantAudits property.
-    pub relevant_audits: Option<Vec<String>>,
-    /// weight property.
-    pub weight: Option<f64>,
-}
-
-/// `Environment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Environment {
-    /// benchmarkIndex property.
-    pub benchmark_index: Option<f64>,
-    /// credits property.
-    pub credits: Option<serde_json::Value>,
-    /// hostUserAgent property.
-    pub host_user_agent: Option<String>,
-    /// networkUserAgent property.
-    pub network_user_agent: Option<String>,
-}
-
-/// `PagespeedApiPagespeedResponseV5` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PagespeedApiPagespeedResponseV5 {
-    /// analysisUTCTimestamp property.
-    pub analysis_utc_timestamp: Option<String>,
-    /// captchaResult property.
-    pub captcha_result: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// lighthouseResult property.
-    pub lighthouse_result: Option<LighthouseResultV5>,
-    /// loadingExperience property.
-    pub loading_experience: Option<PagespeedApiLoadingExperienceV5>,
-    /// originLoadingExperience property.
-    pub origin_loading_experience: Option<PagespeedApiLoadingExperienceV5>,
-    /// version property.
-    pub version: Option<PagespeedVersion>,
-}
-
-/// `PagespeedVersion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PagespeedVersion {
-    /// major property.
-    pub major: Option<String>,
-    /// minor property.
-    pub minor: Option<String>,
-}
-
-/// `LhrEntity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LhrEntity {
-    /// category property.
-    pub category: Option<String>,
-    /// homepage property.
-    pub homepage: Option<String>,
-    /// isFirstParty property.
-    pub is_first_party: Option<bool>,
-    /// isUnrecognized property.
-    pub is_unrecognized: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-    /// origins property.
-    pub origins: Option<Vec<String>>,
-}
-
-/// `RuntimeError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RuntimeError {
-    /// code property.
-    pub code: Option<String>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 // =============================================================================

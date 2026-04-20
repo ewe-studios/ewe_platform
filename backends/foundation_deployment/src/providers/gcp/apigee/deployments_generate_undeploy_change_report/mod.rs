@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,24 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleCloudApigeeV1DeploymentChangeReport;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudApigeeV1DeploymentChangeReportRoutingDeployment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1DeploymentChangeReportRoutingDeployment {
-    /// apiProxy property.
-    pub api_proxy: Option<String>,
-    /// basepath property.
-    pub basepath: Option<String>,
-    /// environment property.
-    pub environment: Option<String>,
-    /// revision property.
-    pub revision: Option<String>,
-}
 
 /// `GoogleCloudApigeeV1DeploymentChangeReportRoutingConflict` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,21 +37,6 @@ pub struct GoogleCloudApigeeV1DeploymentChangeReportRoutingConflict {
     pub description: Option<String>,
     /// environmentGroup property.
     pub environment_group: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1DeploymentChangeReportRoutingChange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1DeploymentChangeReportRoutingChange {
-    /// description property.
-    pub description: Option<String>,
-    /// environmentGroup property.
-    pub environment_group: Option<String>,
-    /// fromDeployment property.
-    pub from_deployment: Option<GoogleCloudApigeeV1DeploymentChangeReportRoutingDeployment>,
-    /// shouldSequenceRollout property.
-    pub should_sequence_rollout: Option<bool>,
-    /// toDeployment property.
-    pub to_deployment: Option<GoogleCloudApigeeV1DeploymentChangeReportRoutingDeployment>,
 }
 
 /// `GoogleRpcPreconditionFailure` type.
@@ -82,6 +55,34 @@ pub struct GoogleRpcPreconditionFailureViolation {
     pub subject: Option<String>,
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1DeploymentChangeReportRoutingChange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1DeploymentChangeReportRoutingChange {
+    /// description property.
+    pub description: Option<String>,
+    /// environmentGroup property.
+    pub environment_group: Option<String>,
+    /// fromDeployment property.
+    pub from_deployment: Option<GoogleCloudApigeeV1DeploymentChangeReportRoutingDeployment>,
+    /// shouldSequenceRollout property.
+    pub should_sequence_rollout: Option<bool>,
+    /// toDeployment property.
+    pub to_deployment: Option<GoogleCloudApigeeV1DeploymentChangeReportRoutingDeployment>,
+}
+
+/// `GoogleCloudApigeeV1DeploymentChangeReportRoutingDeployment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1DeploymentChangeReportRoutingDeployment {
+    /// apiProxy property.
+    pub api_proxy: Option<String>,
+    /// basepath property.
+    pub basepath: Option<String>,
+    /// environment property.
+    pub environment: Option<String>,
+    /// revision property.
+    pub revision: Option<String>,
 }
 
 // =============================================================================

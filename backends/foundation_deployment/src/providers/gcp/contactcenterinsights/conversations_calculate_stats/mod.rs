@@ -12,17 +12,37 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeries` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeries {
+    /// intervalDuration property.
+    pub interval_duration: Option<String>,
+    /// points property.
+    pub points:
+        Option<Vec<GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeriesInterval>>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeriesInterval` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeriesInterval {
+    /// conversationCount property.
+    pub conversation_count: Option<i64>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
 
 /// `GoogleCloudContactcenterinsightsV1CalculateStatsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,25 +64,6 @@ pub struct GoogleCloudContactcenterinsightsV1CalculateStatsResponse {
     pub issue_matches_stats: Option<serde_json::Value>,
     /// smartHighlighterMatches property.
     pub smart_highlighter_matches: Option<serde_json::Value>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeries` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeries {
-    /// intervalDuration property.
-    pub interval_duration: Option<String>,
-    /// points property.
-    pub points:
-        Option<Vec<GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeriesInterval>>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeriesInterval` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeriesInterval {
-    /// conversationCount property.
-    pub conversation_count: Option<i64>,
-    /// startTime property.
-    pub start_time: Option<String>,
 }
 
 // =============================================================================

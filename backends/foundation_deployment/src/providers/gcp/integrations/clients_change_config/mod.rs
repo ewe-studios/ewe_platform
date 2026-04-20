@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -31,17 +32,17 @@ pub struct GoogleCloudIntegrationsV1alphaChangeCustomerConfigResponse {
     pub customer_config: Option<GoogleCloudIntegrationsV1AlphaCustomerConfig>,
 }
 
-/// `GoogleCloudIntegrationsV1AlphaCustomerConfig` response type.
+/// `GoogleCloudIntegrationsV1AlphaCloudKmsConfig` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaCustomerConfig {
+pub struct GoogleCloudIntegrationsV1AlphaCloudKmsConfig {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleCloudIntegrationsV1AlphaCloudKmsConfig` response type.
+/// `GoogleCloudIntegrationsV1AlphaCustomerConfig` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaCloudKmsConfig {
+pub struct GoogleCloudIntegrationsV1AlphaCustomerConfig {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,22 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `IpRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IpRange {
+    /// externalAddress property.
+    pub external_address: Option<String>,
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// ipAddressRange property.
+    pub ip_address_range: Option<String>,
+}
 
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -67,17 +79,6 @@ pub struct ExternalAccessRule {
     pub uid: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `IpRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IpRange {
-    /// externalAddress property.
-    pub external_address: Option<String>,
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// ipAddressRange property.
-    pub ip_address_range: Option<String>,
 }
 
 /// `ListExternalAccessRulesResponse` type.

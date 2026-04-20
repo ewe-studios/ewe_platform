@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -30,41 +31,9 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Discount` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Discount {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DeletedCustomer` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeletedCustomer {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `PaymentSource` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentSource {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CustomerCashBalanceTransaction` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerCashBalanceTransaction {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `Customer` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Customer {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -78,9 +47,9 @@ pub struct CustomerSession {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `BankAccount` response type.
+/// `Discount` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BankAccount {
+pub struct Discount {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -94,9 +63,41 @@ pub struct CashBalance {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
+/// `Customer` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Customer {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `BankAccount` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BankAccount {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DeletedCustomer` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeletedCustomer {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `CustomerBalanceTransaction` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerBalanceTransaction {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CustomerCashBalanceTransaction` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomerCashBalanceTransaction {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

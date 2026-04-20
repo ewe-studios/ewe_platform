@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,49 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `EvaluationMetricsThresholds` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EvaluationMetricsThresholds {
+    /// goldenEvaluationMetricsThresholds property.
+    pub golden_evaluation_metrics_thresholds:
+        Option<EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholds>,
+    /// goldenHallucinationMetricBehavior property.
+    pub golden_hallucination_metric_behavior: Option<String>,
+    /// hallucinationMetricBehavior property.
+    pub hallucination_metric_behavior: Option<String>,
+    /// scenarioHallucinationMetricBehavior property.
+    pub scenario_hallucination_metric_behavior: Option<String>,
+}
+
+/// `RetrieveToolSchemaResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RetrieveToolSchemaResponse {
+    /// inputSchema property.
+    pub input_schema: Option<Box<Schema>>,
+    /// outputSchema property.
+    pub output_schema: Option<Box<Schema>>,
+    /// tool property.
+    pub tool: Option<String>,
+    /// toolsetTool property.
+    pub toolset_tool: Option<ToolsetTool>,
+}
+
+/// `ListAppsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAppsResponse {
+    /// apps property.
+    pub apps: Option<Vec<App>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
 
 /// `DataStoreSettingsEngine` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -36,33 +75,107 @@ pub struct DataStoreSettingsEngine {
     pub r#type: Option<String>,
 }
 
-/// `BigQueryExportSettings` type.
+/// `ExecuteToolResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BigQueryExportSettings {
-    /// dataset property.
-    pub dataset: Option<String>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// project property.
-    pub project: Option<String>,
+pub struct ExecuteToolResponse {
+    /// response property.
+    pub response: Option<serde_json::Value>,
+    /// tool property.
+    pub tool: Option<String>,
+    /// toolsetTool property.
+    pub toolset_tool: Option<ToolsetTool>,
+    /// variables property.
+    pub variables: Option<serde_json::Value>,
 }
 
-/// `EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholds` type.
+/// `ChannelProfilePersonaProperty` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholds {
-    /// expectationLevelMetricsThresholds property.
-    pub expectation_level_metrics_thresholds: Option<EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsExpectationLevelMetricsThresholds>,
-    /// toolMatchingSettings property.
-    pub tool_matching_settings: Option<EvaluationMetricsThresholdsToolMatchingSettings>,
-    /// turnLevelMetricsThresholds property.
-    pub turn_level_metrics_thresholds: Option<EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsTurnLevelMetricsThresholds>,
+pub struct ChannelProfilePersonaProperty {
+    /// persona property.
+    pub persona: Option<String>,
 }
 
-/// `TimeZoneSettings` type.
+/// `AmbientSoundConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeZoneSettings {
-    /// timeZone property.
-    pub time_zone: Option<String>,
+pub struct AmbientSoundConfig {
+    /// gcsUri property.
+    pub gcs_uri: Option<String>,
+    /// prebuiltAmbientNoise property.
+    pub prebuilt_ambient_noise: Option<String>,
+    /// prebuiltAmbientSound property.
+    pub prebuilt_ambient_sound: Option<String>,
+    /// volumeGainDb property.
+    pub volume_gain_db: Option<f64>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ToolsetTool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ToolsetTool {
+    /// toolId property.
+    pub tool_id: Option<String>,
+    /// toolset property.
+    pub toolset: Option<String>,
+}
+
+/// `CloudLoggingSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudLoggingSettings {
+    /// enableCloudLogging property.
+    pub enable_cloud_logging: Option<bool>,
+}
+
+/// `Schema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Schema {
+    /// additionalProperties property.
+    pub additional_properties: Option<Box<Schema>>,
+    /// anyOf property.
+    pub any_of: Option<Vec<Box<Schema>>>,
+    /// default property.
+    pub default: Option<serde_json::Value>,
+    /// defs property.
+    pub defs: Option<serde_json::Value>,
+    /// description property.
+    pub description: Option<String>,
+    /// enum property.
+    pub r#enum: Option<Vec<String>>,
+    /// items property.
+    pub items: Option<Box<Schema>>,
+    /// maxItems property.
+    pub max_items: Option<String>,
+    /// maximum property.
+    pub maximum: Option<f64>,
+    /// minItems property.
+    pub min_items: Option<String>,
+    /// minimum property.
+    pub minimum: Option<f64>,
+    /// nullable property.
+    pub nullable: Option<bool>,
+    /// prefixItems property.
+    pub prefix_items: Option<Vec<Box<Schema>>>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
+    /// ref property.
+    pub r#ref: Option<String>,
+    /// required property.
+    pub required: Option<Vec<String>>,
+    /// title property.
+    pub title: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// uniqueItems property.
+    pub unique_items: Option<bool>,
 }
 
 /// `App` type.
@@ -122,37 +235,6 @@ pub struct App {
     pub variable_declarations: Option<Vec<AppVariableDeclaration>>,
 }
 
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `ErrorHandlingSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorHandlingSettings {
-    /// errorHandlingStrategy property.
-    pub error_handling_strategy: Option<String>,
-}
-
-/// `ExecuteToolResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExecuteToolResponse {
-    /// response property.
-    pub response: Option<serde_json::Value>,
-    /// tool property.
-    pub tool: Option<String>,
-    /// toolsetTool property.
-    pub toolset_tool: Option<ToolsetTool>,
-    /// variables property.
-    pub variables: Option<serde_json::Value>,
-}
-
 /// `AudioRecordingConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AudioRecordingConfig {
@@ -160,67 +242,6 @@ pub struct AudioRecordingConfig {
     pub gcs_bucket: Option<String>,
     /// gcsPathPrefix property.
     pub gcs_path_prefix: Option<String>,
-}
-
-/// `ChannelProfilePersonaProperty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelProfilePersonaProperty {
-    /// persona property.
-    pub persona: Option<String>,
-}
-
-/// `ClientCertificateSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClientCertificateSettings {
-    /// passphrase property.
-    pub passphrase: Option<String>,
-    /// privateKey property.
-    pub private_key: Option<String>,
-    /// tlsCertificate property.
-    pub tls_certificate: Option<String>,
-}
-
-/// `CloudLoggingSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudLoggingSettings {
-    /// enableCloudLogging property.
-    pub enable_cloud_logging: Option<bool>,
-}
-
-/// `EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsExpectationLevelMetricsThresholds` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsExpectationLevelMetricsThresholds
-{
-    /// toolInvocationParameterCorrectnessThreshold property.
-    pub tool_invocation_parameter_correctness_threshold: Option<f64>,
-}
-
-/// `BargeInConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BargeInConfig {
-    /// bargeInAwareness property.
-    pub barge_in_awareness: Option<bool>,
-    /// disableBargeIn property.
-    pub disable_barge_in: Option<bool>,
-}
-
-/// `ChannelProfile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelProfile {
-    /// channelType property.
-    pub channel_type: Option<String>,
-    /// disableBargeInControl property.
-    pub disable_barge_in_control: Option<bool>,
-    /// disableDtmf property.
-    pub disable_dtmf: Option<bool>,
-    /// noiseSuppressionLevel property.
-    pub noise_suppression_level: Option<String>,
-    /// personaProperty property.
-    pub persona_property: Option<ChannelProfilePersonaProperty>,
-    /// profileId property.
-    pub profile_id: Option<String>,
-    /// webWidgetConfig property.
-    pub web_widget_config: Option<ChannelProfileWebWidgetConfig>,
 }
 
 /// `EvaluationMetricsThresholdsToolMatchingSettings` type.
@@ -249,6 +270,43 @@ pub struct LoggingSettings {
     pub redaction_config: Option<RedactionConfig>,
 }
 
+/// `ChannelProfile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChannelProfile {
+    /// channelType property.
+    pub channel_type: Option<String>,
+    /// disableBargeInControl property.
+    pub disable_barge_in_control: Option<bool>,
+    /// disableDtmf property.
+    pub disable_dtmf: Option<bool>,
+    /// noiseSuppressionLevel property.
+    pub noise_suppression_level: Option<String>,
+    /// personaProperty property.
+    pub persona_property: Option<ChannelProfilePersonaProperty>,
+    /// profileId property.
+    pub profile_id: Option<String>,
+    /// webWidgetConfig property.
+    pub web_widget_config: Option<ChannelProfileWebWidgetConfig>,
+}
+
+/// `MetricAnalysisSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetricAnalysisSettings {
+    /// llmMetricsOptedOut property.
+    pub llm_metrics_opted_out: Option<bool>,
+}
+
+/// `EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholds` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholds {
+    /// expectationLevelMetricsThresholds property.
+    pub expectation_level_metrics_thresholds: Option<EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsExpectationLevelMetricsThresholds>,
+    /// toolMatchingSettings property.
+    pub tool_matching_settings: Option<EvaluationMetricsThresholdsToolMatchingSettings>,
+    /// turnLevelMetricsThresholds property.
+    pub turn_level_metrics_thresholds: Option<EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsTurnLevelMetricsThresholds>,
+}
+
 /// `ChannelProfileWebWidgetConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelProfileWebWidgetConfig {
@@ -260,59 +318,6 @@ pub struct ChannelProfileWebWidgetConfig {
     pub theme: Option<String>,
     /// webWidgetTitle property.
     pub web_widget_title: Option<String>,
-}
-
-/// `AppVariableDeclaration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppVariableDeclaration {
-    /// description property.
-    pub description: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// schema property.
-    pub schema: Option<Schema>,
-}
-
-/// `ToolsetTool` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ToolsetTool {
-    /// toolId property.
-    pub tool_id: Option<String>,
-    /// toolset property.
-    pub toolset: Option<String>,
-}
-
-/// `MetricAnalysisSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetricAnalysisSettings {
-    /// llmMetricsOptedOut property.
-    pub llm_metrics_opted_out: Option<bool>,
-}
-
-/// `LanguageSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LanguageSettings {
-    /// defaultLanguageCode property.
-    pub default_language_code: Option<String>,
-    /// enableMultilingualSupport property.
-    pub enable_multilingual_support: Option<bool>,
-    /// fallbackAction property.
-    pub fallback_action: Option<String>,
-    /// supportedLanguageCodes property.
-    pub supported_language_codes: Option<Vec<String>>,
-}
-
-/// `RetrieveToolSchemaResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RetrieveToolSchemaResponse {
-    /// inputSchema property.
-    pub input_schema: Option<Schema>,
-    /// outputSchema property.
-    pub output_schema: Option<Schema>,
-    /// tool property.
-    pub tool: Option<String>,
-    /// toolsetTool property.
-    pub toolset_tool: Option<ToolsetTool>,
 }
 
 /// `AudioProcessingConfig` type.
@@ -328,29 +333,37 @@ pub struct AudioProcessingConfig {
     pub synthesize_speech_configs: Option<serde_json::Value>,
 }
 
-/// `ListAppsResponse` type.
+/// `AppVariableDeclaration` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAppsResponse {
-    /// apps property.
-    pub apps: Option<Vec<App>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct AppVariableDeclaration {
+    /// description property.
+    pub description: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// schema property.
+    pub schema: Option<Box<Schema>>,
 }
 
-/// `EvaluationMetricsThresholds` type.
+/// `DataStoreSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EvaluationMetricsThresholds {
-    /// goldenEvaluationMetricsThresholds property.
-    pub golden_evaluation_metrics_thresholds:
-        Option<EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholds>,
-    /// goldenHallucinationMetricBehavior property.
-    pub golden_hallucination_metric_behavior: Option<String>,
-    /// hallucinationMetricBehavior property.
-    pub hallucination_metric_behavior: Option<String>,
-    /// scenarioHallucinationMetricBehavior property.
-    pub scenario_hallucination_metric_behavior: Option<String>,
+pub struct DataStoreSettings {
+    /// engines property.
+    pub engines: Option<Vec<DataStoreSettingsEngine>>,
+}
+
+/// `EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsExpectationLevelMetricsThresholds` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsExpectationLevelMetricsThresholds
+{
+    /// toolInvocationParameterCorrectnessThreshold property.
+    pub tool_invocation_parameter_correctness_threshold: Option<f64>,
+}
+
+/// `ErrorHandlingSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorHandlingSettings {
+    /// errorHandlingStrategy property.
+    pub error_handling_strategy: Option<String>,
 }
 
 /// `RedactionConfig` type.
@@ -362,6 +375,75 @@ pub struct RedactionConfig {
     pub enable_redaction: Option<bool>,
     /// inspectTemplate property.
     pub inspect_template: Option<String>,
+}
+
+/// `ModelSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ModelSettings {
+    /// model property.
+    pub model: Option<String>,
+    /// temperature property.
+    pub temperature: Option<f64>,
+}
+
+/// `LanguageSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LanguageSettings {
+    /// defaultLanguageCode property.
+    pub default_language_code: Option<String>,
+    /// enableMultilingualSupport property.
+    pub enable_multilingual_support: Option<bool>,
+    /// fallbackAction property.
+    pub fallback_action: Option<String>,
+    /// supportedLanguageCodes property.
+    pub supported_language_codes: Option<Vec<String>>,
+}
+
+/// `ClientCertificateSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClientCertificateSettings {
+    /// passphrase property.
+    pub passphrase: Option<String>,
+    /// privateKey property.
+    pub private_key: Option<String>,
+    /// tlsCertificate property.
+    pub tls_certificate: Option<String>,
+}
+
+/// `EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsTurnLevelMetricsThresholds` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsTurnLevelMetricsThresholds {
+    /// overallToolInvocationCorrectnessThreshold property.
+    pub overall_tool_invocation_correctness_threshold: Option<f64>,
+    /// semanticSimilarityChannel property.
+    pub semantic_similarity_channel: Option<String>,
+    /// semanticSimilaritySuccessThreshold property.
+    pub semantic_similarity_success_threshold: Option<i64>,
+}
+
+/// `TimeZoneSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeZoneSettings {
+    /// timeZone property.
+    pub time_zone: Option<String>,
+}
+
+/// `BigQueryExportSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BigQueryExportSettings {
+    /// dataset property.
+    pub dataset: Option<String>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// project property.
+    pub project: Option<String>,
+}
+
+/// `ConversationLoggingSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConversationLoggingSettings {
+    /// disableConversationLogging property.
+    pub disable_conversation_logging: Option<bool>,
 }
 
 /// `ChannelProfileWebWidgetConfigSecuritySettings` type.
@@ -377,94 +459,13 @@ pub struct ChannelProfileWebWidgetConfigSecuritySettings {
     pub enable_recaptcha: Option<bool>,
 }
 
-/// `ModelSettings` type.
+/// `BargeInConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ModelSettings {
-    /// model property.
-    pub model: Option<String>,
-    /// temperature property.
-    pub temperature: Option<f64>,
-}
-
-/// `AmbientSoundConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AmbientSoundConfig {
-    /// gcsUri property.
-    pub gcs_uri: Option<String>,
-    /// prebuiltAmbientNoise property.
-    pub prebuilt_ambient_noise: Option<String>,
-    /// prebuiltAmbientSound property.
-    pub prebuilt_ambient_sound: Option<String>,
-    /// volumeGainDb property.
-    pub volume_gain_db: Option<f64>,
-}
-
-/// `DataStoreSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataStoreSettings {
-    /// engines property.
-    pub engines: Option<Vec<DataStoreSettingsEngine>>,
-}
-
-/// `EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsTurnLevelMetricsThresholds` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsTurnLevelMetricsThresholds {
-    /// overallToolInvocationCorrectnessThreshold property.
-    pub overall_tool_invocation_correctness_threshold: Option<f64>,
-    /// semanticSimilarityChannel property.
-    pub semantic_similarity_channel: Option<String>,
-    /// semanticSimilaritySuccessThreshold property.
-    pub semantic_similarity_success_threshold: Option<i64>,
-}
-
-/// `ConversationLoggingSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConversationLoggingSettings {
-    /// disableConversationLogging property.
-    pub disable_conversation_logging: Option<bool>,
-}
-
-/// `Schema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Schema {
-    /// additionalProperties property.
-    pub additional_properties: Option<Schema>,
-    /// anyOf property.
-    pub any_of: Option<Vec<Schema>>,
-    /// default property.
-    pub default: Option<serde_json::Value>,
-    /// defs property.
-    pub defs: Option<serde_json::Value>,
-    /// description property.
-    pub description: Option<String>,
-    /// enum property.
-    pub r#enum: Option<Vec<String>>,
-    /// items property.
-    pub items: Option<Schema>,
-    /// maxItems property.
-    pub max_items: Option<String>,
-    /// maximum property.
-    pub maximum: Option<f64>,
-    /// minItems property.
-    pub min_items: Option<String>,
-    /// minimum property.
-    pub minimum: Option<f64>,
-    /// nullable property.
-    pub nullable: Option<bool>,
-    /// prefixItems property.
-    pub prefix_items: Option<Vec<Schema>>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
-    /// ref property.
-    pub r#ref: Option<String>,
-    /// required property.
-    pub required: Option<Vec<String>>,
-    /// title property.
-    pub title: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// uniqueItems property.
-    pub unique_items: Option<bool>,
+pub struct BargeInConfig {
+    /// bargeInAwareness property.
+    pub barge_in_awareness: Option<bool>,
+    /// disableBargeIn property.
+    pub disable_barge_in: Option<bool>,
 }
 
 // =============================================================================

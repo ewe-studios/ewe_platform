@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,31 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Config` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Config {
+    /// rrdatas property.
+    pub rrdatas: Option<Vec<String>>,
+    /// ttl property.
+    pub ttl: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
 
 /// `AutomatedDnsRecord` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -68,15 +89,6 @@ pub struct AutomatedDnsRecord {
     pub update_time: Option<String>,
 }
 
-/// `Config` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Config {
-    /// rrdatas property.
-    pub rrdatas: Option<Vec<String>>,
-    /// ttl property.
-    pub ttl: Option<String>,
-}
-
 /// `ListAutomatedDnsRecordsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAutomatedDnsRecordsResponse {
@@ -86,17 +98,6 @@ pub struct ListAutomatedDnsRecordsResponse {
     pub next_page_token: Option<String>,
     /// unreachable property.
     pub unreachable: Option<Vec<String>>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 // =============================================================================

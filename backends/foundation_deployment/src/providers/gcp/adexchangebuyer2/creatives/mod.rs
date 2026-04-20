@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,19 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `TimeInterval` type.
+/// `ListCreativeStatusBreakdownByCreativeResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeInterval {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
+pub struct ListCreativeStatusBreakdownByCreativeResponse {
+    /// filteredBidCreativeRows property.
+    pub filtered_bid_creative_rows: Option<Vec<FilteredBidCreativeRow>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `RowDimensions` type.
@@ -45,6 +46,33 @@ pub struct RowDimensions {
     pub time_interval: Option<TimeInterval>,
 }
 
+/// `TimeInterval` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeInterval {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `AuctionContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuctionContext {
+    /// auctionTypes property.
+    pub auction_types: Option<Vec<String>>,
+}
+
+/// `HtmlContent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HtmlContent {
+    /// height property.
+    pub height: Option<i64>,
+    /// snippet property.
+    pub snippet: Option<String>,
+    /// width property.
+    pub width: Option<i64>,
+}
+
 /// `MetricValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricValue {
@@ -52,6 +80,74 @@ pub struct MetricValue {
     pub value: Option<String>,
     /// variance property.
     pub variance: Option<String>,
+}
+
+/// `Disapproval` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Disapproval {
+    /// details property.
+    pub details: Option<Vec<String>>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `VideoContent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoContent {
+    /// videoUrl property.
+    pub video_url: Option<String>,
+    /// videoVastXml property.
+    pub video_vast_xml: Option<String>,
+}
+
+/// `Correction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Correction {
+    /// contexts property.
+    pub contexts: Option<Vec<ServingContext>>,
+    /// details property.
+    pub details: Option<Vec<String>>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ListCreativesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListCreativesResponse {
+    /// creatives property.
+    pub creatives: Option<Vec<Creative>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `AppContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppContext {
+    /// appTypes property.
+    pub app_types: Option<Vec<String>>,
+}
+
+/// `AdTechnologyProviders` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdTechnologyProviders {
+    /// detectedProviderIds property.
+    pub detected_provider_ids: Option<Vec<String>>,
+    /// hasUnidentifiedProvider property.
+    pub has_unidentified_provider: Option<bool>,
+}
+
+/// `LocationContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocationContext {
+    /// geoCriteriaIds property.
+    pub geo_criteria_ids: Option<Vec<i64>>,
+}
+
+/// `PlatformContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlatformContext {
+    /// platforms property.
+    pub platforms: Option<Vec<String>>,
 }
 
 /// `ServingRestriction` type.
@@ -67,25 +163,26 @@ pub struct ServingRestriction {
     pub status: Option<String>,
 }
 
-/// `AppContext` type.
+/// `Image` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppContext {
-    /// appTypes property.
-    pub app_types: Option<Vec<String>>,
+pub struct Image {
+    /// height property.
+    pub height: Option<i64>,
+    /// url property.
+    pub url: Option<String>,
+    /// width property.
+    pub width: Option<i64>,
 }
 
-/// `LocationContext` type.
+/// `FilteredBidCreativeRow` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocationContext {
-    /// geoCriteriaIds property.
-    pub geo_criteria_ids: Option<Vec<i64>>,
-}
-
-/// `SecurityContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityContext {
-    /// securities property.
-    pub securities: Option<Vec<String>>,
+pub struct FilteredBidCreativeRow {
+    /// bidCount property.
+    pub bid_count: Option<MetricValue>,
+    /// creativeId property.
+    pub creative_id: Option<String>,
+    /// rowDimensions property.
+    pub row_dimensions: Option<RowDimensions>,
 }
 
 /// `NativeContent` type.
@@ -119,78 +216,21 @@ pub struct NativeContent {
     pub video_url: Option<String>,
 }
 
-/// `ListCreativesResponse` type.
+/// `ServingContext` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCreativesResponse {
-    /// creatives property.
-    pub creatives: Option<Vec<Creative>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `FilteredBidCreativeRow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FilteredBidCreativeRow {
-    /// bidCount property.
-    pub bid_count: Option<MetricValue>,
-    /// creativeId property.
-    pub creative_id: Option<String>,
-    /// rowDimensions property.
-    pub row_dimensions: Option<RowDimensions>,
-}
-
-/// `Image` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Image {
-    /// height property.
-    pub height: Option<i64>,
-    /// url property.
-    pub url: Option<String>,
-    /// width property.
-    pub width: Option<i64>,
-}
-
-/// `AdTechnologyProviders` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdTechnologyProviders {
-    /// detectedProviderIds property.
-    pub detected_provider_ids: Option<Vec<String>>,
-    /// hasUnidentifiedProvider property.
-    pub has_unidentified_provider: Option<bool>,
-}
-
-/// `HtmlContent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HtmlContent {
-    /// height property.
-    pub height: Option<i64>,
-    /// snippet property.
-    pub snippet: Option<String>,
-    /// width property.
-    pub width: Option<i64>,
-}
-
-/// `Disapproval` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Disapproval {
-    /// details property.
-    pub details: Option<Vec<String>>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `PlatformContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlatformContext {
-    /// platforms property.
-    pub platforms: Option<Vec<String>>,
-}
-
-/// `AuctionContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuctionContext {
-    /// auctionTypes property.
-    pub auction_types: Option<Vec<String>>,
+pub struct ServingContext {
+    /// all property.
+    pub all: Option<String>,
+    /// appType property.
+    pub app_type: Option<AppContext>,
+    /// auctionType property.
+    pub auction_type: Option<AuctionContext>,
+    /// location property.
+    pub location: Option<LocationContext>,
+    /// platform property.
+    pub platform: Option<PlatformContext>,
+    /// securityType property.
+    pub security_type: Option<SecurityContext>,
 }
 
 /// `Creative` type.
@@ -250,50 +290,11 @@ pub struct Creative {
     pub video: Option<VideoContent>,
 }
 
-/// `VideoContent` type.
+/// `SecurityContext` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoContent {
-    /// videoUrl property.
-    pub video_url: Option<String>,
-    /// videoVastXml property.
-    pub video_vast_xml: Option<String>,
-}
-
-/// `ListCreativeStatusBreakdownByCreativeResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCreativeStatusBreakdownByCreativeResponse {
-    /// filteredBidCreativeRows property.
-    pub filtered_bid_creative_rows: Option<Vec<FilteredBidCreativeRow>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `ServingContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServingContext {
-    /// all property.
-    pub all: Option<String>,
-    /// appType property.
-    pub app_type: Option<AppContext>,
-    /// auctionType property.
-    pub auction_type: Option<AuctionContext>,
-    /// location property.
-    pub location: Option<LocationContext>,
-    /// platform property.
-    pub platform: Option<PlatformContext>,
-    /// securityType property.
-    pub security_type: Option<SecurityContext>,
-}
-
-/// `Correction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Correction {
-    /// contexts property.
-    pub contexts: Option<Vec<ServingContext>>,
-    /// details property.
-    pub details: Option<Vec<String>>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct SecurityContext {
+    /// securities property.
+    pub securities: Option<Vec<String>>,
 }
 
 // =============================================================================

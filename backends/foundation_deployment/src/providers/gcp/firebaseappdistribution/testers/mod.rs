@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleFirebaseAppdistroV1ListTestersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirebaseAppdistroV1ListTestersResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// testers property.
+    pub testers: Option<Vec<GoogleFirebaseAppdistroV1Tester>>,
+}
 
 /// `GoogleFirebaseAppdistroV1Tester` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -35,15 +45,6 @@ pub struct GoogleFirebaseAppdistroV1Tester {
     pub last_activity_time: Option<String>,
     /// name property.
     pub name: Option<String>,
-}
-
-/// `GoogleFirebaseAppdistroV1ListTestersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirebaseAppdistroV1ListTestersResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// testers property.
-    pub testers: Option<Vec<GoogleFirebaseAppdistroV1Tester>>,
 }
 
 // =============================================================================

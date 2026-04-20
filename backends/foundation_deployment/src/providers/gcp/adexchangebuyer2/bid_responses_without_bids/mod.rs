@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `MetricValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetricValue {
-    /// value property.
-    pub value: Option<String>,
-    /// variance property.
-    pub variance: Option<String>,
-}
 
 /// `BidResponseWithoutBidsStatusRow` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,6 +36,15 @@ pub struct BidResponseWithoutBidsStatusRow {
     pub status: Option<String>,
 }
 
+/// `MetricValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetricValue {
+    /// value property.
+    pub value: Option<String>,
+    /// variance property.
+    pub variance: Option<String>,
+}
+
 /// `TimeInterval` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeInterval {
@@ -53,15 +54,6 @@ pub struct TimeInterval {
     pub start_time: Option<String>,
 }
 
-/// `ListBidResponsesWithoutBidsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListBidResponsesWithoutBidsResponse {
-    /// bidResponseWithoutBidsStatusRows property.
-    pub bid_response_without_bids_status_rows: Option<Vec<BidResponseWithoutBidsStatusRow>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
 /// `RowDimensions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RowDimensions {
@@ -69,6 +61,15 @@ pub struct RowDimensions {
     pub publisher_identifier: Option<String>,
     /// timeInterval property.
     pub time_interval: Option<TimeInterval>,
+}
+
+/// `ListBidResponsesWithoutBidsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListBidResponsesWithoutBidsResponse {
+    /// bidResponseWithoutBidsStatusRows property.
+    pub bid_response_without_bids_status_rows: Option<Vec<BidResponseWithoutBidsStatusRow>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

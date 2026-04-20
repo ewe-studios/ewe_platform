@@ -12,25 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponseAppConnectionDetails` type.
+/// `GoogleCloudBeyondcorpAppconnectionsV1AppConnectionApplicationEndpoint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponseAppConnectionDetails {
-    /// appConnection property.
-    pub app_connection: Option<GoogleCloudBeyondcorpAppconnectionsV1AppConnection>,
-    /// recentMigVms property.
-    pub recent_mig_vms: Option<Vec<String>>,
+pub struct GoogleCloudBeyondcorpAppconnectionsV1AppConnectionApplicationEndpoint {
+    /// host property.
+    pub host: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
 }
 
 /// `GoogleCloudBeyondcorpAppconnectionsV1AppConnection` type.
@@ -65,15 +66,6 @@ pub struct GoogleCloudBeyondcorpAppconnectionsV1AppConnection {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudBeyondcorpAppconnectionsV1AppConnectionApplicationEndpoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpAppconnectionsV1AppConnectionApplicationEndpoint {
-    /// host property.
-    pub host: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
-}
-
 /// `GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponse {
@@ -85,6 +77,15 @@ pub struct GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponse {
     pub next_page_token: Option<String>,
     /// unreachable property.
     pub unreachable: Option<Vec<String>>,
+}
+
+/// `GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponseAppConnectionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponseAppConnectionDetails {
+    /// appConnection property.
+    pub app_connection: Option<GoogleCloudBeyondcorpAppconnectionsV1AppConnection>,
+    /// recentMigVms property.
+    pub recent_mig_vms: Option<Vec<String>>,
 }
 
 /// `GoogleCloudBeyondcorpAppconnectionsV1AppConnectionGateway` type.

@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -33,22 +34,6 @@ pub struct LocalDisk {
     pub disk_size_gb: Option<i64>,
     /// diskType property.
     pub disk_type: Option<String>,
-}
-
-/// `ServerBinding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServerBinding {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `InstanceConsumptionData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceConsumptionData {
-    /// consumptionInfo property.
-    pub consumption_info: Option<InstanceConsumptionInfo>,
-    /// instance property.
-    pub instance: Option<String>,
 }
 
 /// `NodeGroupsListNodes` type.
@@ -68,27 +53,6 @@ pub struct NodeGroupsListNodes {
     pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `UpcomingMaintenance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpcomingMaintenance {
-    /// canReschedule property.
-    pub can_reschedule: Option<bool>,
-    /// latestWindowStartTime property.
-    pub latest_window_start_time: Option<String>,
-    /// maintenanceOnShutdown property.
-    pub maintenance_on_shutdown: Option<bool>,
-    /// maintenanceReasons property.
-    pub maintenance_reasons: Option<Vec<String>>,
-    /// maintenanceStatus property.
-    pub maintenance_status: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// windowEndTime property.
-    pub window_end_time: Option<String>,
-    /// windowStartTime property.
-    pub window_start_time: Option<String>,
-}
-
 /// `InstanceConsumptionInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceConsumptionInfo {
@@ -100,6 +64,13 @@ pub struct InstanceConsumptionInfo {
     pub memory_mb: Option<i64>,
     /// minNodeCpus property.
     pub min_node_cpus: Option<i64>,
+}
+
+/// `ServerBinding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServerBinding {
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `AcceleratorConfig` type.
@@ -142,6 +113,36 @@ pub struct NodeGroupNode {
     pub total_resources: Option<InstanceConsumptionInfo>,
     /// upcomingMaintenance property.
     pub upcoming_maintenance: Option<UpcomingMaintenance>,
+}
+
+/// `UpcomingMaintenance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpcomingMaintenance {
+    /// canReschedule property.
+    pub can_reschedule: Option<bool>,
+    /// latestWindowStartTime property.
+    pub latest_window_start_time: Option<String>,
+    /// maintenanceOnShutdown property.
+    pub maintenance_on_shutdown: Option<bool>,
+    /// maintenanceReasons property.
+    pub maintenance_reasons: Option<Vec<String>>,
+    /// maintenanceStatus property.
+    pub maintenance_status: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// windowEndTime property.
+    pub window_end_time: Option<String>,
+    /// windowStartTime property.
+    pub window_start_time: Option<String>,
+}
+
+/// `InstanceConsumptionData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceConsumptionData {
+    /// consumptionInfo property.
+    pub consumption_info: Option<InstanceConsumptionInfo>,
+    /// instance property.
+    pub instance: Option<String>,
 }
 
 // =============================================================================

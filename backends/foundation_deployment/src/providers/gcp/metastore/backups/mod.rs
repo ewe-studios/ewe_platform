@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,22 +23,11 @@ use serde::{Deserialize, Serialize};
 use super::shared::Operation;
 use super::shared::Policy;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Consumer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Consumer {
-    /// endpointLocation property.
-    pub endpoint_location: Option<String>,
-    /// endpointUri property.
-    pub endpoint_uri: Option<String>,
-    /// subnetwork property.
-    pub subnetwork: Option<String>,
-}
 
 /// `LatestBackup` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -52,60 +42,15 @@ pub struct LatestBackup {
     pub state: Option<String>,
 }
 
-/// `LimitConfig` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LimitConfig {
-    /// maxScalingFactor property.
-    pub max_scaling_factor: Option<f64>,
-    /// minScalingFactor property.
-    pub min_scaling_factor: Option<f64>,
-}
-
-/// `Backup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Backup {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// restoringServices property.
-    pub restoring_services: Option<Vec<String>>,
-    /// serviceRevision property.
-    pub service_revision: Option<Service>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `KerberosConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KerberosConfig {
-    /// keytab property.
-    pub keytab: Option<Secret>,
-    /// krb5ConfigGcsUri property.
-    pub krb5_config_gcs_uri: Option<String>,
-    /// principal property.
-    pub principal: Option<String>,
-}
-
-/// `ScheduledBackup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScheduledBackup {
-    /// backupLocation property.
-    pub backup_location: Option<String>,
-    /// cronSchedule property.
-    pub cron_schedule: Option<String>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// latestBackup property.
-    pub latest_backup: Option<LatestBackup>,
-    /// nextScheduledTime property.
-    pub next_scheduled_time: Option<String>,
-    /// timeZone property.
-    pub time_zone: Option<String>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `AuditConfig` type.
@@ -117,115 +62,15 @@ pub struct AuditConfig {
     pub service: Option<String>,
 }
 
-/// `ListBackupsResponse` type.
+/// `AutoscalingConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListBackupsResponse {
-    /// backups property.
-    pub backups: Option<Vec<Backup>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `HiveMetastoreConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HiveMetastoreConfig {
-    /// auxiliaryVersions property.
-    pub auxiliary_versions: Option<serde_json::Value>,
-    /// configOverrides property.
-    pub config_overrides: Option<serde_json::Value>,
-    /// endpointProtocol property.
-    pub endpoint_protocol: Option<String>,
-    /// kerberosConfig property.
-    pub kerberos_config: Option<KerberosConfig>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `NetworkConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkConfig {
-    /// consumers property.
-    pub consumers: Option<Vec<Consumer>>,
-}
-
-/// `MetadataIntegration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetadataIntegration {
-    /// dataCatalogConfig property.
-    pub data_catalog_config: Option<DataCatalogConfig>,
-}
-
-/// `TelemetryConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TelemetryConfig {
-    /// logFormat property.
-    pub log_format: Option<String>,
-}
-
-/// `EncryptionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionConfig {
-    /// kmsKey property.
-    pub kms_key: Option<String>,
-}
-
-/// `MetadataExport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetadataExport {
-    /// databaseDumpType property.
-    pub database_dump_type: Option<String>,
-    /// destinationGcsUri property.
-    pub destination_gcs_uri: Option<String>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `MetadataManagementActivity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetadataManagementActivity {
-    /// metadataExports property.
-    pub metadata_exports: Option<Vec<MetadataExport>>,
-    /// restores property.
-    pub restores: Option<Vec<Restore>>,
+pub struct AutoscalingConfig {
+    /// autoscalingEnabled property.
+    pub autoscaling_enabled: Option<bool>,
+    /// autoscalingFactor property.
+    pub autoscaling_factor: Option<f64>,
+    /// limitConfig property.
+    pub limit_config: Option<LimitConfig>,
 }
 
 /// `Restore` type.
@@ -247,11 +92,90 @@ pub struct Restore {
     pub r#type: Option<String>,
 }
 
-/// `DataCatalogConfig` type.
+/// `ScheduledBackup` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataCatalogConfig {
+pub struct ScheduledBackup {
+    /// backupLocation property.
+    pub backup_location: Option<String>,
+    /// cronSchedule property.
+    pub cron_schedule: Option<String>,
     /// enabled property.
     pub enabled: Option<bool>,
+    /// latestBackup property.
+    pub latest_backup: Option<LatestBackup>,
+    /// nextScheduledTime property.
+    pub next_scheduled_time: Option<String>,
+    /// timeZone property.
+    pub time_zone: Option<String>,
+}
+
+/// `EncryptionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EncryptionConfig {
+    /// kmsKey property.
+    pub kms_key: Option<String>,
+}
+
+/// `ScalingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ScalingConfig {
+    /// autoscalingConfig property.
+    pub autoscaling_config: Option<AutoscalingConfig>,
+    /// instanceSize property.
+    pub instance_size: Option<String>,
+    /// scalingFactor property.
+    pub scaling_factor: Option<f64>,
+}
+
+/// `MaintenanceWindow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MaintenanceWindow {
+    /// dayOfWeek property.
+    pub day_of_week: Option<String>,
+    /// hourOfDay property.
+    pub hour_of_day: Option<i64>,
+}
+
+/// `MetadataManagementActivity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetadataManagementActivity {
+    /// metadataExports property.
+    pub metadata_exports: Option<Vec<MetadataExport>>,
+    /// restores property.
+    pub restores: Option<Vec<Restore>>,
+}
+
+/// `Consumer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Consumer {
+    /// endpointLocation property.
+    pub endpoint_location: Option<String>,
+    /// endpointUri property.
+    pub endpoint_uri: Option<String>,
+    /// subnetwork property.
+    pub subnetwork: Option<String>,
+}
+
+/// `MetadataIntegration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetadataIntegration {
+    /// dataCatalogConfig property.
+    pub data_catalog_config: Option<DataCatalogConfig>,
+}
+
+/// `MetadataExport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetadataExport {
+    /// databaseDumpType property.
+    pub database_dump_type: Option<String>,
+    /// destinationGcsUri property.
+    pub destination_gcs_uri: Option<String>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// state property.
+    pub state: Option<String>,
 }
 
 /// `Service` type.
@@ -309,6 +233,84 @@ pub struct Service {
     pub update_time: Option<String>,
 }
 
+/// `DataCatalogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataCatalogConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `KerberosConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KerberosConfig {
+    /// keytab property.
+    pub keytab: Option<Secret>,
+    /// krb5ConfigGcsUri property.
+    pub krb5_config_gcs_uri: Option<String>,
+    /// principal property.
+    pub principal: Option<String>,
+}
+
+/// `LimitConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LimitConfig {
+    /// maxScalingFactor property.
+    pub max_scaling_factor: Option<f64>,
+    /// minScalingFactor property.
+    pub min_scaling_factor: Option<f64>,
+}
+
+/// `TelemetryConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TelemetryConfig {
+    /// logFormat property.
+    pub log_format: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `ListBackupsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListBackupsResponse {
+    /// backups property.
+    pub backups: Option<Vec<Backup>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
 /// `Secret` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Secret {
@@ -316,46 +318,45 @@ pub struct Secret {
     pub cloud_secret: Option<String>,
 }
 
-/// `AutoscalingConfig` type.
+/// `NetworkConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoscalingConfig {
-    /// autoscalingEnabled property.
-    pub autoscaling_enabled: Option<bool>,
-    /// autoscalingFactor property.
-    pub autoscaling_factor: Option<f64>,
-    /// limitConfig property.
-    pub limit_config: Option<LimitConfig>,
+pub struct NetworkConfig {
+    /// consumers property.
+    pub consumers: Option<Vec<Consumer>>,
 }
 
-/// `Status` type.
+/// `HiveMetastoreConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct HiveMetastoreConfig {
+    /// auxiliaryVersions property.
+    pub auxiliary_versions: Option<serde_json::Value>,
+    /// configOverrides property.
+    pub config_overrides: Option<serde_json::Value>,
+    /// endpointProtocol property.
+    pub endpoint_protocol: Option<String>,
+    /// kerberosConfig property.
+    pub kerberos_config: Option<KerberosConfig>,
+    /// version property.
+    pub version: Option<String>,
 }
 
-/// `MaintenanceWindow` type.
+/// `Backup` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaintenanceWindow {
-    /// dayOfWeek property.
-    pub day_of_week: Option<String>,
-    /// hourOfDay property.
-    pub hour_of_day: Option<i64>,
-}
-
-/// `ScalingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScalingConfig {
-    /// autoscalingConfig property.
-    pub autoscaling_config: Option<AutoscalingConfig>,
-    /// instanceSize property.
-    pub instance_size: Option<String>,
-    /// scalingFactor property.
-    pub scaling_factor: Option<f64>,
+pub struct Backup {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// restoringServices property.
+    pub restoring_services: Option<Vec<String>>,
+    /// serviceRevision property.
+    pub service_revision: Option<Service>,
+    /// state property.
+    pub state: Option<String>,
 }
 
 // =============================================================================

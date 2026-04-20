@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,20 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `FirewallEndpointAssociationReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallEndpointAssociationReference {
-    /// name property.
-    pub name: Option<String>,
-    /// network property.
-    pub network: Option<String>,
-}
 
 /// `FirewallEndpointEndpointSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -52,6 +44,17 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
+}
+
+/// `ListFirewallEndpointsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListFirewallEndpointsResponse {
+    /// firewallEndpoints property.
+    pub firewall_endpoints: Option<Vec<FirewallEndpoint>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `FirewallEndpoint` type.
@@ -85,15 +88,13 @@ pub struct FirewallEndpoint {
     pub update_time: Option<String>,
 }
 
-/// `ListFirewallEndpointsResponse` type.
+/// `FirewallEndpointAssociationReference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListFirewallEndpointsResponse {
-    /// firewallEndpoints property.
-    pub firewall_endpoints: Option<Vec<FirewallEndpoint>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct FirewallEndpointAssociationReference {
+    /// name property.
+    pub name: Option<String>,
+    /// network property.
+    pub network: Option<String>,
 }
 
 // =============================================================================

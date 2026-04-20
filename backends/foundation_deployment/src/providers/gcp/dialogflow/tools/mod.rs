@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,32 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudDialogflowCxV3ToolAuthenticationBearerTokenConfig` type.
+/// `GoogleCloudDialogflowCxV3ToolFunctionTool` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ToolAuthenticationBearerTokenConfig {
-    /// secretVersionForToken property.
-    pub secret_version_for_token: Option<String>,
-    /// token property.
-    pub token: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3ToolOpenApiTool` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ToolOpenApiTool {
-    /// authentication property.
-    pub authentication: Option<GoogleCloudDialogflowCxV3ToolAuthentication>,
-    /// serviceDirectoryConfig property.
-    pub service_directory_config: Option<GoogleCloudDialogflowCxV3ToolServiceDirectoryConfig>,
-    /// textSchema property.
-    pub text_schema: Option<String>,
-    /// tlsConfig property.
-    pub tls_config: Option<GoogleCloudDialogflowCxV3ToolTLSConfig>,
+pub struct GoogleCloudDialogflowCxV3ToolFunctionTool {
+    /// inputSchema property.
+    pub input_schema: Option<serde_json::Value>,
+    /// outputSchema property.
+    pub output_schema: Option<serde_json::Value>,
 }
 
 /// `GoogleCloudDialogflowCxV3ToolAuthentication` type.
@@ -66,13 +54,35 @@ pub struct GoogleCloudDialogflowCxV3ToolAuthentication {
         Option<GoogleCloudDialogflowCxV3ToolAuthenticationServiceAgentAuthConfig>,
 }
 
-/// `GoogleCloudDialogflowCxV3ToolTLSConfigCACert` type.
+/// `GoogleCloudDialogflowCxV3ListToolsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ToolTLSConfigCACert {
-    /// cert property.
-    pub cert: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
+pub struct GoogleCloudDialogflowCxV3ListToolsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// tools property.
+    pub tools: Option<Vec<GoogleCloudDialogflowCxV3Tool>>,
+}
+
+/// `GoogleCloudDialogflowCxV3ToolOpenApiTool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ToolOpenApiTool {
+    /// authentication property.
+    pub authentication: Option<GoogleCloudDialogflowCxV3ToolAuthentication>,
+    /// serviceDirectoryConfig property.
+    pub service_directory_config: Option<GoogleCloudDialogflowCxV3ToolServiceDirectoryConfig>,
+    /// textSchema property.
+    pub text_schema: Option<String>,
+    /// tlsConfig property.
+    pub tls_config: Option<GoogleCloudDialogflowCxV3ToolTLSConfig>,
+}
+
+/// `GoogleCloudDialogflowCxV3ToolDataStoreTool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ToolDataStoreTool {
+    /// dataStoreConnections property.
+    pub data_store_connections: Option<Vec<GoogleCloudDialogflowCxV3DataStoreConnection>>,
+    /// fallbackPrompt property.
+    pub fallback_prompt: Option<GoogleCloudDialogflowCxV3ToolDataStoreToolFallbackPrompt>,
 }
 
 /// `GoogleCloudDialogflowCxV3ToolServiceDirectoryConfig` type.
@@ -99,22 +109,6 @@ pub struct GoogleCloudDialogflowCxV3ToolAuthenticationOAuthConfig {
     pub token_endpoint: Option<String>,
 }
 
-/// `GoogleCloudDialogflowCxV3ToolTLSConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ToolTLSConfig {
-    /// caCerts property.
-    pub ca_certs: Option<Vec<GoogleCloudDialogflowCxV3ToolTLSConfigCACert>>,
-}
-
-/// `GoogleCloudDialogflowCxV3ToolFunctionTool` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ToolFunctionTool {
-    /// inputSchema property.
-    pub input_schema: Option<serde_json::Value>,
-    /// outputSchema property.
-    pub output_schema: Option<serde_json::Value>,
-}
-
 /// `GoogleCloudDialogflowCxV3ToolAuthenticationServiceAgentAuthConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDialogflowCxV3ToolAuthenticationServiceAgentAuthConfig {
@@ -133,20 +127,13 @@ pub struct GoogleCloudDialogflowCxV3DataStoreConnection {
     pub document_processing_mode: Option<String>,
 }
 
-/// `GoogleCloudDialogflowCxV3ToolAuthenticationServiceAccountAuthConfig` type.
+/// `GoogleCloudDialogflowCxV3ToolAuthenticationBearerTokenConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ToolAuthenticationServiceAccountAuthConfig {
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3ToolDataStoreTool` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ToolDataStoreTool {
-    /// dataStoreConnections property.
-    pub data_store_connections: Option<Vec<GoogleCloudDialogflowCxV3DataStoreConnection>>,
-    /// fallbackPrompt property.
-    pub fallback_prompt: Option<GoogleCloudDialogflowCxV3ToolDataStoreToolFallbackPrompt>,
+pub struct GoogleCloudDialogflowCxV3ToolAuthenticationBearerTokenConfig {
+    /// secretVersionForToken property.
+    pub secret_version_for_token: Option<String>,
+    /// token property.
+    pub token: Option<String>,
 }
 
 /// `GoogleCloudDialogflowCxV3Tool` type.
@@ -168,9 +155,32 @@ pub struct GoogleCloudDialogflowCxV3Tool {
     pub tool_type: Option<String>,
 }
 
+/// `GoogleCloudDialogflowCxV3ToolAuthenticationServiceAccountAuthConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ToolAuthenticationServiceAccountAuthConfig {
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3ToolTLSConfigCACert` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ToolTLSConfigCACert {
+    /// cert property.
+    pub cert: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+}
+
 /// `GoogleCloudDialogflowCxV3ToolDataStoreToolFallbackPrompt` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDialogflowCxV3ToolDataStoreToolFallbackPrompt {}
+
+/// `GoogleCloudDialogflowCxV3ToolTLSConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ToolTLSConfig {
+    /// caCerts property.
+    pub ca_certs: Option<Vec<GoogleCloudDialogflowCxV3ToolTLSConfigCACert>>,
+}
 
 /// `GoogleCloudDialogflowCxV3ToolAuthenticationApiKeyConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -183,15 +193,6 @@ pub struct GoogleCloudDialogflowCxV3ToolAuthenticationApiKeyConfig {
     pub request_location: Option<String>,
     /// secretVersionForApiKey property.
     pub secret_version_for_api_key: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3ListToolsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ListToolsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// tools property.
-    pub tools: Option<Vec<GoogleCloudDialogflowCxV3Tool>>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,160 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListHttpRoutesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListHttpRoutesResponse {
+    /// httpRoutes property.
+    pub http_routes: Option<Vec<HttpRoute>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `HttpRouteFaultInjectionPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRouteFaultInjectionPolicy {
+    /// abort property.
+    pub abort: Option<HttpRouteFaultInjectionPolicyAbort>,
+    /// delay property.
+    pub delay: Option<HttpRouteFaultInjectionPolicyDelay>,
+}
+
+/// `HttpRouteRetryPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRouteRetryPolicy {
+    /// numRetries property.
+    pub num_retries: Option<i64>,
+    /// perTryTimeout property.
+    pub per_try_timeout: Option<String>,
+    /// retryConditions property.
+    pub retry_conditions: Option<Vec<String>>,
+}
+
+/// `HttpRouteHeaderModifier` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRouteHeaderModifier {
+    /// add property.
+    pub add: Option<serde_json::Value>,
+    /// remove property.
+    pub remove: Option<Vec<String>>,
+    /// set property.
+    pub set: Option<serde_json::Value>,
+}
+
+/// `HttpRouteHeaderMatchIntegerRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRouteHeaderMatchIntegerRange {
+    /// end property.
+    pub end: Option<i64>,
+    /// start property.
+    pub start: Option<i64>,
+}
+
+/// `HttpRouteStatefulSessionAffinityPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRouteStatefulSessionAffinityPolicy {
+    /// cookieTtl property.
+    pub cookie_ttl: Option<String>,
+}
+
+/// `HttpRouteRouteMatch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRouteRouteMatch {
+    /// fullPathMatch property.
+    pub full_path_match: Option<String>,
+    /// headers property.
+    pub headers: Option<Vec<HttpRouteHeaderMatch>>,
+    /// ignoreCase property.
+    pub ignore_case: Option<bool>,
+    /// prefixMatch property.
+    pub prefix_match: Option<String>,
+    /// queryParameters property.
+    pub query_parameters: Option<Vec<HttpRouteQueryParameterMatch>>,
+    /// regexMatch property.
+    pub regex_match: Option<String>,
+}
+
+/// `HttpRouteHttpDirectResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRouteHttpDirectResponse {
+    /// bytesBody property.
+    pub bytes_body: Option<String>,
+    /// status property.
+    pub status: Option<i64>,
+    /// stringBody property.
+    pub string_body: Option<String>,
+}
+
+/// `HttpRouteFaultInjectionPolicyAbort` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRouteFaultInjectionPolicyAbort {
+    /// httpStatus property.
+    pub http_status: Option<i64>,
+    /// percentage property.
+    pub percentage: Option<i64>,
+}
+
+/// `HttpRouteRouteRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRouteRouteRule {
+    /// action property.
+    pub action: Option<HttpRouteRouteAction>,
+    /// matches property.
+    pub matches: Option<Vec<HttpRouteRouteMatch>>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `HttpRouteURLRewrite` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRouteURLRewrite {
+    /// hostRewrite property.
+    pub host_rewrite: Option<String>,
+    /// pathPrefixRewrite property.
+    pub path_prefix_rewrite: Option<String>,
+}
+
+/// `HttpRoute` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRoute {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// gateways property.
+    pub gateways: Option<Vec<String>>,
+    /// hostnames property.
+    pub hostnames: Option<Vec<String>>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// meshes property.
+    pub meshes: Option<Vec<String>>,
+    /// name property.
+    pub name: Option<String>,
+    /// rules property.
+    pub rules: Option<Vec<HttpRouteRouteRule>>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
 
 /// `HttpRouteCorsPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -46,35 +196,6 @@ pub struct HttpRouteCorsPolicy {
     pub expose_headers: Option<Vec<String>>,
     /// maxAge property.
     pub max_age: Option<String>,
-}
-
-/// `HttpRouteHeaderMatchIntegerRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRouteHeaderMatchIntegerRange {
-    /// end property.
-    pub end: Option<i64>,
-    /// start property.
-    pub start: Option<i64>,
-}
-
-/// `HttpRouteFaultInjectionPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRouteFaultInjectionPolicy {
-    /// abort property.
-    pub abort: Option<HttpRouteFaultInjectionPolicyAbort>,
-    /// delay property.
-    pub delay: Option<HttpRouteFaultInjectionPolicyDelay>,
-}
-
-/// `ListHttpRoutesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListHttpRoutesResponse {
-    /// httpRoutes property.
-    pub http_routes: Option<Vec<HttpRoute>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
 }
 
 /// `HttpRouteRouteAction` type.
@@ -108,6 +229,15 @@ pub struct HttpRouteRouteAction {
     pub url_rewrite: Option<HttpRouteURLRewrite>,
 }
 
+/// `HttpRouteRequestMirrorPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRouteRequestMirrorPolicy {
+    /// destination property.
+    pub destination: Option<HttpRouteDestination>,
+    /// mirrorPercent property.
+    pub mirror_percent: Option<f64>,
+}
+
 /// `HttpRouteHeaderMatch` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteHeaderMatch {
@@ -129,6 +259,19 @@ pub struct HttpRouteHeaderMatch {
     pub suffix_match: Option<String>,
 }
 
+/// `HttpRouteQueryParameterMatch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRouteQueryParameterMatch {
+    /// exactMatch property.
+    pub exact_match: Option<String>,
+    /// presentMatch property.
+    pub present_match: Option<bool>,
+    /// queryParameter property.
+    pub query_parameter: Option<String>,
+    /// regexMatch property.
+    pub regex_match: Option<String>,
+}
+
 /// `HttpRouteDestination` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteDestination {
@@ -142,118 +285,13 @@ pub struct HttpRouteDestination {
     pub weight: Option<i64>,
 }
 
-/// `HttpRouteRouteRule` type.
+/// `HttpRouteFaultInjectionPolicyDelay` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRouteRouteRule {
-    /// action property.
-    pub action: Option<HttpRouteRouteAction>,
-    /// matches property.
-    pub matches: Option<Vec<HttpRouteRouteMatch>>,
-}
-
-/// `HttpRouteStatefulSessionAffinityPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRouteStatefulSessionAffinityPolicy {
-    /// cookieTtl property.
-    pub cookie_ttl: Option<String>,
-}
-
-/// `HttpRouteURLRewrite` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRouteURLRewrite {
-    /// hostRewrite property.
-    pub host_rewrite: Option<String>,
-    /// pathPrefixRewrite property.
-    pub path_prefix_rewrite: Option<String>,
-}
-
-/// `HttpRouteHeaderModifier` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRouteHeaderModifier {
-    /// add property.
-    pub add: Option<serde_json::Value>,
-    /// remove property.
-    pub remove: Option<Vec<String>>,
-    /// set property.
-    pub set: Option<serde_json::Value>,
-}
-
-/// `HttpRouteFaultInjectionPolicyAbort` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRouteFaultInjectionPolicyAbort {
-    /// httpStatus property.
-    pub http_status: Option<i64>,
+pub struct HttpRouteFaultInjectionPolicyDelay {
+    /// fixedDelay property.
+    pub fixed_delay: Option<String>,
     /// percentage property.
     pub percentage: Option<i64>,
-}
-
-/// `HttpRouteRequestMirrorPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRouteRequestMirrorPolicy {
-    /// destination property.
-    pub destination: Option<HttpRouteDestination>,
-    /// mirrorPercent property.
-    pub mirror_percent: Option<f64>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `HttpRoute` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRoute {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// gateways property.
-    pub gateways: Option<Vec<String>>,
-    /// hostnames property.
-    pub hostnames: Option<Vec<String>>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// meshes property.
-    pub meshes: Option<Vec<String>>,
-    /// name property.
-    pub name: Option<String>,
-    /// rules property.
-    pub rules: Option<Vec<HttpRouteRouteRule>>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `HttpRouteHttpDirectResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRouteHttpDirectResponse {
-    /// bytesBody property.
-    pub bytes_body: Option<String>,
-    /// status property.
-    pub status: Option<i64>,
-    /// stringBody property.
-    pub string_body: Option<String>,
-}
-
-/// `HttpRouteQueryParameterMatch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRouteQueryParameterMatch {
-    /// exactMatch property.
-    pub exact_match: Option<String>,
-    /// presentMatch property.
-    pub present_match: Option<bool>,
-    /// queryParameter property.
-    pub query_parameter: Option<String>,
-    /// regexMatch property.
-    pub regex_match: Option<String>,
 }
 
 /// `HttpRouteRedirect` type.
@@ -273,43 +311,6 @@ pub struct HttpRouteRedirect {
     pub response_code: Option<String>,
     /// stripQuery property.
     pub strip_query: Option<bool>,
-}
-
-/// `HttpRouteRouteMatch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRouteRouteMatch {
-    /// fullPathMatch property.
-    pub full_path_match: Option<String>,
-    /// headers property.
-    pub headers: Option<Vec<HttpRouteHeaderMatch>>,
-    /// ignoreCase property.
-    pub ignore_case: Option<bool>,
-    /// prefixMatch property.
-    pub prefix_match: Option<String>,
-    /// queryParameters property.
-    pub query_parameters: Option<Vec<HttpRouteQueryParameterMatch>>,
-    /// regexMatch property.
-    pub regex_match: Option<String>,
-}
-
-/// `HttpRouteRetryPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRouteRetryPolicy {
-    /// numRetries property.
-    pub num_retries: Option<i64>,
-    /// perTryTimeout property.
-    pub per_try_timeout: Option<String>,
-    /// retryConditions property.
-    pub retry_conditions: Option<Vec<String>>,
-}
-
-/// `HttpRouteFaultInjectionPolicyDelay` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRouteFaultInjectionPolicyDelay {
-    /// fixedDelay property.
-    pub fixed_delay: Option<String>,
-    /// percentage property.
-    pub percentage: Option<i64>,
 }
 
 // =============================================================================

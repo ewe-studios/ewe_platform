@@ -12,64 +12,122 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Country` type.
+/// `ConnectionType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Country {
+pub struct ConnectionType {
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `Language` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Language {
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GeoTargeting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GeoTargeting {
+    /// cities property.
+    pub cities: Option<Vec<City>>,
+    /// countries property.
+    pub countries: Option<Vec<Country>>,
+    /// excludeCountries property.
+    pub exclude_countries: Option<bool>,
+    /// metros property.
+    pub metros: Option<Vec<Metro>>,
+    /// postalCodes property.
+    pub postal_codes: Option<Vec<PostalCode>>,
+    /// regions property.
+    pub regions: Option<Vec<Region>>,
+}
+
+/// `Browser` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Browser {
+    /// browserVersionId property.
+    pub browser_version_id: Option<String>,
+    /// dartId property.
+    pub dart_id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// majorVersion property.
+    pub major_version: Option<String>,
+    /// minorVersion property.
+    pub minor_version: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `Region` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Region {
     /// countryCode property.
     pub country_code: Option<String>,
+    /// countryDartId property.
+    pub country_dart_id: Option<String>,
     /// dartId property.
     pub dart_id: Option<String>,
     /// kind property.
     pub kind: Option<String>,
     /// name property.
     pub name: Option<String>,
-    /// sslEnabled property.
-    pub ssl_enabled: Option<bool>,
-    /// tvDataProviders property.
-    pub tv_data_providers: Option<Vec<String>>,
+    /// regionCode property.
+    pub region_code: Option<String>,
 }
 
-/// `FrequencyCap` type.
+/// `PlatformType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FrequencyCap {
-    /// duration property.
-    pub duration: Option<String>,
-    /// impressions property.
-    pub impressions: Option<String>,
-}
-
-/// `ClickThroughUrl` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClickThroughUrl {
-    /// computedClickThroughUrl property.
-    pub computed_click_through_url: Option<String>,
-    /// customClickThroughUrl property.
-    pub custom_click_through_url: Option<String>,
-    /// defaultLandingPage property.
-    pub default_landing_page: Option<bool>,
-    /// landingPageId property.
-    pub landing_page_id: Option<String>,
-}
-
-/// `EventTagOverride` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventTagOverride {
-    /// enabled property.
-    pub enabled: Option<bool>,
+pub struct PlatformType {
     /// id property.
     pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `Metro` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Metro {
+    /// countryCode property.
+    pub country_code: Option<String>,
+    /// countryDartId property.
+    pub country_dart_id: Option<String>,
+    /// dartId property.
+    pub dart_id: Option<String>,
+    /// dmaId property.
+    pub dma_id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// metroCode property.
+    pub metro_code: Option<String>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 /// `ListTargetingExpression` type.
@@ -77,6 +135,97 @@ pub struct EventTagOverride {
 pub struct ListTargetingExpression {
     /// expression property.
     pub expression: Option<String>,
+}
+
+/// `LastModifiedInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LastModifiedInfo {
+    /// time property.
+    pub time: Option<String>,
+}
+
+/// `CompanionClickThroughOverride` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CompanionClickThroughOverride {
+    /// clickThroughUrl property.
+    pub click_through_url: Option<ClickThroughUrl>,
+    /// creativeId property.
+    pub creative_id: Option<String>,
+}
+
+/// `CreativeGroupAssignment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreativeGroupAssignment {
+    /// creativeGroupId property.
+    pub creative_group_id: Option<String>,
+    /// creativeGroupNumber property.
+    pub creative_group_number: Option<String>,
+}
+
+/// `City` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct City {
+    /// countryCode property.
+    pub country_code: Option<String>,
+    /// countryDartId property.
+    pub country_dart_id: Option<String>,
+    /// dartId property.
+    pub dart_id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// metroCode property.
+    pub metro_code: Option<String>,
+    /// metroDmaId property.
+    pub metro_dma_id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+    /// regionDartId property.
+    pub region_dart_id: Option<String>,
+}
+
+/// `DayPartTargeting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DayPartTargeting {
+    /// daysOfWeek property.
+    pub days_of_week: Option<Vec<String>>,
+    /// hoursOfDay property.
+    pub hours_of_day: Option<Vec<i64>>,
+    /// userLocalTime property.
+    pub user_local_time: Option<bool>,
+}
+
+/// `PostalCode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostalCode {
+    /// code property.
+    pub code: Option<String>,
+    /// countryCode property.
+    pub country_code: Option<String>,
+    /// countryDartId property.
+    pub country_dart_id: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `DimensionValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DimensionValue {
+    /// dimensionName property.
+    pub dimension_name: Option<String>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// matchType property.
+    pub match_type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
 /// `TechnologyTargeting` type.
@@ -96,56 +245,34 @@ pub struct TechnologyTargeting {
     pub platform_types: Option<Vec<PlatformType>>,
 }
 
-/// `LastModifiedInfo` type.
+/// `Size` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LastModifiedInfo {
-    /// time property.
-    pub time: Option<String>,
-}
-
-/// `OperatingSystemVersion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperatingSystemVersion {
+pub struct Size {
+    /// height property.
+    pub height: Option<i64>,
+    /// iab property.
+    pub iab: Option<bool>,
     /// id property.
     pub id: Option<String>,
     /// kind property.
     pub kind: Option<String>,
-    /// majorVersion property.
-    pub major_version: Option<String>,
-    /// minorVersion property.
-    pub minor_version: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// operatingSystem property.
-    pub operating_system: Option<OperatingSystem>,
+    /// width property.
+    pub width: Option<i64>,
 }
 
-/// `OperatingSystem` type.
+/// `MobileCarrier` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperatingSystem {
-    /// dartId property.
-    pub dart_id: Option<String>,
-    /// desktop property.
-    pub desktop: Option<bool>,
+pub struct MobileCarrier {
+    /// countryCode property.
+    pub country_code: Option<String>,
+    /// countryDartId property.
+    pub country_dart_id: Option<String>,
+    /// id property.
+    pub id: Option<String>,
     /// kind property.
     pub kind: Option<String>,
-    /// mobile property.
-    pub mobile: Option<bool>,
     /// name property.
     pub name: Option<String>,
-}
-
-/// `DeliverySchedule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeliverySchedule {
-    /// frequencyCap property.
-    pub frequency_cap: Option<FrequencyCap>,
-    /// hardCutoff property.
-    pub hard_cutoff: Option<bool>,
-    /// impressionRatio property.
-    pub impression_ratio: Option<String>,
-    /// priority property.
-    pub priority: Option<String>,
 }
 
 /// `CreativeRotation` type.
@@ -159,28 +286,6 @@ pub struct CreativeRotation {
     pub r#type: Option<String>,
     /// weightCalculationStrategy property.
     pub weight_calculation_strategy: Option<String>,
-}
-
-/// `RichMediaExitOverride` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RichMediaExitOverride {
-    /// clickThroughUrl property.
-    pub click_through_url: Option<ClickThroughUrl>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// exitId property.
-    pub exit_id: Option<String>,
-}
-
-/// `AdsListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdsListResponse {
-    /// ads property.
-    pub ads: Option<Vec<Ad>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 /// `Ad` type.
@@ -268,128 +373,68 @@ pub struct Ad {
     pub r#type: Option<String>,
 }
 
-/// `CompanionClickThroughOverride` type.
+/// `LanguageTargeting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompanionClickThroughOverride {
-    /// clickThroughUrl property.
-    pub click_through_url: Option<ClickThroughUrl>,
-    /// creativeId property.
-    pub creative_id: Option<String>,
+pub struct LanguageTargeting {
+    /// languages property.
+    pub languages: Option<Vec<Language>>,
 }
 
-/// `ContextualKeywordTargeting` type.
+/// `ClickThroughUrlSuffixProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContextualKeywordTargeting {
-    /// keywords property.
-    pub keywords: Option<Vec<ContextualKeyword>>,
+pub struct ClickThroughUrlSuffixProperties {
+    /// clickThroughUrlSuffix property.
+    pub click_through_url_suffix: Option<String>,
+    /// overrideInheritedSuffix property.
+    pub override_inherited_suffix: Option<bool>,
 }
 
-/// `CreativeGroupAssignment` type.
+/// `Country` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreativeGroupAssignment {
-    /// creativeGroupId property.
-    pub creative_group_id: Option<String>,
-    /// creativeGroupNumber property.
-    pub creative_group_number: Option<String>,
-}
-
-/// `City` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct City {
+pub struct Country {
     /// countryCode property.
     pub country_code: Option<String>,
-    /// countryDartId property.
-    pub country_dart_id: Option<String>,
-    /// dartId property.
-    pub dart_id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// metroCode property.
-    pub metro_code: Option<String>,
-    /// metroDmaId property.
-    pub metro_dma_id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-    /// regionDartId property.
-    pub region_dart_id: Option<String>,
-}
-
-/// `DayPartTargeting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DayPartTargeting {
-    /// daysOfWeek property.
-    pub days_of_week: Option<Vec<String>>,
-    /// hoursOfDay property.
-    pub hours_of_day: Option<Vec<i64>>,
-    /// userLocalTime property.
-    pub user_local_time: Option<bool>,
-}
-
-/// `Region` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Region {
-    /// countryCode property.
-    pub country_code: Option<String>,
-    /// countryDartId property.
-    pub country_dart_id: Option<String>,
     /// dartId property.
     pub dart_id: Option<String>,
     /// kind property.
     pub kind: Option<String>,
     /// name property.
     pub name: Option<String>,
-    /// regionCode property.
-    pub region_code: Option<String>,
+    /// sslEnabled property.
+    pub ssl_enabled: Option<bool>,
+    /// tvDataProviders property.
+    pub tv_data_providers: Option<Vec<String>>,
 }
 
-/// `PlatformType` type.
+/// `AdsListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlatformType {
-    /// id property.
-    pub id: Option<String>,
+pub struct AdsListResponse {
+    /// ads property.
+    pub ads: Option<Vec<Ad>>,
     /// kind property.
     pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
-/// `DefaultClickThroughEventTagProperties` type.
+/// `DeliverySchedule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DefaultClickThroughEventTagProperties {
-    /// defaultClickThroughEventTagId property.
-    pub default_click_through_event_tag_id: Option<String>,
-    /// overrideInheritedEventTag property.
-    pub override_inherited_event_tag: Option<bool>,
+pub struct DeliverySchedule {
+    /// frequencyCap property.
+    pub frequency_cap: Option<FrequencyCap>,
+    /// hardCutoff property.
+    pub hard_cutoff: Option<bool>,
+    /// impressionRatio property.
+    pub impression_ratio: Option<String>,
+    /// priority property.
+    pub priority: Option<String>,
 }
 
-/// `PostalCode` type.
+/// `ContextualKeyword` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostalCode {
-    /// code property.
-    pub code: Option<String>,
-    /// countryCode property.
-    pub country_code: Option<String>,
-    /// countryDartId property.
-    pub country_dart_id: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `PlacementAssignment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlacementAssignment {
-    /// active property.
-    pub active: Option<bool>,
-    /// placementId property.
-    pub placement_id: Option<String>,
-    /// placementIdDimensionValue property.
-    pub placement_id_dimension_value: Option<DimensionValue>,
-    /// sslRequired property.
-    pub ssl_required: Option<bool>,
+pub struct ContextualKeyword {
+    /// keyword property.
+    pub keyword: Option<String>,
 }
 
 /// `CreativeAssignment` type.
@@ -423,83 +468,20 @@ pub struct CreativeAssignment {
     pub weight: Option<i64>,
 }
 
-/// `GeoTargeting` type.
+/// `ContextualKeywordTargeting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeoTargeting {
-    /// cities property.
-    pub cities: Option<Vec<City>>,
-    /// countries property.
-    pub countries: Option<Vec<Country>>,
-    /// excludeCountries property.
-    pub exclude_countries: Option<bool>,
-    /// metros property.
-    pub metros: Option<Vec<Metro>>,
-    /// postalCodes property.
-    pub postal_codes: Option<Vec<PostalCode>>,
-    /// regions property.
-    pub regions: Option<Vec<Region>>,
+pub struct ContextualKeywordTargeting {
+    /// keywords property.
+    pub keywords: Option<Vec<ContextualKeyword>>,
 }
 
-/// `DimensionValue` type.
+/// `EventTagOverride` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DimensionValue {
-    /// dimensionName property.
-    pub dimension_name: Option<String>,
-    /// etag property.
-    pub etag: Option<String>,
+pub struct EventTagOverride {
+    /// enabled property.
+    pub enabled: Option<bool>,
     /// id property.
     pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// matchType property.
-    pub match_type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `MobileCarrier` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MobileCarrier {
-    /// countryCode property.
-    pub country_code: Option<String>,
-    /// countryDartId property.
-    pub country_dart_id: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `Language` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Language {
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `Browser` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Browser {
-    /// browserVersionId property.
-    pub browser_version_id: Option<String>,
-    /// dartId property.
-    pub dart_id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// majorVersion property.
-    pub major_version: Option<String>,
-    /// minorVersion property.
-    pub minor_version: Option<String>,
-    /// name property.
-    pub name: Option<String>,
 }
 
 /// `KeyValueTargetingExpression` type.
@@ -509,72 +491,91 @@ pub struct KeyValueTargetingExpression {
     pub expression: Option<String>,
 }
 
-/// `ClickThroughUrlSuffixProperties` type.
+/// `PlacementAssignment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClickThroughUrlSuffixProperties {
-    /// clickThroughUrlSuffix property.
-    pub click_through_url_suffix: Option<String>,
-    /// overrideInheritedSuffix property.
-    pub override_inherited_suffix: Option<bool>,
+pub struct PlacementAssignment {
+    /// active property.
+    pub active: Option<bool>,
+    /// placementId property.
+    pub placement_id: Option<String>,
+    /// placementIdDimensionValue property.
+    pub placement_id_dimension_value: Option<DimensionValue>,
+    /// sslRequired property.
+    pub ssl_required: Option<bool>,
 }
 
-/// `Metro` type.
+/// `ClickThroughUrl` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Metro {
-    /// countryCode property.
-    pub country_code: Option<String>,
-    /// countryDartId property.
-    pub country_dart_id: Option<String>,
+pub struct ClickThroughUrl {
+    /// computedClickThroughUrl property.
+    pub computed_click_through_url: Option<String>,
+    /// customClickThroughUrl property.
+    pub custom_click_through_url: Option<String>,
+    /// defaultLandingPage property.
+    pub default_landing_page: Option<bool>,
+    /// landingPageId property.
+    pub landing_page_id: Option<String>,
+}
+
+/// `DefaultClickThroughEventTagProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DefaultClickThroughEventTagProperties {
+    /// defaultClickThroughEventTagId property.
+    pub default_click_through_event_tag_id: Option<String>,
+    /// overrideInheritedEventTag property.
+    pub override_inherited_event_tag: Option<bool>,
+}
+
+/// `OperatingSystem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OperatingSystem {
     /// dartId property.
     pub dart_id: Option<String>,
-    /// dmaId property.
-    pub dma_id: Option<String>,
+    /// desktop property.
+    pub desktop: Option<bool>,
     /// kind property.
     pub kind: Option<String>,
-    /// metroCode property.
-    pub metro_code: Option<String>,
+    /// mobile property.
+    pub mobile: Option<bool>,
     /// name property.
     pub name: Option<String>,
 }
 
-/// `ContextualKeyword` type.
+/// `FrequencyCap` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContextualKeyword {
-    /// keyword property.
-    pub keyword: Option<String>,
+pub struct FrequencyCap {
+    /// duration property.
+    pub duration: Option<String>,
+    /// impressions property.
+    pub impressions: Option<String>,
 }
 
-/// `LanguageTargeting` type.
+/// `OperatingSystemVersion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LanguageTargeting {
-    /// languages property.
-    pub languages: Option<Vec<Language>>,
-}
-
-/// `Size` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Size {
-    /// height property.
-    pub height: Option<i64>,
-    /// iab property.
-    pub iab: Option<bool>,
+pub struct OperatingSystemVersion {
     /// id property.
     pub id: Option<String>,
     /// kind property.
     pub kind: Option<String>,
-    /// width property.
-    pub width: Option<i64>,
-}
-
-/// `ConnectionType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionType {
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
+    /// majorVersion property.
+    pub major_version: Option<String>,
+    /// minorVersion property.
+    pub minor_version: Option<String>,
     /// name property.
     pub name: Option<String>,
+    /// operatingSystem property.
+    pub operating_system: Option<OperatingSystem>,
+}
+
+/// `RichMediaExitOverride` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RichMediaExitOverride {
+    /// clickThroughUrl property.
+    pub click_through_url: Option<ClickThroughUrl>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// exitId property.
+    pub exit_id: Option<String>,
 }
 
 // =============================================================================

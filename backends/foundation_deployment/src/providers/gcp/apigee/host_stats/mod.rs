@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,28 +22,21 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleCloudApigeeV1Stats;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudApigeeV1Metadata` type.
+/// `GoogleCloudApigeeV1StatsEnvironmentStats` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1Metadata {
-    /// errors property.
-    pub errors: Option<Vec<String>>,
-    /// notices property.
-    pub notices: Option<Vec<String>>,
-}
-
-/// `GoogleCloudApigeeV1Metric` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1Metric {
+pub struct GoogleCloudApigeeV1StatsEnvironmentStats {
+    /// dimensions property.
+    pub dimensions: Option<Vec<GoogleCloudApigeeV1DimensionMetric>>,
+    /// metrics property.
+    pub metrics: Option<Vec<GoogleCloudApigeeV1Metric>>,
     /// name property.
     pub name: Option<String>,
-    /// values property.
-    pub values: Option<Vec<serde_json::Value>>,
 }
 
 /// `GoogleCloudApigeeV1DimensionMetric` type.
@@ -56,15 +50,22 @@ pub struct GoogleCloudApigeeV1DimensionMetric {
     pub name: Option<String>,
 }
 
-/// `GoogleCloudApigeeV1StatsEnvironmentStats` type.
+/// `GoogleCloudApigeeV1Metric` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1StatsEnvironmentStats {
-    /// dimensions property.
-    pub dimensions: Option<Vec<GoogleCloudApigeeV1DimensionMetric>>,
-    /// metrics property.
-    pub metrics: Option<Vec<GoogleCloudApigeeV1Metric>>,
+pub struct GoogleCloudApigeeV1Metric {
     /// name property.
     pub name: Option<String>,
+    /// values property.
+    pub values: Option<Vec<serde_json::Value>>,
+}
+
+/// `GoogleCloudApigeeV1Metadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1Metadata {
+    /// errors property.
+    pub errors: Option<Vec<String>>,
+    /// notices property.
+    pub notices: Option<Vec<String>>,
 }
 
 /// `GoogleCloudApigeeV1StatsHostStats` type.

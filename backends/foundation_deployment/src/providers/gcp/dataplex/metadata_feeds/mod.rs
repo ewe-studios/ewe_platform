@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,22 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
 
 /// `GoogleCloudDataplexV1ListMetadataFeedsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -47,6 +37,38 @@ pub struct GoogleCloudDataplexV1ListMetadataFeedsResponse {
     pub next_page_token: Option<String>,
     /// unreachable property.
     pub unreachable: Option<Vec<String>>,
+}
+
+/// `GoogleCloudDataplexV1MetadataFeed` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1MetadataFeed {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// filters property.
+    pub filters: Option<GoogleCloudDataplexV1MetadataFeedFilters>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// pubsubTopic property.
+    pub pubsub_topic: Option<String>,
+    /// scope property.
+    pub scope: Option<GoogleCloudDataplexV1MetadataFeedScope>,
+    /// uid property.
+    pub uid: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `GoogleCloudDataplexV1MetadataFeedFilters` type.
@@ -69,27 +91,6 @@ pub struct GoogleCloudDataplexV1MetadataFeedScope {
     pub organization_level: Option<bool>,
     /// projects property.
     pub projects: Option<Vec<String>>,
-}
-
-/// `GoogleCloudDataplexV1MetadataFeed` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1MetadataFeed {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// filters property.
-    pub filters: Option<GoogleCloudDataplexV1MetadataFeedFilters>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// pubsubTopic property.
-    pub pubsub_topic: Option<String>,
-    /// scope property.
-    pub scope: Option<GoogleCloudDataplexV1MetadataFeedScope>,
-    /// uid property.
-    pub uid: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
 }
 
 // =============================================================================

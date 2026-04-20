@@ -12,56 +12,24 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `FetchVerificationOptionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FetchVerificationOptionsResponse {
-    /// options property.
-    pub options: Option<Vec<VerificationOption>>,
-}
 
 /// `VerifyLocationResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerifyLocationResponse {
     /// verification property.
     pub verification: Option<Verification>,
-}
-
-/// `Verification` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Verification {
-    /// announcement property.
-    pub announcement: Option<String>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// method property.
-    pub method: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `EmailVerificationData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EmailVerificationData {
-    /// domain property.
-    pub domain: Option<String>,
-    /// isUserNameEditable property.
-    pub is_user_name_editable: Option<bool>,
-    /// user property.
-    pub user: Option<String>,
 }
 
 /// `PostalAddress` type.
@@ -91,6 +59,28 @@ pub struct PostalAddress {
     pub sublocality: Option<String>,
 }
 
+/// `Verification` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Verification {
+    /// announcement property.
+    pub announcement: Option<String>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// method property.
+    pub method: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `FetchVerificationOptionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FetchVerificationOptionsResponse {
+    /// options property.
+    pub options: Option<Vec<VerificationOption>>,
+}
+
 /// `AddressVerificationData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressVerificationData {
@@ -115,6 +105,17 @@ pub struct VerificationOption {
     pub phone_number: Option<String>,
     /// verificationMethod property.
     pub verification_method: Option<String>,
+}
+
+/// `EmailVerificationData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EmailVerificationData {
+    /// domain property.
+    pub domain: Option<String>,
+    /// isUserNameEditable property.
+    pub is_user_name_editable: Option<bool>,
+    /// user property.
+    pub user: Option<String>,
 }
 
 // =============================================================================

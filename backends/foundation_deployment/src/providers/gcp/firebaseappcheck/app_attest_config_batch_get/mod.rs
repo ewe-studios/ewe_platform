@@ -12,17 +12,25 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleFirebaseAppcheckV1BatchGetAppAttestConfigsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirebaseAppcheckV1BatchGetAppAttestConfigsResponse {
+    /// configs property.
+    pub configs: Option<Vec<GoogleFirebaseAppcheckV1AppAttestConfig>>,
+}
 
 /// `GoogleFirebaseAppcheckV1AppAttestConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -31,13 +39,6 @@ pub struct GoogleFirebaseAppcheckV1AppAttestConfig {
     pub name: Option<String>,
     /// tokenTtl property.
     pub token_ttl: Option<String>,
-}
-
-/// `GoogleFirebaseAppcheckV1BatchGetAppAttestConfigsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirebaseAppcheckV1BatchGetAppAttestConfigsResponse {
-    /// configs property.
-    pub configs: Option<Vec<GoogleFirebaseAppcheckV1AppAttestConfig>>,
 }
 
 // =============================================================================

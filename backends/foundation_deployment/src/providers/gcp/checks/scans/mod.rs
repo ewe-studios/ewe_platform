@@ -12,17 +12,43 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleChecksRepoScanV1AlphaPullRequest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChecksRepoScanV1AlphaPullRequest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleChecksRepoScanV1AlphaSource` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChecksRepoScanV1AlphaSource {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleChecksRepoScanV1alphaListRepoScansResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChecksRepoScanV1alphaListRepoScansResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// repoScans property.
+    pub repo_scans: Option<Vec<GoogleChecksRepoScanV1AlphaRepoScan>>,
+}
 
 /// `GoogleChecksRepoScanV1alphaRepoScan` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -41,31 +67,6 @@ pub struct GoogleChecksRepoScanV1alphaRepoScan {
     pub sources: Option<Vec<GoogleChecksRepoScanV1AlphaSource>>,
 }
 
-/// `GoogleChecksRepoScanV1AlphaSource` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksRepoScanV1AlphaSource {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleChecksRepoScanV1AlphaScmMetadata` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksRepoScanV1AlphaScmMetadata {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleChecksRepoScanV1alphaListRepoScansResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksRepoScanV1alphaListRepoScansResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// repoScans property.
-    pub repo_scans: Option<Vec<GoogleChecksRepoScanV1AlphaRepoScan>>,
-}
-
 /// `GoogleChecksRepoScanV1AlphaCodeAttribution` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksRepoScanV1AlphaCodeAttribution {
@@ -82,9 +83,9 @@ pub struct GoogleChecksRepoScanV1AlphaRepoScan {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleChecksRepoScanV1AlphaPullRequest` response type.
+/// `GoogleChecksRepoScanV1AlphaScmMetadata` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksRepoScanV1AlphaPullRequest {
+pub struct GoogleChecksRepoScanV1AlphaScmMetadata {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

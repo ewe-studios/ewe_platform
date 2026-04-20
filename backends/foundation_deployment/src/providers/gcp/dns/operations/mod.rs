@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,37 +22,52 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ManagedZoneReverseLookupConfig` type.
+/// `ManagedZoneDnsSecConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZoneReverseLookupConfig {
+pub struct ManagedZoneDnsSecConfig {
+    /// defaultKeySpecs property.
+    pub default_key_specs: Option<Vec<DnsKeySpec>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nonExistence property.
+    pub non_existence: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `ManagedZonePrivateVisibilityConfigGKECluster` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedZonePrivateVisibilityConfigGKECluster {
+    /// gkeClusterName property.
+    pub gke_cluster_name: Option<String>,
     /// kind property.
     pub kind: Option<String>,
 }
 
-/// `ManagedZonePeeringConfig` type.
+/// `ManagedZoneCloudLoggingConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZonePeeringConfig {
+pub struct ManagedZoneCloudLoggingConfig {
+    /// enableLogging property.
+    pub enable_logging: Option<bool>,
     /// kind property.
     pub kind: Option<String>,
-    /// targetNetwork property.
-    pub target_network: Option<ManagedZonePeeringConfigTargetNetwork>,
 }
 
-/// `ManagedZonePeeringConfigTargetNetwork` type.
+/// `ManagedZonePrivateVisibilityConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZonePeeringConfigTargetNetwork {
-    /// deactivateTime property.
-    pub deactivate_time: Option<String>,
+pub struct ManagedZonePrivateVisibilityConfig {
+    /// gkeClusters property.
+    pub gke_clusters: Option<Vec<ManagedZonePrivateVisibilityConfigGKECluster>>,
     /// kind property.
     pub kind: Option<String>,
-    /// networkUrl property.
-    pub network_url: Option<String>,
+    /// networks property.
+    pub networks: Option<Vec<ManagedZonePrivateVisibilityConfigNetwork>>,
 }
 
 /// `ManagedZone` type.
@@ -93,37 +109,17 @@ pub struct ManagedZone {
     pub visibility: Option<String>,
 }
 
-/// `ManagedZoneDnsSecConfig` type.
+/// `DnsKeySpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZoneDnsSecConfig {
-    /// defaultKeySpecs property.
-    pub default_key_specs: Option<Vec<DnsKeySpec>>,
+pub struct DnsKeySpec {
+    /// algorithm property.
+    pub algorithm: Option<String>,
+    /// keyLength property.
+    pub key_length: Option<i64>,
+    /// keyType property.
+    pub key_type: Option<String>,
     /// kind property.
     pub kind: Option<String>,
-    /// nonExistence property.
-    pub non_existence: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `ManagedZonePrivateVisibilityConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZonePrivateVisibilityConfig {
-    /// gkeClusters property.
-    pub gke_clusters: Option<Vec<ManagedZonePrivateVisibilityConfigGKECluster>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// networks property.
-    pub networks: Option<Vec<ManagedZonePrivateVisibilityConfigNetwork>>,
-}
-
-/// `ManagedZonePrivateVisibilityConfigNetwork` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZonePrivateVisibilityConfigNetwork {
-    /// kind property.
-    pub kind: Option<String>,
-    /// networkUrl property.
-    pub network_url: Option<String>,
 }
 
 /// `OperationDnsKeyContext` type.
@@ -135,37 +131,40 @@ pub struct OperationDnsKeyContext {
     pub old_value: Option<DnsKey>,
 }
 
-/// `ManagedZoneForwardingConfigNameServerTarget` type.
+/// `DnsKeyDigest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZoneForwardingConfigNameServerTarget {
-    /// domainName property.
-    pub domain_name: Option<String>,
-    /// forwardingPath property.
-    pub forwarding_path: Option<String>,
-    /// ipv4Address property.
-    pub ipv4_address: Option<String>,
-    /// ipv6Address property.
-    pub ipv6_address: Option<String>,
+pub struct DnsKeyDigest {
+    /// digest property.
+    pub digest: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ManagedZoneForwardingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedZoneForwardingConfig {
+    /// kind property.
+    pub kind: Option<String>,
+    /// targetNameServers property.
+    pub target_name_servers: Option<Vec<ManagedZoneForwardingConfigNameServerTarget>>,
+}
+
+/// `ManagedZoneReverseLookupConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedZoneReverseLookupConfig {
     /// kind property.
     pub kind: Option<String>,
 }
 
-/// `ManagedZoneCloudLoggingConfig` type.
+/// `ManagedZoneOperationsListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZoneCloudLoggingConfig {
-    /// enableLogging property.
-    pub enable_logging: Option<bool>,
+pub struct ManagedZoneOperationsListResponse {
     /// kind property.
     pub kind: Option<String>,
-}
-
-/// `ManagedZoneServiceDirectoryConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZoneServiceDirectoryConfig {
-    /// kind property.
-    pub kind: Option<String>,
-    /// namespace property.
-    pub namespace: Option<ManagedZoneServiceDirectoryConfigNamespace>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// operations property.
+    pub operations: Option<Vec<Operation>>,
 }
 
 /// `DnsKey` type.
@@ -195,35 +194,13 @@ pub struct DnsKey {
     pub r#type: Option<String>,
 }
 
-/// `DnsKeyDigest` type.
+/// `ManagedZonePeeringConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsKeyDigest {
-    /// digest property.
-    pub digest: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `DnsKeySpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsKeySpec {
-    /// algorithm property.
-    pub algorithm: Option<String>,
-    /// keyLength property.
-    pub key_length: Option<i64>,
-    /// keyType property.
-    pub key_type: Option<String>,
+pub struct ManagedZonePeeringConfig {
     /// kind property.
     pub kind: Option<String>,
-}
-
-/// `ManagedZoneForwardingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZoneForwardingConfig {
-    /// kind property.
-    pub kind: Option<String>,
-    /// targetNameServers property.
-    pub target_name_servers: Option<Vec<ManagedZoneForwardingConfigNameServerTarget>>,
+    /// targetNetwork property.
+    pub target_network: Option<ManagedZonePeeringConfigTargetNetwork>,
 }
 
 /// `ManagedZoneServiceDirectoryConfigNamespace` type.
@@ -237,26 +214,6 @@ pub struct ManagedZoneServiceDirectoryConfigNamespace {
     pub namespace_url: Option<String>,
 }
 
-/// `ManagedZonePrivateVisibilityConfigGKECluster` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZonePrivateVisibilityConfigGKECluster {
-    /// gkeClusterName property.
-    pub gke_cluster_name: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `ManagedZoneOperationsListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedZoneOperationsListResponse {
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// operations property.
-    pub operations: Option<Vec<Operation>>,
-}
-
 /// `OperationManagedZoneContext` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationManagedZoneContext {
@@ -264,6 +221,50 @@ pub struct OperationManagedZoneContext {
     pub new_value: Option<ManagedZone>,
     /// oldValue property.
     pub old_value: Option<ManagedZone>,
+}
+
+/// `ManagedZoneServiceDirectoryConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedZoneServiceDirectoryConfig {
+    /// kind property.
+    pub kind: Option<String>,
+    /// namespace property.
+    pub namespace: Option<ManagedZoneServiceDirectoryConfigNamespace>,
+}
+
+/// `ManagedZonePrivateVisibilityConfigNetwork` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedZonePrivateVisibilityConfigNetwork {
+    /// kind property.
+    pub kind: Option<String>,
+    /// networkUrl property.
+    pub network_url: Option<String>,
+}
+
+/// `ManagedZonePeeringConfigTargetNetwork` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedZonePeeringConfigTargetNetwork {
+    /// deactivateTime property.
+    pub deactivate_time: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// networkUrl property.
+    pub network_url: Option<String>,
+}
+
+/// `ManagedZoneForwardingConfigNameServerTarget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedZoneForwardingConfigNameServerTarget {
+    /// domainName property.
+    pub domain_name: Option<String>,
+    /// forwardingPath property.
+    pub forwarding_path: Option<String>,
+    /// ipv4Address property.
+    pub ipv4_address: Option<String>,
+    /// ipv6Address property.
+    pub ipv6_address: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
 }
 
 // =============================================================================

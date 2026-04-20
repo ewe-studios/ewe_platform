@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,11 +24,40 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `BareMetalAdminControlPlaneConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalAdminControlPlaneConfig {
+    /// apiServerArgs property.
+    pub api_server_args: Option<Vec<BareMetalAdminApiServerArgument>>,
+    /// controlPlaneNodePoolConfig property.
+    pub control_plane_node_pool_config: Option<BareMetalAdminControlPlaneNodePoolConfig>,
+}
+
+/// `BareMetalAdminMachineDrainStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalAdminMachineDrainStatus {
+    /// drainedMachines property.
+    pub drained_machines: Option<Vec<BareMetalAdminDrainedMachine>>,
+    /// drainingMachines property.
+    pub draining_machines: Option<Vec<BareMetalAdminDrainingMachine>>,
+}
 
 /// `BareMetalAdminVipConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -36,26 +66,82 @@ pub struct BareMetalAdminVipConfig {
     pub control_plane_vip: Option<String>,
 }
 
-/// `BareMetalNodePoolConfig` type.
+/// `BareMetalLvpConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalNodePoolConfig {
-    /// kubeletConfig property.
-    pub kubelet_config: Option<BareMetalKubeletConfig>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// nodeConfigs property.
-    pub node_configs: Option<Vec<BareMetalNodeConfig>>,
-    /// operatingSystem property.
-    pub operating_system: Option<String>,
-    /// taints property.
-    pub taints: Option<Vec<NodeTaint>>,
+pub struct BareMetalLvpConfig {
+    /// path property.
+    pub path: Option<String>,
+    /// storageClass property.
+    pub storage_class: Option<String>,
 }
 
-/// `BareMetalAdminControlPlaneNodePoolConfig` type.
+/// `ClusterUser` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminControlPlaneNodePoolConfig {
-    /// nodePoolConfig property.
-    pub node_pool_config: Option<BareMetalNodePoolConfig>,
+pub struct ClusterUser {
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `BareMetalAdminNodeAccessConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalAdminNodeAccessConfig {
+    /// loginUser property.
+    pub login_user: Option<String>,
+}
+
+/// `Versions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Versions {
+    /// versions property.
+    pub versions: Option<Vec<Version>>,
+}
+
+/// `ResourceCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceCondition {
+    /// lastTransitionTime property.
+    pub last_transition_time: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ListBareMetalAdminClustersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListBareMetalAdminClustersResponse {
+    /// bareMetalAdminClusters property.
+    pub bare_metal_admin_clusters: Option<Vec<BareMetalAdminCluster>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `BareMetalAdminStorageConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalAdminStorageConfig {
+    /// lvpNodeMountsConfig property.
+    pub lvp_node_mounts_config: Option<BareMetalLvpConfig>,
+    /// lvpShareConfig property.
+    pub lvp_share_config: Option<BareMetalLvpShareConfig>,
 }
 
 /// `BareMetalAdminCluster` type.
@@ -121,131 +207,36 @@ pub struct BareMetalAdminCluster {
     pub validation_check: Option<ValidationCheck>,
 }
 
-/// `BareMetalAdminNetworkConfig` type.
+/// `BareMetalAdminManualLbConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminNetworkConfig {
-    /// advancedNetworking property.
-    pub advanced_networking: Option<bool>,
-    /// islandModeCidr property.
-    pub island_mode_cidr: Option<BareMetalAdminIslandModeCidrConfig>,
-    /// multipleNetworkInterfacesConfig property.
-    pub multiple_network_interfaces_config: Option<BareMetalAdminMultipleNetworkInterfacesConfig>,
+pub struct BareMetalAdminManualLbConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
 }
 
-/// `Status` type.
+/// `ValidationCheckStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct ValidationCheckStatus {
+    /// result property.
+    pub result: Option<Vec<ValidationCheckResult>>,
 }
 
-/// `Version` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Version {
-    /// count property.
-    pub count: Option<String>,
-    /// version property.
-    pub version: Option<String>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
-/// `BareMetalAdminLoadBalancerAddressPool` type.
+/// `BareMetalAdminClusterOperationsConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminLoadBalancerAddressPool {
-    /// addresses property.
-    pub addresses: Option<Vec<String>>,
-    /// avoidBuggyIps property.
-    pub avoid_buggy_ips: Option<bool>,
-    /// manualAssign property.
-    pub manual_assign: Option<bool>,
-    /// pool property.
-    pub pool: Option<String>,
-}
-
-/// `BareMetalAdminIslandModeCidrConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminIslandModeCidrConfig {
-    /// podAddressCidrBlocks property.
-    pub pod_address_cidr_blocks: Option<Vec<String>>,
-    /// serviceAddressCidrBlocks property.
-    pub service_address_cidr_blocks: Option<Vec<String>>,
-}
-
-/// `BareMetalAdminNodeAccessConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminNodeAccessConfig {
-    /// loginUser property.
-    pub login_user: Option<String>,
-}
-
-/// `BareMetalAdminOsEnvironmentConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminOsEnvironmentConfig {
-    /// packageRepoExcluded property.
-    pub package_repo_excluded: Option<bool>,
-}
-
-/// `Authorization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Authorization {
-    /// adminUsers property.
-    pub admin_users: Option<Vec<ClusterUser>>,
-}
-
-/// `BareMetalAdminBgpPeerConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminBgpPeerConfig {
-    /// asn property.
-    pub asn: Option<String>,
-    /// controlPlaneNodes property.
-    pub control_plane_nodes: Option<Vec<String>>,
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `ClusterUser` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterUser {
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `BareMetalAdminLoadBalancerConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminLoadBalancerConfig {
-    /// bgpLbConfig property.
-    pub bgp_lb_config: Option<BareMetalAdminBgpLbConfig>,
-    /// manualLbConfig property.
-    pub manual_lb_config: Option<BareMetalAdminManualLbConfig>,
-    /// portConfig property.
-    pub port_config: Option<BareMetalAdminPortConfig>,
-    /// vipConfig property.
-    pub vip_config: Option<BareMetalAdminVipConfig>,
-}
-
-/// `BareMetalAdminStorageConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminStorageConfig {
-    /// lvpNodeMountsConfig property.
-    pub lvp_node_mounts_config: Option<BareMetalLvpConfig>,
-    /// lvpShareConfig property.
-    pub lvp_share_config: Option<BareMetalLvpShareConfig>,
+pub struct BareMetalAdminClusterOperationsConfig {
+    /// enableApplicationLogs property.
+    pub enable_application_logs: Option<bool>,
 }
 
 /// `ResourceStatus` type.
@@ -261,29 +252,11 @@ pub struct ResourceStatus {
     pub versions: Option<Versions>,
 }
 
-/// `BareMetalLvpShareConfig` type.
+/// `Authorization` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalLvpShareConfig {
-    /// lvpConfig property.
-    pub lvp_config: Option<BareMetalLvpConfig>,
-    /// sharedPathPvCount property.
-    pub shared_path_pv_count: Option<i64>,
-}
-
-/// `BareMetalAdminClusterOperationsConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminClusterOperationsConfig {
-    /// enableApplicationLogs property.
-    pub enable_application_logs: Option<bool>,
-}
-
-/// `BareMetalAdminMachineDrainStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminMachineDrainStatus {
-    /// drainedMachines property.
-    pub drained_machines: Option<Vec<BareMetalAdminDrainedMachine>>,
-    /// drainingMachines property.
-    pub draining_machines: Option<Vec<BareMetalAdminDrainingMachine>>,
+pub struct Authorization {
+    /// adminUsers property.
+    pub admin_users: Option<Vec<ClusterUser>>,
 }
 
 /// `BareMetalAdminDrainingMachine` type.
@@ -295,18 +268,27 @@ pub struct BareMetalAdminDrainingMachine {
     pub pod_count: Option<i64>,
 }
 
-/// `Versions` type.
+/// `BareMetalAdminProxyConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Versions {
-    /// versions property.
-    pub versions: Option<Vec<Version>>,
+pub struct BareMetalAdminProxyConfig {
+    /// noProxy property.
+    pub no_proxy: Option<Vec<String>>,
+    /// uri property.
+    pub uri: Option<String>,
 }
 
-/// `BareMetalAdminWorkloadNodeConfig` type.
+/// `BareMetalAdminDrainedMachine` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminWorkloadNodeConfig {
-    /// maxPodsPerNode property.
-    pub max_pods_per_node: Option<String>,
+pub struct BareMetalAdminDrainedMachine {
+    /// nodeIp property.
+    pub node_ip: Option<String>,
+}
+
+/// `BareMetalAdminLoadBalancerNodePoolConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalAdminLoadBalancerNodePoolConfig {
+    /// nodePoolConfig property.
+    pub node_pool_config: Option<BareMetalNodePoolConfig>,
 }
 
 /// `BareMetalNodeConfig` type.
@@ -318,40 +300,31 @@ pub struct BareMetalNodeConfig {
     pub node_ip: Option<String>,
 }
 
-/// `BareMetalAdminSecurityConfig` type.
+/// `NodeTaint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminSecurityConfig {
-    /// authorization property.
-    pub authorization: Option<Authorization>,
+pub struct NodeTaint {
+    /// effect property.
+    pub effect: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
-/// `BinaryAuthorization` type.
+/// `BareMetalAdminApiServerArgument` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BinaryAuthorization {
-    /// evaluationMode property.
-    pub evaluation_mode: Option<String>,
+pub struct BareMetalAdminApiServerArgument {
+    /// argument property.
+    pub argument: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
-/// `BareMetalAdminBgpLbConfig` type.
+/// `BareMetalAdminPortConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminBgpLbConfig {
-    /// addressPools property.
-    pub address_pools: Option<Vec<BareMetalAdminLoadBalancerAddressPool>>,
-    /// asn property.
-    pub asn: Option<String>,
-    /// bgpPeerConfigs property.
-    pub bgp_peer_configs: Option<Vec<BareMetalAdminBgpPeerConfig>>,
-    /// loadBalancerNodePoolConfig property.
-    pub load_balancer_node_pool_config: Option<BareMetalAdminLoadBalancerNodePoolConfig>,
-}
-
-/// `BareMetalAdminProxyConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminProxyConfig {
-    /// noProxy property.
-    pub no_proxy: Option<Vec<String>>,
-    /// uri property.
-    pub uri: Option<String>,
+pub struct BareMetalAdminPortConfig {
+    /// controlPlaneLoadBalancerPort property.
+    pub control_plane_load_balancer_port: Option<i64>,
 }
 
 /// `ValidationCheckResult` type.
@@ -369,51 +342,128 @@ pub struct ValidationCheckResult {
     pub state: Option<String>,
 }
 
-/// `BareMetalAdminControlPlaneConfig` type.
+/// `BareMetalLvpShareConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminControlPlaneConfig {
-    /// apiServerArgs property.
-    pub api_server_args: Option<Vec<BareMetalAdminApiServerArgument>>,
-    /// controlPlaneNodePoolConfig property.
-    pub control_plane_node_pool_config: Option<BareMetalAdminControlPlaneNodePoolConfig>,
+pub struct BareMetalLvpShareConfig {
+    /// lvpConfig property.
+    pub lvp_config: Option<BareMetalLvpConfig>,
+    /// sharedPathPvCount property.
+    pub shared_path_pv_count: Option<i64>,
 }
 
-/// `Binding` type.
+/// `BareMetalAdminBgpLbConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct BareMetalAdminBgpLbConfig {
+    /// addressPools property.
+    pub address_pools: Option<Vec<BareMetalAdminLoadBalancerAddressPool>>,
+    /// asn property.
+    pub asn: Option<String>,
+    /// bgpPeerConfigs property.
+    pub bgp_peer_configs: Option<Vec<BareMetalAdminBgpPeerConfig>>,
+    /// loadBalancerNodePoolConfig property.
+    pub load_balancer_node_pool_config: Option<BareMetalAdminLoadBalancerNodePoolConfig>,
 }
 
-/// `NodeTaint` type.
+/// `BareMetalAdminLoadBalancerAddressPool` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeTaint {
-    /// effect property.
-    pub effect: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct BareMetalAdminLoadBalancerAddressPool {
+    /// addresses property.
+    pub addresses: Option<Vec<String>>,
+    /// avoidBuggyIps property.
+    pub avoid_buggy_ips: Option<bool>,
+    /// manualAssign property.
+    pub manual_assign: Option<bool>,
+    /// pool property.
+    pub pool: Option<String>,
 }
 
-/// `BareMetalAdminPortConfig` type.
+/// `BareMetalAdminControlPlaneNodePoolConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminPortConfig {
-    /// controlPlaneLoadBalancerPort property.
-    pub control_plane_load_balancer_port: Option<i64>,
+pub struct BareMetalAdminControlPlaneNodePoolConfig {
+    /// nodePoolConfig property.
+    pub node_pool_config: Option<BareMetalNodePoolConfig>,
 }
 
-/// `BareMetalAdminApiServerArgument` type.
+/// `BareMetalAdminSecurityConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminApiServerArgument {
-    /// argument property.
-    pub argument: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct BareMetalAdminSecurityConfig {
+    /// authorization property.
+    pub authorization: Option<Authorization>,
+}
+
+/// `BareMetalNodePoolConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalNodePoolConfig {
+    /// kubeletConfig property.
+    pub kubelet_config: Option<BareMetalKubeletConfig>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// nodeConfigs property.
+    pub node_configs: Option<Vec<BareMetalNodeConfig>>,
+    /// operatingSystem property.
+    pub operating_system: Option<String>,
+    /// taints property.
+    pub taints: Option<Vec<NodeTaint>>,
+}
+
+/// `BareMetalKubeletConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalKubeletConfig {
+    /// registryBurst property.
+    pub registry_burst: Option<i64>,
+    /// registryPullQps property.
+    pub registry_pull_qps: Option<i64>,
+    /// serializeImagePullsDisabled property.
+    pub serialize_image_pulls_disabled: Option<bool>,
+}
+
+/// `BareMetalAdminIslandModeCidrConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalAdminIslandModeCidrConfig {
+    /// podAddressCidrBlocks property.
+    pub pod_address_cidr_blocks: Option<Vec<String>>,
+    /// serviceAddressCidrBlocks property.
+    pub service_address_cidr_blocks: Option<Vec<String>>,
+}
+
+/// `BareMetalAdminLoadBalancerConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalAdminLoadBalancerConfig {
+    /// bgpLbConfig property.
+    pub bgp_lb_config: Option<BareMetalAdminBgpLbConfig>,
+    /// manualLbConfig property.
+    pub manual_lb_config: Option<BareMetalAdminManualLbConfig>,
+    /// portConfig property.
+    pub port_config: Option<BareMetalAdminPortConfig>,
+    /// vipConfig property.
+    pub vip_config: Option<BareMetalAdminVipConfig>,
+}
+
+/// `Version` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Version {
+    /// count property.
+    pub count: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `BareMetalAdminBgpPeerConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalAdminBgpPeerConfig {
+    /// asn property.
+    pub asn: Option<String>,
+    /// controlPlaneNodes property.
+    pub control_plane_nodes: Option<Vec<String>>,
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+}
+
+/// `BareMetalAdminMaintenanceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalAdminMaintenanceConfig {
+    /// maintenanceAddressCidrBlocks property.
+    pub maintenance_address_cidr_blocks: Option<Vec<String>>,
 }
 
 /// `ValidationCheck` type.
@@ -434,71 +484,15 @@ pub struct BareMetalAdminMaintenanceStatus {
     pub machine_drain_status: Option<BareMetalAdminMachineDrainStatus>,
 }
 
-/// `BareMetalLvpConfig` type.
+/// `BareMetalAdminNetworkConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalLvpConfig {
-    /// path property.
-    pub path: Option<String>,
-    /// storageClass property.
-    pub storage_class: Option<String>,
-}
-
-/// `BareMetalKubeletConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalKubeletConfig {
-    /// registryBurst property.
-    pub registry_burst: Option<i64>,
-    /// registryPullQps property.
-    pub registry_pull_qps: Option<i64>,
-    /// serializeImagePullsDisabled property.
-    pub serialize_image_pulls_disabled: Option<bool>,
-}
-
-/// `BareMetalAdminLoadBalancerNodePoolConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminLoadBalancerNodePoolConfig {
-    /// nodePoolConfig property.
-    pub node_pool_config: Option<BareMetalNodePoolConfig>,
-}
-
-/// `ValidationCheckStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValidationCheckStatus {
-    /// result property.
-    pub result: Option<Vec<ValidationCheckResult>>,
-}
-
-/// `ListBareMetalAdminClustersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListBareMetalAdminClustersResponse {
-    /// bareMetalAdminClusters property.
-    pub bare_metal_admin_clusters: Option<Vec<BareMetalAdminCluster>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `ResourceCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceCondition {
-    /// lastTransitionTime property.
-    pub last_transition_time: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `BareMetalAdminDrainedMachine` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminDrainedMachine {
-    /// nodeIp property.
-    pub node_ip: Option<String>,
+pub struct BareMetalAdminNetworkConfig {
+    /// advancedNetworking property.
+    pub advanced_networking: Option<bool>,
+    /// islandModeCidr property.
+    pub island_mode_cidr: Option<BareMetalAdminIslandModeCidrConfig>,
+    /// multipleNetworkInterfacesConfig property.
+    pub multiple_network_interfaces_config: Option<BareMetalAdminMultipleNetworkInterfacesConfig>,
 }
 
 /// `Fleet` type.
@@ -508,23 +502,30 @@ pub struct Fleet {
     pub membership: Option<String>,
 }
 
-/// `BareMetalAdminMaintenanceConfig` type.
+/// `BareMetalAdminWorkloadNodeConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminMaintenanceConfig {
-    /// maintenanceAddressCidrBlocks property.
-    pub maintenance_address_cidr_blocks: Option<Vec<String>>,
+pub struct BareMetalAdminWorkloadNodeConfig {
+    /// maxPodsPerNode property.
+    pub max_pods_per_node: Option<String>,
+}
+
+/// `BareMetalAdminOsEnvironmentConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalAdminOsEnvironmentConfig {
+    /// packageRepoExcluded property.
+    pub package_repo_excluded: Option<bool>,
+}
+
+/// `BinaryAuthorization` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BinaryAuthorization {
+    /// evaluationMode property.
+    pub evaluation_mode: Option<String>,
 }
 
 /// `BareMetalAdminMultipleNetworkInterfacesConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminMultipleNetworkInterfacesConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `BareMetalAdminManualLbConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalAdminManualLbConfig {
     /// enabled property.
     pub enabled: Option<bool>,
 }

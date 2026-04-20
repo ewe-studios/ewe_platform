@@ -6,6 +6,7 @@
 #![cfg(feature = "gcp_apigee")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
 #![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(unused_imports)]
 
 pub mod shared;
 
@@ -165,8 +166,6 @@ pub mod security_incidents;
 pub mod security_incidents_batch_update;
 #[cfg(feature = "gcp_apigee_security_monitoring_conditions")]
 pub mod security_monitoring_conditions;
-#[cfg(feature = "gcp_apigee_security_profiles")]
-pub mod security_profiles;
 #[cfg(feature = "gcp_apigee_security_profiles")]
 pub mod security_profiles;
 #[cfg(feature = "gcp_apigee_security_reports")]

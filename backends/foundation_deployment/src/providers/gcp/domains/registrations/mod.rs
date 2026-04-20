@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,241 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `PostalAddress` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostalAddress {
-    /// addressLines property.
-    pub address_lines: Option<Vec<String>>,
-    /// administrativeArea property.
-    pub administrative_area: Option<String>,
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// locality property.
-    pub locality: Option<String>,
-    /// organization property.
-    pub organization: Option<String>,
-    /// postalCode property.
-    pub postal_code: Option<String>,
-    /// recipients property.
-    pub recipients: Option<Vec<String>>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-    /// revision property.
-    pub revision: Option<i64>,
-    /// sortingCode property.
-    pub sorting_code: Option<String>,
-    /// sublocality property.
-    pub sublocality: Option<String>,
-}
-
-/// `WrrPolicyItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WrrPolicyItem {
-    /// healthCheckedTargets property.
-    pub health_checked_targets: Option<HealthCheckTargets>,
-    /// rrdata property.
-    pub rrdata: Option<Vec<String>>,
-    /// signatureRrdata property.
-    pub signature_rrdata: Option<Vec<String>>,
-    /// weight property.
-    pub weight: Option<f64>,
-}
-
-/// `GlueRecord` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GlueRecord {
-    /// hostName property.
-    pub host_name: Option<String>,
-    /// ipv4Addresses property.
-    pub ipv4_addresses: Option<Vec<String>>,
-    /// ipv6Addresses property.
-    pub ipv6_addresses: Option<Vec<String>>,
-}
-
-/// `Contact` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Contact {
-    /// email property.
-    pub email: Option<String>,
-    /// faxNumber property.
-    pub fax_number: Option<String>,
-    /// phoneNumber property.
-    pub phone_number: Option<String>,
-    /// postalAddress property.
-    pub postal_address: Option<PostalAddress>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `ResourceRecordSet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceRecordSet {
-    /// name property.
-    pub name: Option<String>,
-    /// routingPolicy property.
-    pub routing_policy: Option<RRSetRoutingPolicy>,
-    /// rrdata property.
-    pub rrdata: Option<Vec<String>>,
-    /// signatureRrdata property.
-    pub signature_rrdata: Option<Vec<String>>,
-    /// ttl property.
-    pub ttl: Option<i64>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `WrrPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WrrPolicy {
-    /// item property.
-    pub item: Option<Vec<WrrPolicyItem>>,
-}
-
-/// `RRSetRoutingPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RRSetRoutingPolicy {
-    /// geo property.
-    pub geo: Option<GeoPolicy>,
-    /// geoPolicy property.
-    pub geo_policy: Option<GeoPolicy>,
-    /// healthCheck property.
-    pub health_check: Option<String>,
-    /// primaryBackup property.
-    pub primary_backup: Option<PrimaryBackupPolicy>,
-    /// wrr property.
-    pub wrr: Option<WrrPolicy>,
-    /// wrrPolicy property.
-    pub wrr_policy: Option<WrrPolicy>,
-}
-
-/// `ContactSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContactSettings {
-    /// adminContact property.
-    pub admin_contact: Option<Contact>,
-    /// privacy property.
-    pub privacy: Option<String>,
-    /// registrantContact property.
-    pub registrant_contact: Option<Contact>,
-    /// technicalContact property.
-    pub technical_contact: Option<Contact>,
-}
-
-/// `RetrieveGoogleDomainsDnsRecordsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RetrieveGoogleDomainsDnsRecordsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// rrset property.
-    pub rrset: Option<Vec<ResourceRecordSet>>,
-}
-
-/// `LoadBalancerTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancerTarget {
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// ipProtocol property.
-    pub ip_protocol: Option<String>,
-    /// loadBalancerType property.
-    pub load_balancer_type: Option<String>,
-    /// networkUrl property.
-    pub network_url: Option<String>,
-    /// port property.
-    pub port: Option<String>,
-    /// project property.
-    pub project: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-}
-
-/// `ManagementSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagementSettings {
-    /// effectiveTransferLockState property.
-    pub effective_transfer_lock_state: Option<String>,
-    /// preferredRenewalMethod property.
-    pub preferred_renewal_method: Option<String>,
-    /// renewalMethod property.
-    pub renewal_method: Option<String>,
-    /// transferLockState property.
-    pub transfer_lock_state: Option<String>,
-}
-
-/// `DsRecord` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DsRecord {
-    /// algorithm property.
-    pub algorithm: Option<String>,
-    /// digest property.
-    pub digest: Option<String>,
-    /// digestType property.
-    pub digest_type: Option<String>,
-    /// keyTag property.
-    pub key_tag: Option<i64>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `EmailForwarding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EmailForwarding {
-    /// alias property.
-    pub alias: Option<String>,
-    /// targetEmailAddress property.
-    pub target_email_address: Option<String>,
-}
-
-/// `GoogleDomainsDns` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleDomainsDns {
-    /// dsRecords property.
-    pub ds_records: Option<Vec<DsRecord>>,
-    /// dsState property.
-    pub ds_state: Option<String>,
-    /// nameServers property.
-    pub name_servers: Option<Vec<String>>,
-}
-
-/// `TestIamPermissionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestIamPermissionsResponse {
-    /// permissions property.
-    pub permissions: Option<Vec<String>>,
-}
 
 /// `Registration` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -292,33 +63,15 @@ pub struct Registration {
     pub transfer_failure_reason: Option<String>,
 }
 
-/// `PrimaryBackupPolicy` type.
+/// `GlueRecord` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrimaryBackupPolicy {
-    /// backupGeoTargets property.
-    pub backup_geo_targets: Option<GeoPolicy>,
-    /// primaryTargets property.
-    pub primary_targets: Option<HealthCheckTargets>,
-    /// trickleTraffic property.
-    pub trickle_traffic: Option<f64>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `RetrieveGoogleDomainsForwardingConfigResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RetrieveGoogleDomainsForwardingConfigResponse {
-    /// domainForwardings property.
-    pub domain_forwardings: Option<Vec<DomainForwarding>>,
-    /// emailForwardings property.
-    pub email_forwardings: Option<Vec<EmailForwarding>>,
+pub struct GlueRecord {
+    /// hostName property.
+    pub host_name: Option<String>,
+    /// ipv4Addresses property.
+    pub ipv4_addresses: Option<Vec<String>>,
+    /// ipv6Addresses property.
+    pub ipv6_addresses: Option<Vec<String>>,
 }
 
 /// `Expr` type.
@@ -334,17 +87,24 @@ pub struct Expr {
     pub title: Option<String>,
 }
 
-/// `DnsSettings` type.
+/// `RetrieveGoogleDomainsDnsRecordsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettings {
-    /// customDns property.
-    pub custom_dns: Option<CustomDns>,
-    /// glueRecords property.
-    pub glue_records: Option<Vec<GlueRecord>>,
-    /// googleDomainsDns property.
-    pub google_domains_dns: Option<GoogleDomainsDns>,
-    /// googleDomainsRedirectsDataAvailable property.
-    pub google_domains_redirects_data_available: Option<bool>,
+pub struct RetrieveGoogleDomainsDnsRecordsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// rrset property.
+    pub rrset: Option<Vec<ResourceRecordSet>>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `GeoPolicyItem` type.
@@ -358,49 +118,6 @@ pub struct GeoPolicyItem {
     pub rrdata: Option<Vec<String>>,
     /// signatureRrdata property.
     pub signature_rrdata: Option<Vec<String>>,
-}
-
-/// `AuthorizationCode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthorizationCode {
-    /// code property.
-    pub code: Option<String>,
-}
-
-/// `HealthCheckTargets` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HealthCheckTargets {
-    /// externalEndpoints property.
-    pub external_endpoints: Option<Vec<String>>,
-    /// internalLoadBalancer property.
-    pub internal_load_balancer: Option<Vec<LoadBalancerTarget>>,
-}
-
-/// `CustomDns` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomDns {
-    /// dsRecords property.
-    pub ds_records: Option<Vec<DsRecord>>,
-    /// nameServers property.
-    pub name_servers: Option<Vec<String>>,
-}
-
-/// `GeoPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeoPolicy {
-    /// enableFencing property.
-    pub enable_fencing: Option<bool>,
-    /// item property.
-    pub item: Option<Vec<GeoPolicyItem>>,
-}
-
-/// `ListRegistrationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListRegistrationsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// registrations property.
-    pub registrations: Option<Vec<Registration>>,
 }
 
 /// `DomainForwarding` type.
@@ -420,6 +137,24 @@ pub struct DomainForwarding {
     pub target_uri: Option<String>,
 }
 
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `WrrPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WrrPolicy {
+    /// item property.
+    pub item: Option<Vec<WrrPolicyItem>>,
+}
+
 /// `Policy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
@@ -431,6 +166,272 @@ pub struct Policy {
     pub etag: Option<String>,
     /// version property.
     pub version: Option<i64>,
+}
+
+/// `EmailForwarding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EmailForwarding {
+    /// alias property.
+    pub alias: Option<String>,
+    /// targetEmailAddress property.
+    pub target_email_address: Option<String>,
+}
+
+/// `GoogleDomainsDns` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleDomainsDns {
+    /// dsRecords property.
+    pub ds_records: Option<Vec<DsRecord>>,
+    /// dsState property.
+    pub ds_state: Option<String>,
+    /// nameServers property.
+    pub name_servers: Option<Vec<String>>,
+}
+
+/// `AuthorizationCode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthorizationCode {
+    /// code property.
+    pub code: Option<String>,
+}
+
+/// `HealthCheckTargets` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HealthCheckTargets {
+    /// externalEndpoints property.
+    pub external_endpoints: Option<Vec<String>>,
+    /// internalLoadBalancer property.
+    pub internal_load_balancer: Option<Vec<LoadBalancerTarget>>,
+}
+
+/// `RRSetRoutingPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RRSetRoutingPolicy {
+    /// geo property.
+    pub geo: Option<GeoPolicy>,
+    /// geoPolicy property.
+    pub geo_policy: Option<GeoPolicy>,
+    /// healthCheck property.
+    pub health_check: Option<String>,
+    /// primaryBackup property.
+    pub primary_backup: Option<PrimaryBackupPolicy>,
+    /// wrr property.
+    pub wrr: Option<WrrPolicy>,
+    /// wrrPolicy property.
+    pub wrr_policy: Option<WrrPolicy>,
+}
+
+/// `GeoPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GeoPolicy {
+    /// enableFencing property.
+    pub enable_fencing: Option<bool>,
+    /// item property.
+    pub item: Option<Vec<GeoPolicyItem>>,
+}
+
+/// `Contact` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Contact {
+    /// email property.
+    pub email: Option<String>,
+    /// faxNumber property.
+    pub fax_number: Option<String>,
+    /// phoneNumber property.
+    pub phone_number: Option<String>,
+    /// postalAddress property.
+    pub postal_address: Option<PostalAddress>,
+}
+
+/// `PostalAddress` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostalAddress {
+    /// addressLines property.
+    pub address_lines: Option<Vec<String>>,
+    /// administrativeArea property.
+    pub administrative_area: Option<String>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// locality property.
+    pub locality: Option<String>,
+    /// organization property.
+    pub organization: Option<String>,
+    /// postalCode property.
+    pub postal_code: Option<String>,
+    /// recipients property.
+    pub recipients: Option<Vec<String>>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+    /// revision property.
+    pub revision: Option<i64>,
+    /// sortingCode property.
+    pub sorting_code: Option<String>,
+    /// sublocality property.
+    pub sublocality: Option<String>,
+}
+
+/// `ResourceRecordSet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceRecordSet {
+    /// name property.
+    pub name: Option<String>,
+    /// routingPolicy property.
+    pub routing_policy: Option<RRSetRoutingPolicy>,
+    /// rrdata property.
+    pub rrdata: Option<Vec<String>>,
+    /// signatureRrdata property.
+    pub signature_rrdata: Option<Vec<String>>,
+    /// ttl property.
+    pub ttl: Option<i64>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `DsRecord` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DsRecord {
+    /// algorithm property.
+    pub algorithm: Option<String>,
+    /// digest property.
+    pub digest: Option<String>,
+    /// digestType property.
+    pub digest_type: Option<String>,
+    /// keyTag property.
+    pub key_tag: Option<i64>,
+}
+
+/// `ListRegistrationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListRegistrationsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// registrations property.
+    pub registrations: Option<Vec<Registration>>,
+}
+
+/// `LoadBalancerTarget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoadBalancerTarget {
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// ipProtocol property.
+    pub ip_protocol: Option<String>,
+    /// loadBalancerType property.
+    pub load_balancer_type: Option<String>,
+    /// networkUrl property.
+    pub network_url: Option<String>,
+    /// port property.
+    pub port: Option<String>,
+    /// project property.
+    pub project: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+}
+
+/// `WrrPolicyItem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WrrPolicyItem {
+    /// healthCheckedTargets property.
+    pub health_checked_targets: Option<HealthCheckTargets>,
+    /// rrdata property.
+    pub rrdata: Option<Vec<String>>,
+    /// signatureRrdata property.
+    pub signature_rrdata: Option<Vec<String>>,
+    /// weight property.
+    pub weight: Option<f64>,
+}
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `TestIamPermissionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TestIamPermissionsResponse {
+    /// permissions property.
+    pub permissions: Option<Vec<String>>,
+}
+
+/// `RetrieveGoogleDomainsForwardingConfigResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RetrieveGoogleDomainsForwardingConfigResponse {
+    /// domainForwardings property.
+    pub domain_forwardings: Option<Vec<DomainForwarding>>,
+    /// emailForwardings property.
+    pub email_forwardings: Option<Vec<EmailForwarding>>,
+}
+
+/// `DnsSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettings {
+    /// customDns property.
+    pub custom_dns: Option<CustomDns>,
+    /// glueRecords property.
+    pub glue_records: Option<Vec<GlueRecord>>,
+    /// googleDomainsDns property.
+    pub google_domains_dns: Option<GoogleDomainsDns>,
+    /// googleDomainsRedirectsDataAvailable property.
+    pub google_domains_redirects_data_available: Option<bool>,
+}
+
+/// `ManagementSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagementSettings {
+    /// effectiveTransferLockState property.
+    pub effective_transfer_lock_state: Option<String>,
+    /// preferredRenewalMethod property.
+    pub preferred_renewal_method: Option<String>,
+    /// renewalMethod property.
+    pub renewal_method: Option<String>,
+    /// transferLockState property.
+    pub transfer_lock_state: Option<String>,
+}
+
+/// `CustomDns` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomDns {
+    /// dsRecords property.
+    pub ds_records: Option<Vec<DsRecord>>,
+    /// nameServers property.
+    pub name_servers: Option<Vec<String>>,
+}
+
+/// `PrimaryBackupPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrimaryBackupPolicy {
+    /// backupGeoTargets property.
+    pub backup_geo_targets: Option<GeoPolicy>,
+    /// primaryTargets property.
+    pub primary_targets: Option<HealthCheckTargets>,
+    /// trickleTraffic property.
+    pub trickle_traffic: Option<f64>,
+}
+
+/// `ContactSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContactSettings {
+    /// adminContact property.
+    pub admin_contact: Option<Contact>,
+    /// privacy property.
+    pub privacy: Option<String>,
+    /// registrantContact property.
+    pub registrant_contact: Option<Contact>,
+    /// technicalContact property.
+    pub technical_contact: Option<Contact>,
 }
 
 // =============================================================================

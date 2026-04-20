@@ -12,238 +12,37 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `AddDocumentTabResponse` type.
+/// `WeightedFontFamily` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AddDocumentTabResponse {
-    /// tabProperties property.
-    pub tab_properties: Option<TabProperties>,
+pub struct WeightedFontFamily {
+    /// fontFamily property.
+    pub font_family: Option<String>,
+    /// weight property.
+    pub weight: Option<i64>,
 }
 
-/// `CreateNamedRangeResponse` type.
+/// `BatchUpdateDocumentResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateNamedRangeResponse {
-    /// namedRangeId property.
-    pub named_range_id: Option<String>,
-}
-
-/// `DocumentStyle` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DocumentStyle {
-    /// background property.
-    pub background: Option<Background>,
-    /// defaultFooterId property.
-    pub default_footer_id: Option<String>,
-    /// defaultHeaderId property.
-    pub default_header_id: Option<String>,
-    /// documentFormat property.
-    pub document_format: Option<DocumentFormat>,
-    /// evenPageFooterId property.
-    pub even_page_footer_id: Option<String>,
-    /// evenPageHeaderId property.
-    pub even_page_header_id: Option<String>,
-    /// firstPageFooterId property.
-    pub first_page_footer_id: Option<String>,
-    /// firstPageHeaderId property.
-    pub first_page_header_id: Option<String>,
-    /// flipPageOrientation property.
-    pub flip_page_orientation: Option<bool>,
-    /// marginBottom property.
-    pub margin_bottom: Option<Dimension>,
-    /// marginFooter property.
-    pub margin_footer: Option<Dimension>,
-    /// marginHeader property.
-    pub margin_header: Option<Dimension>,
-    /// marginLeft property.
-    pub margin_left: Option<Dimension>,
-    /// marginRight property.
-    pub margin_right: Option<Dimension>,
-    /// marginTop property.
-    pub margin_top: Option<Dimension>,
-    /// pageNumberStart property.
-    pub page_number_start: Option<i64>,
-    /// pageSize property.
-    pub page_size: Option<Size>,
-    /// useCustomHeaderFooterMargins property.
-    pub use_custom_header_footer_margins: Option<bool>,
-    /// useEvenPageHeaderFooter property.
-    pub use_even_page_header_footer: Option<bool>,
-    /// useFirstPageHeaderFooter property.
-    pub use_first_page_header_footer: Option<bool>,
-}
-
-/// `Table` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Table {
-    /// columns property.
-    pub columns: Option<i64>,
-    /// rows property.
-    pub rows: Option<i64>,
-    /// suggestedDeletionIds property.
-    pub suggested_deletion_ids: Option<Vec<String>>,
-    /// suggestedInsertionIds property.
-    pub suggested_insertion_ids: Option<Vec<String>>,
-    /// tableRows property.
-    pub table_rows: Option<Vec<TableRow>>,
-    /// tableStyle property.
-    pub table_style: Option<TableStyle>,
-}
-
-/// `DocumentTab` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DocumentTab {
-    /// body property.
-    pub body: Option<Body>,
-    /// documentStyle property.
-    pub document_style: Option<DocumentStyle>,
-    /// footers property.
-    pub footers: Option<serde_json::Value>,
-    /// footnotes property.
-    pub footnotes: Option<serde_json::Value>,
-    /// headers property.
-    pub headers: Option<serde_json::Value>,
-    /// inlineObjects property.
-    pub inline_objects: Option<serde_json::Value>,
-    /// lists property.
-    pub lists: Option<serde_json::Value>,
-    /// namedRanges property.
-    pub named_ranges: Option<serde_json::Value>,
-    /// namedStyles property.
-    pub named_styles: Option<NamedStyles>,
-    /// positionedObjects property.
-    pub positioned_objects: Option<serde_json::Value>,
-    /// suggestedDocumentStyleChanges property.
-    pub suggested_document_style_changes: Option<serde_json::Value>,
-    /// suggestedNamedStylesChanges property.
-    pub suggested_named_styles_changes: Option<serde_json::Value>,
-}
-
-/// `TableCell` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableCell {
-    /// content property.
-    pub content: Option<Vec<StructuralElement>>,
-    /// endIndex property.
-    pub end_index: Option<i64>,
-    /// startIndex property.
-    pub start_index: Option<i64>,
-    /// suggestedDeletionIds property.
-    pub suggested_deletion_ids: Option<Vec<String>>,
-    /// suggestedInsertionIds property.
-    pub suggested_insertion_ids: Option<Vec<String>>,
-    /// suggestedTableCellStyleChanges property.
-    pub suggested_table_cell_style_changes: Option<serde_json::Value>,
-    /// tableCellStyle property.
-    pub table_cell_style: Option<TableCellStyle>,
-}
-
-/// `SectionStyle` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SectionStyle {
-    /// columnProperties property.
-    pub column_properties: Option<Vec<SectionColumnProperties>>,
-    /// columnSeparatorStyle property.
-    pub column_separator_style: Option<String>,
-    /// contentDirection property.
-    pub content_direction: Option<String>,
-    /// defaultFooterId property.
-    pub default_footer_id: Option<String>,
-    /// defaultHeaderId property.
-    pub default_header_id: Option<String>,
-    /// evenPageFooterId property.
-    pub even_page_footer_id: Option<String>,
-    /// evenPageHeaderId property.
-    pub even_page_header_id: Option<String>,
-    /// firstPageFooterId property.
-    pub first_page_footer_id: Option<String>,
-    /// firstPageHeaderId property.
-    pub first_page_header_id: Option<String>,
-    /// flipPageOrientation property.
-    pub flip_page_orientation: Option<bool>,
-    /// marginBottom property.
-    pub margin_bottom: Option<Dimension>,
-    /// marginFooter property.
-    pub margin_footer: Option<Dimension>,
-    /// marginHeader property.
-    pub margin_header: Option<Dimension>,
-    /// marginLeft property.
-    pub margin_left: Option<Dimension>,
-    /// marginRight property.
-    pub margin_right: Option<Dimension>,
-    /// marginTop property.
-    pub margin_top: Option<Dimension>,
-    /// pageNumberStart property.
-    pub page_number_start: Option<i64>,
-    /// sectionType property.
-    pub section_type: Option<String>,
-    /// useFirstPageHeaderFooter property.
-    pub use_first_page_header_footer: Option<bool>,
-}
-
-/// `Link` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Link {
-    /// bookmark property.
-    pub bookmark: Option<BookmarkLink>,
-    /// bookmarkId property.
-    pub bookmark_id: Option<String>,
-    /// heading property.
-    pub heading: Option<HeadingLink>,
-    /// headingId property.
-    pub heading_id: Option<String>,
-    /// tabId property.
-    pub tab_id: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `Tab` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Tab {
-    /// childTabs property.
-    pub child_tabs: Option<Vec<Tab>>,
-    /// documentTab property.
-    pub document_tab: Option<DocumentTab>,
-    /// tabProperties property.
-    pub tab_properties: Option<TabProperties>,
-}
-
-/// `BookmarkLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BookmarkLink {
-    /// id property.
-    pub id: Option<String>,
-    /// tabId property.
-    pub tab_id: Option<String>,
-}
-
-/// `Shading` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Shading {
-    /// backgroundColor property.
-    pub background_color: Option<OptionalColor>,
-}
-
-/// `RgbColor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RgbColor {
-    /// blue property.
-    pub blue: Option<f64>,
-    /// green property.
-    pub green: Option<f64>,
-    /// red property.
-    pub red: Option<f64>,
+pub struct BatchUpdateDocumentResponse {
+    /// documentId property.
+    pub document_id: Option<String>,
+    /// replies property.
+    pub replies: Option<Vec<Response>>,
+    /// writeControl property.
+    pub write_control: Option<WriteControl>,
 }
 
 /// `DateElement` type.
@@ -265,71 +64,18 @@ pub struct DateElement {
     pub text_style: Option<TextStyle>,
 }
 
-/// `Color` type.
+/// `TableStyle` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Color {
-    /// rgbColor property.
-    pub rgb_color: Option<RgbColor>,
+pub struct TableStyle {
+    /// tableColumnProperties property.
+    pub table_column_properties: Option<Vec<TableColumnProperties>>,
 }
 
-/// `ReplaceAllTextResponse` type.
+/// `InsertInlineImageResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReplaceAllTextResponse {
-    /// occurrencesChanged property.
-    pub occurrences_changed: Option<i64>,
-}
-
-/// `TableOfContents` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableOfContents {
-    /// content property.
-    pub content: Option<Vec<StructuralElement>>,
-    /// suggestedDeletionIds property.
-    pub suggested_deletion_ids: Option<Vec<String>>,
-    /// suggestedInsertionIds property.
-    pub suggested_insertion_ids: Option<Vec<String>>,
-}
-
-/// `ColumnBreak` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ColumnBreak {
-    /// suggestedDeletionIds property.
-    pub suggested_deletion_ids: Option<Vec<String>>,
-    /// suggestedInsertionIds property.
-    pub suggested_insertion_ids: Option<Vec<String>>,
-    /// suggestedTextStyleChanges property.
-    pub suggested_text_style_changes: Option<serde_json::Value>,
-    /// textStyle property.
-    pub text_style: Option<TextStyle>,
-}
-
-/// `SectionColumnProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SectionColumnProperties {
-    /// paddingEnd property.
-    pub padding_end: Option<Dimension>,
-    /// width property.
-    pub width: Option<Dimension>,
-}
-
-/// `Equation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Equation {
-    /// suggestedDeletionIds property.
-    pub suggested_deletion_ids: Option<Vec<String>>,
-    /// suggestedInsertionIds property.
-    pub suggested_insertion_ids: Option<Vec<String>>,
-}
-
-/// `BatchUpdateDocumentResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BatchUpdateDocumentResponse {
-    /// documentId property.
-    pub document_id: Option<String>,
-    /// replies property.
-    pub replies: Option<Vec<Response>>,
-    /// writeControl property.
-    pub write_control: Option<WriteControl>,
+pub struct InsertInlineImageResponse {
+    /// objectId property.
+    pub object_id: Option<String>,
 }
 
 /// `Document` type.
@@ -366,38 +112,47 @@ pub struct Document {
     /// suggestionsViewMode property.
     pub suggestions_view_mode: Option<String>,
     /// tabs property.
-    pub tabs: Option<Vec<Tab>>,
+    pub tabs: Option<Vec<Box<Tab>>>,
     /// title property.
     pub title: Option<String>,
 }
 
-/// `TableCellBorder` type.
+/// `AutoText` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableCellBorder {
-    /// color property.
-    pub color: Option<OptionalColor>,
-    /// dashStyle property.
-    pub dash_style: Option<String>,
+pub struct AutoText {
+    /// suggestedDeletionIds property.
+    pub suggested_deletion_ids: Option<Vec<String>>,
+    /// suggestedInsertionIds property.
+    pub suggested_insertion_ids: Option<Vec<String>>,
+    /// suggestedTextStyleChanges property.
+    pub suggested_text_style_changes: Option<serde_json::Value>,
+    /// textStyle property.
+    pub text_style: Option<TextStyle>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `WriteControl` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WriteControl {
+    /// requiredRevisionId property.
+    pub required_revision_id: Option<String>,
+    /// targetRevisionId property.
+    pub target_revision_id: Option<String>,
+}
+
+/// `SectionColumnProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SectionColumnProperties {
+    /// paddingEnd property.
+    pub padding_end: Option<Dimension>,
     /// width property.
     pub width: Option<Dimension>,
 }
 
-/// `TableRowStyle` type.
+/// `ColumnBreak` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableRowStyle {
-    /// minRowHeight property.
-    pub min_row_height: Option<Dimension>,
-    /// preventOverflow property.
-    pub prevent_overflow: Option<bool>,
-    /// tableHeader property.
-    pub table_header: Option<bool>,
-}
-
-/// `InlineObjectElement` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InlineObjectElement {
-    /// inlineObjectId property.
-    pub inline_object_id: Option<String>,
+pub struct ColumnBreak {
     /// suggestedDeletionIds property.
     pub suggested_deletion_ids: Option<Vec<String>>,
     /// suggestedInsertionIds property.
@@ -421,48 +176,80 @@ pub struct ParagraphBorder {
     pub width: Option<Dimension>,
 }
 
-/// `PersonProperties` type.
+/// `DocumentFormat` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PersonProperties {
-    /// email property.
-    pub email: Option<String>,
-    /// name property.
-    pub name: Option<String>,
+pub struct DocumentFormat {
+    /// documentMode property.
+    pub document_mode: Option<String>,
 }
 
-/// `WriteControl` type.
+/// `NamedStyle` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WriteControl {
-    /// requiredRevisionId property.
-    pub required_revision_id: Option<String>,
-    /// targetRevisionId property.
-    pub target_revision_id: Option<String>,
-}
-
-/// `Person` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Person {
-    /// personId property.
-    pub person_id: Option<String>,
-    /// personProperties property.
-    pub person_properties: Option<PersonProperties>,
-    /// suggestedDeletionIds property.
-    pub suggested_deletion_ids: Option<Vec<String>>,
-    /// suggestedInsertionIds property.
-    pub suggested_insertion_ids: Option<Vec<String>>,
-    /// suggestedTextStyleChanges property.
-    pub suggested_text_style_changes: Option<serde_json::Value>,
+pub struct NamedStyle {
+    /// namedStyleType property.
+    pub named_style_type: Option<String>,
+    /// paragraphStyle property.
+    pub paragraph_style: Option<ParagraphStyle>,
     /// textStyle property.
     pub text_style: Option<TextStyle>,
 }
 
-/// `Size` type.
+/// `ParagraphElement` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Size {
-    /// height property.
-    pub height: Option<Dimension>,
-    /// width property.
-    pub width: Option<Dimension>,
+pub struct ParagraphElement {
+    /// autoText property.
+    pub auto_text: Option<AutoText>,
+    /// columnBreak property.
+    pub column_break: Option<ColumnBreak>,
+    /// dateElement property.
+    pub date_element: Option<DateElement>,
+    /// endIndex property.
+    pub end_index: Option<i64>,
+    /// equation property.
+    pub equation: Option<Equation>,
+    /// footnoteReference property.
+    pub footnote_reference: Option<FootnoteReference>,
+    /// horizontalRule property.
+    pub horizontal_rule: Option<HorizontalRule>,
+    /// inlineObjectElement property.
+    pub inline_object_element: Option<InlineObjectElement>,
+    /// pageBreak property.
+    pub page_break: Option<PageBreak>,
+    /// person property.
+    pub person: Option<Person>,
+    /// richLink property.
+    pub rich_link: Option<RichLink>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+    /// textRun property.
+    pub text_run: Option<TextRun>,
+}
+
+/// `TextStyle` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextStyle {
+    /// backgroundColor property.
+    pub background_color: Option<OptionalColor>,
+    /// baselineOffset property.
+    pub baseline_offset: Option<String>,
+    /// bold property.
+    pub bold: Option<bool>,
+    /// fontSize property.
+    pub font_size: Option<Dimension>,
+    /// foregroundColor property.
+    pub foreground_color: Option<OptionalColor>,
+    /// italic property.
+    pub italic: Option<bool>,
+    /// link property.
+    pub link: Option<Link>,
+    /// smallCaps property.
+    pub small_caps: Option<bool>,
+    /// strikethrough property.
+    pub strikethrough: Option<bool>,
+    /// underline property.
+    pub underline: Option<bool>,
+    /// weightedFontFamily property.
+    pub weighted_font_family: Option<WeightedFontFamily>,
 }
 
 /// `OptionalColor` type.
@@ -472,89 +259,50 @@ pub struct OptionalColor {
     pub color: Option<Color>,
 }
 
-/// `NamedStyles` type.
+/// `DocumentTab` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NamedStyles {
-    /// styles property.
-    pub styles: Option<Vec<NamedStyle>>,
+pub struct DocumentTab {
+    /// body property.
+    pub body: Option<Body>,
+    /// documentStyle property.
+    pub document_style: Option<DocumentStyle>,
+    /// footers property.
+    pub footers: Option<serde_json::Value>,
+    /// footnotes property.
+    pub footnotes: Option<serde_json::Value>,
+    /// headers property.
+    pub headers: Option<serde_json::Value>,
+    /// inlineObjects property.
+    pub inline_objects: Option<serde_json::Value>,
+    /// lists property.
+    pub lists: Option<serde_json::Value>,
+    /// namedRanges property.
+    pub named_ranges: Option<serde_json::Value>,
+    /// namedStyles property.
+    pub named_styles: Option<NamedStyles>,
+    /// positionedObjects property.
+    pub positioned_objects: Option<serde_json::Value>,
+    /// suggestedDocumentStyleChanges property.
+    pub suggested_document_style_changes: Option<serde_json::Value>,
+    /// suggestedNamedStylesChanges property.
+    pub suggested_named_styles_changes: Option<serde_json::Value>,
 }
 
-/// `StructuralElement` type.
+/// `TabProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StructuralElement {
-    /// endIndex property.
-    pub end_index: Option<i64>,
-    /// paragraph property.
-    pub paragraph: Option<Paragraph>,
-    /// sectionBreak property.
-    pub section_break: Option<SectionBreak>,
-    /// startIndex property.
-    pub start_index: Option<i64>,
-    /// table property.
-    pub table: Option<Table>,
-    /// tableOfContents property.
-    pub table_of_contents: Option<TableOfContents>,
-}
-
-/// `RichLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RichLink {
-    /// richLinkId property.
-    pub rich_link_id: Option<String>,
-    /// richLinkProperties property.
-    pub rich_link_properties: Option<RichLinkProperties>,
-    /// suggestedDeletionIds property.
-    pub suggested_deletion_ids: Option<Vec<String>>,
-    /// suggestedInsertionIds property.
-    pub suggested_insertion_ids: Option<Vec<String>>,
-    /// suggestedTextStyleChanges property.
-    pub suggested_text_style_changes: Option<serde_json::Value>,
-    /// textStyle property.
-    pub text_style: Option<TextStyle>,
-}
-
-/// `RichLinkProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RichLinkProperties {
-    /// mimeType property.
-    pub mime_type: Option<String>,
+pub struct TabProperties {
+    /// iconEmoji property.
+    pub icon_emoji: Option<String>,
+    /// index property.
+    pub index: Option<i64>,
+    /// nestingLevel property.
+    pub nesting_level: Option<i64>,
+    /// parentTabId property.
+    pub parent_tab_id: Option<String>,
+    /// tabId property.
+    pub tab_id: Option<String>,
     /// title property.
     pub title: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `FootnoteReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FootnoteReference {
-    /// footnoteId property.
-    pub footnote_id: Option<String>,
-    /// footnoteNumber property.
-    pub footnote_number: Option<String>,
-    /// suggestedDeletionIds property.
-    pub suggested_deletion_ids: Option<Vec<String>>,
-    /// suggestedInsertionIds property.
-    pub suggested_insertion_ids: Option<Vec<String>>,
-    /// suggestedTextStyleChanges property.
-    pub suggested_text_style_changes: Option<serde_json::Value>,
-    /// textStyle property.
-    pub text_style: Option<TextStyle>,
-}
-
-/// `WeightedFontFamily` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WeightedFontFamily {
-    /// fontFamily property.
-    pub font_family: Option<String>,
-    /// weight property.
-    pub weight: Option<i64>,
-}
-
-/// `InsertInlineSheetsChartResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InsertInlineSheetsChartResponse {
-    /// objectId property.
-    pub object_id: Option<String>,
 }
 
 /// `Paragraph` type.
@@ -576,138 +324,26 @@ pub struct Paragraph {
     pub suggested_positioned_object_ids: Option<serde_json::Value>,
 }
 
-/// `PageBreak` type.
+/// `TableRowStyle` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PageBreak {
-    /// suggestedDeletionIds property.
-    pub suggested_deletion_ids: Option<Vec<String>>,
-    /// suggestedInsertionIds property.
-    pub suggested_insertion_ids: Option<Vec<String>>,
-    /// suggestedTextStyleChanges property.
-    pub suggested_text_style_changes: Option<serde_json::Value>,
-    /// textStyle property.
-    pub text_style: Option<TextStyle>,
+pub struct TableRowStyle {
+    /// minRowHeight property.
+    pub min_row_height: Option<Dimension>,
+    /// preventOverflow property.
+    pub prevent_overflow: Option<bool>,
+    /// tableHeader property.
+    pub table_header: Option<bool>,
 }
 
-/// `CreateFooterResponse` type.
+/// `RichLinkProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateFooterResponse {
-    /// footerId property.
-    pub footer_id: Option<String>,
-}
-
-/// `TableRow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableRow {
-    /// endIndex property.
-    pub end_index: Option<i64>,
-    /// startIndex property.
-    pub start_index: Option<i64>,
-    /// suggestedDeletionIds property.
-    pub suggested_deletion_ids: Option<Vec<String>>,
-    /// suggestedInsertionIds property.
-    pub suggested_insertion_ids: Option<Vec<String>>,
-    /// suggestedTableRowStyleChanges property.
-    pub suggested_table_row_style_changes: Option<serde_json::Value>,
-    /// tableCells property.
-    pub table_cells: Option<Vec<TableCell>>,
-    /// tableRowStyle property.
-    pub table_row_style: Option<TableRowStyle>,
-}
-
-/// `Dimension` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Dimension {
-    /// magnitude property.
-    pub magnitude: Option<f64>,
-    /// unit property.
-    pub unit: Option<String>,
-}
-
-/// `CreateHeaderResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateHeaderResponse {
-    /// headerId property.
-    pub header_id: Option<String>,
-}
-
-/// `DateElementProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DateElementProperties {
-    /// dateFormat property.
-    pub date_format: Option<String>,
-    /// displayText property.
-    pub display_text: Option<String>,
-    /// locale property.
-    pub locale: Option<String>,
-    /// timeFormat property.
-    pub time_format: Option<String>,
-    /// timeZoneId property.
-    pub time_zone_id: Option<String>,
-    /// timestamp property.
-    pub timestamp: Option<String>,
-}
-
-/// `HorizontalRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HorizontalRule {
-    /// suggestedDeletionIds property.
-    pub suggested_deletion_ids: Option<Vec<String>>,
-    /// suggestedInsertionIds property.
-    pub suggested_insertion_ids: Option<Vec<String>>,
-    /// suggestedTextStyleChanges property.
-    pub suggested_text_style_changes: Option<serde_json::Value>,
-    /// textStyle property.
-    pub text_style: Option<TextStyle>,
-}
-
-/// `NamedStyle` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NamedStyle {
-    /// namedStyleType property.
-    pub named_style_type: Option<String>,
-    /// paragraphStyle property.
-    pub paragraph_style: Option<ParagraphStyle>,
-    /// textStyle property.
-    pub text_style: Option<TextStyle>,
-}
-
-/// `Body` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Body {
-    /// content property.
-    pub content: Option<Vec<StructuralElement>>,
-}
-
-/// `AutoText` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoText {
-    /// suggestedDeletionIds property.
-    pub suggested_deletion_ids: Option<Vec<String>>,
-    /// suggestedInsertionIds property.
-    pub suggested_insertion_ids: Option<Vec<String>>,
-    /// suggestedTextStyleChanges property.
-    pub suggested_text_style_changes: Option<serde_json::Value>,
-    /// textStyle property.
-    pub text_style: Option<TextStyle>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `TableColumnProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableColumnProperties {
-    /// width property.
-    pub width: Option<Dimension>,
-    /// widthType property.
-    pub width_type: Option<String>,
-}
-
-/// `TableStyle` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableStyle {
-    /// tableColumnProperties property.
-    pub table_column_properties: Option<Vec<TableColumnProperties>>,
+pub struct RichLinkProperties {
+    /// mimeType property.
+    pub mime_type: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
 }
 
 /// `HeadingLink` type.
@@ -719,18 +355,65 @@ pub struct HeadingLink {
     pub tab_id: Option<String>,
 }
 
-/// `Background` type.
+/// `Table` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Background {
-    /// color property.
-    pub color: Option<OptionalColor>,
+pub struct Table {
+    /// columns property.
+    pub columns: Option<i64>,
+    /// rows property.
+    pub rows: Option<i64>,
+    /// suggestedDeletionIds property.
+    pub suggested_deletion_ids: Option<Vec<String>>,
+    /// suggestedInsertionIds property.
+    pub suggested_insertion_ids: Option<Vec<String>>,
+    /// tableRows property.
+    pub table_rows: Option<Vec<Box<TableRow>>>,
+    /// tableStyle property.
+    pub table_style: Option<TableStyle>,
 }
 
-/// `DocumentFormat` type.
+/// `BookmarkLink` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DocumentFormat {
-    /// documentMode property.
-    pub document_mode: Option<String>,
+pub struct BookmarkLink {
+    /// id property.
+    pub id: Option<String>,
+    /// tabId property.
+    pub tab_id: Option<String>,
+}
+
+/// `InlineObjectElement` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InlineObjectElement {
+    /// inlineObjectId property.
+    pub inline_object_id: Option<String>,
+    /// suggestedDeletionIds property.
+    pub suggested_deletion_ids: Option<Vec<String>>,
+    /// suggestedInsertionIds property.
+    pub suggested_insertion_ids: Option<Vec<String>>,
+    /// suggestedTextStyleChanges property.
+    pub suggested_text_style_changes: Option<serde_json::Value>,
+    /// textStyle property.
+    pub text_style: Option<TextStyle>,
+}
+
+/// `SectionBreak` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SectionBreak {
+    /// sectionStyle property.
+    pub section_style: Option<SectionStyle>,
+    /// suggestedDeletionIds property.
+    pub suggested_deletion_ids: Option<Vec<String>>,
+    /// suggestedInsertionIds property.
+    pub suggested_insertion_ids: Option<Vec<String>>,
+}
+
+/// `TabStop` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TabStop {
+    /// alignment property.
+    pub alignment: Option<String>,
+    /// offset property.
+    pub offset: Option<Dimension>,
 }
 
 /// `ParagraphStyle` type.
@@ -782,42 +465,15 @@ pub struct ParagraphStyle {
     pub tab_stops: Option<Vec<TabStop>>,
 }
 
-/// `TextRun` type.
+/// `HorizontalRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextRun {
-    /// content property.
-    pub content: Option<String>,
+pub struct HorizontalRule {
     /// suggestedDeletionIds property.
     pub suggested_deletion_ids: Option<Vec<String>>,
     /// suggestedInsertionIds property.
     pub suggested_insertion_ids: Option<Vec<String>>,
     /// suggestedTextStyleChanges property.
     pub suggested_text_style_changes: Option<serde_json::Value>,
-    /// textStyle property.
-    pub text_style: Option<TextStyle>,
-}
-
-/// `CreateFootnoteResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateFootnoteResponse {
-    /// footnoteId property.
-    pub footnote_id: Option<String>,
-}
-
-/// `InsertInlineImageResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InsertInlineImageResponse {
-    /// objectId property.
-    pub object_id: Option<String>,
-}
-
-/// `Bullet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Bullet {
-    /// listId property.
-    pub list_id: Option<String>,
-    /// nestingLevel property.
-    pub nesting_level: Option<i64>,
     /// textStyle property.
     pub text_style: Option<TextStyle>,
 }
@@ -843,21 +499,206 @@ pub struct Response {
     pub replace_all_text: Option<ReplaceAllTextResponse>,
 }
 
-/// `TabProperties` type.
+/// `DateElementProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TabProperties {
-    /// iconEmoji property.
-    pub icon_emoji: Option<String>,
-    /// index property.
-    pub index: Option<i64>,
-    /// nestingLevel property.
-    pub nesting_level: Option<i64>,
-    /// parentTabId property.
-    pub parent_tab_id: Option<String>,
+pub struct DateElementProperties {
+    /// dateFormat property.
+    pub date_format: Option<String>,
+    /// displayText property.
+    pub display_text: Option<String>,
+    /// locale property.
+    pub locale: Option<String>,
+    /// timeFormat property.
+    pub time_format: Option<String>,
+    /// timeZoneId property.
+    pub time_zone_id: Option<String>,
+    /// timestamp property.
+    pub timestamp: Option<String>,
+}
+
+/// `InsertInlineSheetsChartResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InsertInlineSheetsChartResponse {
+    /// objectId property.
+    pub object_id: Option<String>,
+}
+
+/// `Link` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Link {
+    /// bookmark property.
+    pub bookmark: Option<BookmarkLink>,
+    /// bookmarkId property.
+    pub bookmark_id: Option<String>,
+    /// heading property.
+    pub heading: Option<HeadingLink>,
+    /// headingId property.
+    pub heading_id: Option<String>,
     /// tabId property.
     pub tab_id: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `NamedStyles` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NamedStyles {
+    /// styles property.
+    pub styles: Option<Vec<NamedStyle>>,
+}
+
+/// `Color` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Color {
+    /// rgbColor property.
+    pub rgb_color: Option<RgbColor>,
+}
+
+/// `CreateFooterResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateFooterResponse {
+    /// footerId property.
+    pub footer_id: Option<String>,
+}
+
+/// `CreateNamedRangeResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateNamedRangeResponse {
+    /// namedRangeId property.
+    pub named_range_id: Option<String>,
+}
+
+/// `Dimension` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Dimension {
+    /// magnitude property.
+    pub magnitude: Option<f64>,
+    /// unit property.
+    pub unit: Option<String>,
+}
+
+/// `Bullet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Bullet {
+    /// listId property.
+    pub list_id: Option<String>,
+    /// nestingLevel property.
+    pub nesting_level: Option<i64>,
+    /// textStyle property.
+    pub text_style: Option<TextStyle>,
+}
+
+/// `RichLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RichLink {
+    /// richLinkId property.
+    pub rich_link_id: Option<String>,
+    /// richLinkProperties property.
+    pub rich_link_properties: Option<RichLinkProperties>,
+    /// suggestedDeletionIds property.
+    pub suggested_deletion_ids: Option<Vec<String>>,
+    /// suggestedInsertionIds property.
+    pub suggested_insertion_ids: Option<Vec<String>>,
+    /// suggestedTextStyleChanges property.
+    pub suggested_text_style_changes: Option<serde_json::Value>,
+    /// textStyle property.
+    pub text_style: Option<TextStyle>,
+}
+
+/// `FootnoteReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FootnoteReference {
+    /// footnoteId property.
+    pub footnote_id: Option<String>,
+    /// footnoteNumber property.
+    pub footnote_number: Option<String>,
+    /// suggestedDeletionIds property.
+    pub suggested_deletion_ids: Option<Vec<String>>,
+    /// suggestedInsertionIds property.
+    pub suggested_insertion_ids: Option<Vec<String>>,
+    /// suggestedTextStyleChanges property.
+    pub suggested_text_style_changes: Option<serde_json::Value>,
+    /// textStyle property.
+    pub text_style: Option<TextStyle>,
+}
+
+/// `CreateFootnoteResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateFootnoteResponse {
+    /// footnoteId property.
+    pub footnote_id: Option<String>,
+}
+
+/// `SectionStyle` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SectionStyle {
+    /// columnProperties property.
+    pub column_properties: Option<Vec<SectionColumnProperties>>,
+    /// columnSeparatorStyle property.
+    pub column_separator_style: Option<String>,
+    /// contentDirection property.
+    pub content_direction: Option<String>,
+    /// defaultFooterId property.
+    pub default_footer_id: Option<String>,
+    /// defaultHeaderId property.
+    pub default_header_id: Option<String>,
+    /// evenPageFooterId property.
+    pub even_page_footer_id: Option<String>,
+    /// evenPageHeaderId property.
+    pub even_page_header_id: Option<String>,
+    /// firstPageFooterId property.
+    pub first_page_footer_id: Option<String>,
+    /// firstPageHeaderId property.
+    pub first_page_header_id: Option<String>,
+    /// flipPageOrientation property.
+    pub flip_page_orientation: Option<bool>,
+    /// marginBottom property.
+    pub margin_bottom: Option<Dimension>,
+    /// marginFooter property.
+    pub margin_footer: Option<Dimension>,
+    /// marginHeader property.
+    pub margin_header: Option<Dimension>,
+    /// marginLeft property.
+    pub margin_left: Option<Dimension>,
+    /// marginRight property.
+    pub margin_right: Option<Dimension>,
+    /// marginTop property.
+    pub margin_top: Option<Dimension>,
+    /// pageNumberStart property.
+    pub page_number_start: Option<i64>,
+    /// sectionType property.
+    pub section_type: Option<String>,
+    /// useFirstPageHeaderFooter property.
+    pub use_first_page_header_footer: Option<bool>,
+}
+
+/// `PageBreak` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PageBreak {
+    /// suggestedDeletionIds property.
+    pub suggested_deletion_ids: Option<Vec<String>>,
+    /// suggestedInsertionIds property.
+    pub suggested_insertion_ids: Option<Vec<String>>,
+    /// suggestedTextStyleChanges property.
+    pub suggested_text_style_changes: Option<serde_json::Value>,
+    /// textStyle property.
+    pub text_style: Option<TextStyle>,
+}
+
+/// `AddDocumentTabResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AddDocumentTabResponse {
+    /// tabProperties property.
+    pub tab_properties: Option<TabProperties>,
+}
+
+/// `Size` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Size {
+    /// height property.
+    pub height: Option<Dimension>,
+    /// width property.
+    pub width: Option<Dimension>,
 }
 
 /// `TableCellStyle` type.
@@ -889,82 +730,242 @@ pub struct TableCellStyle {
     pub row_span: Option<i64>,
 }
 
-/// `TabStop` type.
+/// `DocumentStyle` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TabStop {
-    /// alignment property.
-    pub alignment: Option<String>,
-    /// offset property.
-    pub offset: Option<Dimension>,
+pub struct DocumentStyle {
+    /// background property.
+    pub background: Option<Background>,
+    /// defaultFooterId property.
+    pub default_footer_id: Option<String>,
+    /// defaultHeaderId property.
+    pub default_header_id: Option<String>,
+    /// documentFormat property.
+    pub document_format: Option<DocumentFormat>,
+    /// evenPageFooterId property.
+    pub even_page_footer_id: Option<String>,
+    /// evenPageHeaderId property.
+    pub even_page_header_id: Option<String>,
+    /// firstPageFooterId property.
+    pub first_page_footer_id: Option<String>,
+    /// firstPageHeaderId property.
+    pub first_page_header_id: Option<String>,
+    /// flipPageOrientation property.
+    pub flip_page_orientation: Option<bool>,
+    /// marginBottom property.
+    pub margin_bottom: Option<Dimension>,
+    /// marginFooter property.
+    pub margin_footer: Option<Dimension>,
+    /// marginHeader property.
+    pub margin_header: Option<Dimension>,
+    /// marginLeft property.
+    pub margin_left: Option<Dimension>,
+    /// marginRight property.
+    pub margin_right: Option<Dimension>,
+    /// marginTop property.
+    pub margin_top: Option<Dimension>,
+    /// pageNumberStart property.
+    pub page_number_start: Option<i64>,
+    /// pageSize property.
+    pub page_size: Option<Size>,
+    /// useCustomHeaderFooterMargins property.
+    pub use_custom_header_footer_margins: Option<bool>,
+    /// useEvenPageHeaderFooter property.
+    pub use_even_page_header_footer: Option<bool>,
+    /// useFirstPageHeaderFooter property.
+    pub use_first_page_header_footer: Option<bool>,
 }
 
-/// `ParagraphElement` type.
+/// `Body` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ParagraphElement {
-    /// autoText property.
-    pub auto_text: Option<AutoText>,
-    /// columnBreak property.
-    pub column_break: Option<ColumnBreak>,
-    /// dateElement property.
-    pub date_element: Option<DateElement>,
+pub struct Body {
+    /// content property.
+    pub content: Option<Vec<Box<StructuralElement>>>,
+}
+
+/// `TableRow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableRow {
     /// endIndex property.
     pub end_index: Option<i64>,
-    /// equation property.
-    pub equation: Option<Equation>,
-    /// footnoteReference property.
-    pub footnote_reference: Option<FootnoteReference>,
-    /// horizontalRule property.
-    pub horizontal_rule: Option<HorizontalRule>,
-    /// inlineObjectElement property.
-    pub inline_object_element: Option<InlineObjectElement>,
-    /// pageBreak property.
-    pub page_break: Option<PageBreak>,
-    /// person property.
-    pub person: Option<Person>,
-    /// richLink property.
-    pub rich_link: Option<RichLink>,
     /// startIndex property.
     pub start_index: Option<i64>,
-    /// textRun property.
-    pub text_run: Option<TextRun>,
+    /// suggestedDeletionIds property.
+    pub suggested_deletion_ids: Option<Vec<String>>,
+    /// suggestedInsertionIds property.
+    pub suggested_insertion_ids: Option<Vec<String>>,
+    /// suggestedTableRowStyleChanges property.
+    pub suggested_table_row_style_changes: Option<serde_json::Value>,
+    /// tableCells property.
+    pub table_cells: Option<Vec<Box<TableCell>>>,
+    /// tableRowStyle property.
+    pub table_row_style: Option<TableRowStyle>,
 }
 
-/// `SectionBreak` type.
+/// `TableCell` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SectionBreak {
-    /// sectionStyle property.
-    pub section_style: Option<SectionStyle>,
+pub struct TableCell {
+    /// content property.
+    pub content: Option<Vec<Box<StructuralElement>>>,
+    /// endIndex property.
+    pub end_index: Option<i64>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+    /// suggestedDeletionIds property.
+    pub suggested_deletion_ids: Option<Vec<String>>,
+    /// suggestedInsertionIds property.
+    pub suggested_insertion_ids: Option<Vec<String>>,
+    /// suggestedTableCellStyleChanges property.
+    pub suggested_table_cell_style_changes: Option<serde_json::Value>,
+    /// tableCellStyle property.
+    pub table_cell_style: Option<TableCellStyle>,
+}
+
+/// `Equation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Equation {
     /// suggestedDeletionIds property.
     pub suggested_deletion_ids: Option<Vec<String>>,
     /// suggestedInsertionIds property.
     pub suggested_insertion_ids: Option<Vec<String>>,
 }
 
-/// `TextStyle` type.
+/// `Person` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextStyle {
+pub struct Person {
+    /// personId property.
+    pub person_id: Option<String>,
+    /// personProperties property.
+    pub person_properties: Option<PersonProperties>,
+    /// suggestedDeletionIds property.
+    pub suggested_deletion_ids: Option<Vec<String>>,
+    /// suggestedInsertionIds property.
+    pub suggested_insertion_ids: Option<Vec<String>>,
+    /// suggestedTextStyleChanges property.
+    pub suggested_text_style_changes: Option<serde_json::Value>,
+    /// textStyle property.
+    pub text_style: Option<TextStyle>,
+}
+
+/// `TextRun` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextRun {
+    /// content property.
+    pub content: Option<String>,
+    /// suggestedDeletionIds property.
+    pub suggested_deletion_ids: Option<Vec<String>>,
+    /// suggestedInsertionIds property.
+    pub suggested_insertion_ids: Option<Vec<String>>,
+    /// suggestedTextStyleChanges property.
+    pub suggested_text_style_changes: Option<serde_json::Value>,
+    /// textStyle property.
+    pub text_style: Option<TextStyle>,
+}
+
+/// `StructuralElement` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StructuralElement {
+    /// endIndex property.
+    pub end_index: Option<i64>,
+    /// paragraph property.
+    pub paragraph: Option<Paragraph>,
+    /// sectionBreak property.
+    pub section_break: Option<SectionBreak>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+    /// table property.
+    pub table: Option<Box<Table>>,
+    /// tableOfContents property.
+    pub table_of_contents: Option<Box<TableOfContents>>,
+}
+
+/// `PersonProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PersonProperties {
+    /// email property.
+    pub email: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `CreateHeaderResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateHeaderResponse {
+    /// headerId property.
+    pub header_id: Option<String>,
+}
+
+/// `ReplaceAllTextResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReplaceAllTextResponse {
+    /// occurrencesChanged property.
+    pub occurrences_changed: Option<i64>,
+}
+
+/// `RgbColor` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RgbColor {
+    /// blue property.
+    pub blue: Option<f64>,
+    /// green property.
+    pub green: Option<f64>,
+    /// red property.
+    pub red: Option<f64>,
+}
+
+/// `TableOfContents` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableOfContents {
+    /// content property.
+    pub content: Option<Vec<Box<StructuralElement>>>,
+    /// suggestedDeletionIds property.
+    pub suggested_deletion_ids: Option<Vec<String>>,
+    /// suggestedInsertionIds property.
+    pub suggested_insertion_ids: Option<Vec<String>>,
+}
+
+/// `Shading` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Shading {
     /// backgroundColor property.
     pub background_color: Option<OptionalColor>,
-    /// baselineOffset property.
-    pub baseline_offset: Option<String>,
-    /// bold property.
-    pub bold: Option<bool>,
-    /// fontSize property.
-    pub font_size: Option<Dimension>,
-    /// foregroundColor property.
-    pub foreground_color: Option<OptionalColor>,
-    /// italic property.
-    pub italic: Option<bool>,
-    /// link property.
-    pub link: Option<Link>,
-    /// smallCaps property.
-    pub small_caps: Option<bool>,
-    /// strikethrough property.
-    pub strikethrough: Option<bool>,
-    /// underline property.
-    pub underline: Option<bool>,
-    /// weightedFontFamily property.
-    pub weighted_font_family: Option<WeightedFontFamily>,
+}
+
+/// `TableCellBorder` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableCellBorder {
+    /// color property.
+    pub color: Option<OptionalColor>,
+    /// dashStyle property.
+    pub dash_style: Option<String>,
+    /// width property.
+    pub width: Option<Dimension>,
+}
+
+/// `Tab` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Tab {
+    /// childTabs property.
+    pub child_tabs: Option<Vec<Box<Tab>>>,
+    /// documentTab property.
+    pub document_tab: Option<DocumentTab>,
+    /// tabProperties property.
+    pub tab_properties: Option<TabProperties>,
+}
+
+/// `TableColumnProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableColumnProperties {
+    /// width property.
+    pub width: Option<Dimension>,
+    /// widthType property.
+    pub width_type: Option<String>,
+}
+
+/// `Background` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Background {
+    /// color property.
+    pub color: Option<OptionalColor>,
 }
 
 // =============================================================================

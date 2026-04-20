@@ -12,45 +12,46 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleChecksReportV1AlphaCheckSdkRestrictionViolationEvidence` response type.
+/// `GoogleChecksReportV1AlphaDataMonitoringPermissionResult` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaCheckSdkRestrictionViolationEvidence {
+pub struct GoogleChecksReportV1AlphaDataMonitoringPermissionResult {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleChecksReportV1AlphaCheckSdkEvidence` response type.
+/// `GoogleChecksReportV1AlphaSdk` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaCheckSdkEvidence {
+pub struct GoogleChecksReportV1AlphaSdk {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleChecksReportV1AlphaCheckPermissionRestrictionViolationEvidencePermissionDetails` response type.
+/// `GoogleChecksReportV1AlphaCheckSdkIssueEvidence` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaCheckPermissionRestrictionViolationEvidencePermissionDetails {
+pub struct GoogleChecksReportV1AlphaCheckSdkIssueEvidence {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleChecksReportV1AlphaCheckPrivacyPolicyTextEvidence` response type.
+/// `GoogleChecksReportV1AlphaPermission` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaCheckPrivacyPolicyTextEvidence {
+pub struct GoogleChecksReportV1AlphaPermission {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -64,48 +65,17 @@ pub struct GoogleChecksReportV1AlphaDataTypeEndpointEvidenceEndpointDetails {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleChecksReportV1AlphaDataMonitoring` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaDataMonitoring {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleChecksReportV1alphaReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1alphaReport {
-    /// appBundle property.
-    pub app_bundle: Option<GoogleChecksReportV1AlphaAppBundle>,
-    /// checks property.
-    pub checks: Option<Vec<GoogleChecksReportV1AlphaCheck>>,
-    /// dataMonitoring property.
-    pub data_monitoring: Option<GoogleChecksReportV1AlphaDataMonitoring>,
-    /// name property.
-    pub name: Option<String>,
-    /// resultsUri property.
-    pub results_uri: Option<String>,
-}
-
-/// `GoogleChecksReportV1AlphaReport` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaReport {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleChecksReportV1AlphaDataMonitoringResultMetadata` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaDataMonitoringResultMetadata {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `GoogleChecksReportV1AlphaCheckEvidence` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1AlphaCheckEvidence {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleChecksReportV1AlphaCheckEndpointEvidence` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChecksReportV1AlphaCheckEndpointEvidence {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -119,9 +89,97 @@ pub struct GoogleChecksReportV1AlphaCheck {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleChecksReportV1AlphaDataTypePermissionEvidence` response type.
+/// `GoogleChecksReportV1AlphaDataMonitoringResultMetadata` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaDataTypePermissionEvidence {
+pub struct GoogleChecksReportV1AlphaDataMonitoringResultMetadata {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleChecksReportV1AlphaDataMonitoringDataTypeResult` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChecksReportV1AlphaDataMonitoringDataTypeResult {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleChecksReportV1AlphaCheckCitation` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChecksReportV1AlphaCheckCitation {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleChecksReportV1AlphaCheckDataTypeEvidence` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChecksReportV1AlphaCheckDataTypeEvidence {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleChecksReportV1AlphaCheckPermissionEvidence` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChecksReportV1AlphaCheckPermissionEvidence {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleChecksReportV1AlphaReport` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChecksReportV1AlphaReport {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleChecksReportV1AlphaCheckPermissionRestrictionViolationEvidencePermissionDetails` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChecksReportV1AlphaCheckPermissionRestrictionViolationEvidencePermissionDetails {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleChecksReportV1AlphaDataTypeEndpointEvidence` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChecksReportV1AlphaDataTypeEndpointEvidence {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleChecksReportV1AlphaDataMonitoring` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChecksReportV1AlphaDataMonitoring {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleChecksReportV1AlphaPolicyFragment` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChecksReportV1AlphaPolicyFragment {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleChecksReportV1AlphaDataTypeEvidence` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChecksReportV1AlphaDataTypeEvidence {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleChecksReportV1AlphaCheckSdkEvidence` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChecksReportV1AlphaCheckSdkEvidence {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -143,9 +201,41 @@ pub struct GoogleChecksReportV1AlphaDataTypePrivacyPolicyTextEvidence {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleChecksReportV1AlphaCheckSdkRestrictionViolationEvidenceSdkDetails` response type.
+/// `GoogleChecksReportV1AlphaCheckPrivacyPolicyTextEvidence` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaCheckSdkRestrictionViolationEvidenceSdkDetails {
+pub struct GoogleChecksReportV1AlphaCheckPrivacyPolicyTextEvidence {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleChecksReportV1AlphaEndpoint` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChecksReportV1AlphaEndpoint {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleChecksReportV1AlphaDataMonitoringSdkResult` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChecksReportV1AlphaDataMonitoringSdkResult {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleChecksReportV1AlphaCheckSdkRestrictionViolationEvidence` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChecksReportV1AlphaCheckSdkRestrictionViolationEvidence {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleChecksReportV1AlphaCheckDataSecurityEvidenceDataInTransitInfo` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChecksReportV1AlphaCheckDataSecurityEvidenceDataInTransitInfo {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -154,14 +244,6 @@ pub struct GoogleChecksReportV1AlphaCheckSdkRestrictionViolationEvidenceSdkDetai
 /// `GoogleChecksReportV1AlphaCheckPermissionRestrictionViolationEvidence` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1AlphaCheckPermissionRestrictionViolationEvidence {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleChecksReportV1AlphaSdk` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaSdk {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -176,57 +258,9 @@ pub struct GoogleChecksReportV1alphaListReportsResponse {
     pub reports: Option<Vec<GoogleChecksReportV1AlphaReport>>,
 }
 
-/// `GoogleChecksReportV1AlphaCheckSdkIssueEvidence` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaCheckSdkIssueEvidence {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `GoogleChecksReportV1AlphaAppBundle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1AlphaAppBundle {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleChecksReportV1AlphaDataMonitoringDataTypeResult` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaDataMonitoringDataTypeResult {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleChecksReportV1AlphaPermission` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaPermission {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleChecksReportV1AlphaCheckCitation` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaCheckCitation {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleChecksReportV1AlphaCheckDataSecurityEvidence` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaCheckDataSecurityEvidence {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleChecksReportV1AlphaDataTypeEndpointEvidence` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaDataTypeEndpointEvidence {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -240,41 +274,40 @@ pub struct GoogleChecksReportV1AlphaDataTypeEndpointEvidenceAttributedSdk {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleChecksReportV1AlphaCheckDataSecurityEvidenceDataInTransitInfo` response type.
+/// `GoogleChecksReportV1AlphaDataTypePermissionEvidence` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaCheckDataSecurityEvidenceDataInTransitInfo {
+pub struct GoogleChecksReportV1AlphaDataTypePermissionEvidence {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleChecksReportV1AlphaDataMonitoringPermissionResult` response type.
+/// `GoogleChecksReportV1alphaReport` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaDataMonitoringPermissionResult {
+pub struct GoogleChecksReportV1alphaReport {
+    /// appBundle property.
+    pub app_bundle: Option<GoogleChecksReportV1AlphaAppBundle>,
+    /// checks property.
+    pub checks: Option<Vec<GoogleChecksReportV1AlphaCheck>>,
+    /// dataMonitoring property.
+    pub data_monitoring: Option<GoogleChecksReportV1AlphaDataMonitoring>,
+    /// name property.
+    pub name: Option<String>,
+    /// resultsUri property.
+    pub results_uri: Option<String>,
+}
+
+/// `GoogleChecksReportV1AlphaCheckStateMetadata` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChecksReportV1AlphaCheckStateMetadata {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleChecksReportV1AlphaPolicyFragment` response type.
+/// `GoogleChecksReportV1AlphaCheckSdkRestrictionViolationEvidenceSdkDetails` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaPolicyFragment {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleChecksReportV1AlphaCheckEndpointEvidence` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaCheckEndpointEvidence {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleChecksReportV1AlphaCheckEndpointRestrictionViolationEvidenceEndpointDetails` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaCheckEndpointRestrictionViolationEvidenceEndpointDetails {
+pub struct GoogleChecksReportV1AlphaCheckSdkRestrictionViolationEvidenceSdkDetails {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -288,49 +321,17 @@ pub struct GoogleChecksReportV1AlphaCheckEndpointRestrictionViolationEvidence {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleChecksReportV1AlphaCheckStateMetadata` response type.
+/// `GoogleChecksReportV1AlphaCheckDataSecurityEvidence` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaCheckStateMetadata {
+pub struct GoogleChecksReportV1AlphaCheckDataSecurityEvidence {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleChecksReportV1AlphaDataMonitoringSdkResult` response type.
+/// `GoogleChecksReportV1AlphaCheckEndpointRestrictionViolationEvidenceEndpointDetails` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaDataMonitoringSdkResult {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleChecksReportV1AlphaDataTypeEvidence` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaDataTypeEvidence {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleChecksReportV1AlphaCheckPermissionEvidence` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaCheckPermissionEvidence {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleChecksReportV1AlphaEndpoint` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaEndpoint {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleChecksReportV1AlphaCheckDataTypeEvidence` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChecksReportV1AlphaCheckDataTypeEvidence {
+pub struct GoogleChecksReportV1AlphaCheckEndpointRestrictionViolationEvidenceEndpointDetails {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

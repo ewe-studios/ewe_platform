@@ -12,24 +12,21 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Subscription;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `OfferTag` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OfferTag {
-    /// tag property.
-    pub tag: Option<String>,
-}
 
 /// `RegionalBasePlanConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,6 +37,29 @@ pub struct RegionalBasePlanConfig {
     pub price: Option<Money>,
     /// regionCode property.
     pub region_code: Option<String>,
+}
+
+/// `BatchUpdateSubscriptionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BatchUpdateSubscriptionsResponse {
+    /// subscriptions property.
+    pub subscriptions: Option<Vec<Subscription>>,
+}
+
+/// `RegionalProductAgeRatingInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegionalProductAgeRatingInfo {
+    /// productAgeRatingTier property.
+    pub product_age_rating_tier: Option<String>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+}
+
+/// `OfferTag` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OfferTag {
+    /// tag property.
+    pub tag: Option<String>,
 }
 
 /// `InstallmentsBasePlanType` type.
@@ -61,22 +81,13 @@ pub struct InstallmentsBasePlanType {
     pub resubscribe_state: Option<String>,
 }
 
-/// `BatchUpdateSubscriptionsResponse` type.
+/// `PrepaidBasePlanType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BatchUpdateSubscriptionsResponse {
-    /// subscriptions property.
-    pub subscriptions: Option<Vec<Subscription>>,
-}
-
-/// `Money` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Money {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// units property.
-    pub units: Option<String>,
+pub struct PrepaidBasePlanType {
+    /// billingPeriodDuration property.
+    pub billing_period_duration: Option<String>,
+    /// timeExtension property.
+    pub time_extension: Option<String>,
 }
 
 /// `OtherRegionsBasePlanConfig` type.
@@ -88,6 +99,13 @@ pub struct OtherRegionsBasePlanConfig {
     pub new_subscriber_availability: Option<bool>,
     /// usdPrice property.
     pub usd_price: Option<Money>,
+}
+
+/// `RestrictedPaymentCountries` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RestrictedPaymentCountries {
+    /// regionCodes property.
+    pub region_codes: Option<Vec<String>>,
 }
 
 /// `AutoRenewingBasePlanType` type.
@@ -122,37 +140,6 @@ pub struct SubscriptionListing {
     pub title: Option<String>,
 }
 
-/// `RestrictedPaymentCountries` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RestrictedPaymentCountries {
-    /// regionCodes property.
-    pub region_codes: Option<Vec<String>>,
-}
-
-/// `SubscriptionTaxAndComplianceSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubscriptionTaxAndComplianceSettings {
-    /// eeaWithdrawalRightType property.
-    pub eea_withdrawal_right_type: Option<String>,
-    /// isTokenizedDigitalAsset property.
-    pub is_tokenized_digital_asset: Option<bool>,
-    /// productTaxCategoryCode property.
-    pub product_tax_category_code: Option<String>,
-    /// regionalProductAgeRatingInfos property.
-    pub regional_product_age_rating_infos: Option<Vec<RegionalProductAgeRatingInfo>>,
-    /// taxRateInfoByRegionCode property.
-    pub tax_rate_info_by_region_code: Option<serde_json::Value>,
-}
-
-/// `PrepaidBasePlanType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrepaidBasePlanType {
-    /// billingPeriodDuration property.
-    pub billing_period_duration: Option<String>,
-    /// timeExtension property.
-    pub time_extension: Option<String>,
-}
-
 /// `BasePlan` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BasePlan {
@@ -174,13 +161,30 @@ pub struct BasePlan {
     pub state: Option<String>,
 }
 
-/// `RegionalProductAgeRatingInfo` type.
+/// `SubscriptionTaxAndComplianceSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegionalProductAgeRatingInfo {
-    /// productAgeRatingTier property.
-    pub product_age_rating_tier: Option<String>,
-    /// regionCode property.
-    pub region_code: Option<String>,
+pub struct SubscriptionTaxAndComplianceSettings {
+    /// eeaWithdrawalRightType property.
+    pub eea_withdrawal_right_type: Option<String>,
+    /// isTokenizedDigitalAsset property.
+    pub is_tokenized_digital_asset: Option<bool>,
+    /// productTaxCategoryCode property.
+    pub product_tax_category_code: Option<String>,
+    /// regionalProductAgeRatingInfos property.
+    pub regional_product_age_rating_infos: Option<Vec<RegionalProductAgeRatingInfo>>,
+    /// taxRateInfoByRegionCode property.
+    pub tax_rate_info_by_region_code: Option<serde_json::Value>,
+}
+
+/// `Money` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Money {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// units property.
+    pub units: Option<String>,
 }
 
 // =============================================================================

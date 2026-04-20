@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -31,24 +32,6 @@ pub struct DiffUploadResponse {
     pub object_version: Option<String>,
     /// originalObject property.
     pub original_object: Option<CompositeMedia>,
-}
-
-/// `DiffDownloadResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiffDownloadResponse {
-    /// objectLocation property.
-    pub object_location: Option<CompositeMedia>,
-}
-
-/// `ObjectId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObjectId {
-    /// bucketName property.
-    pub bucket_name: Option<String>,
-    /// generation property.
-    pub generation: Option<String>,
-    /// objectName property.
-    pub object_name: Option<String>,
 }
 
 /// `Blobstore2Info` type.
@@ -70,31 +53,57 @@ pub struct Blobstore2Info {
     pub upload_metadata_container: Option<String>,
 }
 
-/// `CompositeMedia` type.
+/// `ObjectId` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompositeMedia {
-    /// blobRef property.
-    pub blob_ref: Option<String>,
-    /// blobstore2Info property.
-    pub blobstore2_info: Option<Blobstore2Info>,
-    /// cosmoBinaryReference property.
-    pub cosmo_binary_reference: Option<String>,
-    /// crc32cHash property.
-    pub crc32c_hash: Option<i64>,
-    /// inline property.
-    pub inline: Option<String>,
-    /// length property.
-    pub length: Option<String>,
-    /// md5Hash property.
-    pub md5_hash: Option<String>,
-    /// objectId property.
-    pub object_id: Option<ObjectId>,
-    /// path property.
-    pub path: Option<String>,
-    /// referenceType property.
-    pub reference_type: Option<String>,
-    /// sha1Hash property.
-    pub sha1_hash: Option<String>,
+pub struct ObjectId {
+    /// bucketName property.
+    pub bucket_name: Option<String>,
+    /// generation property.
+    pub generation: Option<String>,
+    /// objectName property.
+    pub object_name: Option<String>,
+}
+
+/// `DiffUploadRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiffUploadRequest {
+    /// checksumsInfo property.
+    pub checksums_info: Option<CompositeMedia>,
+    /// objectInfo property.
+    pub object_info: Option<CompositeMedia>,
+    /// objectVersion property.
+    pub object_version: Option<String>,
+}
+
+/// `DiffDownloadResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiffDownloadResponse {
+    /// objectLocation property.
+    pub object_location: Option<CompositeMedia>,
+}
+
+/// `DownloadParameters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DownloadParameters {
+    /// allowGzipCompression property.
+    pub allow_gzip_compression: Option<bool>,
+    /// ignoreRange property.
+    pub ignore_range: Option<bool>,
+}
+
+/// `DiffChecksumsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiffChecksumsResponse {
+    /// checksumsLocation property.
+    pub checksums_location: Option<CompositeMedia>,
+    /// chunkSizeBytes property.
+    pub chunk_size_bytes: Option<String>,
+    /// objectLocation property.
+    pub object_location: Option<CompositeMedia>,
+    /// objectSizeBytes property.
+    pub object_size_bytes: Option<String>,
+    /// objectVersion property.
+    pub object_version: Option<String>,
 }
 
 /// `Media` type.
@@ -162,39 +171,6 @@ pub struct Media {
     pub token: Option<String>,
 }
 
-/// `DiffVersionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiffVersionResponse {
-    /// objectSizeBytes property.
-    pub object_size_bytes: Option<String>,
-    /// objectVersion property.
-    pub object_version: Option<String>,
-}
-
-/// `DownloadParameters` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DownloadParameters {
-    /// allowGzipCompression property.
-    pub allow_gzip_compression: Option<bool>,
-    /// ignoreRange property.
-    pub ignore_range: Option<bool>,
-}
-
-/// `DiffChecksumsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiffChecksumsResponse {
-    /// checksumsLocation property.
-    pub checksums_location: Option<CompositeMedia>,
-    /// chunkSizeBytes property.
-    pub chunk_size_bytes: Option<String>,
-    /// objectLocation property.
-    pub object_location: Option<CompositeMedia>,
-    /// objectSizeBytes property.
-    pub object_size_bytes: Option<String>,
-    /// objectVersion property.
-    pub object_version: Option<String>,
-}
-
 /// `ContentTypeInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentTypeInfo {
@@ -210,13 +186,38 @@ pub struct ContentTypeInfo {
     pub from_url_path: Option<String>,
 }
 
-/// `DiffUploadRequest` type.
+/// `CompositeMedia` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiffUploadRequest {
-    /// checksumsInfo property.
-    pub checksums_info: Option<CompositeMedia>,
-    /// objectInfo property.
-    pub object_info: Option<CompositeMedia>,
+pub struct CompositeMedia {
+    /// blobRef property.
+    pub blob_ref: Option<String>,
+    /// blobstore2Info property.
+    pub blobstore2_info: Option<Blobstore2Info>,
+    /// cosmoBinaryReference property.
+    pub cosmo_binary_reference: Option<String>,
+    /// crc32cHash property.
+    pub crc32c_hash: Option<i64>,
+    /// inline property.
+    pub inline: Option<String>,
+    /// length property.
+    pub length: Option<String>,
+    /// md5Hash property.
+    pub md5_hash: Option<String>,
+    /// objectId property.
+    pub object_id: Option<ObjectId>,
+    /// path property.
+    pub path: Option<String>,
+    /// referenceType property.
+    pub reference_type: Option<String>,
+    /// sha1Hash property.
+    pub sha1_hash: Option<String>,
+}
+
+/// `DiffVersionResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiffVersionResponse {
+    /// objectSizeBytes property.
+    pub object_size_bytes: Option<String>,
     /// objectVersion property.
     pub object_version: Option<String>,
 }

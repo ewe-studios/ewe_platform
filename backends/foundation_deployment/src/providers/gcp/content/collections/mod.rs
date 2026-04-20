@@ -12,37 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListCollectionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCollectionsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// resources property.
-    pub resources: Option<Vec<Collection>>,
-}
-
-/// `CollectionFeaturedProduct` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CollectionFeaturedProduct {
-    /// offerId property.
-    pub offer_id: Option<String>,
-    /// x property.
-    pub x: Option<f64>,
-    /// y property.
-    pub y: Option<f64>,
-}
 
 /// `Collection` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -73,6 +54,26 @@ pub struct Collection {
     pub mobile_link: Option<String>,
     /// productCountry property.
     pub product_country: Option<String>,
+}
+
+/// `CollectionFeaturedProduct` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CollectionFeaturedProduct {
+    /// offerId property.
+    pub offer_id: Option<String>,
+    /// x property.
+    pub x: Option<f64>,
+    /// y property.
+    pub y: Option<f64>,
+}
+
+/// `ListCollectionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListCollectionsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// resources property.
+    pub resources: Option<Vec<Collection>>,
 }
 
 // =============================================================================

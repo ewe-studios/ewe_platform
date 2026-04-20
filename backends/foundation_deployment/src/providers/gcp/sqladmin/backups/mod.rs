@@ -12,28 +12,141 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
 use super::shared::Operation;
+use super::shared::SslCert;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Interval` type.
+/// `PasswordValidationPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Interval {
-    /// endTime property.
-    pub end_time: Option<String>,
+pub struct PasswordValidationPolicy {
+    /// complexity property.
+    pub complexity: Option<String>,
+    /// disallowCompromisedCredentials property.
+    pub disallow_compromised_credentials: Option<bool>,
+    /// disallowUsernameSubstring property.
+    pub disallow_username_substring: Option<bool>,
+    /// enablePasswordPolicy property.
+    pub enable_password_policy: Option<bool>,
+    /// minLength property.
+    pub min_length: Option<i64>,
+    /// passwordChangeInterval property.
+    pub password_change_interval: Option<String>,
+    /// reuseInterval property.
+    pub reuse_interval: Option<i64>,
+}
+
+/// `ApiWarning` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiWarning {
+    /// code property.
+    pub code: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+}
+
+/// `SqlActiveDirectoryConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlActiveDirectoryConfig {
+    /// adminCredentialSecretName property.
+    pub admin_credential_secret_name: Option<String>,
+    /// dnsServers property.
+    pub dns_servers: Option<Vec<String>>,
+    /// domain property.
+    pub domain: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// mode property.
+    pub mode: Option<String>,
+    /// organizationalUnit property.
+    pub organizational_unit: Option<String>,
+}
+
+/// `FinalBackupConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FinalBackupConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// retentionDays property.
+    pub retention_days: Option<i64>,
+}
+
+/// `MaintenanceWindow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MaintenanceWindow {
+    /// day property.
+    pub day: Option<i64>,
+    /// hour property.
+    pub hour: Option<i64>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// updateTrack property.
+    pub update_track: Option<String>,
+}
+
+/// `TargetMetric` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TargetMetric {
+    /// metric property.
+    pub metric: Option<String>,
+    /// targetValue property.
+    pub target_value: Option<f64>,
+}
+
+/// `OperationError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OperationError {
+    /// code property.
+    pub code: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `SqlSubOperationType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlSubOperationType {
+    /// maintenanceType property.
+    pub maintenance_type: Option<String>,
+}
+
+/// `SqlScheduledMaintenance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlScheduledMaintenance {
+    /// canDefer property.
+    pub can_defer: Option<bool>,
+    /// canReschedule property.
+    pub can_reschedule: Option<bool>,
+    /// scheduleDeadlineTime property.
+    pub schedule_deadline_time: Option<String>,
     /// startTime property.
     pub start_time: Option<String>,
+}
+
+/// `AvailableDatabaseVersion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AvailableDatabaseVersion {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// majorVersion property.
+    pub major_version: Option<String>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 /// `DenyMaintenancePeriod` type.
@@ -47,24 +160,139 @@ pub struct DenyMaintenancePeriod {
     pub time: Option<String>,
 }
 
-/// `FinalBackupConfig` type.
+/// `BackupRetentionSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FinalBackupConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// retentionDays property.
-    pub retention_days: Option<i64>,
+pub struct BackupRetentionSettings {
+    /// retainedBackups property.
+    pub retained_backups: Option<i64>,
+    /// retentionUnit property.
+    pub retention_unit: Option<String>,
 }
 
-/// `ListBackupsResponse` type.
+/// `PscConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListBackupsResponse {
-    /// backups property.
-    pub backups: Option<Vec<Backup>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// warnings property.
-    pub warnings: Option<Vec<ApiWarning>>,
+pub struct PscConfig {
+    /// allowedConsumerProjects property.
+    pub allowed_consumer_projects: Option<Vec<String>>,
+    /// networkAttachmentUri property.
+    pub network_attachment_uri: Option<String>,
+    /// pscAutoConnections property.
+    pub psc_auto_connections: Option<Vec<PscAutoConnectionConfig>>,
+    /// pscAutoDnsEnabled property.
+    pub psc_auto_dns_enabled: Option<bool>,
+    /// pscEnabled property.
+    pub psc_enabled: Option<bool>,
+    /// pscWriteEndpointDnsEnabled property.
+    pub psc_write_endpoint_dns_enabled: Option<bool>,
+}
+
+/// `BackupConfiguration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupConfiguration {
+    /// backupRetentionSettings property.
+    pub backup_retention_settings: Option<BackupRetentionSettings>,
+    /// backupTier property.
+    pub backup_tier: Option<String>,
+    /// binaryLogEnabled property.
+    pub binary_log_enabled: Option<bool>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// pointInTimeRecoveryEnabled property.
+    pub point_in_time_recovery_enabled: Option<bool>,
+    /// replicationLogArchivingEnabled property.
+    pub replication_log_archiving_enabled: Option<bool>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// transactionLogRetentionDays property.
+    pub transaction_log_retention_days: Option<i64>,
+    /// transactionalLogStorageState property.
+    pub transactional_log_storage_state: Option<String>,
+}
+
+/// `LocationPreference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocationPreference {
+    /// followGaeApplication property.
+    pub follow_gae_application: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// secondaryZone property.
+    pub secondary_zone: Option<String>,
+    /// zone property.
+    pub zone: Option<String>,
+}
+
+/// `OperationErrors` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OperationErrors {
+    /// errors property.
+    pub errors: Option<Vec<OperationError>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `ImportContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImportContext {
+    /// bakImportOptions property.
+    pub bak_import_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// csvImportOptions property.
+    pub csv_import_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// database property.
+    pub database: Option<String>,
+    /// fileType property.
+    pub file_type: Option<String>,
+    /// importUser property.
+    pub import_user: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// sqlImportOptions property.
+    pub sql_import_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// tdeImportOptions property.
+    pub tde_import_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `ConnectionPoolFlags` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectionPoolFlags {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `PreCheckMajorVersionUpgradeContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PreCheckMajorVersionUpgradeContext {
+    /// kind property.
+    pub kind: Option<String>,
+    /// preCheckResponse property.
+    pub pre_check_response: Option<Vec<PreCheckResponse>>,
+    /// targetDatabaseVersion property.
+    pub target_database_version: Option<String>,
+}
+
+/// `PerformanceCaptureConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PerformanceCaptureConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// probeThreshold property.
+    pub probe_threshold: Option<i64>,
+    /// probingIntervalSeconds property.
+    pub probing_interval_seconds: Option<i64>,
+    /// runningThreadsThreshold property.
+    pub running_threads_threshold: Option<i64>,
+    /// secondsBehindSourceThreshold property.
+    pub seconds_behind_source_threshold: Option<i64>,
+    /// transactionDurationThreshold property.
+    pub transaction_duration_threshold: Option<i64>,
 }
 
 /// `IpMapping` type.
@@ -78,15 +306,26 @@ pub struct IpMapping {
     pub r#type: Option<String>,
 }
 
-/// `ApiWarning` type.
+/// `PscAutoConnectionConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApiWarning {
-    /// code property.
-    pub code: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// region property.
-    pub region: Option<String>,
+pub struct PscAutoConnectionConfig {
+    /// consumerNetwork property.
+    pub consumer_network: Option<String>,
+    /// consumerNetworkStatus property.
+    pub consumer_network_status: Option<String>,
+    /// consumerProject property.
+    pub consumer_project: Option<String>,
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+}
+
+/// `SelectedObjects` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SelectedObjects {
+    /// database property.
+    pub database: Option<String>,
 }
 
 /// `ReplicaConfiguration` type.
@@ -102,17 +341,13 @@ pub struct ReplicaConfiguration {
     pub mysql_replica_configuration: Option<MySqlReplicaConfiguration>,
 }
 
-/// `SqlScheduledMaintenance` type.
+/// `SqlOutOfDiskReport` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlScheduledMaintenance {
-    /// canDefer property.
-    pub can_defer: Option<bool>,
-    /// canReschedule property.
-    pub can_reschedule: Option<bool>,
-    /// scheduleDeadlineTime property.
-    pub schedule_deadline_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
+pub struct SqlOutOfDiskReport {
+    /// sqlMinRecommendedIncreaseSizeGb property.
+    pub sql_min_recommended_increase_size_gb: Option<i64>,
+    /// sqlOutOfDiskState property.
+    pub sql_out_of_disk_state: Option<String>,
 }
 
 /// `Settings` type.
@@ -212,121 +447,6 @@ pub struct Settings {
     pub user_labels: Option<serde_json::Value>,
 }
 
-/// `AvailableDatabaseVersion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AvailableDatabaseVersion {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// majorVersion property.
-    pub major_version: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GeminiInstanceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeminiInstanceConfig {
-    /// activeQueryEnabled property.
-    pub active_query_enabled: Option<bool>,
-    /// entitled property.
-    pub entitled: Option<bool>,
-    /// flagRecommenderEnabled property.
-    pub flag_recommender_enabled: Option<bool>,
-    /// googleVacuumMgmtEnabled property.
-    pub google_vacuum_mgmt_enabled: Option<bool>,
-    /// indexAdvisorEnabled property.
-    pub index_advisor_enabled: Option<bool>,
-    /// oomSessionCancelEnabled property.
-    pub oom_session_cancel_enabled: Option<bool>,
-}
-
-/// `PreCheckResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreCheckResponse {
-    /// actionsRequired property.
-    pub actions_required: Option<Vec<String>>,
-    /// message property.
-    pub message: Option<String>,
-    /// messageType property.
-    pub message_type: Option<String>,
-}
-
-/// `BackupConfiguration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupConfiguration {
-    /// backupRetentionSettings property.
-    pub backup_retention_settings: Option<BackupRetentionSettings>,
-    /// backupTier property.
-    pub backup_tier: Option<String>,
-    /// binaryLogEnabled property.
-    pub binary_log_enabled: Option<bool>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// pointInTimeRecoveryEnabled property.
-    pub point_in_time_recovery_enabled: Option<bool>,
-    /// replicationLogArchivingEnabled property.
-    pub replication_log_archiving_enabled: Option<bool>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// transactionLogRetentionDays property.
-    pub transaction_log_retention_days: Option<i64>,
-    /// transactionalLogStorageState property.
-    pub transactional_log_storage_state: Option<String>,
-}
-
-/// `PerformanceCaptureConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PerformanceCaptureConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// probeThreshold property.
-    pub probe_threshold: Option<i64>,
-    /// probingIntervalSeconds property.
-    pub probing_interval_seconds: Option<i64>,
-    /// runningThreadsThreshold property.
-    pub running_threads_threshold: Option<i64>,
-    /// secondsBehindSourceThreshold property.
-    pub seconds_behind_source_threshold: Option<i64>,
-    /// transactionDurationThreshold property.
-    pub transaction_duration_threshold: Option<i64>,
-}
-
-/// `DiskEncryptionStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskEncryptionStatus {
-    /// kind property.
-    pub kind: Option<String>,
-    /// kmsKeyVersionName property.
-    pub kms_key_version_name: Option<String>,
-}
-
-/// `SqlSubOperationType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlSubOperationType {
-    /// maintenanceType property.
-    pub maintenance_type: Option<String>,
-}
-
-/// `AdvancedMachineFeatures` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdvancedMachineFeatures {
-    /// threadsPerCore property.
-    pub threads_per_core: Option<i64>,
-}
-
-/// `SqlOutOfDiskReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlOutOfDiskReport {
-    /// sqlMinRecommendedIncreaseSizeGb property.
-    pub sql_min_recommended_increase_size_gb: Option<i64>,
-    /// sqlOutOfDiskState property.
-    pub sql_out_of_disk_state: Option<String>,
-}
-
 /// `DiskEncryptionConfiguration` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskEncryptionConfiguration {
@@ -334,525 +454,6 @@ pub struct DiskEncryptionConfiguration {
     pub kind: Option<String>,
     /// kmsKeyName property.
     pub kms_key_name: Option<String>,
-}
-
-/// `OnPremisesConfiguration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OnPremisesConfiguration {
-    /// caCertificate property.
-    pub ca_certificate: Option<String>,
-    /// clientCertificate property.
-    pub client_certificate: Option<String>,
-    /// clientKey property.
-    pub client_key: Option<String>,
-    /// dumpFilePath property.
-    pub dump_file_path: Option<String>,
-    /// hostPort property.
-    pub host_port: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// password property.
-    pub password: Option<String>,
-    /// selectedObjects property.
-    pub selected_objects: Option<Vec<SelectedObjects>>,
-    /// sourceInstance property.
-    pub source_instance: Option<InstanceReference>,
-    /// sslOption property.
-    pub ssl_option: Option<String>,
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `DataCacheConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataCacheConfig {
-    /// dataCacheEnabled property.
-    pub data_cache_enabled: Option<bool>,
-}
-
-/// `SqlServerEntraIdConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerEntraIdConfig {
-    /// applicationId property.
-    pub application_id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// tenantId property.
-    pub tenant_id: Option<String>,
-}
-
-/// `ReadPoolAutoScaleConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReadPoolAutoScaleConfig {
-    /// disableScaleIn property.
-    pub disable_scale_in: Option<bool>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// maxNodeCount property.
-    pub max_node_count: Option<i64>,
-    /// minNodeCount property.
-    pub min_node_count: Option<i64>,
-    /// scaleInCooldownSeconds property.
-    pub scale_in_cooldown_seconds: Option<i64>,
-    /// scaleOutCooldownSeconds property.
-    pub scale_out_cooldown_seconds: Option<i64>,
-    /// targetMetrics property.
-    pub target_metrics: Option<Vec<TargetMetric>>,
-}
-
-/// `Backup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Backup {
-    /// backupInterval property.
-    pub backup_interval: Option<Interval>,
-    /// backupKind property.
-    pub backup_kind: Option<String>,
-    /// backupRun property.
-    pub backup_run: Option<String>,
-    /// databaseVersion property.
-    pub database_version: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// error property.
-    pub error: Option<OperationError>,
-    /// expiryTime property.
-    pub expiry_time: Option<String>,
-    /// instance property.
-    pub instance: Option<String>,
-    /// instanceDeletionTime property.
-    pub instance_deletion_time: Option<String>,
-    /// instanceSettings property.
-    pub instance_settings: Option<DatabaseInstance>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// kmsKey property.
-    pub kms_key: Option<String>,
-    /// kmsKeyVersion property.
-    pub kms_key_version: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// maxChargeableBytes property.
-    pub max_chargeable_bytes: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// satisfiesPzi property.
-    pub satisfies_pzi: Option<bool>,
-    /// satisfiesPzs property.
-    pub satisfies_pzs: Option<bool>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// timeZone property.
-    pub time_zone: Option<String>,
-    /// ttlDays property.
-    pub ttl_days: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `PoolNodeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PoolNodeConfig {
-    /// dnsName property.
-    pub dns_name: Option<String>,
-    /// dnsNames property.
-    pub dns_names: Option<Vec<DnsNameMapping>>,
-    /// gceZone property.
-    pub gce_zone: Option<String>,
-    /// ipAddresses property.
-    pub ip_addresses: Option<Vec<IpMapping>>,
-    /// name property.
-    pub name: Option<String>,
-    /// pscAutoConnections property.
-    pub psc_auto_connections: Option<Vec<PscAutoConnectionConfig>>,
-    /// pscServiceAttachmentLink property.
-    pub psc_service_attachment_link: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `MaintenanceWindow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaintenanceWindow {
-    /// day property.
-    pub day: Option<i64>,
-    /// hour property.
-    pub hour: Option<i64>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// updateTrack property.
-    pub update_track: Option<String>,
-}
-
-/// `PreCheckMajorVersionUpgradeContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreCheckMajorVersionUpgradeContext {
-    /// kind property.
-    pub kind: Option<String>,
-    /// preCheckResponse property.
-    pub pre_check_response: Option<Vec<PreCheckResponse>>,
-    /// targetDatabaseVersion property.
-    pub target_database_version: Option<String>,
-}
-
-/// `ReplicationCluster` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReplicationCluster {
-    /// drReplica property.
-    pub dr_replica: Option<bool>,
-    /// failoverDrReplicaName property.
-    pub failover_dr_replica_name: Option<String>,
-    /// psaWriteEndpoint property.
-    pub psa_write_endpoint: Option<String>,
-}
-
-/// `DnsNameMapping` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsNameMapping {
-    /// connectionType property.
-    pub connection_type: Option<String>,
-    /// dnsScope property.
-    pub dns_scope: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// recordManager property.
-    pub record_manager: Option<String>,
-}
-
-/// `DatabaseFlags` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseFlags {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `AclEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AclEntry {
-    /// expirationTime property.
-    pub expiration_time: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `PscAutoConnectionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PscAutoConnectionConfig {
-    /// consumerNetwork property.
-    pub consumer_network: Option<String>,
-    /// consumerNetworkStatus property.
-    pub consumer_network_status: Option<String>,
-    /// consumerProject property.
-    pub consumer_project: Option<String>,
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-}
-
-/// `BackupRetentionSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupRetentionSettings {
-    /// retainedBackups property.
-    pub retained_backups: Option<i64>,
-    /// retentionUnit property.
-    pub retention_unit: Option<String>,
-}
-
-/// `SelectedObjects` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SelectedObjects {
-    /// database property.
-    pub database: Option<String>,
-}
-
-/// `InsightsConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InsightsConfig {
-    /// enhancedQueryInsightsEnabled property.
-    pub enhanced_query_insights_enabled: Option<bool>,
-    /// queryInsightsEnabled property.
-    pub query_insights_enabled: Option<bool>,
-    /// queryPlansPerMinute property.
-    pub query_plans_per_minute: Option<i64>,
-    /// queryStringLength property.
-    pub query_string_length: Option<i64>,
-    /// recordApplicationTags property.
-    pub record_application_tags: Option<bool>,
-    /// recordClientAddress property.
-    pub record_client_address: Option<bool>,
-}
-
-/// `InstanceReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceReference {
-    /// name property.
-    pub name: Option<String>,
-    /// project property.
-    pub project: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-}
-
-/// `BackupContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupContext {
-    /// backupId property.
-    pub backup_id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `OperationErrors` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperationErrors {
-    /// errors property.
-    pub errors: Option<Vec<OperationError>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `SqlActiveDirectoryConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlActiveDirectoryConfig {
-    /// adminCredentialSecretName property.
-    pub admin_credential_secret_name: Option<String>,
-    /// dnsServers property.
-    pub dns_servers: Option<Vec<String>>,
-    /// domain property.
-    pub domain: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// mode property.
-    pub mode: Option<String>,
-    /// organizationalUnit property.
-    pub organizational_unit: Option<String>,
-}
-
-/// `IpConfiguration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IpConfiguration {
-    /// allocatedIpRange property.
-    pub allocated_ip_range: Option<String>,
-    /// authorizedNetworks property.
-    pub authorized_networks: Option<Vec<AclEntry>>,
-    /// customSubjectAlternativeNames property.
-    pub custom_subject_alternative_names: Option<Vec<String>>,
-    /// enablePrivatePathForGoogleCloudServices property.
-    pub enable_private_path_for_google_cloud_services: Option<bool>,
-    /// ipv4Enabled property.
-    pub ipv4_enabled: Option<bool>,
-    /// privateNetwork property.
-    pub private_network: Option<String>,
-    /// pscConfig property.
-    pub psc_config: Option<PscConfig>,
-    /// requireSsl property.
-    pub require_ssl: Option<bool>,
-    /// serverCaMode property.
-    pub server_ca_mode: Option<String>,
-    /// serverCaPool property.
-    pub server_ca_pool: Option<String>,
-    /// serverCertificateRotationMode property.
-    pub server_certificate_rotation_mode: Option<String>,
-    /// sslMode property.
-    pub ssl_mode: Option<String>,
-}
-
-/// `SqlServerAuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerAuditConfig {
-    /// bucket property.
-    pub bucket: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// retentionInterval property.
-    pub retention_interval: Option<String>,
-    /// uploadInterval property.
-    pub upload_interval: Option<String>,
-}
-
-/// `ConnectionPoolFlags` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionPoolFlags {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `AcquireSsrsLeaseContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcquireSsrsLeaseContext {
-    /// duration property.
-    pub duration: Option<String>,
-    /// reportDatabase property.
-    pub report_database: Option<String>,
-    /// serviceLogin property.
-    pub service_login: Option<String>,
-    /// setupLogin property.
-    pub setup_login: Option<String>,
-}
-
-/// `ImportContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImportContext {
-    /// bakImportOptions property.
-    pub bak_import_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// csvImportOptions property.
-    pub csv_import_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// database property.
-    pub database: Option<String>,
-    /// fileType property.
-    pub file_type: Option<String>,
-    /// importUser property.
-    pub import_user: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// sqlImportOptions property.
-    pub sql_import_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// tdeImportOptions property.
-    pub tde_import_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `PscConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PscConfig {
-    /// allowedConsumerProjects property.
-    pub allowed_consumer_projects: Option<Vec<String>>,
-    /// networkAttachmentUri property.
-    pub network_attachment_uri: Option<String>,
-    /// pscAutoConnections property.
-    pub psc_auto_connections: Option<Vec<PscAutoConnectionConfig>>,
-    /// pscAutoDnsEnabled property.
-    pub psc_auto_dns_enabled: Option<bool>,
-    /// pscEnabled property.
-    pub psc_enabled: Option<bool>,
-    /// pscWriteEndpointDnsEnabled property.
-    pub psc_write_endpoint_dns_enabled: Option<bool>,
-}
-
-/// `TargetMetric` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TargetMetric {
-    /// metric property.
-    pub metric: Option<String>,
-    /// targetValue property.
-    pub target_value: Option<f64>,
-}
-
-/// `MySqlReplicaConfiguration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MySqlReplicaConfiguration {
-    /// caCertificate property.
-    pub ca_certificate: Option<String>,
-    /// clientCertificate property.
-    pub client_certificate: Option<String>,
-    /// clientKey property.
-    pub client_key: Option<String>,
-    /// connectRetryInterval property.
-    pub connect_retry_interval: Option<i64>,
-    /// dumpFilePath property.
-    pub dump_file_path: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// masterHeartbeatPeriod property.
-    pub master_heartbeat_period: Option<String>,
-    /// password property.
-    pub password: Option<String>,
-    /// sslCipher property.
-    pub ssl_cipher: Option<String>,
-    /// username property.
-    pub username: Option<String>,
-    /// verifyServerCertificate property.
-    pub verify_server_certificate: Option<bool>,
-}
-
-/// `ExportContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExportContext {
-    /// bakExportOptions property.
-    pub bak_export_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// csvExportOptions property.
-    pub csv_export_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// databases property.
-    pub databases: Option<Vec<String>>,
-    /// fileType property.
-    pub file_type: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// offload property.
-    pub offload: Option<bool>,
-    /// sqlExportOptions property.
-    pub sql_export_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// tdeExportOptions property.
-    pub tde_export_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `ConnectionPoolConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionPoolConfig {
-    /// connectionPoolingEnabled property.
-    pub connection_pooling_enabled: Option<bool>,
-    /// flags property.
-    pub flags: Option<Vec<ConnectionPoolFlags>>,
-    /// poolerCount property.
-    pub pooler_count: Option<i64>,
-}
-
-/// `PasswordValidationPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PasswordValidationPolicy {
-    /// complexity property.
-    pub complexity: Option<String>,
-    /// disallowCompromisedCredentials property.
-    pub disallow_compromised_credentials: Option<bool>,
-    /// disallowUsernameSubstring property.
-    pub disallow_username_substring: Option<bool>,
-    /// enablePasswordPolicy property.
-    pub enable_password_policy: Option<bool>,
-    /// minLength property.
-    pub min_length: Option<i64>,
-    /// passwordChangeInterval property.
-    pub password_change_interval: Option<String>,
-    /// reuseInterval property.
-    pub reuse_interval: Option<i64>,
-}
-
-/// `OperationError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperationError {
-    /// code property.
-    pub code: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `LocationPreference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocationPreference {
-    /// followGaeApplication property.
-    pub follow_gae_application: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// secondaryZone property.
-    pub secondary_zone: Option<String>,
-    /// zone property.
-    pub zone: Option<String>,
 }
 
 /// `DatabaseInstance` type.
@@ -960,6 +561,407 @@ pub struct DatabaseInstance {
     pub upgradable_database_versions: Option<Vec<AvailableDatabaseVersion>>,
     /// writeEndpoint property.
     pub write_endpoint: Option<String>,
+}
+
+/// `AcquireSsrsLeaseContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AcquireSsrsLeaseContext {
+    /// duration property.
+    pub duration: Option<String>,
+    /// reportDatabase property.
+    pub report_database: Option<String>,
+    /// serviceLogin property.
+    pub service_login: Option<String>,
+    /// setupLogin property.
+    pub setup_login: Option<String>,
+}
+
+/// `OnPremisesConfiguration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OnPremisesConfiguration {
+    /// caCertificate property.
+    pub ca_certificate: Option<String>,
+    /// clientCertificate property.
+    pub client_certificate: Option<String>,
+    /// clientKey property.
+    pub client_key: Option<String>,
+    /// dumpFilePath property.
+    pub dump_file_path: Option<String>,
+    /// hostPort property.
+    pub host_port: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// password property.
+    pub password: Option<String>,
+    /// selectedObjects property.
+    pub selected_objects: Option<Vec<SelectedObjects>>,
+    /// sourceInstance property.
+    pub source_instance: Option<InstanceReference>,
+    /// sslOption property.
+    pub ssl_option: Option<String>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `GeminiInstanceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GeminiInstanceConfig {
+    /// activeQueryEnabled property.
+    pub active_query_enabled: Option<bool>,
+    /// entitled property.
+    pub entitled: Option<bool>,
+    /// flagRecommenderEnabled property.
+    pub flag_recommender_enabled: Option<bool>,
+    /// googleVacuumMgmtEnabled property.
+    pub google_vacuum_mgmt_enabled: Option<bool>,
+    /// indexAdvisorEnabled property.
+    pub index_advisor_enabled: Option<bool>,
+    /// oomSessionCancelEnabled property.
+    pub oom_session_cancel_enabled: Option<bool>,
+}
+
+/// `PoolNodeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PoolNodeConfig {
+    /// dnsName property.
+    pub dns_name: Option<String>,
+    /// dnsNames property.
+    pub dns_names: Option<Vec<DnsNameMapping>>,
+    /// gceZone property.
+    pub gce_zone: Option<String>,
+    /// ipAddresses property.
+    pub ip_addresses: Option<Vec<IpMapping>>,
+    /// name property.
+    pub name: Option<String>,
+    /// pscAutoConnections property.
+    pub psc_auto_connections: Option<Vec<PscAutoConnectionConfig>>,
+    /// pscServiceAttachmentLink property.
+    pub psc_service_attachment_link: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `DnsNameMapping` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsNameMapping {
+    /// connectionType property.
+    pub connection_type: Option<String>,
+    /// dnsScope property.
+    pub dns_scope: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// recordManager property.
+    pub record_manager: Option<String>,
+}
+
+/// `DatabaseFlags` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseFlags {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `ExportContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExportContext {
+    /// bakExportOptions property.
+    pub bak_export_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// csvExportOptions property.
+    pub csv_export_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// databases property.
+    pub databases: Option<Vec<String>>,
+    /// fileType property.
+    pub file_type: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// offload property.
+    pub offload: Option<bool>,
+    /// sqlExportOptions property.
+    pub sql_export_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// tdeExportOptions property.
+    pub tde_export_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `SqlServerEntraIdConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerEntraIdConfig {
+    /// applicationId property.
+    pub application_id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// tenantId property.
+    pub tenant_id: Option<String>,
+}
+
+/// `IpConfiguration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IpConfiguration {
+    /// allocatedIpRange property.
+    pub allocated_ip_range: Option<String>,
+    /// authorizedNetworks property.
+    pub authorized_networks: Option<Vec<AclEntry>>,
+    /// customSubjectAlternativeNames property.
+    pub custom_subject_alternative_names: Option<Vec<String>>,
+    /// enablePrivatePathForGoogleCloudServices property.
+    pub enable_private_path_for_google_cloud_services: Option<bool>,
+    /// ipv4Enabled property.
+    pub ipv4_enabled: Option<bool>,
+    /// privateNetwork property.
+    pub private_network: Option<String>,
+    /// pscConfig property.
+    pub psc_config: Option<PscConfig>,
+    /// requireSsl property.
+    pub require_ssl: Option<bool>,
+    /// serverCaMode property.
+    pub server_ca_mode: Option<String>,
+    /// serverCaPool property.
+    pub server_ca_pool: Option<String>,
+    /// serverCertificateRotationMode property.
+    pub server_certificate_rotation_mode: Option<String>,
+    /// sslMode property.
+    pub ssl_mode: Option<String>,
+}
+
+/// `ReadPoolAutoScaleConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReadPoolAutoScaleConfig {
+    /// disableScaleIn property.
+    pub disable_scale_in: Option<bool>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// maxNodeCount property.
+    pub max_node_count: Option<i64>,
+    /// minNodeCount property.
+    pub min_node_count: Option<i64>,
+    /// scaleInCooldownSeconds property.
+    pub scale_in_cooldown_seconds: Option<i64>,
+    /// scaleOutCooldownSeconds property.
+    pub scale_out_cooldown_seconds: Option<i64>,
+    /// targetMetrics property.
+    pub target_metrics: Option<Vec<TargetMetric>>,
+}
+
+/// `SqlServerAuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerAuditConfig {
+    /// bucket property.
+    pub bucket: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// retentionInterval property.
+    pub retention_interval: Option<String>,
+    /// uploadInterval property.
+    pub upload_interval: Option<String>,
+}
+
+/// `AclEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AclEntry {
+    /// expirationTime property.
+    pub expiration_time: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `MySqlReplicaConfiguration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MySqlReplicaConfiguration {
+    /// caCertificate property.
+    pub ca_certificate: Option<String>,
+    /// clientCertificate property.
+    pub client_certificate: Option<String>,
+    /// clientKey property.
+    pub client_key: Option<String>,
+    /// connectRetryInterval property.
+    pub connect_retry_interval: Option<i64>,
+    /// dumpFilePath property.
+    pub dump_file_path: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// masterHeartbeatPeriod property.
+    pub master_heartbeat_period: Option<String>,
+    /// password property.
+    pub password: Option<String>,
+    /// sslCipher property.
+    pub ssl_cipher: Option<String>,
+    /// username property.
+    pub username: Option<String>,
+    /// verifyServerCertificate property.
+    pub verify_server_certificate: Option<bool>,
+}
+
+/// `DiskEncryptionStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskEncryptionStatus {
+    /// kind property.
+    pub kind: Option<String>,
+    /// kmsKeyVersionName property.
+    pub kms_key_version_name: Option<String>,
+}
+
+/// `ListBackupsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListBackupsResponse {
+    /// backups property.
+    pub backups: Option<Vec<Backup>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// warnings property.
+    pub warnings: Option<Vec<ApiWarning>>,
+}
+
+/// `InstanceReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceReference {
+    /// name property.
+    pub name: Option<String>,
+    /// project property.
+    pub project: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+}
+
+/// `InsightsConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InsightsConfig {
+    /// enhancedQueryInsightsEnabled property.
+    pub enhanced_query_insights_enabled: Option<bool>,
+    /// queryInsightsEnabled property.
+    pub query_insights_enabled: Option<bool>,
+    /// queryPlansPerMinute property.
+    pub query_plans_per_minute: Option<i64>,
+    /// queryStringLength property.
+    pub query_string_length: Option<i64>,
+    /// recordApplicationTags property.
+    pub record_application_tags: Option<bool>,
+    /// recordClientAddress property.
+    pub record_client_address: Option<bool>,
+}
+
+/// `Backup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Backup {
+    /// backupInterval property.
+    pub backup_interval: Option<Interval>,
+    /// backupKind property.
+    pub backup_kind: Option<String>,
+    /// backupRun property.
+    pub backup_run: Option<String>,
+    /// databaseVersion property.
+    pub database_version: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// error property.
+    pub error: Option<OperationError>,
+    /// expiryTime property.
+    pub expiry_time: Option<String>,
+    /// instance property.
+    pub instance: Option<String>,
+    /// instanceDeletionTime property.
+    pub instance_deletion_time: Option<String>,
+    /// instanceSettings property.
+    pub instance_settings: Option<DatabaseInstance>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// kmsKey property.
+    pub kms_key: Option<String>,
+    /// kmsKeyVersion property.
+    pub kms_key_version: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// maxChargeableBytes property.
+    pub max_chargeable_bytes: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// satisfiesPzi property.
+    pub satisfies_pzi: Option<bool>,
+    /// satisfiesPzs property.
+    pub satisfies_pzs: Option<bool>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// timeZone property.
+    pub time_zone: Option<String>,
+    /// ttlDays property.
+    pub ttl_days: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ReplicationCluster` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReplicationCluster {
+    /// drReplica property.
+    pub dr_replica: Option<bool>,
+    /// failoverDrReplicaName property.
+    pub failover_dr_replica_name: Option<String>,
+    /// psaWriteEndpoint property.
+    pub psa_write_endpoint: Option<String>,
+}
+
+/// `AdvancedMachineFeatures` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdvancedMachineFeatures {
+    /// threadsPerCore property.
+    pub threads_per_core: Option<i64>,
+}
+
+/// `DataCacheConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataCacheConfig {
+    /// dataCacheEnabled property.
+    pub data_cache_enabled: Option<bool>,
+}
+
+/// `BackupContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupContext {
+    /// backupId property.
+    pub backup_id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `Interval` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Interval {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `ConnectionPoolConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectionPoolConfig {
+    /// connectionPoolingEnabled property.
+    pub connection_pooling_enabled: Option<bool>,
+    /// flags property.
+    pub flags: Option<Vec<ConnectionPoolFlags>>,
+    /// poolerCount property.
+    pub pooler_count: Option<i64>,
+}
+
+/// `PreCheckResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PreCheckResponse {
+    /// actionsRequired property.
+    pub actions_required: Option<Vec<String>>,
+    /// message property.
+    pub message: Option<String>,
+    /// messageType property.
+    pub message_type: Option<String>,
 }
 
 // =============================================================================

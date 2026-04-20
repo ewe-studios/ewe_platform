@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,27 +23,11 @@ use serde::{Deserialize, Serialize};
 use super::shared::GoogleCloudIntegrationsV1alphaTestIntegrationsResponse;
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudIntegrationsV1alphaListIntegrationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1alphaListIntegrationsResponse {
-    /// integrations property.
-    pub integrations: Option<Vec<GoogleCloudIntegrationsV1AlphaIntegration>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoProtoParameterArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoProtoParameterArray {
-    /// protoValues property.
-    pub proto_values: Option<Vec<serde_json::Value>>,
-}
 
 /// `EnterpriseCrmFrontendsEventbusProtoParameterEntry` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -57,39 +42,20 @@ pub struct EnterpriseCrmFrontendsEventbusProtoParameterEntry {
     pub value: Option<EnterpriseCrmFrontendsEventbusProtoParameterValueType>,
 }
 
-/// `GoogleCloudIntegrationsV1alphaScheduleIntegrationsResponse` type.
+/// `EnterpriseCrmFrontendsEventbusProtoSerializedObjectParameter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1alphaScheduleIntegrationsResponse {
-    /// executionInfoIds property.
-    pub execution_info_ids: Option<Vec<String>>,
+pub struct EnterpriseCrmFrontendsEventbusProtoSerializedObjectParameter {
+    /// objectValue property.
+    pub object_value: Option<String>,
 }
 
-/// `EnterpriseCrmFrontendsEventbusProtoStringParameterArray` type.
+/// `GoogleCloudIntegrationsV1alphaListIntegrationsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoStringParameterArray {
-    /// stringValues property.
-    pub string_values: Option<Vec<String>>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoDoubleParameterArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoDoubleParameterArray {
-    /// doubleValues property.
-    pub double_values: Option<Vec<f64>>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoEventParameters` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoEventParameters {
-    /// parameters property.
-    pub parameters: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
-}
-
-/// `EnterpriseCrmFrontendsEventbusProtoIntParameterArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoIntParameterArray {
-    /// intValues property.
-    pub int_values: Option<Vec<String>>,
+pub struct GoogleCloudIntegrationsV1alphaListIntegrationsResponse {
+    /// integrations property.
+    pub integrations: Option<Vec<GoogleCloudIntegrationsV1AlphaIntegration>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `EnterpriseCrmFrontendsEventbusProtoParameterValueType` type.
@@ -139,13 +105,6 @@ pub struct GoogleCloudIntegrationsV1alphaExecuteIntegrationsResponse {
     pub parameters: Option<serde_json::Value>,
 }
 
-/// `EnterpriseCrmFrontendsEventbusProtoSerializedObjectParameter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmFrontendsEventbusProtoSerializedObjectParameter {
-    /// objectValue property.
-    pub object_value: Option<String>,
-}
-
 /// `GoogleCloudIntegrationsV1alphaExecuteEventResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaExecuteEventResponse {
@@ -161,11 +120,53 @@ pub struct GoogleCloudIntegrationsV1AlphaIntegration {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
+/// `EnterpriseCrmFrontendsEventbusProtoEventParameters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoEventParameters {
+    /// parameters property.
+    pub parameters: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoIntParameterArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoIntParameterArray {
+    /// intValues property.
+    pub int_values: Option<Vec<String>>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaScheduleIntegrationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaScheduleIntegrationsResponse {
+    /// executionInfoIds property.
+    pub execution_info_ids: Option<Vec<String>>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoDoubleParameterArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoDoubleParameterArray {
+    /// doubleValues property.
+    pub double_values: Option<Vec<f64>>,
+}
+
 /// `EnterpriseCrmFrontendsEventbusProtoBooleanParameterArray` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoBooleanParameterArray {
     /// booleanValues property.
     pub boolean_values: Option<Vec<bool>>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoProtoParameterArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoProtoParameterArray {
+    /// protoValues property.
+    pub proto_values: Option<Vec<serde_json::Value>>,
+}
+
+/// `EnterpriseCrmFrontendsEventbusProtoStringParameterArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmFrontendsEventbusProtoStringParameterArray {
+    /// stringValues property.
+    pub string_values: Option<Vec<String>>,
 }
 
 // =============================================================================

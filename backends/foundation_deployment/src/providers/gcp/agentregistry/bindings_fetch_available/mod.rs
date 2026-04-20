@@ -12,17 +12,39 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// authProviderBinding property.
+    pub auth_provider_binding: Option<AuthProviderBinding>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// source property.
+    pub source: Option<Source>,
+    /// target property.
+    pub target: Option<Target>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
 
 /// `FetchAvailableBindingsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,27 +71,6 @@ pub struct AuthProviderBinding {
 pub struct Source {
     /// identifier property.
     pub identifier: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// authProviderBinding property.
-    pub auth_provider_binding: Option<AuthProviderBinding>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// source property.
-    pub source: Option<Source>,
-    /// target property.
-    pub target: Option<Target>,
-    /// updateTime property.
-    pub update_time: Option<String>,
 }
 
 /// `Target` type.

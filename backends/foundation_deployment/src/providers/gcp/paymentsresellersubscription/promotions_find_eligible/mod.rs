@@ -12,52 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Duration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Duration {
-    /// count property.
-    pub count: Option<i64>,
-    /// unit property.
-    pub unit: Option<String>,
-}
-
-/// `PromotionIntroductoryPricingDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PromotionIntroductoryPricingDetails {
-    /// introductoryPricingSpecs property.
-    pub introductory_pricing_specs:
-        Option<Vec<PromotionIntroductoryPricingDetailsIntroductoryPricingSpec>>,
-}
-
-/// `GoogleTypeLocalizedText` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeLocalizedText {
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `FindEligiblePromotionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FindEligiblePromotionsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// promotions property.
-    pub promotions: Option<Vec<Promotion>>,
-}
 
 /// `Amount` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -79,6 +45,41 @@ pub struct PromotionIntroductoryPricingDetailsIntroductoryPricingSpec {
     pub recurrence_count: Option<i64>,
     /// regionCode property.
     pub region_code: Option<String>,
+}
+
+/// `Duration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Duration {
+    /// count property.
+    pub count: Option<i64>,
+    /// unit property.
+    pub unit: Option<String>,
+}
+
+/// `FindEligiblePromotionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FindEligiblePromotionsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// promotions property.
+    pub promotions: Option<Vec<Promotion>>,
+}
+
+/// `GoogleTypeLocalizedText` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeLocalizedText {
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `PromotionIntroductoryPricingDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PromotionIntroductoryPricingDetails {
+    /// introductoryPricingSpecs property.
+    pub introductory_pricing_specs:
+        Option<Vec<PromotionIntroductoryPricingDetailsIntroductoryPricingSpec>>,
 }
 
 /// `Promotion` type.

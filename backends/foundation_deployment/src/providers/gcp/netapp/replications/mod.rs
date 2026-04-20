@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,91 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `TransferStats` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TransferStats {
+    /// lagDuration property.
+    pub lag_duration: Option<String>,
+    /// lastTransferBytes property.
+    pub last_transfer_bytes: Option<String>,
+    /// lastTransferDuration property.
+    pub last_transfer_duration: Option<String>,
+    /// lastTransferEndTime property.
+    pub last_transfer_end_time: Option<String>,
+    /// lastTransferError property.
+    pub last_transfer_error: Option<String>,
+    /// totalTransferDuration property.
+    pub total_transfer_duration: Option<String>,
+    /// transferBytes property.
+    pub transfer_bytes: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `HybridPeeringDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HybridPeeringDetails {
+    /// command property.
+    pub command: Option<String>,
+    /// commandExpiryTime property.
+    pub command_expiry_time: Option<String>,
+    /// passphrase property.
+    pub passphrase: Option<String>,
+    /// peerClusterName property.
+    pub peer_cluster_name: Option<String>,
+    /// peerSvmName property.
+    pub peer_svm_name: Option<String>,
+    /// peerVolumeName property.
+    pub peer_volume_name: Option<String>,
+    /// subnetIp property.
+    pub subnet_ip: Option<String>,
+}
+
+/// `UserCommands` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UserCommands {
+    /// commands property.
+    pub commands: Option<Vec<String>>,
+}
+
+/// `TieringPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TieringPolicy {
+    /// coolingThresholdDays property.
+    pub cooling_threshold_days: Option<i64>,
+    /// hotTierBypassModeEnabled property.
+    pub hot_tier_bypass_mode_enabled: Option<bool>,
+    /// tierAction property.
+    pub tier_action: Option<String>,
+}
+
+/// `ListReplicationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListReplicationsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// replications property.
+    pub replications: Option<Vec<Replication>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
 
 /// `Replication` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -68,75 +149,6 @@ pub struct Replication {
     pub transfer_stats: Option<TransferStats>,
 }
 
-/// `HybridPeeringDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HybridPeeringDetails {
-    /// command property.
-    pub command: Option<String>,
-    /// commandExpiryTime property.
-    pub command_expiry_time: Option<String>,
-    /// passphrase property.
-    pub passphrase: Option<String>,
-    /// peerClusterName property.
-    pub peer_cluster_name: Option<String>,
-    /// peerSvmName property.
-    pub peer_svm_name: Option<String>,
-    /// peerVolumeName property.
-    pub peer_volume_name: Option<String>,
-    /// subnetIp property.
-    pub subnet_ip: Option<String>,
-}
-
-/// `TieringPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TieringPolicy {
-    /// coolingThresholdDays property.
-    pub cooling_threshold_days: Option<i64>,
-    /// hotTierBypassModeEnabled property.
-    pub hot_tier_bypass_mode_enabled: Option<bool>,
-    /// tierAction property.
-    pub tier_action: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `UserCommands` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserCommands {
-    /// commands property.
-    pub commands: Option<Vec<String>>,
-}
-
-/// `TransferStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransferStats {
-    /// lagDuration property.
-    pub lag_duration: Option<String>,
-    /// lastTransferBytes property.
-    pub last_transfer_bytes: Option<String>,
-    /// lastTransferDuration property.
-    pub last_transfer_duration: Option<String>,
-    /// lastTransferEndTime property.
-    pub last_transfer_end_time: Option<String>,
-    /// lastTransferError property.
-    pub last_transfer_error: Option<String>,
-    /// totalTransferDuration property.
-    pub total_transfer_duration: Option<String>,
-    /// transferBytes property.
-    pub transfer_bytes: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
 /// `DestinationVolumeParameters` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DestinationVolumeParameters {
@@ -150,17 +162,6 @@ pub struct DestinationVolumeParameters {
     pub tiering_policy: Option<TieringPolicy>,
     /// volumeId property.
     pub volume_id: Option<String>,
-}
-
-/// `ListReplicationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListReplicationsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// replications property.
-    pub replications: Option<Vec<Replication>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
 }
 
 // =============================================================================

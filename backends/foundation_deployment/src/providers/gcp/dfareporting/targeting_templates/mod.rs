@@ -12,84 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `TargetingTemplate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TargetingTemplate {
-    /// accountId property.
-    pub account_id: Option<String>,
-    /// advertiserId property.
-    pub advertiser_id: Option<String>,
-    /// advertiserIdDimensionValue property.
-    pub advertiser_id_dimension_value: Option<DimensionValue>,
-    /// contextualKeywordTargeting property.
-    pub contextual_keyword_targeting: Option<ContextualKeywordTargeting>,
-    /// dayPartTargeting property.
-    pub day_part_targeting: Option<DayPartTargeting>,
-    /// geoTargeting property.
-    pub geo_targeting: Option<GeoTargeting>,
-    /// id property.
-    pub id: Option<String>,
-    /// keyValueTargetingExpression property.
-    pub key_value_targeting_expression: Option<KeyValueTargetingExpression>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// languageTargeting property.
-    pub language_targeting: Option<LanguageTargeting>,
-    /// listTargetingExpression property.
-    pub list_targeting_expression: Option<ListTargetingExpression>,
-    /// name property.
-    pub name: Option<String>,
-    /// subaccountId property.
-    pub subaccount_id: Option<String>,
-    /// technologyTargeting property.
-    pub technology_targeting: Option<TechnologyTargeting>,
-}
-
-/// `TechnologyTargeting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TechnologyTargeting {
-    /// browsers property.
-    pub browsers: Option<Vec<Browser>>,
-    /// connectionTypes property.
-    pub connection_types: Option<Vec<ConnectionType>>,
-    /// mobileCarriers property.
-    pub mobile_carriers: Option<Vec<MobileCarrier>>,
-    /// operatingSystemVersions property.
-    pub operating_system_versions: Option<Vec<OperatingSystemVersion>>,
-    /// operatingSystems property.
-    pub operating_systems: Option<Vec<OperatingSystem>>,
-    /// platformTypes property.
-    pub platform_types: Option<Vec<PlatformType>>,
-}
-
-/// `Browser` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Browser {
-    /// browserVersionId property.
-    pub browser_version_id: Option<String>,
-    /// dartId property.
-    pub dart_id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// majorVersion property.
-    pub major_version: Option<String>,
-    /// minorVersion property.
-    pub minor_version: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
 
 /// `TargetingTemplatesListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -102,40 +36,11 @@ pub struct TargetingTemplatesListResponse {
     pub targeting_templates: Option<Vec<TargetingTemplate>>,
 }
 
-/// `Metro` type.
+/// `KeyValueTargetingExpression` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Metro {
-    /// countryCode property.
-    pub country_code: Option<String>,
-    /// countryDartId property.
-    pub country_dart_id: Option<String>,
-    /// dartId property.
-    pub dart_id: Option<String>,
-    /// dmaId property.
-    pub dma_id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// metroCode property.
-    pub metro_code: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `Country` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Country {
-    /// countryCode property.
-    pub country_code: Option<String>,
-    /// dartId property.
-    pub dart_id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// sslEnabled property.
-    pub ssl_enabled: Option<bool>,
-    /// tvDataProviders property.
-    pub tv_data_providers: Option<Vec<String>>,
+pub struct KeyValueTargetingExpression {
+    /// expression property.
+    pub expression: Option<String>,
 }
 
 /// `MobileCarrier` type.
@@ -153,46 +58,19 @@ pub struct MobileCarrier {
     pub name: Option<String>,
 }
 
-/// `LanguageTargeting` type.
+/// `PostalCode` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LanguageTargeting {
-    /// languages property.
-    pub languages: Option<Vec<Language>>,
-}
-
-/// `ListTargetingExpression` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListTargetingExpression {
-    /// expression property.
-    pub expression: Option<String>,
-}
-
-/// `PlatformType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlatformType {
+pub struct PostalCode {
+    /// code property.
+    pub code: Option<String>,
+    /// countryCode property.
+    pub country_code: Option<String>,
+    /// countryDartId property.
+    pub country_dart_id: Option<String>,
     /// id property.
     pub id: Option<String>,
     /// kind property.
     pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GeoTargeting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeoTargeting {
-    /// cities property.
-    pub cities: Option<Vec<City>>,
-    /// countries property.
-    pub countries: Option<Vec<Country>>,
-    /// excludeCountries property.
-    pub exclude_countries: Option<bool>,
-    /// metros property.
-    pub metros: Option<Vec<Metro>>,
-    /// postalCodes property.
-    pub postal_codes: Option<Vec<PostalCode>>,
-    /// regions property.
-    pub regions: Option<Vec<Region>>,
 }
 
 /// `Region` type.
@@ -229,17 +107,160 @@ pub struct OperatingSystemVersion {
     pub operating_system: Option<OperatingSystem>,
 }
 
-/// `OperatingSystem` type.
+/// `DayPartTargeting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperatingSystem {
+pub struct DayPartTargeting {
+    /// daysOfWeek property.
+    pub days_of_week: Option<Vec<String>>,
+    /// hoursOfDay property.
+    pub hours_of_day: Option<Vec<i64>>,
+    /// userLocalTime property.
+    pub user_local_time: Option<bool>,
+}
+
+/// `TechnologyTargeting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TechnologyTargeting {
+    /// browsers property.
+    pub browsers: Option<Vec<Browser>>,
+    /// connectionTypes property.
+    pub connection_types: Option<Vec<ConnectionType>>,
+    /// mobileCarriers property.
+    pub mobile_carriers: Option<Vec<MobileCarrier>>,
+    /// operatingSystemVersions property.
+    pub operating_system_versions: Option<Vec<OperatingSystemVersion>>,
+    /// operatingSystems property.
+    pub operating_systems: Option<Vec<OperatingSystem>>,
+    /// platformTypes property.
+    pub platform_types: Option<Vec<PlatformType>>,
+}
+
+/// `Browser` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Browser {
+    /// browserVersionId property.
+    pub browser_version_id: Option<String>,
     /// dartId property.
     pub dart_id: Option<String>,
-    /// desktop property.
-    pub desktop: Option<bool>,
     /// kind property.
     pub kind: Option<String>,
-    /// mobile property.
-    pub mobile: Option<bool>,
+    /// majorVersion property.
+    pub major_version: Option<String>,
+    /// minorVersion property.
+    pub minor_version: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `PlatformType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlatformType {
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `Country` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Country {
+    /// countryCode property.
+    pub country_code: Option<String>,
+    /// dartId property.
+    pub dart_id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// sslEnabled property.
+    pub ssl_enabled: Option<bool>,
+    /// tvDataProviders property.
+    pub tv_data_providers: Option<Vec<String>>,
+}
+
+/// `ContextualKeywordTargeting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContextualKeywordTargeting {
+    /// keywords property.
+    pub keywords: Option<Vec<ContextualKeyword>>,
+}
+
+/// `Metro` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Metro {
+    /// countryCode property.
+    pub country_code: Option<String>,
+    /// countryDartId property.
+    pub country_dart_id: Option<String>,
+    /// dartId property.
+    pub dart_id: Option<String>,
+    /// dmaId property.
+    pub dma_id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// metroCode property.
+    pub metro_code: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `ContextualKeyword` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContextualKeyword {
+    /// keyword property.
+    pub keyword: Option<String>,
+}
+
+/// `LanguageTargeting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LanguageTargeting {
+    /// languages property.
+    pub languages: Option<Vec<Language>>,
+}
+
+/// `DimensionValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DimensionValue {
+    /// dimensionName property.
+    pub dimension_name: Option<String>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// matchType property.
+    pub match_type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GeoTargeting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GeoTargeting {
+    /// cities property.
+    pub cities: Option<Vec<City>>,
+    /// countries property.
+    pub countries: Option<Vec<Country>>,
+    /// excludeCountries property.
+    pub exclude_countries: Option<bool>,
+    /// metros property.
+    pub metros: Option<Vec<Metro>>,
+    /// postalCodes property.
+    pub postal_codes: Option<Vec<PostalCode>>,
+    /// regions property.
+    pub regions: Option<Vec<Region>>,
+}
+
+/// `ConnectionType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectionType {
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
     /// name property.
     pub name: Option<String>,
 }
@@ -257,29 +278,11 @@ pub struct Language {
     pub name: Option<String>,
 }
 
-/// `DayPartTargeting` type.
+/// `ListTargetingExpression` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DayPartTargeting {
-    /// daysOfWeek property.
-    pub days_of_week: Option<Vec<String>>,
-    /// hoursOfDay property.
-    pub hours_of_day: Option<Vec<i64>>,
-    /// userLocalTime property.
-    pub user_local_time: Option<bool>,
-}
-
-/// `ContextualKeywordTargeting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContextualKeywordTargeting {
-    /// keywords property.
-    pub keywords: Option<Vec<ContextualKeyword>>,
-}
-
-/// `ContextualKeyword` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContextualKeyword {
-    /// keyword property.
-    pub keyword: Option<String>,
+pub struct ListTargetingExpression {
+    /// expression property.
+    pub expression: Option<String>,
 }
 
 /// `City` type.
@@ -305,54 +308,52 @@ pub struct City {
     pub region_dart_id: Option<String>,
 }
 
-/// `DimensionValue` type.
+/// `TargetingTemplate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DimensionValue {
-    /// dimensionName property.
-    pub dimension_name: Option<String>,
-    /// etag property.
-    pub etag: Option<String>,
+pub struct TargetingTemplate {
+    /// accountId property.
+    pub account_id: Option<String>,
+    /// advertiserId property.
+    pub advertiser_id: Option<String>,
+    /// advertiserIdDimensionValue property.
+    pub advertiser_id_dimension_value: Option<DimensionValue>,
+    /// contextualKeywordTargeting property.
+    pub contextual_keyword_targeting: Option<ContextualKeywordTargeting>,
+    /// dayPartTargeting property.
+    pub day_part_targeting: Option<DayPartTargeting>,
+    /// geoTargeting property.
+    pub geo_targeting: Option<GeoTargeting>,
     /// id property.
     pub id: Option<String>,
+    /// keyValueTargetingExpression property.
+    pub key_value_targeting_expression: Option<KeyValueTargetingExpression>,
     /// kind property.
     pub kind: Option<String>,
-    /// matchType property.
-    pub match_type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `PostalCode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostalCode {
-    /// code property.
-    pub code: Option<String>,
-    /// countryCode property.
-    pub country_code: Option<String>,
-    /// countryDartId property.
-    pub country_dart_id: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `ConnectionType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionType {
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
+    /// languageTargeting property.
+    pub language_targeting: Option<LanguageTargeting>,
+    /// listTargetingExpression property.
+    pub list_targeting_expression: Option<ListTargetingExpression>,
     /// name property.
     pub name: Option<String>,
+    /// subaccountId property.
+    pub subaccount_id: Option<String>,
+    /// technologyTargeting property.
+    pub technology_targeting: Option<TechnologyTargeting>,
 }
 
-/// `KeyValueTargetingExpression` type.
+/// `OperatingSystem` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KeyValueTargetingExpression {
-    /// expression property.
-    pub expression: Option<String>,
+pub struct OperatingSystem {
+    /// dartId property.
+    pub dart_id: Option<String>,
+    /// desktop property.
+    pub desktop: Option<bool>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// mobile property.
+    pub mobile: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 // =============================================================================

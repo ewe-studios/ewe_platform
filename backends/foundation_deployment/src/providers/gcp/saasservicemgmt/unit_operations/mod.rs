@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -72,57 +73,6 @@ pub struct UnitOperation {
     pub upgrade: Option<Upgrade>,
 }
 
-/// `ListUnitOperationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListUnitOperationsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unitOperations property.
-    pub unit_operations: Option<Vec<UnitOperation>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `Provision` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Provision {
-    /// inputVariables property.
-    pub input_variables: Option<Vec<UnitVariable>>,
-    /// release property.
-    pub release: Option<String>,
-}
-
-/// `UnitVariable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UnitVariable {
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-    /// variable property.
-    pub variable: Option<String>,
-}
-
-/// `Deprovision` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Deprovision {}
-
-/// `Schedule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Schedule {
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `Upgrade` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Upgrade {
-    /// inputVariables property.
-    pub input_variables: Option<Vec<UnitVariable>>,
-    /// release property.
-    pub release: Option<String>,
-}
-
 /// `UnitOperationCondition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnitOperationCondition {
@@ -136,6 +86,57 @@ pub struct UnitOperationCondition {
     pub status: Option<String>,
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `Upgrade` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Upgrade {
+    /// inputVariables property.
+    pub input_variables: Option<Vec<UnitVariable>>,
+    /// release property.
+    pub release: Option<String>,
+}
+
+/// `ListUnitOperationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListUnitOperationsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unitOperations property.
+    pub unit_operations: Option<Vec<UnitOperation>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `Deprovision` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Deprovision {}
+
+/// `Schedule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Schedule {
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `UnitVariable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UnitVariable {
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+    /// variable property.
+    pub variable: Option<String>,
+}
+
+/// `Provision` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Provision {
+    /// inputVariables property.
+    pub input_variables: Option<Vec<UnitVariable>>,
+    /// release property.
+    pub release: Option<String>,
 }
 
 // =============================================================================

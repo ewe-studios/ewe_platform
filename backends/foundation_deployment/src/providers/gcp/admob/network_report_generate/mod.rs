@@ -12,25 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ReportRow` type.
+/// `ReportFooter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportRow {
-    /// dimensionValues property.
-    pub dimension_values: Option<serde_json::Value>,
-    /// metricValues property.
-    pub metric_values: Option<serde_json::Value>,
+pub struct ReportFooter {
+    /// matchingRowCount property.
+    pub matching_row_count: Option<String>,
+    /// warnings property.
+    pub warnings: Option<Vec<ReportWarning>>,
 }
 
 /// `GenerateNetworkReportResponse` type.
@@ -44,22 +45,13 @@ pub struct GenerateNetworkReportResponse {
     pub row: Option<ReportRow>,
 }
 
-/// `ReportFooter` type.
+/// `ReportWarning` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportFooter {
-    /// matchingRowCount property.
-    pub matching_row_count: Option<String>,
-    /// warnings property.
-    pub warnings: Option<Vec<ReportWarning>>,
-}
-
-/// `LocalizationSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizationSettings {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// languageCode property.
-    pub language_code: Option<String>,
+pub struct ReportWarning {
+    /// description property.
+    pub description: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `Date` type.
@@ -73,13 +65,22 @@ pub struct Date {
     pub year: Option<i64>,
 }
 
-/// `DateRange` type.
+/// `ReportRow` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DateRange {
-    /// endDate property.
-    pub end_date: Option<Date>,
-    /// startDate property.
-    pub start_date: Option<Date>,
+pub struct ReportRow {
+    /// dimensionValues property.
+    pub dimension_values: Option<serde_json::Value>,
+    /// metricValues property.
+    pub metric_values: Option<serde_json::Value>,
+}
+
+/// `LocalizationSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizationSettings {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// languageCode property.
+    pub language_code: Option<String>,
 }
 
 /// `ReportHeader` type.
@@ -93,13 +94,13 @@ pub struct ReportHeader {
     pub reporting_time_zone: Option<String>,
 }
 
-/// `ReportWarning` type.
+/// `DateRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportWarning {
-    /// description property.
-    pub description: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct DateRange {
+    /// endDate property.
+    pub end_date: Option<Date>,
+    /// startDate property.
+    pub start_date: Option<Date>,
 }
 
 // =============================================================================

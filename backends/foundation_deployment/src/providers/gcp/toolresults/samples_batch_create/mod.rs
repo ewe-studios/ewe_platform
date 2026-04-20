@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `PerfSample` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PerfSample {
+    /// sampleTime property.
+    pub sample_time: Option<Timestamp>,
+    /// value property.
+    pub value: Option<f64>,
+}
 
 /// `BatchCreatePerfSamplesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -38,15 +48,6 @@ pub struct Timestamp {
     pub nanos: Option<i64>,
     /// seconds property.
     pub seconds: Option<String>,
-}
-
-/// `PerfSample` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PerfSample {
-    /// sampleTime property.
-    pub sample_time: Option<Timestamp>,
-    /// value property.
-    pub value: Option<f64>,
 }
 
 // =============================================================================

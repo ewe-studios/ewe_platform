@@ -12,17 +12,29 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleChromeManagementV1CountPrintJobsByPrinterResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1CountPrintJobsByPrinterResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// printerReports property.
+    pub printer_reports: Option<Vec<GoogleChromeManagementV1PrinterReport>>,
+    /// totalSize property.
+    pub total_size: Option<String>,
+}
 
 /// `GoogleChromeManagementV1PrinterReport` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -39,17 +51,6 @@ pub struct GoogleChromeManagementV1PrinterReport {
     pub printer_model: Option<String>,
     /// userCount property.
     pub user_count: Option<String>,
-}
-
-/// `GoogleChromeManagementV1CountPrintJobsByPrinterResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1CountPrintJobsByPrinterResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// printerReports property.
-    pub printer_reports: Option<Vec<GoogleChromeManagementV1PrinterReport>>,
-    /// totalSize property.
-    pub total_size: Option<String>,
 }
 
 // =============================================================================

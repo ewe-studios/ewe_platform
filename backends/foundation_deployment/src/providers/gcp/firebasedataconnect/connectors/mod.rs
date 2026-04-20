@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,21 +23,30 @@ use serde::{Deserialize, Serialize};
 use super::shared::GraphqlResponse;
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ExecuteMutationResponse` type.
+/// `GraphqlResponseExtensions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExecuteMutationResponse {
-    /// data property.
-    pub data: Option<serde_json::Value>,
-    /// errors property.
-    pub errors: Option<Vec<GraphqlError>>,
+pub struct GraphqlResponseExtensions {
+    /// dataConnect property.
+    pub data_connect: Option<Vec<DataConnectProperties>>,
+}
+
+/// `GraphqlError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GraphqlError {
     /// extensions property.
-    pub extensions: Option<GraphqlResponseExtensions>,
+    pub extensions: Option<GraphqlErrorExtensions>,
+    /// locations property.
+    pub locations: Option<Vec<SourceLocation>>,
+    /// message property.
+    pub message: Option<String>,
+    /// path property.
+    pub path: Option<Vec<serde_json::Value>>,
 }
 
 /// `Connector` type.
@@ -66,6 +76,26 @@ pub struct Connector {
     pub update_time: Option<String>,
 }
 
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `SourceLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SourceLocation {
+    /// column property.
+    pub column: Option<i64>,
+    /// line property.
+    pub line: Option<i64>,
+}
+
 /// `ListConnectorsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListConnectorsResponse {
@@ -75,24 +105,6 @@ pub struct ListConnectorsResponse {
     pub next_page_token: Option<String>,
     /// unreachable property.
     pub unreachable: Option<Vec<String>>,
-}
-
-/// `Workaround` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Workaround {
-    /// description property.
-    pub description: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
-    /// replace property.
-    pub replace: Option<String>,
-}
-
-/// `Source` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Source {
-    /// files property.
-    pub files: Option<Vec<File>>,
 }
 
 /// `ExecuteQueryResponse` type.
@@ -106,17 +118,6 @@ pub struct ExecuteQueryResponse {
     pub extensions: Option<GraphqlResponseExtensions>,
 }
 
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
 /// `ClientCache` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClientCache {
@@ -126,26 +127,24 @@ pub struct ClientCache {
     pub strict_validation_enabled: Option<bool>,
 }
 
-/// `SourceLocation` type.
+/// `File` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceLocation {
-    /// column property.
-    pub column: Option<i64>,
-    /// line property.
-    pub line: Option<i64>,
+pub struct File {
+    /// content property.
+    pub content: Option<String>,
+    /// path property.
+    pub path: Option<String>,
 }
 
-/// `DataConnectProperties` type.
+/// `Workaround` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataConnectProperties {
-    /// entityId property.
-    pub entity_id: Option<String>,
-    /// entityIds property.
-    pub entity_ids: Option<Vec<String>>,
-    /// maxAge property.
-    pub max_age: Option<String>,
-    /// path property.
-    pub path: Option<Vec<serde_json::Value>>,
+pub struct Workaround {
+    /// description property.
+    pub description: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+    /// replace property.
+    pub replace: Option<String>,
 }
 
 /// `GraphqlErrorExtensions` type.
@@ -163,33 +162,35 @@ pub struct GraphqlErrorExtensions {
     pub workarounds: Option<Vec<Workaround>>,
 }
 
-/// `GraphqlError` type.
+/// `Source` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GraphqlError {
+pub struct Source {
+    /// files property.
+    pub files: Option<Vec<File>>,
+}
+
+/// `ExecuteMutationResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExecuteMutationResponse {
+    /// data property.
+    pub data: Option<serde_json::Value>,
+    /// errors property.
+    pub errors: Option<Vec<GraphqlError>>,
     /// extensions property.
-    pub extensions: Option<GraphqlErrorExtensions>,
-    /// locations property.
-    pub locations: Option<Vec<SourceLocation>>,
-    /// message property.
-    pub message: Option<String>,
+    pub extensions: Option<GraphqlResponseExtensions>,
+}
+
+/// `DataConnectProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataConnectProperties {
+    /// entityId property.
+    pub entity_id: Option<String>,
+    /// entityIds property.
+    pub entity_ids: Option<Vec<String>>,
+    /// maxAge property.
+    pub max_age: Option<String>,
     /// path property.
     pub path: Option<Vec<serde_json::Value>>,
-}
-
-/// `File` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct File {
-    /// content property.
-    pub content: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-}
-
-/// `GraphqlResponseExtensions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GraphqlResponseExtensions {
-    /// dataConnect property.
-    pub data_connect: Option<Vec<DataConnectProperties>>,
 }
 
 // =============================================================================

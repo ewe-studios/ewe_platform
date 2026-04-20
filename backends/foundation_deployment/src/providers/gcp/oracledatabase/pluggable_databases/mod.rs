@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `DatabaseManagementConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseManagementConfig {
-    /// managementState property.
-    pub management_state: Option<String>,
-    /// managementType property.
-    pub management_type: Option<String>,
-}
 
 /// `PluggableDatabaseNodeLevelDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,17 +36,6 @@ pub struct PluggableDatabaseNodeLevelDetails {
     pub pluggable_database_id: Option<String>,
 }
 
-/// `PluggableDatabaseConnectionStrings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PluggableDatabaseConnectionStrings {
-    /// allConnectionStrings property.
-    pub all_connection_strings: Option<serde_json::Value>,
-    /// pdbDefault property.
-    pub pdb_default: Option<String>,
-    /// pdbIpDefault property.
-    pub pdb_ip_default: Option<String>,
-}
-
 /// `ListPluggableDatabasesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPluggableDatabasesResponse {
@@ -62,6 +43,15 @@ pub struct ListPluggableDatabasesResponse {
     pub next_page_token: Option<String>,
     /// pluggableDatabases property.
     pub pluggable_databases: Option<Vec<PluggableDatabase>>,
+}
+
+/// `DatabaseManagementConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseManagementConfig {
+    /// managementState property.
+    pub management_state: Option<String>,
+    /// managementType property.
+    pub management_type: Option<String>,
 }
 
 /// `PluggableDatabase` type.
@@ -106,6 +96,17 @@ pub struct PluggableDatabaseProperties {
     pub pdb_name: Option<String>,
     /// pdbNodeLevelDetails property.
     pub pdb_node_level_details: Option<Vec<PluggableDatabaseNodeLevelDetails>>,
+}
+
+/// `PluggableDatabaseConnectionStrings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PluggableDatabaseConnectionStrings {
+    /// allConnectionStrings property.
+    pub all_connection_strings: Option<serde_json::Value>,
+    /// pdbDefault property.
+    pub pdb_default: Option<String>,
+    /// pdbIpDefault property.
+    pub pdb_ip_default: Option<String>,
 }
 
 // =============================================================================

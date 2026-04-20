@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,22 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `WeeklyMaintenanceWindow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WeeklyMaintenanceWindow {
-    /// day property.
-    pub day: Option<String>,
-    /// duration property.
-    pub duration: Option<String>,
-    /// startTime property.
-    pub start_time: Option<TimeOfDay>,
-}
 
 /// `NodeInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -47,28 +37,19 @@ pub struct NodeInfo {
     pub zone: Option<String>,
 }
 
-/// `TimeOfDay` type.
+/// `TlsCertificate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeOfDay {
-    /// hours property.
-    pub hours: Option<i64>,
-    /// minutes property.
-    pub minutes: Option<i64>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<i64>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct TlsCertificate {
+    /// cert property.
+    pub cert: Option<String>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// expireTime property.
+    pub expire_time: Option<String>,
+    /// serialNumber property.
+    pub serial_number: Option<String>,
+    /// sha1Fingerprint property.
+    pub sha1_fingerprint: Option<String>,
 }
 
 /// `Instance` type.
@@ -152,41 +133,39 @@ pub struct Instance {
     pub transit_encryption_mode: Option<String>,
 }
 
-/// `ListInstancesResponse` type.
+/// `WeeklyMaintenanceWindow` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListInstancesResponse {
-    /// instances property.
-    pub instances: Option<Vec<Instance>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `MaintenancePolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaintenancePolicy {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-    /// weeklyMaintenanceWindow property.
-    pub weekly_maintenance_window: Option<Vec<WeeklyMaintenanceWindow>>,
-}
-
-/// `MaintenanceSchedule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaintenanceSchedule {
-    /// canReschedule property.
-    pub can_reschedule: Option<bool>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// scheduleDeadlineTime property.
-    pub schedule_deadline_time: Option<String>,
+pub struct WeeklyMaintenanceWindow {
+    /// day property.
+    pub day: Option<String>,
+    /// duration property.
+    pub duration: Option<String>,
     /// startTime property.
-    pub start_time: Option<String>,
+    pub start_time: Option<TimeOfDay>,
+}
+
+/// `TimeOfDay` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeOfDay {
+    /// hours property.
+    pub hours: Option<i64>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<i64>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `PersistenceConfig` type.
@@ -202,19 +181,41 @@ pub struct PersistenceConfig {
     pub rdb_snapshot_start_time: Option<String>,
 }
 
-/// `TlsCertificate` type.
+/// `ListInstancesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificate {
-    /// cert property.
-    pub cert: Option<String>,
+pub struct ListInstancesResponse {
+    /// instances property.
+    pub instances: Option<Vec<Instance>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `MaintenanceSchedule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MaintenanceSchedule {
+    /// canReschedule property.
+    pub can_reschedule: Option<bool>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// scheduleDeadlineTime property.
+    pub schedule_deadline_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `MaintenancePolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MaintenancePolicy {
     /// createTime property.
     pub create_time: Option<String>,
-    /// expireTime property.
-    pub expire_time: Option<String>,
-    /// serialNumber property.
-    pub serial_number: Option<String>,
-    /// sha1Fingerprint property.
-    pub sha1_fingerprint: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+    /// weeklyMaintenanceWindow property.
+    pub weekly_maintenance_window: Option<Vec<WeeklyMaintenanceWindow>>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,19 +22,43 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DataCollectionOptionsDbSystem` type.
+/// `TimeZone` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataCollectionOptionsDbSystem {
-    /// isDiagnosticsEventsEnabled property.
-    pub is_diagnostics_events_enabled: Option<bool>,
-    /// isIncidentLogsEnabled property.
-    pub is_incident_logs_enabled: Option<bool>,
+pub struct TimeZone {
+    /// id property.
+    pub id: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `DbHome` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DbHome {
+    /// database property.
+    pub database: Option<Database>,
+    /// dbVersion property.
+    pub db_version: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// isUnifiedAuditingEnabled property.
+    pub is_unified_auditing_enabled: Option<bool>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `DbSystemProperties` type.
@@ -83,6 +108,13 @@ pub struct DbSystemProperties {
     pub time_zone: Option<TimeZone>,
 }
 
+/// `BackupDestinationDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupDestinationDetails {
+    /// type property.
+    pub r#type: Option<String>,
+}
+
 /// `DbSystem` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DbSystem {
@@ -108,13 +140,11 @@ pub struct DbSystem {
     pub properties: Option<DbSystemProperties>,
 }
 
-/// `TimeZone` type.
+/// `DbSystemOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeZone {
-    /// id property.
-    pub id: Option<String>,
-    /// version property.
-    pub version: Option<String>,
+pub struct DbSystemOptions {
+    /// storageManagement property.
+    pub storage_management: Option<String>,
 }
 
 /// `ListDbSystemsResponse` type.
@@ -124,6 +154,38 @@ pub struct ListDbSystemsResponse {
     pub db_systems: Option<Vec<DbSystem>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `DatabaseProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseProperties {
+    /// databaseManagementConfig property.
+    pub database_management_config: Option<DatabaseManagementConfig>,
+    /// dbBackupConfig property.
+    pub db_backup_config: Option<DbBackupConfig>,
+    /// dbVersion property.
+    pub db_version: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `DbBackupConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DbBackupConfig {
+    /// autoBackupEnabled property.
+    pub auto_backup_enabled: Option<bool>,
+    /// autoFullBackupDay property.
+    pub auto_full_backup_day: Option<String>,
+    /// autoFullBackupWindow property.
+    pub auto_full_backup_window: Option<String>,
+    /// autoIncrementalBackupWindow property.
+    pub auto_incremental_backup_window: Option<String>,
+    /// backupDeletionPolicy property.
+    pub backup_deletion_policy: Option<String>,
+    /// backupDestinationDetails property.
+    pub backup_destination_details: Option<Vec<BackupDestinationDetails>>,
+    /// retentionPeriodDays property.
+    pub retention_period_days: Option<i64>,
 }
 
 /// `Database` type.
@@ -167,65 +229,6 @@ pub struct Database {
     pub tde_wallet_password_secret_version: Option<String>,
 }
 
-/// `DbBackupConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DbBackupConfig {
-    /// autoBackupEnabled property.
-    pub auto_backup_enabled: Option<bool>,
-    /// autoFullBackupDay property.
-    pub auto_full_backup_day: Option<String>,
-    /// autoFullBackupWindow property.
-    pub auto_full_backup_window: Option<String>,
-    /// autoIncrementalBackupWindow property.
-    pub auto_incremental_backup_window: Option<String>,
-    /// backupDeletionPolicy property.
-    pub backup_deletion_policy: Option<String>,
-    /// backupDestinationDetails property.
-    pub backup_destination_details: Option<Vec<BackupDestinationDetails>>,
-    /// retentionPeriodDays property.
-    pub retention_period_days: Option<i64>,
-}
-
-/// `DbSystemOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DbSystemOptions {
-    /// storageManagement property.
-    pub storage_management: Option<String>,
-}
-
-/// `DbHome` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DbHome {
-    /// database property.
-    pub database: Option<Database>,
-    /// dbVersion property.
-    pub db_version: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// isUnifiedAuditingEnabled property.
-    pub is_unified_auditing_enabled: Option<bool>,
-}
-
-/// `DatabaseProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseProperties {
-    /// databaseManagementConfig property.
-    pub database_management_config: Option<DatabaseManagementConfig>,
-    /// dbBackupConfig property.
-    pub db_backup_config: Option<DbBackupConfig>,
-    /// dbVersion property.
-    pub db_version: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `BackupDestinationDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupDestinationDetails {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
 /// `DatabaseManagementConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseManagementConfig {
@@ -235,15 +238,13 @@ pub struct DatabaseManagementConfig {
     pub management_type: Option<String>,
 }
 
-/// `Status` type.
+/// `DataCollectionOptionsDbSystem` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct DataCollectionOptionsDbSystem {
+    /// isDiagnosticsEventsEnabled property.
+    pub is_diagnostics_events_enabled: Option<bool>,
+    /// isIncidentLogsEnabled property.
+    pub is_incident_logs_enabled: Option<bool>,
 }
 
 // =============================================================================

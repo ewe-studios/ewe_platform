@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,31 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `SqlSubOperationType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlSubOperationType {
-    /// maintenanceType property.
-    pub maintenance_type: Option<String>,
-}
-
-/// `AcquireSsrsLeaseContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcquireSsrsLeaseContext {
-    /// duration property.
-    pub duration: Option<String>,
-    /// reportDatabase property.
-    pub report_database: Option<String>,
-    /// serviceLogin property.
-    pub service_login: Option<String>,
-    /// setupLogin property.
-    pub setup_login: Option<String>,
-}
 
 /// `ApiWarning` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -58,26 +39,11 @@ pub struct ApiWarning {
     pub region: Option<String>,
 }
 
-/// `PreCheckMajorVersionUpgradeContext` type.
+/// `SqlSubOperationType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreCheckMajorVersionUpgradeContext {
-    /// kind property.
-    pub kind: Option<String>,
-    /// preCheckResponse property.
-    pub pre_check_response: Option<Vec<PreCheckResponse>>,
-    /// targetDatabaseVersion property.
-    pub target_database_version: Option<String>,
-}
-
-/// `BackupContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupContext {
-    /// backupId property.
-    pub backup_id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
+pub struct SqlSubOperationType {
+    /// maintenanceType property.
+    pub maintenance_type: Option<String>,
 }
 
 /// `PreCheckResponse` type.
@@ -89,26 +55,6 @@ pub struct PreCheckResponse {
     pub message: Option<String>,
     /// messageType property.
     pub message_type: Option<String>,
-}
-
-/// `OperationError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperationError {
-    /// code property.
-    pub code: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `OperationErrors` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperationErrors {
-    /// errors property.
-    pub errors: Option<Vec<OperationError>>,
-    /// kind property.
-    pub kind: Option<String>,
 }
 
 /// `ExportContext` type.
@@ -134,6 +80,41 @@ pub struct ExportContext {
     pub uri: Option<String>,
 }
 
+/// `OperationError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OperationError {
+    /// code property.
+    pub code: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `AcquireSsrsLeaseContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AcquireSsrsLeaseContext {
+    /// duration property.
+    pub duration: Option<String>,
+    /// reportDatabase property.
+    pub report_database: Option<String>,
+    /// serviceLogin property.
+    pub service_login: Option<String>,
+    /// setupLogin property.
+    pub setup_login: Option<String>,
+}
+
+/// `BackupContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupContext {
+    /// backupId property.
+    pub backup_id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
 /// `ImportContext` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportContext {
@@ -155,6 +136,26 @@ pub struct ImportContext {
     pub tde_import_options: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// uri property.
     pub uri: Option<String>,
+}
+
+/// `OperationErrors` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OperationErrors {
+    /// errors property.
+    pub errors: Option<Vec<OperationError>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `PreCheckMajorVersionUpgradeContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PreCheckMajorVersionUpgradeContext {
+    /// kind property.
+    pub kind: Option<String>,
+    /// preCheckResponse property.
+    pub pre_check_response: Option<Vec<PreCheckResponse>>,
+    /// targetDatabaseVersion property.
+    pub target_database_version: Option<String>,
 }
 
 // =============================================================================

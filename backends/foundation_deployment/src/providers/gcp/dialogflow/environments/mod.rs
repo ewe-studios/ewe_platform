@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,96 +23,17 @@ use serde::{Deserialize, Serialize};
 use super::shared::GoogleLongrunningOperation;
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudDialogflowCxV3Environment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3Environment {
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// testCasesConfig property.
-    pub test_cases_config: Option<GoogleCloudDialogflowCxV3EnvironmentTestCasesConfig>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-    /// versionConfigs property.
-    pub version_configs: Option<Vec<GoogleCloudDialogflowCxV3EnvironmentVersionConfig>>,
-    /// webhookConfig property.
-    pub webhook_config: Option<GoogleCloudDialogflowCxV3EnvironmentWebhookConfig>,
-}
-
-/// `GoogleCloudDialogflowCxV3WebhookGenericWebServiceServiceAccountAuthConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3WebhookGenericWebServiceServiceAccountAuthConfig {
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
 
 /// `GoogleCloudDialogflowCxV3EnvironmentWebhookConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDialogflowCxV3EnvironmentWebhookConfig {
     /// webhookOverrides property.
     pub webhook_overrides: Option<Vec<GoogleCloudDialogflowCxV3Webhook>>,
-}
-
-/// `GoogleCloudDialogflowCxV3ListEnvironmentsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ListEnvironmentsResponse {
-    /// environments property.
-    pub environments: Option<Vec<GoogleCloudDialogflowCxV3Environment>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3EnvironmentTestCasesConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3EnvironmentTestCasesConfig {
-    /// enableContinuousRun property.
-    pub enable_continuous_run: Option<bool>,
-    /// enablePredeploymentRun property.
-    pub enable_predeployment_run: Option<bool>,
-    /// testCases property.
-    pub test_cases: Option<Vec<String>>,
-}
-
-/// `GoogleCloudDialogflowCxV3EnvironmentVersionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3EnvironmentVersionConfig {
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3WebhookGenericWebServiceOAuthConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3WebhookGenericWebServiceOAuthConfig {
-    /// clientId property.
-    pub client_id: Option<String>,
-    /// clientSecret property.
-    pub client_secret: Option<String>,
-    /// scopes property.
-    pub scopes: Option<Vec<String>>,
-    /// secretVersionForClientSecret property.
-    pub secret_version_for_client_secret: Option<String>,
-    /// tokenEndpoint property.
-    pub token_endpoint: Option<String>,
 }
 
 /// `GoogleCloudDialogflowCxV3Webhook` type.
@@ -129,15 +51,6 @@ pub struct GoogleCloudDialogflowCxV3Webhook {
     pub service_directory: Option<GoogleCloudDialogflowCxV3WebhookServiceDirectoryConfig>,
     /// timeout property.
     pub timeout: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3WebhookServiceDirectoryConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3WebhookServiceDirectoryConfig {
-    /// genericWebService property.
-    pub generic_web_service: Option<GoogleCloudDialogflowCxV3WebhookGenericWebService>,
-    /// service property.
-    pub service: Option<String>,
 }
 
 /// `GoogleCloudDialogflowCxV3WebhookGenericWebService` type.
@@ -174,9 +87,97 @@ pub struct GoogleCloudDialogflowCxV3WebhookGenericWebService {
     pub webhook_type: Option<String>,
 }
 
+/// `GoogleCloudDialogflowCxV3Environment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3Environment {
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// testCasesConfig property.
+    pub test_cases_config: Option<GoogleCloudDialogflowCxV3EnvironmentTestCasesConfig>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+    /// versionConfigs property.
+    pub version_configs: Option<Vec<GoogleCloudDialogflowCxV3EnvironmentVersionConfig>>,
+    /// webhookConfig property.
+    pub webhook_config: Option<GoogleCloudDialogflowCxV3EnvironmentWebhookConfig>,
+}
+
+/// `GoogleCloudDialogflowCxV3WebhookServiceDirectoryConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3WebhookServiceDirectoryConfig {
+    /// genericWebService property.
+    pub generic_web_service: Option<GoogleCloudDialogflowCxV3WebhookGenericWebService>,
+    /// service property.
+    pub service: Option<String>,
+}
+
 /// `GoogleCloudDialogflowCxV3LookupEnvironmentHistoryResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDialogflowCxV3LookupEnvironmentHistoryResponse {
+    /// environments property.
+    pub environments: Option<Vec<GoogleCloudDialogflowCxV3Environment>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3WebhookGenericWebServiceOAuthConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3WebhookGenericWebServiceOAuthConfig {
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// clientSecret property.
+    pub client_secret: Option<String>,
+    /// scopes property.
+    pub scopes: Option<Vec<String>>,
+    /// secretVersionForClientSecret property.
+    pub secret_version_for_client_secret: Option<String>,
+    /// tokenEndpoint property.
+    pub token_endpoint: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3EnvironmentTestCasesConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3EnvironmentTestCasesConfig {
+    /// enableContinuousRun property.
+    pub enable_continuous_run: Option<bool>,
+    /// enablePredeploymentRun property.
+    pub enable_predeployment_run: Option<bool>,
+    /// testCases property.
+    pub test_cases: Option<Vec<String>>,
+}
+
+/// `GoogleCloudDialogflowCxV3WebhookGenericWebServiceServiceAccountAuthConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3WebhookGenericWebServiceServiceAccountAuthConfig {
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3EnvironmentVersionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3EnvironmentVersionConfig {
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3ListEnvironmentsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ListEnvironmentsResponse {
     /// environments property.
     pub environments: Option<Vec<GoogleCloudDialogflowCxV3Environment>>,
     /// nextPageToken property.

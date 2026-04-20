@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,15 +22,131 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `ScheduleOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ScheduleOptions {
+    /// disableAutoScheduling property.
+    pub disable_auto_scheduling: Option<bool>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `ManualSchedule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManualSchedule {}
+
+/// `EncryptionConfiguration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EncryptionConfiguration {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+}
+
+/// `ScheduleOptionsV2` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ScheduleOptionsV2 {
+    /// eventDrivenSchedule property.
+    pub event_driven_schedule: Option<EventDrivenSchedule>,
+    /// manualSchedule property.
+    pub manual_schedule: Option<ManualSchedule>,
+    /// timeBasedSchedule property.
+    pub time_based_schedule: Option<TimeBasedSchedule>,
+}
+
 /// `StartManualTransferRunsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartManualTransferRunsResponse {
+    /// runs property.
+    pub runs: Option<Vec<TransferRun>>,
+}
+
+/// `UserInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UserInfo {
+    /// email property.
+    pub email: Option<String>,
+}
+
+/// `EmailPreferences` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EmailPreferences {
+    /// enableFailureEmail property.
+    pub enable_failure_email: Option<bool>,
+}
+
+/// `TimeBasedSchedule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeBasedSchedule {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// schedule property.
+    pub schedule: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `EventDrivenSchedule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EventDrivenSchedule {
+    /// pubsubSubscription property.
+    pub pubsub_subscription: Option<String>,
+}
+
+/// `ListTransferConfigsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListTransferConfigsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// transferConfigs property.
+    pub transfer_configs: Option<Vec<TransferConfig>>,
+}
+
+/// `TransferRun` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TransferRun {
+    /// dataSourceId property.
+    pub data_source_id: Option<String>,
+    /// destinationDatasetId property.
+    pub destination_dataset_id: Option<String>,
+    /// emailPreferences property.
+    pub email_preferences: Option<EmailPreferences>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// errorStatus property.
+    pub error_status: Option<Status>,
+    /// name property.
+    pub name: Option<String>,
+    /// notificationPubsubTopic property.
+    pub notification_pubsub_topic: Option<String>,
+    /// params property.
+    pub params: Option<serde_json::Value>,
+    /// runTime property.
+    pub run_time: Option<String>,
+    /// schedule property.
+    pub schedule: Option<String>,
+    /// scheduleTime property.
+    pub schedule_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+    /// userId property.
+    pub user_id: Option<String>,
+}
+
+/// `ScheduleTransferRunsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ScheduleTransferRunsResponse {
     /// runs property.
     pub runs: Option<Vec<TransferRun>>,
 }
@@ -81,98 +198,6 @@ pub struct TransferConfig {
     pub user_id: Option<String>,
 }
 
-/// `EmailPreferences` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EmailPreferences {
-    /// enableFailureEmail property.
-    pub enable_failure_email: Option<bool>,
-}
-
-/// `ScheduleOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScheduleOptions {
-    /// disableAutoScheduling property.
-    pub disable_auto_scheduling: Option<bool>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `UserInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserInfo {
-    /// email property.
-    pub email: Option<String>,
-}
-
-/// `TransferRun` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransferRun {
-    /// dataSourceId property.
-    pub data_source_id: Option<String>,
-    /// destinationDatasetId property.
-    pub destination_dataset_id: Option<String>,
-    /// emailPreferences property.
-    pub email_preferences: Option<EmailPreferences>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// errorStatus property.
-    pub error_status: Option<Status>,
-    /// name property.
-    pub name: Option<String>,
-    /// notificationPubsubTopic property.
-    pub notification_pubsub_topic: Option<String>,
-    /// params property.
-    pub params: Option<serde_json::Value>,
-    /// runTime property.
-    pub run_time: Option<String>,
-    /// schedule property.
-    pub schedule: Option<String>,
-    /// scheduleTime property.
-    pub schedule_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-    /// userId property.
-    pub user_id: Option<String>,
-}
-
-/// `ScheduleTransferRunsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScheduleTransferRunsResponse {
-    /// runs property.
-    pub runs: Option<Vec<TransferRun>>,
-}
-
-/// `EncryptionConfiguration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionConfiguration {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-}
-
-/// `EventDrivenSchedule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventDrivenSchedule {
-    /// pubsubSubscription property.
-    pub pubsub_subscription: Option<String>,
-}
-
-/// `TimeBasedSchedule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeBasedSchedule {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// schedule property.
-    pub schedule: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
@@ -183,30 +208,6 @@ pub struct Status {
     /// message property.
     pub message: Option<String>,
 }
-
-/// `ScheduleOptionsV2` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScheduleOptionsV2 {
-    /// eventDrivenSchedule property.
-    pub event_driven_schedule: Option<EventDrivenSchedule>,
-    /// manualSchedule property.
-    pub manual_schedule: Option<ManualSchedule>,
-    /// timeBasedSchedule property.
-    pub time_based_schedule: Option<TimeBasedSchedule>,
-}
-
-/// `ListTransferConfigsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListTransferConfigsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// transferConfigs property.
-    pub transfer_configs: Option<Vec<TransferConfig>>,
-}
-
-/// `ManualSchedule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManualSchedule {}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

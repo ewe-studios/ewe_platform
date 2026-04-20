@@ -12,114 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `IngestionInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IngestionInfo {
-    /// backupIngestionAddress property.
-    pub backup_ingestion_address: Option<String>,
-    /// ingestionAddress property.
-    pub ingestion_address: Option<String>,
-    /// rtmpsBackupIngestionAddress property.
-    pub rtmps_backup_ingestion_address: Option<String>,
-    /// rtmpsIngestionAddress property.
-    pub rtmps_ingestion_address: Option<String>,
-    /// streamName property.
-    pub stream_name: Option<String>,
-}
-
-/// `PageInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PageInfo {
-    /// resultsPerPage property.
-    pub results_per_page: Option<i64>,
-    /// totalResults property.
-    pub total_results: Option<i64>,
-}
-
-/// `LiveStreamHealthStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveStreamHealthStatus {
-    /// configurationIssues property.
-    pub configuration_issues: Option<Vec<LiveStreamConfigurationIssue>>,
-    /// lastUpdateTimeSeconds property.
-    pub last_update_time_seconds: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-}
-
-/// `LiveStreamStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveStreamStatus {
-    /// healthStatus property.
-    pub health_status: Option<LiveStreamHealthStatus>,
-    /// streamStatus property.
-    pub stream_status: Option<String>,
-}
-
-/// `LiveStream` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveStream {
-    /// cdn property.
-    pub cdn: Option<CdnSettings>,
-    /// contentDetails property.
-    pub content_details: Option<LiveStreamContentDetails>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// snippet property.
-    pub snippet: Option<LiveStreamSnippet>,
-    /// status property.
-    pub status: Option<LiveStreamStatus>,
-}
-
-/// `CdnSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CdnSettings {
-    /// format property.
-    pub format: Option<String>,
-    /// frameRate property.
-    pub frame_rate: Option<String>,
-    /// ingestionInfo property.
-    pub ingestion_info: Option<IngestionInfo>,
-    /// ingestionType property.
-    pub ingestion_type: Option<String>,
-    /// resolution property.
-    pub resolution: Option<String>,
-}
-
-/// `TokenPagination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TokenPagination {}
-
-/// `LiveStreamSnippet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveStreamSnippet {
-    /// channelId property.
-    pub channel_id: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// isDefaultStream property.
-    pub is_default_stream: Option<bool>,
-    /// publishedAt property.
-    pub published_at: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
 
 /// `LiveStreamListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -144,6 +48,48 @@ pub struct LiveStreamListResponse {
     pub visitor_id: Option<String>,
 }
 
+/// `LiveStreamContentDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiveStreamContentDetails {
+    /// closedCaptionsIngestionUrl property.
+    pub closed_captions_ingestion_url: Option<String>,
+    /// isReusable property.
+    pub is_reusable: Option<bool>,
+}
+
+/// `LiveStreamStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiveStreamStatus {
+    /// healthStatus property.
+    pub health_status: Option<LiveStreamHealthStatus>,
+    /// streamStatus property.
+    pub stream_status: Option<String>,
+}
+
+/// `LiveStreamSnippet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiveStreamSnippet {
+    /// channelId property.
+    pub channel_id: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// isDefaultStream property.
+    pub is_default_stream: Option<bool>,
+    /// publishedAt property.
+    pub published_at: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `PageInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PageInfo {
+    /// resultsPerPage property.
+    pub results_per_page: Option<i64>,
+    /// totalResults property.
+    pub total_results: Option<i64>,
+}
+
 /// `LiveStreamConfigurationIssue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveStreamConfigurationIssue {
@@ -157,14 +103,69 @@ pub struct LiveStreamConfigurationIssue {
     pub r#type: Option<String>,
 }
 
-/// `LiveStreamContentDetails` type.
+/// `CdnSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveStreamContentDetails {
-    /// closedCaptionsIngestionUrl property.
-    pub closed_captions_ingestion_url: Option<String>,
-    /// isReusable property.
-    pub is_reusable: Option<bool>,
+pub struct CdnSettings {
+    /// format property.
+    pub format: Option<String>,
+    /// frameRate property.
+    pub frame_rate: Option<String>,
+    /// ingestionInfo property.
+    pub ingestion_info: Option<IngestionInfo>,
+    /// ingestionType property.
+    pub ingestion_type: Option<String>,
+    /// resolution property.
+    pub resolution: Option<String>,
 }
+
+/// `LiveStream` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiveStream {
+    /// cdn property.
+    pub cdn: Option<CdnSettings>,
+    /// contentDetails property.
+    pub content_details: Option<LiveStreamContentDetails>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// snippet property.
+    pub snippet: Option<LiveStreamSnippet>,
+    /// status property.
+    pub status: Option<LiveStreamStatus>,
+}
+
+/// `LiveStreamHealthStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiveStreamHealthStatus {
+    /// configurationIssues property.
+    pub configuration_issues: Option<Vec<LiveStreamConfigurationIssue>>,
+    /// lastUpdateTimeSeconds property.
+    pub last_update_time_seconds: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+}
+
+/// `IngestionInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IngestionInfo {
+    /// backupIngestionAddress property.
+    pub backup_ingestion_address: Option<String>,
+    /// ingestionAddress property.
+    pub ingestion_address: Option<String>,
+    /// rtmpsBackupIngestionAddress property.
+    pub rtmps_backup_ingestion_address: Option<String>,
+    /// rtmpsIngestionAddress property.
+    pub rtmps_ingestion_address: Option<String>,
+    /// streamName property.
+    pub stream_name: Option<String>,
+}
+
+/// `TokenPagination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TokenPagination {}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

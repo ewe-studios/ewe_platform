@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,45 +22,30 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `NetworkParams` type.
+/// `ErrorInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkParams {
-    /// resourceManagerTags property.
-    pub resource_manager_tags: Option<serde_json::Value>,
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
 }
 
-/// `QuotaExceededInfo` type.
+/// `LocalizedMessage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotaExceededInfo {
-    /// dimensions property.
-    pub dimensions: Option<serde_json::Value>,
-    /// futureLimit property.
-    pub future_limit: Option<f64>,
-    /// limit property.
-    pub limit: Option<f64>,
-    /// limitName property.
-    pub limit_name: Option<String>,
-    /// metricName property.
-    pub metric_name: Option<String>,
-    /// rolloutStatus property.
-    pub rollout_status: Option<String>,
-}
-
-/// `NetworkPeeringConnectionStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkPeeringConnectionStatus {
-    /// consensusState property.
-    pub consensus_state: Option<NetworkPeeringConnectionStatusConsensusState>,
-    /// trafficConfiguration property.
-    pub traffic_configuration: Option<NetworkPeeringConnectionStatusTrafficConfiguration>,
-    /// updateStrategy property.
-    pub update_strategy: Option<String>,
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `Help` type.
@@ -67,6 +53,24 @@ pub struct NetworkPeeringConnectionStatus {
 pub struct Help {
     /// links property.
     pub links: Option<Vec<HelpLink>>,
+}
+
+/// `SetCommonInstanceMetadataOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetCommonInstanceMetadataOperationMetadata {
+    /// clientOperationId property.
+    pub client_operation_id: Option<String>,
+    /// perLocationOperations property.
+    pub per_location_operations: Option<serde_json::Value>,
+}
+
+/// `HelpLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
 }
 
 /// `Network` type.
@@ -114,46 +118,45 @@ pub struct Network {
     pub subnetworks: Option<Vec<String>>,
 }
 
-/// `LocalizedMessage` type.
+/// `NetworkPeeringConnectionStatusTrafficConfiguration` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
+pub struct NetworkPeeringConnectionStatusTrafficConfiguration {
+    /// exportCustomRoutesToPeer property.
+    pub export_custom_routes_to_peer: Option<bool>,
+    /// exportSubnetRoutesWithPublicIpToPeer property.
+    pub export_subnet_routes_with_public_ip_to_peer: Option<bool>,
+    /// importCustomRoutesFromPeer property.
+    pub import_custom_routes_from_peer: Option<bool>,
+    /// importSubnetRoutesWithPublicIpFromPeer property.
+    pub import_subnet_routes_with_public_ip_from_peer: Option<bool>,
+    /// stackType property.
+    pub stack_type: Option<String>,
 }
 
-/// `InstancesBulkInsertOperationMetadata` type.
+/// `QuotaExceededInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
+pub struct QuotaExceededInfo {
+    /// dimensions property.
+    pub dimensions: Option<serde_json::Value>,
+    /// futureLimit property.
+    pub future_limit: Option<f64>,
+    /// limit property.
+    pub limit: Option<f64>,
+    /// limitName property.
+    pub limit_name: Option<String>,
+    /// metricName property.
+    pub metric_name: Option<String>,
+    /// rolloutStatus property.
+    pub rollout_status: Option<String>,
 }
 
-/// `NetworkList` type.
+/// `GetVersionOperationMetadataSbomInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<Network>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `SetCommonInstanceMetadataOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetCommonInstanceMetadataOperationMetadata {
-    /// clientOperationId property.
-    pub client_operation_id: Option<String>,
-    /// perLocationOperations property.
-    pub per_location_operations: Option<serde_json::Value>,
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
 }
 
 /// `NetworkRoutingConfig` type.
@@ -173,42 +176,11 @@ pub struct NetworkRoutingConfig {
     pub routing_mode: Option<String>,
 }
 
-/// `ErrorInfo` type.
+/// `InstancesBulkInsertOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `GetVersionOperationMetadataSbomInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
-}
-
-/// `NetworkPeeringConnectionStatusConsensusState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkPeeringConnectionStatusConsensusState {
-    /// deleteStatus property.
-    pub delete_status: Option<String>,
-    /// updateStatus property.
-    pub update_status: Option<String>,
-}
-
-/// `HelpLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
 }
 
 /// `NetworkPeering` type.
@@ -244,6 +216,32 @@ pub struct NetworkPeering {
     pub update_strategy: Option<String>,
 }
 
+/// `NetworkList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<Network>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `NetworkPeeringConnectionStatusConsensusState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkPeeringConnectionStatusConsensusState {
+    /// deleteStatus property.
+    pub delete_status: Option<String>,
+    /// updateStatus property.
+    pub update_status: Option<String>,
+}
+
 /// `GetVersionOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetVersionOperationMetadata {
@@ -251,19 +249,22 @@ pub struct GetVersionOperationMetadata {
     pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
 }
 
-/// `NetworkPeeringConnectionStatusTrafficConfiguration` type.
+/// `NetworkPeeringConnectionStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkPeeringConnectionStatusTrafficConfiguration {
-    /// exportCustomRoutesToPeer property.
-    pub export_custom_routes_to_peer: Option<bool>,
-    /// exportSubnetRoutesWithPublicIpToPeer property.
-    pub export_subnet_routes_with_public_ip_to_peer: Option<bool>,
-    /// importCustomRoutesFromPeer property.
-    pub import_custom_routes_from_peer: Option<bool>,
-    /// importSubnetRoutesWithPublicIpFromPeer property.
-    pub import_subnet_routes_with_public_ip_from_peer: Option<bool>,
-    /// stackType property.
-    pub stack_type: Option<String>,
+pub struct NetworkPeeringConnectionStatus {
+    /// consensusState property.
+    pub consensus_state: Option<NetworkPeeringConnectionStatusConsensusState>,
+    /// trafficConfiguration property.
+    pub traffic_configuration: Option<NetworkPeeringConnectionStatusTrafficConfiguration>,
+    /// updateStrategy property.
+    pub update_strategy: Option<String>,
+}
+
+/// `NetworkParams` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkParams {
+    /// resourceManagerTags property.
+    pub resource_manager_tags: Option<serde_json::Value>,
 }
 
 // =============================================================================

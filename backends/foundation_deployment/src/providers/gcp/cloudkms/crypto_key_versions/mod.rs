@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,7 +23,7 @@ use serde::{Deserialize, Serialize};
 use super::shared::CryptoKeyVersion;
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -53,6 +54,30 @@ pub struct RawEncryptResponse {
     pub verified_plaintext_crc32c: Option<bool>,
 }
 
+/// `ExternalProtectionLevelOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExternalProtectionLevelOptions {
+    /// ekmConnectionKeyPath property.
+    pub ekm_connection_key_path: Option<String>,
+    /// externalKeyUri property.
+    pub external_key_uri: Option<String>,
+}
+
+/// `MacSignResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MacSignResponse {
+    /// mac property.
+    pub mac: Option<String>,
+    /// macCrc32c property.
+    pub mac_crc32c: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// protectionLevel property.
+    pub protection_level: Option<String>,
+    /// verifiedDataCrc32c property.
+    pub verified_data_crc32c: Option<bool>,
+}
+
 /// `MacVerifyResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MacVerifyResponse {
@@ -70,30 +95,49 @@ pub struct MacVerifyResponse {
     pub verified_success_integrity: Option<bool>,
 }
 
-/// `ListCryptoKeyVersionsResponse` type.
+/// `AsymmetricDecryptResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCryptoKeyVersionsResponse {
-    /// cryptoKeyVersions property.
-    pub crypto_key_versions: Option<Vec<CryptoKeyVersion>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// totalSize property.
-    pub total_size: Option<i64>,
+pub struct AsymmetricDecryptResponse {
+    /// plaintext property.
+    pub plaintext: Option<String>,
+    /// plaintextCrc32c property.
+    pub plaintext_crc32c: Option<String>,
+    /// protectionLevel property.
+    pub protection_level: Option<String>,
+    /// verifiedCiphertextCrc32c property.
+    pub verified_ciphertext_crc32c: Option<bool>,
 }
 
-/// `MacSignResponse` type.
+/// `DecapsulateResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MacSignResponse {
-    /// mac property.
-    pub mac: Option<String>,
-    /// macCrc32c property.
-    pub mac_crc32c: Option<String>,
+pub struct DecapsulateResponse {
     /// name property.
     pub name: Option<String>,
     /// protectionLevel property.
     pub protection_level: Option<String>,
-    /// verifiedDataCrc32c property.
-    pub verified_data_crc32c: Option<bool>,
+    /// sharedSecret property.
+    pub shared_secret: Option<String>,
+    /// sharedSecretCrc32c property.
+    pub shared_secret_crc32c: Option<String>,
+    /// verifiedCiphertextCrc32c property.
+    pub verified_ciphertext_crc32c: Option<bool>,
+}
+
+/// `RawDecryptResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RawDecryptResponse {
+    /// plaintext property.
+    pub plaintext: Option<String>,
+    /// plaintextCrc32c property.
+    pub plaintext_crc32c: Option<String>,
+    /// protectionLevel property.
+    pub protection_level: Option<String>,
+    /// verifiedAdditionalAuthenticatedDataCrc32c property.
+    pub verified_additional_authenticated_data_crc32c: Option<bool>,
+    /// verifiedCiphertextCrc32c property.
+    pub verified_ciphertext_crc32c: Option<bool>,
+    /// verifiedInitializationVectorCrc32c property.
+    pub verified_initialization_vector_crc32c: Option<bool>,
 }
 
 /// `KeyOperationAttestation` type.
@@ -116,21 +160,6 @@ pub struct CertificateChains {
     pub google_card_certs: Option<Vec<String>>,
     /// googlePartitionCerts property.
     pub google_partition_certs: Option<Vec<String>>,
-}
-
-/// `DecapsulateResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DecapsulateResponse {
-    /// name property.
-    pub name: Option<String>,
-    /// protectionLevel property.
-    pub protection_level: Option<String>,
-    /// sharedSecret property.
-    pub shared_secret: Option<String>,
-    /// sharedSecretCrc32c property.
-    pub shared_secret_crc32c: Option<String>,
-    /// verifiedCiphertextCrc32c property.
-    pub verified_ciphertext_crc32c: Option<bool>,
 }
 
 /// `Status` type.
@@ -161,43 +190,15 @@ pub struct AsymmetricSignResponse {
     pub verified_digest_crc32c: Option<bool>,
 }
 
-/// `AsymmetricDecryptResponse` type.
+/// `ListCryptoKeyVersionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AsymmetricDecryptResponse {
-    /// plaintext property.
-    pub plaintext: Option<String>,
-    /// plaintextCrc32c property.
-    pub plaintext_crc32c: Option<String>,
-    /// protectionLevel property.
-    pub protection_level: Option<String>,
-    /// verifiedCiphertextCrc32c property.
-    pub verified_ciphertext_crc32c: Option<bool>,
-}
-
-/// `ExternalProtectionLevelOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExternalProtectionLevelOptions {
-    /// ekmConnectionKeyPath property.
-    pub ekm_connection_key_path: Option<String>,
-    /// externalKeyUri property.
-    pub external_key_uri: Option<String>,
-}
-
-/// `RawDecryptResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RawDecryptResponse {
-    /// plaintext property.
-    pub plaintext: Option<String>,
-    /// plaintextCrc32c property.
-    pub plaintext_crc32c: Option<String>,
-    /// protectionLevel property.
-    pub protection_level: Option<String>,
-    /// verifiedAdditionalAuthenticatedDataCrc32c property.
-    pub verified_additional_authenticated_data_crc32c: Option<bool>,
-    /// verifiedCiphertextCrc32c property.
-    pub verified_ciphertext_crc32c: Option<bool>,
-    /// verifiedInitializationVectorCrc32c property.
-    pub verified_initialization_vector_crc32c: Option<bool>,
+pub struct ListCryptoKeyVersionsResponse {
+    /// cryptoKeyVersions property.
+    pub crypto_key_versions: Option<Vec<CryptoKeyVersion>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// totalSize property.
+    pub total_size: Option<i64>,
 }
 
 // =============================================================================

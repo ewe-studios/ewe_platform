@@ -12,47 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `AccountstatusesListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountstatusesListResponse {
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// resources property.
-    pub resources: Option<Vec<AccountStatus>>,
-}
-
-/// `AccountStatusAccountLevelIssue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountStatusAccountLevelIssue {
-    /// country property.
-    pub country: Option<String>,
-    /// destination property.
-    pub destination: Option<String>,
-    /// detail property.
-    pub detail: Option<String>,
-    /// documentation property.
-    pub documentation: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// severity property.
-    pub severity: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
 
 /// `AccountStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -69,21 +40,6 @@ pub struct AccountStatus {
     pub products: Option<Vec<AccountStatusProducts>>,
     /// websiteClaimed property.
     pub website_claimed: Option<bool>,
-}
-
-/// `AccountStatusProducts` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountStatusProducts {
-    /// channel property.
-    pub channel: Option<String>,
-    /// country property.
-    pub country: Option<String>,
-    /// destination property.
-    pub destination: Option<String>,
-    /// itemLevelIssues property.
-    pub item_level_issues: Option<Vec<AccountStatusItemLevelIssue>>,
-    /// statistics property.
-    pub statistics: Option<AccountStatusStatistics>,
 }
 
 /// `AccountStatusItemLevelIssue` type.
@@ -107,6 +63,32 @@ pub struct AccountStatusItemLevelIssue {
     pub servability: Option<String>,
 }
 
+/// `AccountStatusProducts` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountStatusProducts {
+    /// channel property.
+    pub channel: Option<String>,
+    /// country property.
+    pub country: Option<String>,
+    /// destination property.
+    pub destination: Option<String>,
+    /// itemLevelIssues property.
+    pub item_level_issues: Option<Vec<AccountStatusItemLevelIssue>>,
+    /// statistics property.
+    pub statistics: Option<AccountStatusStatistics>,
+}
+
+/// `AccountstatusesListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountstatusesListResponse {
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// resources property.
+    pub resources: Option<Vec<AccountStatus>>,
+}
+
 /// `AccountStatusStatistics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountStatusStatistics {
@@ -118,6 +100,25 @@ pub struct AccountStatusStatistics {
     pub expiring: Option<String>,
     /// pending property.
     pub pending: Option<String>,
+}
+
+/// `AccountStatusAccountLevelIssue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountStatusAccountLevelIssue {
+    /// country property.
+    pub country: Option<String>,
+    /// destination property.
+    pub destination: Option<String>,
+    /// detail property.
+    pub detail: Option<String>,
+    /// documentation property.
+    pub documentation: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// severity property.
+    pub severity: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 // =============================================================================

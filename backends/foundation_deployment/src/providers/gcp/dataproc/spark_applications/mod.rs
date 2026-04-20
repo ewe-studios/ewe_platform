@@ -12,506 +12,59 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ExecutorStageSummary` type.
+/// `SearchSessionSparkApplicationSqlQueriesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExecutorStageSummary {
-    /// diskBytesSpilled property.
-    pub disk_bytes_spilled: Option<String>,
-    /// executorId property.
-    pub executor_id: Option<String>,
-    /// failedTasks property.
-    pub failed_tasks: Option<i64>,
-    /// inputBytes property.
-    pub input_bytes: Option<String>,
-    /// inputRecords property.
-    pub input_records: Option<String>,
-    /// isExcludedForStage property.
-    pub is_excluded_for_stage: Option<bool>,
-    /// killedTasks property.
-    pub killed_tasks: Option<i64>,
-    /// memoryBytesSpilled property.
-    pub memory_bytes_spilled: Option<String>,
-    /// outputBytes property.
-    pub output_bytes: Option<String>,
-    /// outputRecords property.
-    pub output_records: Option<String>,
-    /// peakMemoryMetrics property.
-    pub peak_memory_metrics: Option<ExecutorMetrics>,
-    /// shuffleRead property.
-    pub shuffle_read: Option<String>,
-    /// shuffleReadRecords property.
-    pub shuffle_read_records: Option<String>,
-    /// shuffleWrite property.
-    pub shuffle_write: Option<String>,
-    /// shuffleWriteRecords property.
-    pub shuffle_write_records: Option<String>,
-    /// stageAttemptId property.
-    pub stage_attempt_id: Option<i64>,
-    /// stageId property.
-    pub stage_id: Option<String>,
-    /// succeededTasks property.
-    pub succeeded_tasks: Option<i64>,
-    /// taskTimeMillis property.
-    pub task_time_millis: Option<String>,
-}
-
-/// `MemoryMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MemoryMetrics {
-    /// totalOffHeapStorageMemory property.
-    pub total_off_heap_storage_memory: Option<String>,
-    /// totalOnHeapStorageMemory property.
-    pub total_on_heap_storage_memory: Option<String>,
-    /// usedOffHeapStorageMemory property.
-    pub used_off_heap_storage_memory: Option<String>,
-    /// usedOnHeapStorageMemory property.
-    pub used_on_heap_storage_memory: Option<String>,
-}
-
-/// `SearchSessionSparkApplicationStageAttemptTasksResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchSessionSparkApplicationStageAttemptTasksResponse {
+pub struct SearchSessionSparkApplicationSqlQueriesResponse {
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-    /// sparkApplicationStageAttemptTasks property.
-    pub spark_application_stage_attempt_tasks: Option<Vec<TaskData>>,
+    /// sparkApplicationSqlQueries property.
+    pub spark_application_sql_queries: Option<Vec<SqlExecutionUiData>>,
 }
 
-/// `SearchSessionSparkApplicationJobsResponse` type.
+/// `JobsSummary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchSessionSparkApplicationJobsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// sparkApplicationJobs property.
-    pub spark_application_jobs: Option<Vec<JobData>>,
-}
-
-/// `OutputMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OutputMetrics {
-    /// bytesWritten property.
-    pub bytes_written: Option<String>,
-    /// recordsWritten property.
-    pub records_written: Option<String>,
-}
-
-/// `SqlExecutionUiData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlExecutionUiData {
-    /// completionTime property.
-    pub completion_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// details property.
-    pub details: Option<String>,
-    /// errorMessage property.
-    pub error_message: Option<String>,
-    /// executionId property.
-    pub execution_id: Option<String>,
-    /// jobs property.
-    pub jobs: Option<serde_json::Value>,
-    /// metricValues property.
-    pub metric_values: Option<serde_json::Value>,
-    /// metricValuesIsNull property.
-    pub metric_values_is_null: Option<bool>,
-    /// metrics property.
-    pub metrics: Option<Vec<SqlPlanMetric>>,
-    /// modifiedConfigs property.
-    pub modified_configs: Option<serde_json::Value>,
-    /// physicalPlanDescription property.
-    pub physical_plan_description: Option<String>,
-    /// rootExecutionId property.
-    pub root_execution_id: Option<String>,
-    /// stages property.
-    pub stages: Option<Vec<String>>,
-    /// submissionTime property.
-    pub submission_time: Option<String>,
-}
-
-/// `SummarizeSessionSparkApplicationStagesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SummarizeSessionSparkApplicationStagesResponse {
-    /// stagesSummary property.
-    pub stages_summary: Option<StagesSummary>,
-}
-
-/// `SearchSparkApplicationStageAttemptsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchSparkApplicationStageAttemptsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// sparkApplicationStageAttempts property.
-    pub spark_application_stage_attempts: Option<Vec<StageData>>,
-}
-
-/// `ApplicationInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApplicationInfo {
-    /// applicationContextIngestionStatus property.
-    pub application_context_ingestion_status: Option<String>,
+pub struct JobsSummary {
+    /// activeJobs property.
+    pub active_jobs: Option<i64>,
     /// applicationId property.
     pub application_id: Option<String>,
     /// attempts property.
     pub attempts: Option<Vec<ApplicationAttemptInfo>>,
-    /// coresGranted property.
-    pub cores_granted: Option<i64>,
-    /// coresPerExecutor property.
-    pub cores_per_executor: Option<i64>,
-    /// maxCores property.
-    pub max_cores: Option<i64>,
-    /// memoryPerExecutorMb property.
-    pub memory_per_executor_mb: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-    /// quantileDataStatus property.
-    pub quantile_data_status: Option<String>,
+    /// completedJobs property.
+    pub completed_jobs: Option<i64>,
+    /// failedJobs property.
+    pub failed_jobs: Option<i64>,
+    /// schedulingMode property.
+    pub scheduling_mode: Option<String>,
 }
 
-/// `SparkPlanGraphEdge` type.
+/// `AccessSessionSparkApplicationJobResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkPlanGraphEdge {
-    /// fromId property.
-    pub from_id: Option<String>,
-    /// toId property.
-    pub to_id: Option<String>,
+pub struct AccessSessionSparkApplicationJobResponse {
+    /// jobData property.
+    pub job_data: Option<JobData>,
 }
 
-/// `SearchSparkApplicationStageAttemptTasksResponse` type.
+/// `InputQuantileMetrics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchSparkApplicationStageAttemptTasksResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// sparkApplicationStageAttemptTasks property.
-    pub spark_application_stage_attempt_tasks: Option<Vec<TaskData>>,
-}
-
-/// `ExecutorMetricsDistributions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExecutorMetricsDistributions {
-    /// diskBytesSpilled property.
-    pub disk_bytes_spilled: Option<Vec<f64>>,
-    /// failedTasks property.
-    pub failed_tasks: Option<Vec<f64>>,
-    /// inputBytes property.
-    pub input_bytes: Option<Vec<f64>>,
-    /// inputRecords property.
-    pub input_records: Option<Vec<f64>>,
-    /// killedTasks property.
-    pub killed_tasks: Option<Vec<f64>>,
-    /// memoryBytesSpilled property.
-    pub memory_bytes_spilled: Option<Vec<f64>>,
-    /// outputBytes property.
-    pub output_bytes: Option<Vec<f64>>,
-    /// outputRecords property.
-    pub output_records: Option<Vec<f64>>,
-    /// peakMemoryMetrics property.
-    pub peak_memory_metrics: Option<ExecutorPeakMetricsDistributions>,
-    /// quantiles property.
-    pub quantiles: Option<Vec<f64>>,
-    /// shuffleRead property.
-    pub shuffle_read: Option<Vec<f64>>,
-    /// shuffleReadRecords property.
-    pub shuffle_read_records: Option<Vec<f64>>,
-    /// shuffleWrite property.
-    pub shuffle_write: Option<Vec<f64>>,
-    /// shuffleWriteRecords property.
-    pub shuffle_write_records: Option<Vec<f64>>,
-    /// succeededTasks property.
-    pub succeeded_tasks: Option<Vec<f64>>,
-    /// taskTimeMillis property.
-    pub task_time_millis: Option<Vec<f64>>,
-}
-
-/// `AccessSparkApplicationSqlSparkPlanGraphResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessSparkApplicationSqlSparkPlanGraphResponse {
-    /// sparkPlanGraph property.
-    pub spark_plan_graph: Option<SparkPlanGraph>,
-}
-
-/// `SummarizeSessionSparkApplicationJobsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SummarizeSessionSparkApplicationJobsResponse {
-    /// jobsSummary property.
-    pub jobs_summary: Option<JobsSummary>,
-}
-
-/// `StageAttemptTasksSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StageAttemptTasksSummary {
-    /// applicationId property.
-    pub application_id: Option<String>,
-    /// numFailedTasks property.
-    pub num_failed_tasks: Option<i64>,
-    /// numKilledTasks property.
-    pub num_killed_tasks: Option<i64>,
-    /// numPendingTasks property.
-    pub num_pending_tasks: Option<i64>,
-    /// numRunningTasks property.
-    pub num_running_tasks: Option<i64>,
-    /// numSuccessTasks property.
-    pub num_success_tasks: Option<i64>,
-    /// numTasks property.
-    pub num_tasks: Option<i64>,
-    /// stageAttemptId property.
-    pub stage_attempt_id: Option<i64>,
-    /// stageId property.
-    pub stage_id: Option<String>,
-}
-
-/// `AccessSparkApplicationResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessSparkApplicationResponse {
-    /// application property.
-    pub application: Option<ApplicationInfo>,
-}
-
-/// `AccessSparkApplicationSqlQueryResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessSparkApplicationSqlQueryResponse {
-    /// executionData property.
-    pub execution_data: Option<SqlExecutionUiData>,
-}
-
-/// `RddOperationEdge` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RddOperationEdge {
-    /// fromId property.
-    pub from_id: Option<i64>,
-    /// toId property.
-    pub to_id: Option<i64>,
-}
-
-/// `ResourceProfileInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceProfileInfo {
-    /// executorResources property.
-    pub executor_resources: Option<serde_json::Value>,
-    /// resourceProfileId property.
-    pub resource_profile_id: Option<i64>,
-    /// taskResources property.
-    pub task_resources: Option<serde_json::Value>,
-}
-
-/// `SummarizeSessionSparkApplicationExecutorsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SummarizeSessionSparkApplicationExecutorsResponse {
-    /// activeExecutorSummary property.
-    pub active_executor_summary: Option<ConsolidatedExecutorSummary>,
-    /// applicationId property.
-    pub application_id: Option<String>,
-    /// deadExecutorSummary property.
-    pub dead_executor_summary: Option<ConsolidatedExecutorSummary>,
-    /// totalExecutorSummary property.
-    pub total_executor_summary: Option<ConsolidatedExecutorSummary>,
-}
-
-/// `ExecutorPeakMetricsDistributions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExecutorPeakMetricsDistributions {
-    /// executorMetrics property.
-    pub executor_metrics: Option<Vec<ExecutorMetrics>>,
-    /// quantiles property.
-    pub quantiles: Option<Vec<f64>>,
-}
-
-/// `InputMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InputMetrics {
+pub struct InputQuantileMetrics {
     /// bytesRead property.
-    pub bytes_read: Option<String>,
+    pub bytes_read: Option<Quantiles>,
     /// recordsRead property.
-    pub records_read: Option<String>,
-}
-
-/// `SummarizeSparkApplicationExecutorsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SummarizeSparkApplicationExecutorsResponse {
-    /// activeExecutorSummary property.
-    pub active_executor_summary: Option<ConsolidatedExecutorSummary>,
-    /// applicationId property.
-    pub application_id: Option<String>,
-    /// deadExecutorSummary property.
-    pub dead_executor_summary: Option<ConsolidatedExecutorSummary>,
-    /// totalExecutorSummary property.
-    pub total_executor_summary: Option<ConsolidatedExecutorSummary>,
-}
-
-/// `SpeculationStageSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpeculationStageSummary {
-    /// numActiveTasks property.
-    pub num_active_tasks: Option<i64>,
-    /// numCompletedTasks property.
-    pub num_completed_tasks: Option<i64>,
-    /// numFailedTasks property.
-    pub num_failed_tasks: Option<i64>,
-    /// numKilledTasks property.
-    pub num_killed_tasks: Option<i64>,
-    /// numTasks property.
-    pub num_tasks: Option<i64>,
-    /// stageAttemptId property.
-    pub stage_attempt_id: Option<i64>,
-    /// stageId property.
-    pub stage_id: Option<String>,
-}
-
-/// `SearchSessionSparkApplicationStagesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchSessionSparkApplicationStagesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// sparkApplicationStages property.
-    pub spark_application_stages: Option<Vec<StageData>>,
-}
-
-/// `ShuffleReadMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShuffleReadMetrics {
-    /// fetchWaitTimeMillis property.
-    pub fetch_wait_time_millis: Option<String>,
-    /// localBlocksFetched property.
-    pub local_blocks_fetched: Option<String>,
-    /// localBytesRead property.
-    pub local_bytes_read: Option<String>,
-    /// recordsRead property.
-    pub records_read: Option<String>,
-    /// remoteBlocksFetched property.
-    pub remote_blocks_fetched: Option<String>,
-    /// remoteBytesRead property.
-    pub remote_bytes_read: Option<String>,
-    /// remoteBytesReadToDisk property.
-    pub remote_bytes_read_to_disk: Option<String>,
-    /// remoteReqsDuration property.
-    pub remote_reqs_duration: Option<String>,
-    /// shufflePushReadMetrics property.
-    pub shuffle_push_read_metrics: Option<ShufflePushReadMetrics>,
-}
-
-/// `AccessSessionSparkApplicationResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessSessionSparkApplicationResponse {
-    /// application property.
-    pub application: Option<ApplicationInfo>,
-}
-
-/// `Quantiles` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Quantiles {
-    /// count property.
-    pub count: Option<String>,
-    /// maximum property.
-    pub maximum: Option<String>,
-    /// minimum property.
-    pub minimum: Option<String>,
-    /// percentile25 property.
-    pub percentile25: Option<String>,
-    /// percentile50 property.
-    pub percentile50: Option<String>,
-    /// percentile75 property.
-    pub percentile75: Option<String>,
-    /// sum property.
-    pub sum: Option<String>,
-}
-
-/// `SparkPlanGraphNode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkPlanGraphNode {
-    /// desc property.
-    pub desc: Option<String>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// metrics property.
-    pub metrics: Option<Vec<SqlPlanMetric>>,
-    /// name property.
-    pub name: Option<String>,
-    /// sparkPlanGraphNodeId property.
-    pub spark_plan_graph_node_id: Option<String>,
-}
-
-/// `ShuffleReadQuantileMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShuffleReadQuantileMetrics {
-    /// fetchWaitTimeMillis property.
-    pub fetch_wait_time_millis: Option<Quantiles>,
-    /// localBlocksFetched property.
-    pub local_blocks_fetched: Option<Quantiles>,
-    /// readBytes property.
-    pub read_bytes: Option<Quantiles>,
-    /// readRecords property.
-    pub read_records: Option<Quantiles>,
-    /// remoteBlocksFetched property.
-    pub remote_blocks_fetched: Option<Quantiles>,
-    /// remoteBytesRead property.
-    pub remote_bytes_read: Option<Quantiles>,
-    /// remoteBytesReadToDisk property.
-    pub remote_bytes_read_to_disk: Option<Quantiles>,
-    /// remoteReqsDuration property.
-    pub remote_reqs_duration: Option<Quantiles>,
-    /// shufflePushReadMetrics property.
-    pub shuffle_push_read_metrics: Option<ShufflePushReadQuantileMetrics>,
-    /// totalBlocksFetched property.
-    pub total_blocks_fetched: Option<Quantiles>,
-}
-
-/// `ConsolidatedExecutorSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConsolidatedExecutorSummary {
-    /// activeTasks property.
-    pub active_tasks: Option<i64>,
-    /// completedTasks property.
-    pub completed_tasks: Option<i64>,
-    /// count property.
-    pub count: Option<i64>,
-    /// diskUsed property.
-    pub disk_used: Option<String>,
-    /// failedTasks property.
-    pub failed_tasks: Option<i64>,
-    /// isExcluded property.
-    pub is_excluded: Option<i64>,
-    /// maxMemory property.
-    pub max_memory: Option<String>,
-    /// memoryMetrics property.
-    pub memory_metrics: Option<MemoryMetrics>,
-    /// memoryUsed property.
-    pub memory_used: Option<String>,
-    /// rddBlocks property.
-    pub rdd_blocks: Option<i64>,
-    /// totalCores property.
-    pub total_cores: Option<i64>,
-    /// totalDurationMillis property.
-    pub total_duration_millis: Option<String>,
-    /// totalGcTimeMillis property.
-    pub total_gc_time_millis: Option<String>,
-    /// totalInputBytes property.
-    pub total_input_bytes: Option<String>,
-    /// totalShuffleRead property.
-    pub total_shuffle_read: Option<String>,
-    /// totalShuffleWrite property.
-    pub total_shuffle_write: Option<String>,
-    /// totalTasks property.
-    pub total_tasks: Option<i64>,
-}
-
-/// `StageOutputMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StageOutputMetrics {
-    /// bytesWritten property.
-    pub bytes_written: Option<String>,
-    /// recordsWritten property.
-    pub records_written: Option<String>,
+    pub records_read: Option<Quantiles>,
 }
 
 /// `ApplicationAttemptInfo` type.
@@ -534,6 +87,26 @@ pub struct ApplicationAttemptInfo {
     /// startTime property.
     pub start_time: Option<String>,
 }
+
+/// `SearchSparkApplicationStageAttemptsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchSparkApplicationStageAttemptsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// sparkApplicationStageAttempts property.
+    pub spark_application_stage_attempts: Option<Vec<StageData>>,
+}
+
+/// `AccessSessionSparkApplicationEnvironmentInfoResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessSessionSparkApplicationEnvironmentInfoResponse {
+    /// applicationEnvironmentInfo property.
+    pub application_environment_info: Option<ApplicationEnvironmentInfo>,
+}
+
+/// `WriteSessionSparkApplicationContextResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WriteSessionSparkApplicationContextResponse {}
 
 /// `TaskMetrics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -575,6 +148,273 @@ pub struct AccessSparkApplicationStageRddOperationGraphResponse {
     pub rdd_operation_graph: Option<RddOperationGraph>,
 }
 
+/// `WriteSparkApplicationContextResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WriteSparkApplicationContextResponse {}
+
+/// `SummarizeSessionSparkApplicationExecutorsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SummarizeSessionSparkApplicationExecutorsResponse {
+    /// activeExecutorSummary property.
+    pub active_executor_summary: Option<ConsolidatedExecutorSummary>,
+    /// applicationId property.
+    pub application_id: Option<String>,
+    /// deadExecutorSummary property.
+    pub dead_executor_summary: Option<ConsolidatedExecutorSummary>,
+    /// totalExecutorSummary property.
+    pub total_executor_summary: Option<ConsolidatedExecutorSummary>,
+}
+
+/// `OutputMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OutputMetrics {
+    /// bytesWritten property.
+    pub bytes_written: Option<String>,
+    /// recordsWritten property.
+    pub records_written: Option<String>,
+}
+
+/// `TaskData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TaskData {
+    /// accumulatorUpdates property.
+    pub accumulator_updates: Option<Vec<AccumulableInfo>>,
+    /// attempt property.
+    pub attempt: Option<i64>,
+    /// durationMillis property.
+    pub duration_millis: Option<String>,
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// executorId property.
+    pub executor_id: Option<String>,
+    /// executorLogs property.
+    pub executor_logs: Option<serde_json::Value>,
+    /// gettingResultTimeMillis property.
+    pub getting_result_time_millis: Option<String>,
+    /// hasMetrics property.
+    pub has_metrics: Option<bool>,
+    /// host property.
+    pub host: Option<String>,
+    /// index property.
+    pub index: Option<i64>,
+    /// launchTime property.
+    pub launch_time: Option<String>,
+    /// partitionId property.
+    pub partition_id: Option<i64>,
+    /// resultFetchStart property.
+    pub result_fetch_start: Option<String>,
+    /// schedulerDelayMillis property.
+    pub scheduler_delay_millis: Option<String>,
+    /// speculative property.
+    pub speculative: Option<bool>,
+    /// stageAttemptId property.
+    pub stage_attempt_id: Option<i64>,
+    /// stageId property.
+    pub stage_id: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+    /// taskId property.
+    pub task_id: Option<String>,
+    /// taskLocality property.
+    pub task_locality: Option<String>,
+    /// taskMetrics property.
+    pub task_metrics: Option<TaskMetrics>,
+}
+
+/// `AccessSparkApplicationSqlSparkPlanGraphResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessSparkApplicationSqlSparkPlanGraphResponse {
+    /// sparkPlanGraph property.
+    pub spark_plan_graph: Option<SparkPlanGraph>,
+}
+
+/// `SearchSparkApplicationExecutorStageSummaryResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchSparkApplicationExecutorStageSummaryResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// sparkApplicationStageExecutors property.
+    pub spark_application_stage_executors: Option<Vec<ExecutorStageSummary>>,
+}
+
+/// `AccessSessionSparkApplicationStageAttemptResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessSessionSparkApplicationStageAttemptResponse {
+    /// stageData property.
+    pub stage_data: Option<StageData>,
+}
+
+/// `AccumulableInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccumulableInfo {
+    /// accumullableInfoId property.
+    pub accumullable_info_id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// update property.
+    pub update: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `StageShuffleReadMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StageShuffleReadMetrics {
+    /// bytesRead property.
+    pub bytes_read: Option<String>,
+    /// fetchWaitTimeMillis property.
+    pub fetch_wait_time_millis: Option<String>,
+    /// localBlocksFetched property.
+    pub local_blocks_fetched: Option<String>,
+    /// localBytesRead property.
+    pub local_bytes_read: Option<String>,
+    /// recordsRead property.
+    pub records_read: Option<String>,
+    /// remoteBlocksFetched property.
+    pub remote_blocks_fetched: Option<String>,
+    /// remoteBytesRead property.
+    pub remote_bytes_read: Option<String>,
+    /// remoteBytesReadToDisk property.
+    pub remote_bytes_read_to_disk: Option<String>,
+    /// remoteReqsDuration property.
+    pub remote_reqs_duration: Option<String>,
+    /// stageShufflePushReadMetrics property.
+    pub stage_shuffle_push_read_metrics: Option<StageShufflePushReadMetrics>,
+}
+
+/// `ShuffleReadMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShuffleReadMetrics {
+    /// fetchWaitTimeMillis property.
+    pub fetch_wait_time_millis: Option<String>,
+    /// localBlocksFetched property.
+    pub local_blocks_fetched: Option<String>,
+    /// localBytesRead property.
+    pub local_bytes_read: Option<String>,
+    /// recordsRead property.
+    pub records_read: Option<String>,
+    /// remoteBlocksFetched property.
+    pub remote_blocks_fetched: Option<String>,
+    /// remoteBytesRead property.
+    pub remote_bytes_read: Option<String>,
+    /// remoteBytesReadToDisk property.
+    pub remote_bytes_read_to_disk: Option<String>,
+    /// remoteReqsDuration property.
+    pub remote_reqs_duration: Option<String>,
+    /// shufflePushReadMetrics property.
+    pub shuffle_push_read_metrics: Option<ShufflePushReadMetrics>,
+}
+
+/// `SparkRuntimeInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkRuntimeInfo {
+    /// javaHome property.
+    pub java_home: Option<String>,
+    /// javaVersion property.
+    pub java_version: Option<String>,
+    /// scalaVersion property.
+    pub scala_version: Option<String>,
+}
+
+/// `ConsolidatedExecutorSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConsolidatedExecutorSummary {
+    /// activeTasks property.
+    pub active_tasks: Option<i64>,
+    /// completedTasks property.
+    pub completed_tasks: Option<i64>,
+    /// count property.
+    pub count: Option<i64>,
+    /// diskUsed property.
+    pub disk_used: Option<String>,
+    /// failedTasks property.
+    pub failed_tasks: Option<i64>,
+    /// isExcluded property.
+    pub is_excluded: Option<i64>,
+    /// maxMemory property.
+    pub max_memory: Option<String>,
+    /// memoryMetrics property.
+    pub memory_metrics: Option<MemoryMetrics>,
+    /// memoryUsed property.
+    pub memory_used: Option<String>,
+    /// rddBlocks property.
+    pub rdd_blocks: Option<i64>,
+    /// totalCores property.
+    pub total_cores: Option<i64>,
+    /// totalDurationMillis property.
+    pub total_duration_millis: Option<String>,
+    /// totalGcTimeMillis property.
+    pub total_gc_time_millis: Option<String>,
+    /// totalInputBytes property.
+    pub total_input_bytes: Option<String>,
+    /// totalShuffleRead property.
+    pub total_shuffle_read: Option<String>,
+    /// totalShuffleWrite property.
+    pub total_shuffle_write: Option<String>,
+    /// totalTasks property.
+    pub total_tasks: Option<i64>,
+}
+
+/// `ExecutorMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExecutorMetrics {
+    /// metrics property.
+    pub metrics: Option<serde_json::Value>,
+}
+
+/// `StageInputMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StageInputMetrics {
+    /// bytesRead property.
+    pub bytes_read: Option<String>,
+    /// recordsRead property.
+    pub records_read: Option<String>,
+}
+
+/// `ResourceProfileInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceProfileInfo {
+    /// executorResources property.
+    pub executor_resources: Option<serde_json::Value>,
+    /// resourceProfileId property.
+    pub resource_profile_id: Option<i64>,
+    /// taskResources property.
+    pub task_resources: Option<serde_json::Value>,
+}
+
+/// `ShuffleWriteQuantileMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShuffleWriteQuantileMetrics {
+    /// writeBytes property.
+    pub write_bytes: Option<Quantiles>,
+    /// writeRecords property.
+    pub write_records: Option<Quantiles>,
+    /// writeTimeNanos property.
+    pub write_time_nanos: Option<Quantiles>,
+}
+
+/// `MemoryMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MemoryMetrics {
+    /// totalOffHeapStorageMemory property.
+    pub total_off_heap_storage_memory: Option<String>,
+    /// totalOnHeapStorageMemory property.
+    pub total_on_heap_storage_memory: Option<String>,
+    /// usedOffHeapStorageMemory property.
+    pub used_off_heap_storage_memory: Option<String>,
+    /// usedOnHeapStorageMemory property.
+    pub used_on_heap_storage_memory: Option<String>,
+}
+
+/// `SearchSessionSparkApplicationExecutorsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchSessionSparkApplicationExecutorsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// sparkApplicationExecutors property.
+    pub spark_application_executors: Option<Vec<ExecutorSummary>>,
+}
+
 /// `SummarizeSparkApplicationStageAttemptTasksResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SummarizeSparkApplicationStageAttemptTasksResponse {
@@ -582,11 +422,177 @@ pub struct SummarizeSparkApplicationStageAttemptTasksResponse {
     pub stage_attempt_tasks_summary: Option<StageAttemptTasksSummary>,
 }
 
-/// `AccessSparkApplicationEnvironmentInfoResponse` type.
+/// `AccessSessionSparkApplicationResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessSparkApplicationEnvironmentInfoResponse {
-    /// applicationEnvironmentInfo property.
-    pub application_environment_info: Option<ApplicationEnvironmentInfo>,
+pub struct AccessSessionSparkApplicationResponse {
+    /// application property.
+    pub application: Option<ApplicationInfo>,
+}
+
+/// `SearchSessionSparkApplicationStageAttemptTasksResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchSessionSparkApplicationStageAttemptTasksResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// sparkApplicationStageAttemptTasks property.
+    pub spark_application_stage_attempt_tasks: Option<Vec<TaskData>>,
+}
+
+/// `OutputQuantileMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OutputQuantileMetrics {
+    /// bytesWritten property.
+    pub bytes_written: Option<Quantiles>,
+    /// recordsWritten property.
+    pub records_written: Option<Quantiles>,
+}
+
+/// `SqlPlanMetric` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlPlanMetric {
+    /// accumulatorId property.
+    pub accumulator_id: Option<String>,
+    /// metricType property.
+    pub metric_type: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `SparkPlanGraph` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkPlanGraph {
+    /// edges property.
+    pub edges: Option<Vec<SparkPlanGraphEdge>>,
+    /// executionId property.
+    pub execution_id: Option<String>,
+    /// nodes property.
+    pub nodes: Option<Vec<Box<SparkPlanGraphNodeWrapper>>>,
+}
+
+/// `StageShuffleWriteMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StageShuffleWriteMetrics {
+    /// bytesWritten property.
+    pub bytes_written: Option<String>,
+    /// recordsWritten property.
+    pub records_written: Option<String>,
+    /// writeTimeNanos property.
+    pub write_time_nanos: Option<String>,
+}
+
+/// `StageShufflePushReadMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StageShufflePushReadMetrics {
+    /// corruptMergedBlockChunks property.
+    pub corrupt_merged_block_chunks: Option<String>,
+    /// localMergedBlocksFetched property.
+    pub local_merged_blocks_fetched: Option<String>,
+    /// localMergedBytesRead property.
+    pub local_merged_bytes_read: Option<String>,
+    /// localMergedChunksFetched property.
+    pub local_merged_chunks_fetched: Option<String>,
+    /// mergedFetchFallbackCount property.
+    pub merged_fetch_fallback_count: Option<String>,
+    /// remoteMergedBlocksFetched property.
+    pub remote_merged_blocks_fetched: Option<String>,
+    /// remoteMergedBytesRead property.
+    pub remote_merged_bytes_read: Option<String>,
+    /// remoteMergedChunksFetched property.
+    pub remote_merged_chunks_fetched: Option<String>,
+    /// remoteMergedReqsDuration property.
+    pub remote_merged_reqs_duration: Option<String>,
+}
+
+/// `SparkPlanGraphCluster` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkPlanGraphCluster {
+    /// desc property.
+    pub desc: Option<String>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// metrics property.
+    pub metrics: Option<Vec<SqlPlanMetric>>,
+    /// name property.
+    pub name: Option<String>,
+    /// nodes property.
+    pub nodes: Option<Vec<Box<SparkPlanGraphNodeWrapper>>>,
+    /// sparkPlanGraphClusterId property.
+    pub spark_plan_graph_cluster_id: Option<String>,
+}
+
+/// `TaskQuantileMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TaskQuantileMetrics {
+    /// diskBytesSpilled property.
+    pub disk_bytes_spilled: Option<Quantiles>,
+    /// durationMillis property.
+    pub duration_millis: Option<Quantiles>,
+    /// executorCpuTimeNanos property.
+    pub executor_cpu_time_nanos: Option<Quantiles>,
+    /// executorDeserializeCpuTimeNanos property.
+    pub executor_deserialize_cpu_time_nanos: Option<Quantiles>,
+    /// executorDeserializeTimeMillis property.
+    pub executor_deserialize_time_millis: Option<Quantiles>,
+    /// executorRunTimeMillis property.
+    pub executor_run_time_millis: Option<Quantiles>,
+    /// gettingResultTimeMillis property.
+    pub getting_result_time_millis: Option<Quantiles>,
+    /// inputMetrics property.
+    pub input_metrics: Option<InputQuantileMetrics>,
+    /// jvmGcTimeMillis property.
+    pub jvm_gc_time_millis: Option<Quantiles>,
+    /// memoryBytesSpilled property.
+    pub memory_bytes_spilled: Option<Quantiles>,
+    /// outputMetrics property.
+    pub output_metrics: Option<OutputQuantileMetrics>,
+    /// peakExecutionMemoryBytes property.
+    pub peak_execution_memory_bytes: Option<Quantiles>,
+    /// resultSerializationTimeMillis property.
+    pub result_serialization_time_millis: Option<Quantiles>,
+    /// resultSize property.
+    pub result_size: Option<Quantiles>,
+    /// schedulerDelayMillis property.
+    pub scheduler_delay_millis: Option<Quantiles>,
+    /// shuffleReadMetrics property.
+    pub shuffle_read_metrics: Option<ShuffleReadQuantileMetrics>,
+    /// shuffleWriteMetrics property.
+    pub shuffle_write_metrics: Option<ShuffleWriteQuantileMetrics>,
+}
+
+/// `SparkPlanGraphEdge` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkPlanGraphEdge {
+    /// fromId property.
+    pub from_id: Option<String>,
+    /// toId property.
+    pub to_id: Option<String>,
+}
+
+/// `ShuffleWriteMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShuffleWriteMetrics {
+    /// bytesWritten property.
+    pub bytes_written: Option<String>,
+    /// recordsWritten property.
+    pub records_written: Option<String>,
+    /// writeTimeNanos property.
+    pub write_time_nanos: Option<String>,
+}
+
+/// `AccessSparkApplicationStageAttemptResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessSparkApplicationStageAttemptResponse {
+    /// stageData property.
+    pub stage_data: Option<StageData>,
+}
+
+/// `SearchSparkApplicationJobsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchSparkApplicationJobsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// sparkApplicationJobs property.
+    pub spark_application_jobs: Option<Vec<JobData>>,
 }
 
 /// `JobData` type.
@@ -638,206 +644,20 @@ pub struct JobData {
     pub submission_time: Option<String>,
 }
 
-/// `SparkPlanGraphCluster` type.
+/// `SearchSessionSparkApplicationExecutorStageSummaryResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkPlanGraphCluster {
-    /// desc property.
-    pub desc: Option<String>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// metrics property.
-    pub metrics: Option<Vec<SqlPlanMetric>>,
-    /// name property.
-    pub name: Option<String>,
-    /// nodes property.
-    pub nodes: Option<Vec<SparkPlanGraphNodeWrapper>>,
-    /// sparkPlanGraphClusterId property.
-    pub spark_plan_graph_cluster_id: Option<String>,
-}
-
-/// `SearchSparkApplicationExecutorStageSummaryResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchSparkApplicationExecutorStageSummaryResponse {
+pub struct SearchSessionSparkApplicationExecutorStageSummaryResponse {
     /// nextPageToken property.
     pub next_page_token: Option<String>,
     /// sparkApplicationStageExecutors property.
     pub spark_application_stage_executors: Option<Vec<ExecutorStageSummary>>,
 }
 
-/// `AccessSessionSparkApplicationJobResponse` type.
+/// `SummarizeSessionSparkApplicationStageAttemptTasksResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessSessionSparkApplicationJobResponse {
-    /// jobData property.
-    pub job_data: Option<JobData>,
-}
-
-/// `StagesSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StagesSummary {
-    /// applicationId property.
-    pub application_id: Option<String>,
-    /// numActiveStages property.
-    pub num_active_stages: Option<i64>,
-    /// numCompletedStages property.
-    pub num_completed_stages: Option<i64>,
-    /// numFailedStages property.
-    pub num_failed_stages: Option<i64>,
-    /// numPendingStages property.
-    pub num_pending_stages: Option<i64>,
-    /// numSkippedStages property.
-    pub num_skipped_stages: Option<i64>,
-}
-
-/// `ApplicationEnvironmentInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApplicationEnvironmentInfo {
-    /// classpathEntries property.
-    pub classpath_entries: Option<serde_json::Value>,
-    /// hadoopProperties property.
-    pub hadoop_properties: Option<serde_json::Value>,
-    /// metricsProperties property.
-    pub metrics_properties: Option<serde_json::Value>,
-    /// resourceProfiles property.
-    pub resource_profiles: Option<Vec<ResourceProfileInfo>>,
-    /// runtime property.
-    pub runtime: Option<SparkRuntimeInfo>,
-    /// sparkProperties property.
-    pub spark_properties: Option<serde_json::Value>,
-    /// systemProperties property.
-    pub system_properties: Option<serde_json::Value>,
-}
-
-/// `StageShufflePushReadMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StageShufflePushReadMetrics {
-    /// corruptMergedBlockChunks property.
-    pub corrupt_merged_block_chunks: Option<String>,
-    /// localMergedBlocksFetched property.
-    pub local_merged_blocks_fetched: Option<String>,
-    /// localMergedBytesRead property.
-    pub local_merged_bytes_read: Option<String>,
-    /// localMergedChunksFetched property.
-    pub local_merged_chunks_fetched: Option<String>,
-    /// mergedFetchFallbackCount property.
-    pub merged_fetch_fallback_count: Option<String>,
-    /// remoteMergedBlocksFetched property.
-    pub remote_merged_blocks_fetched: Option<String>,
-    /// remoteMergedBytesRead property.
-    pub remote_merged_bytes_read: Option<String>,
-    /// remoteMergedChunksFetched property.
-    pub remote_merged_chunks_fetched: Option<String>,
-    /// remoteMergedReqsDuration property.
-    pub remote_merged_reqs_duration: Option<String>,
-}
-
-/// `AccumulableInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccumulableInfo {
-    /// accumullableInfoId property.
-    pub accumullable_info_id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// update property.
-    pub update: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `AccessSessionSparkApplicationEnvironmentInfoResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessSessionSparkApplicationEnvironmentInfoResponse {
-    /// applicationEnvironmentInfo property.
-    pub application_environment_info: Option<ApplicationEnvironmentInfo>,
-}
-
-/// `SearchSessionSparkApplicationExecutorsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchSessionSparkApplicationExecutorsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// sparkApplicationExecutors property.
-    pub spark_application_executors: Option<Vec<ExecutorSummary>>,
-}
-
-/// `AccessSparkApplicationStageAttemptResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessSparkApplicationStageAttemptResponse {
-    /// stageData property.
-    pub stage_data: Option<StageData>,
-}
-
-/// `SearchSparkApplicationExecutorsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchSparkApplicationExecutorsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// sparkApplicationExecutors property.
-    pub spark_application_executors: Option<Vec<ExecutorSummary>>,
-}
-
-/// `SparkPlanGraph` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkPlanGraph {
-    /// edges property.
-    pub edges: Option<Vec<SparkPlanGraphEdge>>,
-    /// executionId property.
-    pub execution_id: Option<String>,
-    /// nodes property.
-    pub nodes: Option<Vec<SparkPlanGraphNodeWrapper>>,
-}
-
-/// `SummarizeSparkApplicationStagesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SummarizeSparkApplicationStagesResponse {
-    /// stagesSummary property.
-    pub stages_summary: Option<StagesSummary>,
-}
-
-/// `SparkPlanGraphNodeWrapper` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkPlanGraphNodeWrapper {
-    /// cluster property.
-    pub cluster: Option<SparkPlanGraphCluster>,
-    /// node property.
-    pub node: Option<SparkPlanGraphNode>,
-}
-
-/// `SearchSparkApplicationStagesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchSparkApplicationStagesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// sparkApplicationStages property.
-    pub spark_application_stages: Option<Vec<StageData>>,
-}
-
-/// `AccessSessionSparkApplicationSqlQueryResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessSessionSparkApplicationSqlQueryResponse {
-    /// executionData property.
-    pub execution_data: Option<SqlExecutionUiData>,
-}
-
-/// `AccessSparkApplicationJobResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessSparkApplicationJobResponse {
-    /// jobData property.
-    pub job_data: Option<JobData>,
-}
-
-/// `RddOperationGraph` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RddOperationGraph {
-    /// edges property.
-    pub edges: Option<Vec<RddOperationEdge>>,
-    /// incomingEdges property.
-    pub incoming_edges: Option<Vec<RddOperationEdge>>,
-    /// outgoingEdges property.
-    pub outgoing_edges: Option<Vec<RddOperationEdge>>,
-    /// rootCluster property.
-    pub root_cluster: Option<RddOperationCluster>,
-    /// stageId property.
-    pub stage_id: Option<String>,
+pub struct SummarizeSessionSparkApplicationStageAttemptTasksResponse {
+    /// stageAttemptTasksSummary property.
+    pub stage_attempt_tasks_summary: Option<StageAttemptTasksSummary>,
 }
 
 /// `StageMetrics` type.
@@ -873,82 +693,134 @@ pub struct StageMetrics {
     pub stage_shuffle_write_metrics: Option<StageShuffleWriteMetrics>,
 }
 
-/// `InputQuantileMetrics` type.
+/// `ApplicationEnvironmentInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InputQuantileMetrics {
-    /// bytesRead property.
-    pub bytes_read: Option<Quantiles>,
-    /// recordsRead property.
-    pub records_read: Option<Quantiles>,
+pub struct ApplicationEnvironmentInfo {
+    /// classpathEntries property.
+    pub classpath_entries: Option<serde_json::Value>,
+    /// hadoopProperties property.
+    pub hadoop_properties: Option<serde_json::Value>,
+    /// metricsProperties property.
+    pub metrics_properties: Option<serde_json::Value>,
+    /// resourceProfiles property.
+    pub resource_profiles: Option<Vec<ResourceProfileInfo>>,
+    /// runtime property.
+    pub runtime: Option<SparkRuntimeInfo>,
+    /// sparkProperties property.
+    pub spark_properties: Option<serde_json::Value>,
+    /// systemProperties property.
+    pub system_properties: Option<serde_json::Value>,
 }
 
-/// `OutputQuantileMetrics` type.
+/// `ShuffleReadQuantileMetrics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OutputQuantileMetrics {
-    /// bytesWritten property.
-    pub bytes_written: Option<Quantiles>,
-    /// recordsWritten property.
-    pub records_written: Option<Quantiles>,
-}
-
-/// `StageShuffleReadMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StageShuffleReadMetrics {
-    /// bytesRead property.
-    pub bytes_read: Option<String>,
+pub struct ShuffleReadQuantileMetrics {
     /// fetchWaitTimeMillis property.
-    pub fetch_wait_time_millis: Option<String>,
+    pub fetch_wait_time_millis: Option<Quantiles>,
     /// localBlocksFetched property.
-    pub local_blocks_fetched: Option<String>,
-    /// localBytesRead property.
-    pub local_bytes_read: Option<String>,
-    /// recordsRead property.
-    pub records_read: Option<String>,
+    pub local_blocks_fetched: Option<Quantiles>,
+    /// readBytes property.
+    pub read_bytes: Option<Quantiles>,
+    /// readRecords property.
+    pub read_records: Option<Quantiles>,
     /// remoteBlocksFetched property.
-    pub remote_blocks_fetched: Option<String>,
+    pub remote_blocks_fetched: Option<Quantiles>,
     /// remoteBytesRead property.
-    pub remote_bytes_read: Option<String>,
+    pub remote_bytes_read: Option<Quantiles>,
     /// remoteBytesReadToDisk property.
-    pub remote_bytes_read_to_disk: Option<String>,
+    pub remote_bytes_read_to_disk: Option<Quantiles>,
     /// remoteReqsDuration property.
-    pub remote_reqs_duration: Option<String>,
-    /// stageShufflePushReadMetrics property.
-    pub stage_shuffle_push_read_metrics: Option<StageShufflePushReadMetrics>,
+    pub remote_reqs_duration: Option<Quantiles>,
+    /// shufflePushReadMetrics property.
+    pub shuffle_push_read_metrics: Option<ShufflePushReadQuantileMetrics>,
+    /// totalBlocksFetched property.
+    pub total_blocks_fetched: Option<Quantiles>,
 }
 
-/// `StageShuffleWriteMetrics` type.
+/// `AccessSessionSparkApplicationSqlQueryResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StageShuffleWriteMetrics {
-    /// bytesWritten property.
-    pub bytes_written: Option<String>,
-    /// recordsWritten property.
-    pub records_written: Option<String>,
-    /// writeTimeNanos property.
-    pub write_time_nanos: Option<String>,
+pub struct AccessSessionSparkApplicationSqlQueryResponse {
+    /// executionData property.
+    pub execution_data: Option<SqlExecutionUiData>,
 }
 
-/// `JobsSummary` type.
+/// `SearchSparkApplicationStagesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobsSummary {
-    /// activeJobs property.
-    pub active_jobs: Option<i64>,
+pub struct SearchSparkApplicationStagesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// sparkApplicationStages property.
+    pub spark_application_stages: Option<Vec<StageData>>,
+}
+
+/// `StagesSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StagesSummary {
     /// applicationId property.
     pub application_id: Option<String>,
-    /// attempts property.
-    pub attempts: Option<Vec<ApplicationAttemptInfo>>,
-    /// completedJobs property.
-    pub completed_jobs: Option<i64>,
-    /// failedJobs property.
-    pub failed_jobs: Option<i64>,
-    /// schedulingMode property.
-    pub scheduling_mode: Option<String>,
+    /// numActiveStages property.
+    pub num_active_stages: Option<i64>,
+    /// numCompletedStages property.
+    pub num_completed_stages: Option<i64>,
+    /// numFailedStages property.
+    pub num_failed_stages: Option<i64>,
+    /// numPendingStages property.
+    pub num_pending_stages: Option<i64>,
+    /// numSkippedStages property.
+    pub num_skipped_stages: Option<i64>,
 }
 
-/// `AccessSessionSparkApplicationStageAttemptResponse` type.
+/// `RddOperationNode` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessSessionSparkApplicationStageAttemptResponse {
-    /// stageData property.
-    pub stage_data: Option<StageData>,
+pub struct RddOperationNode {
+    /// barrier property.
+    pub barrier: Option<bool>,
+    /// cached property.
+    pub cached: Option<bool>,
+    /// callsite property.
+    pub callsite: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// nodeId property.
+    pub node_id: Option<i64>,
+    /// outputDeterministicLevel property.
+    pub output_deterministic_level: Option<String>,
+}
+
+/// `ExecutorPeakMetricsDistributions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExecutorPeakMetricsDistributions {
+    /// executorMetrics property.
+    pub executor_metrics: Option<Vec<ExecutorMetrics>>,
+    /// quantiles property.
+    pub quantiles: Option<Vec<f64>>,
+}
+
+/// `SearchSparkApplicationExecutorsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchSparkApplicationExecutorsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// sparkApplicationExecutors property.
+    pub spark_application_executors: Option<Vec<ExecutorSummary>>,
+}
+
+/// `SearchSessionSparkApplicationJobsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchSessionSparkApplicationJobsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// sparkApplicationJobs property.
+    pub spark_application_jobs: Option<Vec<JobData>>,
+}
+
+/// `SearchSessionSparkApplicationStageAttemptsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchSessionSparkApplicationStageAttemptsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// sparkApplicationStageAttempts property.
+    pub spark_application_stage_attempts: Option<Vec<StageData>>,
 }
 
 /// `ShufflePushReadMetrics` type.
@@ -974,84 +846,75 @@ pub struct ShufflePushReadMetrics {
     pub remote_merged_reqs_duration: Option<String>,
 }
 
-/// `ExecutorSummary` type.
+/// `ExecutorStageSummary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExecutorSummary {
-    /// activeTasks property.
-    pub active_tasks: Option<i64>,
-    /// addTime property.
-    pub add_time: Option<String>,
-    /// attributes property.
-    pub attributes: Option<serde_json::Value>,
-    /// completedTasks property.
-    pub completed_tasks: Option<i64>,
-    /// diskUsed property.
-    pub disk_used: Option<String>,
-    /// excludedInStages property.
-    pub excluded_in_stages: Option<Vec<String>>,
+pub struct ExecutorStageSummary {
+    /// diskBytesSpilled property.
+    pub disk_bytes_spilled: Option<String>,
     /// executorId property.
     pub executor_id: Option<String>,
-    /// executorLogs property.
-    pub executor_logs: Option<serde_json::Value>,
     /// failedTasks property.
     pub failed_tasks: Option<i64>,
-    /// hostPort property.
-    pub host_port: Option<String>,
-    /// isActive property.
-    pub is_active: Option<bool>,
-    /// isExcluded property.
-    pub is_excluded: Option<bool>,
-    /// maxMemory property.
-    pub max_memory: Option<String>,
-    /// maxTasks property.
-    pub max_tasks: Option<i64>,
-    /// memoryMetrics property.
-    pub memory_metrics: Option<MemoryMetrics>,
-    /// memoryUsed property.
-    pub memory_used: Option<String>,
+    /// inputBytes property.
+    pub input_bytes: Option<String>,
+    /// inputRecords property.
+    pub input_records: Option<String>,
+    /// isExcludedForStage property.
+    pub is_excluded_for_stage: Option<bool>,
+    /// killedTasks property.
+    pub killed_tasks: Option<i64>,
+    /// memoryBytesSpilled property.
+    pub memory_bytes_spilled: Option<String>,
+    /// outputBytes property.
+    pub output_bytes: Option<String>,
+    /// outputRecords property.
+    pub output_records: Option<String>,
     /// peakMemoryMetrics property.
     pub peak_memory_metrics: Option<ExecutorMetrics>,
-    /// rddBlocks property.
-    pub rdd_blocks: Option<i64>,
-    /// removeReason property.
-    pub remove_reason: Option<String>,
-    /// removeTime property.
-    pub remove_time: Option<String>,
-    /// resourceProfileId property.
-    pub resource_profile_id: Option<i64>,
-    /// resources property.
-    pub resources: Option<serde_json::Value>,
-    /// totalCores property.
-    pub total_cores: Option<i64>,
-    /// totalDurationMillis property.
-    pub total_duration_millis: Option<String>,
-    /// totalGcTimeMillis property.
-    pub total_gc_time_millis: Option<String>,
-    /// totalInputBytes property.
-    pub total_input_bytes: Option<String>,
-    /// totalShuffleRead property.
-    pub total_shuffle_read: Option<String>,
-    /// totalShuffleWrite property.
-    pub total_shuffle_write: Option<String>,
-    /// totalTasks property.
-    pub total_tasks: Option<i64>,
+    /// shuffleRead property.
+    pub shuffle_read: Option<String>,
+    /// shuffleReadRecords property.
+    pub shuffle_read_records: Option<String>,
+    /// shuffleWrite property.
+    pub shuffle_write: Option<String>,
+    /// shuffleWriteRecords property.
+    pub shuffle_write_records: Option<String>,
+    /// stageAttemptId property.
+    pub stage_attempt_id: Option<i64>,
+    /// stageId property.
+    pub stage_id: Option<String>,
+    /// succeededTasks property.
+    pub succeeded_tasks: Option<i64>,
+    /// taskTimeMillis property.
+    pub task_time_millis: Option<String>,
 }
 
-/// `RddOperationNode` type.
+/// `SparkPlanGraphNodeWrapper` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RddOperationNode {
-    /// barrier property.
-    pub barrier: Option<bool>,
-    /// cached property.
-    pub cached: Option<bool>,
-    /// callsite property.
-    pub callsite: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// nodeId property.
-    pub node_id: Option<i64>,
-    /// outputDeterministicLevel property.
-    pub output_deterministic_level: Option<String>,
+pub struct SparkPlanGraphNodeWrapper {
+    /// cluster property.
+    pub cluster: Option<Box<SparkPlanGraphCluster>>,
+    /// node property.
+    pub node: Option<SparkPlanGraphNode>,
+}
+
+/// `Quantiles` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Quantiles {
+    /// count property.
+    pub count: Option<String>,
+    /// maximum property.
+    pub maximum: Option<String>,
+    /// minimum property.
+    pub minimum: Option<String>,
+    /// percentile25 property.
+    pub percentile25: Option<String>,
+    /// percentile50 property.
+    pub percentile50: Option<String>,
+    /// percentile75 property.
+    pub percentile75: Option<String>,
+    /// sum property.
+    pub sum: Option<String>,
 }
 
 /// `SummarizeSparkApplicationJobsResponse` type.
@@ -1061,45 +924,24 @@ pub struct SummarizeSparkApplicationJobsResponse {
     pub jobs_summary: Option<JobsSummary>,
 }
 
-/// `WriteSparkApplicationContextResponse` type.
+/// `SpeculationStageSummary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WriteSparkApplicationContextResponse {}
-
-/// `SearchSessionSparkApplicationSqlQueriesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchSessionSparkApplicationSqlQueriesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// sparkApplicationSqlQueries property.
-    pub spark_application_sql_queries: Option<Vec<SqlExecutionUiData>>,
+pub struct SpeculationStageSummary {
+    /// numActiveTasks property.
+    pub num_active_tasks: Option<i64>,
+    /// numCompletedTasks property.
+    pub num_completed_tasks: Option<i64>,
+    /// numFailedTasks property.
+    pub num_failed_tasks: Option<i64>,
+    /// numKilledTasks property.
+    pub num_killed_tasks: Option<i64>,
+    /// numTasks property.
+    pub num_tasks: Option<i64>,
+    /// stageAttemptId property.
+    pub stage_attempt_id: Option<i64>,
+    /// stageId property.
+    pub stage_id: Option<String>,
 }
-
-/// `SummarizeSessionSparkApplicationStageAttemptTasksResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SummarizeSessionSparkApplicationStageAttemptTasksResponse {
-    /// stageAttemptTasksSummary property.
-    pub stage_attempt_tasks_summary: Option<StageAttemptTasksSummary>,
-}
-
-/// `SearchSparkApplicationJobsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchSparkApplicationJobsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// sparkApplicationJobs property.
-    pub spark_application_jobs: Option<Vec<JobData>>,
-}
-
-/// `ExecutorMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExecutorMetrics {
-    /// metrics property.
-    pub metrics: Option<serde_json::Value>,
-}
-
-/// `WriteSessionSparkApplicationContextResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WriteSessionSparkApplicationContextResponse {}
 
 /// `AccessSessionSparkApplicationStageRddOperationGraphResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1108,139 +950,57 @@ pub struct AccessSessionSparkApplicationStageRddOperationGraphResponse {
     pub rdd_operation_graph: Option<RddOperationGraph>,
 }
 
-/// `RddOperationCluster` type.
+/// `SearchSparkApplicationSqlQueriesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RddOperationCluster {
-    /// childClusters property.
-    pub child_clusters: Option<Vec<RddOperationCluster>>,
-    /// childNodes property.
-    pub child_nodes: Option<Vec<RddOperationNode>>,
-    /// name property.
-    pub name: Option<String>,
-    /// rddClusterId property.
-    pub rdd_cluster_id: Option<String>,
-}
-
-/// `TaskQuantileMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TaskQuantileMetrics {
-    /// diskBytesSpilled property.
-    pub disk_bytes_spilled: Option<Quantiles>,
-    /// durationMillis property.
-    pub duration_millis: Option<Quantiles>,
-    /// executorCpuTimeNanos property.
-    pub executor_cpu_time_nanos: Option<Quantiles>,
-    /// executorDeserializeCpuTimeNanos property.
-    pub executor_deserialize_cpu_time_nanos: Option<Quantiles>,
-    /// executorDeserializeTimeMillis property.
-    pub executor_deserialize_time_millis: Option<Quantiles>,
-    /// executorRunTimeMillis property.
-    pub executor_run_time_millis: Option<Quantiles>,
-    /// gettingResultTimeMillis property.
-    pub getting_result_time_millis: Option<Quantiles>,
-    /// inputMetrics property.
-    pub input_metrics: Option<InputQuantileMetrics>,
-    /// jvmGcTimeMillis property.
-    pub jvm_gc_time_millis: Option<Quantiles>,
-    /// memoryBytesSpilled property.
-    pub memory_bytes_spilled: Option<Quantiles>,
-    /// outputMetrics property.
-    pub output_metrics: Option<OutputQuantileMetrics>,
-    /// peakExecutionMemoryBytes property.
-    pub peak_execution_memory_bytes: Option<Quantiles>,
-    /// resultSerializationTimeMillis property.
-    pub result_serialization_time_millis: Option<Quantiles>,
-    /// resultSize property.
-    pub result_size: Option<Quantiles>,
-    /// schedulerDelayMillis property.
-    pub scheduler_delay_millis: Option<Quantiles>,
-    /// shuffleReadMetrics property.
-    pub shuffle_read_metrics: Option<ShuffleReadQuantileMetrics>,
-    /// shuffleWriteMetrics property.
-    pub shuffle_write_metrics: Option<ShuffleWriteQuantileMetrics>,
-}
-
-/// `ShufflePushReadQuantileMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShufflePushReadQuantileMetrics {
-    /// corruptMergedBlockChunks property.
-    pub corrupt_merged_block_chunks: Option<Quantiles>,
-    /// localMergedBlocksFetched property.
-    pub local_merged_blocks_fetched: Option<Quantiles>,
-    /// localMergedBytesRead property.
-    pub local_merged_bytes_read: Option<Quantiles>,
-    /// localMergedChunksFetched property.
-    pub local_merged_chunks_fetched: Option<Quantiles>,
-    /// mergedFetchFallbackCount property.
-    pub merged_fetch_fallback_count: Option<Quantiles>,
-    /// remoteMergedBlocksFetched property.
-    pub remote_merged_blocks_fetched: Option<Quantiles>,
-    /// remoteMergedBytesRead property.
-    pub remote_merged_bytes_read: Option<Quantiles>,
-    /// remoteMergedChunksFetched property.
-    pub remote_merged_chunks_fetched: Option<Quantiles>,
-    /// remoteMergedReqsDuration property.
-    pub remote_merged_reqs_duration: Option<Quantiles>,
-}
-
-/// `ShuffleWriteMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShuffleWriteMetrics {
-    /// bytesWritten property.
-    pub bytes_written: Option<String>,
-    /// recordsWritten property.
-    pub records_written: Option<String>,
-    /// writeTimeNanos property.
-    pub write_time_nanos: Option<String>,
-}
-
-/// `ShuffleWriteQuantileMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShuffleWriteQuantileMetrics {
-    /// writeBytes property.
-    pub write_bytes: Option<Quantiles>,
-    /// writeRecords property.
-    pub write_records: Option<Quantiles>,
-    /// writeTimeNanos property.
-    pub write_time_nanos: Option<Quantiles>,
-}
-
-/// `SearchSessionSparkApplicationStageAttemptsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchSessionSparkApplicationStageAttemptsResponse {
+pub struct SearchSparkApplicationSqlQueriesResponse {
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-    /// sparkApplicationStageAttempts property.
-    pub spark_application_stage_attempts: Option<Vec<StageData>>,
+    /// sparkApplicationSqlQueries property.
+    pub spark_application_sql_queries: Option<Vec<SqlExecutionUiData>>,
 }
 
-/// `AccessSessionSparkApplicationSqlSparkPlanGraphResponse` type.
+/// `SummarizeSessionSparkApplicationStagesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessSessionSparkApplicationSqlSparkPlanGraphResponse {
-    /// sparkPlanGraph property.
-    pub spark_plan_graph: Option<SparkPlanGraph>,
+pub struct SummarizeSessionSparkApplicationStagesResponse {
+    /// stagesSummary property.
+    pub stages_summary: Option<StagesSummary>,
 }
 
-/// `SparkRuntimeInfo` type.
+/// `AccessSparkApplicationSqlQueryResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkRuntimeInfo {
-    /// javaHome property.
-    pub java_home: Option<String>,
-    /// javaVersion property.
-    pub java_version: Option<String>,
-    /// scalaVersion property.
-    pub scala_version: Option<String>,
+pub struct AccessSparkApplicationSqlQueryResponse {
+    /// executionData property.
+    pub execution_data: Option<SqlExecutionUiData>,
 }
 
-/// `SqlPlanMetric` type.
+/// `ApplicationInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlPlanMetric {
-    /// accumulatorId property.
-    pub accumulator_id: Option<String>,
-    /// metricType property.
-    pub metric_type: Option<String>,
+pub struct ApplicationInfo {
+    /// applicationContextIngestionStatus property.
+    pub application_context_ingestion_status: Option<String>,
+    /// applicationId property.
+    pub application_id: Option<String>,
+    /// attempts property.
+    pub attempts: Option<Vec<ApplicationAttemptInfo>>,
+    /// coresGranted property.
+    pub cores_granted: Option<i64>,
+    /// coresPerExecutor property.
+    pub cores_per_executor: Option<i64>,
+    /// maxCores property.
+    pub max_cores: Option<i64>,
+    /// memoryPerExecutorMb property.
+    pub memory_per_executor_mb: Option<i64>,
     /// name property.
     pub name: Option<String>,
+    /// quantileDataStatus property.
+    pub quantile_data_status: Option<String>,
+}
+
+/// `SummarizeSparkApplicationStagesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SummarizeSparkApplicationStagesResponse {
+    /// stagesSummary property.
+    pub stages_summary: Option<StagesSummary>,
 }
 
 /// `StageData` type.
@@ -1314,78 +1074,319 @@ pub struct StageData {
     pub tasks: Option<serde_json::Value>,
 }
 
-/// `SearchSparkApplicationSqlQueriesResponse` type.
+/// `StageOutputMetrics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchSparkApplicationSqlQueriesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// sparkApplicationSqlQueries property.
-    pub spark_application_sql_queries: Option<Vec<SqlExecutionUiData>>,
+pub struct StageOutputMetrics {
+    /// bytesWritten property.
+    pub bytes_written: Option<String>,
+    /// recordsWritten property.
+    pub records_written: Option<String>,
 }
 
-/// `TaskData` type.
+/// `ExecutorSummary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TaskData {
-    /// accumulatorUpdates property.
-    pub accumulator_updates: Option<Vec<AccumulableInfo>>,
-    /// attempt property.
-    pub attempt: Option<i64>,
-    /// durationMillis property.
-    pub duration_millis: Option<String>,
-    /// errorMessage property.
-    pub error_message: Option<String>,
+pub struct ExecutorSummary {
+    /// activeTasks property.
+    pub active_tasks: Option<i64>,
+    /// addTime property.
+    pub add_time: Option<String>,
+    /// attributes property.
+    pub attributes: Option<serde_json::Value>,
+    /// completedTasks property.
+    pub completed_tasks: Option<i64>,
+    /// diskUsed property.
+    pub disk_used: Option<String>,
+    /// excludedInStages property.
+    pub excluded_in_stages: Option<Vec<String>>,
     /// executorId property.
     pub executor_id: Option<String>,
     /// executorLogs property.
     pub executor_logs: Option<serde_json::Value>,
-    /// gettingResultTimeMillis property.
-    pub getting_result_time_millis: Option<String>,
-    /// hasMetrics property.
-    pub has_metrics: Option<bool>,
-    /// host property.
-    pub host: Option<String>,
-    /// index property.
-    pub index: Option<i64>,
-    /// launchTime property.
-    pub launch_time: Option<String>,
-    /// partitionId property.
-    pub partition_id: Option<i64>,
-    /// resultFetchStart property.
-    pub result_fetch_start: Option<String>,
-    /// schedulerDelayMillis property.
-    pub scheduler_delay_millis: Option<String>,
-    /// speculative property.
-    pub speculative: Option<bool>,
-    /// stageAttemptId property.
-    pub stage_attempt_id: Option<i64>,
-    /// stageId property.
-    pub stage_id: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-    /// taskId property.
-    pub task_id: Option<String>,
-    /// taskLocality property.
-    pub task_locality: Option<String>,
-    /// taskMetrics property.
-    pub task_metrics: Option<TaskMetrics>,
+    /// failedTasks property.
+    pub failed_tasks: Option<i64>,
+    /// hostPort property.
+    pub host_port: Option<String>,
+    /// isActive property.
+    pub is_active: Option<bool>,
+    /// isExcluded property.
+    pub is_excluded: Option<bool>,
+    /// maxMemory property.
+    pub max_memory: Option<String>,
+    /// maxTasks property.
+    pub max_tasks: Option<i64>,
+    /// memoryMetrics property.
+    pub memory_metrics: Option<MemoryMetrics>,
+    /// memoryUsed property.
+    pub memory_used: Option<String>,
+    /// peakMemoryMetrics property.
+    pub peak_memory_metrics: Option<ExecutorMetrics>,
+    /// rddBlocks property.
+    pub rdd_blocks: Option<i64>,
+    /// removeReason property.
+    pub remove_reason: Option<String>,
+    /// removeTime property.
+    pub remove_time: Option<String>,
+    /// resourceProfileId property.
+    pub resource_profile_id: Option<i64>,
+    /// resources property.
+    pub resources: Option<serde_json::Value>,
+    /// totalCores property.
+    pub total_cores: Option<i64>,
+    /// totalDurationMillis property.
+    pub total_duration_millis: Option<String>,
+    /// totalGcTimeMillis property.
+    pub total_gc_time_millis: Option<String>,
+    /// totalInputBytes property.
+    pub total_input_bytes: Option<String>,
+    /// totalShuffleRead property.
+    pub total_shuffle_read: Option<String>,
+    /// totalShuffleWrite property.
+    pub total_shuffle_write: Option<String>,
+    /// totalTasks property.
+    pub total_tasks: Option<i64>,
 }
 
-/// `StageInputMetrics` type.
+/// `SummarizeSparkApplicationExecutorsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StageInputMetrics {
+pub struct SummarizeSparkApplicationExecutorsResponse {
+    /// activeExecutorSummary property.
+    pub active_executor_summary: Option<ConsolidatedExecutorSummary>,
+    /// applicationId property.
+    pub application_id: Option<String>,
+    /// deadExecutorSummary property.
+    pub dead_executor_summary: Option<ConsolidatedExecutorSummary>,
+    /// totalExecutorSummary property.
+    pub total_executor_summary: Option<ConsolidatedExecutorSummary>,
+}
+
+/// `ShufflePushReadQuantileMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShufflePushReadQuantileMetrics {
+    /// corruptMergedBlockChunks property.
+    pub corrupt_merged_block_chunks: Option<Quantiles>,
+    /// localMergedBlocksFetched property.
+    pub local_merged_blocks_fetched: Option<Quantiles>,
+    /// localMergedBytesRead property.
+    pub local_merged_bytes_read: Option<Quantiles>,
+    /// localMergedChunksFetched property.
+    pub local_merged_chunks_fetched: Option<Quantiles>,
+    /// mergedFetchFallbackCount property.
+    pub merged_fetch_fallback_count: Option<Quantiles>,
+    /// remoteMergedBlocksFetched property.
+    pub remote_merged_blocks_fetched: Option<Quantiles>,
+    /// remoteMergedBytesRead property.
+    pub remote_merged_bytes_read: Option<Quantiles>,
+    /// remoteMergedChunksFetched property.
+    pub remote_merged_chunks_fetched: Option<Quantiles>,
+    /// remoteMergedReqsDuration property.
+    pub remote_merged_reqs_duration: Option<Quantiles>,
+}
+
+/// `AccessSparkApplicationEnvironmentInfoResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessSparkApplicationEnvironmentInfoResponse {
+    /// applicationEnvironmentInfo property.
+    pub application_environment_info: Option<ApplicationEnvironmentInfo>,
+}
+
+/// `SqlExecutionUiData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlExecutionUiData {
+    /// completionTime property.
+    pub completion_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// details property.
+    pub details: Option<String>,
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// executionId property.
+    pub execution_id: Option<String>,
+    /// jobs property.
+    pub jobs: Option<serde_json::Value>,
+    /// metricValues property.
+    pub metric_values: Option<serde_json::Value>,
+    /// metricValuesIsNull property.
+    pub metric_values_is_null: Option<bool>,
+    /// metrics property.
+    pub metrics: Option<Vec<SqlPlanMetric>>,
+    /// modifiedConfigs property.
+    pub modified_configs: Option<serde_json::Value>,
+    /// physicalPlanDescription property.
+    pub physical_plan_description: Option<String>,
+    /// rootExecutionId property.
+    pub root_execution_id: Option<String>,
+    /// stages property.
+    pub stages: Option<Vec<String>>,
+    /// submissionTime property.
+    pub submission_time: Option<String>,
+}
+
+/// `RddOperationCluster` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RddOperationCluster {
+    /// childClusters property.
+    pub child_clusters: Option<Vec<Box<RddOperationCluster>>>,
+    /// childNodes property.
+    pub child_nodes: Option<Vec<RddOperationNode>>,
+    /// name property.
+    pub name: Option<String>,
+    /// rddClusterId property.
+    pub rdd_cluster_id: Option<String>,
+}
+
+/// `ExecutorMetricsDistributions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExecutorMetricsDistributions {
+    /// diskBytesSpilled property.
+    pub disk_bytes_spilled: Option<Vec<f64>>,
+    /// failedTasks property.
+    pub failed_tasks: Option<Vec<f64>>,
+    /// inputBytes property.
+    pub input_bytes: Option<Vec<f64>>,
+    /// inputRecords property.
+    pub input_records: Option<Vec<f64>>,
+    /// killedTasks property.
+    pub killed_tasks: Option<Vec<f64>>,
+    /// memoryBytesSpilled property.
+    pub memory_bytes_spilled: Option<Vec<f64>>,
+    /// outputBytes property.
+    pub output_bytes: Option<Vec<f64>>,
+    /// outputRecords property.
+    pub output_records: Option<Vec<f64>>,
+    /// peakMemoryMetrics property.
+    pub peak_memory_metrics: Option<ExecutorPeakMetricsDistributions>,
+    /// quantiles property.
+    pub quantiles: Option<Vec<f64>>,
+    /// shuffleRead property.
+    pub shuffle_read: Option<Vec<f64>>,
+    /// shuffleReadRecords property.
+    pub shuffle_read_records: Option<Vec<f64>>,
+    /// shuffleWrite property.
+    pub shuffle_write: Option<Vec<f64>>,
+    /// shuffleWriteRecords property.
+    pub shuffle_write_records: Option<Vec<f64>>,
+    /// succeededTasks property.
+    pub succeeded_tasks: Option<Vec<f64>>,
+    /// taskTimeMillis property.
+    pub task_time_millis: Option<Vec<f64>>,
+}
+
+/// `InputMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InputMetrics {
     /// bytesRead property.
     pub bytes_read: Option<String>,
     /// recordsRead property.
     pub records_read: Option<String>,
 }
 
-/// `SearchSessionSparkApplicationExecutorStageSummaryResponse` type.
+/// `AccessSparkApplicationJobResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchSessionSparkApplicationExecutorStageSummaryResponse {
+pub struct AccessSparkApplicationJobResponse {
+    /// jobData property.
+    pub job_data: Option<JobData>,
+}
+
+/// `AccessSessionSparkApplicationSqlSparkPlanGraphResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessSessionSparkApplicationSqlSparkPlanGraphResponse {
+    /// sparkPlanGraph property.
+    pub spark_plan_graph: Option<SparkPlanGraph>,
+}
+
+/// `SummarizeSessionSparkApplicationJobsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SummarizeSessionSparkApplicationJobsResponse {
+    /// jobsSummary property.
+    pub jobs_summary: Option<JobsSummary>,
+}
+
+/// `RddOperationGraph` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RddOperationGraph {
+    /// edges property.
+    pub edges: Option<Vec<RddOperationEdge>>,
+    /// incomingEdges property.
+    pub incoming_edges: Option<Vec<RddOperationEdge>>,
+    /// outgoingEdges property.
+    pub outgoing_edges: Option<Vec<RddOperationEdge>>,
+    /// rootCluster property.
+    pub root_cluster: Option<Box<RddOperationCluster>>,
+    /// stageId property.
+    pub stage_id: Option<String>,
+}
+
+/// `SearchSessionSparkApplicationStagesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchSessionSparkApplicationStagesResponse {
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-    /// sparkApplicationStageExecutors property.
-    pub spark_application_stage_executors: Option<Vec<ExecutorStageSummary>>,
+    /// sparkApplicationStages property.
+    pub spark_application_stages: Option<Vec<StageData>>,
+}
+
+/// `SparkPlanGraphNode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkPlanGraphNode {
+    /// desc property.
+    pub desc: Option<String>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// metrics property.
+    pub metrics: Option<Vec<SqlPlanMetric>>,
+    /// name property.
+    pub name: Option<String>,
+    /// sparkPlanGraphNodeId property.
+    pub spark_plan_graph_node_id: Option<String>,
+}
+
+/// `AccessSparkApplicationResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessSparkApplicationResponse {
+    /// application property.
+    pub application: Option<ApplicationInfo>,
+}
+
+/// `StageAttemptTasksSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StageAttemptTasksSummary {
+    /// applicationId property.
+    pub application_id: Option<String>,
+    /// numFailedTasks property.
+    pub num_failed_tasks: Option<i64>,
+    /// numKilledTasks property.
+    pub num_killed_tasks: Option<i64>,
+    /// numPendingTasks property.
+    pub num_pending_tasks: Option<i64>,
+    /// numRunningTasks property.
+    pub num_running_tasks: Option<i64>,
+    /// numSuccessTasks property.
+    pub num_success_tasks: Option<i64>,
+    /// numTasks property.
+    pub num_tasks: Option<i64>,
+    /// stageAttemptId property.
+    pub stage_attempt_id: Option<i64>,
+    /// stageId property.
+    pub stage_id: Option<String>,
+}
+
+/// `RddOperationEdge` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RddOperationEdge {
+    /// fromId property.
+    pub from_id: Option<i64>,
+    /// toId property.
+    pub to_id: Option<i64>,
+}
+
+/// `SearchSparkApplicationStageAttemptTasksResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchSparkApplicationStageAttemptTasksResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// sparkApplicationStageAttemptTasks property.
+    pub spark_application_stage_attempt_tasks: Option<Vec<TaskData>>,
 }
 
 // =============================================================================

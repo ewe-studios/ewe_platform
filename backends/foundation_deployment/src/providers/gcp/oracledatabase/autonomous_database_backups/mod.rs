@@ -12,17 +12,42 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListAutonomousDatabaseBackupsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAutonomousDatabaseBackupsResponse {
+    /// autonomousDatabaseBackups property.
+    pub autonomous_database_backups: Option<Vec<AutonomousDatabaseBackup>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `AutonomousDatabaseBackup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutonomousDatabaseBackup {
+    /// autonomousDatabase property.
+    pub autonomous_database: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// properties property.
+    pub properties: Option<AutonomousDatabaseBackupProperties>,
+}
 
 /// `AutonomousDatabaseBackupProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -67,30 +92,6 @@ pub struct AutonomousDatabaseBackupProperties {
     pub r#type: Option<String>,
     /// vaultId property.
     pub vault_id: Option<String>,
-}
-
-/// `ListAutonomousDatabaseBackupsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAutonomousDatabaseBackupsResponse {
-    /// autonomousDatabaseBackups property.
-    pub autonomous_database_backups: Option<Vec<AutonomousDatabaseBackup>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `AutonomousDatabaseBackup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutonomousDatabaseBackup {
-    /// autonomousDatabase property.
-    pub autonomous_database: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// properties property.
-    pub properties: Option<AutonomousDatabaseBackupProperties>,
 }
 
 // =============================================================================

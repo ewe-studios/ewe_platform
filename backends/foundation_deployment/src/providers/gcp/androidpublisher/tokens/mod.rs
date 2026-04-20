@@ -12,49 +12,41 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `OutOfAppPurchaseContext` type.
+/// `DeferredItemReplacement` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OutOfAppPurchaseContext {
-    /// expiredExternalAccountIdentifiers property.
-    pub expired_external_account_identifiers: Option<ExternalAccountIdentifiers>,
-    /// expiredPurchaseToken property.
-    pub expired_purchase_token: Option<String>,
+pub struct DeferredItemReplacement {
+    /// productId property.
+    pub product_id: Option<String>,
 }
 
-/// `OfferDetails` type.
+/// `IntroductoryPriceOfferPhase` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OfferDetails {
-    /// basePlanId property.
-    pub base_plan_id: Option<String>,
-    /// offerId property.
-    pub offer_id: Option<String>,
-    /// offerTags property.
-    pub offer_tags: Option<Vec<String>>,
-}
+pub struct IntroductoryPriceOfferPhase {}
 
-/// `ReplacementCancellation` type.
+/// `SubscriptionItemPriceChangeDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReplacementCancellation {}
-
-/// `UserInitiatedCancellation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserInitiatedCancellation {
-    /// cancelSurveyResult property.
-    pub cancel_survey_result: Option<CancelSurveyResult>,
-    /// cancelTime property.
-    pub cancel_time: Option<String>,
+pub struct SubscriptionItemPriceChangeDetails {
+    /// expectedNewPriceChargeTime property.
+    pub expected_new_price_charge_time: Option<String>,
+    /// newPrice property.
+    pub new_price: Option<Money>,
+    /// priceChangeMode property.
+    pub price_change_mode: Option<String>,
+    /// priceChangeState property.
+    pub price_change_state: Option<String>,
 }
 
 /// `Price` type.
@@ -66,300 +58,24 @@ pub struct Price {
     pub price_micros: Option<String>,
 }
 
-/// `RevokeSubscriptionPurchaseResponse` type.
+/// `PreorderOfferDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RevokeSubscriptionPurchaseResponse {}
-
-/// `SystemInitiatedCancellation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SystemInitiatedCancellation {}
-
-/// `PurchaseStateContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PurchaseStateContext {
-    /// purchaseState property.
-    pub purchase_state: Option<String>,
+pub struct PreorderOfferDetails {
+    /// preorderReleaseTime property.
+    pub preorder_release_time: Option<String>,
 }
 
-/// `DeferSubscriptionPurchaseResponse` type.
+/// `OfferPhase` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeferSubscriptionPurchaseResponse {
-    /// itemExpiryTimeDetails property.
-    pub item_expiry_time_details: Option<Vec<ItemExpiryTimeDetails>>,
-}
-
-/// `IntroductoryPriceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntroductoryPriceInfo {
-    /// introductoryPriceAmountMicros property.
-    pub introductory_price_amount_micros: Option<String>,
-    /// introductoryPriceCurrencyCode property.
-    pub introductory_price_currency_code: Option<String>,
-    /// introductoryPriceCycles property.
-    pub introductory_price_cycles: Option<i64>,
-    /// introductoryPricePeriod property.
-    pub introductory_price_period: Option<String>,
-}
-
-/// `ProductPurchase` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductPurchase {
-    /// acknowledgementState property.
-    pub acknowledgement_state: Option<i64>,
-    /// consumptionState property.
-    pub consumption_state: Option<i64>,
-    /// developerPayload property.
-    pub developer_payload: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// obfuscatedExternalAccountId property.
-    pub obfuscated_external_account_id: Option<String>,
-    /// obfuscatedExternalProfileId property.
-    pub obfuscated_external_profile_id: Option<String>,
-    /// orderId property.
-    pub order_id: Option<String>,
-    /// productId property.
-    pub product_id: Option<String>,
-    /// purchaseState property.
-    pub purchase_state: Option<i64>,
-    /// purchaseTimeMillis property.
-    pub purchase_time_millis: Option<String>,
-    /// purchaseToken property.
-    pub purchase_token: Option<String>,
-    /// purchaseType property.
-    pub purchase_type: Option<i64>,
-    /// quantity property.
-    pub quantity: Option<i64>,
-    /// refundableQuantity property.
-    pub refundable_quantity: Option<i64>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-}
-
-/// `ProrationPeriodOfferPhase` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProrationPeriodOfferPhase {
-    /// originalOfferPhaseType property.
-    pub original_offer_phase_type: Option<String>,
-}
-
-/// `ProductLineItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductLineItem {
-    /// productId property.
-    pub product_id: Option<String>,
-    /// productOfferDetails property.
-    pub product_offer_details: Option<ProductOfferDetails>,
-}
-
-/// `SubscriptionPurchasesDeferResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubscriptionPurchasesDeferResponse {
-    /// newExpiryTimeMillis property.
-    pub new_expiry_time_millis: Option<String>,
-}
-
-/// `ProductOfferDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductOfferDetails {
-    /// consumptionState property.
-    pub consumption_state: Option<String>,
-    /// offerId property.
-    pub offer_id: Option<String>,
-    /// offerTags property.
-    pub offer_tags: Option<Vec<String>>,
-    /// offerToken property.
-    pub offer_token: Option<String>,
-    /// preorderOfferDetails property.
-    pub preorder_offer_details: Option<PreorderOfferDetails>,
-    /// purchaseOptionId property.
-    pub purchase_option_id: Option<String>,
-    /// quantity property.
-    pub quantity: Option<i64>,
-    /// refundableQuantity property.
-    pub refundable_quantity: Option<i64>,
-    /// rentOfferDetails property.
-    pub rent_offer_details: Option<RentOfferDetails>,
-}
-
-/// `ItemExpiryTimeDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ItemExpiryTimeDetails {
-    /// expiryTime property.
-    pub expiry_time: Option<String>,
-    /// productId property.
-    pub product_id: Option<String>,
-}
-
-/// `SubscriptionPriceChange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubscriptionPriceChange {
-    /// newPrice property.
-    pub new_price: Option<Price>,
-    /// state property.
-    pub state: Option<i64>,
-}
-
-/// `PrepaidPlan` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrepaidPlan {
-    /// allowExtendAfterTime property.
-    pub allow_extend_after_time: Option<String>,
-}
-
-/// `CancelSubscriptionPurchaseResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelSubscriptionPurchaseResponse {}
-
-/// `DeveloperInitiatedCancellation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeveloperInitiatedCancellation {}
-
-/// `InstallmentPlan` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstallmentPlan {
-    /// initialCommittedPaymentsCount property.
-    pub initial_committed_payments_count: Option<i64>,
-    /// pendingCancellation property.
-    pub pending_cancellation: Option<PendingCancellation>,
-    /// remainingCommittedPaymentsCount property.
-    pub remaining_committed_payments_count: Option<i64>,
-    /// subsequentCommittedPaymentsCount property.
-    pub subsequent_committed_payments_count: Option<i64>,
-}
-
-/// `FreeTrialOfferPhase` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FreeTrialOfferPhase {}
-
-/// `Money` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Money {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// units property.
-    pub units: Option<String>,
-}
-
-/// `ProductPurchaseV2` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductPurchaseV2 {
-    /// acknowledgementState property.
-    pub acknowledgement_state: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// obfuscatedExternalAccountId property.
-    pub obfuscated_external_account_id: Option<String>,
-    /// obfuscatedExternalProfileId property.
-    pub obfuscated_external_profile_id: Option<String>,
-    /// orderId property.
-    pub order_id: Option<String>,
-    /// productLineItem property.
-    pub product_line_item: Option<Vec<ProductLineItem>>,
-    /// purchaseCompletionTime property.
-    pub purchase_completion_time: Option<String>,
-    /// purchaseStateContext property.
-    pub purchase_state_context: Option<PurchaseStateContext>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-    /// testPurchaseContext property.
-    pub test_purchase_context: Option<TestPurchaseContext>,
-}
-
-/// `CanceledStateContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CanceledStateContext {
-    /// developerInitiatedCancellation property.
-    pub developer_initiated_cancellation: Option<DeveloperInitiatedCancellation>,
-    /// replacementCancellation property.
-    pub replacement_cancellation: Option<ReplacementCancellation>,
-    /// systemInitiatedCancellation property.
-    pub system_initiated_cancellation: Option<SystemInitiatedCancellation>,
-    /// userInitiatedCancellation property.
-    pub user_initiated_cancellation: Option<UserInitiatedCancellation>,
-}
-
-/// `SubscriptionPurchaseV2` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubscriptionPurchaseV2 {
-    /// acknowledgementState property.
-    pub acknowledgement_state: Option<String>,
-    /// canceledStateContext property.
-    pub canceled_state_context: Option<CanceledStateContext>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// externalAccountIdentifiers property.
-    pub external_account_identifiers: Option<ExternalAccountIdentifiers>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// latestOrderId property.
-    pub latest_order_id: Option<String>,
-    /// lineItems property.
-    pub line_items: Option<Vec<SubscriptionPurchaseLineItem>>,
-    /// linkedPurchaseToken property.
-    pub linked_purchase_token: Option<String>,
-    /// outOfAppPurchaseContext property.
-    pub out_of_app_purchase_context: Option<OutOfAppPurchaseContext>,
-    /// pausedStateContext property.
-    pub paused_state_context: Option<PausedStateContext>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// subscribeWithGoogleInfo property.
-    pub subscribe_with_google_info: Option<SubscribeWithGoogleInfo>,
-    /// subscriptionState property.
-    pub subscription_state: Option<String>,
-    /// testPurchase property.
-    pub test_purchase: Option<TestPurchase>,
-}
-
-/// `SubscribeWithGoogleInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubscribeWithGoogleInfo {
-    /// emailAddress property.
-    pub email_address: Option<String>,
-    /// familyName property.
-    pub family_name: Option<String>,
-    /// givenName property.
-    pub given_name: Option<String>,
-    /// profileId property.
-    pub profile_id: Option<String>,
-    /// profileName property.
-    pub profile_name: Option<String>,
-}
-
-/// `RentOfferDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RentOfferDetails {}
-
-/// `ExternalAccountIdentifiers` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExternalAccountIdentifiers {
-    /// externalAccountId property.
-    pub external_account_id: Option<String>,
-    /// obfuscatedExternalAccountId property.
-    pub obfuscated_external_account_id: Option<String>,
-    /// obfuscatedExternalProfileId property.
-    pub obfuscated_external_profile_id: Option<String>,
-}
-
-/// `VanityCode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VanityCode {
-    /// promotionCode property.
-    pub promotion_code: Option<String>,
-}
-
-/// `CancelSurveyResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelSurveyResult {
-    /// reason property.
-    pub reason: Option<String>,
-    /// reasonUserInput property.
-    pub reason_user_input: Option<String>,
+pub struct OfferPhase {
+    /// basePrice property.
+    pub base_price: Option<BasePriceOfferPhase>,
+    /// freeTrial property.
+    pub free_trial: Option<FreeTrialOfferPhase>,
+    /// introductoryPrice property.
+    pub introductory_price: Option<IntroductoryPriceOfferPhase>,
+    /// prorationPeriod property.
+    pub proration_period: Option<ProrationPeriodOfferPhase>,
 }
 
 /// `ItemReplacement` type.
@@ -375,17 +91,21 @@ pub struct ItemReplacement {
     pub replacement_mode: Option<String>,
 }
 
-/// `SubscriptionItemPriceChangeDetails` type.
+/// `BasePriceOfferPhase` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubscriptionItemPriceChangeDetails {
-    /// expectedNewPriceChargeTime property.
-    pub expected_new_price_charge_time: Option<String>,
-    /// newPrice property.
-    pub new_price: Option<Money>,
-    /// priceChangeMode property.
-    pub price_change_mode: Option<String>,
-    /// priceChangeState property.
-    pub price_change_state: Option<String>,
+pub struct BasePriceOfferPhase {}
+
+/// `FreeTrialOfferPhase` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FreeTrialOfferPhase {}
+
+/// `SignupPromotion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SignupPromotion {
+    /// oneTimeCode property.
+    pub one_time_code: Option<OneTimeCode>,
+    /// vanityCode property.
+    pub vanity_code: Option<VanityCode>,
 }
 
 /// `PriceStepUpConsentDetails` type.
@@ -399,56 +119,15 @@ pub struct PriceStepUpConsentDetails {
     pub state: Option<String>,
 }
 
-/// `PreorderOfferDetails` type.
+/// `CancelSubscriptionPurchaseResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreorderOfferDetails {
-    /// preorderReleaseTime property.
-    pub preorder_release_time: Option<String>,
-}
+pub struct CancelSubscriptionPurchaseResponse {}
 
-/// `SignupPromotion` type.
+/// `PausedStateContext` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SignupPromotion {
-    /// oneTimeCode property.
-    pub one_time_code: Option<OneTimeCode>,
-    /// vanityCode property.
-    pub vanity_code: Option<VanityCode>,
-}
-
-/// `PendingCancellation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PendingCancellation {}
-
-/// `OfferPhase` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OfferPhase {
-    /// basePrice property.
-    pub base_price: Option<BasePriceOfferPhase>,
-    /// freeTrial property.
-    pub free_trial: Option<FreeTrialOfferPhase>,
-    /// introductoryPrice property.
-    pub introductory_price: Option<IntroductoryPriceOfferPhase>,
-    /// prorationPeriod property.
-    pub proration_period: Option<ProrationPeriodOfferPhase>,
-}
-
-/// `DeferredItemRemoval` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeferredItemRemoval {}
-
-/// `BasePriceOfferPhase` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BasePriceOfferPhase {}
-
-/// `TestPurchase` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestPurchase {}
-
-/// `TestPurchaseContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestPurchaseContext {
-    /// fopType property.
-    pub fop_type: Option<String>,
+pub struct PausedStateContext {
+    /// autoResumeTime property.
+    pub auto_resume_time: Option<String>,
 }
 
 /// `AutoRenewingPlan` type.
@@ -493,6 +172,90 @@ pub struct SubscriptionPurchaseLineItem {
     pub signup_promotion: Option<SignupPromotion>,
 }
 
+/// `OutOfAppPurchaseContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OutOfAppPurchaseContext {
+    /// expiredExternalAccountIdentifiers property.
+    pub expired_external_account_identifiers: Option<ExternalAccountIdentifiers>,
+    /// expiredPurchaseToken property.
+    pub expired_purchase_token: Option<String>,
+}
+
+/// `Money` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Money {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// units property.
+    pub units: Option<String>,
+}
+
+/// `UserInitiatedCancellation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UserInitiatedCancellation {
+    /// cancelSurveyResult property.
+    pub cancel_survey_result: Option<CancelSurveyResult>,
+    /// cancelTime property.
+    pub cancel_time: Option<String>,
+}
+
+/// `ProductPurchase` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductPurchase {
+    /// acknowledgementState property.
+    pub acknowledgement_state: Option<i64>,
+    /// consumptionState property.
+    pub consumption_state: Option<i64>,
+    /// developerPayload property.
+    pub developer_payload: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// obfuscatedExternalAccountId property.
+    pub obfuscated_external_account_id: Option<String>,
+    /// obfuscatedExternalProfileId property.
+    pub obfuscated_external_profile_id: Option<String>,
+    /// orderId property.
+    pub order_id: Option<String>,
+    /// productId property.
+    pub product_id: Option<String>,
+    /// purchaseState property.
+    pub purchase_state: Option<i64>,
+    /// purchaseTimeMillis property.
+    pub purchase_time_millis: Option<String>,
+    /// purchaseToken property.
+    pub purchase_token: Option<String>,
+    /// purchaseType property.
+    pub purchase_type: Option<i64>,
+    /// quantity property.
+    pub quantity: Option<i64>,
+    /// refundableQuantity property.
+    pub refundable_quantity: Option<i64>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+}
+
+/// `DeferSubscriptionPurchaseResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeferSubscriptionPurchaseResponse {
+    /// itemExpiryTimeDetails property.
+    pub item_expiry_time_details: Option<Vec<ItemExpiryTimeDetails>>,
+}
+
+/// `PendingCancellation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PendingCancellation {}
+
+/// `CancelSurveyResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CancelSurveyResult {
+    /// reason property.
+    pub reason: Option<String>,
+    /// reasonUserInput property.
+    pub reason_user_input: Option<String>,
+}
+
 /// `SubscriptionCancelSurveyResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionCancelSurveyResult {
@@ -502,26 +265,122 @@ pub struct SubscriptionCancelSurveyResult {
     pub user_input_cancel_reason: Option<String>,
 }
 
-/// `IntroductoryPriceOfferPhase` type.
+/// `SubscriptionPurchasesDeferResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntroductoryPriceOfferPhase {}
+pub struct SubscriptionPurchasesDeferResponse {
+    /// newExpiryTimeMillis property.
+    pub new_expiry_time_millis: Option<String>,
+}
 
-/// `DeferredItemReplacement` type.
+/// `SubscriptionPurchaseV2` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeferredItemReplacement {
+pub struct SubscriptionPurchaseV2 {
+    /// acknowledgementState property.
+    pub acknowledgement_state: Option<String>,
+    /// canceledStateContext property.
+    pub canceled_state_context: Option<CanceledStateContext>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// externalAccountIdentifiers property.
+    pub external_account_identifiers: Option<ExternalAccountIdentifiers>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// latestOrderId property.
+    pub latest_order_id: Option<String>,
+    /// lineItems property.
+    pub line_items: Option<Vec<SubscriptionPurchaseLineItem>>,
+    /// linkedPurchaseToken property.
+    pub linked_purchase_token: Option<String>,
+    /// outOfAppPurchaseContext property.
+    pub out_of_app_purchase_context: Option<OutOfAppPurchaseContext>,
+    /// pausedStateContext property.
+    pub paused_state_context: Option<PausedStateContext>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// subscribeWithGoogleInfo property.
+    pub subscribe_with_google_info: Option<SubscribeWithGoogleInfo>,
+    /// subscriptionState property.
+    pub subscription_state: Option<String>,
+    /// testPurchase property.
+    pub test_purchase: Option<TestPurchase>,
+}
+
+/// `ProductLineItem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductLineItem {
     /// productId property.
     pub product_id: Option<String>,
+    /// productOfferDetails property.
+    pub product_offer_details: Option<ProductOfferDetails>,
+}
+
+/// `PrepaidPlan` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrepaidPlan {
+    /// allowExtendAfterTime property.
+    pub allow_extend_after_time: Option<String>,
+}
+
+/// `InstallmentPlan` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstallmentPlan {
+    /// initialCommittedPaymentsCount property.
+    pub initial_committed_payments_count: Option<i64>,
+    /// pendingCancellation property.
+    pub pending_cancellation: Option<PendingCancellation>,
+    /// remainingCommittedPaymentsCount property.
+    pub remaining_committed_payments_count: Option<i64>,
+    /// subsequentCommittedPaymentsCount property.
+    pub subsequent_committed_payments_count: Option<i64>,
 }
 
 /// `OneTimeCode` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OneTimeCode {}
 
-/// `PausedStateContext` type.
+/// `VanityCode` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PausedStateContext {
-    /// autoResumeTime property.
-    pub auto_resume_time: Option<String>,
+pub struct VanityCode {
+    /// promotionCode property.
+    pub promotion_code: Option<String>,
+}
+
+/// `RentOfferDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RentOfferDetails {}
+
+/// `SubscriptionPriceChange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SubscriptionPriceChange {
+    /// newPrice property.
+    pub new_price: Option<Price>,
+    /// state property.
+    pub state: Option<i64>,
+}
+
+/// `ProductOfferDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductOfferDetails {
+    /// consumptionState property.
+    pub consumption_state: Option<String>,
+    /// offerId property.
+    pub offer_id: Option<String>,
+    /// offerTags property.
+    pub offer_tags: Option<Vec<String>>,
+    /// offerToken property.
+    pub offer_token: Option<String>,
+    /// preorderOfferDetails property.
+    pub preorder_offer_details: Option<PreorderOfferDetails>,
+    /// purchaseOptionId property.
+    pub purchase_option_id: Option<String>,
+    /// quantity property.
+    pub quantity: Option<i64>,
+    /// refundableQuantity property.
+    pub refundable_quantity: Option<i64>,
+    /// rentOfferDetails property.
+    pub rent_offer_details: Option<RentOfferDetails>,
 }
 
 /// `SubscriptionPurchase` type.
@@ -585,6 +444,148 @@ pub struct SubscriptionPurchase {
     pub start_time_millis: Option<String>,
     /// userCancellationTimeMillis property.
     pub user_cancellation_time_millis: Option<String>,
+}
+
+/// `TestPurchase` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TestPurchase {}
+
+/// `DeferredItemRemoval` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeferredItemRemoval {}
+
+/// `ProrationPeriodOfferPhase` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProrationPeriodOfferPhase {
+    /// originalOfferPhaseType property.
+    pub original_offer_phase_type: Option<String>,
+}
+
+/// `OfferDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OfferDetails {
+    /// basePlanId property.
+    pub base_plan_id: Option<String>,
+    /// offerId property.
+    pub offer_id: Option<String>,
+    /// offerTags property.
+    pub offer_tags: Option<Vec<String>>,
+}
+
+/// `SystemInitiatedCancellation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SystemInitiatedCancellation {}
+
+/// `ReplacementCancellation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReplacementCancellation {}
+
+/// `RevokeSubscriptionPurchaseResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RevokeSubscriptionPurchaseResponse {}
+
+/// `IntroductoryPriceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntroductoryPriceInfo {
+    /// introductoryPriceAmountMicros property.
+    pub introductory_price_amount_micros: Option<String>,
+    /// introductoryPriceCurrencyCode property.
+    pub introductory_price_currency_code: Option<String>,
+    /// introductoryPriceCycles property.
+    pub introductory_price_cycles: Option<i64>,
+    /// introductoryPricePeriod property.
+    pub introductory_price_period: Option<String>,
+}
+
+/// `CanceledStateContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CanceledStateContext {
+    /// developerInitiatedCancellation property.
+    pub developer_initiated_cancellation: Option<DeveloperInitiatedCancellation>,
+    /// replacementCancellation property.
+    pub replacement_cancellation: Option<ReplacementCancellation>,
+    /// systemInitiatedCancellation property.
+    pub system_initiated_cancellation: Option<SystemInitiatedCancellation>,
+    /// userInitiatedCancellation property.
+    pub user_initiated_cancellation: Option<UserInitiatedCancellation>,
+}
+
+/// `SubscribeWithGoogleInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SubscribeWithGoogleInfo {
+    /// emailAddress property.
+    pub email_address: Option<String>,
+    /// familyName property.
+    pub family_name: Option<String>,
+    /// givenName property.
+    pub given_name: Option<String>,
+    /// profileId property.
+    pub profile_id: Option<String>,
+    /// profileName property.
+    pub profile_name: Option<String>,
+}
+
+/// `DeveloperInitiatedCancellation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeveloperInitiatedCancellation {}
+
+/// `TestPurchaseContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TestPurchaseContext {
+    /// fopType property.
+    pub fop_type: Option<String>,
+}
+
+/// `ItemExpiryTimeDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ItemExpiryTimeDetails {
+    /// expiryTime property.
+    pub expiry_time: Option<String>,
+    /// productId property.
+    pub product_id: Option<String>,
+}
+
+/// `ProductPurchaseV2` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductPurchaseV2 {
+    /// acknowledgementState property.
+    pub acknowledgement_state: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// obfuscatedExternalAccountId property.
+    pub obfuscated_external_account_id: Option<String>,
+    /// obfuscatedExternalProfileId property.
+    pub obfuscated_external_profile_id: Option<String>,
+    /// orderId property.
+    pub order_id: Option<String>,
+    /// productLineItem property.
+    pub product_line_item: Option<Vec<ProductLineItem>>,
+    /// purchaseCompletionTime property.
+    pub purchase_completion_time: Option<String>,
+    /// purchaseStateContext property.
+    pub purchase_state_context: Option<PurchaseStateContext>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+    /// testPurchaseContext property.
+    pub test_purchase_context: Option<TestPurchaseContext>,
+}
+
+/// `ExternalAccountIdentifiers` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExternalAccountIdentifiers {
+    /// externalAccountId property.
+    pub external_account_id: Option<String>,
+    /// obfuscatedExternalAccountId property.
+    pub obfuscated_external_account_id: Option<String>,
+    /// obfuscatedExternalProfileId property.
+    pub obfuscated_external_profile_id: Option<String>,
+}
+
+/// `PurchaseStateContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PurchaseStateContext {
+    /// purchaseState property.
+    pub purchase_state: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,20 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleAnalyticsAdminV1betaListCustomMetricsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAnalyticsAdminV1betaListCustomMetricsResponse {
-    /// customMetrics property.
-    pub custom_metrics: Option<Vec<GoogleAnalyticsAdminV1BetaCustomMetric>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `GoogleAnalyticsAdminV1betaCustomMetric` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -53,6 +45,15 @@ pub struct GoogleAnalyticsAdminV1betaCustomMetric {
     pub restricted_metric_type: Option<Vec<String>>,
     /// scope property.
     pub scope: Option<String>,
+}
+
+/// `GoogleAnalyticsAdminV1betaListCustomMetricsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAnalyticsAdminV1betaListCustomMetricsResponse {
+    /// customMetrics property.
+    pub custom_metrics: Option<Vec<GoogleAnalyticsAdminV1BetaCustomMetric>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `GoogleAnalyticsAdminV1BetaCustomMetric` response type.

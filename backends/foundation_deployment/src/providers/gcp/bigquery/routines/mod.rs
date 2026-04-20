@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,11 +23,67 @@ use serde::{Deserialize, Serialize};
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ErrorProto` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorProto {
+    /// debugInfo property.
+    pub debug_info: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `ExternalRuntimeOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExternalRuntimeOptions {
+    /// containerCpu property.
+    pub container_cpu: Option<f64>,
+    /// containerMemory property.
+    pub container_memory: Option<String>,
+    /// maxBatchingRows property.
+    pub max_batching_rows: Option<String>,
+    /// runtimeConnection property.
+    pub runtime_connection: Option<String>,
+    /// runtimeVersion property.
+    pub runtime_version: Option<String>,
+}
+
+/// `StandardSqlDataType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StandardSqlDataType {
+    /// arrayElementType property.
+    pub array_element_type: Option<Box<StandardSqlDataType>>,
+    /// rangeElementType property.
+    pub range_element_type: Option<Box<StandardSqlDataType>>,
+    /// structType property.
+    pub struct_type: Option<Box<StandardSqlStructType>>,
+    /// typeKind property.
+    pub type_kind: Option<String>,
+}
+
+/// `Argument` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Argument {
+    /// argumentKind property.
+    pub argument_kind: Option<String>,
+    /// dataType property.
+    pub data_type: Option<Box<StandardSqlDataType>>,
+    /// isAggregate property.
+    pub is_aggregate: Option<bool>,
+    /// mode property.
+    pub mode: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
 
 /// `ListRoutinesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -65,58 +122,48 @@ pub struct RoutineReference {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StandardSqlTableType {
     /// columns property.
-    pub columns: Option<Vec<StandardSqlField>>,
+    pub columns: Option<Vec<Box<StandardSqlField>>>,
 }
 
-/// `StandardSqlField` type.
+/// `PythonOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StandardSqlField {
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<StandardSqlDataType>,
+pub struct PythonOptions {
+    /// entryPoint property.
+    pub entry_point: Option<String>,
+    /// packages property.
+    pub packages: Option<Vec<String>>,
 }
 
-/// `Binding` type.
+/// `SparkOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct SparkOptions {
+    /// archiveUris property.
+    pub archive_uris: Option<Vec<String>>,
+    /// connection property.
+    pub connection: Option<String>,
+    /// containerImage property.
+    pub container_image: Option<String>,
+    /// fileUris property.
+    pub file_uris: Option<Vec<String>>,
+    /// jarUris property.
+    pub jar_uris: Option<Vec<String>>,
+    /// mainClass property.
+    pub main_class: Option<String>,
+    /// mainFileUri property.
+    pub main_file_uri: Option<String>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
+    /// pyFileUris property.
+    pub py_file_uris: Option<Vec<String>>,
+    /// runtimeVersion property.
+    pub runtime_version: Option<String>,
 }
 
-/// `AuditConfig` type.
+/// `StandardSqlStructType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
+pub struct StandardSqlStructType {
+    /// fields property.
+    pub fields: Option<Vec<Box<StandardSqlField>>>,
 }
 
 /// `Routine` type.
@@ -153,7 +200,7 @@ pub struct Routine {
     /// returnTableType property.
     pub return_table_type: Option<StandardSqlTableType>,
     /// returnType property.
-    pub return_type: Option<StandardSqlDataType>,
+    pub return_type: Option<Box<StandardSqlDataType>>,
     /// routineReference property.
     pub routine_reference: Option<RoutineReference>,
     /// routineType property.
@@ -166,26 +213,35 @@ pub struct Routine {
     pub strict_mode: Option<bool>,
 }
 
-/// `StandardSqlDataType` type.
+/// `AuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StandardSqlDataType {
-    /// arrayElementType property.
-    pub array_element_type: Option<StandardSqlDataType>,
-    /// rangeElementType property.
-    pub range_element_type: Option<StandardSqlDataType>,
-    /// structType property.
-    pub struct_type: Option<StandardSqlStructType>,
-    /// typeKind property.
-    pub type_kind: Option<String>,
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
 }
 
-/// `PythonOptions` type.
+/// `AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PythonOptions {
-    /// entryPoint property.
-    pub entry_point: Option<String>,
-    /// packages property.
-    pub packages: Option<Vec<String>>,
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 /// `RoutineBuildStatus` type.
@@ -203,79 +259,24 @@ pub struct RoutineBuildStatus {
     pub image_size_bytes: Option<String>,
 }
 
-/// `ExternalRuntimeOptions` type.
+/// `StandardSqlField` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExternalRuntimeOptions {
-    /// containerCpu property.
-    pub container_cpu: Option<f64>,
-    /// containerMemory property.
-    pub container_memory: Option<String>,
-    /// maxBatchingRows property.
-    pub max_batching_rows: Option<String>,
-    /// runtimeConnection property.
-    pub runtime_connection: Option<String>,
-    /// runtimeVersion property.
-    pub runtime_version: Option<String>,
-}
-
-/// `SparkOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkOptions {
-    /// archiveUris property.
-    pub archive_uris: Option<Vec<String>>,
-    /// connection property.
-    pub connection: Option<String>,
-    /// containerImage property.
-    pub container_image: Option<String>,
-    /// fileUris property.
-    pub file_uris: Option<Vec<String>>,
-    /// jarUris property.
-    pub jar_uris: Option<Vec<String>>,
-    /// mainClass property.
-    pub main_class: Option<String>,
-    /// mainFileUri property.
-    pub main_file_uri: Option<String>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
-    /// pyFileUris property.
-    pub py_file_uris: Option<Vec<String>>,
-    /// runtimeVersion property.
-    pub runtime_version: Option<String>,
-}
-
-/// `StandardSqlStructType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StandardSqlStructType {
-    /// fields property.
-    pub fields: Option<Vec<StandardSqlField>>,
-}
-
-/// `Argument` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Argument {
-    /// argumentKind property.
-    pub argument_kind: Option<String>,
-    /// dataType property.
-    pub data_type: Option<StandardSqlDataType>,
-    /// isAggregate property.
-    pub is_aggregate: Option<bool>,
-    /// mode property.
-    pub mode: Option<String>,
+pub struct StandardSqlField {
     /// name property.
     pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<Box<StandardSqlDataType>>,
 }
 
-/// `ErrorProto` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorProto {
-    /// debugInfo property.
-    pub debug_info: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 // =============================================================================

@@ -12,17 +12,48 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `AccountSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountSummary {
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// starred property.
+    pub starred: Option<bool>,
+    /// webProperties property.
+    pub web_properties: Option<Vec<WebPropertySummary>>,
+}
+
+/// `ProfileSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProfileSummary {
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// starred property.
+    pub starred: Option<bool>,
+    /// type property.
+    pub r#type: Option<String>,
+}
 
 /// `AccountSummaries` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,21 +76,6 @@ pub struct AccountSummaries {
     pub username: Option<String>,
 }
 
-/// `ProfileSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProfileSummary {
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// starred property.
-    pub starred: Option<bool>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
 /// `WebPropertySummary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebPropertySummary {
@@ -79,21 +95,6 @@ pub struct WebPropertySummary {
     pub starred: Option<bool>,
     /// websiteUrl property.
     pub website_url: Option<String>,
-}
-
-/// `AccountSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountSummary {
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// starred property.
-    pub starred: Option<bool>,
-    /// webProperties property.
-    pub web_properties: Option<Vec<WebPropertySummary>>,
 }
 
 // =============================================================================

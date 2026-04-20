@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,81 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `DnsRecordSet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsRecordSet {
-    /// checkError property.
-    pub check_error: Option<Status>,
-    /// domainName property.
-    pub domain_name: Option<String>,
-    /// records property.
-    pub records: Option<Vec<DnsRecord>>,
-}
-
-/// `ListDomainsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDomainsResponse {
-    /// domains property.
-    pub domains: Option<Vec<Domain>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `Redirect` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Redirect {
-    /// status property.
-    pub status: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `DnsUpdates` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsUpdates {
-    /// checkTime property.
-    pub check_time: Option<String>,
-    /// desired property.
-    pub desired: Option<Vec<DnsRecordSet>>,
-    /// discovered property.
-    pub discovered: Option<Vec<DnsRecordSet>>,
-    /// domainName property.
-    pub domain_name: Option<String>,
-}
-
-/// `CustomDomainStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomDomainStatus {
-    /// certState property.
-    pub cert_state: Option<String>,
-    /// hostState property.
-    pub host_state: Option<String>,
-    /// issues property.
-    pub issues: Option<Vec<Status>>,
-    /// ownershipState property.
-    pub ownership_state: Option<String>,
-    /// requiredDnsUpdates property.
-    pub required_dns_updates: Option<Vec<DnsUpdates>>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
 
 /// `Domain` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -130,11 +61,17 @@ pub struct Domain {
     pub update_time: Option<String>,
 }
 
-/// `ServingBehavior` type.
+/// `DnsUpdates` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServingBehavior {
-    /// redirect property.
-    pub redirect: Option<Redirect>,
+pub struct DnsUpdates {
+    /// checkTime property.
+    pub check_time: Option<String>,
+    /// desired property.
+    pub desired: Option<Vec<DnsRecordSet>>,
+    /// discovered property.
+    pub discovered: Option<Vec<DnsRecordSet>>,
+    /// domainName property.
+    pub domain_name: Option<String>,
 }
 
 /// `DnsRecord` type.
@@ -150,6 +87,70 @@ pub struct DnsRecord {
     pub required_action: Option<String>,
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `CustomDomainStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomDomainStatus {
+    /// certState property.
+    pub cert_state: Option<String>,
+    /// hostState property.
+    pub host_state: Option<String>,
+    /// issues property.
+    pub issues: Option<Vec<Status>>,
+    /// ownershipState property.
+    pub ownership_state: Option<String>,
+    /// requiredDnsUpdates property.
+    pub required_dns_updates: Option<Vec<DnsUpdates>>,
+}
+
+/// `ServingBehavior` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServingBehavior {
+    /// redirect property.
+    pub redirect: Option<Redirect>,
+}
+
+/// `Redirect` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Redirect {
+    /// status property.
+    pub status: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `DnsRecordSet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsRecordSet {
+    /// checkError property.
+    pub check_error: Option<Status>,
+    /// domainName property.
+    pub domain_name: Option<String>,
+    /// records property.
+    pub records: Option<Vec<DnsRecord>>,
+}
+
+/// `ListDomainsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDomainsResponse {
+    /// domains property.
+    pub domains: Option<Vec<Domain>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 // =============================================================================

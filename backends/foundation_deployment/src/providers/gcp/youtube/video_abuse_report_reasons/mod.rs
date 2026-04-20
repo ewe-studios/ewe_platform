@@ -12,31 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `VideoAbuseReportReasonListResponse` type.
+/// `VideoAbuseReportReasonSnippet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoAbuseReportReasonListResponse {
-    /// etag property.
-    pub etag: Option<String>,
-    /// eventId property.
-    pub event_id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<VideoAbuseReportReason>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// visitorId property.
-    pub visitor_id: Option<String>,
+pub struct VideoAbuseReportReasonSnippet {
+    /// label property.
+    pub label: Option<String>,
+    /// secondaryReasons property.
+    pub secondary_reasons: Option<Vec<VideoAbuseReportSecondaryReason>>,
 }
 
 /// `VideoAbuseReportReason` type.
@@ -52,15 +47,6 @@ pub struct VideoAbuseReportReason {
     pub snippet: Option<VideoAbuseReportReasonSnippet>,
 }
 
-/// `VideoAbuseReportReasonSnippet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoAbuseReportReasonSnippet {
-    /// label property.
-    pub label: Option<String>,
-    /// secondaryReasons property.
-    pub secondary_reasons: Option<Vec<VideoAbuseReportSecondaryReason>>,
-}
-
 /// `VideoAbuseReportSecondaryReason` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoAbuseReportSecondaryReason {
@@ -68,6 +54,21 @@ pub struct VideoAbuseReportSecondaryReason {
     pub id: Option<String>,
     /// label property.
     pub label: Option<String>,
+}
+
+/// `VideoAbuseReportReasonListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoAbuseReportReasonListResponse {
+    /// etag property.
+    pub etag: Option<String>,
+    /// eventId property.
+    pub event_id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<VideoAbuseReportReason>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// visitorId property.
+    pub visitor_id: Option<String>,
 }
 
 // =============================================================================

@@ -12,17 +12,29 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleTypeMoney` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeMoney {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// units property.
+    pub units: Option<String>,
+}
 
 /// `GoogleCloudBillingBudgetsV1Filter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -47,24 +59,19 @@ pub struct GoogleCloudBillingBudgetsV1Filter {
     pub subaccounts: Option<Vec<String>>,
 }
 
-/// `GoogleCloudBillingBudgetsV1CustomPeriod` type.
+/// `GoogleCloudBillingBudgetsV1NotificationsRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBillingBudgetsV1CustomPeriod {
-    /// endDate property.
-    pub end_date: Option<GoogleTypeDate>,
-    /// startDate property.
-    pub start_date: Option<GoogleTypeDate>,
-}
-
-/// `GoogleTypeDate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeDate {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
+pub struct GoogleCloudBillingBudgetsV1NotificationsRule {
+    /// disableDefaultIamRecipients property.
+    pub disable_default_iam_recipients: Option<bool>,
+    /// enableProjectLevelRecipients property.
+    pub enable_project_level_recipients: Option<bool>,
+    /// monitoringNotificationChannels property.
+    pub monitoring_notification_channels: Option<Vec<String>>,
+    /// pubsubTopic property.
+    pub pubsub_topic: Option<String>,
+    /// schemaVersion property.
+    pub schema_version: Option<String>,
 }
 
 /// `GoogleCloudBillingBudgetsV1ThresholdRule` type.
@@ -97,6 +104,10 @@ pub struct GoogleCloudBillingBudgetsV1Budget {
     pub threshold_rules: Option<Vec<GoogleCloudBillingBudgetsV1ThresholdRule>>,
 }
 
+/// `GoogleProtobufEmpty` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleProtobufEmpty {}
+
 /// `GoogleCloudBillingBudgetsV1ListBudgetsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBillingBudgetsV1ListBudgetsResponse {
@@ -106,39 +117,29 @@ pub struct GoogleCloudBillingBudgetsV1ListBudgetsResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `GoogleProtobufEmpty` type.
+/// `GoogleCloudBillingBudgetsV1CustomPeriod` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
+pub struct GoogleCloudBillingBudgetsV1CustomPeriod {
+    /// endDate property.
+    pub end_date: Option<GoogleTypeDate>,
+    /// startDate property.
+    pub start_date: Option<GoogleTypeDate>,
+}
 
-/// `GoogleTypeMoney` type.
+/// `GoogleTypeDate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeMoney {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// units property.
-    pub units: Option<String>,
+pub struct GoogleTypeDate {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
 }
 
 /// `GoogleCloudBillingBudgetsV1LastPeriodAmount` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBillingBudgetsV1LastPeriodAmount {}
-
-/// `GoogleCloudBillingBudgetsV1NotificationsRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBillingBudgetsV1NotificationsRule {
-    /// disableDefaultIamRecipients property.
-    pub disable_default_iam_recipients: Option<bool>,
-    /// enableProjectLevelRecipients property.
-    pub enable_project_level_recipients: Option<bool>,
-    /// monitoringNotificationChannels property.
-    pub monitoring_notification_channels: Option<Vec<String>>,
-    /// pubsubTopic property.
-    pub pubsub_topic: Option<String>,
-    /// schemaVersion property.
-    pub schema_version: Option<String>,
-}
 
 /// `GoogleCloudBillingBudgetsV1BudgetAmount` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

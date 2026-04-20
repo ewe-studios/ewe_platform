@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,121 +22,35 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `RedisClusterInfo` type.
+/// `LoadBalancerBackendInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RedisClusterInfo {
-    /// discoveryEndpointIpAddress property.
-    pub discovery_endpoint_ip_address: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// networkUri property.
-    pub network_uri: Option<String>,
-    /// secondaryEndpointIpAddress property.
-    pub secondary_endpoint_ip_address: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `RouteInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouteInfo {
-    /// advertisedRouteNextHopUri property.
-    pub advertised_route_next_hop_uri: Option<String>,
-    /// advertisedRouteSourceRouterUri property.
-    pub advertised_route_source_router_uri: Option<String>,
-    /// destIpRange property.
-    pub dest_ip_range: Option<String>,
-    /// destPortRanges property.
-    pub dest_port_ranges: Option<Vec<String>>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// instanceTags property.
-    pub instance_tags: Option<Vec<String>>,
-    /// nccHubRouteUri property.
-    pub ncc_hub_route_uri: Option<String>,
-    /// nccHubUri property.
-    pub ncc_hub_uri: Option<String>,
-    /// nccSpokeUri property.
-    pub ncc_spoke_uri: Option<String>,
-    /// networkUri property.
-    pub network_uri: Option<String>,
-    /// nextHop property.
-    pub next_hop: Option<String>,
-    /// nextHopNetworkUri property.
-    pub next_hop_network_uri: Option<String>,
-    /// nextHopType property.
-    pub next_hop_type: Option<String>,
-    /// nextHopUri property.
-    pub next_hop_uri: Option<String>,
-    /// originatingRouteDisplayName property.
-    pub originating_route_display_name: Option<String>,
-    /// originatingRouteUri property.
-    pub originating_route_uri: Option<String>,
-    /// priority property.
-    pub priority: Option<i64>,
-    /// protocols property.
-    pub protocols: Option<Vec<String>>,
-    /// region property.
-    pub region: Option<String>,
-    /// routeScope property.
-    pub route_scope: Option<String>,
-    /// routeType property.
-    pub route_type: Option<String>,
-    /// srcIpRange property.
-    pub src_ip_range: Option<String>,
-    /// srcPortRanges property.
-    pub src_port_ranges: Option<Vec<String>>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `Policy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Policy {
-    /// auditConfigs property.
-    pub audit_configs: Option<Vec<AuditConfig>>,
-    /// bindings property.
-    pub bindings: Option<Vec<Binding>>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// version property.
-    pub version: Option<i64>,
-}
-
-/// `DeliverInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeliverInfo {
-    /// googleServiceType property.
-    pub google_service_type: Option<String>,
-    /// ipAddress property.
-    pub ip_address: Option<String>,
+pub struct LoadBalancerBackendInfo {
+    /// backendBucketUri property.
+    pub backend_bucket_uri: Option<String>,
+    /// backendServiceUri property.
+    pub backend_service_uri: Option<String>,
+    /// healthCheckFirewallsConfigState property.
+    pub health_check_firewalls_config_state: Option<String>,
+    /// healthCheckUri property.
+    pub health_check_uri: Option<String>,
+    /// instanceGroupUri property.
+    pub instance_group_uri: Option<String>,
+    /// instanceUri property.
+    pub instance_uri: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// networkEndpointGroupUri property.
+    pub network_endpoint_group_uri: Option<String>,
     /// pscGoogleApiTarget property.
     pub psc_google_api_target: Option<String>,
-    /// resourceUri property.
-    pub resource_uri: Option<String>,
-    /// storageBucket property.
-    pub storage_bucket: Option<String>,
-    /// target property.
-    pub target: Option<String>,
-}
-
-/// `GkePodInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GkePodInfo {
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// networkUri property.
-    pub network_uri: Option<String>,
-    /// podUri property.
-    pub pod_uri: Option<String>,
+    /// pscServiceAttachmentUri property.
+    pub psc_service_attachment_uri: Option<String>,
 }
 
 /// `VpnGatewayInfo` type.
@@ -155,145 +70,17 @@ pub struct VpnGatewayInfo {
     pub vpn_tunnel_uri: Option<String>,
 }
 
-/// `InstanceInfo` type.
+/// `AppEngineVersionInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceInfo {
+pub struct AppEngineVersionInfo {
     /// displayName property.
     pub display_name: Option<String>,
-    /// externalIp property.
-    pub external_ip: Option<String>,
-    /// interface property.
-    pub interface: Option<String>,
-    /// internalIp property.
-    pub internal_ip: Option<String>,
-    /// networkTags property.
-    pub network_tags: Option<Vec<String>>,
-    /// networkUri property.
-    pub network_uri: Option<String>,
-    /// pscNetworkAttachmentUri property.
-    pub psc_network_attachment_uri: Option<String>,
-    /// running property.
-    pub running: Option<bool>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-    /// status property.
-    pub status: Option<String>,
+    /// environment property.
+    pub environment: Option<String>,
+    /// runtime property.
+    pub runtime: Option<String>,
     /// uri property.
     pub uri: Option<String>,
-}
-
-/// `NetworkInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkInfo {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// matchedIpRange property.
-    pub matched_ip_range: Option<String>,
-    /// matchedSubnetUri property.
-    pub matched_subnet_uri: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `CloudFunctionEndpoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudFunctionEndpoint {
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `LoadBalancerInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancerInfo {
-    /// backendType property.
-    pub backend_type: Option<String>,
-    /// backendUri property.
-    pub backend_uri: Option<String>,
-    /// backends property.
-    pub backends: Option<Vec<LoadBalancerBackend>>,
-    /// healthCheckUri property.
-    pub health_check_uri: Option<String>,
-    /// loadBalancerType property.
-    pub load_balancer_type: Option<String>,
-}
-
-/// `ReachabilityDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReachabilityDetails {
-    /// error property.
-    pub error: Option<Status>,
-    /// result property.
-    pub result: Option<String>,
-    /// traces property.
-    pub traces: Option<Vec<Trace>>,
-    /// verifyTime property.
-    pub verify_time: Option<String>,
-}
-
-/// `EndpointInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndpointInfo {
-    /// destinationIp property.
-    pub destination_ip: Option<String>,
-    /// destinationNetworkUri property.
-    pub destination_network_uri: Option<String>,
-    /// destinationPort property.
-    pub destination_port: Option<i64>,
-    /// protocol property.
-    pub protocol: Option<String>,
-    /// sourceAgentUri property.
-    pub source_agent_uri: Option<String>,
-    /// sourceIp property.
-    pub source_ip: Option<String>,
-    /// sourceNetworkUri property.
-    pub source_network_uri: Option<String>,
-    /// sourcePort property.
-    pub source_port: Option<i64>,
-}
-
-/// `LoadBalancerBackend` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancerBackend {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// healthCheckAllowingFirewallRules property.
-    pub health_check_allowing_firewall_rules: Option<Vec<String>>,
-    /// healthCheckBlockingFirewallRules property.
-    pub health_check_blocking_firewall_rules: Option<Vec<String>>,
-    /// healthCheckFirewallState property.
-    pub health_check_firewall_state: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `DropInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DropInfo {
-    /// cause property.
-    pub cause: Option<String>,
-    /// destinationGeolocationCode property.
-    pub destination_geolocation_code: Option<String>,
-    /// destinationIp property.
-    pub destination_ip: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-    /// resourceUri property.
-    pub resource_uri: Option<String>,
-    /// sourceGeolocationCode property.
-    pub source_geolocation_code: Option<String>,
-    /// sourceIp property.
-    pub source_ip: Option<String>,
 }
 
 /// `VpnTunnelInfo` type.
@@ -319,11 +106,390 @@ pub struct VpnTunnelInfo {
     pub uri: Option<String>,
 }
 
+/// `CloudSQLInstanceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudSQLInstanceInfo {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// externalIp property.
+    pub external_ip: Option<String>,
+    /// internalIp property.
+    pub internal_ip: Option<String>,
+    /// networkUri property.
+    pub network_uri: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `GoogleServiceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleServiceInfo {
+    /// googleServiceType property.
+    pub google_service_type: Option<String>,
+    /// sourceIp property.
+    pub source_ip: Option<String>,
+}
+
+/// `NatInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NatInfo {
+    /// cloudNatGatewayType property.
+    pub cloud_nat_gateway_type: Option<String>,
+    /// natGatewayName property.
+    pub nat_gateway_name: Option<String>,
+    /// networkUri property.
+    pub network_uri: Option<String>,
+    /// newDestinationIp property.
+    pub new_destination_ip: Option<String>,
+    /// newDestinationPort property.
+    pub new_destination_port: Option<i64>,
+    /// newSourceIp property.
+    pub new_source_ip: Option<String>,
+    /// newSourcePort property.
+    pub new_source_port: Option<i64>,
+    /// oldDestinationIp property.
+    pub old_destination_ip: Option<String>,
+    /// oldDestinationPort property.
+    pub old_destination_port: Option<i64>,
+    /// oldSourceIp property.
+    pub old_source_ip: Option<String>,
+    /// oldSourcePort property.
+    pub old_source_port: Option<i64>,
+    /// protocol property.
+    pub protocol: Option<String>,
+    /// routerUri property.
+    pub router_uri: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `StorageBucketInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StorageBucketInfo {
+    /// bucket property.
+    pub bucket: Option<String>,
+}
+
+/// `AbortInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AbortInfo {
+    /// cause property.
+    pub cause: Option<String>,
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// projectsMissingPermission property.
+    pub projects_missing_permission: Option<Vec<String>>,
+    /// resourceUri property.
+    pub resource_uri: Option<String>,
+}
+
+/// `LatencyPercentile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LatencyPercentile {
+    /// latencyMicros property.
+    pub latency_micros: Option<String>,
+    /// percent property.
+    pub percent: Option<i64>,
+}
+
+/// `FirewallInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FirewallInfo {
+    /// action property.
+    pub action: Option<String>,
+    /// direction property.
+    pub direction: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// firewallRuleType property.
+    pub firewall_rule_type: Option<String>,
+    /// networkUri property.
+    pub network_uri: Option<String>,
+    /// policy property.
+    pub policy: Option<String>,
+    /// policyPriority property.
+    pub policy_priority: Option<i64>,
+    /// policyUri property.
+    pub policy_uri: Option<String>,
+    /// priority property.
+    pub priority: Option<i64>,
+    /// targetServiceAccounts property.
+    pub target_service_accounts: Option<Vec<String>>,
+    /// targetTags property.
+    pub target_tags: Option<Vec<String>>,
+    /// targetType property.
+    pub target_type: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
 /// `GkeNetworkPolicySkippedInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GkeNetworkPolicySkippedInfo {
     /// reason property.
     pub reason: Option<String>,
+}
+
+/// `NgfwPacketInspectionInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NgfwPacketInspectionInfo {
+    /// securityProfileGroupUri property.
+    pub security_profile_group_uri: Option<String>,
+}
+
+/// `RedisInstanceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RedisInstanceInfo {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// networkUri property.
+    pub network_uri: Option<String>,
+    /// primaryEndpointIp property.
+    pub primary_endpoint_ip: Option<String>,
+    /// readEndpointIp property.
+    pub read_endpoint_ip: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `LoadBalancerBackend` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoadBalancerBackend {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// healthCheckAllowingFirewallRules property.
+    pub health_check_allowing_firewall_rules: Option<Vec<String>>,
+    /// healthCheckBlockingFirewallRules property.
+    pub health_check_blocking_firewall_rules: Option<Vec<String>>,
+    /// healthCheckFirewallState property.
+    pub health_check_firewall_state: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `ServerlessNegInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServerlessNegInfo {
+    /// negUri property.
+    pub neg_uri: Option<String>,
+}
+
+/// `VpcConnectorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VpcConnectorInfo {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `GKEMasterInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GKEMasterInfo {
+    /// clusterNetworkUri property.
+    pub cluster_network_uri: Option<String>,
+    /// clusterUri property.
+    pub cluster_uri: Option<String>,
+    /// dnsEndpoint property.
+    pub dns_endpoint: Option<String>,
+    /// externalIp property.
+    pub external_ip: Option<String>,
+    /// internalIp property.
+    pub internal_ip: Option<String>,
+}
+
+/// `ProbingDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProbingDetails {
+    /// abortCause property.
+    pub abort_cause: Option<String>,
+    /// destinationEgressLocation property.
+    pub destination_egress_location: Option<EdgeLocation>,
+    /// edgeResponses property.
+    pub edge_responses: Option<Vec<SingleEdgeResponse>>,
+    /// endpointInfo property.
+    pub endpoint_info: Option<EndpointInfo>,
+    /// error property.
+    pub error: Option<Status>,
+    /// probedAllDevices property.
+    pub probed_all_devices: Option<bool>,
+    /// probingLatency property.
+    pub probing_latency: Option<LatencyDistribution>,
+    /// result property.
+    pub result: Option<String>,
+    /// sentProbeCount property.
+    pub sent_probe_count: Option<i64>,
+    /// successfulProbeCount property.
+    pub successful_probe_count: Option<i64>,
+    /// verifyTime property.
+    pub verify_time: Option<String>,
+}
+
+/// `HybridSubnetInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HybridSubnetInfo {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `CloudFunctionEndpoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudFunctionEndpoint {
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `ForwardInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ForwardInfo {
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// resourceUri property.
+    pub resource_uri: Option<String>,
+    /// target property.
+    pub target: Option<String>,
+}
+
+/// `InterconnectAttachmentInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectAttachmentInfo {
+    /// cloudRouterUri property.
+    pub cloud_router_uri: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// interconnectUri property.
+    pub interconnect_uri: Option<String>,
+    /// l2AttachmentMatchedIpAddress property.
+    pub l2_attachment_matched_ip_address: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `ServerlessExternalConnectionInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServerlessExternalConnectionInfo {
+    /// selectedIpAddress property.
+    pub selected_ip_address: Option<String>,
+}
+
+/// `ReachabilityDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReachabilityDetails {
+    /// error property.
+    pub error: Option<Status>,
+    /// result property.
+    pub result: Option<String>,
+    /// traces property.
+    pub traces: Option<Vec<Trace>>,
+    /// verifyTime property.
+    pub verify_time: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `DeliverInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeliverInfo {
+    /// googleServiceType property.
+    pub google_service_type: Option<String>,
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// pscGoogleApiTarget property.
+    pub psc_google_api_target: Option<String>,
+    /// resourceUri property.
+    pub resource_uri: Option<String>,
+    /// storageBucket property.
+    pub storage_bucket: Option<String>,
+    /// target property.
+    pub target: Option<String>,
+}
+
+/// `Endpoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Endpoint {
+    /// appEngineVersion property.
+    pub app_engine_version: Option<AppEngineVersionEndpoint>,
+    /// cloudFunction property.
+    pub cloud_function: Option<CloudFunctionEndpoint>,
+    /// cloudRunRevision property.
+    pub cloud_run_revision: Option<CloudRunRevisionEndpoint>,
+    /// cloudSqlInstance property.
+    pub cloud_sql_instance: Option<String>,
+    /// forwardingRule property.
+    pub forwarding_rule: Option<String>,
+    /// forwardingRuleTarget property.
+    pub forwarding_rule_target: Option<String>,
+    /// fqdn property.
+    pub fqdn: Option<String>,
+    /// gkeMasterCluster property.
+    pub gke_master_cluster: Option<String>,
+    /// gkePod property.
+    pub gke_pod: Option<String>,
+    /// instance property.
+    pub instance: Option<String>,
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// loadBalancerId property.
+    pub load_balancer_id: Option<String>,
+    /// loadBalancerType property.
+    pub load_balancer_type: Option<String>,
+    /// network property.
+    pub network: Option<String>,
+    /// networkType property.
+    pub network_type: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// redisCluster property.
+    pub redis_cluster: Option<String>,
+    /// redisInstance property.
+    pub redis_instance: Option<String>,
 }
 
 /// `Step` type.
@@ -411,111 +577,68 @@ pub struct Step {
     pub vpn_tunnel: Option<VpnTunnelInfo>,
 }
 
-/// `RedisInstanceInfo` type.
+/// `DirectVpcEgressConnectionInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RedisInstanceInfo {
-    /// displayName property.
-    pub display_name: Option<String>,
+pub struct DirectVpcEgressConnectionInfo {
     /// networkUri property.
     pub network_uri: Option<String>,
-    /// primaryEndpointIp property.
-    pub primary_endpoint_ip: Option<String>,
-    /// readEndpointIp property.
-    pub read_endpoint_ip: Option<String>,
     /// region property.
     pub region: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
+    /// selectedIpAddress property.
+    pub selected_ip_address: Option<String>,
+    /// selectedIpRange property.
+    pub selected_ip_range: Option<String>,
+    /// subnetworkUri property.
+    pub subnetwork_uri: Option<String>,
 }
 
-/// `AbortInfo` type.
+/// `ListConnectivityTestsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AbortInfo {
-    /// cause property.
-    pub cause: Option<String>,
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// projectsMissingPermission property.
-    pub projects_missing_permission: Option<Vec<String>>,
-    /// resourceUri property.
-    pub resource_uri: Option<String>,
+pub struct ListConnectivityTestsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// resources property.
+    pub resources: Option<Vec<ConnectivityTest>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
-/// `GKEMasterInfo` type.
+/// `InstanceInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GKEMasterInfo {
-    /// clusterNetworkUri property.
-    pub cluster_network_uri: Option<String>,
-    /// clusterUri property.
-    pub cluster_uri: Option<String>,
-    /// dnsEndpoint property.
-    pub dns_endpoint: Option<String>,
+pub struct InstanceInfo {
+    /// displayName property.
+    pub display_name: Option<String>,
     /// externalIp property.
     pub external_ip: Option<String>,
+    /// interface property.
+    pub interface: Option<String>,
     /// internalIp property.
     pub internal_ip: Option<String>,
-}
-
-/// `LoadBalancerBackendInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancerBackendInfo {
-    /// backendBucketUri property.
-    pub backend_bucket_uri: Option<String>,
-    /// backendServiceUri property.
-    pub backend_service_uri: Option<String>,
-    /// healthCheckFirewallsConfigState property.
-    pub health_check_firewalls_config_state: Option<String>,
-    /// healthCheckUri property.
-    pub health_check_uri: Option<String>,
-    /// instanceGroupUri property.
-    pub instance_group_uri: Option<String>,
-    /// instanceUri property.
-    pub instance_uri: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// networkEndpointGroupUri property.
-    pub network_endpoint_group_uri: Option<String>,
-    /// pscGoogleApiTarget property.
-    pub psc_google_api_target: Option<String>,
-    /// pscServiceAttachmentUri property.
-    pub psc_service_attachment_uri: Option<String>,
-}
-
-/// `VpcConnectorInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VpcConnectorInfo {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// location property.
-    pub location: Option<String>,
+    /// networkTags property.
+    pub network_tags: Option<Vec<String>>,
+    /// networkUri property.
+    pub network_uri: Option<String>,
+    /// pscNetworkAttachmentUri property.
+    pub psc_network_attachment_uri: Option<String>,
+    /// running property.
+    pub running: Option<bool>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// status property.
+    pub status: Option<String>,
     /// uri property.
     pub uri: Option<String>,
 }
 
-/// `AppEngineVersionInfo` type.
+/// `Trace` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppEngineVersionInfo {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// environment property.
-    pub environment: Option<String>,
-    /// runtime property.
-    pub runtime: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `CloudFunctionInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudFunctionInfo {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-    /// versionId property.
-    pub version_id: Option<String>,
+pub struct Trace {
+    /// endpointInfo property.
+    pub endpoint_info: Option<EndpointInfo>,
+    /// forwardTraceId property.
+    pub forward_trace_id: Option<i64>,
+    /// steps property.
+    pub steps: Option<Vec<Step>>,
 }
 
 /// `CloudRunRevisionEndpoint` type.
@@ -527,56 +650,9 @@ pub struct CloudRunRevisionEndpoint {
     pub uri: Option<String>,
 }
 
-/// `Endpoint` type.
+/// `ProxyConnectionInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Endpoint {
-    /// appEngineVersion property.
-    pub app_engine_version: Option<AppEngineVersionEndpoint>,
-    /// cloudFunction property.
-    pub cloud_function: Option<CloudFunctionEndpoint>,
-    /// cloudRunRevision property.
-    pub cloud_run_revision: Option<CloudRunRevisionEndpoint>,
-    /// cloudSqlInstance property.
-    pub cloud_sql_instance: Option<String>,
-    /// forwardingRule property.
-    pub forwarding_rule: Option<String>,
-    /// forwardingRuleTarget property.
-    pub forwarding_rule_target: Option<String>,
-    /// fqdn property.
-    pub fqdn: Option<String>,
-    /// gkeMasterCluster property.
-    pub gke_master_cluster: Option<String>,
-    /// gkePod property.
-    pub gke_pod: Option<String>,
-    /// instance property.
-    pub instance: Option<String>,
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// loadBalancerId property.
-    pub load_balancer_id: Option<String>,
-    /// loadBalancerType property.
-    pub load_balancer_type: Option<String>,
-    /// network property.
-    pub network: Option<String>,
-    /// networkType property.
-    pub network_type: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// redisCluster property.
-    pub redis_cluster: Option<String>,
-    /// redisInstance property.
-    pub redis_instance: Option<String>,
-}
-
-/// `NatInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NatInfo {
-    /// cloudNatGatewayType property.
-    pub cloud_nat_gateway_type: Option<String>,
-    /// natGatewayName property.
-    pub nat_gateway_name: Option<String>,
+pub struct ProxyConnectionInfo {
     /// networkUri property.
     pub network_uri: Option<String>,
     /// newDestinationIp property.
@@ -597,82 +673,8 @@ pub struct NatInfo {
     pub old_source_port: Option<i64>,
     /// protocol property.
     pub protocol: Option<String>,
-    /// routerUri property.
-    pub router_uri: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `HybridSubnetInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HybridSubnetInfo {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `CloudSQLInstanceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudSQLInstanceInfo {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// externalIp property.
-    pub external_ip: Option<String>,
-    /// internalIp property.
-    pub internal_ip: Option<String>,
-    /// networkUri property.
-    pub network_uri: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `GkeNetworkPolicyInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GkeNetworkPolicyInfo {
-    /// action property.
-    pub action: Option<String>,
-    /// direction property.
-    pub direction: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `Trace` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Trace {
-    /// endpointInfo property.
-    pub endpoint_info: Option<EndpointInfo>,
-    /// forwardTraceId property.
-    pub forward_trace_id: Option<i64>,
-    /// steps property.
-    pub steps: Option<Vec<Step>>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+    /// subnetUri property.
+    pub subnet_uri: Option<String>,
 }
 
 /// `ForwardingRuleInfo` type.
@@ -702,84 +704,61 @@ pub struct ForwardingRuleInfo {
     pub vip: Option<String>,
 }
 
-/// `GoogleServiceInfo` type.
+/// `Policy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleServiceInfo {
-    /// googleServiceType property.
-    pub google_service_type: Option<String>,
-    /// sourceIp property.
-    pub source_ip: Option<String>,
+pub struct Policy {
+    /// auditConfigs property.
+    pub audit_configs: Option<Vec<AuditConfig>>,
+    /// bindings property.
+    pub bindings: Option<Vec<Binding>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// version property.
+    pub version: Option<i64>,
 }
 
-/// `InterconnectAttachmentInfo` type.
+/// `AppEngineVersionEndpoint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachmentInfo {
-    /// cloudRouterUri property.
-    pub cloud_router_uri: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// interconnectUri property.
-    pub interconnect_uri: Option<String>,
-    /// l2AttachmentMatchedIpAddress property.
-    pub l2_attachment_matched_ip_address: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct AppEngineVersionEndpoint {
     /// uri property.
     pub uri: Option<String>,
 }
 
-/// `LatencyDistribution` type.
+/// `DropInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LatencyDistribution {
-    /// latencyPercentiles property.
-    pub latency_percentiles: Option<Vec<LatencyPercentile>>,
+pub struct DropInfo {
+    /// cause property.
+    pub cause: Option<String>,
+    /// destinationGeolocationCode property.
+    pub destination_geolocation_code: Option<String>,
+    /// destinationIp property.
+    pub destination_ip: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// resourceUri property.
+    pub resource_uri: Option<String>,
+    /// sourceGeolocationCode property.
+    pub source_geolocation_code: Option<String>,
+    /// sourceIp property.
+    pub source_ip: Option<String>,
 }
 
-/// `IpMasqueradingSkippedInfo` type.
+/// `TestIamPermissionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IpMasqueradingSkippedInfo {
-    /// nonMasqueradeRange property.
-    pub non_masquerade_range: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
+pub struct TestIamPermissionsResponse {
+    /// permissions property.
+    pub permissions: Option<Vec<String>>,
 }
 
-/// `StorageBucketInfo` type.
+/// `GkeNetworkPolicyInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StorageBucketInfo {
-    /// bucket property.
-    pub bucket: Option<String>,
-}
-
-/// `FirewallInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallInfo {
+pub struct GkeNetworkPolicyInfo {
     /// action property.
     pub action: Option<String>,
     /// direction property.
     pub direction: Option<String>,
     /// displayName property.
     pub display_name: Option<String>,
-    /// firewallRuleType property.
-    pub firewall_rule_type: Option<String>,
-    /// networkUri property.
-    pub network_uri: Option<String>,
-    /// policy property.
-    pub policy: Option<String>,
-    /// policyPriority property.
-    pub policy_priority: Option<i64>,
-    /// policyUri property.
-    pub policy_uri: Option<String>,
-    /// priority property.
-    pub priority: Option<i64>,
-    /// targetServiceAccounts property.
-    pub target_service_accounts: Option<Vec<String>>,
-    /// targetTags property.
-    pub target_tags: Option<Vec<String>>,
-    /// targetType property.
-    pub target_type: Option<String>,
     /// uri property.
     pub uri: Option<String>,
 }
@@ -795,15 +774,127 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `ForwardInfo` type.
+/// `GkePodInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ForwardInfo {
+pub struct GkePodInfo {
     /// ipAddress property.
     pub ip_address: Option<String>,
-    /// resourceUri property.
-    pub resource_uri: Option<String>,
-    /// target property.
-    pub target: Option<String>,
+    /// networkUri property.
+    pub network_uri: Option<String>,
+    /// podUri property.
+    pub pod_uri: Option<String>,
+}
+
+/// `CloudFunctionInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudFunctionInfo {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+    /// versionId property.
+    pub version_id: Option<String>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `RedisClusterInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RedisClusterInfo {
+    /// discoveryEndpointIpAddress property.
+    pub discovery_endpoint_ip_address: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// networkUri property.
+    pub network_uri: Option<String>,
+    /// secondaryEndpointIpAddress property.
+    pub secondary_endpoint_ip_address: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `EndpointInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EndpointInfo {
+    /// destinationIp property.
+    pub destination_ip: Option<String>,
+    /// destinationNetworkUri property.
+    pub destination_network_uri: Option<String>,
+    /// destinationPort property.
+    pub destination_port: Option<i64>,
+    /// protocol property.
+    pub protocol: Option<String>,
+    /// sourceAgentUri property.
+    pub source_agent_uri: Option<String>,
+    /// sourceIp property.
+    pub source_ip: Option<String>,
+    /// sourceNetworkUri property.
+    pub source_network_uri: Option<String>,
+    /// sourcePort property.
+    pub source_port: Option<i64>,
+}
+
+/// `IpMasqueradingSkippedInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IpMasqueradingSkippedInfo {
+    /// nonMasqueradeRange property.
+    pub non_masquerade_range: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `CloudRunRevisionInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudRunRevisionInfo {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// serviceUri property.
+    pub service_uri: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `LoadBalancerInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoadBalancerInfo {
+    /// backendType property.
+    pub backend_type: Option<String>,
+    /// backendUri property.
+    pub backend_uri: Option<String>,
+    /// backends property.
+    pub backends: Option<Vec<LoadBalancerBackend>>,
+    /// healthCheckUri property.
+    pub health_check_uri: Option<String>,
+    /// loadBalancerType property.
+    pub load_balancer_type: Option<String>,
+}
+
+/// `NetworkInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkInfo {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// matchedIpRange property.
+    pub matched_ip_range: Option<String>,
+    /// matchedSubnetUri property.
+    pub matched_subnet_uri: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
 }
 
 /// `ConnectivityTest` type.
@@ -841,161 +932,64 @@ pub struct ConnectivityTest {
     pub update_time: Option<String>,
 }
 
-/// `Expr` type.
+/// `RouteInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `ListConnectivityTestsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListConnectivityTestsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// resources property.
-    pub resources: Option<Vec<ConnectivityTest>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `ProbingDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProbingDetails {
-    /// abortCause property.
-    pub abort_cause: Option<String>,
-    /// destinationEgressLocation property.
-    pub destination_egress_location: Option<EdgeLocation>,
-    /// edgeResponses property.
-    pub edge_responses: Option<Vec<SingleEdgeResponse>>,
-    /// endpointInfo property.
-    pub endpoint_info: Option<EndpointInfo>,
-    /// error property.
-    pub error: Option<Status>,
-    /// probedAllDevices property.
-    pub probed_all_devices: Option<bool>,
-    /// probingLatency property.
-    pub probing_latency: Option<LatencyDistribution>,
-    /// result property.
-    pub result: Option<String>,
-    /// sentProbeCount property.
-    pub sent_probe_count: Option<i64>,
-    /// successfulProbeCount property.
-    pub successful_probe_count: Option<i64>,
-    /// verifyTime property.
-    pub verify_time: Option<String>,
-}
-
-/// `CloudRunRevisionInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudRunRevisionInfo {
+pub struct RouteInfo {
+    /// advertisedRouteNextHopUri property.
+    pub advertised_route_next_hop_uri: Option<String>,
+    /// advertisedRouteSourceRouterUri property.
+    pub advertised_route_source_router_uri: Option<String>,
+    /// destIpRange property.
+    pub dest_ip_range: Option<String>,
+    /// destPortRanges property.
+    pub dest_port_ranges: Option<Vec<String>>,
     /// displayName property.
     pub display_name: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// serviceUri property.
-    pub service_uri: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `DirectVpcEgressConnectionInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DirectVpcEgressConnectionInfo {
+    /// instanceTags property.
+    pub instance_tags: Option<Vec<String>>,
+    /// nccHubRouteUri property.
+    pub ncc_hub_route_uri: Option<String>,
+    /// nccHubUri property.
+    pub ncc_hub_uri: Option<String>,
+    /// nccSpokeUri property.
+    pub ncc_spoke_uri: Option<String>,
     /// networkUri property.
     pub network_uri: Option<String>,
+    /// nextHop property.
+    pub next_hop: Option<String>,
+    /// nextHopNetworkUri property.
+    pub next_hop_network_uri: Option<String>,
+    /// nextHopType property.
+    pub next_hop_type: Option<String>,
+    /// nextHopUri property.
+    pub next_hop_uri: Option<String>,
+    /// originatingRouteDisplayName property.
+    pub originating_route_display_name: Option<String>,
+    /// originatingRouteUri property.
+    pub originating_route_uri: Option<String>,
+    /// priority property.
+    pub priority: Option<i64>,
+    /// protocols property.
+    pub protocols: Option<Vec<String>>,
     /// region property.
     pub region: Option<String>,
-    /// selectedIpAddress property.
-    pub selected_ip_address: Option<String>,
-    /// selectedIpRange property.
-    pub selected_ip_range: Option<String>,
-    /// subnetworkUri property.
-    pub subnetwork_uri: Option<String>,
-}
-
-/// `EdgeLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EdgeLocation {
-    /// metropolitanArea property.
-    pub metropolitan_area: Option<String>,
-}
-
-/// `TestIamPermissionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestIamPermissionsResponse {
-    /// permissions property.
-    pub permissions: Option<Vec<String>>,
-}
-
-/// `AppEngineVersionEndpoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppEngineVersionEndpoint {
+    /// routeScope property.
+    pub route_scope: Option<String>,
+    /// routeType property.
+    pub route_type: Option<String>,
+    /// srcIpRange property.
+    pub src_ip_range: Option<String>,
+    /// srcPortRanges property.
+    pub src_port_ranges: Option<Vec<String>>,
     /// uri property.
     pub uri: Option<String>,
 }
 
-/// `NgfwPacketInspectionInfo` type.
+/// `LatencyDistribution` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NgfwPacketInspectionInfo {
-    /// securityProfileGroupUri property.
-    pub security_profile_group_uri: Option<String>,
-}
-
-/// `ProxyConnectionInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProxyConnectionInfo {
-    /// networkUri property.
-    pub network_uri: Option<String>,
-    /// newDestinationIp property.
-    pub new_destination_ip: Option<String>,
-    /// newDestinationPort property.
-    pub new_destination_port: Option<i64>,
-    /// newSourceIp property.
-    pub new_source_ip: Option<String>,
-    /// newSourcePort property.
-    pub new_source_port: Option<i64>,
-    /// oldDestinationIp property.
-    pub old_destination_ip: Option<String>,
-    /// oldDestinationPort property.
-    pub old_destination_port: Option<i64>,
-    /// oldSourceIp property.
-    pub old_source_ip: Option<String>,
-    /// oldSourcePort property.
-    pub old_source_port: Option<i64>,
-    /// protocol property.
-    pub protocol: Option<String>,
-    /// subnetUri property.
-    pub subnet_uri: Option<String>,
-}
-
-/// `LatencyPercentile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LatencyPercentile {
-    /// latencyMicros property.
-    pub latency_micros: Option<String>,
-    /// percent property.
-    pub percent: Option<i64>,
-}
-
-/// `ServerlessExternalConnectionInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServerlessExternalConnectionInfo {
-    /// selectedIpAddress property.
-    pub selected_ip_address: Option<String>,
-}
-
-/// `ServerlessNegInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServerlessNegInfo {
-    /// negUri property.
-    pub neg_uri: Option<String>,
+pub struct LatencyDistribution {
+    /// latencyPercentiles property.
+    pub latency_percentiles: Option<Vec<LatencyPercentile>>,
 }
 
 /// `SingleEdgeResponse` type.
@@ -1013,6 +1007,13 @@ pub struct SingleEdgeResponse {
     pub sent_probe_count: Option<i64>,
     /// successfulProbeCount property.
     pub successful_probe_count: Option<i64>,
+}
+
+/// `EdgeLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EdgeLocation {
+    /// metropolitanArea property.
+    pub metropolitan_area: Option<String>,
 }
 
 // =============================================================================

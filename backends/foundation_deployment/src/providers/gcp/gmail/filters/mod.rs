@@ -12,28 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Filter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Filter {
-    /// action property.
-    pub action: Option<FilterAction>,
-    /// criteria property.
-    pub criteria: Option<FilterCriteria>,
-    /// id property.
-    pub id: Option<String>,
-}
 
 /// `FilterCriteria` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -58,13 +48,6 @@ pub struct FilterCriteria {
     pub to: Option<String>,
 }
 
-/// `ListFiltersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListFiltersResponse {
-    /// filter property.
-    pub filter: Option<Vec<Filter>>,
-}
-
 /// `FilterAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilterAction {
@@ -74,6 +57,24 @@ pub struct FilterAction {
     pub forward: Option<String>,
     /// removeLabelIds property.
     pub remove_label_ids: Option<Vec<String>>,
+}
+
+/// `Filter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Filter {
+    /// action property.
+    pub action: Option<FilterAction>,
+    /// criteria property.
+    pub criteria: Option<FilterCriteria>,
+    /// id property.
+    pub id: Option<String>,
+}
+
+/// `ListFiltersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListFiltersResponse {
+    /// filter property.
+    pub filter: Option<Vec<Filter>>,
 }
 
 // =============================================================================

@@ -12,43 +12,105 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Empty;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `AuditLogConfig` type.
+/// `AwsAccessRole` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
+pub struct AwsAccessRole {
+    /// iamRoleId property.
+    pub iam_role_id: Option<String>,
+    /// identity property.
+    pub identity: Option<String>,
 }
 
-/// `ConnectorConfigurationAsset` type.
+/// `ConnectorConfigurationEndpoint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectorConfigurationAsset {
-    /// database property.
-    pub database: Option<String>,
-    /// googleCloudResource property.
-    pub google_cloud_resource: Option<String>,
+pub struct ConnectorConfigurationEndpoint {
+    /// hostPort property.
+    pub host_port: Option<String>,
 }
 
-/// `ConnectorConfigurationUsernamePassword` type.
+/// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectorConfigurationUsernamePassword {
-    /// password property.
-    pub password: Option<ConnectorConfigurationSecret>,
-    /// username property.
-    pub username: Option<String>,
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `CloudResourceProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudResourceProperties {
+    /// serviceAccountId property.
+    pub service_account_id: Option<String>,
+}
+
+/// `ConnectorConfiguration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectorConfiguration {
+    /// asset property.
+    pub asset: Option<ConnectorConfigurationAsset>,
+    /// authentication property.
+    pub authentication: Option<ConnectorConfigurationAuthentication>,
+    /// connectorId property.
+    pub connector_id: Option<String>,
+    /// endpoint property.
+    pub endpoint: Option<ConnectorConfigurationEndpoint>,
+    /// network property.
+    pub network: Option<ConnectorConfigurationNetwork>,
+}
+
+/// `ConnectorConfigurationPrivateServiceConnect` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectorConfigurationPrivateServiceConnect {
+    /// networkAttachment property.
+    pub network_attachment: Option<String>,
+}
+
+/// `TestIamPermissionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TestIamPermissionsResponse {
+    /// permissions property.
+    pub permissions: Option<Vec<String>>,
+}
+
+/// `SparkHistoryServerConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkHistoryServerConfig {
+    /// dataprocCluster property.
+    pub dataproc_cluster: Option<String>,
+}
+
+/// `Policy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Policy {
+    /// auditConfigs property.
+    pub audit_configs: Option<Vec<AuditConfig>>,
+    /// bindings property.
+    pub bindings: Option<Vec<Binding>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// version property.
+    pub version: Option<i64>,
 }
 
 /// `AzureProperties` type.
@@ -70,85 +132,6 @@ pub struct AzureProperties {
     pub redirect_uri: Option<String>,
 }
 
-/// `SalesforceDataCloudProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SalesforceDataCloudProperties {
-    /// identity property.
-    pub identity: Option<String>,
-    /// instanceUri property.
-    pub instance_uri: Option<String>,
-    /// tenantId property.
-    pub tenant_id: Option<String>,
-}
-
-/// `TestIamPermissionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestIamPermissionsResponse {
-    /// permissions property.
-    pub permissions: Option<Vec<String>>,
-}
-
-/// `ConnectorConfigurationSecret` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectorConfigurationSecret {
-    /// plaintext property.
-    pub plaintext: Option<String>,
-    /// secretType property.
-    pub secret_type: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `ConnectorConfiguration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectorConfiguration {
-    /// asset property.
-    pub asset: Option<ConnectorConfigurationAsset>,
-    /// authentication property.
-    pub authentication: Option<ConnectorConfigurationAuthentication>,
-    /// connectorId property.
-    pub connector_id: Option<String>,
-    /// endpoint property.
-    pub endpoint: Option<ConnectorConfigurationEndpoint>,
-    /// network property.
-    pub network: Option<ConnectorConfigurationNetwork>,
-}
-
-/// `CloudSpannerProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudSpannerProperties {
-    /// database property.
-    pub database: Option<String>,
-    /// databaseRole property.
-    pub database_role: Option<String>,
-    /// maxParallelism property.
-    pub max_parallelism: Option<i64>,
-    /// useDataBoost property.
-    pub use_data_boost: Option<bool>,
-    /// useParallelism property.
-    pub use_parallelism: Option<bool>,
-    /// useServerlessAnalytics property.
-    pub use_serverless_analytics: Option<bool>,
-}
-
-/// `ConnectorConfigurationAuthentication` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectorConfigurationAuthentication {
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-    /// usernamePassword property.
-    pub username_password: Option<ConnectorConfigurationUsernamePassword>,
-}
-
 /// `SparkProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkProperties {
@@ -160,13 +143,28 @@ pub struct SparkProperties {
     pub spark_history_server_config: Option<SparkHistoryServerConfig>,
 }
 
-/// `ListConnectionsResponse` type.
+/// `ConnectorConfigurationAsset` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListConnectionsResponse {
-    /// connections property.
-    pub connections: Option<Vec<Connection>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct ConnectorConfigurationAsset {
+    /// database property.
+    pub database: Option<String>,
+    /// googleCloudResource property.
+    pub google_cloud_resource: Option<String>,
+}
+
+/// `CloudSqlProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudSqlProperties {
+    /// credential property.
+    pub credential: Option<CloudSqlCredential>,
+    /// database property.
+    pub database: Option<String>,
+    /// instanceId property.
+    pub instance_id: Option<String>,
+    /// serviceAccountId property.
+    pub service_account_id: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `ConnectorConfigurationNetwork` type.
@@ -176,20 +174,33 @@ pub struct ConnectorConfigurationNetwork {
     pub private_service_connect: Option<ConnectorConfigurationPrivateServiceConnect>,
 }
 
-/// `ConnectorConfigurationPrivateServiceConnect` type.
+/// `ConnectorConfigurationSecret` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectorConfigurationPrivateServiceConnect {
-    /// networkAttachment property.
-    pub network_attachment: Option<String>,
+pub struct ConnectorConfigurationSecret {
+    /// plaintext property.
+    pub plaintext: Option<String>,
+    /// secretType property.
+    pub secret_type: Option<String>,
 }
 
-/// `CloudSqlCredential` type.
+/// `AuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudSqlCredential {
-    /// password property.
-    pub password: Option<String>,
-    /// username property.
-    pub username: Option<String>,
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `SalesforceDataCloudProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SalesforceDataCloudProperties {
+    /// identity property.
+    pub identity: Option<String>,
+    /// instanceUri property.
+    pub instance_uri: Option<String>,
+    /// tenantId property.
+    pub tenant_id: Option<String>,
 }
 
 /// `Connection` type.
@@ -227,86 +238,57 @@ pub struct Connection {
     pub spark: Option<SparkProperties>,
 }
 
-/// `Empty` type.
+/// `CloudSpannerProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
-
-/// `CloudResourceProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudResourceProperties {
-    /// serviceAccountId property.
-    pub service_account_id: Option<String>,
-}
-
-/// `MetastoreServiceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetastoreServiceConfig {
-    /// metastoreService property.
-    pub metastore_service: Option<String>,
-}
-
-/// `CloudSqlProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudSqlProperties {
-    /// credential property.
-    pub credential: Option<CloudSqlCredential>,
+pub struct CloudSpannerProperties {
     /// database property.
     pub database: Option<String>,
-    /// instanceId property.
-    pub instance_id: Option<String>,
-    /// serviceAccountId property.
-    pub service_account_id: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+    /// databaseRole property.
+    pub database_role: Option<String>,
+    /// maxParallelism property.
+    pub max_parallelism: Option<i64>,
+    /// useDataBoost property.
+    pub use_data_boost: Option<bool>,
+    /// useParallelism property.
+    pub use_parallelism: Option<bool>,
+    /// useServerlessAnalytics property.
+    pub use_serverless_analytics: Option<bool>,
 }
 
-/// `SparkHistoryServerConfig` type.
+/// `ListConnectionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkHistoryServerConfig {
-    /// dataprocCluster property.
-    pub dataproc_cluster: Option<String>,
+pub struct ListConnectionsResponse {
+    /// connections property.
+    pub connections: Option<Vec<Connection>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
-/// `Policy` type.
+/// `ConnectorConfigurationAuthentication` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Policy {
-    /// auditConfigs property.
-    pub audit_configs: Option<Vec<AuditConfig>>,
-    /// bindings property.
-    pub bindings: Option<Vec<Binding>>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// version property.
-    pub version: Option<i64>,
+pub struct ConnectorConfigurationAuthentication {
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// usernamePassword property.
+    pub username_password: Option<ConnectorConfigurationUsernamePassword>,
 }
 
-/// `AuditConfig` type.
+/// `CloudSqlCredential` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
+pub struct CloudSqlCredential {
+    /// password property.
+    pub password: Option<String>,
+    /// username property.
+    pub username: Option<String>,
 }
 
-/// `ConnectorConfigurationEndpoint` type.
+/// `AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectorConfigurationEndpoint {
-    /// hostPort property.
-    pub host_port: Option<String>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
 /// `AwsProperties` type.
@@ -316,13 +298,31 @@ pub struct AwsProperties {
     pub access_role: Option<AwsAccessRole>,
 }
 
-/// `AwsAccessRole` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AwsAccessRole {
-    /// iamRoleId property.
-    pub iam_role_id: Option<String>,
-    /// identity property.
-    pub identity: Option<String>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `MetastoreServiceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetastoreServiceConfig {
+    /// metastoreService property.
+    pub metastore_service: Option<String>,
+}
+
+/// `ConnectorConfigurationUsernamePassword` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectorConfigurationUsernamePassword {
+    /// password property.
+    pub password: Option<ConnectorConfigurationSecret>,
+    /// username property.
+    pub username: Option<String>,
 }
 
 // =============================================================================

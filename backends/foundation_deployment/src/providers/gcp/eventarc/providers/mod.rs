@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -35,17 +36,6 @@ pub struct FilteringAttribute {
     pub path_pattern_supported: Option<bool>,
     /// required property.
     pub required: Option<bool>,
-}
-
-/// `Provider` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Provider {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// eventTypes property.
-    pub event_types: Option<Vec<EventType>>,
-    /// name property.
-    pub name: Option<String>,
 }
 
 /// `ListProvidersResponse` type.
@@ -70,6 +60,17 @@ pub struct EventType {
     pub filtering_attributes: Option<Vec<FilteringAttribute>>,
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `Provider` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Provider {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// eventTypes property.
+    pub event_types: Option<Vec<EventType>>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,19 +23,17 @@ use serde::{Deserialize, Serialize};
 use super::shared::Operation;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `BasicLevel` type.
+/// `VpcNetworkSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BasicLevel {
-    /// combiningFunction property.
-    pub combining_function: Option<String>,
-    /// conditions property.
-    pub conditions: Option<Vec<Condition>>,
+pub struct VpcNetworkSource {
+    /// vpcSubnetwork property.
+    pub vpc_subnetwork: Option<VpcSubNetwork>,
 }
 
 /// `AccessLevel` type.
@@ -59,6 +58,50 @@ pub struct ListAccessLevelsResponse {
     pub access_levels: Option<Vec<AccessLevel>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `CustomLevel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomLevel {
+    /// expr property.
+    pub expr: Option<Expr>,
+}
+
+/// `BasicLevel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BasicLevel {
+    /// combiningFunction property.
+    pub combining_function: Option<String>,
+    /// conditions property.
+    pub conditions: Option<Vec<Condition>>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `DevicePolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DevicePolicy {
+    /// allowedDeviceManagementLevels property.
+    pub allowed_device_management_levels: Option<Vec<String>>,
+    /// allowedEncryptionStatuses property.
+    pub allowed_encryption_statuses: Option<Vec<String>>,
+    /// osConstraints property.
+    pub os_constraints: Option<Vec<OsConstraint>>,
+    /// requireAdminApproval property.
+    pub require_admin_approval: Option<bool>,
+    /// requireCorpOwned property.
+    pub require_corp_owned: Option<bool>,
+    /// requireScreenlock property.
+    pub require_screenlock: Option<bool>,
 }
 
 /// `Expr` type.
@@ -93,30 +136,6 @@ pub struct Condition {
     pub vpc_network_sources: Option<Vec<VpcNetworkSource>>,
 }
 
-/// `DevicePolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DevicePolicy {
-    /// allowedDeviceManagementLevels property.
-    pub allowed_device_management_levels: Option<Vec<String>>,
-    /// allowedEncryptionStatuses property.
-    pub allowed_encryption_statuses: Option<Vec<String>>,
-    /// osConstraints property.
-    pub os_constraints: Option<Vec<OsConstraint>>,
-    /// requireAdminApproval property.
-    pub require_admin_approval: Option<bool>,
-    /// requireCorpOwned property.
-    pub require_corp_owned: Option<bool>,
-    /// requireScreenlock property.
-    pub require_screenlock: Option<bool>,
-}
-
-/// `VpcNetworkSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VpcNetworkSource {
-    /// vpcSubnetwork property.
-    pub vpc_subnetwork: Option<VpcSubNetwork>,
-}
-
 /// `VpcSubNetwork` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpcSubNetwork {
@@ -135,24 +154,6 @@ pub struct OsConstraint {
     pub os_type: Option<String>,
     /// requireVerifiedChromeOs property.
     pub require_verified_chrome_os: Option<bool>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `CustomLevel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomLevel {
-    /// expr property.
-    pub expr: Option<Expr>,
 }
 
 // =============================================================================

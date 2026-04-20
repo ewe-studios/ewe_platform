@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,79 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `YoutubeAssetAssociationLocationAssetFilterLocationMatchingFunction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct YoutubeAssetAssociationLocationAssetFilterLocationMatchingFunction {
-    /// business property.
-    pub business: Option<String>,
-    /// labels property.
-    pub labels: Option<Vec<String>>,
-    /// locationAssetIds property.
-    pub location_asset_ids: Option<Vec<String>>,
-}
-
-/// `YoutubeAssetAssociationLinkedYouTubeAsset` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct YoutubeAssetAssociationLinkedYouTubeAsset {
-    /// affiliateLocationAssetFilter property.
-    pub affiliate_location_asset_filter:
-        Option<YoutubeAssetAssociationAffiliateLocationAssetFilter>,
-    /// locationAssetFilter property.
-    pub location_asset_filter: Option<YoutubeAssetAssociationLocationAssetFilter>,
-    /// sitelinkAsset property.
-    pub sitelink_asset: Option<YoutubeAssetAssociationSitelinkAsset>,
-}
-
-/// `ListYoutubeAssetAssociationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListYoutubeAssetAssociationsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// youtubeAssetAssociations property.
-    pub youtube_asset_associations: Option<Vec<YoutubeAssetAssociation>>,
-}
-
-/// `YoutubeAssetAssociationLocationAssetFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct YoutubeAssetAssociationLocationAssetFilter {
-    /// assetSetId property.
-    pub asset_set_id: Option<String>,
-    /// locationMatchingFunction property.
-    pub location_matching_function:
-        Option<YoutubeAssetAssociationLocationAssetFilterLocationMatchingFunction>,
-    /// locationMatchingType property.
-    pub location_matching_type: Option<String>,
-}
-
-/// `YoutubeAssetAssociation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct YoutubeAssetAssociation {
-    /// linkedYoutubeAsset property.
-    pub linked_youtube_asset: Option<YoutubeAssetAssociationLinkedYouTubeAsset>,
-    /// name property.
-    pub name: Option<String>,
-    /// youtubeAssetType property.
-    pub youtube_asset_type: Option<String>,
-}
-
-/// `YoutubeAssetAssociationAffiliateLocationAssetFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct YoutubeAssetAssociationAffiliateLocationAssetFilter {
-    /// affiliateLocationMatchingFunction property.
-    pub affiliate_location_matching_function: Option<
-        YoutubeAssetAssociationAffiliateLocationAssetFilterAffiliateLocationMatchingFunction,
-    >,
-    /// affiliateLocationMatchingType property.
-    pub affiliate_location_matching_type: Option<String>,
-    /// assetSetId property.
-    pub asset_set_id: Option<String>,
-}
 
 /// `YoutubeAssetAssociationSitelinkAsset` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -110,11 +43,79 @@ pub struct YoutubeAssetAssociationAffiliateLocationAssetFilterAffiliateLocationM
         Option<Vec<YoutubeAssetAssociationAffiliateLocationAssetFilterAffiliateLocationChain>>,
 }
 
+/// `YoutubeAssetAssociationLocationAssetFilterLocationMatchingFunction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct YoutubeAssetAssociationLocationAssetFilterLocationMatchingFunction {
+    /// business property.
+    pub business: Option<String>,
+    /// labels property.
+    pub labels: Option<Vec<String>>,
+    /// locationAssetIds property.
+    pub location_asset_ids: Option<Vec<String>>,
+}
+
+/// `YoutubeAssetAssociation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct YoutubeAssetAssociation {
+    /// linkedYoutubeAsset property.
+    pub linked_youtube_asset: Option<YoutubeAssetAssociationLinkedYouTubeAsset>,
+    /// name property.
+    pub name: Option<String>,
+    /// youtubeAssetType property.
+    pub youtube_asset_type: Option<String>,
+}
+
+/// `YoutubeAssetAssociationLinkedYouTubeAsset` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct YoutubeAssetAssociationLinkedYouTubeAsset {
+    /// affiliateLocationAssetFilter property.
+    pub affiliate_location_asset_filter:
+        Option<YoutubeAssetAssociationAffiliateLocationAssetFilter>,
+    /// locationAssetFilter property.
+    pub location_asset_filter: Option<YoutubeAssetAssociationLocationAssetFilter>,
+    /// sitelinkAsset property.
+    pub sitelink_asset: Option<YoutubeAssetAssociationSitelinkAsset>,
+}
+
+/// `YoutubeAssetAssociationAffiliateLocationAssetFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct YoutubeAssetAssociationAffiliateLocationAssetFilter {
+    /// affiliateLocationMatchingFunction property.
+    pub affiliate_location_matching_function: Option<
+        YoutubeAssetAssociationAffiliateLocationAssetFilterAffiliateLocationMatchingFunction,
+    >,
+    /// affiliateLocationMatchingType property.
+    pub affiliate_location_matching_type: Option<String>,
+    /// assetSetId property.
+    pub asset_set_id: Option<String>,
+}
+
+/// `YoutubeAssetAssociationLocationAssetFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct YoutubeAssetAssociationLocationAssetFilter {
+    /// assetSetId property.
+    pub asset_set_id: Option<String>,
+    /// locationMatchingFunction property.
+    pub location_matching_function:
+        Option<YoutubeAssetAssociationLocationAssetFilterLocationMatchingFunction>,
+    /// locationMatchingType property.
+    pub location_matching_type: Option<String>,
+}
+
 /// `YoutubeAssetAssociationAffiliateLocationAssetFilterAffiliateLocationChain` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YoutubeAssetAssociationAffiliateLocationAssetFilterAffiliateLocationChain {
     /// chainId property.
     pub chain_id: Option<String>,
+}
+
+/// `ListYoutubeAssetAssociationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListYoutubeAssetAssociationsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// youtubeAssetAssociations property.
+    pub youtube_asset_associations: Option<Vec<YoutubeAssetAssociation>>,
 }
 
 // =============================================================================

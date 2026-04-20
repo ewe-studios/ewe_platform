@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,51 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `DataCollectionOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataCollectionOptions {
+    /// diagnosticsEventsEnabled property.
+    pub diagnostics_events_enabled: Option<bool>,
+    /// healthMonitoringEnabled property.
+    pub health_monitoring_enabled: Option<bool>,
+    /// incidentLogsEnabled property.
+    pub incident_logs_enabled: Option<bool>,
+}
+
+/// `IdentityConnector` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IdentityConnector {
+    /// connectionState property.
+    pub connection_state: Option<String>,
+    /// serviceAgentEmail property.
+    pub service_agent_email: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ListCloudVmClustersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListCloudVmClustersResponse {
+    /// cloudVmClusters property.
+    pub cloud_vm_clusters: Option<Vec<CloudVmCluster>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `CloudVmClusterProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -98,15 +139,6 @@ pub struct CloudVmClusterProperties {
     pub time_zone: Option<TimeZone>,
 }
 
-/// `IdentityConnector` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdentityConnector {
-    /// connectionState property.
-    pub connection_state: Option<String>,
-    /// serviceAgentEmail property.
-    pub service_agent_email: Option<String>,
-}
-
 /// `CloudVmCluster` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudVmCluster {
@@ -138,37 +170,6 @@ pub struct CloudVmCluster {
     pub odb_subnet: Option<String>,
     /// properties property.
     pub properties: Option<CloudVmClusterProperties>,
-}
-
-/// `DataCollectionOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataCollectionOptions {
-    /// diagnosticsEventsEnabled property.
-    pub diagnostics_events_enabled: Option<bool>,
-    /// healthMonitoringEnabled property.
-    pub health_monitoring_enabled: Option<bool>,
-    /// incidentLogsEnabled property.
-    pub incident_logs_enabled: Option<bool>,
-}
-
-/// `ListCloudVmClustersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCloudVmClustersResponse {
-    /// cloudVmClusters property.
-    pub cloud_vm_clusters: Option<Vec<CloudVmCluster>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 /// `TimeZone` type.

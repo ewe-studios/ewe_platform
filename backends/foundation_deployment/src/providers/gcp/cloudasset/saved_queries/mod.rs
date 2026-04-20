@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,31 +22,17 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `IdentitySelector` type.
+/// `ConditionContext` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdentitySelector {
-    /// identity property.
-    pub identity: Option<String>,
-}
-
-/// `QueryContent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryContent {
-    /// iamPolicyAnalysisQuery property.
-    pub iam_policy_analysis_query: Option<IamPolicyAnalysisQuery>,
-}
-
-/// `ResourceSelector` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceSelector {
-    /// fullResourceName property.
-    pub full_resource_name: Option<String>,
+pub struct ConditionContext {
+    /// accessTime property.
+    pub access_time: Option<String>,
 }
 
 /// `AccessSelector` type.
@@ -57,21 +44,21 @@ pub struct AccessSelector {
     pub roles: Option<Vec<String>>,
 }
 
-/// `Options` type.
+/// `IamPolicyAnalysisQuery` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Options {
-    /// analyzeServiceAccountImpersonation property.
-    pub analyze_service_account_impersonation: Option<bool>,
-    /// expandGroups property.
-    pub expand_groups: Option<bool>,
-    /// expandResources property.
-    pub expand_resources: Option<bool>,
-    /// expandRoles property.
-    pub expand_roles: Option<bool>,
-    /// outputGroupEdges property.
-    pub output_group_edges: Option<bool>,
-    /// outputResourceEdges property.
-    pub output_resource_edges: Option<bool>,
+pub struct IamPolicyAnalysisQuery {
+    /// accessSelector property.
+    pub access_selector: Option<AccessSelector>,
+    /// conditionContext property.
+    pub condition_context: Option<ConditionContext>,
+    /// identitySelector property.
+    pub identity_selector: Option<IdentitySelector>,
+    /// options property.
+    pub options: Option<Options>,
+    /// resourceSelector property.
+    pub resource_selector: Option<ResourceSelector>,
+    /// scope property.
+    pub scope: Option<String>,
 }
 
 /// `ListSavedQueriesResponse` type.
@@ -81,13 +68,6 @@ pub struct ListSavedQueriesResponse {
     pub next_page_token: Option<String>,
     /// savedQueries property.
     pub saved_queries: Option<Vec<SavedQuery>>,
-}
-
-/// `ConditionContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConditionContext {
-    /// accessTime property.
-    pub access_time: Option<String>,
 }
 
 /// `SavedQuery` type.
@@ -111,21 +91,42 @@ pub struct SavedQuery {
     pub name: Option<String>,
 }
 
-/// `IamPolicyAnalysisQuery` type.
+/// `ResourceSelector` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IamPolicyAnalysisQuery {
-    /// accessSelector property.
-    pub access_selector: Option<AccessSelector>,
-    /// conditionContext property.
-    pub condition_context: Option<ConditionContext>,
-    /// identitySelector property.
-    pub identity_selector: Option<IdentitySelector>,
-    /// options property.
-    pub options: Option<Options>,
-    /// resourceSelector property.
-    pub resource_selector: Option<ResourceSelector>,
-    /// scope property.
-    pub scope: Option<String>,
+pub struct ResourceSelector {
+    /// fullResourceName property.
+    pub full_resource_name: Option<String>,
+}
+
+/// `IdentitySelector` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IdentitySelector {
+    /// identity property.
+    pub identity: Option<String>,
+}
+
+/// `Options` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Options {
+    /// analyzeServiceAccountImpersonation property.
+    pub analyze_service_account_impersonation: Option<bool>,
+    /// expandGroups property.
+    pub expand_groups: Option<bool>,
+    /// expandResources property.
+    pub expand_resources: Option<bool>,
+    /// expandRoles property.
+    pub expand_roles: Option<bool>,
+    /// outputGroupEdges property.
+    pub output_group_edges: Option<bool>,
+    /// outputResourceEdges property.
+    pub output_resource_edges: Option<bool>,
+}
+
+/// `QueryContent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueryContent {
+    /// iamPolicyAnalysisQuery property.
+    pub iam_policy_analysis_query: Option<IamPolicyAnalysisQuery>,
 }
 
 // =============================================================================

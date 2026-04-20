@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -27,6 +28,24 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 /// `ResolveOwnershipConflict` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResolveOwnershipConflict {}
+
+/// `Verify` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Verify {
+    /// hasPendingVerification property.
+    pub has_pending_verification: Option<bool>,
+}
+
+/// `WaitForVoiceOfMerchant` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WaitForVoiceOfMerchant {}
+
+/// `ComplyWithGuidelines` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComplyWithGuidelines {
+    /// recommendationReason property.
+    pub recommendation_reason: Option<String>,
+}
 
 /// `VoiceOfMerchantState` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,24 +63,6 @@ pub struct VoiceOfMerchantState {
     /// waitForVoiceOfMerchant property.
     pub wait_for_voice_of_merchant: Option<WaitForVoiceOfMerchant>,
 }
-
-/// `ComplyWithGuidelines` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComplyWithGuidelines {
-    /// recommendationReason property.
-    pub recommendation_reason: Option<String>,
-}
-
-/// `Verify` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Verify {
-    /// hasPendingVerification property.
-    pub has_pending_verification: Option<bool>,
-}
-
-/// `WaitForVoiceOfMerchant` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WaitForVoiceOfMerchant {}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

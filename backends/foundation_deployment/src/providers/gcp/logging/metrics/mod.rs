@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,31 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `LabelDescriptor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LabelDescriptor {
-    /// description property.
-    pub description: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// valueType property.
-    pub value_type: Option<String>,
-}
-
-/// `ListLogMetricsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListLogMetricsResponse {
-    /// metrics property.
-    pub metrics: Option<Vec<LogMetric>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `LogMetric` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -78,15 +59,15 @@ pub struct LogMetric {
     pub version: Option<String>,
 }
 
-/// `BucketOptions` type.
+/// `Exponential` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BucketOptions {
-    /// explicitBuckets property.
-    pub explicit_buckets: Option<Explicit>,
-    /// exponentialBuckets property.
-    pub exponential_buckets: Option<Exponential>,
-    /// linearBuckets property.
-    pub linear_buckets: Option<Linear>,
+pub struct Exponential {
+    /// growthFactor property.
+    pub growth_factor: Option<f64>,
+    /// numFiniteBuckets property.
+    pub num_finite_buckets: Option<i64>,
+    /// scale property.
+    pub scale: Option<f64>,
 }
 
 /// `MetricDescriptorMetadata` type.
@@ -102,11 +83,31 @@ pub struct MetricDescriptorMetadata {
     pub time_series_resource_hierarchy_level: Option<Vec<String>>,
 }
 
+/// `ListLogMetricsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListLogMetricsResponse {
+    /// metrics property.
+    pub metrics: Option<Vec<LogMetric>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
 /// `Explicit` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Explicit {
     /// bounds property.
     pub bounds: Option<Vec<f64>>,
+}
+
+/// `BucketOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BucketOptions {
+    /// explicitBuckets property.
+    pub explicit_buckets: Option<Explicit>,
+    /// exponentialBuckets property.
+    pub exponential_buckets: Option<Exponential>,
+    /// linearBuckets property.
+    pub linear_buckets: Option<Linear>,
 }
 
 /// `Linear` type.
@@ -118,17 +119,6 @@ pub struct Linear {
     pub offset: Option<f64>,
     /// width property.
     pub width: Option<f64>,
-}
-
-/// `Exponential` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Exponential {
-    /// growthFactor property.
-    pub growth_factor: Option<f64>,
-    /// numFiniteBuckets property.
-    pub num_finite_buckets: Option<i64>,
-    /// scale property.
-    pub scale: Option<f64>,
 }
 
 /// `MetricDescriptor` type.
@@ -154,6 +144,17 @@ pub struct MetricDescriptor {
     pub r#type: Option<String>,
     /// unit property.
     pub unit: Option<String>,
+    /// valueType property.
+    pub value_type: Option<String>,
+}
+
+/// `LabelDescriptor` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LabelDescriptor {
+    /// description property.
+    pub description: Option<String>,
+    /// key property.
+    pub key: Option<String>,
     /// valueType property.
     pub value_type: Option<String>,
 }

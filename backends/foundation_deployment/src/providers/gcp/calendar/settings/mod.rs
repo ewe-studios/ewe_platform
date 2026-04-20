@@ -12,30 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Setting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Setting {
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
 
 /// `Settings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -50,6 +38,19 @@ pub struct Settings {
     pub next_page_token: Option<String>,
     /// nextSyncToken property.
     pub next_sync_token: Option<String>,
+}
+
+/// `Setting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Setting {
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
 // =============================================================================

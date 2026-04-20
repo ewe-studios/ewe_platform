@@ -12,17 +12,36 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `RowDimensions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RowDimensions {
+    /// publisherIdentifier property.
+    pub publisher_identifier: Option<String>,
+    /// timeInterval property.
+    pub time_interval: Option<TimeInterval>,
+}
+
+/// `MetricValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetricValue {
+    /// value property.
+    pub value: Option<String>,
+    /// variance property.
+    pub variance: Option<String>,
+}
 
 /// `ListBidMetricsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -33,13 +52,13 @@ pub struct ListBidMetricsResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `RowDimensions` type.
+/// `TimeInterval` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RowDimensions {
-    /// publisherIdentifier property.
-    pub publisher_identifier: Option<String>,
-    /// timeInterval property.
-    pub time_interval: Option<TimeInterval>,
+pub struct TimeInterval {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
 }
 
 /// `BidMetricsRow` type.
@@ -61,24 +80,6 @@ pub struct BidMetricsRow {
     pub row_dimensions: Option<RowDimensions>,
     /// viewableImpressions property.
     pub viewable_impressions: Option<MetricValue>,
-}
-
-/// `MetricValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetricValue {
-    /// value property.
-    pub value: Option<String>,
-    /// variance property.
-    pub variance: Option<String>,
-}
-
-/// `TimeInterval` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeInterval {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
 }
 
 // =============================================================================

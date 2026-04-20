@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudChannelV1ListSkuGroupBillableSkusResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1ListSkuGroupBillableSkusResponse {
-    /// billableSkus property.
-    pub billable_skus: Option<Vec<GoogleCloudChannelV1BillableSku>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `GoogleCloudChannelV1BillableSku` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,6 +36,15 @@ pub struct GoogleCloudChannelV1BillableSku {
     pub sku: Option<String>,
     /// skuDisplayName property.
     pub sku_display_name: Option<String>,
+}
+
+/// `GoogleCloudChannelV1ListSkuGroupBillableSkusResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1ListSkuGroupBillableSkusResponse {
+    /// billableSkus property.
+    pub billable_skus: Option<Vec<GoogleCloudChannelV1BillableSku>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

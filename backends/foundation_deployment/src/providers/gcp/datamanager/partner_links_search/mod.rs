@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `SearchPartnerLinksResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchPartnerLinksResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// partnerLinks property.
+    pub partner_links: Option<Vec<PartnerLink>>,
+}
 
 /// `ProductAccount` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -33,15 +43,6 @@ pub struct ProductAccount {
     pub account_type: Option<String>,
     /// product property.
     pub product: Option<String>,
-}
-
-/// `SearchPartnerLinksResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchPartnerLinksResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// partnerLinks property.
-    pub partner_links: Option<Vec<PartnerLink>>,
 }
 
 /// `PartnerLink` type.

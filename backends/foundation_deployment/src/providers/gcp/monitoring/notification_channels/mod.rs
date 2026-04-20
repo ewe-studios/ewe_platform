@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,21 +22,28 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListNotificationChannelsResponse` type.
+/// `MutationRecord` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListNotificationChannelsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// notificationChannels property.
-    pub notification_channels: Option<Vec<NotificationChannel>>,
-    /// totalSize property.
-    pub total_size: Option<i64>,
+pub struct MutationRecord {
+    /// mutateTime property.
+    pub mutate_time: Option<String>,
+    /// mutatedBy property.
+    pub mutated_by: Option<String>,
+}
+
+/// `GetNotificationChannelVerificationCodeResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetNotificationChannelVerificationCodeResponse {
+    /// code property.
+    pub code: Option<String>,
+    /// expireTime property.
+    pub expire_time: Option<String>,
 }
 
 /// `NotificationChannel` type.
@@ -63,22 +71,15 @@ pub struct NotificationChannel {
     pub verification_status: Option<String>,
 }
 
-/// `MutationRecord` type.
+/// `ListNotificationChannelsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MutationRecord {
-    /// mutateTime property.
-    pub mutate_time: Option<String>,
-    /// mutatedBy property.
-    pub mutated_by: Option<String>,
-}
-
-/// `GetNotificationChannelVerificationCodeResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetNotificationChannelVerificationCodeResponse {
-    /// code property.
-    pub code: Option<String>,
-    /// expireTime property.
-    pub expire_time: Option<String>,
+pub struct ListNotificationChannelsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// notificationChannels property.
+    pub notification_channels: Option<Vec<NotificationChannel>>,
+    /// totalSize property.
+    pub total_size: Option<i64>,
 }
 
 // =============================================================================

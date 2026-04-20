@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -29,19 +30,6 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 pub struct QueryVmwareVersionConfigResponse {
     /// versions property.
     pub versions: Option<Vec<VmwareVersionInfo>>,
-}
-
-/// `UpgradeDependency` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpgradeDependency {
-    /// currentVersion property.
-    pub current_version: Option<String>,
-    /// membership property.
-    pub membership: Option<String>,
-    /// resourceName property.
-    pub resource_name: Option<String>,
-    /// targetVersion property.
-    pub target_version: Option<String>,
 }
 
 /// `VmwareVersionInfo` type.
@@ -55,6 +43,19 @@ pub struct VmwareVersionInfo {
     pub is_installed: Option<bool>,
     /// version property.
     pub version: Option<String>,
+}
+
+/// `UpgradeDependency` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpgradeDependency {
+    /// currentVersion property.
+    pub current_version: Option<String>,
+    /// membership property.
+    pub membership: Option<String>,
+    /// resourceName property.
+    pub resource_name: Option<String>,
+    /// targetVersion property.
+    pub target_version: Option<String>,
 }
 
 // =============================================================================

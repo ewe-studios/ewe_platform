@@ -12,17 +12,42 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudAiplatformV1BatchImportEvaluatedAnnotationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1BatchImportEvaluatedAnnotationsResponse {
+    /// importedEvaluatedAnnotationsCount property.
+    pub imported_evaluated_annotations_count: Option<i64>,
+}
+
+/// `GoogleCloudAiplatformV1ModelEvaluationSlice` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ModelEvaluationSlice {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// metrics property.
+    pub metrics: Option<serde_json::Value>,
+    /// metricsSchemaUri property.
+    pub metrics_schema_uri: Option<String>,
+    /// modelExplanation property.
+    pub model_explanation: Option<GoogleCloudAiplatformV1ModelExplanation>,
+    /// name property.
+    pub name: Option<String>,
+    /// slice property.
+    pub slice: Option<GoogleCloudAiplatformV1ModelEvaluationSliceSlice>,
+}
 
 /// `GoogleCloudAiplatformV1ListModelEvaluationSlicesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -31,6 +56,13 @@ pub struct GoogleCloudAiplatformV1ListModelEvaluationSlicesResponse {
     pub model_evaluation_slices: Option<Vec<GoogleCloudAiplatformV1ModelEvaluationSlice>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ModelExplanation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ModelExplanation {
+    /// meanAttributions property.
+    pub mean_attributions: Option<Vec<GoogleCloudAiplatformV1Attribution>>,
 }
 
 /// `GoogleCloudAiplatformV1ModelEvaluationSliceSliceSliceSpec` type.
@@ -59,30 +91,6 @@ pub struct GoogleCloudAiplatformV1Attribution {
     pub output_name: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1BatchImportEvaluatedAnnotationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1BatchImportEvaluatedAnnotationsResponse {
-    /// importedEvaluatedAnnotationsCount property.
-    pub imported_evaluated_annotations_count: Option<i64>,
-}
-
-/// `GoogleCloudAiplatformV1ModelEvaluationSlice` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ModelEvaluationSlice {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// metrics property.
-    pub metrics: Option<serde_json::Value>,
-    /// metricsSchemaUri property.
-    pub metrics_schema_uri: Option<String>,
-    /// modelExplanation property.
-    pub model_explanation: Option<GoogleCloudAiplatformV1ModelExplanation>,
-    /// name property.
-    pub name: Option<String>,
-    /// slice property.
-    pub slice: Option<GoogleCloudAiplatformV1ModelEvaluationSliceSlice>,
-}
-
 /// `GoogleCloudAiplatformV1ModelEvaluationSliceSlice` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelEvaluationSliceSlice {
@@ -92,13 +100,6 @@ pub struct GoogleCloudAiplatformV1ModelEvaluationSliceSlice {
     pub slice_spec: Option<GoogleCloudAiplatformV1ModelEvaluationSliceSliceSliceSpec>,
     /// value property.
     pub value: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ModelExplanation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ModelExplanation {
-    /// meanAttributions property.
-    pub mean_attributions: Option<Vec<GoogleCloudAiplatformV1Attribution>>,
 }
 
 // =============================================================================

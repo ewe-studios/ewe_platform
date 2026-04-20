@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,48 +23,11 @@ use serde::{Deserialize, Serialize};
 use super::shared::Operation;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `IngressFrom` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IngressFrom {
-    /// identities property.
-    pub identities: Option<Vec<String>>,
-    /// identityType property.
-    pub identity_type: Option<String>,
-    /// sources property.
-    pub sources: Option<Vec<IngressSource>>,
-}
-
-/// `IngressSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IngressSource {
-    /// accessLevel property.
-    pub access_level: Option<String>,
-    /// resource property.
-    pub resource: Option<String>,
-}
-
-/// `ServicePerimeterConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServicePerimeterConfig {
-    /// accessLevels property.
-    pub access_levels: Option<Vec<String>>,
-    /// egressPolicies property.
-    pub egress_policies: Option<Vec<EgressPolicy>>,
-    /// ingressPolicies property.
-    pub ingress_policies: Option<Vec<IngressPolicy>>,
-    /// resources property.
-    pub resources: Option<Vec<String>>,
-    /// restrictedServices property.
-    pub restricted_services: Option<Vec<String>>,
-    /// vpcAccessibleServices property.
-    pub vpc_accessible_services: Option<VpcAccessibleServices>,
-}
 
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -74,33 +38,6 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
-}
-
-/// `EgressSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EgressSource {
-    /// accessLevel property.
-    pub access_level: Option<String>,
-    /// resource property.
-    pub resource: Option<String>,
-}
-
-/// `ApiOperation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApiOperation {
-    /// methodSelectors property.
-    pub method_selectors: Option<Vec<MethodSelector>>,
-    /// serviceName property.
-    pub service_name: Option<String>,
-}
-
-/// `ListServicePerimetersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListServicePerimetersResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// servicePerimeters property.
-    pub service_perimeters: Option<Vec<ServicePerimeter>>,
 }
 
 /// `EgressTo` type.
@@ -129,6 +66,112 @@ pub struct EgressFrom {
     pub sources: Option<Vec<EgressSource>>,
 }
 
+/// `IngressPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IngressPolicy {
+    /// ingressFrom property.
+    pub ingress_from: Option<IngressFrom>,
+    /// ingressTo property.
+    pub ingress_to: Option<IngressTo>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `IngressTo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IngressTo {
+    /// operations property.
+    pub operations: Option<Vec<ApiOperation>>,
+    /// resources property.
+    pub resources: Option<Vec<String>>,
+    /// roles property.
+    pub roles: Option<Vec<String>>,
+}
+
+/// `EgressSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EgressSource {
+    /// accessLevel property.
+    pub access_level: Option<String>,
+    /// resource property.
+    pub resource: Option<String>,
+}
+
+/// `IngressFrom` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IngressFrom {
+    /// identities property.
+    pub identities: Option<Vec<String>>,
+    /// identityType property.
+    pub identity_type: Option<String>,
+    /// sources property.
+    pub sources: Option<Vec<IngressSource>>,
+}
+
+/// `ApiOperation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiOperation {
+    /// methodSelectors property.
+    pub method_selectors: Option<Vec<MethodSelector>>,
+    /// serviceName property.
+    pub service_name: Option<String>,
+}
+
+/// `ServicePerimeterConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServicePerimeterConfig {
+    /// accessLevels property.
+    pub access_levels: Option<Vec<String>>,
+    /// egressPolicies property.
+    pub egress_policies: Option<Vec<EgressPolicy>>,
+    /// ingressPolicies property.
+    pub ingress_policies: Option<Vec<IngressPolicy>>,
+    /// resources property.
+    pub resources: Option<Vec<String>>,
+    /// restrictedServices property.
+    pub restricted_services: Option<Vec<String>>,
+    /// vpcAccessibleServices property.
+    pub vpc_accessible_services: Option<VpcAccessibleServices>,
+}
+
+/// `EgressPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EgressPolicy {
+    /// egressFrom property.
+    pub egress_from: Option<EgressFrom>,
+    /// egressTo property.
+    pub egress_to: Option<EgressTo>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `VpcAccessibleServices` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VpcAccessibleServices {
+    /// allowedServices property.
+    pub allowed_services: Option<Vec<String>>,
+    /// enableRestriction property.
+    pub enable_restriction: Option<bool>,
+}
+
+/// `IngressSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IngressSource {
+    /// accessLevel property.
+    pub access_level: Option<String>,
+    /// resource property.
+    pub resource: Option<String>,
+}
+
+/// `ListServicePerimetersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListServicePerimetersResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// servicePerimeters property.
+    pub service_perimeters: Option<Vec<ServicePerimeter>>,
+}
+
 /// `ServicePerimeter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServicePerimeter {
@@ -150,17 +193,6 @@ pub struct ServicePerimeter {
     pub use_explicit_dry_run_spec: Option<bool>,
 }
 
-/// `EgressPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EgressPolicy {
-    /// egressFrom property.
-    pub egress_from: Option<EgressFrom>,
-    /// egressTo property.
-    pub egress_to: Option<EgressTo>,
-    /// title property.
-    pub title: Option<String>,
-}
-
 /// `MethodSelector` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MethodSelector {
@@ -168,37 +200,6 @@ pub struct MethodSelector {
     pub method: Option<String>,
     /// permission property.
     pub permission: Option<String>,
-}
-
-/// `IngressTo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IngressTo {
-    /// operations property.
-    pub operations: Option<Vec<ApiOperation>>,
-    /// resources property.
-    pub resources: Option<Vec<String>>,
-    /// roles property.
-    pub roles: Option<Vec<String>>,
-}
-
-/// `VpcAccessibleServices` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VpcAccessibleServices {
-    /// allowedServices property.
-    pub allowed_services: Option<Vec<String>>,
-    /// enableRestriction property.
-    pub enable_restriction: Option<bool>,
-}
-
-/// `IngressPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IngressPolicy {
-    /// ingressFrom property.
-    pub ingress_from: Option<IngressFrom>,
-    /// ingressTo property.
-    pub ingress_to: Option<IngressTo>,
-    /// title property.
-    pub title: Option<String>,
 }
 
 // =============================================================================

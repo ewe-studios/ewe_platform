@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -52,26 +53,66 @@ pub struct WorkflowInvocation {
     pub workflow_config: Option<String>,
 }
 
+/// `ListWorkflowInvocationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListWorkflowInvocationsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+    /// workflowInvocations property.
+    pub workflow_invocations: Option<Vec<WorkflowInvocation>>,
+}
+
+/// `DataPreparationAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataPreparationAction {
+    /// contentsSql property.
+    pub contents_sql: Option<ActionSqlDefinition>,
+    /// contentsYaml property.
+    pub contents_yaml: Option<String>,
+    /// generatedSql property.
+    pub generated_sql: Option<String>,
+    /// jobId property.
+    pub job_id: Option<String>,
+}
+
+/// `ActionErrorTable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActionErrorTable {
+    /// retentionDays property.
+    pub retention_days: Option<i64>,
+    /// target property.
+    pub target: Option<Target>,
+}
+
 /// `ActionSimpleLoadMode` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActionSimpleLoadMode {}
 
-/// `ActionIncrementalLoadMode` type.
+/// `NotebookAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActionIncrementalLoadMode {
-    /// column property.
-    pub column: Option<String>,
+pub struct NotebookAction {
+    /// contents property.
+    pub contents: Option<String>,
+    /// jobId property.
+    pub job_id: Option<String>,
 }
 
-/// `ActionSqlDefinition` type.
+/// `DataEncryptionState` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActionSqlDefinition {
-    /// errorTable property.
-    pub error_table: Option<ActionErrorTable>,
-    /// loadConfig property.
-    pub load_config: Option<ActionLoadConfig>,
-    /// query property.
-    pub query: Option<String>,
+pub struct DataEncryptionState {
+    /// kmsKeyVersionName property.
+    pub kms_key_version_name: Option<String>,
+}
+
+/// `BigQueryAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BigQueryAction {
+    /// jobId property.
+    pub job_id: Option<String>,
+    /// sqlScript property.
+    pub sql_script: Option<String>,
 }
 
 /// `ActionLoadConfig` type.
@@ -87,6 +128,10 @@ pub struct ActionLoadConfig {
     pub unique: Option<ActionIncrementalLoadMode>,
 }
 
+/// `CancelWorkflowInvocationResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CancelWorkflowInvocationResponse {}
+
 /// `PrivateResourceMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrivateResourceMetadata {
@@ -94,34 +139,15 @@ pub struct PrivateResourceMetadata {
     pub user_scoped: Option<bool>,
 }
 
-/// `InvocationConfig` type.
+/// `ActionSqlDefinition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InvocationConfig {
-    /// fullyRefreshIncrementalTablesEnabled property.
-    pub fully_refresh_incremental_tables_enabled: Option<bool>,
-    /// includedTags property.
-    pub included_tags: Option<Vec<String>>,
-    /// includedTargets property.
-    pub included_targets: Option<Vec<Target>>,
-    /// queryPriority property.
-    pub query_priority: Option<String>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-    /// transitiveDependenciesIncluded property.
-    pub transitive_dependencies_included: Option<bool>,
-    /// transitiveDependentsIncluded property.
-    pub transitive_dependents_included: Option<bool>,
-}
-
-/// `Target` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Target {
-    /// database property.
-    pub database: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// schema property.
-    pub schema: Option<String>,
+pub struct ActionSqlDefinition {
+    /// errorTable property.
+    pub error_table: Option<ActionErrorTable>,
+    /// loadConfig property.
+    pub load_config: Option<ActionLoadConfig>,
+    /// query property.
+    pub query: Option<String>,
 }
 
 /// `WorkflowInvocationAction` type.
@@ -147,52 +173,6 @@ pub struct WorkflowInvocationAction {
     pub target: Option<Target>,
 }
 
-/// `CancelWorkflowInvocationResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelWorkflowInvocationResponse {}
-
-/// `DataPreparationAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataPreparationAction {
-    /// contentsSql property.
-    pub contents_sql: Option<ActionSqlDefinition>,
-    /// contentsYaml property.
-    pub contents_yaml: Option<String>,
-    /// generatedSql property.
-    pub generated_sql: Option<String>,
-    /// jobId property.
-    pub job_id: Option<String>,
-}
-
-/// `NotebookAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NotebookAction {
-    /// contents property.
-    pub contents: Option<String>,
-    /// jobId property.
-    pub job_id: Option<String>,
-}
-
-/// `ListWorkflowInvocationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListWorkflowInvocationsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-    /// workflowInvocations property.
-    pub workflow_invocations: Option<Vec<WorkflowInvocation>>,
-}
-
-/// `BigQueryAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BigQueryAction {
-    /// jobId property.
-    pub job_id: Option<String>,
-    /// sqlScript property.
-    pub sql_script: Option<String>,
-}
-
 /// `QueryWorkflowInvocationActionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryWorkflowInvocationActionsResponse {
@@ -202,20 +182,30 @@ pub struct QueryWorkflowInvocationActionsResponse {
     pub workflow_invocation_actions: Option<Vec<WorkflowInvocationAction>>,
 }
 
-/// `DataEncryptionState` type.
+/// `ActionIncrementalLoadMode` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataEncryptionState {
-    /// kmsKeyVersionName property.
-    pub kms_key_version_name: Option<String>,
+pub struct ActionIncrementalLoadMode {
+    /// column property.
+    pub column: Option<String>,
 }
 
-/// `ActionErrorTable` type.
+/// `InvocationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActionErrorTable {
-    /// retentionDays property.
-    pub retention_days: Option<i64>,
-    /// target property.
-    pub target: Option<Target>,
+pub struct InvocationConfig {
+    /// fullyRefreshIncrementalTablesEnabled property.
+    pub fully_refresh_incremental_tables_enabled: Option<bool>,
+    /// includedTags property.
+    pub included_tags: Option<Vec<String>>,
+    /// includedTargets property.
+    pub included_targets: Option<Vec<Target>>,
+    /// queryPriority property.
+    pub query_priority: Option<String>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// transitiveDependenciesIncluded property.
+    pub transitive_dependencies_included: Option<bool>,
+    /// transitiveDependentsIncluded property.
+    pub transitive_dependents_included: Option<bool>,
 }
 
 /// `Interval` type.
@@ -225,6 +215,17 @@ pub struct Interval {
     pub end_time: Option<String>,
     /// startTime property.
     pub start_time: Option<String>,
+}
+
+/// `Target` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Target {
+    /// database property.
+    pub database: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// schema property.
+    pub schema: Option<String>,
 }
 
 // =============================================================================

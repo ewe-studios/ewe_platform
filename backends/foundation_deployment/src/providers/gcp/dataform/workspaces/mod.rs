@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,15 +24,11 @@ use super::shared::Empty;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `CommitWorkspaceChangesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CommitWorkspaceChangesResponse {}
 
 /// `FetchFileGitStatusesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -39,6 +36,136 @@ pub struct FetchFileGitStatusesResponse {
     /// uncommittedFileChanges property.
     pub uncommitted_file_changes: Option<Vec<UncommittedFileChange>>,
 }
+
+/// `MoveFileResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MoveFileResponse {}
+
+/// `CommitWorkspaceChangesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CommitWorkspaceChangesResponse {}
+
+/// `RemoveDirectoryResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RemoveDirectoryResponse {}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `ListWorkspacesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListWorkspacesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+    /// workspaces property.
+    pub workspaces: Option<Vec<Workspace>>,
+}
+
+/// `MoveDirectoryResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MoveDirectoryResponse {}
+
+/// `UncommittedFileChange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UncommittedFileChange {
+    /// path property.
+    pub path: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `WriteFileResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WriteFileResponse {}
+
+/// `ReadFileResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReadFileResponse {
+    /// fileContents property.
+    pub file_contents: Option<String>,
+}
+
+/// `InstallNpmPackagesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstallNpmPackagesResponse {}
+
+/// `MakeDirectoryResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MakeDirectoryResponse {}
+
+/// `FetchFileDiffResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FetchFileDiffResponse {
+    /// formattedDiff property.
+    pub formatted_diff: Option<String>,
+}
+
+/// `FileSearchResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FileSearchResult {
+    /// path property.
+    pub path: Option<String>,
+}
+
+/// `RemoveFileResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RemoveFileResponse {}
+
+/// `DataEncryptionState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataEncryptionState {
+    /// kmsKeyVersionName property.
+    pub kms_key_version_name: Option<String>,
+}
+
+/// `PullGitCommitsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PullGitCommitsResponse {}
+
+/// `FetchGitAheadBehindResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FetchGitAheadBehindResponse {
+    /// commitsAhead property.
+    pub commits_ahead: Option<i64>,
+    /// commitsBehind property.
+    pub commits_behind: Option<i64>,
+}
+
+/// `DirectorySearchResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DirectorySearchResult {
+    /// path property.
+    pub path: Option<String>,
+}
+
+/// `PushGitCommitsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PushGitCommitsResponse {}
+
+/// `SearchResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchResult {
+    /// directory property.
+    pub directory: Option<DirectorySearchResult>,
+    /// file property.
+    pub file: Option<FileSearchResult>,
+}
+
+/// `ResetWorkspaceChangesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResetWorkspaceChangesResponse {}
 
 /// `Workspace` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -57,57 +184,14 @@ pub struct Workspace {
     pub private_resource_metadata: Option<PrivateResourceMetadata>,
 }
 
-/// `FileSearchResult` type.
+/// `FilesystemEntryMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FileSearchResult {
-    /// path property.
-    pub path: Option<String>,
+pub struct FilesystemEntryMetadata {
+    /// sizeBytes property.
+    pub size_bytes: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
 }
-
-/// `MoveFileResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MoveFileResponse {}
-
-/// `WriteFileResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WriteFileResponse {}
-
-/// `RemoveFileResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemoveFileResponse {}
-
-/// `ReadFileResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReadFileResponse {
-    /// fileContents property.
-    pub file_contents: Option<String>,
-}
-
-/// `SearchResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchResult {
-    /// directory property.
-    pub directory: Option<DirectorySearchResult>,
-    /// file property.
-    pub file: Option<FileSearchResult>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `PushGitCommitsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PushGitCommitsResponse {}
 
 /// `SearchFilesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -118,39 +202,31 @@ pub struct SearchFilesResponse {
     pub search_results: Option<Vec<SearchResult>>,
 }
 
-/// `DataEncryptionState` type.
+/// `PrivateResourceMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataEncryptionState {
-    /// kmsKeyVersionName property.
-    pub kms_key_version_name: Option<String>,
+pub struct PrivateResourceMetadata {
+    /// userScoped property.
+    pub user_scoped: Option<bool>,
 }
 
-/// `UncommittedFileChange` type.
+/// `QueryDirectoryContentsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UncommittedFileChange {
-    /// path property.
-    pub path: Option<String>,
-    /// state property.
-    pub state: Option<String>,
+pub struct QueryDirectoryContentsResponse {
+    /// directoryEntries property.
+    pub directory_entries: Option<Vec<DirectoryEntry>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
-/// `MakeDirectoryResponse` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MakeDirectoryResponse {}
-
-/// `InstallNpmPackagesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstallNpmPackagesResponse {}
-
-/// `PullGitCommitsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PullGitCommitsResponse {}
-
-/// `DirectorySearchResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DirectorySearchResult {
-    /// path property.
-    pub path: Option<String>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `DirectoryEntry` type.
@@ -162,81 +238,6 @@ pub struct DirectoryEntry {
     pub file: Option<String>,
     /// metadata property.
     pub metadata: Option<FilesystemEntryMetadata>,
-}
-
-/// `PrivateResourceMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrivateResourceMetadata {
-    /// userScoped property.
-    pub user_scoped: Option<bool>,
-}
-
-/// `MoveDirectoryResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MoveDirectoryResponse {}
-
-/// `FetchGitAheadBehindResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FetchGitAheadBehindResponse {
-    /// commitsAhead property.
-    pub commits_ahead: Option<i64>,
-    /// commitsBehind property.
-    pub commits_behind: Option<i64>,
-}
-
-/// `ResetWorkspaceChangesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResetWorkspaceChangesResponse {}
-
-/// `QueryDirectoryContentsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryDirectoryContentsResponse {
-    /// directoryEntries property.
-    pub directory_entries: Option<Vec<DirectoryEntry>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `FilesystemEntryMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FilesystemEntryMetadata {
-    /// sizeBytes property.
-    pub size_bytes: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `FetchFileDiffResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FetchFileDiffResponse {
-    /// formattedDiff property.
-    pub formatted_diff: Option<String>,
-}
-
-/// `ListWorkspacesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListWorkspacesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-    /// workspaces property.
-    pub workspaces: Option<Vec<Workspace>>,
-}
-
-/// `RemoveDirectoryResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemoveDirectoryResponse {}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,72 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::LiveBroadcast;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `LiveBroadcastStatistics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveBroadcastStatistics {
-    /// concurrentViewers property.
-    pub concurrent_viewers: Option<String>,
-}
-
-/// `LiveBroadcastStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveBroadcastStatus {
-    /// lifeCycleStatus property.
-    pub life_cycle_status: Option<String>,
-    /// liveBroadcastPriority property.
-    pub live_broadcast_priority: Option<String>,
-    /// madeForKids property.
-    pub made_for_kids: Option<bool>,
-    /// privacyStatus property.
-    pub privacy_status: Option<String>,
-    /// recordingStatus property.
-    pub recording_status: Option<String>,
-    /// selfDeclaredMadeForKids property.
-    pub self_declared_made_for_kids: Option<bool>,
-}
-
-/// `Thumbnail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Thumbnail {
-    /// height property.
-    pub height: Option<i64>,
-    /// url property.
-    pub url: Option<String>,
-    /// width property.
-    pub width: Option<i64>,
-}
-
-/// `MonitorStreamInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MonitorStreamInfo {
-    /// broadcastStreamDelayMs property.
-    pub broadcast_stream_delay_ms: Option<i64>,
-    /// embedHtml property.
-    pub embed_html: Option<String>,
-    /// enableMonitorStream property.
-    pub enable_monitor_stream: Option<bool>,
-}
-
-/// `ThumbnailDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ThumbnailDetails {
-    /// default property.
-    pub default: Option<Thumbnail>,
-    /// high property.
-    pub high: Option<Thumbnail>,
-    /// maxres property.
-    pub maxres: Option<Thumbnail>,
-    /// medium property.
-    pub medium: Option<Thumbnail>,
-    /// standard property.
-    pub standard: Option<Thumbnail>,
-}
 
 /// `LiveBroadcastContentDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -127,24 +67,54 @@ pub struct LiveBroadcastContentDetails {
     pub stereo_layout: Option<String>,
 }
 
-/// `CuepointSchedule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CuepointSchedule {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// pauseAdsUntil property.
-    pub pause_ads_until: Option<String>,
-    /// repeatIntervalSecs property.
-    pub repeat_interval_secs: Option<i64>,
-    /// scheduleStrategy property.
-    pub schedule_strategy: Option<String>,
-}
-
 /// `LiveBroadcastMonetizationDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveBroadcastMonetizationDetails {
     /// cuepointSchedule property.
     pub cuepoint_schedule: Option<CuepointSchedule>,
+}
+
+/// `MonitorStreamInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MonitorStreamInfo {
+    /// broadcastStreamDelayMs property.
+    pub broadcast_stream_delay_ms: Option<i64>,
+    /// embedHtml property.
+    pub embed_html: Option<String>,
+    /// enableMonitorStream property.
+    pub enable_monitor_stream: Option<bool>,
+}
+
+/// `LiveBroadcastStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiveBroadcastStatus {
+    /// lifeCycleStatus property.
+    pub life_cycle_status: Option<String>,
+    /// liveBroadcastPriority property.
+    pub live_broadcast_priority: Option<String>,
+    /// madeForKids property.
+    pub made_for_kids: Option<bool>,
+    /// privacyStatus property.
+    pub privacy_status: Option<String>,
+    /// recordingStatus property.
+    pub recording_status: Option<String>,
+    /// selfDeclaredMadeForKids property.
+    pub self_declared_made_for_kids: Option<bool>,
+}
+
+/// `ThumbnailDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ThumbnailDetails {
+    /// default property.
+    pub default: Option<Thumbnail>,
+    /// high property.
+    pub high: Option<Thumbnail>,
+    /// maxres property.
+    pub maxres: Option<Thumbnail>,
+    /// medium property.
+    pub medium: Option<Thumbnail>,
+    /// standard property.
+    pub standard: Option<Thumbnail>,
 }
 
 /// `LiveBroadcastSnippet` type.
@@ -172,6 +142,37 @@ pub struct LiveBroadcastSnippet {
     pub thumbnails: Option<ThumbnailDetails>,
     /// title property.
     pub title: Option<String>,
+}
+
+/// `LiveBroadcastStatistics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiveBroadcastStatistics {
+    /// concurrentViewers property.
+    pub concurrent_viewers: Option<String>,
+}
+
+/// `Thumbnail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Thumbnail {
+    /// height property.
+    pub height: Option<i64>,
+    /// url property.
+    pub url: Option<String>,
+    /// width property.
+    pub width: Option<i64>,
+}
+
+/// `CuepointSchedule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CuepointSchedule {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// pauseAdsUntil property.
+    pub pause_ads_until: Option<String>,
+    /// repeatIntervalSecs property.
+    pub repeat_interval_secs: Option<i64>,
+    /// scheduleStrategy property.
+    pub schedule_strategy: Option<String>,
 }
 
 // =============================================================================

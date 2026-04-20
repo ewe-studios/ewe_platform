@@ -12,25 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ProductPriceConfig` type.
+/// `Amount` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductPriceConfig {
-    /// amount property.
-    pub amount: Option<Amount>,
-    /// regionCode property.
-    pub region_code: Option<String>,
+pub struct Amount {
+    /// amountMicros property.
+    pub amount_micros: Option<String>,
+    /// currencyCode property.
+    pub currency_code: Option<String>,
 }
 
 /// `ProductBundleDetailsBundleElement` type.
@@ -40,24 +41,6 @@ pub struct ProductBundleDetailsBundleElement {
     pub product: Option<String>,
 }
 
-/// `ListProductsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListProductsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// products property.
-    pub products: Option<Vec<Product>>,
-}
-
-/// `Duration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Duration {
-    /// count property.
-    pub count: Option<i64>,
-    /// unit property.
-    pub unit: Option<String>,
-}
-
 /// `GoogleTypeLocalizedText` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeLocalizedText {
@@ -65,6 +48,15 @@ pub struct GoogleTypeLocalizedText {
     pub language_code: Option<String>,
     /// text property.
     pub text: Option<String>,
+}
+
+/// `ListProductsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListProductsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// products property.
+    pub products: Option<Vec<Product>>,
 }
 
 /// `Product` type.
@@ -88,20 +80,13 @@ pub struct Product {
     pub titles: Option<Vec<GoogleTypeLocalizedText>>,
 }
 
-/// `FiniteBillingCycleDetails` type.
+/// `ProductPriceConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FiniteBillingCycleDetails {
-    /// billingCycleCountLimit property.
-    pub billing_cycle_count_limit: Option<String>,
-}
-
-/// `Amount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Amount {
-    /// amountMicros property.
-    pub amount_micros: Option<String>,
-    /// currencyCode property.
-    pub currency_code: Option<String>,
+pub struct ProductPriceConfig {
+    /// amount property.
+    pub amount: Option<Amount>,
+    /// regionCode property.
+    pub region_code: Option<String>,
 }
 
 /// `ProductBundleDetails` type.
@@ -111,6 +96,22 @@ pub struct ProductBundleDetails {
     pub bundle_elements: Option<Vec<ProductBundleDetailsBundleElement>>,
     /// entitlementMode property.
     pub entitlement_mode: Option<String>,
+}
+
+/// `FiniteBillingCycleDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FiniteBillingCycleDetails {
+    /// billingCycleCountLimit property.
+    pub billing_cycle_count_limit: Option<String>,
+}
+
+/// `Duration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Duration {
+    /// count property.
+    pub count: Option<i64>,
+    /// unit property.
+    pub unit: Option<String>,
 }
 
 // =============================================================================

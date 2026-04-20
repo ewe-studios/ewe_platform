@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,22 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListDatacenterConnectorsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDatacenterConnectorsResponse {
-    /// datacenterConnectors property.
-    pub datacenter_connectors: Option<Vec<DatacenterConnector>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
 
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,17 +39,13 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `ApplianceVersion` type.
+/// `AvailableUpdates` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApplianceVersion {
-    /// critical property.
-    pub critical: Option<bool>,
-    /// releaseNotesUri property.
-    pub release_notes_uri: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-    /// version property.
-    pub version: Option<String>,
+pub struct AvailableUpdates {
+    /// inPlaceUpdate property.
+    pub in_place_update: Option<ApplianceVersion>,
+    /// newDeployableAppliance property.
+    pub new_deployable_appliance: Option<ApplianceVersion>,
 }
 
 /// `UpgradeStatus` type.
@@ -75,6 +61,17 @@ pub struct UpgradeStatus {
     pub state: Option<String>,
     /// version property.
     pub version: Option<String>,
+}
+
+/// `ListDatacenterConnectorsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDatacenterConnectorsResponse {
+    /// datacenterConnectors property.
+    pub datacenter_connectors: Option<Vec<DatacenterConnector>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `DatacenterConnector` type.
@@ -110,13 +107,17 @@ pub struct DatacenterConnector {
     pub version: Option<String>,
 }
 
-/// `AvailableUpdates` type.
+/// `ApplianceVersion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AvailableUpdates {
-    /// inPlaceUpdate property.
-    pub in_place_update: Option<ApplianceVersion>,
-    /// newDeployableAppliance property.
-    pub new_deployable_appliance: Option<ApplianceVersion>,
+pub struct ApplianceVersion {
+    /// critical property.
+    pub critical: Option<bool>,
+    /// releaseNotesUri property.
+    pub release_notes_uri: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
 // =============================================================================

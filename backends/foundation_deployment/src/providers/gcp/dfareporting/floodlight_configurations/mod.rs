@@ -12,35 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `LookbackConfiguration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LookbackConfiguration {
-    /// clickDuration property.
-    pub click_duration: Option<i64>,
-    /// postImpressionActivitiesDuration property.
-    pub post_impression_activities_duration: Option<i64>,
-}
-
-/// `ThirdPartyAuthenticationToken` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ThirdPartyAuthenticationToken {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
 
 /// `CustomViewabilityMetricConfiguration` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -55,17 +38,6 @@ pub struct CustomViewabilityMetricConfiguration {
     pub viewability_percent: Option<i64>,
 }
 
-/// `CustomViewabilityMetric` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomViewabilityMetric {
-    /// configuration property.
-    pub configuration: Option<CustomViewabilityMetricConfiguration>,
-    /// id property.
-    pub id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
 /// `TagSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TagSettings {
@@ -73,6 +45,15 @@ pub struct TagSettings {
     pub dynamic_tag_enabled: Option<bool>,
     /// imageTagEnabled property.
     pub image_tag_enabled: Option<bool>,
+}
+
+/// `OmnitureSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OmnitureSettings {
+    /// omnitureCostDataEnabled property.
+    pub omniture_cost_data_enabled: Option<bool>,
+    /// omnitureIntegrationEnabled property.
+    pub omniture_integration_enabled: Option<bool>,
 }
 
 /// `UserDefinedVariableConfiguration` type.
@@ -86,13 +67,13 @@ pub struct UserDefinedVariableConfiguration {
     pub variable_type: Option<String>,
 }
 
-/// `OmnitureSettings` type.
+/// `FloodlightConfigurationsListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OmnitureSettings {
-    /// omnitureCostDataEnabled property.
-    pub omniture_cost_data_enabled: Option<bool>,
-    /// omnitureIntegrationEnabled property.
-    pub omniture_integration_enabled: Option<bool>,
+pub struct FloodlightConfigurationsListResponse {
+    /// floodlightConfigurations property.
+    pub floodlight_configurations: Option<Vec<FloodlightConfiguration>>,
+    /// kind property.
+    pub kind: Option<String>,
 }
 
 /// `DimensionValue` type.
@@ -110,6 +91,35 @@ pub struct DimensionValue {
     pub match_type: Option<String>,
     /// value property.
     pub value: Option<String>,
+}
+
+/// `ThirdPartyAuthenticationToken` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ThirdPartyAuthenticationToken {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `CustomViewabilityMetric` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomViewabilityMetric {
+    /// configuration property.
+    pub configuration: Option<CustomViewabilityMetricConfiguration>,
+    /// id property.
+    pub id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `LookbackConfiguration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LookbackConfiguration {
+    /// clickDuration property.
+    pub click_duration: Option<i64>,
+    /// postImpressionActivitiesDuration property.
+    pub post_impression_activities_duration: Option<i64>,
 }
 
 /// `FloodlightConfiguration` type.
@@ -151,15 +161,6 @@ pub struct FloodlightConfiguration {
     pub third_party_authentication_tokens: Option<Vec<ThirdPartyAuthenticationToken>>,
     /// userDefinedVariableConfigurations property.
     pub user_defined_variable_configurations: Option<Vec<UserDefinedVariableConfiguration>>,
-}
-
-/// `FloodlightConfigurationsListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FloodlightConfigurationsListResponse {
-    /// floodlightConfigurations property.
-    pub floodlight_configurations: Option<Vec<FloodlightConfiguration>>,
-    /// kind property.
-    pub kind: Option<String>,
 }
 
 // =============================================================================

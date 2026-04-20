@@ -12,36 +12,37 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudDatacatalogV1ExportTaxonomiesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1ExportTaxonomiesResponse {
-    /// taxonomies property.
-    pub taxonomies: Option<Vec<GoogleCloudDatacatalogV1SerializedTaxonomy>>,
-}
-
 /// `GoogleCloudDatacatalogV1SerializedPolicyTag` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1SerializedPolicyTag {
     /// childPolicyTags property.
-    pub child_policy_tags: Option<Vec<GoogleCloudDatacatalogV1SerializedPolicyTag>>,
+    pub child_policy_tags: Option<Vec<Box<GoogleCloudDatacatalogV1SerializedPolicyTag>>>,
     /// description property.
     pub description: Option<String>,
     /// displayName property.
     pub display_name: Option<String>,
     /// policyTag property.
     pub policy_tag: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogV1ExportTaxonomiesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1ExportTaxonomiesResponse {
+    /// taxonomies property.
+    pub taxonomies: Option<Vec<GoogleCloudDatacatalogV1SerializedTaxonomy>>,
 }
 
 /// `GoogleCloudDatacatalogV1SerializedTaxonomy` type.
@@ -54,7 +55,7 @@ pub struct GoogleCloudDatacatalogV1SerializedTaxonomy {
     /// displayName property.
     pub display_name: Option<String>,
     /// policyTags property.
-    pub policy_tags: Option<Vec<GoogleCloudDatacatalogV1SerializedPolicyTag>>,
+    pub policy_tags: Option<Vec<Box<GoogleCloudDatacatalogV1SerializedPolicyTag>>>,
 }
 
 // =============================================================================

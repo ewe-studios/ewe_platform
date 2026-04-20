@@ -1,12 +1,14 @@
 //! Shared API types for all providers.
 //!
-//! WHY: Avoid duplicating `ApiError`, `ApiPending`, and `ApiResponse` in every provider.
+//! WHY: Avoid duplicating `ApiError`, `ApiPending`, `ApiResponse`, `Empty`, and `Operation`
+//!      in every provider. These types are generated identically across all providers.
 //!
 //! WHAT: Provider-agnostic error and response types used by all generated API clients.
 //!
 //! HOW: Re-export these from each provider's `shared` module for convenience.
 
 use foundation_core::wire::simple_http::SimpleHeaders;
+use serde::{Deserialize, Serialize};
 
 // Re-export types from foundation_core for convenience
 pub use foundation_core::valtron::BoxedSendExecutionAction;
@@ -61,4 +63,18 @@ pub struct ApiResponse<T> {
     pub status: u16,
     pub headers: SimpleHeaders,
     pub body: T,
+}
+
+/// Empty response body for endpoints that return `{}`.
+#[derive(Debug, Clone, Serialize, Deserialize, foundation_macros::JsonHash)]
+pub struct Empty {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// Operation metadata returned by long-running GCP operations.
+#[derive(Debug, Clone, Serialize, Deserialize, foundation_macros::JsonHash)]
+pub struct Operation {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }

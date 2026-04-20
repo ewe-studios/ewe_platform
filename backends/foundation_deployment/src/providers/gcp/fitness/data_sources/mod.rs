@@ -12,27 +12,38 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DataTypeField` type.
+/// `DataSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataTypeField {
-    /// format property.
-    pub format: Option<String>,
+pub struct DataSource {
+    /// application property.
+    pub application: Option<Application>,
+    /// dataQualityStandard property.
+    pub data_quality_standard: Option<Vec<String>>,
+    /// dataStreamId property.
+    pub data_stream_id: Option<String>,
+    /// dataStreamName property.
+    pub data_stream_name: Option<String>,
+    /// dataType property.
+    pub data_type: Option<DataType>,
+    /// device property.
+    pub device: Option<Device>,
     /// name property.
     pub name: Option<String>,
-    /// optional property.
-    pub optional: Option<bool>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `DataType` type.
@@ -59,13 +70,6 @@ pub struct Device {
     pub version: Option<String>,
 }
 
-/// `ListDataSourcesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDataSourcesResponse {
-    /// dataSource property.
-    pub data_source: Option<Vec<DataSource>>,
-}
-
 /// `Application` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Application {
@@ -79,25 +83,22 @@ pub struct Application {
     pub version: Option<String>,
 }
 
-/// `DataSource` type.
+/// `DataTypeField` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSource {
-    /// application property.
-    pub application: Option<Application>,
-    /// dataQualityStandard property.
-    pub data_quality_standard: Option<Vec<String>>,
-    /// dataStreamId property.
-    pub data_stream_id: Option<String>,
-    /// dataStreamName property.
-    pub data_stream_name: Option<String>,
-    /// dataType property.
-    pub data_type: Option<DataType>,
-    /// device property.
-    pub device: Option<Device>,
+pub struct DataTypeField {
+    /// format property.
+    pub format: Option<String>,
     /// name property.
     pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+    /// optional property.
+    pub optional: Option<bool>,
+}
+
+/// `ListDataSourcesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDataSourcesResponse {
+    /// dataSource property.
+    pub data_source: Option<Vec<DataSource>>,
 }
 
 // =============================================================================

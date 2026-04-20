@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -38,15 +39,6 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `ListTagBindingsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListTagBindingsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// tagBindings property.
-    pub tag_bindings: Option<Vec<TagBinding>>,
-}
-
 /// `TagBinding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TagBinding {
@@ -58,6 +50,15 @@ pub struct TagBinding {
     pub tag_value: Option<String>,
     /// tagValueNamespacedName property.
     pub tag_value_namespaced_name: Option<String>,
+}
+
+/// `ListTagBindingsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListTagBindingsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// tagBindings property.
+    pub tag_bindings: Option<Vec<TagBinding>>,
 }
 
 // =============================================================================

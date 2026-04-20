@@ -12,17 +12,35 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `User` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct User {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// emailAddress property.
+    pub email_address: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// me property.
+    pub me: Option<bool>,
+    /// permissionId property.
+    pub permission_id: Option<String>,
+    /// photoLink property.
+    pub photo_link: Option<String>,
+}
 
 /// `About` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -53,23 +71,6 @@ pub struct About {
     pub team_drive_themes: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
     /// user property.
     pub user: Option<User>,
-}
-
-/// `User` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct User {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// emailAddress property.
-    pub email_address: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// me property.
-    pub me: Option<bool>,
-    /// permissionId property.
-    pub permission_id: Option<String>,
-    /// photoLink property.
-    pub photo_link: Option<String>,
 }
 
 // =============================================================================

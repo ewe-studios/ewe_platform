@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,80 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleCloudDatacatalogV1Entry;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKeyForeignKeyColumnMapping` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKeyForeignKeyColumnMapping {
-    /// column property.
-    pub column: Option<String>,
-    /// referenceColumn property.
-    pub reference_column: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogV1GraphSpecGraphElementTableGraphNodeReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTableGraphNodeReference {
-    /// edgeTableColumns property.
-    pub edge_table_columns: Option<Vec<String>>,
-    /// nodeAlias property.
-    pub node_alias: Option<String>,
-    /// nodeTableColumns property.
-    pub node_table_columns: Option<Vec<String>>,
-}
-
-/// `GoogleCloudDatacatalogV1PhysicalSchemaCsvSchema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1PhysicalSchemaCsvSchema {}
-
-/// `GoogleCloudDatacatalogV1PhysicalSchemaOrcSchema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1PhysicalSchemaOrcSchema {}
-
-/// `GoogleCloudDatacatalogV1CloudBigtableSystemSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1CloudBigtableSystemSpec {
-    /// instanceDisplayName property.
-    pub instance_display_name: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogV1PhysicalSchemaProtobufSchema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1PhysicalSchemaProtobufSchema {
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogV1CloudSqlBigQueryConnectionSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1CloudSqlBigQueryConnectionSpec {
-    /// database property.
-    pub database: Option<String>,
-    /// instanceId property.
-    pub instance_id: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogV1SpannerTableSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1SpannerTableSpec {
-    /// foreignKeys property.
-    pub foreign_keys: Option<Vec<GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKey>>,
-    /// primaryKey property.
-    pub primary_key: Option<GoogleCloudDatacatalogV1SpannerTableSpecSpannerPrimaryKey>,
-}
-
-/// `GoogleCloudDatacatalogV1BigQueryRoutineSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1BigQueryRoutineSpec {
-    /// importedLibraries property.
-    pub imported_libraries: Option<Vec<String>>,
-}
 
 /// `GoogleCloudDatacatalogV1DatabaseTableSpecDatabaseViewSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -107,16 +39,137 @@ pub struct GoogleCloudDatacatalogV1DatabaseTableSpecDatabaseViewSpec {
     pub view_type: Option<String>,
 }
 
-/// `GoogleCloudDatacatalogV1RoutineSpecArgument` type.
+/// `GoogleCloudDatacatalogV1DatasetSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1RoutineSpecArgument {
-    /// mode property.
-    pub mode: Option<String>,
+pub struct GoogleCloudDatacatalogV1DatasetSpec {
+    /// vertexDatasetSpec property.
+    pub vertex_dataset_spec: Option<GoogleCloudDatacatalogV1VertexDatasetSpec>,
+}
+
+/// `GoogleCloudDatacatalogV1UsageSignal` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1UsageSignal {
+    /// commonUsageWithinTimeRange property.
+    pub common_usage_within_time_range: Option<serde_json::Value>,
+    /// favoriteCount property.
+    pub favorite_count: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+    /// usageWithinTimeRange property.
+    pub usage_within_time_range: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudDatacatalogV1GraphSpecGraphElementTableProperty` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTableProperty {
     /// name property.
     pub name: Option<String>,
     /// type property.
     pub r#type: Option<String>,
 }
+
+/// `GoogleCloudDatacatalogV1CloudBigtableInstanceSpecCloudBigtableClusterSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1CloudBigtableInstanceSpecCloudBigtableClusterSpec {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// linkedResource property.
+    pub linked_resource: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogV1DataplexFilesetSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1DataplexFilesetSpec {
+    /// dataplexSpec property.
+    pub dataplex_spec: Option<GoogleCloudDatacatalogV1DataplexSpec>,
+}
+
+/// `GoogleCloudDatacatalogV1PhysicalSchemaThriftSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1PhysicalSchemaThriftSchema {
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogV1VertexDatasetSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1VertexDatasetSpec {
+    /// dataItemCount property.
+    pub data_item_count: Option<String>,
+    /// dataType property.
+    pub data_type: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogV1BigQueryTableSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1BigQueryTableSpec {
+    /// tableSourceType property.
+    pub table_source_type: Option<String>,
+    /// tableSpec property.
+    pub table_spec: Option<GoogleCloudDatacatalogV1TableSpec>,
+    /// viewSpec property.
+    pub view_spec: Option<GoogleCloudDatacatalogV1ViewSpec>,
+}
+
+/// `GoogleCloudDatacatalogV1ColumnSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1ColumnSchema {
+    /// column property.
+    pub column: Option<String>,
+    /// defaultValue property.
+    pub default_value: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// gcRule property.
+    pub gc_rule: Option<String>,
+    /// highestIndexingType property.
+    pub highest_indexing_type: Option<String>,
+    /// lookerColumnSpec property.
+    pub looker_column_spec: Option<GoogleCloudDatacatalogV1ColumnSchemaLookerColumnSpec>,
+    /// mode property.
+    pub mode: Option<String>,
+    /// ordinalPosition property.
+    pub ordinal_position: Option<i64>,
+    /// rangeElementType property.
+    pub range_element_type: Option<GoogleCloudDatacatalogV1ColumnSchemaFieldElementType>,
+    /// subcolumns property.
+    pub subcolumns: Option<Vec<Box<GoogleCloudDatacatalogV1ColumnSchema>>>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogV1ContactsPerson` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1ContactsPerson {
+    /// designation property.
+    pub designation: Option<String>,
+    /// email property.
+    pub email: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogV1BusinessContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1BusinessContext {
+    /// contacts property.
+    pub contacts: Option<GoogleCloudDatacatalogV1Contacts>,
+    /// entryOverview property.
+    pub entry_overview: Option<GoogleCloudDatacatalogV1EntryOverview>,
+}
+
+/// `GoogleCloudDatacatalogV1FilesetSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1FilesetSpec {
+    /// dataplexFileset property.
+    pub dataplex_fileset: Option<GoogleCloudDatacatalogV1DataplexFilesetSpec>,
+}
+
+/// `GoogleCloudDatacatalogV1PhysicalSchemaCsvSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1PhysicalSchemaCsvSchema {}
 
 /// `GoogleCloudDatacatalogV1GraphSpecGraphElementTable` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -146,134 +199,13 @@ pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTable {
         Option<GoogleCloudDatacatalogV1GraphSpecGraphElementTableGraphNodeReference>,
 }
 
-/// `GoogleCloudDatacatalogV1BusinessContext` type.
+/// `GoogleCloudDatacatalogV1SpannerTableSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1BusinessContext {
-    /// contacts property.
-    pub contacts: Option<GoogleCloudDatacatalogV1Contacts>,
-    /// entryOverview property.
-    pub entry_overview: Option<GoogleCloudDatacatalogV1EntryOverview>,
-}
-
-/// `GoogleCloudDatacatalogV1ModelSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1ModelSpec {
-    /// vertexModelSpec property.
-    pub vertex_model_spec: Option<GoogleCloudDatacatalogV1VertexModelSpec>,
-}
-
-/// `GoogleCloudDatacatalogV1PhysicalSchemaParquetSchema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1PhysicalSchemaParquetSchema {}
-
-/// `GoogleCloudDatacatalogV1FilesetSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1FilesetSpec {
-    /// dataplexFileset property.
-    pub dataplex_fileset: Option<GoogleCloudDatacatalogV1DataplexFilesetSpec>,
-}
-
-/// `GoogleCloudDatacatalogV1CloudBigtableInstanceSpecCloudBigtableClusterSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1CloudBigtableInstanceSpecCloudBigtableClusterSpec {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// linkedResource property.
-    pub linked_resource: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogV1GraphSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1GraphSpec {
-    /// edgeTables property.
-    pub edge_tables: Option<Vec<GoogleCloudDatacatalogV1GraphSpecGraphElementTable>>,
-    /// name property.
-    pub name: Option<String>,
-    /// nodeTables property.
-    pub node_tables: Option<Vec<GoogleCloudDatacatalogV1GraphSpecGraphElementTable>>,
-}
-
-/// `GoogleCloudDatacatalogV1SqlDatabaseSystemSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1SqlDatabaseSystemSpec {
-    /// databaseVersion property.
-    pub database_version: Option<String>,
-    /// instanceHost property.
-    pub instance_host: Option<String>,
-    /// sqlEngine property.
-    pub sql_engine: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogV1DataplexExternalTable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1DataplexExternalTable {
-    /// dataCatalogEntry property.
-    pub data_catalog_entry: Option<String>,
-    /// fullyQualifiedName property.
-    pub fully_qualified_name: Option<String>,
-    /// googleCloudResource property.
-    pub google_cloud_resource: Option<String>,
-    /// system property.
-    pub system: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogV1SpannerTableSpecSpannerPrimaryKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1SpannerTableSpecSpannerPrimaryKey {
-    /// columns property.
-    pub columns: Option<Vec<String>>,
-}
-
-/// `GoogleCloudDatacatalogV1PhysicalSchemaThriftSchema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1PhysicalSchemaThriftSchema {
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogV1SystemTimestamps` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1SystemTimestamps {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// expireTime property.
-    pub expire_time: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogV1DataSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1DataSource {
-    /// resource property.
-    pub resource: Option<String>,
-    /// service property.
-    pub service: Option<String>,
-    /// sourceEntry property.
-    pub source_entry: Option<String>,
-    /// storageProperties property.
-    pub storage_properties: Option<GoogleCloudDatacatalogV1StorageProperties>,
-}
-
-/// `GoogleCloudDatacatalogV1LookerSystemSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1LookerSystemSpec {
-    /// parentInstanceDisplayName property.
-    pub parent_instance_display_name: Option<String>,
-    /// parentInstanceId property.
-    pub parent_instance_id: Option<String>,
-    /// parentModelDisplayName property.
-    pub parent_model_display_name: Option<String>,
-    /// parentModelId property.
-    pub parent_model_id: Option<String>,
-    /// parentViewDisplayName property.
-    pub parent_view_display_name: Option<String>,
-    /// parentViewId property.
-    pub parent_view_id: Option<String>,
+pub struct GoogleCloudDatacatalogV1SpannerTableSpec {
+    /// foreignKeys property.
+    pub foreign_keys: Option<Vec<GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKey>>,
+    /// primaryKey property.
+    pub primary_key: Option<GoogleCloudDatacatalogV1SpannerTableSpecSpannerPrimaryKey>,
 }
 
 /// `GoogleCloudDatacatalogV1DataplexSpec` type.
@@ -296,125 +228,31 @@ pub struct GoogleCloudDatacatalogV1ViewSpec {
     pub view_query: Option<String>,
 }
 
-/// `GoogleCloudDatacatalogV1GraphSpecGraphElementTableProperty` type.
+/// `GoogleCloudDatacatalogV1TableSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTableProperty {
-    /// name property.
-    pub name: Option<String>,
+pub struct GoogleCloudDatacatalogV1TableSpec {
+    /// groupedEntry property.
+    pub grouped_entry: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogV1DataSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1DataSource {
+    /// resource property.
+    pub resource: Option<String>,
+    /// service property.
+    pub service: Option<String>,
+    /// sourceEntry property.
+    pub source_entry: Option<String>,
+    /// storageProperties property.
+    pub storage_properties: Option<GoogleCloudDatacatalogV1StorageProperties>,
+}
+
+/// `GoogleCloudDatacatalogV1ColumnSchemaFieldElementType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1ColumnSchemaFieldElementType {
     /// type property.
     pub r#type: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogV1Contacts` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1Contacts {
-    /// people property.
-    pub people: Option<Vec<GoogleCloudDatacatalogV1ContactsPerson>>,
-}
-
-/// `GoogleCloudDatacatalogV1DatabaseTableSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1DatabaseTableSpec {
-    /// databaseViewSpec property.
-    pub database_view_spec: Option<GoogleCloudDatacatalogV1DatabaseTableSpecDatabaseViewSpec>,
-    /// dataplexTable property.
-    pub dataplex_table: Option<GoogleCloudDatacatalogV1DataplexTableSpec>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogV1BigQueryDateShardedSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1BigQueryDateShardedSpec {
-    /// dataset property.
-    pub dataset: Option<String>,
-    /// latestShardResource property.
-    pub latest_shard_resource: Option<String>,
-    /// shardCount property.
-    pub shard_count: Option<String>,
-    /// tablePrefix property.
-    pub table_prefix: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogV1PersonalDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1PersonalDetails {
-    /// starTime property.
-    pub star_time: Option<String>,
-    /// starred property.
-    pub starred: Option<bool>,
-}
-
-/// `GoogleCloudDatacatalogV1Schema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1Schema {
-    /// columns property.
-    pub columns: Option<Vec<GoogleCloudDatacatalogV1ColumnSchema>>,
-}
-
-/// `GoogleCloudDatacatalogV1ServiceSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1ServiceSpec {
-    /// cloudBigtableInstanceSpec property.
-    pub cloud_bigtable_instance_spec: Option<GoogleCloudDatacatalogV1CloudBigtableInstanceSpec>,
-}
-
-/// `GoogleCloudDatacatalogV1StorageProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1StorageProperties {
-    /// filePattern property.
-    pub file_pattern: Option<Vec<String>>,
-    /// fileType property.
-    pub file_type: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogV1DataSourceConnectionSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1DataSourceConnectionSpec {
-    /// bigqueryConnectionSpec property.
-    pub bigquery_connection_spec: Option<GoogleCloudDatacatalogV1BigQueryConnectionSpec>,
-}
-
-/// `GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKey {
-    /// columnMappings property.
-    pub column_mappings: Option<
-        Vec<GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKeyForeignKeyColumnMapping>,
-    >,
-    /// entry property.
-    pub entry: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogV1ContactsPerson` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1ContactsPerson {
-    /// designation property.
-    pub designation: Option<String>,
-    /// email property.
-    pub email: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogV1BigQueryTableSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1BigQueryTableSpec {
-    /// tableSourceType property.
-    pub table_source_type: Option<String>,
-    /// tableSpec property.
-    pub table_spec: Option<GoogleCloudDatacatalogV1TableSpec>,
-    /// viewSpec property.
-    pub view_spec: Option<GoogleCloudDatacatalogV1ViewSpec>,
-}
-
-/// `GoogleCloudDatacatalogV1GraphSpecGraphElementTableLabelAndProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTableLabelAndProperties {
-    /// label property.
-    pub label: Option<String>,
-    /// properties property.
-    pub properties: Option<Vec<GoogleCloudDatacatalogV1GraphSpecGraphElementTableProperty>>,
 }
 
 /// `GoogleCloudDatacatalogV1PhysicalSchema` type.
@@ -434,61 +272,76 @@ pub struct GoogleCloudDatacatalogV1PhysicalSchema {
     pub thrift: Option<GoogleCloudDatacatalogV1PhysicalSchemaThriftSchema>,
 }
 
-/// `GoogleCloudDatacatalogV1CloudBigtableInstanceSpec` type.
+/// `GoogleCloudDatacatalogV1EntryOverview` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1CloudBigtableInstanceSpec {
-    /// cloudBigtableClusterSpecs property.
-    pub cloud_bigtable_cluster_specs:
-        Option<Vec<GoogleCloudDatacatalogV1CloudBigtableInstanceSpecCloudBigtableClusterSpec>>,
+pub struct GoogleCloudDatacatalogV1EntryOverview {
+    /// overview property.
+    pub overview: Option<String>,
 }
 
-/// `GoogleCloudDatacatalogV1VertexModelSpec` type.
+/// `GoogleCloudDatacatalogV1PhysicalSchemaOrcSchema` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1VertexModelSpec {
-    /// containerImageUri property.
-    pub container_image_uri: Option<String>,
-    /// versionAliases property.
-    pub version_aliases: Option<Vec<String>>,
-    /// versionDescription property.
-    pub version_description: Option<String>,
-    /// versionId property.
-    pub version_id: Option<String>,
-    /// vertexModelSourceInfo property.
-    pub vertex_model_source_info: Option<GoogleCloudDatacatalogV1VertexModelSourceInfo>,
+pub struct GoogleCloudDatacatalogV1PhysicalSchemaOrcSchema {}
+
+/// `GoogleCloudDatacatalogV1ModelSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1ModelSpec {
+    /// vertexModelSpec property.
+    pub vertex_model_spec: Option<GoogleCloudDatacatalogV1VertexModelSpec>,
 }
 
-/// `GoogleCloudDatacatalogV1TableSpec` type.
+/// `GoogleCloudDatacatalogV1BigQueryConnectionSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1TableSpec {
-    /// groupedEntry property.
-    pub grouped_entry: Option<String>,
+pub struct GoogleCloudDatacatalogV1BigQueryConnectionSpec {
+    /// cloudSql property.
+    pub cloud_sql: Option<GoogleCloudDatacatalogV1CloudSqlBigQueryConnectionSpec>,
+    /// connectionType property.
+    pub connection_type: Option<String>,
+    /// hasCredential property.
+    pub has_credential: Option<bool>,
 }
 
-/// `GoogleCloudDatacatalogV1ColumnSchema` type.
+/// `GoogleCloudDatacatalogV1StorageProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1ColumnSchema {
-    /// column property.
-    pub column: Option<String>,
-    /// defaultValue property.
-    pub default_value: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// gcRule property.
-    pub gc_rule: Option<String>,
-    /// highestIndexingType property.
-    pub highest_indexing_type: Option<String>,
-    /// lookerColumnSpec property.
-    pub looker_column_spec: Option<GoogleCloudDatacatalogV1ColumnSchemaLookerColumnSpec>,
-    /// mode property.
-    pub mode: Option<String>,
-    /// ordinalPosition property.
-    pub ordinal_position: Option<i64>,
-    /// rangeElementType property.
-    pub range_element_type: Option<GoogleCloudDatacatalogV1ColumnSchemaFieldElementType>,
-    /// subcolumns property.
-    pub subcolumns: Option<Vec<GoogleCloudDatacatalogV1ColumnSchema>>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct GoogleCloudDatacatalogV1StorageProperties {
+    /// filePattern property.
+    pub file_pattern: Option<Vec<String>>,
+    /// fileType property.
+    pub file_type: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogV1FeatureOnlineStoreSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1FeatureOnlineStoreSpec {
+    /// storageType property.
+    pub storage_type: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogV1BigQueryRoutineSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1BigQueryRoutineSpec {
+    /// importedLibraries property.
+    pub imported_libraries: Option<Vec<String>>,
+}
+
+/// `GoogleCloudDatacatalogV1GraphSpecGraphElementTableGraphNodeReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTableGraphNodeReference {
+    /// edgeTableColumns property.
+    pub edge_table_columns: Option<Vec<String>>,
+    /// nodeAlias property.
+    pub node_alias: Option<String>,
+    /// nodeTableColumns property.
+    pub node_table_columns: Option<Vec<String>>,
+}
+
+/// `GoogleCloudDatacatalogV1PersonalDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1PersonalDetails {
+    /// starTime property.
+    pub star_time: Option<String>,
+    /// starred property.
+    pub starred: Option<bool>,
 }
 
 /// `GoogleCloudDatacatalogV1ColumnSchemaLookerColumnSpec` type.
@@ -498,31 +351,112 @@ pub struct GoogleCloudDatacatalogV1ColumnSchemaLookerColumnSpec {
     pub r#type: Option<String>,
 }
 
-/// `GoogleCloudDatacatalogV1VertexModelSourceInfo` type.
+/// `GoogleCloudDatacatalogV1GraphSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1VertexModelSourceInfo {
-    /// copy property.
-    pub copy: Option<bool>,
-    /// sourceType property.
-    pub source_type: Option<String>,
+pub struct GoogleCloudDatacatalogV1GraphSpec {
+    /// edgeTables property.
+    pub edge_tables: Option<Vec<GoogleCloudDatacatalogV1GraphSpecGraphElementTable>>,
+    /// name property.
+    pub name: Option<String>,
+    /// nodeTables property.
+    pub node_tables: Option<Vec<GoogleCloudDatacatalogV1GraphSpecGraphElementTable>>,
 }
 
-/// `GoogleCloudDatacatalogV1GcsFileSpec` type.
+/// `GoogleCloudDatacatalogV1RoutineSpecArgument` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1GcsFileSpec {
-    /// filePath property.
-    pub file_path: Option<String>,
-    /// gcsTimestamps property.
-    pub gcs_timestamps: Option<GoogleCloudDatacatalogV1SystemTimestamps>,
-    /// sizeBytes property.
-    pub size_bytes: Option<String>,
+pub struct GoogleCloudDatacatalogV1RoutineSpecArgument {
+    /// mode property.
+    pub mode: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
-/// `GoogleCloudDatacatalogV1FeatureOnlineStoreSpec` type.
+/// `GoogleCloudDatacatalogV1SystemTimestamps` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1FeatureOnlineStoreSpec {
-    /// storageType property.
-    pub storage_type: Option<String>,
+pub struct GoogleCloudDatacatalogV1SystemTimestamps {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// expireTime property.
+    pub expire_time: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogV1PhysicalSchemaProtobufSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1PhysicalSchemaProtobufSchema {
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogV1CloudSqlBigQueryConnectionSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1CloudSqlBigQueryConnectionSpec {
+    /// database property.
+    pub database: Option<String>,
+    /// instanceId property.
+    pub instance_id: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogV1CloudBigtableInstanceSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1CloudBigtableInstanceSpec {
+    /// cloudBigtableClusterSpecs property.
+    pub cloud_bigtable_cluster_specs:
+        Option<Vec<GoogleCloudDatacatalogV1CloudBigtableInstanceSpecCloudBigtableClusterSpec>>,
+}
+
+/// `GoogleCloudDatacatalogV1SqlDatabaseSystemSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1SqlDatabaseSystemSpec {
+    /// databaseVersion property.
+    pub database_version: Option<String>,
+    /// instanceHost property.
+    pub instance_host: Option<String>,
+    /// sqlEngine property.
+    pub sql_engine: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogV1Contacts` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1Contacts {
+    /// people property.
+    pub people: Option<Vec<GoogleCloudDatacatalogV1ContactsPerson>>,
+}
+
+/// `GoogleCloudDatacatalogV1DataplexExternalTable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1DataplexExternalTable {
+    /// dataCatalogEntry property.
+    pub data_catalog_entry: Option<String>,
+    /// fullyQualifiedName property.
+    pub fully_qualified_name: Option<String>,
+    /// googleCloudResource property.
+    pub google_cloud_resource: Option<String>,
+    /// system property.
+    pub system: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogV1SpannerTableSpecSpannerPrimaryKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1SpannerTableSpecSpannerPrimaryKey {
+    /// columns property.
+    pub columns: Option<Vec<String>>,
+}
+
+/// `GoogleCloudDatacatalogV1DatabaseTableSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1DatabaseTableSpec {
+    /// databaseViewSpec property.
+    pub database_view_spec: Option<GoogleCloudDatacatalogV1DatabaseTableSpecDatabaseViewSpec>,
+    /// dataplexTable property.
+    pub dataplex_table: Option<GoogleCloudDatacatalogV1DataplexTableSpec>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `GoogleCloudDatacatalogV1DataplexTableSpec` type.
@@ -536,15 +470,35 @@ pub struct GoogleCloudDatacatalogV1DataplexTableSpec {
     pub user_managed: Option<bool>,
 }
 
-/// `GoogleCloudDatacatalogV1BigQueryConnectionSpec` type.
+/// `GoogleCloudDatacatalogV1DataSourceConnectionSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1BigQueryConnectionSpec {
-    /// cloudSql property.
-    pub cloud_sql: Option<GoogleCloudDatacatalogV1CloudSqlBigQueryConnectionSpec>,
-    /// connectionType property.
-    pub connection_type: Option<String>,
-    /// hasCredential property.
-    pub has_credential: Option<bool>,
+pub struct GoogleCloudDatacatalogV1DataSourceConnectionSpec {
+    /// bigqueryConnectionSpec property.
+    pub bigquery_connection_spec: Option<GoogleCloudDatacatalogV1BigQueryConnectionSpec>,
+}
+
+/// `GoogleCloudDatacatalogV1CloudBigtableSystemSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1CloudBigtableSystemSpec {
+    /// instanceDisplayName property.
+    pub instance_display_name: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogV1PhysicalSchemaParquetSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1PhysicalSchemaParquetSchema {}
+
+/// `GoogleCloudDatacatalogV1BigQueryDateShardedSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1BigQueryDateShardedSpec {
+    /// dataset property.
+    pub dataset: Option<String>,
+    /// latestShardResource property.
+    pub latest_shard_resource: Option<String>,
+    /// shardCount property.
+    pub shard_count: Option<String>,
+    /// tablePrefix property.
+    pub table_prefix: Option<String>,
 }
 
 /// `GoogleCloudDatacatalogV1RoutineSpec` type.
@@ -564,13 +518,29 @@ pub struct GoogleCloudDatacatalogV1RoutineSpec {
     pub routine_type: Option<String>,
 }
 
-/// `GoogleCloudDatacatalogV1VertexDatasetSpec` type.
+/// `GoogleCloudDatacatalogV1PhysicalSchemaAvroSchema` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1VertexDatasetSpec {
-    /// dataItemCount property.
-    pub data_item_count: Option<String>,
-    /// dataType property.
-    pub data_type: Option<String>,
+pub struct GoogleCloudDatacatalogV1PhysicalSchemaAvroSchema {
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogV1Schema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1Schema {
+    /// columns property.
+    pub columns: Option<Vec<Box<GoogleCloudDatacatalogV1ColumnSchema>>>,
+}
+
+/// `GoogleCloudDatacatalogV1GcsFileSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1GcsFileSpec {
+    /// filePath property.
+    pub file_path: Option<String>,
+    /// gcsTimestamps property.
+    pub gcs_timestamps: Option<GoogleCloudDatacatalogV1SystemTimestamps>,
+    /// sizeBytes property.
+    pub size_bytes: Option<String>,
 }
 
 /// `GoogleCloudDatacatalogV1GcsFilesetSpec` type.
@@ -582,52 +552,83 @@ pub struct GoogleCloudDatacatalogV1GcsFilesetSpec {
     pub sample_gcs_file_specs: Option<Vec<GoogleCloudDatacatalogV1GcsFileSpec>>,
 }
 
-/// `GoogleCloudDatacatalogV1DataplexFilesetSpec` type.
+/// `GoogleCloudDatacatalogV1ServiceSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1DataplexFilesetSpec {
-    /// dataplexSpec property.
-    pub dataplex_spec: Option<GoogleCloudDatacatalogV1DataplexSpec>,
+pub struct GoogleCloudDatacatalogV1ServiceSpec {
+    /// cloudBigtableInstanceSpec property.
+    pub cloud_bigtable_instance_spec: Option<GoogleCloudDatacatalogV1CloudBigtableInstanceSpec>,
 }
 
-/// `GoogleCloudDatacatalogV1ColumnSchemaFieldElementType` type.
+/// `GoogleCloudDatacatalogV1LookerSystemSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1ColumnSchemaFieldElementType {
-    /// type property.
-    pub r#type: Option<String>,
+pub struct GoogleCloudDatacatalogV1LookerSystemSpec {
+    /// parentInstanceDisplayName property.
+    pub parent_instance_display_name: Option<String>,
+    /// parentInstanceId property.
+    pub parent_instance_id: Option<String>,
+    /// parentModelDisplayName property.
+    pub parent_model_display_name: Option<String>,
+    /// parentModelId property.
+    pub parent_model_id: Option<String>,
+    /// parentViewDisplayName property.
+    pub parent_view_display_name: Option<String>,
+    /// parentViewId property.
+    pub parent_view_id: Option<String>,
 }
 
-/// `GoogleCloudDatacatalogV1DatasetSpec` type.
+/// `GoogleCloudDatacatalogV1GraphSpecGraphElementTableLabelAndProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1DatasetSpec {
-    /// vertexDatasetSpec property.
-    pub vertex_dataset_spec: Option<GoogleCloudDatacatalogV1VertexDatasetSpec>,
+pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTableLabelAndProperties {
+    /// label property.
+    pub label: Option<String>,
+    /// properties property.
+    pub properties: Option<Vec<GoogleCloudDatacatalogV1GraphSpecGraphElementTableProperty>>,
 }
 
-/// `GoogleCloudDatacatalogV1EntryOverview` type.
+/// `GoogleCloudDatacatalogV1VertexModelSourceInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1EntryOverview {
-    /// overview property.
-    pub overview: Option<String>,
+pub struct GoogleCloudDatacatalogV1VertexModelSourceInfo {
+    /// copy property.
+    pub copy: Option<bool>,
+    /// sourceType property.
+    pub source_type: Option<String>,
 }
 
-/// `GoogleCloudDatacatalogV1PhysicalSchemaAvroSchema` type.
+/// `GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKeyForeignKeyColumnMapping` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1PhysicalSchemaAvroSchema {
-    /// text property.
-    pub text: Option<String>,
+pub struct GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKeyForeignKeyColumnMapping {
+    /// column property.
+    pub column: Option<String>,
+    /// referenceColumn property.
+    pub reference_column: Option<String>,
 }
 
-/// `GoogleCloudDatacatalogV1UsageSignal` type.
+/// `GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKey` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1UsageSignal {
-    /// commonUsageWithinTimeRange property.
-    pub common_usage_within_time_range: Option<serde_json::Value>,
-    /// favoriteCount property.
-    pub favorite_count: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-    /// usageWithinTimeRange property.
-    pub usage_within_time_range: Option<serde_json::Value>,
+pub struct GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKey {
+    /// columnMappings property.
+    pub column_mappings: Option<
+        Vec<GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKeyForeignKeyColumnMapping>,
+    >,
+    /// entry property.
+    pub entry: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogV1VertexModelSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1VertexModelSpec {
+    /// containerImageUri property.
+    pub container_image_uri: Option<String>,
+    /// versionAliases property.
+    pub version_aliases: Option<Vec<String>>,
+    /// versionDescription property.
+    pub version_description: Option<String>,
+    /// versionId property.
+    pub version_id: Option<String>,
+    /// vertexModelSourceInfo property.
+    pub vertex_model_source_info: Option<GoogleCloudDatacatalogV1VertexModelSourceInfo>,
 }
 
 // =============================================================================

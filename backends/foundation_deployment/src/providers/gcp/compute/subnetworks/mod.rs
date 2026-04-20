@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,37 +22,57 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `InstancesBulkInsertOperationMetadata` type.
+/// `SubnetworkParams` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
+pub struct SubnetworkParams {
+    /// resourceManagerTags property.
+    pub resource_manager_tags: Option<serde_json::Value>,
 }
 
-/// `Uint128` type.
+/// `Help` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Uint128 {
-    /// high property.
-    pub high: Option<String>,
-    /// low property.
-    pub low: Option<String>,
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
 }
 
-/// `SubnetworkUtilizationDetailsIPV4Utilization` type.
+/// `GetVersionOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubnetworkUtilizationDetailsIPV4Utilization {
-    /// rangeName property.
-    pub range_name: Option<String>,
-    /// totalAllocatedIp property.
-    pub total_allocated_ip: Option<String>,
-    /// totalFreeIp property.
-    pub total_free_ip: Option<String>,
+pub struct GetVersionOperationMetadata {
+    /// inlineSbomInfo property.
+    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+}
+
+/// `SubnetworkList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SubnetworkList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<Subnetwork>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `HelpLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
 }
 
 /// `GetVersionOperationMetadataSbomInfo` type.
@@ -61,6 +82,43 @@ pub struct GetVersionOperationMetadataSbomInfo {
     pub current_component_versions: Option<serde_json::Value>,
     /// targetComponentVersions property.
     pub target_component_versions: Option<serde_json::Value>,
+}
+
+/// `QuotaExceededInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuotaExceededInfo {
+    /// dimensions property.
+    pub dimensions: Option<serde_json::Value>,
+    /// futureLimit property.
+    pub future_limit: Option<f64>,
+    /// limit property.
+    pub limit: Option<f64>,
+    /// limitName property.
+    pub limit_name: Option<String>,
+    /// metricName property.
+    pub metric_name: Option<String>,
+    /// rolloutStatus property.
+    pub rollout_status: Option<String>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `SubnetworkUtilizationDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SubnetworkUtilizationDetails {
+    /// externalIpv6InstanceUtilization property.
+    pub external_ipv6_instance_utilization: Option<SubnetworkUtilizationDetailsIPV6Utilization>,
+    /// externalIpv6LbUtilization property.
+    pub external_ipv6_lb_utilization: Option<SubnetworkUtilizationDetailsIPV6Utilization>,
+    /// internalIpv6Utilization property.
+    pub internal_ipv6_utilization: Option<SubnetworkUtilizationDetailsIPV6Utilization>,
+    /// ipv4Utilizations property.
+    pub ipv4_utilizations: Option<Vec<SubnetworkUtilizationDetailsIPV4Utilization>>,
 }
 
 /// `Subnetwork` type.
@@ -134,31 +192,39 @@ pub struct Subnetwork {
     pub utilization_details: Option<SubnetworkUtilizationDetails>,
 }
 
-/// `HelpLink` type.
+/// `SubnetworkLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
+pub struct SubnetworkLogConfig {
+    /// aggregationInterval property.
+    pub aggregation_interval: Option<String>,
+    /// enable property.
+    pub enable: Option<bool>,
+    /// filterExpr property.
+    pub filter_expr: Option<String>,
+    /// flowSampling property.
+    pub flow_sampling: Option<f64>,
+    /// metadata property.
+    pub metadata: Option<String>,
+    /// metadataFields property.
+    pub metadata_fields: Option<Vec<String>>,
 }
 
-/// `GetVersionOperationMetadata` type.
+/// `LocalizedMessage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadata {
-    /// inlineSbomInfo property.
-    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
 }
 
-/// `ErrorInfo` type.
+/// `Uint128` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
+pub struct Uint128 {
+    /// high property.
+    pub high: Option<String>,
+    /// low property.
+    pub low: Option<String>,
 }
 
 /// `SetCommonInstanceMetadataOperationMetadata` type.
@@ -168,33 +234,6 @@ pub struct SetCommonInstanceMetadataOperationMetadata {
     pub client_operation_id: Option<String>,
     /// perLocationOperations property.
     pub per_location_operations: Option<serde_json::Value>,
-}
-
-/// `Help` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
-}
-
-/// `SubnetworkParams` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubnetworkParams {
-    /// resourceManagerTags property.
-    pub resource_manager_tags: Option<serde_json::Value>,
-}
-
-/// `SubnetworkUtilizationDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubnetworkUtilizationDetails {
-    /// externalIpv6InstanceUtilization property.
-    pub external_ipv6_instance_utilization: Option<SubnetworkUtilizationDetailsIPV6Utilization>,
-    /// externalIpv6LbUtilization property.
-    pub external_ipv6_lb_utilization: Option<SubnetworkUtilizationDetailsIPV6Utilization>,
-    /// internalIpv6Utilization property.
-    pub internal_ipv6_utilization: Option<SubnetworkUtilizationDetailsIPV6Utilization>,
-    /// ipv4Utilizations property.
-    pub ipv4_utilizations: Option<Vec<SubnetworkUtilizationDetailsIPV4Utilization>>,
 }
 
 /// `SubnetworkAggregatedList` type.
@@ -216,30 +255,35 @@ pub struct SubnetworkAggregatedList {
     pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `LocalizedMessage` type.
+/// `SubnetworkUtilizationDetailsIPV4Utilization` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
+pub struct SubnetworkUtilizationDetailsIPV4Utilization {
+    /// rangeName property.
+    pub range_name: Option<String>,
+    /// totalAllocatedIp property.
+    pub total_allocated_ip: Option<String>,
+    /// totalFreeIp property.
+    pub total_free_ip: Option<String>,
 }
 
-/// `SubnetworkLogConfig` type.
+/// `ErrorInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubnetworkLogConfig {
-    /// aggregationInterval property.
-    pub aggregation_interval: Option<String>,
-    /// enable property.
-    pub enable: Option<bool>,
-    /// filterExpr property.
-    pub filter_expr: Option<String>,
-    /// flowSampling property.
-    pub flow_sampling: Option<f64>,
-    /// metadata property.
-    pub metadata: Option<String>,
-    /// metadataFields property.
-    pub metadata_fields: Option<Vec<String>>,
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `SubnetworkUtilizationDetailsIPV6Utilization` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SubnetworkUtilizationDetailsIPV6Utilization {
+    /// totalAllocatedIp property.
+    pub total_allocated_ip: Option<Uint128>,
+    /// totalFreeIp property.
+    pub total_free_ip: Option<Uint128>,
 }
 
 /// `SubnetworkSecondaryRange` type.
@@ -251,49 +295,6 @@ pub struct SubnetworkSecondaryRange {
     pub range_name: Option<String>,
     /// reservedInternalRange property.
     pub reserved_internal_range: Option<String>,
-}
-
-/// `QuotaExceededInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotaExceededInfo {
-    /// dimensions property.
-    pub dimensions: Option<serde_json::Value>,
-    /// futureLimit property.
-    pub future_limit: Option<f64>,
-    /// limit property.
-    pub limit: Option<f64>,
-    /// limitName property.
-    pub limit_name: Option<String>,
-    /// metricName property.
-    pub metric_name: Option<String>,
-    /// rolloutStatus property.
-    pub rollout_status: Option<String>,
-}
-
-/// `SubnetworkList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubnetworkList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<Subnetwork>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `SubnetworkUtilizationDetailsIPV6Utilization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubnetworkUtilizationDetailsIPV6Utilization {
-    /// totalAllocatedIp property.
-    pub total_allocated_ip: Option<Uint128>,
-    /// totalFreeIp property.
-    pub total_free_ip: Option<Uint128>,
 }
 
 // =============================================================================

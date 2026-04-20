@@ -12,17 +12,75 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `AttachedDisk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AttachedDisk {
+    /// autoDelete property.
+    pub auto_delete: Option<bool>,
+    /// boot property.
+    pub boot: Option<bool>,
+    /// deviceName property.
+    pub device_name: Option<String>,
+    /// diskEncryptionKey property.
+    pub disk_encryption_key: Option<CustomerEncryptionKey>,
+    /// diskInterface property.
+    pub disk_interface: Option<String>,
+    /// diskSizeGb property.
+    pub disk_size_gb: Option<String>,
+    /// diskType property.
+    pub disk_type: Option<String>,
+    /// diskTypeDeprecated property.
+    pub disk_type_deprecated: Option<String>,
+    /// guestOsFeature property.
+    pub guest_os_feature: Option<Vec<GuestOsFeature>>,
+    /// index property.
+    pub index: Option<String>,
+    /// initializeParams property.
+    pub initialize_params: Option<InitializeParams>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// license property.
+    pub license: Option<Vec<String>>,
+    /// mode property.
+    pub mode: Option<String>,
+    /// savedState property.
+    pub saved_state: Option<String>,
+    /// source property.
+    pub source: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `AliasIpRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AliasIpRange {
+    /// ipCidrRange property.
+    pub ip_cidr_range: Option<String>,
+    /// subnetworkRangeName property.
+    pub subnetwork_range_name: Option<String>,
+}
+
+/// `Entry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Entry {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
 
 /// `CustomerEncryptionKey` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -37,25 +95,59 @@ pub struct CustomerEncryptionKey {
     pub rsa_encrypted_key: Option<String>,
 }
 
-/// `Scheduling` type.
+/// `AlloyDbClusterBackupProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Scheduling {
-    /// automaticRestart property.
-    pub automatic_restart: Option<bool>,
-    /// instanceTerminationAction property.
-    pub instance_termination_action: Option<String>,
-    /// localSsdRecoveryTimeout property.
-    pub local_ssd_recovery_timeout: Option<SchedulingDuration>,
-    /// minNodeCpus property.
-    pub min_node_cpus: Option<i64>,
-    /// nodeAffinities property.
-    pub node_affinities: Option<Vec<NodeAffinity>>,
-    /// onHostMaintenance property.
-    pub on_host_maintenance: Option<String>,
-    /// preemptible property.
-    pub preemptible: Option<bool>,
-    /// provisioningModel property.
-    pub provisioning_model: Option<String>,
+pub struct AlloyDbClusterBackupProperties {
+    /// chainId property.
+    pub chain_id: Option<String>,
+    /// databaseVersion property.
+    pub database_version: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// storedBytes property.
+    pub stored_bytes: Option<String>,
+}
+
+/// `ComputeInstanceBackupProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeInstanceBackupProperties {
+    /// canIpForward property.
+    pub can_ip_forward: Option<bool>,
+    /// description property.
+    pub description: Option<String>,
+    /// disk property.
+    pub disk: Option<Vec<AttachedDisk>>,
+    /// guestAccelerator property.
+    pub guest_accelerator: Option<Vec<AcceleratorConfig>>,
+    /// guestFlush property.
+    pub guest_flush: Option<bool>,
+    /// keyRevocationActionType property.
+    pub key_revocation_action_type: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// machineType property.
+    pub machine_type: Option<String>,
+    /// metadata property.
+    pub metadata: Option<Metadata>,
+    /// minCpuPlatform property.
+    pub min_cpu_platform: Option<String>,
+    /// networkInterface property.
+    pub network_interface: Option<Vec<NetworkInterface>>,
+    /// scheduling property.
+    pub scheduling: Option<Scheduling>,
+    /// serviceAccount property.
+    pub service_account: Option<Vec<ServiceAccount>>,
+    /// sourceInstance property.
+    pub source_instance: Option<String>,
+    /// tags property.
+    pub tags: Option<Tags>,
+}
+
+/// `GuestOsFeature` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GuestOsFeature {
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `InitializeParams` type.
@@ -65,6 +157,47 @@ pub struct InitializeParams {
     pub disk_name: Option<String>,
     /// replicaZones property.
     pub replica_zones: Option<Vec<String>>,
+}
+
+/// `BackupLock` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupLock {
+    /// backupApplianceLockInfo property.
+    pub backup_appliance_lock_info: Option<BackupApplianceLockInfo>,
+    /// lockUntilTime property.
+    pub lock_until_time: Option<String>,
+    /// serviceLockInfo property.
+    pub service_lock_info: Option<ServiceLockInfo>,
+}
+
+/// `BackupApplianceBackupProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupApplianceBackupProperties {
+    /// finalizeTime property.
+    pub finalize_time: Option<String>,
+    /// generationId property.
+    pub generation_id: Option<i64>,
+    /// recoveryRangeEndTime property.
+    pub recovery_range_end_time: Option<String>,
+    /// recoveryRangeStartTime property.
+    pub recovery_range_start_time: Option<String>,
+}
+
+/// `CloudSqlInstanceBackupProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudSqlInstanceBackupProperties {
+    /// databaseInstalledVersion property.
+    pub database_installed_version: Option<String>,
+    /// finalBackup property.
+    pub final_backup: Option<bool>,
+    /// instanceCreateTime property.
+    pub instance_create_time: Option<String>,
+    /// instanceDeleteTime property.
+    pub instance_delete_time: Option<String>,
+    /// instanceTier property.
+    pub instance_tier: Option<String>,
+    /// sourceInstance property.
+    pub source_instance: Option<String>,
 }
 
 /// `DiskBackupProperties` type.
@@ -108,53 +241,6 @@ pub struct DiskBackupProperties {
     pub zone: Option<String>,
 }
 
-/// `BackupApplianceLockInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupApplianceLockInfo {
-    /// backupApplianceId property.
-    pub backup_appliance_id: Option<String>,
-    /// backupApplianceName property.
-    pub backup_appliance_name: Option<String>,
-    /// backupImage property.
-    pub backup_image: Option<String>,
-    /// jobName property.
-    pub job_name: Option<String>,
-    /// lockReason property.
-    pub lock_reason: Option<String>,
-    /// slaId property.
-    pub sla_id: Option<String>,
-}
-
-/// `CloudSqlInstanceBackupProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudSqlInstanceBackupProperties {
-    /// databaseInstalledVersion property.
-    pub database_installed_version: Option<String>,
-    /// finalBackup property.
-    pub final_backup: Option<bool>,
-    /// instanceCreateTime property.
-    pub instance_create_time: Option<String>,
-    /// instanceDeleteTime property.
-    pub instance_delete_time: Option<String>,
-    /// instanceTier property.
-    pub instance_tier: Option<String>,
-    /// sourceInstance property.
-    pub source_instance: Option<String>,
-}
-
-/// `BackupApplianceBackupProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupApplianceBackupProperties {
-    /// finalizeTime property.
-    pub finalize_time: Option<String>,
-    /// generationId property.
-    pub generation_id: Option<i64>,
-    /// recoveryRangeEndTime property.
-    pub recovery_range_end_time: Option<String>,
-    /// recoveryRangeStartTime property.
-    pub recovery_range_start_time: Option<String>,
-}
-
 /// `GCPBackupPlanInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GCPBackupPlanInfo {
@@ -168,50 +254,35 @@ pub struct GCPBackupPlanInfo {
     pub backup_plan_rule_id: Option<String>,
 }
 
-/// `BackupLock` type.
+/// `BackupGcpResource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupLock {
-    /// backupApplianceLockInfo property.
-    pub backup_appliance_lock_info: Option<BackupApplianceLockInfo>,
-    /// lockUntilTime property.
-    pub lock_until_time: Option<String>,
-    /// serviceLockInfo property.
-    pub service_lock_info: Option<ServiceLockInfo>,
+pub struct BackupGcpResource {
+    /// gcpResourcename property.
+    pub gcp_resourcename: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
-/// `ComputeInstanceBackupProperties` type.
+/// `NodeAffinity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeInstanceBackupProperties {
-    /// canIpForward property.
-    pub can_ip_forward: Option<bool>,
-    /// description property.
-    pub description: Option<String>,
-    /// disk property.
-    pub disk: Option<Vec<AttachedDisk>>,
-    /// guestAccelerator property.
-    pub guest_accelerator: Option<Vec<AcceleratorConfig>>,
-    /// guestFlush property.
-    pub guest_flush: Option<bool>,
-    /// keyRevocationActionType property.
-    pub key_revocation_action_type: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// machineType property.
-    pub machine_type: Option<String>,
-    /// metadata property.
-    pub metadata: Option<Metadata>,
-    /// minCpuPlatform property.
-    pub min_cpu_platform: Option<String>,
-    /// networkInterface property.
-    pub network_interface: Option<Vec<NetworkInterface>>,
-    /// scheduling property.
-    pub scheduling: Option<Scheduling>,
-    /// serviceAccount property.
-    pub service_account: Option<Vec<ServiceAccount>>,
-    /// sourceInstance property.
-    pub source_instance: Option<String>,
-    /// tags property.
-    pub tags: Option<Tags>,
+pub struct NodeAffinity {
+    /// key property.
+    pub key: Option<String>,
+    /// operator property.
+    pub operator: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `FetchBackupsForResourceTypeResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FetchBackupsForResourceTypeResponse {
+    /// backups property.
+    pub backups: Option<Vec<Backup>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `Backup` type.
@@ -271,38 +342,13 @@ pub struct Backup {
     pub update_time: Option<String>,
 }
 
-/// `ServiceLockInfo` type.
+/// `AcceleratorConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceLockInfo {
-    /// operation property.
-    pub operation: Option<String>,
-}
-
-/// `FetchBackupsForResourceTypeResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FetchBackupsForResourceTypeResponse {
-    /// backups property.
-    pub backups: Option<Vec<Backup>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `NodeAffinity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeAffinity {
-    /// key property.
-    pub key: Option<String>,
-    /// operator property.
-    pub operator: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `FilestoreInstanceBackupProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FilestoreInstanceBackupProperties {
-    /// sourceInstance property.
-    pub source_instance: Option<String>,
+pub struct AcceleratorConfig {
+    /// acceleratorCount property.
+    pub accelerator_count: Option<i64>,
+    /// acceleratorType property.
+    pub accelerator_type: Option<String>,
 }
 
 /// `ServiceAccount` type.
@@ -314,59 +360,53 @@ pub struct ServiceAccount {
     pub scopes: Option<Vec<String>>,
 }
 
-/// `GuestOsFeature` type.
+/// `AccessConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GuestOsFeature {
+pub struct AccessConfig {
+    /// externalIpv6 property.
+    pub external_ipv6: Option<String>,
+    /// externalIpv6PrefixLength property.
+    pub external_ipv6_prefix_length: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// natIP property.
+    pub nat_ip: Option<String>,
+    /// networkTier property.
+    pub network_tier: Option<String>,
+    /// publicPtrDomainName property.
+    pub public_ptr_domain_name: Option<String>,
+    /// setPublicPtr property.
+    pub set_public_ptr: Option<bool>,
     /// type property.
     pub r#type: Option<String>,
 }
 
-/// `AcceleratorConfig` type.
+/// `Metadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcceleratorConfig {
-    /// acceleratorCount property.
-    pub accelerator_count: Option<i64>,
-    /// acceleratorType property.
-    pub accelerator_type: Option<String>,
+pub struct Metadata {
+    /// items property.
+    pub items: Option<Vec<Entry>>,
 }
 
-/// `AttachedDisk` type.
+/// `Tags` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AttachedDisk {
-    /// autoDelete property.
-    pub auto_delete: Option<bool>,
-    /// boot property.
-    pub boot: Option<bool>,
-    /// deviceName property.
-    pub device_name: Option<String>,
-    /// diskEncryptionKey property.
-    pub disk_encryption_key: Option<CustomerEncryptionKey>,
-    /// diskInterface property.
-    pub disk_interface: Option<String>,
-    /// diskSizeGb property.
-    pub disk_size_gb: Option<String>,
-    /// diskType property.
-    pub disk_type: Option<String>,
-    /// diskTypeDeprecated property.
-    pub disk_type_deprecated: Option<String>,
-    /// guestOsFeature property.
-    pub guest_os_feature: Option<Vec<GuestOsFeature>>,
-    /// index property.
-    pub index: Option<String>,
-    /// initializeParams property.
-    pub initialize_params: Option<InitializeParams>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// license property.
-    pub license: Option<Vec<String>>,
-    /// mode property.
-    pub mode: Option<String>,
-    /// savedState property.
-    pub saved_state: Option<String>,
-    /// source property.
-    pub source: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct Tags {
+    /// items property.
+    pub items: Option<Vec<String>>,
+}
+
+/// `ServiceLockInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceLockInfo {
+    /// operation property.
+    pub operation: Option<String>,
+}
+
+/// `FilestoreInstanceBackupProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FilestoreInstanceBackupProperties {
+    /// sourceInstance property.
+    pub source_instance: Option<String>,
 }
 
 /// `NetworkInterface` type.
@@ -402,24 +442,42 @@ pub struct NetworkInterface {
     pub subnetwork: Option<String>,
 }
 
-/// `AlloyDbClusterBackupProperties` type.
+/// `BackupApplianceLockInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AlloyDbClusterBackupProperties {
-    /// chainId property.
-    pub chain_id: Option<String>,
-    /// databaseVersion property.
-    pub database_version: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// storedBytes property.
-    pub stored_bytes: Option<String>,
+pub struct BackupApplianceLockInfo {
+    /// backupApplianceId property.
+    pub backup_appliance_id: Option<String>,
+    /// backupApplianceName property.
+    pub backup_appliance_name: Option<String>,
+    /// backupImage property.
+    pub backup_image: Option<String>,
+    /// jobName property.
+    pub job_name: Option<String>,
+    /// lockReason property.
+    pub lock_reason: Option<String>,
+    /// slaId property.
+    pub sla_id: Option<String>,
 }
 
-/// `Tags` type.
+/// `Scheduling` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Tags {
-    /// items property.
-    pub items: Option<Vec<String>>,
+pub struct Scheduling {
+    /// automaticRestart property.
+    pub automatic_restart: Option<bool>,
+    /// instanceTerminationAction property.
+    pub instance_termination_action: Option<String>,
+    /// localSsdRecoveryTimeout property.
+    pub local_ssd_recovery_timeout: Option<SchedulingDuration>,
+    /// minNodeCpus property.
+    pub min_node_cpus: Option<i64>,
+    /// nodeAffinities property.
+    pub node_affinities: Option<Vec<NodeAffinity>>,
+    /// onHostMaintenance property.
+    pub on_host_maintenance: Option<String>,
+    /// preemptible property.
+    pub preemptible: Option<bool>,
+    /// provisioningModel property.
+    pub provisioning_model: Option<String>,
 }
 
 /// `SchedulingDuration` type.
@@ -429,63 +487,6 @@ pub struct SchedulingDuration {
     pub nanos: Option<i64>,
     /// seconds property.
     pub seconds: Option<String>,
-}
-
-/// `AccessConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessConfig {
-    /// externalIpv6 property.
-    pub external_ipv6: Option<String>,
-    /// externalIpv6PrefixLength property.
-    pub external_ipv6_prefix_length: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-    /// natIP property.
-    pub nat_ip: Option<String>,
-    /// networkTier property.
-    pub network_tier: Option<String>,
-    /// publicPtrDomainName property.
-    pub public_ptr_domain_name: Option<String>,
-    /// setPublicPtr property.
-    pub set_public_ptr: Option<bool>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `AliasIpRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AliasIpRange {
-    /// ipCidrRange property.
-    pub ip_cidr_range: Option<String>,
-    /// subnetworkRangeName property.
-    pub subnetwork_range_name: Option<String>,
-}
-
-/// `Metadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Metadata {
-    /// items property.
-    pub items: Option<Vec<Entry>>,
-}
-
-/// `BackupGcpResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupGcpResource {
-    /// gcpResourcename property.
-    pub gcp_resourcename: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `Entry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Entry {
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<String>,
 }
 
 // =============================================================================

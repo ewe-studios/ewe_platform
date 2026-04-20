@@ -12,34 +12,40 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `SearchSparkApplicationsResponse` type.
+/// `ApplicationInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchSparkApplicationsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// sparkApplications property.
-    pub spark_applications: Option<Vec<SparkApplication>>,
-}
-
-/// `SparkApplication` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkApplication {
-    /// application property.
-    pub application: Option<ApplicationInfo>,
+pub struct ApplicationInfo {
+    /// applicationContextIngestionStatus property.
+    pub application_context_ingestion_status: Option<String>,
+    /// applicationId property.
+    pub application_id: Option<String>,
+    /// attempts property.
+    pub attempts: Option<Vec<ApplicationAttemptInfo>>,
+    /// coresGranted property.
+    pub cores_granted: Option<i64>,
+    /// coresPerExecutor property.
+    pub cores_per_executor: Option<i64>,
+    /// maxCores property.
+    pub max_cores: Option<i64>,
+    /// memoryPerExecutorMb property.
+    pub memory_per_executor_mb: Option<i64>,
     /// name property.
     pub name: Option<String>,
+    /// quantileDataStatus property.
+    pub quantile_data_status: Option<String>,
 }
 
 /// `ApplicationAttemptInfo` type.
@@ -63,6 +69,15 @@ pub struct ApplicationAttemptInfo {
     pub start_time: Option<String>,
 }
 
+/// `SparkApplication` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkApplication {
+    /// application property.
+    pub application: Option<ApplicationInfo>,
+    /// name property.
+    pub name: Option<String>,
+}
+
 /// `SearchSessionSparkApplicationsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchSessionSparkApplicationsResponse {
@@ -72,27 +87,13 @@ pub struct SearchSessionSparkApplicationsResponse {
     pub spark_applications: Option<Vec<SparkApplication>>,
 }
 
-/// `ApplicationInfo` type.
+/// `SearchSparkApplicationsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApplicationInfo {
-    /// applicationContextIngestionStatus property.
-    pub application_context_ingestion_status: Option<String>,
-    /// applicationId property.
-    pub application_id: Option<String>,
-    /// attempts property.
-    pub attempts: Option<Vec<ApplicationAttemptInfo>>,
-    /// coresGranted property.
-    pub cores_granted: Option<i64>,
-    /// coresPerExecutor property.
-    pub cores_per_executor: Option<i64>,
-    /// maxCores property.
-    pub max_cores: Option<i64>,
-    /// memoryPerExecutorMb property.
-    pub memory_per_executor_mb: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-    /// quantileDataStatus property.
-    pub quantile_data_status: Option<String>,
+pub struct SearchSparkApplicationsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// sparkApplications property.
+    pub spark_applications: Option<Vec<SparkApplication>>,
 }
 
 // =============================================================================

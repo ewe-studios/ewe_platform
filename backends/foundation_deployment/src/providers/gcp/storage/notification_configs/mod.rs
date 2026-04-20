@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Notifications` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Notifications {
+    /// items property.
+    pub items: Option<Vec<Notification>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
 
 /// `Notification` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,15 +55,6 @@ pub struct Notification {
     pub self_link: Option<String>,
     /// topic property.
     pub topic: Option<String>,
-}
-
-/// `Notifications` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Notifications {
-    /// items property.
-    pub items: Option<Vec<Notification>>,
-    /// kind property.
-    pub kind: Option<String>,
 }
 
 // =============================================================================

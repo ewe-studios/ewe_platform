@@ -12,48 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `EntityMention` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EntityMention {
-    /// probability property.
-    pub probability: Option<f64>,
-    /// sentiment property.
-    pub sentiment: Option<Sentiment>,
-    /// text property.
-    pub text: Option<TextSpan>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `TextSpan` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextSpan {
-    /// beginOffset property.
-    pub begin_offset: Option<i64>,
-    /// content property.
-    pub content: Option<String>,
-}
-
-/// `Sentiment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Sentiment {
-    /// magnitude property.
-    pub magnitude: Option<f64>,
-    /// score property.
-    pub score: Option<f64>,
-}
 
 /// `Entity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -70,6 +40,15 @@ pub struct Entity {
     pub r#type: Option<String>,
 }
 
+/// `TextSpan` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextSpan {
+    /// beginOffset property.
+    pub begin_offset: Option<i64>,
+    /// content property.
+    pub content: Option<String>,
+}
+
 /// `AnalyzeEntitiesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzeEntitiesResponse {
@@ -79,6 +58,28 @@ pub struct AnalyzeEntitiesResponse {
     pub language_code: Option<String>,
     /// languageSupported property.
     pub language_supported: Option<bool>,
+}
+
+/// `EntityMention` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EntityMention {
+    /// probability property.
+    pub probability: Option<f64>,
+    /// sentiment property.
+    pub sentiment: Option<Sentiment>,
+    /// text property.
+    pub text: Option<TextSpan>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `Sentiment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Sentiment {
+    /// magnitude property.
+    pub magnitude: Option<f64>,
+    /// score property.
+    pub score: Option<f64>,
 }
 
 // =============================================================================

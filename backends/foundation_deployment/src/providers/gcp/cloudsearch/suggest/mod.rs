@@ -12,25 +12,42 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `PhoneNumber` type.
+/// `QuerySuggestion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PhoneNumber {
-    /// phoneNumber property.
-    pub phone_number: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct QuerySuggestion {
+    /// lastQueryTime property.
+    pub last_query_time: Option<String>,
+    /// sourceCorpus property.
+    pub source_corpus: Option<String>,
+}
+
+/// `PeopleSuggestion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PeopleSuggestion {
+    /// person property.
+    pub person: Option<Person>,
+}
+
+/// `Source` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Source {
+    /// name property.
+    pub name: Option<String>,
+    /// predefinedSource property.
+    pub predefined_source: Option<String>,
 }
 
 /// `Person` type.
@@ -50,44 +67,27 @@ pub struct Person {
     pub photos: Option<Vec<Photo>>,
 }
 
-/// `PeopleSuggestion` type.
+/// `PhoneNumber` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PeopleSuggestion {
-    /// person property.
-    pub person: Option<Person>,
-}
-
-/// `EmailAddress` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EmailAddress {
-    /// customType property.
-    pub custom_type: Option<String>,
-    /// emailAddress property.
-    pub email_address: Option<String>,
-    /// emailUrl property.
-    pub email_url: Option<String>,
-    /// primary property.
-    pub primary: Option<bool>,
+pub struct PhoneNumber {
+    /// phoneNumber property.
+    pub phone_number: Option<String>,
     /// type property.
     pub r#type: Option<String>,
 }
 
-/// `Source` type.
+/// `Photo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Source {
-    /// name property.
-    pub name: Option<String>,
-    /// predefinedSource property.
-    pub predefined_source: Option<String>,
+pub struct Photo {
+    /// url property.
+    pub url: Option<String>,
 }
 
-/// `QuerySuggestion` type.
+/// `Name` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuerySuggestion {
-    /// lastQueryTime property.
-    pub last_query_time: Option<String>,
-    /// sourceCorpus property.
-    pub source_corpus: Option<String>,
+pub struct Name {
+    /// displayName property.
+    pub display_name: Option<String>,
 }
 
 /// `SuggestResult` type.
@@ -103,13 +103,6 @@ pub struct SuggestResult {
     pub suggested_query: Option<String>,
 }
 
-/// `Name` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Name {
-    /// displayName property.
-    pub display_name: Option<String>,
-}
-
 /// `SuggestResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuggestResponse {
@@ -117,11 +110,19 @@ pub struct SuggestResponse {
     pub suggest_results: Option<Vec<SuggestResult>>,
 }
 
-/// `Photo` type.
+/// `EmailAddress` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Photo {
-    /// url property.
-    pub url: Option<String>,
+pub struct EmailAddress {
+    /// customType property.
+    pub custom_type: Option<String>,
+    /// emailAddress property.
+    pub email_address: Option<String>,
+    /// emailUrl property.
+    pub email_url: Option<String>,
+    /// primary property.
+    pub primary: Option<bool>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 // =============================================================================

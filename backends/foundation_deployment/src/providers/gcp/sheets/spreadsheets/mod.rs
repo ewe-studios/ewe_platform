@@ -12,215 +12,24 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GridCoordinate` type.
+/// `DeleteDimensionGroupResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GridCoordinate {
-    /// columnIndex property.
-    pub column_index: Option<i64>,
-    /// rowIndex property.
-    pub row_index: Option<i64>,
-    /// sheetId property.
-    pub sheet_id: Option<i64>,
-}
-
-/// `CancelDataSourceRefreshStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelDataSourceRefreshStatus {
-    /// reference property.
-    pub reference: Option<DataSourceObjectReference>,
-    /// refreshCancellationStatus property.
-    pub refresh_cancellation_status: Option<RefreshCancellationStatus>,
-}
-
-/// `ChipRun` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChipRun {
-    /// chip property.
-    pub chip: Option<Chip>,
-    /// startIndex property.
-    pub start_index: Option<i64>,
-}
-
-/// `CandlestickDomain` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CandlestickDomain {
-    /// data property.
-    pub data: Option<ChartData>,
-    /// reversed property.
-    pub reversed: Option<bool>,
-}
-
-/// `AddDimensionGroupResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AddDimensionGroupResponse {
+pub struct DeleteDimensionGroupResponse {
     /// dimensionGroups property.
     pub dimension_groups: Option<Vec<DimensionGroup>>,
-}
-
-/// `WaterfallChartColumnStyle` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WaterfallChartColumnStyle {
-    /// color property.
-    pub color: Option<Color>,
-    /// colorStyle property.
-    pub color_style: Option<ColorStyle>,
-    /// label property.
-    pub label: Option<String>,
-}
-
-/// `UpdateDataSourceResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateDataSourceResponse {
-    /// dataExecutionStatus property.
-    pub data_execution_status: Option<DataExecutionStatus>,
-    /// dataSource property.
-    pub data_source: Option<DataSource>,
-}
-
-/// `FilterCriteria` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FilterCriteria {
-    /// condition property.
-    pub condition: Option<BooleanCondition>,
-    /// hiddenValues property.
-    pub hidden_values: Option<Vec<String>>,
-    /// visibleBackgroundColor property.
-    pub visible_background_color: Option<Color>,
-    /// visibleBackgroundColorStyle property.
-    pub visible_background_color_style: Option<ColorStyle>,
-    /// visibleForegroundColor property.
-    pub visible_foreground_color: Option<Color>,
-    /// visibleForegroundColorStyle property.
-    pub visible_foreground_color_style: Option<ColorStyle>,
-}
-
-/// `Border` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Border {
-    /// color property.
-    pub color: Option<Color>,
-    /// colorStyle property.
-    pub color_style: Option<ColorStyle>,
-    /// style property.
-    pub style: Option<String>,
-    /// width property.
-    pub width: Option<i64>,
-}
-
-/// `PointStyle` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PointStyle {
-    /// shape property.
-    pub shape: Option<String>,
-    /// size property.
-    pub size: Option<f64>,
-}
-
-/// `Interval` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Interval {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `BooleanCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BooleanCondition {
-    /// type property.
-    pub r#type: Option<String>,
-    /// values property.
-    pub values: Option<Vec<ConditionValue>>,
-}
-
-/// `NumberFormat` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NumberFormat {
-    /// pattern property.
-    pub pattern: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `WaterfallChartCustomSubtotal` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WaterfallChartCustomSubtotal {
-    /// dataIsSubtotal property.
-    pub data_is_subtotal: Option<bool>,
-    /// label property.
-    pub label: Option<String>,
-    /// subtotalIndex property.
-    pub subtotal_index: Option<i64>,
-}
-
-/// `DataSourceParameter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSourceParameter {
-    /// name property.
-    pub name: Option<String>,
-    /// namedRangeId property.
-    pub named_range_id: Option<String>,
-    /// range property.
-    pub range: Option<GridRange>,
-}
-
-/// `LookerDataSourceSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LookerDataSourceSpec {
-    /// explore property.
-    pub explore: Option<String>,
-    /// instanceUri property.
-    pub instance_uri: Option<String>,
-    /// model property.
-    pub model: Option<String>,
-}
-
-/// `ChartCustomNumberFormatOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChartCustomNumberFormatOptions {
-    /// prefix property.
-    pub prefix: Option<String>,
-    /// suffix property.
-    pub suffix: Option<String>,
-}
-
-/// `DeleteConditionalFormatRuleResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteConditionalFormatRuleResponse {
-    /// rule property.
-    pub rule: Option<ConditionalFormatRule>,
-}
-
-/// `GridProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GridProperties {
-    /// columnCount property.
-    pub column_count: Option<i64>,
-    /// columnGroupControlAfter property.
-    pub column_group_control_after: Option<bool>,
-    /// frozenColumnCount property.
-    pub frozen_column_count: Option<i64>,
-    /// frozenRowCount property.
-    pub frozen_row_count: Option<i64>,
-    /// hideGridlines property.
-    pub hide_gridlines: Option<bool>,
-    /// rowCount property.
-    pub row_count: Option<i64>,
-    /// rowGroupControlAfter property.
-    pub row_group_control_after: Option<bool>,
 }
 
 /// `BandingProperties` type.
@@ -244,6 +53,205 @@ pub struct BandingProperties {
     pub second_band_color_style: Option<ColorStyle>,
 }
 
+/// `CellFormat` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CellFormat {
+    /// backgroundColor property.
+    pub background_color: Option<Color>,
+    /// backgroundColorStyle property.
+    pub background_color_style: Option<ColorStyle>,
+    /// borders property.
+    pub borders: Option<Borders>,
+    /// horizontalAlignment property.
+    pub horizontal_alignment: Option<String>,
+    /// hyperlinkDisplayType property.
+    pub hyperlink_display_type: Option<String>,
+    /// numberFormat property.
+    pub number_format: Option<NumberFormat>,
+    /// padding property.
+    pub padding: Option<Padding>,
+    /// textDirection property.
+    pub text_direction: Option<String>,
+    /// textFormat property.
+    pub text_format: Option<TextFormat>,
+    /// textRotation property.
+    pub text_rotation: Option<TextRotation>,
+    /// verticalAlignment property.
+    pub vertical_alignment: Option<String>,
+    /// wrapStrategy property.
+    pub wrap_strategy: Option<String>,
+}
+
+/// `ExtendedValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExtendedValue {
+    /// boolValue property.
+    pub bool_value: Option<bool>,
+    /// errorValue property.
+    pub error_value: Option<ErrorValue>,
+    /// formulaValue property.
+    pub formula_value: Option<String>,
+    /// numberValue property.
+    pub number_value: Option<f64>,
+    /// stringValue property.
+    pub string_value: Option<String>,
+}
+
+/// `DataLabel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataLabel {
+    /// customLabelData property.
+    pub custom_label_data: Option<ChartData>,
+    /// placement property.
+    pub placement: Option<String>,
+    /// textFormat property.
+    pub text_format: Option<TextFormat>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `WaterfallChartDomain` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WaterfallChartDomain {
+    /// data property.
+    pub data: Option<ChartData>,
+    /// reversed property.
+    pub reversed: Option<bool>,
+}
+
+/// `UpdateConditionalFormatRuleResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateConditionalFormatRuleResponse {
+    /// newIndex property.
+    pub new_index: Option<i64>,
+    /// newRule property.
+    pub new_rule: Option<ConditionalFormatRule>,
+    /// oldIndex property.
+    pub old_index: Option<i64>,
+    /// oldRule property.
+    pub old_rule: Option<ConditionalFormatRule>,
+}
+
+/// `OrgChartSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OrgChartSpec {
+    /// labels property.
+    pub labels: Option<ChartData>,
+    /// nodeColor property.
+    pub node_color: Option<Color>,
+    /// nodeColorStyle property.
+    pub node_color_style: Option<ColorStyle>,
+    /// nodeSize property.
+    pub node_size: Option<String>,
+    /// parentLabels property.
+    pub parent_labels: Option<ChartData>,
+    /// selectedNodeColor property.
+    pub selected_node_color: Option<Color>,
+    /// selectedNodeColorStyle property.
+    pub selected_node_color_style: Option<ColorStyle>,
+    /// tooltips property.
+    pub tooltips: Option<ChartData>,
+}
+
+/// `NamedRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NamedRange {
+    /// name property.
+    pub name: Option<String>,
+    /// namedRangeId property.
+    pub named_range_id: Option<String>,
+    /// range property.
+    pub range: Option<GridRange>,
+}
+
+/// `DataSourceChartProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceChartProperties {
+    /// dataExecutionStatus property.
+    pub data_execution_status: Option<DataExecutionStatus>,
+    /// dataSourceId property.
+    pub data_source_id: Option<String>,
+}
+
+/// `WaterfallChartSeries` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WaterfallChartSeries {
+    /// customSubtotals property.
+    pub custom_subtotals: Option<Vec<WaterfallChartCustomSubtotal>>,
+    /// data property.
+    pub data: Option<ChartData>,
+    /// dataLabel property.
+    pub data_label: Option<DataLabel>,
+    /// hideTrailingSubtotal property.
+    pub hide_trailing_subtotal: Option<bool>,
+    /// negativeColumnsStyle property.
+    pub negative_columns_style: Option<WaterfallChartColumnStyle>,
+    /// positiveColumnsStyle property.
+    pub positive_columns_style: Option<WaterfallChartColumnStyle>,
+    /// subtotalColumnsStyle property.
+    pub subtotal_columns_style: Option<WaterfallChartColumnStyle>,
+}
+
+/// `HistogramSeries` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HistogramSeries {
+    /// barColor property.
+    pub bar_color: Option<Color>,
+    /// barColorStyle property.
+    pub bar_color_style: Option<ColorStyle>,
+    /// data property.
+    pub data: Option<ChartData>,
+}
+
+/// `BooleanCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BooleanCondition {
+    /// type property.
+    pub r#type: Option<String>,
+    /// values property.
+    pub values: Option<Vec<ConditionValue>>,
+}
+
+/// `DataSourceColumnReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceColumnReference {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `ColorStyle` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ColorStyle {
+    /// rgbColor property.
+    pub rgb_color: Option<Color>,
+    /// themeColor property.
+    pub theme_color: Option<String>,
+}
+
+/// `GridRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GridRange {
+    /// endColumnIndex property.
+    pub end_column_index: Option<i64>,
+    /// endRowIndex property.
+    pub end_row_index: Option<i64>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+    /// startColumnIndex property.
+    pub start_column_index: Option<i64>,
+    /// startRowIndex property.
+    pub start_row_index: Option<i64>,
+}
+
+/// `PivotGroupLimit` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PivotGroupLimit {
+    /// applyOrder property.
+    pub apply_order: Option<i64>,
+    /// countLimit property.
+    pub count_limit: Option<i64>,
+}
+
 /// `HistogramRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HistogramRule {
@@ -255,11 +263,154 @@ pub struct HistogramRule {
     pub start: Option<f64>,
 }
 
-/// `AddChartResponse` type.
+/// `Link` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AddChartResponse {
-    /// chart property.
-    pub chart: Option<EmbeddedChart>,
+pub struct Link {
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `ChartSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChartSpec {
+    /// altText property.
+    pub alt_text: Option<String>,
+    /// backgroundColor property.
+    pub background_color: Option<Color>,
+    /// backgroundColorStyle property.
+    pub background_color_style: Option<ColorStyle>,
+    /// basicChart property.
+    pub basic_chart: Option<BasicChartSpec>,
+    /// bubbleChart property.
+    pub bubble_chart: Option<BubbleChartSpec>,
+    /// candlestickChart property.
+    pub candlestick_chart: Option<CandlestickChartSpec>,
+    /// dataSourceChartProperties property.
+    pub data_source_chart_properties: Option<DataSourceChartProperties>,
+    /// filterSpecs property.
+    pub filter_specs: Option<Vec<FilterSpec>>,
+    /// fontName property.
+    pub font_name: Option<String>,
+    /// hiddenDimensionStrategy property.
+    pub hidden_dimension_strategy: Option<String>,
+    /// histogramChart property.
+    pub histogram_chart: Option<HistogramChartSpec>,
+    /// maximized property.
+    pub maximized: Option<bool>,
+    /// orgChart property.
+    pub org_chart: Option<OrgChartSpec>,
+    /// pieChart property.
+    pub pie_chart: Option<PieChartSpec>,
+    /// scorecardChart property.
+    pub scorecard_chart: Option<ScorecardChartSpec>,
+    /// sortSpecs property.
+    pub sort_specs: Option<Vec<SortSpec>>,
+    /// subtitle property.
+    pub subtitle: Option<String>,
+    /// subtitleTextFormat property.
+    pub subtitle_text_format: Option<TextFormat>,
+    /// subtitleTextPosition property.
+    pub subtitle_text_position: Option<TextPosition>,
+    /// title property.
+    pub title: Option<String>,
+    /// titleTextFormat property.
+    pub title_text_format: Option<TextFormat>,
+    /// titleTextPosition property.
+    pub title_text_position: Option<TextPosition>,
+    /// treemapChart property.
+    pub treemap_chart: Option<TreemapChartSpec>,
+    /// waterfallChart property.
+    pub waterfall_chart: Option<WaterfallChartSpec>,
+}
+
+/// `ChartDateTimeRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChartDateTimeRule {
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `AddDataSourceResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AddDataSourceResponse {
+    /// dataExecutionStatus property.
+    pub data_execution_status: Option<DataExecutionStatus>,
+    /// dataSource property.
+    pub data_source: Option<DataSource>,
+}
+
+/// `PivotTable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PivotTable {
+    /// columns property.
+    pub columns: Option<Vec<PivotGroup>>,
+    /// criteria property.
+    pub criteria: Option<serde_json::Value>,
+    /// dataExecutionStatus property.
+    pub data_execution_status: Option<DataExecutionStatus>,
+    /// dataSourceId property.
+    pub data_source_id: Option<String>,
+    /// filterSpecs property.
+    pub filter_specs: Option<Vec<PivotFilterSpec>>,
+    /// rows property.
+    pub rows: Option<Vec<PivotGroup>>,
+    /// source property.
+    pub source: Option<GridRange>,
+    /// valueLayout property.
+    pub value_layout: Option<String>,
+    /// values property.
+    pub values: Option<Vec<PivotValue>>,
+}
+
+/// `ChartData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChartData {
+    /// aggregateType property.
+    pub aggregate_type: Option<String>,
+    /// columnReference property.
+    pub column_reference: Option<DataSourceColumnReference>,
+    /// groupRule property.
+    pub group_rule: Option<ChartGroupRule>,
+    /// sourceRange property.
+    pub source_range: Option<ChartSourceRange>,
+}
+
+/// `ScorecardChartSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ScorecardChartSpec {
+    /// aggregateType property.
+    pub aggregate_type: Option<String>,
+    /// baselineValueData property.
+    pub baseline_value_data: Option<ChartData>,
+    /// baselineValueFormat property.
+    pub baseline_value_format: Option<BaselineValueFormat>,
+    /// customFormatOptions property.
+    pub custom_format_options: Option<ChartCustomNumberFormatOptions>,
+    /// keyValueData property.
+    pub key_value_data: Option<ChartData>,
+    /// keyValueFormat property.
+    pub key_value_format: Option<KeyValueFormat>,
+    /// numberFormatSource property.
+    pub number_format_source: Option<String>,
+    /// scaleFactor property.
+    pub scale_factor: Option<f64>,
+}
+
+/// `PivotValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PivotValue {
+    /// calculatedDisplayType property.
+    pub calculated_display_type: Option<String>,
+    /// dataSourceColumnReference property.
+    pub data_source_column_reference: Option<DataSourceColumnReference>,
+    /// formula property.
+    pub formula: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// sourceColumnOffset property.
+    pub source_column_offset: Option<i64>,
+    /// summarizeFunction property.
+    pub summarize_function: Option<String>,
 }
 
 /// `BasicChartAxis` type.
@@ -277,305 +428,53 @@ pub struct BasicChartAxis {
     pub view_window_options: Option<ChartAxisViewWindowOptions>,
 }
 
-/// `RichLinkProperties` type.
+/// `DataSourceRefreshWeeklySchedule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RichLinkProperties {
-    /// mimeType property.
-    pub mime_type: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `SortSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SortSpec {
-    /// backgroundColor property.
-    pub background_color: Option<Color>,
-    /// backgroundColorStyle property.
-    pub background_color_style: Option<ColorStyle>,
-    /// dataSourceColumnReference property.
-    pub data_source_column_reference: Option<DataSourceColumnReference>,
-    /// dimensionIndex property.
-    pub dimension_index: Option<i64>,
-    /// foregroundColor property.
-    pub foreground_color: Option<Color>,
-    /// foregroundColorStyle property.
-    pub foreground_color_style: Option<ColorStyle>,
-    /// sortOrder property.
-    pub sort_order: Option<String>,
-}
-
-/// `CandlestickChartSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CandlestickChartSpec {
-    /// data property.
-    pub data: Option<Vec<CandlestickData>>,
-    /// domain property.
-    pub domain: Option<CandlestickDomain>,
-}
-
-/// `CreateDeveloperMetadataResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateDeveloperMetadataResponse {
-    /// developerMetadata property.
-    pub developer_metadata: Option<DeveloperMetadata>,
-}
-
-/// `UpdateConditionalFormatRuleResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateConditionalFormatRuleResponse {
-    /// newIndex property.
-    pub new_index: Option<i64>,
-    /// newRule property.
-    pub new_rule: Option<ConditionalFormatRule>,
-    /// oldIndex property.
-    pub old_index: Option<i64>,
-    /// oldRule property.
-    pub old_rule: Option<ConditionalFormatRule>,
-}
-
-/// `RefreshDataSourceResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RefreshDataSourceResponse {
-    /// statuses property.
-    pub statuses: Option<Vec<RefreshDataSourceObjectExecutionStatus>>,
-}
-
-/// `DataExecutionStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataExecutionStatus {
-    /// errorCode property.
-    pub error_code: Option<String>,
-    /// errorMessage property.
-    pub error_message: Option<String>,
-    /// lastRefreshTime property.
-    pub last_refresh_time: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `GradientRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GradientRule {
-    /// maxpoint property.
-    pub maxpoint: Option<InterpolationPoint>,
-    /// midpoint property.
-    pub midpoint: Option<InterpolationPoint>,
-    /// minpoint property.
-    pub minpoint: Option<InterpolationPoint>,
-}
-
-/// `DataLabel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataLabel {
-    /// customLabelData property.
-    pub custom_label_data: Option<ChartData>,
-    /// placement property.
-    pub placement: Option<String>,
-    /// textFormat property.
-    pub text_format: Option<TextFormat>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `BubbleChartSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BubbleChartSpec {
-    /// bubbleBorderColor property.
-    pub bubble_border_color: Option<Color>,
-    /// bubbleBorderColorStyle property.
-    pub bubble_border_color_style: Option<ColorStyle>,
-    /// bubbleLabels property.
-    pub bubble_labels: Option<ChartData>,
-    /// bubbleMaxRadiusSize property.
-    pub bubble_max_radius_size: Option<i64>,
-    /// bubbleMinRadiusSize property.
-    pub bubble_min_radius_size: Option<i64>,
-    /// bubbleOpacity property.
-    pub bubble_opacity: Option<f64>,
-    /// bubbleSizes property.
-    pub bubble_sizes: Option<ChartData>,
-    /// bubbleTextStyle property.
-    pub bubble_text_style: Option<TextFormat>,
-    /// domain property.
-    pub domain: Option<ChartData>,
-    /// groupIds property.
-    pub group_ids: Option<ChartData>,
-    /// legendPosition property.
-    pub legend_position: Option<String>,
-    /// series property.
-    pub series: Option<ChartData>,
-}
-
-/// `AddProtectedRangeResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AddProtectedRangeResponse {
-    /// protectedRange property.
-    pub protected_range: Option<ProtectedRange>,
-}
-
-/// `BasicChartSeries` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BasicChartSeries {
-    /// color property.
-    pub color: Option<Color>,
-    /// colorStyle property.
-    pub color_style: Option<ColorStyle>,
-    /// dataLabel property.
-    pub data_label: Option<DataLabel>,
-    /// lineStyle property.
-    pub line_style: Option<LineStyle>,
-    /// pointStyle property.
-    pub point_style: Option<PointStyle>,
-    /// series property.
-    pub series: Option<ChartData>,
-    /// styleOverrides property.
-    pub style_overrides: Option<Vec<BasicSeriesDataPointStyleOverride>>,
-    /// targetAxis property.
-    pub target_axis: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `BandedRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BandedRange {
-    /// bandedRangeId property.
-    pub banded_range_id: Option<i64>,
-    /// bandedRangeReference property.
-    pub banded_range_reference: Option<String>,
-    /// columnProperties property.
-    pub column_properties: Option<BandingProperties>,
-    /// range property.
-    pub range: Option<GridRange>,
-    /// rowProperties property.
-    pub row_properties: Option<BandingProperties>,
-}
-
-/// `IterativeCalculationSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IterativeCalculationSettings {
-    /// convergenceThreshold property.
-    pub convergence_threshold: Option<f64>,
-    /// maxIterations property.
-    pub max_iterations: Option<i64>,
-}
-
-/// `DataSourceRefreshDailySchedule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSourceRefreshDailySchedule {
+pub struct DataSourceRefreshWeeklySchedule {
+    /// daysOfWeek property.
+    pub days_of_week: Option<Vec<String>>,
     /// startTime property.
     pub start_time: Option<TimeOfDay>,
 }
 
-/// `SlicerSpec` type.
+/// `TextRotation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SlicerSpec {
-    /// applyToPivotTables property.
-    pub apply_to_pivot_tables: Option<bool>,
-    /// backgroundColor property.
-    pub background_color: Option<Color>,
-    /// backgroundColorStyle property.
-    pub background_color_style: Option<ColorStyle>,
-    /// columnIndex property.
-    pub column_index: Option<i64>,
-    /// dataRange property.
-    pub data_range: Option<GridRange>,
-    /// filterCriteria property.
-    pub filter_criteria: Option<FilterCriteria>,
-    /// horizontalAlignment property.
-    pub horizontal_alignment: Option<String>,
-    /// textFormat property.
-    pub text_format: Option<TextFormat>,
-    /// title property.
-    pub title: Option<String>,
+pub struct TextRotation {
+    /// angle property.
+    pub angle: Option<i64>,
+    /// vertical property.
+    pub vertical: Option<bool>,
 }
 
-/// `DataSource` type.
+/// `PivotFilterCriteria` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSource {
-    /// calculatedColumns property.
-    pub calculated_columns: Option<Vec<DataSourceColumn>>,
-    /// dataSourceId property.
-    pub data_source_id: Option<String>,
-    /// sheetId property.
-    pub sheet_id: Option<i64>,
-    /// spec property.
-    pub spec: Option<DataSourceSpec>,
+pub struct PivotFilterCriteria {
+    /// condition property.
+    pub condition: Option<BooleanCondition>,
+    /// visibleByDefault property.
+    pub visible_by_default: Option<bool>,
+    /// visibleValues property.
+    pub visible_values: Option<Vec<String>>,
 }
 
-/// `SheetProperties` type.
+/// `TableColumnDataValidationRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SheetProperties {
-    /// dataSourceSheetProperties property.
-    pub data_source_sheet_properties: Option<DataSourceSheetProperties>,
-    /// gridProperties property.
-    pub grid_properties: Option<GridProperties>,
-    /// hidden property.
-    pub hidden: Option<bool>,
-    /// index property.
-    pub index: Option<i64>,
-    /// rightToLeft property.
-    pub right_to_left: Option<bool>,
-    /// sheetId property.
-    pub sheet_id: Option<i64>,
-    /// sheetType property.
-    pub sheet_type: Option<String>,
-    /// tabColor property.
-    pub tab_color: Option<Color>,
-    /// tabColorStyle property.
-    pub tab_color_style: Option<ColorStyle>,
-    /// title property.
-    pub title: Option<String>,
+pub struct TableColumnDataValidationRule {
+    /// condition property.
+    pub condition: Option<BooleanCondition>,
 }
 
-/// `ChartDateTimeRule` type.
+/// `Padding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChartDateTimeRule {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `AddNamedRangeResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AddNamedRangeResponse {
-    /// namedRange property.
-    pub named_range: Option<NamedRange>,
-}
-
-/// `ColorStyle` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ColorStyle {
-    /// rgbColor property.
-    pub rgb_color: Option<Color>,
-    /// themeColor property.
-    pub theme_color: Option<String>,
-}
-
-/// `ChartAxisViewWindowOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChartAxisViewWindowOptions {
-    /// viewWindowMax property.
-    pub view_window_max: Option<f64>,
-    /// viewWindowMin property.
-    pub view_window_min: Option<f64>,
-    /// viewWindowMode property.
-    pub view_window_mode: Option<String>,
-}
-
-/// `GridData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GridData {
-    /// columnMetadata property.
-    pub column_metadata: Option<Vec<DimensionProperties>>,
-    /// rowData property.
-    pub row_data: Option<Vec<RowData>>,
-    /// rowMetadata property.
-    pub row_metadata: Option<Vec<DimensionProperties>>,
-    /// startColumn property.
-    pub start_column: Option<i64>,
-    /// startRow property.
-    pub start_row: Option<i64>,
+pub struct Padding {
+    /// bottom property.
+    pub bottom: Option<i64>,
+    /// left property.
+    pub left: Option<i64>,
+    /// right property.
+    pub right: Option<i64>,
+    /// top property.
+    pub top: Option<i64>,
 }
 
 /// `Response` type.
@@ -633,6 +532,271 @@ pub struct Response {
     pub update_embedded_object_position: Option<UpdateEmbeddedObjectPositionResponse>,
 }
 
+/// `SlicerSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SlicerSpec {
+    /// applyToPivotTables property.
+    pub apply_to_pivot_tables: Option<bool>,
+    /// backgroundColor property.
+    pub background_color: Option<Color>,
+    /// backgroundColorStyle property.
+    pub background_color_style: Option<ColorStyle>,
+    /// columnIndex property.
+    pub column_index: Option<i64>,
+    /// dataRange property.
+    pub data_range: Option<GridRange>,
+    /// filterCriteria property.
+    pub filter_criteria: Option<FilterCriteria>,
+    /// horizontalAlignment property.
+    pub horizontal_alignment: Option<String>,
+    /// textFormat property.
+    pub text_format: Option<TextFormat>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `CandlestickChartSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CandlestickChartSpec {
+    /// data property.
+    pub data: Option<Vec<CandlestickData>>,
+    /// domain property.
+    pub domain: Option<CandlestickDomain>,
+}
+
+/// `RichLinkProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RichLinkProperties {
+    /// mimeType property.
+    pub mime_type: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `DeveloperMetadataLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeveloperMetadataLocation {
+    /// dimensionRange property.
+    pub dimension_range: Option<DimensionRange>,
+    /// locationType property.
+    pub location_type: Option<String>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+    /// spreadsheet property.
+    pub spreadsheet: Option<bool>,
+}
+
+/// `AddBandingResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AddBandingResponse {
+    /// bandedRange property.
+    pub banded_range: Option<BandedRange>,
+}
+
+/// `CreateDeveloperMetadataResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateDeveloperMetadataResponse {
+    /// developerMetadata property.
+    pub developer_metadata: Option<DeveloperMetadata>,
+}
+
+/// `TrimWhitespaceResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TrimWhitespaceResponse {
+    /// cellsChangedCount property.
+    pub cells_changed_count: Option<i64>,
+}
+
+/// `HistogramChartSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HistogramChartSpec {
+    /// bucketSize property.
+    pub bucket_size: Option<f64>,
+    /// legendPosition property.
+    pub legend_position: Option<String>,
+    /// outlierPercentile property.
+    pub outlier_percentile: Option<f64>,
+    /// series property.
+    pub series: Option<Vec<HistogramSeries>>,
+    /// showItemDividers property.
+    pub show_item_dividers: Option<bool>,
+}
+
+/// `ChartAxisViewWindowOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChartAxisViewWindowOptions {
+    /// viewWindowMax property.
+    pub view_window_max: Option<f64>,
+    /// viewWindowMin property.
+    pub view_window_min: Option<f64>,
+    /// viewWindowMode property.
+    pub view_window_mode: Option<String>,
+}
+
+/// `EmbeddedObjectBorder` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EmbeddedObjectBorder {
+    /// color property.
+    pub color: Option<Color>,
+    /// colorStyle property.
+    pub color_style: Option<ColorStyle>,
+}
+
+/// `EmbeddedChart` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EmbeddedChart {
+    /// border property.
+    pub border: Option<EmbeddedObjectBorder>,
+    /// chartId property.
+    pub chart_id: Option<i64>,
+    /// position property.
+    pub position: Option<EmbeddedObjectPosition>,
+    /// spec property.
+    pub spec: Option<ChartSpec>,
+}
+
+/// `DuplicateFilterViewResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DuplicateFilterViewResponse {
+    /// filter property.
+    pub filter: Option<FilterView>,
+}
+
+/// `BasicChartSeries` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BasicChartSeries {
+    /// color property.
+    pub color: Option<Color>,
+    /// colorStyle property.
+    pub color_style: Option<ColorStyle>,
+    /// dataLabel property.
+    pub data_label: Option<DataLabel>,
+    /// lineStyle property.
+    pub line_style: Option<LineStyle>,
+    /// pointStyle property.
+    pub point_style: Option<PointStyle>,
+    /// series property.
+    pub series: Option<ChartData>,
+    /// styleOverrides property.
+    pub style_overrides: Option<Vec<BasicSeriesDataPointStyleOverride>>,
+    /// targetAxis property.
+    pub target_axis: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `Table` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Table {
+    /// columnProperties property.
+    pub column_properties: Option<Vec<TableColumnProperties>>,
+    /// name property.
+    pub name: Option<String>,
+    /// range property.
+    pub range: Option<GridRange>,
+    /// rowsProperties property.
+    pub rows_properties: Option<TableRowsProperties>,
+    /// tableId property.
+    pub table_id: Option<String>,
+}
+
+/// `DataSourceRefreshMonthlySchedule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceRefreshMonthlySchedule {
+    /// daysOfMonth property.
+    pub days_of_month: Option<Vec<i64>>,
+    /// startTime property.
+    pub start_time: Option<TimeOfDay>,
+}
+
+/// `CancelDataSourceRefreshStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CancelDataSourceRefreshStatus {
+    /// reference property.
+    pub reference: Option<DataSourceObjectReference>,
+    /// refreshCancellationStatus property.
+    pub refresh_cancellation_status: Option<RefreshCancellationStatus>,
+}
+
+/// `DataExecutionStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataExecutionStatus {
+    /// errorCode property.
+    pub error_code: Option<String>,
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// lastRefreshTime property.
+    pub last_refresh_time: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `BigQueryTableSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BigQueryTableSpec {
+    /// datasetId property.
+    pub dataset_id: Option<String>,
+    /// tableId property.
+    pub table_id: Option<String>,
+    /// tableProjectId property.
+    pub table_project_id: Option<String>,
+}
+
+/// `CandlestickSeries` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CandlestickSeries {
+    /// data property.
+    pub data: Option<ChartData>,
+}
+
+/// `EmbeddedObjectPosition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EmbeddedObjectPosition {
+    /// newSheet property.
+    pub new_sheet: Option<bool>,
+    /// overlayPosition property.
+    pub overlay_position: Option<OverlayPosition>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+}
+
+/// `SortSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SortSpec {
+    /// backgroundColor property.
+    pub background_color: Option<Color>,
+    /// backgroundColorStyle property.
+    pub background_color_style: Option<ColorStyle>,
+    /// dataSourceColumnReference property.
+    pub data_source_column_reference: Option<DataSourceColumnReference>,
+    /// dimensionIndex property.
+    pub dimension_index: Option<i64>,
+    /// foregroundColor property.
+    pub foreground_color: Option<Color>,
+    /// foregroundColorStyle property.
+    pub foreground_color_style: Option<ColorStyle>,
+    /// sortOrder property.
+    pub sort_order: Option<String>,
+}
+
+/// `DeleteDeveloperMetadataResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeleteDeveloperMetadataResponse {
+    /// deletedDeveloperMetadata property.
+    pub deleted_developer_metadata: Option<Vec<DeveloperMetadata>>,
+}
+
+/// `Editors` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Editors {
+    /// domainUsersCanEdit property.
+    pub domain_users_can_edit: Option<bool>,
+    /// groups property.
+    pub groups: Option<Vec<String>>,
+    /// users property.
+    pub users: Option<Vec<String>>,
+}
+
 /// `PivotGroup` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PivotGroup {
@@ -658,37 +822,53 @@ pub struct PivotGroup {
     pub value_metadata: Option<Vec<PivotGroupValueMetadata>>,
 }
 
-/// `PivotGroupLimit` type.
+/// `ManualRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PivotGroupLimit {
-    /// applyOrder property.
-    pub apply_order: Option<i64>,
-    /// countLimit property.
-    pub count_limit: Option<i64>,
+pub struct ManualRule {
+    /// groups property.
+    pub groups: Option<Vec<ManualRuleGroup>>,
 }
 
-/// `DimensionRange` type.
+/// `InterpolationPoint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DimensionRange {
-    /// dimension property.
-    pub dimension: Option<String>,
-    /// endIndex property.
-    pub end_index: Option<i64>,
-    /// sheetId property.
-    pub sheet_id: Option<i64>,
-    /// startIndex property.
-    pub start_index: Option<i64>,
+pub struct InterpolationPoint {
+    /// color property.
+    pub color: Option<Color>,
+    /// colorStyle property.
+    pub color_style: Option<ColorStyle>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
-/// `EmbeddedObjectPosition` type.
+/// `BubbleChartSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EmbeddedObjectPosition {
-    /// newSheet property.
-    pub new_sheet: Option<bool>,
-    /// overlayPosition property.
-    pub overlay_position: Option<OverlayPosition>,
-    /// sheetId property.
-    pub sheet_id: Option<i64>,
+pub struct BubbleChartSpec {
+    /// bubbleBorderColor property.
+    pub bubble_border_color: Option<Color>,
+    /// bubbleBorderColorStyle property.
+    pub bubble_border_color_style: Option<ColorStyle>,
+    /// bubbleLabels property.
+    pub bubble_labels: Option<ChartData>,
+    /// bubbleMaxRadiusSize property.
+    pub bubble_max_radius_size: Option<i64>,
+    /// bubbleMinRadiusSize property.
+    pub bubble_min_radius_size: Option<i64>,
+    /// bubbleOpacity property.
+    pub bubble_opacity: Option<f64>,
+    /// bubbleSizes property.
+    pub bubble_sizes: Option<ChartData>,
+    /// bubbleTextStyle property.
+    pub bubble_text_style: Option<TextFormat>,
+    /// domain property.
+    pub domain: Option<ChartData>,
+    /// groupIds property.
+    pub group_ids: Option<ChartData>,
+    /// legendPosition property.
+    pub legend_position: Option<String>,
+    /// series property.
+    pub series: Option<ChartData>,
 }
 
 /// `BaselineValueFormat` type.
@@ -712,358 +892,27 @@ pub struct BaselineValueFormat {
     pub text_format: Option<TextFormat>,
 }
 
-/// `PivotTable` type.
+/// `ProtectedRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PivotTable {
-    /// columns property.
-    pub columns: Option<Vec<PivotGroup>>,
-    /// criteria property.
-    pub criteria: Option<serde_json::Value>,
-    /// dataExecutionStatus property.
-    pub data_execution_status: Option<DataExecutionStatus>,
-    /// dataSourceId property.
-    pub data_source_id: Option<String>,
-    /// filterSpecs property.
-    pub filter_specs: Option<Vec<PivotFilterSpec>>,
-    /// rows property.
-    pub rows: Option<Vec<PivotGroup>>,
-    /// source property.
-    pub source: Option<GridRange>,
-    /// valueLayout property.
-    pub value_layout: Option<String>,
-    /// values property.
-    pub values: Option<Vec<PivotValue>>,
-}
-
-/// `PivotValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PivotValue {
-    /// calculatedDisplayType property.
-    pub calculated_display_type: Option<String>,
-    /// dataSourceColumnReference property.
-    pub data_source_column_reference: Option<DataSourceColumnReference>,
-    /// formula property.
-    pub formula: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// sourceColumnOffset property.
-    pub source_column_offset: Option<i64>,
-    /// summarizeFunction property.
-    pub summarize_function: Option<String>,
-}
-
-/// `TrimWhitespaceResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TrimWhitespaceResponse {
-    /// cellsChangedCount property.
-    pub cells_changed_count: Option<i64>,
-}
-
-/// `AddSheetResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AddSheetResponse {
-    /// properties property.
-    pub properties: Option<SheetProperties>,
-}
-
-/// `CancelDataSourceRefreshResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelDataSourceRefreshResponse {
-    /// statuses property.
-    pub statuses: Option<Vec<CancelDataSourceRefreshStatus>>,
-}
-
-/// `DataSourceChartProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSourceChartProperties {
-    /// dataExecutionStatus property.
-    pub data_execution_status: Option<DataExecutionStatus>,
-    /// dataSourceId property.
-    pub data_source_id: Option<String>,
-}
-
-/// `ChartSourceRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChartSourceRange {
-    /// sources property.
-    pub sources: Option<Vec<GridRange>>,
-}
-
-/// `Color` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Color {
-    /// alpha property.
-    pub alpha: Option<f64>,
-    /// blue property.
-    pub blue: Option<f64>,
-    /// green property.
-    pub green: Option<f64>,
-    /// red property.
-    pub red: Option<f64>,
-}
-
-/// `Slicer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Slicer {
-    /// position property.
-    pub position: Option<EmbeddedObjectPosition>,
-    /// slicerId property.
-    pub slicer_id: Option<i64>,
-    /// spec property.
-    pub spec: Option<SlicerSpec>,
-}
-
-/// `KeyValueFormat` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KeyValueFormat {
-    /// position property.
-    pub position: Option<TextPosition>,
-    /// textFormat property.
-    pub text_format: Option<TextFormat>,
-}
-
-/// `BasicSeriesDataPointStyleOverride` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BasicSeriesDataPointStyleOverride {
-    /// color property.
-    pub color: Option<Color>,
-    /// colorStyle property.
-    pub color_style: Option<ColorStyle>,
-    /// index property.
-    pub index: Option<i64>,
-    /// pointStyle property.
-    pub point_style: Option<PointStyle>,
-}
-
-/// `AddSlicerResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AddSlicerResponse {
-    /// slicer property.
-    pub slicer: Option<Slicer>,
-}
-
-/// `FilterSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FilterSpec {
-    /// columnIndex property.
-    pub column_index: Option<i64>,
-    /// dataSourceColumnReference property.
-    pub data_source_column_reference: Option<DataSourceColumnReference>,
-    /// filterCriteria property.
-    pub filter_criteria: Option<FilterCriteria>,
-}
-
-/// `ChartData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChartData {
-    /// aggregateType property.
-    pub aggregate_type: Option<String>,
-    /// columnReference property.
-    pub column_reference: Option<DataSourceColumnReference>,
-    /// groupRule property.
-    pub group_rule: Option<ChartGroupRule>,
-    /// sourceRange property.
-    pub source_range: Option<ChartSourceRange>,
-}
-
-/// `Chip` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Chip {
-    /// personProperties property.
-    pub person_properties: Option<PersonProperties>,
-    /// richLinkProperties property.
-    pub rich_link_properties: Option<RichLinkProperties>,
-}
-
-/// `TreemapChartSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TreemapChartSpec {
-    /// colorData property.
-    pub color_data: Option<ChartData>,
-    /// colorScale property.
-    pub color_scale: Option<TreemapChartColorScale>,
-    /// headerColor property.
-    pub header_color: Option<Color>,
-    /// headerColorStyle property.
-    pub header_color_style: Option<ColorStyle>,
-    /// hideTooltips property.
-    pub hide_tooltips: Option<bool>,
-    /// hintedLevels property.
-    pub hinted_levels: Option<i64>,
-    /// labels property.
-    pub labels: Option<ChartData>,
-    /// levels property.
-    pub levels: Option<i64>,
-    /// maxValue property.
-    pub max_value: Option<f64>,
-    /// minValue property.
-    pub min_value: Option<f64>,
-    /// parentLabels property.
-    pub parent_labels: Option<ChartData>,
-    /// sizeData property.
-    pub size_data: Option<ChartData>,
-    /// textFormat property.
-    pub text_format: Option<TextFormat>,
-}
-
-/// `RowData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RowData {
-    /// values property.
-    pub values: Option<Vec<CellData>>,
-}
-
-/// `DataSourceSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSourceSpec {
-    /// bigQuery property.
-    pub big_query: Option<BigQueryDataSourceSpec>,
-    /// looker property.
-    pub looker: Option<LookerDataSourceSpec>,
-    /// parameters property.
-    pub parameters: Option<Vec<DataSourceParameter>>,
-}
-
-/// `HistogramChartSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HistogramChartSpec {
-    /// bucketSize property.
-    pub bucket_size: Option<f64>,
-    /// legendPosition property.
-    pub legend_position: Option<String>,
-    /// outlierPercentile property.
-    pub outlier_percentile: Option<f64>,
-    /// series property.
-    pub series: Option<Vec<HistogramSeries>>,
-    /// showItemDividers property.
-    pub show_item_dividers: Option<bool>,
-}
-
-/// `BasicFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BasicFilter {
-    /// criteria property.
-    pub criteria: Option<serde_json::Value>,
-    /// filterSpecs property.
-    pub filter_specs: Option<Vec<FilterSpec>>,
+pub struct ProtectedRange {
+    /// description property.
+    pub description: Option<String>,
+    /// editors property.
+    pub editors: Option<Editors>,
+    /// namedRangeId property.
+    pub named_range_id: Option<String>,
+    /// protectedRangeId property.
+    pub protected_range_id: Option<i64>,
     /// range property.
     pub range: Option<GridRange>,
-    /// sortSpecs property.
-    pub sort_specs: Option<Vec<SortSpec>>,
+    /// requestingUserCanEdit property.
+    pub requesting_user_can_edit: Option<bool>,
     /// tableId property.
     pub table_id: Option<String>,
-}
-
-/// `DataSourceRefreshSchedule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSourceRefreshSchedule {
-    /// dailySchedule property.
-    pub daily_schedule: Option<DataSourceRefreshDailySchedule>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// monthlySchedule property.
-    pub monthly_schedule: Option<DataSourceRefreshMonthlySchedule>,
-    /// nextRun property.
-    pub next_run: Option<Interval>,
-    /// refreshScope property.
-    pub refresh_scope: Option<String>,
-    /// weeklySchedule property.
-    pub weekly_schedule: Option<DataSourceRefreshWeeklySchedule>,
-}
-
-/// `DimensionGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DimensionGroup {
-    /// collapsed property.
-    pub collapsed: Option<bool>,
-    /// depth property.
-    pub depth: Option<i64>,
-    /// range property.
-    pub range: Option<DimensionRange>,
-}
-
-/// `AddFilterViewResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AddFilterViewResponse {
-    /// filter property.
-    pub filter: Option<FilterView>,
-}
-
-/// `DataValidationRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataValidationRule {
-    /// condition property.
-    pub condition: Option<BooleanCondition>,
-    /// inputMessage property.
-    pub input_message: Option<String>,
-    /// showCustomUi property.
-    pub show_custom_ui: Option<bool>,
-    /// strict property.
-    pub strict: Option<bool>,
-}
-
-/// `DataSourceColumnReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSourceColumnReference {
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `BasicChartDomain` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BasicChartDomain {
-    /// domain property.
-    pub domain: Option<ChartData>,
-    /// reversed property.
-    pub reversed: Option<bool>,
-}
-
-/// `UpdateEmbeddedObjectPositionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateEmbeddedObjectPositionResponse {
-    /// position property.
-    pub position: Option<EmbeddedObjectPosition>,
-}
-
-/// `EmbeddedObjectBorder` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EmbeddedObjectBorder {
-    /// color property.
-    pub color: Option<Color>,
-    /// colorStyle property.
-    pub color_style: Option<ColorStyle>,
-}
-
-/// `ManualRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManualRule {
-    /// groups property.
-    pub groups: Option<Vec<ManualRuleGroup>>,
-}
-
-/// `DuplicateFilterViewResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DuplicateFilterViewResponse {
-    /// filter property.
-    pub filter: Option<FilterView>,
-}
-
-/// `PersonProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PersonProperties {
-    /// displayFormat property.
-    pub display_format: Option<String>,
-    /// email property.
-    pub email: Option<String>,
-}
-
-/// `DataSourceRefreshWeeklySchedule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSourceRefreshWeeklySchedule {
-    /// daysOfWeek property.
-    pub days_of_week: Option<Vec<String>>,
-    /// startTime property.
-    pub start_time: Option<TimeOfDay>,
+    /// unprotectedRanges property.
+    pub unprotected_ranges: Option<Vec<GridRange>>,
+    /// warningOnly property.
+    pub warning_only: Option<bool>,
 }
 
 /// `OverlayPosition` type.
@@ -1079,6 +928,621 @@ pub struct OverlayPosition {
     pub offset_y_pixels: Option<i64>,
     /// widthPixels property.
     pub width_pixels: Option<i64>,
+}
+
+/// `TableColumnProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableColumnProperties {
+    /// columnIndex property.
+    pub column_index: Option<i64>,
+    /// columnName property.
+    pub column_name: Option<String>,
+    /// columnType property.
+    pub column_type: Option<String>,
+    /// dataValidationRule property.
+    pub data_validation_rule: Option<TableColumnDataValidationRule>,
+}
+
+/// `ChartSourceRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChartSourceRange {
+    /// sources property.
+    pub sources: Option<Vec<GridRange>>,
+}
+
+/// `WaterfallChartColumnStyle` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WaterfallChartColumnStyle {
+    /// color property.
+    pub color: Option<Color>,
+    /// colorStyle property.
+    pub color_style: Option<ColorStyle>,
+    /// label property.
+    pub label: Option<String>,
+}
+
+/// `KeyValueFormat` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KeyValueFormat {
+    /// position property.
+    pub position: Option<TextPosition>,
+    /// textFormat property.
+    pub text_format: Option<TextFormat>,
+}
+
+/// `ConditionValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConditionValue {
+    /// relativeDate property.
+    pub relative_date: Option<String>,
+    /// userEnteredValue property.
+    pub user_entered_value: Option<String>,
+}
+
+/// `Slicer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Slicer {
+    /// position property.
+    pub position: Option<EmbeddedObjectPosition>,
+    /// slicerId property.
+    pub slicer_id: Option<i64>,
+    /// spec property.
+    pub spec: Option<SlicerSpec>,
+}
+
+/// `CandlestickDomain` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CandlestickDomain {
+    /// data property.
+    pub data: Option<ChartData>,
+    /// reversed property.
+    pub reversed: Option<bool>,
+}
+
+/// `RefreshDataSourceResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RefreshDataSourceResponse {
+    /// statuses property.
+    pub statuses: Option<Vec<RefreshDataSourceObjectExecutionStatus>>,
+}
+
+/// `DeleteDuplicatesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeleteDuplicatesResponse {
+    /// duplicatesRemovedCount property.
+    pub duplicates_removed_count: Option<i64>,
+}
+
+/// `ConditionalFormatRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConditionalFormatRule {
+    /// booleanRule property.
+    pub boolean_rule: Option<BooleanRule>,
+    /// gradientRule property.
+    pub gradient_rule: Option<GradientRule>,
+    /// ranges property.
+    pub ranges: Option<Vec<GridRange>>,
+}
+
+/// `BasicChartDomain` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BasicChartDomain {
+    /// domain property.
+    pub domain: Option<ChartData>,
+    /// reversed property.
+    pub reversed: Option<bool>,
+}
+
+/// `PersonProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PersonProperties {
+    /// displayFormat property.
+    pub display_format: Option<String>,
+    /// email property.
+    pub email: Option<String>,
+}
+
+/// `PivotGroupRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PivotGroupRule {
+    /// dateTimeRule property.
+    pub date_time_rule: Option<DateTimeRule>,
+    /// histogramRule property.
+    pub histogram_rule: Option<HistogramRule>,
+    /// manualRule property.
+    pub manual_rule: Option<ManualRule>,
+}
+
+/// `RefreshDataSourceObjectExecutionStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RefreshDataSourceObjectExecutionStatus {
+    /// dataExecutionStatus property.
+    pub data_execution_status: Option<DataExecutionStatus>,
+    /// reference property.
+    pub reference: Option<DataSourceObjectReference>,
+}
+
+/// `TableRowsProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableRowsProperties {
+    /// firstBandColorStyle property.
+    pub first_band_color_style: Option<ColorStyle>,
+    /// footerColorStyle property.
+    pub footer_color_style: Option<ColorStyle>,
+    /// headerColorStyle property.
+    pub header_color_style: Option<ColorStyle>,
+    /// secondBandColorStyle property.
+    pub second_band_color_style: Option<ColorStyle>,
+}
+
+/// `ThemeColorPair` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ThemeColorPair {
+    /// color property.
+    pub color: Option<ColorStyle>,
+    /// colorType property.
+    pub color_type: Option<String>,
+}
+
+/// `BigQueryDataSourceSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BigQueryDataSourceSpec {
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// querySpec property.
+    pub query_spec: Option<BigQueryQuerySpec>,
+    /// tableSpec property.
+    pub table_spec: Option<BigQueryTableSpec>,
+}
+
+/// `CancelDataSourceRefreshResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CancelDataSourceRefreshResponse {
+    /// statuses property.
+    pub statuses: Option<Vec<CancelDataSourceRefreshStatus>>,
+}
+
+/// `GridData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GridData {
+    /// columnMetadata property.
+    pub column_metadata: Option<Vec<DimensionProperties>>,
+    /// rowData property.
+    pub row_data: Option<Vec<RowData>>,
+    /// rowMetadata property.
+    pub row_metadata: Option<Vec<DimensionProperties>>,
+    /// startColumn property.
+    pub start_column: Option<i64>,
+    /// startRow property.
+    pub start_row: Option<i64>,
+}
+
+/// `TimeOfDay` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeOfDay {
+    /// hours property.
+    pub hours: Option<i64>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<i64>,
+}
+
+/// `DateTimeRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DateTimeRule {
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `DimensionRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DimensionRange {
+    /// dimension property.
+    pub dimension: Option<String>,
+    /// endIndex property.
+    pub end_index: Option<i64>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+}
+
+/// `RefreshCancellationStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RefreshCancellationStatus {
+    /// errorCode property.
+    pub error_code: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `DeleteConditionalFormatRuleResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeleteConditionalFormatRuleResponse {
+    /// rule property.
+    pub rule: Option<ConditionalFormatRule>,
+}
+
+/// `DataSourceSheetProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceSheetProperties {
+    /// columns property.
+    pub columns: Option<Vec<DataSourceColumn>>,
+    /// dataExecutionStatus property.
+    pub data_execution_status: Option<DataExecutionStatus>,
+    /// dataSourceId property.
+    pub data_source_id: Option<String>,
+}
+
+/// `SpreadsheetProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpreadsheetProperties {
+    /// autoRecalc property.
+    pub auto_recalc: Option<String>,
+    /// defaultFormat property.
+    pub default_format: Option<CellFormat>,
+    /// importFunctionsExternalUrlAccessAllowed property.
+    pub import_functions_external_url_access_allowed: Option<bool>,
+    /// iterativeCalculationSettings property.
+    pub iterative_calculation_settings: Option<IterativeCalculationSettings>,
+    /// locale property.
+    pub locale: Option<String>,
+    /// spreadsheetTheme property.
+    pub spreadsheet_theme: Option<SpreadsheetTheme>,
+    /// timeZone property.
+    pub time_zone: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `Border` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Border {
+    /// color property.
+    pub color: Option<Color>,
+    /// colorStyle property.
+    pub color_style: Option<ColorStyle>,
+    /// style property.
+    pub style: Option<String>,
+    /// width property.
+    pub width: Option<i64>,
+}
+
+/// `UpdateDataSourceResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateDataSourceResponse {
+    /// dataExecutionStatus property.
+    pub data_execution_status: Option<DataExecutionStatus>,
+    /// dataSource property.
+    pub data_source: Option<DataSource>,
+}
+
+/// `PivotGroupValueMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PivotGroupValueMetadata {
+    /// collapsed property.
+    pub collapsed: Option<bool>,
+    /// value property.
+    pub value: Option<ExtendedValue>,
+}
+
+/// `AddFilterViewResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AddFilterViewResponse {
+    /// filter property.
+    pub filter: Option<FilterView>,
+}
+
+/// `BigQueryQuerySpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BigQueryQuerySpec {
+    /// rawQuery property.
+    pub raw_query: Option<String>,
+}
+
+/// `TextFormat` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextFormat {
+    /// bold property.
+    pub bold: Option<bool>,
+    /// fontFamily property.
+    pub font_family: Option<String>,
+    /// fontSize property.
+    pub font_size: Option<i64>,
+    /// foregroundColor property.
+    pub foreground_color: Option<Color>,
+    /// foregroundColorStyle property.
+    pub foreground_color_style: Option<ColorStyle>,
+    /// italic property.
+    pub italic: Option<bool>,
+    /// link property.
+    pub link: Option<Link>,
+    /// strikethrough property.
+    pub strikethrough: Option<bool>,
+    /// underline property.
+    pub underline: Option<bool>,
+}
+
+/// `BasicChartSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BasicChartSpec {
+    /// axis property.
+    pub axis: Option<Vec<BasicChartAxis>>,
+    /// chartType property.
+    pub chart_type: Option<String>,
+    /// compareMode property.
+    pub compare_mode: Option<String>,
+    /// domains property.
+    pub domains: Option<Vec<BasicChartDomain>>,
+    /// headerCount property.
+    pub header_count: Option<i64>,
+    /// interpolateNulls property.
+    pub interpolate_nulls: Option<bool>,
+    /// legendPosition property.
+    pub legend_position: Option<String>,
+    /// lineSmoothing property.
+    pub line_smoothing: Option<bool>,
+    /// series property.
+    pub series: Option<Vec<BasicChartSeries>>,
+    /// stackedType property.
+    pub stacked_type: Option<String>,
+    /// threeDimensional property.
+    pub three_dimensional: Option<bool>,
+    /// totalDataLabel property.
+    pub total_data_label: Option<DataLabel>,
+}
+
+/// `Chip` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Chip {
+    /// personProperties property.
+    pub person_properties: Option<PersonProperties>,
+    /// richLinkProperties property.
+    pub rich_link_properties: Option<RichLinkProperties>,
+}
+
+/// `BandedRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BandedRange {
+    /// bandedRangeId property.
+    pub banded_range_id: Option<i64>,
+    /// bandedRangeReference property.
+    pub banded_range_reference: Option<String>,
+    /// columnProperties property.
+    pub column_properties: Option<BandingProperties>,
+    /// range property.
+    pub range: Option<GridRange>,
+    /// rowProperties property.
+    pub row_properties: Option<BandingProperties>,
+}
+
+/// `IterativeCalculationSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IterativeCalculationSettings {
+    /// convergenceThreshold property.
+    pub convergence_threshold: Option<f64>,
+    /// maxIterations property.
+    pub max_iterations: Option<i64>,
+}
+
+/// `DataSourceParameter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceParameter {
+    /// name property.
+    pub name: Option<String>,
+    /// namedRangeId property.
+    pub named_range_id: Option<String>,
+    /// range property.
+    pub range: Option<GridRange>,
+}
+
+/// `RowData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RowData {
+    /// values property.
+    pub values: Option<Vec<CellData>>,
+}
+
+/// `AddNamedRangeResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AddNamedRangeResponse {
+    /// namedRange property.
+    pub named_range: Option<NamedRange>,
+}
+
+/// `ManualRuleGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManualRuleGroup {
+    /// groupName property.
+    pub group_name: Option<ExtendedValue>,
+    /// items property.
+    pub items: Option<Vec<ExtendedValue>>,
+}
+
+/// `Spreadsheet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Spreadsheet {
+    /// dataSourceSchedules property.
+    pub data_source_schedules: Option<Vec<DataSourceRefreshSchedule>>,
+    /// dataSources property.
+    pub data_sources: Option<Vec<DataSource>>,
+    /// developerMetadata property.
+    pub developer_metadata: Option<Vec<DeveloperMetadata>>,
+    /// namedRanges property.
+    pub named_ranges: Option<Vec<NamedRange>>,
+    /// properties property.
+    pub properties: Option<SpreadsheetProperties>,
+    /// sheets property.
+    pub sheets: Option<Vec<Sheet>>,
+    /// spreadsheetId property.
+    pub spreadsheet_id: Option<String>,
+    /// spreadsheetUrl property.
+    pub spreadsheet_url: Option<String>,
+}
+
+/// `TreemapChartColorScale` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TreemapChartColorScale {
+    /// maxValueColor property.
+    pub max_value_color: Option<Color>,
+    /// maxValueColorStyle property.
+    pub max_value_color_style: Option<ColorStyle>,
+    /// midValueColor property.
+    pub mid_value_color: Option<Color>,
+    /// midValueColorStyle property.
+    pub mid_value_color_style: Option<ColorStyle>,
+    /// minValueColor property.
+    pub min_value_color: Option<Color>,
+    /// minValueColorStyle property.
+    pub min_value_color_style: Option<ColorStyle>,
+    /// noDataColor property.
+    pub no_data_color: Option<Color>,
+    /// noDataColorStyle property.
+    pub no_data_color_style: Option<ColorStyle>,
+}
+
+/// `FilterCriteria` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FilterCriteria {
+    /// condition property.
+    pub condition: Option<BooleanCondition>,
+    /// hiddenValues property.
+    pub hidden_values: Option<Vec<String>>,
+    /// visibleBackgroundColor property.
+    pub visible_background_color: Option<Color>,
+    /// visibleBackgroundColorStyle property.
+    pub visible_background_color_style: Option<ColorStyle>,
+    /// visibleForegroundColor property.
+    pub visible_foreground_color: Option<Color>,
+    /// visibleForegroundColorStyle property.
+    pub visible_foreground_color_style: Option<ColorStyle>,
+}
+
+/// `GradientRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GradientRule {
+    /// maxpoint property.
+    pub maxpoint: Option<InterpolationPoint>,
+    /// midpoint property.
+    pub midpoint: Option<InterpolationPoint>,
+    /// minpoint property.
+    pub minpoint: Option<InterpolationPoint>,
+}
+
+/// `PieChartSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PieChartSpec {
+    /// domain property.
+    pub domain: Option<ChartData>,
+    /// legendPosition property.
+    pub legend_position: Option<String>,
+    /// pieHole property.
+    pub pie_hole: Option<f64>,
+    /// series property.
+    pub series: Option<ChartData>,
+    /// threeDimensional property.
+    pub three_dimensional: Option<bool>,
+}
+
+/// `AddDimensionGroupResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AddDimensionGroupResponse {
+    /// dimensionGroups property.
+    pub dimension_groups: Option<Vec<DimensionGroup>>,
+}
+
+/// `ChartHistogramRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChartHistogramRule {
+    /// intervalSize property.
+    pub interval_size: Option<f64>,
+    /// maxValue property.
+    pub max_value: Option<f64>,
+    /// minValue property.
+    pub min_value: Option<f64>,
+}
+
+/// `DataSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataSource {
+    /// calculatedColumns property.
+    pub calculated_columns: Option<Vec<DataSourceColumn>>,
+    /// dataSourceId property.
+    pub data_source_id: Option<String>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+    /// spec property.
+    pub spec: Option<DataSourceSpec>,
+}
+
+/// `ErrorValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorValue {
+    /// message property.
+    pub message: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `DataSourceTable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceTable {
+    /// columnSelectionType property.
+    pub column_selection_type: Option<String>,
+    /// columns property.
+    pub columns: Option<Vec<DataSourceColumnReference>>,
+    /// dataExecutionStatus property.
+    pub data_execution_status: Option<DataExecutionStatus>,
+    /// dataSourceId property.
+    pub data_source_id: Option<String>,
+    /// filterSpecs property.
+    pub filter_specs: Option<Vec<FilterSpec>>,
+    /// rowLimit property.
+    pub row_limit: Option<i64>,
+    /// sortSpecs property.
+    pub sort_specs: Option<Vec<SortSpec>>,
+}
+
+/// `ChipRun` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChipRun {
+    /// chip property.
+    pub chip: Option<Chip>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+}
+
+/// `ChartCustomNumberFormatOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChartCustomNumberFormatOptions {
+    /// prefix property.
+    pub prefix: Option<String>,
+    /// suffix property.
+    pub suffix: Option<String>,
+}
+
+/// `DataSourceRefreshDailySchedule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceRefreshDailySchedule {
+    /// startTime property.
+    pub start_time: Option<TimeOfDay>,
+}
+
+/// `DuplicateSheetResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DuplicateSheetResponse {
+    /// properties property.
+    pub properties: Option<SheetProperties>,
+}
+
+/// `AddSheetResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AddSheetResponse {
+    /// properties property.
+    pub properties: Option<SheetProperties>,
 }
 
 /// `Sheet` type.
@@ -1114,20 +1578,109 @@ pub struct Sheet {
     pub tables: Option<Vec<Table>>,
 }
 
-/// `TextPosition` type.
+/// `WaterfallChartCustomSubtotal` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextPosition {
-    /// horizontalAlignment property.
-    pub horizontal_alignment: Option<String>,
+pub struct WaterfallChartCustomSubtotal {
+    /// dataIsSubtotal property.
+    pub data_is_subtotal: Option<bool>,
+    /// label property.
+    pub label: Option<String>,
+    /// subtotalIndex property.
+    pub subtotal_index: Option<i64>,
 }
 
-/// `AddDataSourceResponse` type.
+/// `AddSlicerResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AddDataSourceResponse {
+pub struct AddSlicerResponse {
+    /// slicer property.
+    pub slicer: Option<Slicer>,
+}
+
+/// `SheetProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SheetProperties {
+    /// dataSourceSheetProperties property.
+    pub data_source_sheet_properties: Option<DataSourceSheetProperties>,
+    /// gridProperties property.
+    pub grid_properties: Option<GridProperties>,
+    /// hidden property.
+    pub hidden: Option<bool>,
+    /// index property.
+    pub index: Option<i64>,
+    /// rightToLeft property.
+    pub right_to_left: Option<bool>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+    /// sheetType property.
+    pub sheet_type: Option<String>,
+    /// tabColor property.
+    pub tab_color: Option<Color>,
+    /// tabColorStyle property.
+    pub tab_color_style: Option<ColorStyle>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `DataSourceFormula` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceFormula {
     /// dataExecutionStatus property.
     pub data_execution_status: Option<DataExecutionStatus>,
-    /// dataSource property.
-    pub data_source: Option<DataSource>,
+    /// dataSourceId property.
+    pub data_source_id: Option<String>,
+}
+
+/// `ChartGroupRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChartGroupRule {
+    /// dateTimeRule property.
+    pub date_time_rule: Option<ChartDateTimeRule>,
+    /// histogramRule property.
+    pub histogram_rule: Option<ChartHistogramRule>,
+}
+
+/// `DimensionProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DimensionProperties {
+    /// dataSourceColumnReference property.
+    pub data_source_column_reference: Option<DataSourceColumnReference>,
+    /// developerMetadata property.
+    pub developer_metadata: Option<Vec<DeveloperMetadata>>,
+    /// hiddenByFilter property.
+    pub hidden_by_filter: Option<bool>,
+    /// hiddenByUser property.
+    pub hidden_by_user: Option<bool>,
+    /// pixelSize property.
+    pub pixel_size: Option<i64>,
+}
+
+/// `UpdateDeveloperMetadataResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateDeveloperMetadataResponse {
+    /// developerMetadata property.
+    pub developer_metadata: Option<Vec<DeveloperMetadata>>,
+}
+
+/// `DeveloperMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeveloperMetadata {
+    /// location property.
+    pub location: Option<DeveloperMetadataLocation>,
+    /// metadataId property.
+    pub metadata_id: Option<i64>,
+    /// metadataKey property.
+    pub metadata_key: Option<String>,
+    /// metadataValue property.
+    pub metadata_value: Option<String>,
+    /// visibility property.
+    pub visibility: Option<String>,
+}
+
+/// `UpdateEmbeddedObjectPositionResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateEmbeddedObjectPositionResponse {
+    /// position property.
+    pub position: Option<EmbeddedObjectPosition>,
 }
 
 /// `DataSourceObjectReference` type.
@@ -1145,24 +1698,48 @@ pub struct DataSourceObjectReference {
     pub sheet_id: Option<String>,
 }
 
-/// `DataSourceSheetProperties` type.
+/// `DataSourceColumn` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSourceSheetProperties {
-    /// columns property.
-    pub columns: Option<Vec<DataSourceColumn>>,
-    /// dataExecutionStatus property.
-    pub data_execution_status: Option<DataExecutionStatus>,
-    /// dataSourceId property.
-    pub data_source_id: Option<String>,
+pub struct DataSourceColumn {
+    /// formula property.
+    pub formula: Option<String>,
+    /// reference property.
+    pub reference: Option<DataSourceColumnReference>,
 }
 
-/// `ChartGroupRule` type.
+/// `BasicFilter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChartGroupRule {
-    /// dateTimeRule property.
-    pub date_time_rule: Option<ChartDateTimeRule>,
-    /// histogramRule property.
-    pub histogram_rule: Option<ChartHistogramRule>,
+pub struct BasicFilter {
+    /// criteria property.
+    pub criteria: Option<serde_json::Value>,
+    /// filterSpecs property.
+    pub filter_specs: Option<Vec<FilterSpec>>,
+    /// range property.
+    pub range: Option<GridRange>,
+    /// sortSpecs property.
+    pub sort_specs: Option<Vec<SortSpec>>,
+    /// tableId property.
+    pub table_id: Option<String>,
+}
+
+/// `TextFormatRun` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextFormatRun {
+    /// format property.
+    pub format: Option<TextFormat>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+}
+
+/// `FilterSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FilterSpec {
+    /// columnIndex property.
+    pub column_index: Option<i64>,
+    /// dataSourceColumnReference property.
+    pub data_source_column_reference: Option<DataSourceColumnReference>,
+    /// filterCriteria property.
+    pub filter_criteria: Option<FilterCriteria>,
 }
 
 /// `AddTableResponse` type.
@@ -1172,36 +1749,130 @@ pub struct AddTableResponse {
     pub table: Option<Table>,
 }
 
-/// `BigQueryDataSourceSpec` type.
+/// `NumberFormat` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BigQueryDataSourceSpec {
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// querySpec property.
-    pub query_spec: Option<BigQueryQuerySpec>,
-    /// tableSpec property.
-    pub table_spec: Option<BigQueryTableSpec>,
+pub struct NumberFormat {
+    /// pattern property.
+    pub pattern: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
-/// `TreemapChartColorScale` type.
+/// `DataSourceRefreshSchedule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TreemapChartColorScale {
-    /// maxValueColor property.
-    pub max_value_color: Option<Color>,
-    /// maxValueColorStyle property.
-    pub max_value_color_style: Option<ColorStyle>,
-    /// midValueColor property.
-    pub mid_value_color: Option<Color>,
-    /// midValueColorStyle property.
-    pub mid_value_color_style: Option<ColorStyle>,
-    /// minValueColor property.
-    pub min_value_color: Option<Color>,
-    /// minValueColorStyle property.
-    pub min_value_color_style: Option<ColorStyle>,
-    /// noDataColor property.
-    pub no_data_color: Option<Color>,
-    /// noDataColorStyle property.
-    pub no_data_color_style: Option<ColorStyle>,
+pub struct DataSourceRefreshSchedule {
+    /// dailySchedule property.
+    pub daily_schedule: Option<DataSourceRefreshDailySchedule>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// monthlySchedule property.
+    pub monthly_schedule: Option<DataSourceRefreshMonthlySchedule>,
+    /// nextRun property.
+    pub next_run: Option<Interval>,
+    /// refreshScope property.
+    pub refresh_scope: Option<String>,
+    /// weeklySchedule property.
+    pub weekly_schedule: Option<DataSourceRefreshWeeklySchedule>,
+}
+
+/// `CandlestickData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CandlestickData {
+    /// closeSeries property.
+    pub close_series: Option<CandlestickSeries>,
+    /// highSeries property.
+    pub high_series: Option<CandlestickSeries>,
+    /// lowSeries property.
+    pub low_series: Option<CandlestickSeries>,
+    /// openSeries property.
+    pub open_series: Option<CandlestickSeries>,
+}
+
+/// `Color` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Color {
+    /// alpha property.
+    pub alpha: Option<f64>,
+    /// blue property.
+    pub blue: Option<f64>,
+    /// green property.
+    pub green: Option<f64>,
+    /// red property.
+    pub red: Option<f64>,
+}
+
+/// `PivotGroupSortValueBucket` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PivotGroupSortValueBucket {
+    /// buckets property.
+    pub buckets: Option<Vec<ExtendedValue>>,
+    /// valuesIndex property.
+    pub values_index: Option<i64>,
+}
+
+/// `WaterfallChartSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WaterfallChartSpec {
+    /// connectorLineStyle property.
+    pub connector_line_style: Option<LineStyle>,
+    /// domain property.
+    pub domain: Option<WaterfallChartDomain>,
+    /// firstValueIsTotal property.
+    pub first_value_is_total: Option<bool>,
+    /// hideConnectorLines property.
+    pub hide_connector_lines: Option<bool>,
+    /// series property.
+    pub series: Option<Vec<WaterfallChartSeries>>,
+    /// stackedType property.
+    pub stacked_type: Option<String>,
+    /// totalDataLabel property.
+    pub total_data_label: Option<DataLabel>,
+}
+
+/// `LineStyle` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LineStyle {
+    /// type property.
+    pub r#type: Option<String>,
+    /// width property.
+    pub width: Option<i64>,
+}
+
+/// `PointStyle` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PointStyle {
+    /// shape property.
+    pub shape: Option<String>,
+    /// size property.
+    pub size: Option<f64>,
+}
+
+/// `GridProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GridProperties {
+    /// columnCount property.
+    pub column_count: Option<i64>,
+    /// columnGroupControlAfter property.
+    pub column_group_control_after: Option<bool>,
+    /// frozenColumnCount property.
+    pub frozen_column_count: Option<i64>,
+    /// frozenRowCount property.
+    pub frozen_row_count: Option<i64>,
+    /// hideGridlines property.
+    pub hide_gridlines: Option<bool>,
+    /// rowCount property.
+    pub row_count: Option<i64>,
+    /// rowGroupControlAfter property.
+    pub row_group_control_after: Option<bool>,
+}
+
+/// `SpreadsheetTheme` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpreadsheetTheme {
+    /// primaryFontFamily property.
+    pub primary_font_family: Option<String>,
+    /// themeColors property.
+    pub theme_colors: Option<Vec<ThemeColorPair>>,
 }
 
 /// `BatchUpdateSpreadsheetResponse` type.
@@ -1215,196 +1886,13 @@ pub struct BatchUpdateSpreadsheetResponse {
     pub updated_spreadsheet: Option<Spreadsheet>,
 }
 
-/// `CellFormat` type.
+/// `Interval` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CellFormat {
-    /// backgroundColor property.
-    pub background_color: Option<Color>,
-    /// backgroundColorStyle property.
-    pub background_color_style: Option<ColorStyle>,
-    /// borders property.
-    pub borders: Option<Borders>,
-    /// horizontalAlignment property.
-    pub horizontal_alignment: Option<String>,
-    /// hyperlinkDisplayType property.
-    pub hyperlink_display_type: Option<String>,
-    /// numberFormat property.
-    pub number_format: Option<NumberFormat>,
-    /// padding property.
-    pub padding: Option<Padding>,
-    /// textDirection property.
-    pub text_direction: Option<String>,
-    /// textFormat property.
-    pub text_format: Option<TextFormat>,
-    /// textRotation property.
-    pub text_rotation: Option<TextRotation>,
-    /// verticalAlignment property.
-    pub vertical_alignment: Option<String>,
-    /// wrapStrategy property.
-    pub wrap_strategy: Option<String>,
-}
-
-/// `GridRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GridRange {
-    /// endColumnIndex property.
-    pub end_column_index: Option<i64>,
-    /// endRowIndex property.
-    pub end_row_index: Option<i64>,
-    /// sheetId property.
-    pub sheet_id: Option<i64>,
-    /// startColumnIndex property.
-    pub start_column_index: Option<i64>,
-    /// startRowIndex property.
-    pub start_row_index: Option<i64>,
-}
-
-/// `Borders` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Borders {
-    /// bottom property.
-    pub bottom: Option<Border>,
-    /// left property.
-    pub left: Option<Border>,
-    /// right property.
-    pub right: Option<Border>,
-    /// top property.
-    pub top: Option<Border>,
-}
-
-/// `BigQueryTableSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BigQueryTableSpec {
-    /// datasetId property.
-    pub dataset_id: Option<String>,
-    /// tableId property.
-    pub table_id: Option<String>,
-    /// tableProjectId property.
-    pub table_project_id: Option<String>,
-}
-
-/// `DataSourceColumn` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSourceColumn {
-    /// formula property.
-    pub formula: Option<String>,
-    /// reference property.
-    pub reference: Option<DataSourceColumnReference>,
-}
-
-/// `InterpolationPoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterpolationPoint {
-    /// color property.
-    pub color: Option<Color>,
-    /// colorStyle property.
-    pub color_style: Option<ColorStyle>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `RefreshDataSourceObjectExecutionStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RefreshDataSourceObjectExecutionStatus {
-    /// dataExecutionStatus property.
-    pub data_execution_status: Option<DataExecutionStatus>,
-    /// reference property.
-    pub reference: Option<DataSourceObjectReference>,
-}
-
-/// `RefreshCancellationStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RefreshCancellationStatus {
-    /// errorCode property.
-    pub error_code: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `DeveloperMetadataLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeveloperMetadataLocation {
-    /// dimensionRange property.
-    pub dimension_range: Option<DimensionRange>,
-    /// locationType property.
-    pub location_type: Option<String>,
-    /// sheetId property.
-    pub sheet_id: Option<i64>,
-    /// spreadsheet property.
-    pub spreadsheet: Option<bool>,
-}
-
-/// `BasicChartSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BasicChartSpec {
-    /// axis property.
-    pub axis: Option<Vec<BasicChartAxis>>,
-    /// chartType property.
-    pub chart_type: Option<String>,
-    /// compareMode property.
-    pub compare_mode: Option<String>,
-    /// domains property.
-    pub domains: Option<Vec<BasicChartDomain>>,
-    /// headerCount property.
-    pub header_count: Option<i64>,
-    /// interpolateNulls property.
-    pub interpolate_nulls: Option<bool>,
-    /// legendPosition property.
-    pub legend_position: Option<String>,
-    /// lineSmoothing property.
-    pub line_smoothing: Option<bool>,
-    /// series property.
-    pub series: Option<Vec<BasicChartSeries>>,
-    /// stackedType property.
-    pub stacked_type: Option<String>,
-    /// threeDimensional property.
-    pub three_dimensional: Option<bool>,
-    /// totalDataLabel property.
-    pub total_data_label: Option<DataLabel>,
-}
-
-/// `ScorecardChartSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScorecardChartSpec {
-    /// aggregateType property.
-    pub aggregate_type: Option<String>,
-    /// baselineValueData property.
-    pub baseline_value_data: Option<ChartData>,
-    /// baselineValueFormat property.
-    pub baseline_value_format: Option<BaselineValueFormat>,
-    /// customFormatOptions property.
-    pub custom_format_options: Option<ChartCustomNumberFormatOptions>,
-    /// keyValueData property.
-    pub key_value_data: Option<ChartData>,
-    /// keyValueFormat property.
-    pub key_value_format: Option<KeyValueFormat>,
-    /// numberFormatSource property.
-    pub number_format_source: Option<String>,
-    /// scaleFactor property.
-    pub scale_factor: Option<f64>,
-}
-
-/// `OrgChartSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OrgChartSpec {
-    /// labels property.
-    pub labels: Option<ChartData>,
-    /// nodeColor property.
-    pub node_color: Option<Color>,
-    /// nodeColorStyle property.
-    pub node_color_style: Option<ColorStyle>,
-    /// nodeSize property.
-    pub node_size: Option<String>,
-    /// parentLabels property.
-    pub parent_labels: Option<ChartData>,
-    /// selectedNodeColor property.
-    pub selected_node_color: Option<Color>,
-    /// selectedNodeColorStyle property.
-    pub selected_node_color_style: Option<ColorStyle>,
-    /// tooltips property.
-    pub tooltips: Option<ChartData>,
+pub struct Interval {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
 }
 
 /// `FindReplaceResponse` type.
@@ -1422,302 +1910,64 @@ pub struct FindReplaceResponse {
     pub values_changed: Option<i64>,
 }
 
-/// `DeleteDimensionGroupResponse` type.
+/// `BasicSeriesDataPointStyleOverride` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteDimensionGroupResponse {
-    /// dimensionGroups property.
-    pub dimension_groups: Option<Vec<DimensionGroup>>,
+pub struct BasicSeriesDataPointStyleOverride {
+    /// color property.
+    pub color: Option<Color>,
+    /// colorStyle property.
+    pub color_style: Option<ColorStyle>,
+    /// index property.
+    pub index: Option<i64>,
+    /// pointStyle property.
+    pub point_style: Option<PointStyle>,
 }
 
-/// `BigQueryQuerySpec` type.
+/// `LookerDataSourceSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BigQueryQuerySpec {
-    /// rawQuery property.
-    pub raw_query: Option<String>,
+pub struct LookerDataSourceSpec {
+    /// explore property.
+    pub explore: Option<String>,
+    /// instanceUri property.
+    pub instance_uri: Option<String>,
+    /// model property.
+    pub model: Option<String>,
 }
 
-/// `ProtectedRange` type.
+/// `GridCoordinate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProtectedRange {
-    /// description property.
-    pub description: Option<String>,
-    /// editors property.
-    pub editors: Option<Editors>,
-    /// namedRangeId property.
-    pub named_range_id: Option<String>,
-    /// protectedRangeId property.
-    pub protected_range_id: Option<i64>,
+pub struct GridCoordinate {
+    /// columnIndex property.
+    pub column_index: Option<i64>,
+    /// rowIndex property.
+    pub row_index: Option<i64>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+}
+
+/// `DimensionGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DimensionGroup {
+    /// collapsed property.
+    pub collapsed: Option<bool>,
+    /// depth property.
+    pub depth: Option<i64>,
     /// range property.
-    pub range: Option<GridRange>,
-    /// requestingUserCanEdit property.
-    pub requesting_user_can_edit: Option<bool>,
-    /// tableId property.
-    pub table_id: Option<String>,
-    /// unprotectedRanges property.
-    pub unprotected_ranges: Option<Vec<GridRange>>,
-    /// warningOnly property.
-    pub warning_only: Option<bool>,
+    pub range: Option<DimensionRange>,
 }
 
-/// `WaterfallChartSeries` type.
+/// `AddChartResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WaterfallChartSeries {
-    /// customSubtotals property.
-    pub custom_subtotals: Option<Vec<WaterfallChartCustomSubtotal>>,
-    /// data property.
-    pub data: Option<ChartData>,
-    /// dataLabel property.
-    pub data_label: Option<DataLabel>,
-    /// hideTrailingSubtotal property.
-    pub hide_trailing_subtotal: Option<bool>,
-    /// negativeColumnsStyle property.
-    pub negative_columns_style: Option<WaterfallChartColumnStyle>,
-    /// positiveColumnsStyle property.
-    pub positive_columns_style: Option<WaterfallChartColumnStyle>,
-    /// subtotalColumnsStyle property.
-    pub subtotal_columns_style: Option<WaterfallChartColumnStyle>,
+pub struct AddChartResponse {
+    /// chart property.
+    pub chart: Option<EmbeddedChart>,
 }
 
-/// `ConditionValue` type.
+/// `AddProtectedRangeResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConditionValue {
-    /// relativeDate property.
-    pub relative_date: Option<String>,
-    /// userEnteredValue property.
-    pub user_entered_value: Option<String>,
-}
-
-/// `CandlestickData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CandlestickData {
-    /// closeSeries property.
-    pub close_series: Option<CandlestickSeries>,
-    /// highSeries property.
-    pub high_series: Option<CandlestickSeries>,
-    /// lowSeries property.
-    pub low_series: Option<CandlestickSeries>,
-    /// openSeries property.
-    pub open_series: Option<CandlestickSeries>,
-}
-
-/// `SpreadsheetProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpreadsheetProperties {
-    /// autoRecalc property.
-    pub auto_recalc: Option<String>,
-    /// defaultFormat property.
-    pub default_format: Option<CellFormat>,
-    /// importFunctionsExternalUrlAccessAllowed property.
-    pub import_functions_external_url_access_allowed: Option<bool>,
-    /// iterativeCalculationSettings property.
-    pub iterative_calculation_settings: Option<IterativeCalculationSettings>,
-    /// locale property.
-    pub locale: Option<String>,
-    /// spreadsheetTheme property.
-    pub spreadsheet_theme: Option<SpreadsheetTheme>,
-    /// timeZone property.
-    pub time_zone: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `Table` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Table {
-    /// columnProperties property.
-    pub column_properties: Option<Vec<TableColumnProperties>>,
-    /// name property.
-    pub name: Option<String>,
-    /// range property.
-    pub range: Option<GridRange>,
-    /// rowsProperties property.
-    pub rows_properties: Option<TableRowsProperties>,
-    /// tableId property.
-    pub table_id: Option<String>,
-}
-
-/// `PieChartSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PieChartSpec {
-    /// domain property.
-    pub domain: Option<ChartData>,
-    /// legendPosition property.
-    pub legend_position: Option<String>,
-    /// pieHole property.
-    pub pie_hole: Option<f64>,
-    /// series property.
-    pub series: Option<ChartData>,
-    /// threeDimensional property.
-    pub three_dimensional: Option<bool>,
-}
-
-/// `ChartHistogramRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChartHistogramRule {
-    /// intervalSize property.
-    pub interval_size: Option<f64>,
-    /// maxValue property.
-    pub max_value: Option<f64>,
-    /// minValue property.
-    pub min_value: Option<f64>,
-}
-
-/// `DataSourceFormula` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSourceFormula {
-    /// dataExecutionStatus property.
-    pub data_execution_status: Option<DataExecutionStatus>,
-    /// dataSourceId property.
-    pub data_source_id: Option<String>,
-}
-
-/// `ChartSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChartSpec {
-    /// altText property.
-    pub alt_text: Option<String>,
-    /// backgroundColor property.
-    pub background_color: Option<Color>,
-    /// backgroundColorStyle property.
-    pub background_color_style: Option<ColorStyle>,
-    /// basicChart property.
-    pub basic_chart: Option<BasicChartSpec>,
-    /// bubbleChart property.
-    pub bubble_chart: Option<BubbleChartSpec>,
-    /// candlestickChart property.
-    pub candlestick_chart: Option<CandlestickChartSpec>,
-    /// dataSourceChartProperties property.
-    pub data_source_chart_properties: Option<DataSourceChartProperties>,
-    /// filterSpecs property.
-    pub filter_specs: Option<Vec<FilterSpec>>,
-    /// fontName property.
-    pub font_name: Option<String>,
-    /// hiddenDimensionStrategy property.
-    pub hidden_dimension_strategy: Option<String>,
-    /// histogramChart property.
-    pub histogram_chart: Option<HistogramChartSpec>,
-    /// maximized property.
-    pub maximized: Option<bool>,
-    /// orgChart property.
-    pub org_chart: Option<OrgChartSpec>,
-    /// pieChart property.
-    pub pie_chart: Option<PieChartSpec>,
-    /// scorecardChart property.
-    pub scorecard_chart: Option<ScorecardChartSpec>,
-    /// sortSpecs property.
-    pub sort_specs: Option<Vec<SortSpec>>,
-    /// subtitle property.
-    pub subtitle: Option<String>,
-    /// subtitleTextFormat property.
-    pub subtitle_text_format: Option<TextFormat>,
-    /// subtitleTextPosition property.
-    pub subtitle_text_position: Option<TextPosition>,
-    /// title property.
-    pub title: Option<String>,
-    /// titleTextFormat property.
-    pub title_text_format: Option<TextFormat>,
-    /// titleTextPosition property.
-    pub title_text_position: Option<TextPosition>,
-    /// treemapChart property.
-    pub treemap_chart: Option<TreemapChartSpec>,
-    /// waterfallChart property.
-    pub waterfall_chart: Option<WaterfallChartSpec>,
-}
-
-/// `PivotFilterSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PivotFilterSpec {
-    /// columnOffsetIndex property.
-    pub column_offset_index: Option<i64>,
-    /// dataSourceColumnReference property.
-    pub data_source_column_reference: Option<DataSourceColumnReference>,
-    /// filterCriteria property.
-    pub filter_criteria: Option<PivotFilterCriteria>,
-}
-
-/// `PivotGroupRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PivotGroupRule {
-    /// dateTimeRule property.
-    pub date_time_rule: Option<DateTimeRule>,
-    /// histogramRule property.
-    pub histogram_rule: Option<HistogramRule>,
-    /// manualRule property.
-    pub manual_rule: Option<ManualRule>,
-}
-
-/// `SpreadsheetTheme` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpreadsheetTheme {
-    /// primaryFontFamily property.
-    pub primary_font_family: Option<String>,
-    /// themeColors property.
-    pub theme_colors: Option<Vec<ThemeColorPair>>,
-}
-
-/// `BooleanRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BooleanRule {
-    /// condition property.
-    pub condition: Option<BooleanCondition>,
-    /// format property.
-    pub format: Option<CellFormat>,
-}
-
-/// `TimeOfDay` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeOfDay {
-    /// hours property.
-    pub hours: Option<i64>,
-    /// minutes property.
-    pub minutes: Option<i64>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<i64>,
-}
-
-/// `TextRotation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextRotation {
-    /// angle property.
-    pub angle: Option<i64>,
-    /// vertical property.
-    pub vertical: Option<bool>,
-}
-
-/// `TableColumnDataValidationRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableColumnDataValidationRule {
-    /// condition property.
-    pub condition: Option<BooleanCondition>,
-}
-
-/// `WaterfallChartDomain` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WaterfallChartDomain {
-    /// data property.
-    pub data: Option<ChartData>,
-    /// reversed property.
-    pub reversed: Option<bool>,
-}
-
-/// `Editors` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Editors {
-    /// domainUsersCanEdit property.
-    pub domain_users_can_edit: Option<bool>,
-    /// groups property.
-    pub groups: Option<Vec<String>>,
-    /// users property.
-    pub users: Option<Vec<String>>,
-}
-
-/// `Link` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Link {
-    /// uri property.
-    pub uri: Option<String>,
+pub struct AddProtectedRangeResponse {
+    /// protectedRange property.
+    pub protected_range: Option<ProtectedRange>,
 }
 
 /// `FilterView` type.
@@ -1739,194 +1989,6 @@ pub struct FilterView {
     pub table_id: Option<String>,
     /// title property.
     pub title: Option<String>,
-}
-
-/// `LineStyle` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LineStyle {
-    /// type property.
-    pub r#type: Option<String>,
-    /// width property.
-    pub width: Option<i64>,
-}
-
-/// `TextFormat` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextFormat {
-    /// bold property.
-    pub bold: Option<bool>,
-    /// fontFamily property.
-    pub font_family: Option<String>,
-    /// fontSize property.
-    pub font_size: Option<i64>,
-    /// foregroundColor property.
-    pub foreground_color: Option<Color>,
-    /// foregroundColorStyle property.
-    pub foreground_color_style: Option<ColorStyle>,
-    /// italic property.
-    pub italic: Option<bool>,
-    /// link property.
-    pub link: Option<Link>,
-    /// strikethrough property.
-    pub strikethrough: Option<bool>,
-    /// underline property.
-    pub underline: Option<bool>,
-}
-
-/// `TableColumnProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableColumnProperties {
-    /// columnIndex property.
-    pub column_index: Option<i64>,
-    /// columnName property.
-    pub column_name: Option<String>,
-    /// columnType property.
-    pub column_type: Option<String>,
-    /// dataValidationRule property.
-    pub data_validation_rule: Option<TableColumnDataValidationRule>,
-}
-
-/// `DataSourceTable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSourceTable {
-    /// columnSelectionType property.
-    pub column_selection_type: Option<String>,
-    /// columns property.
-    pub columns: Option<Vec<DataSourceColumnReference>>,
-    /// dataExecutionStatus property.
-    pub data_execution_status: Option<DataExecutionStatus>,
-    /// dataSourceId property.
-    pub data_source_id: Option<String>,
-    /// filterSpecs property.
-    pub filter_specs: Option<Vec<FilterSpec>>,
-    /// rowLimit property.
-    pub row_limit: Option<i64>,
-    /// sortSpecs property.
-    pub sort_specs: Option<Vec<SortSpec>>,
-}
-
-/// `Spreadsheet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Spreadsheet {
-    /// dataSourceSchedules property.
-    pub data_source_schedules: Option<Vec<DataSourceRefreshSchedule>>,
-    /// dataSources property.
-    pub data_sources: Option<Vec<DataSource>>,
-    /// developerMetadata property.
-    pub developer_metadata: Option<Vec<DeveloperMetadata>>,
-    /// namedRanges property.
-    pub named_ranges: Option<Vec<NamedRange>>,
-    /// properties property.
-    pub properties: Option<SpreadsheetProperties>,
-    /// sheets property.
-    pub sheets: Option<Vec<Sheet>>,
-    /// spreadsheetId property.
-    pub spreadsheet_id: Option<String>,
-    /// spreadsheetUrl property.
-    pub spreadsheet_url: Option<String>,
-}
-
-/// `DataSourceRefreshMonthlySchedule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSourceRefreshMonthlySchedule {
-    /// daysOfMonth property.
-    pub days_of_month: Option<Vec<i64>>,
-    /// startTime property.
-    pub start_time: Option<TimeOfDay>,
-}
-
-/// `EmbeddedChart` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EmbeddedChart {
-    /// border property.
-    pub border: Option<EmbeddedObjectBorder>,
-    /// chartId property.
-    pub chart_id: Option<i64>,
-    /// position property.
-    pub position: Option<EmbeddedObjectPosition>,
-    /// spec property.
-    pub spec: Option<ChartSpec>,
-}
-
-/// `PivotGroupSortValueBucket` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PivotGroupSortValueBucket {
-    /// buckets property.
-    pub buckets: Option<Vec<ExtendedValue>>,
-    /// valuesIndex property.
-    pub values_index: Option<i64>,
-}
-
-/// `ErrorValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorValue {
-    /// message property.
-    pub message: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `TableRowsProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableRowsProperties {
-    /// firstBandColorStyle property.
-    pub first_band_color_style: Option<ColorStyle>,
-    /// footerColorStyle property.
-    pub footer_color_style: Option<ColorStyle>,
-    /// headerColorStyle property.
-    pub header_color_style: Option<ColorStyle>,
-    /// secondBandColorStyle property.
-    pub second_band_color_style: Option<ColorStyle>,
-}
-
-/// `PivotFilterCriteria` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PivotFilterCriteria {
-    /// condition property.
-    pub condition: Option<BooleanCondition>,
-    /// visibleByDefault property.
-    pub visible_by_default: Option<bool>,
-    /// visibleValues property.
-    pub visible_values: Option<Vec<String>>,
-}
-
-/// `ThemeColorPair` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ThemeColorPair {
-    /// color property.
-    pub color: Option<ColorStyle>,
-    /// colorType property.
-    pub color_type: Option<String>,
-}
-
-/// `PivotGroupValueMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PivotGroupValueMetadata {
-    /// collapsed property.
-    pub collapsed: Option<bool>,
-    /// value property.
-    pub value: Option<ExtendedValue>,
-}
-
-/// `DeleteDeveloperMetadataResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteDeveloperMetadataResponse {
-    /// deletedDeveloperMetadata property.
-    pub deleted_developer_metadata: Option<Vec<DeveloperMetadata>>,
-}
-
-/// `CandlestickSeries` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CandlestickSeries {
-    /// data property.
-    pub data: Option<ChartData>,
-}
-
-/// `DuplicateSheetResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DuplicateSheetResponse {
-    /// properties property.
-    pub properties: Option<SheetProperties>,
 }
 
 /// `CellData` type.
@@ -1960,160 +2022,99 @@ pub struct CellData {
     pub user_entered_value: Option<ExtendedValue>,
 }
 
-/// `DeveloperMetadata` type.
+/// `TextPosition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeveloperMetadata {
-    /// location property.
-    pub location: Option<DeveloperMetadataLocation>,
-    /// metadataId property.
-    pub metadata_id: Option<i64>,
-    /// metadataKey property.
-    pub metadata_key: Option<String>,
-    /// metadataValue property.
-    pub metadata_value: Option<String>,
-    /// visibility property.
-    pub visibility: Option<String>,
+pub struct TextPosition {
+    /// horizontalAlignment property.
+    pub horizontal_alignment: Option<String>,
 }
 
-/// `DimensionProperties` type.
+/// `TreemapChartSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DimensionProperties {
+pub struct TreemapChartSpec {
+    /// colorData property.
+    pub color_data: Option<ChartData>,
+    /// colorScale property.
+    pub color_scale: Option<TreemapChartColorScale>,
+    /// headerColor property.
+    pub header_color: Option<Color>,
+    /// headerColorStyle property.
+    pub header_color_style: Option<ColorStyle>,
+    /// hideTooltips property.
+    pub hide_tooltips: Option<bool>,
+    /// hintedLevels property.
+    pub hinted_levels: Option<i64>,
+    /// labels property.
+    pub labels: Option<ChartData>,
+    /// levels property.
+    pub levels: Option<i64>,
+    /// maxValue property.
+    pub max_value: Option<f64>,
+    /// minValue property.
+    pub min_value: Option<f64>,
+    /// parentLabels property.
+    pub parent_labels: Option<ChartData>,
+    /// sizeData property.
+    pub size_data: Option<ChartData>,
+    /// textFormat property.
+    pub text_format: Option<TextFormat>,
+}
+
+/// `PivotFilterSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PivotFilterSpec {
+    /// columnOffsetIndex property.
+    pub column_offset_index: Option<i64>,
     /// dataSourceColumnReference property.
     pub data_source_column_reference: Option<DataSourceColumnReference>,
-    /// developerMetadata property.
-    pub developer_metadata: Option<Vec<DeveloperMetadata>>,
-    /// hiddenByFilter property.
-    pub hidden_by_filter: Option<bool>,
-    /// hiddenByUser property.
-    pub hidden_by_user: Option<bool>,
-    /// pixelSize property.
-    pub pixel_size: Option<i64>,
+    /// filterCriteria property.
+    pub filter_criteria: Option<PivotFilterCriteria>,
 }
 
-/// `WaterfallChartSpec` type.
+/// `DataValidationRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WaterfallChartSpec {
-    /// connectorLineStyle property.
-    pub connector_line_style: Option<LineStyle>,
-    /// domain property.
-    pub domain: Option<WaterfallChartDomain>,
-    /// firstValueIsTotal property.
-    pub first_value_is_total: Option<bool>,
-    /// hideConnectorLines property.
-    pub hide_connector_lines: Option<bool>,
-    /// series property.
-    pub series: Option<Vec<WaterfallChartSeries>>,
-    /// stackedType property.
-    pub stacked_type: Option<String>,
-    /// totalDataLabel property.
-    pub total_data_label: Option<DataLabel>,
+pub struct DataValidationRule {
+    /// condition property.
+    pub condition: Option<BooleanCondition>,
+    /// inputMessage property.
+    pub input_message: Option<String>,
+    /// showCustomUi property.
+    pub show_custom_ui: Option<bool>,
+    /// strict property.
+    pub strict: Option<bool>,
 }
 
-/// `ConditionalFormatRule` type.
+/// `Borders` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConditionalFormatRule {
-    /// booleanRule property.
-    pub boolean_rule: Option<BooleanRule>,
-    /// gradientRule property.
-    pub gradient_rule: Option<GradientRule>,
-    /// ranges property.
-    pub ranges: Option<Vec<GridRange>>,
-}
-
-/// `TextFormatRun` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextFormatRun {
-    /// format property.
-    pub format: Option<TextFormat>,
-    /// startIndex property.
-    pub start_index: Option<i64>,
-}
-
-/// `ExtendedValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExtendedValue {
-    /// boolValue property.
-    pub bool_value: Option<bool>,
-    /// errorValue property.
-    pub error_value: Option<ErrorValue>,
-    /// formulaValue property.
-    pub formula_value: Option<String>,
-    /// numberValue property.
-    pub number_value: Option<f64>,
-    /// stringValue property.
-    pub string_value: Option<String>,
-}
-
-/// `HistogramSeries` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HistogramSeries {
-    /// barColor property.
-    pub bar_color: Option<Color>,
-    /// barColorStyle property.
-    pub bar_color_style: Option<ColorStyle>,
-    /// data property.
-    pub data: Option<ChartData>,
-}
-
-/// `UpdateDeveloperMetadataResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateDeveloperMetadataResponse {
-    /// developerMetadata property.
-    pub developer_metadata: Option<Vec<DeveloperMetadata>>,
-}
-
-/// `DeleteDuplicatesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteDuplicatesResponse {
-    /// duplicatesRemovedCount property.
-    pub duplicates_removed_count: Option<i64>,
-}
-
-/// `Padding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Padding {
+pub struct Borders {
     /// bottom property.
-    pub bottom: Option<i64>,
+    pub bottom: Option<Border>,
     /// left property.
-    pub left: Option<i64>,
+    pub left: Option<Border>,
     /// right property.
-    pub right: Option<i64>,
+    pub right: Option<Border>,
     /// top property.
-    pub top: Option<i64>,
+    pub top: Option<Border>,
 }
 
-/// `NamedRange` type.
+/// `DataSourceSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NamedRange {
-    /// name property.
-    pub name: Option<String>,
-    /// namedRangeId property.
-    pub named_range_id: Option<String>,
-    /// range property.
-    pub range: Option<GridRange>,
+pub struct DataSourceSpec {
+    /// bigQuery property.
+    pub big_query: Option<BigQueryDataSourceSpec>,
+    /// looker property.
+    pub looker: Option<LookerDataSourceSpec>,
+    /// parameters property.
+    pub parameters: Option<Vec<DataSourceParameter>>,
 }
 
-/// `DateTimeRule` type.
+/// `BooleanRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DateTimeRule {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `ManualRuleGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManualRuleGroup {
-    /// groupName property.
-    pub group_name: Option<ExtendedValue>,
-    /// items property.
-    pub items: Option<Vec<ExtendedValue>>,
-}
-
-/// `AddBandingResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AddBandingResponse {
-    /// bandedRange property.
-    pub banded_range: Option<BandedRange>,
+pub struct BooleanRule {
+    /// condition property.
+    pub condition: Option<BooleanCondition>,
+    /// format property.
+    pub format: Option<CellFormat>,
 }
 
 // =============================================================================

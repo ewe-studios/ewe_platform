@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,24 +22,65 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleChromeManagementVersionsV1ChromeOsDevice` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementVersionsV1ChromeOsDevice {
-    /// deviceDirectoryApiId property.
-    pub device_directory_api_id: Option<String>,
-    /// serialNumber property.
-    pub serial_number: Option<String>,
-}
-
 /// `GoogleChromeManagementVersionsV1ScepCaConnection` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1ScepCaConnection {
+    /// caConnectionAdapterConfigReference property.
+    pub ca_connection_adapter_config_reference: Option<String>,
+}
+
+/// `GoogleChromeManagementVersionsV1ScepProfile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementVersionsV1ScepProfile {
+    /// certificateTemplateName property.
+    pub certificate_template_name: Option<String>,
+    /// country property.
+    pub country: Option<String>,
+    /// keyUsages property.
+    pub key_usages: Option<Vec<String>>,
+    /// locality property.
+    pub locality: Option<String>,
+    /// organization property.
+    pub organization: Option<String>,
+    /// organizationalUnits property.
+    pub organizational_units: Option<Vec<String>>,
+    /// state property.
+    pub state: Option<String>,
+    /// subjectAltNames property.
+    pub subject_alt_names: Option<Vec<GoogleChromeManagementVersionsV1SubjectAltName>>,
+    /// subjectCommonName property.
+    pub subject_common_name: Option<String>,
+}
+
+/// `GoogleChromeManagementVersionsV1ChromeOsUserSession` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementVersionsV1ChromeOsUserSession {
+    /// chromeOsDevice property.
+    pub chrome_os_device: Option<GoogleChromeManagementVersionsV1ChromeOsDevice>,
+    /// userDirectoryApiId property.
+    pub user_directory_api_id: Option<String>,
+    /// userPrimaryEmail property.
+    pub user_primary_email: Option<String>,
+}
+
+/// `GoogleChromeManagementVersionsV1SubjectAltName` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementVersionsV1SubjectAltName {
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GoogleChromeManagementVersionsV1GenericCaConnection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementVersionsV1GenericCaConnection {
     /// caConnectionAdapterConfigReference property.
     pub ca_connection_adapter_config_reference: Option<String>,
 }
@@ -82,20 +124,6 @@ pub struct GoogleChromeManagementVersionsV1CertificateProvisioningProcess {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessResponse {}
 
-/// `GoogleChromeManagementVersionsV1GenericCaConnection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementVersionsV1GenericCaConnection {
-    /// caConnectionAdapterConfigReference property.
-    pub ca_connection_adapter_config_reference: Option<String>,
-}
-
-/// `GoogleChromeManagementVersionsV1GenericProfile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementVersionsV1GenericProfile {
-    /// profileAdapterConfigReference property.
-    pub profile_adapter_config_reference: Option<String>,
-}
-
 /// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
@@ -107,55 +135,28 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `GoogleChromeManagementVersionsV1ScepProfile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementVersionsV1ScepProfile {
-    /// certificateTemplateName property.
-    pub certificate_template_name: Option<String>,
-    /// country property.
-    pub country: Option<String>,
-    /// keyUsages property.
-    pub key_usages: Option<Vec<String>>,
-    /// locality property.
-    pub locality: Option<String>,
-    /// organization property.
-    pub organization: Option<String>,
-    /// organizationalUnits property.
-    pub organizational_units: Option<Vec<String>>,
-    /// state property.
-    pub state: Option<String>,
-    /// subjectAltNames property.
-    pub subject_alt_names: Option<Vec<GoogleChromeManagementVersionsV1SubjectAltName>>,
-    /// subjectCommonName property.
-    pub subject_common_name: Option<String>,
-}
-
 /// `GoogleChromeManagementVersionsV1SetFailureResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1SetFailureResponse {}
-
-/// `GoogleChromeManagementVersionsV1SubjectAltName` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementVersionsV1SubjectAltName {
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
 
 /// `GoogleChromeManagementVersionsV1UploadCertificateResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1UploadCertificateResponse {}
 
-/// `GoogleChromeManagementVersionsV1ChromeOsUserSession` type.
+/// `GoogleChromeManagementVersionsV1ChromeOsDevice` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementVersionsV1ChromeOsUserSession {
-    /// chromeOsDevice property.
-    pub chrome_os_device: Option<GoogleChromeManagementVersionsV1ChromeOsDevice>,
-    /// userDirectoryApiId property.
-    pub user_directory_api_id: Option<String>,
-    /// userPrimaryEmail property.
-    pub user_primary_email: Option<String>,
+pub struct GoogleChromeManagementVersionsV1ChromeOsDevice {
+    /// deviceDirectoryApiId property.
+    pub device_directory_api_id: Option<String>,
+    /// serialNumber property.
+    pub serial_number: Option<String>,
+}
+
+/// `GoogleChromeManagementVersionsV1GenericProfile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementVersionsV1GenericProfile {
+    /// profileAdapterConfigReference property.
+    pub profile_adapter_config_reference: Option<String>,
 }
 
 // =============================================================================

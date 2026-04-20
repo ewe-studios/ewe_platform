@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -45,22 +46,6 @@ pub struct GooglePrivacyDlpV2ProjectDataProfile {
     pub table_data_profile_count: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2ListProjectDataProfilesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ListProjectDataProfilesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// projectDataProfiles property.
-    pub project_data_profiles: Option<Vec<GooglePrivacyDlpV2ProjectDataProfile>>,
-}
-
-/// `GooglePrivacyDlpV2SensitivityScore` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2SensitivityScore {
-    /// score property.
-    pub score: Option<String>,
-}
-
 /// `GooglePrivacyDlpV2ProfileStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ProfileStatus {
@@ -68,6 +53,13 @@ pub struct GooglePrivacyDlpV2ProfileStatus {
     pub status: Option<GoogleRpcStatus>,
     /// timestamp property.
     pub timestamp: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2SensitivityScore` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2SensitivityScore {
+    /// score property.
+    pub score: Option<String>,
 }
 
 /// `GoogleRpcStatus` type.
@@ -86,6 +78,15 @@ pub struct GoogleRpcStatus {
 pub struct GooglePrivacyDlpV2DataRiskLevel {
     /// score property.
     pub score: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2ListProjectDataProfilesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2ListProjectDataProfilesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// projectDataProfiles property.
+    pub project_data_profiles: Option<Vec<GooglePrivacyDlpV2ProjectDataProfile>>,
 }
 
 // =============================================================================

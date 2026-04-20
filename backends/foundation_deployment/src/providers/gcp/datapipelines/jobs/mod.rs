@@ -12,47 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudDatapipelinesV1Job` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatapipelinesV1Job {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// dataflowJobDetails property.
-    pub dataflow_job_details: Option<GoogleCloudDatapipelinesV1DataflowJobDetails>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// status property.
-    pub status: Option<GoogleRpcStatus>,
-}
-
-/// `GoogleCloudDatapipelinesV1SdkVersion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatapipelinesV1SdkVersion {
-    /// sdkSupportStatus property.
-    pub sdk_support_status: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-    /// versionDisplayName property.
-    pub version_display_name: Option<String>,
-}
 
 /// `GoogleCloudDatapipelinesV1DataflowJobDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -83,6 +54,36 @@ pub struct GoogleRpcStatus {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
+}
+
+/// `GoogleCloudDatapipelinesV1SdkVersion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatapipelinesV1SdkVersion {
+    /// sdkSupportStatus property.
+    pub sdk_support_status: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+    /// versionDisplayName property.
+    pub version_display_name: Option<String>,
+}
+
+/// `GoogleCloudDatapipelinesV1Job` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatapipelinesV1Job {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// dataflowJobDetails property.
+    pub dataflow_job_details: Option<GoogleCloudDatapipelinesV1DataflowJobDetails>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// status property.
+    pub status: Option<GoogleRpcStatus>,
 }
 
 // =============================================================================
