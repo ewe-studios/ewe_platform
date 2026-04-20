@@ -12,17 +12,64 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `AndroidTestLoop` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AndroidTestLoop {}
+
+/// `MatrixDimensionDefinition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MatrixDimensionDefinition {}
+
+/// `Specification` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Specification {
+    /// androidTest property.
+    pub android_test: Option<AndroidTest>,
+    /// iosTest property.
+    pub ios_test: Option<IosTest>,
+}
+
+/// `IosAppInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IosAppInfo {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `Duration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Duration {
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<String>,
+}
+
+/// `AndroidAppInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AndroidAppInfo {
+    /// name property.
+    pub name: Option<String>,
+    /// packageName property.
+    pub package_name: Option<String>,
+    /// versionCode property.
+    pub version_code: Option<String>,
+    /// versionName property.
+    pub version_name: Option<String>,
+}
 
 /// `AndroidRoboTest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -39,34 +86,32 @@ pub struct AndroidRoboTest {
     pub max_steps: Option<i64>,
 }
 
-/// `Execution` type.
+/// `ListExecutionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Execution {
-    /// completionTime property.
-    pub completion_time: Option<Timestamp>,
-    /// creationTime property.
-    pub creation_time: Option<Timestamp>,
-    /// dimensionDefinitions property.
-    pub dimension_definitions: Option<Vec<MatrixDimensionDefinition>>,
-    /// executionId property.
-    pub execution_id: Option<String>,
-    /// outcome property.
-    pub outcome: Option<Outcome>,
-    /// specification property.
-    pub specification: Option<Specification>,
-    /// state property.
-    pub state: Option<String>,
-    /// testExecutionMatrixId property.
-    pub test_execution_matrix_id: Option<String>,
+pub struct ListExecutionsResponse {
+    /// executions property.
+    pub executions: Option<Vec<Execution>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
-/// `IosXcTest` type.
+/// `FailureDetail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IosXcTest {
-    /// bundleId property.
-    pub bundle_id: Option<String>,
-    /// xcodeVersion property.
-    pub xcode_version: Option<String>,
+pub struct FailureDetail {
+    /// crashed property.
+    pub crashed: Option<bool>,
+    /// deviceOutOfMemory property.
+    pub device_out_of_memory: Option<bool>,
+    /// failedRoboscript property.
+    pub failed_roboscript: Option<bool>,
+    /// notInstalled property.
+    pub not_installed: Option<bool>,
+    /// otherNativeCrash property.
+    pub other_native_crash: Option<bool>,
+    /// timedOut property.
+    pub timed_out: Option<bool>,
+    /// unableToCrawl property.
+    pub unable_to_crawl: Option<bool>,
 }
 
 /// `AndroidInstrumentationTest` type.
@@ -95,13 +140,53 @@ pub struct SkippedDetail {
     pub pending_timeout: Option<bool>,
 }
 
-/// `Duration` type.
+/// `Execution` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Duration {
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<String>,
+pub struct Execution {
+    /// completionTime property.
+    pub completion_time: Option<Timestamp>,
+    /// creationTime property.
+    pub creation_time: Option<Timestamp>,
+    /// dimensionDefinitions property.
+    pub dimension_definitions: Option<Vec<MatrixDimensionDefinition>>,
+    /// executionId property.
+    pub execution_id: Option<String>,
+    /// outcome property.
+    pub outcome: Option<Outcome>,
+    /// specification property.
+    pub specification: Option<Specification>,
+    /// state property.
+    pub state: Option<String>,
+    /// testExecutionMatrixId property.
+    pub test_execution_matrix_id: Option<String>,
+}
+
+/// `IosRoboTest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IosRoboTest {}
+
+/// `AndroidTest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AndroidTest {
+    /// androidAppInfo property.
+    pub android_app_info: Option<AndroidAppInfo>,
+    /// androidInstrumentationTest property.
+    pub android_instrumentation_test: Option<AndroidInstrumentationTest>,
+    /// androidRoboTest property.
+    pub android_robo_test: Option<AndroidRoboTest>,
+    /// androidTestLoop property.
+    pub android_test_loop: Option<AndroidTestLoop>,
+    /// testTimeout property.
+    pub test_timeout: Option<Duration>,
+}
+
+/// `IosXcTest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IosXcTest {
+    /// bundleId property.
+    pub bundle_id: Option<String>,
+    /// xcodeVersion property.
+    pub xcode_version: Option<String>,
 }
 
 /// `InconclusiveDetail` type.
@@ -115,15 +200,6 @@ pub struct InconclusiveDetail {
     pub infrastructure_failure: Option<bool>,
 }
 
-/// `ListExecutionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListExecutionsResponse {
-    /// executions property.
-    pub executions: Option<Vec<Execution>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
 /// `IosTestLoop` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosTestLoop {
@@ -131,31 +207,26 @@ pub struct IosTestLoop {
     pub bundle_id: Option<String>,
 }
 
-/// `MatrixDimensionDefinition` type.
+/// `Outcome` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MatrixDimensionDefinition {}
+pub struct Outcome {
+    /// failureDetail property.
+    pub failure_detail: Option<FailureDetail>,
+    /// inconclusiveDetail property.
+    pub inconclusive_detail: Option<InconclusiveDetail>,
+    /// skippedDetail property.
+    pub skipped_detail: Option<SkippedDetail>,
+    /// successDetail property.
+    pub success_detail: Option<SuccessDetail>,
+    /// summary property.
+    pub summary: Option<String>,
+}
 
-/// `IosRoboTest` type.
+/// `SuccessDetail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IosRoboTest {}
-
-/// `FailureDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FailureDetail {
-    /// crashed property.
-    pub crashed: Option<bool>,
-    /// deviceOutOfMemory property.
-    pub device_out_of_memory: Option<bool>,
-    /// failedRoboscript property.
-    pub failed_roboscript: Option<bool>,
-    /// notInstalled property.
-    pub not_installed: Option<bool>,
+pub struct SuccessDetail {
     /// otherNativeCrash property.
     pub other_native_crash: Option<bool>,
-    /// timedOut property.
-    pub timed_out: Option<bool>,
-    /// unableToCrawl property.
-    pub unable_to_crawl: Option<bool>,
 }
 
 /// `Timestamp` type.
@@ -180,76 +251,6 @@ pub struct IosTest {
     pub ios_xc_test: Option<IosXcTest>,
     /// testTimeout property.
     pub test_timeout: Option<Duration>,
-}
-
-/// `AndroidTest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AndroidTest {
-    /// androidAppInfo property.
-    pub android_app_info: Option<AndroidAppInfo>,
-    /// androidInstrumentationTest property.
-    pub android_instrumentation_test: Option<AndroidInstrumentationTest>,
-    /// androidRoboTest property.
-    pub android_robo_test: Option<AndroidRoboTest>,
-    /// androidTestLoop property.
-    pub android_test_loop: Option<AndroidTestLoop>,
-    /// testTimeout property.
-    pub test_timeout: Option<Duration>,
-}
-
-/// `IosAppInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IosAppInfo {
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `AndroidTestLoop` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AndroidTestLoop {}
-
-/// `Outcome` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Outcome {
-    /// failureDetail property.
-    pub failure_detail: Option<FailureDetail>,
-    /// inconclusiveDetail property.
-    pub inconclusive_detail: Option<InconclusiveDetail>,
-    /// skippedDetail property.
-    pub skipped_detail: Option<SkippedDetail>,
-    /// successDetail property.
-    pub success_detail: Option<SuccessDetail>,
-    /// summary property.
-    pub summary: Option<String>,
-}
-
-/// `AndroidAppInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AndroidAppInfo {
-    /// name property.
-    pub name: Option<String>,
-    /// packageName property.
-    pub package_name: Option<String>,
-    /// versionCode property.
-    pub version_code: Option<String>,
-    /// versionName property.
-    pub version_name: Option<String>,
-}
-
-/// `Specification` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Specification {
-    /// androidTest property.
-    pub android_test: Option<AndroidTest>,
-    /// iosTest property.
-    pub ios_test: Option<IosTest>,
-}
-
-/// `SuccessDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SuccessDetail {
-    /// otherNativeCrash property.
-    pub other_native_crash: Option<bool>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,56 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ServiceAgentAuthentication` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceAgentAuthentication {
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `TcpCheck` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TcpCheck {
+    /// pingConfig property.
+    pub ping_config: Option<PingConfig>,
+    /// port property.
+    pub port: Option<i64>,
+}
+
+/// `ContentMatcher` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContentMatcher {
+    /// content property.
+    pub content: Option<String>,
+    /// jsonPathMatcher property.
+    pub json_path_matcher: Option<JsonPathMatcher>,
+    /// matcher property.
+    pub matcher: Option<String>,
+}
+
+/// `ResponseStatusCode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResponseStatusCode {
+    /// statusClass property.
+    pub status_class: Option<String>,
+    /// statusValue property.
+    pub status_value: Option<i64>,
+}
+
+/// `BasicAuthentication` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BasicAuthentication {
+    /// password property.
+    pub password: Option<String>,
+    /// username property.
+    pub username: Option<String>,
+}
 
 /// `SyntheticMonitorTarget` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -34,11 +80,31 @@ pub struct SyntheticMonitorTarget {
     pub cloud_function_v2: Option<CloudFunctionV2Target>,
 }
 
-/// `PingConfig` type.
+/// `JsonPathMatcher` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PingConfig {
-    /// pingsCount property.
-    pub pings_count: Option<i64>,
+pub struct JsonPathMatcher {
+    /// jsonMatcher property.
+    pub json_matcher: Option<String>,
+    /// jsonPath property.
+    pub json_path: Option<String>,
+}
+
+/// `MonitoredResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MonitoredResource {
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ResourceGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceGroup {
+    /// groupId property.
+    pub group_id: Option<String>,
+    /// resourceType property.
+    pub resource_type: Option<String>,
 }
 
 /// `UptimeCheckConfig` type.
@@ -80,62 +146,11 @@ pub struct UptimeCheckConfig {
     pub user_labels: Option<serde_json::Value>,
 }
 
-/// `MonitoredResource` type.
+/// `PingConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MonitoredResource {
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `BasicAuthentication` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BasicAuthentication {
-    /// password property.
-    pub password: Option<String>,
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `JsonPathMatcher` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JsonPathMatcher {
-    /// jsonMatcher property.
-    pub json_matcher: Option<String>,
-    /// jsonPath property.
-    pub json_path: Option<String>,
-}
-
-/// `ListUptimeCheckConfigsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListUptimeCheckConfigsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// totalSize property.
-    pub total_size: Option<i64>,
-    /// uptimeCheckConfigs property.
-    pub uptime_check_configs: Option<Vec<UptimeCheckConfig>>,
-}
-
-/// `ContentMatcher` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContentMatcher {
-    /// content property.
-    pub content: Option<String>,
-    /// jsonPathMatcher property.
-    pub json_path_matcher: Option<JsonPathMatcher>,
-    /// matcher property.
-    pub matcher: Option<String>,
-}
-
-/// `TcpCheck` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TcpCheck {
-    /// pingConfig property.
-    pub ping_config: Option<PingConfig>,
-    /// port property.
-    pub port: Option<i64>,
+pub struct PingConfig {
+    /// pingsCount property.
+    pub pings_count: Option<i64>,
 }
 
 /// `InternalChecker` type.
@@ -155,13 +170,15 @@ pub struct InternalChecker {
     pub state: Option<String>,
 }
 
-/// `ResponseStatusCode` type.
+/// `ListUptimeCheckConfigsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResponseStatusCode {
-    /// statusClass property.
-    pub status_class: Option<String>,
-    /// statusValue property.
-    pub status_value: Option<i64>,
+pub struct ListUptimeCheckConfigsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// totalSize property.
+    pub total_size: Option<i64>,
+    /// uptimeCheckConfigs property.
+    pub uptime_check_configs: Option<Vec<UptimeCheckConfig>>,
 }
 
 /// `HttpCheck` type.
@@ -204,22 +221,6 @@ pub struct CloudFunctionV2Target {
     pub cloud_run_revision: Option<MonitoredResource>,
     /// name property.
     pub name: Option<String>,
-}
-
-/// `ServiceAgentAuthentication` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceAgentAuthentication {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `ResourceGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceGroup {
-    /// groupId property.
-    pub group_id: Option<String>,
-    /// resourceType property.
-    pub resource_type: Option<String>,
 }
 
 // =============================================================================

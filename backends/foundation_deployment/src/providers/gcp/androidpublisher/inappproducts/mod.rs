@@ -12,29 +12,76 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `InappproductsListResponse` type.
+/// `TokenPagination` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InappproductsListResponse {
-    /// inappproduct property.
-    pub inappproduct: Option<Vec<InAppProduct>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// pageInfo property.
-    pub page_info: Option<PageInfo>,
-    /// tokenPagination property.
-    pub token_pagination: Option<TokenPagination>,
+pub struct TokenPagination {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// previousPageToken property.
+    pub previous_page_token: Option<String>,
+}
+
+/// `ManagedProductTaxAndComplianceSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedProductTaxAndComplianceSettings {
+    /// eeaWithdrawalRightType property.
+    pub eea_withdrawal_right_type: Option<String>,
+    /// isTokenizedDigitalAsset property.
+    pub is_tokenized_digital_asset: Option<bool>,
+    /// productTaxCategoryCode property.
+    pub product_tax_category_code: Option<String>,
+    /// regionalProductAgeRatingInfos property.
+    pub regional_product_age_rating_infos: Option<Vec<RegionalProductAgeRatingInfo>>,
+    /// taxRateInfoByRegionCode property.
+    pub tax_rate_info_by_region_code: Option<serde_json::Value>,
+}
+
+/// `PageInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PageInfo {
+    /// resultPerPage property.
+    pub result_per_page: Option<i64>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+    /// totalResults property.
+    pub total_results: Option<i64>,
+}
+
+/// `SubscriptionTaxAndComplianceSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SubscriptionTaxAndComplianceSettings {
+    /// eeaWithdrawalRightType property.
+    pub eea_withdrawal_right_type: Option<String>,
+    /// isTokenizedDigitalAsset property.
+    pub is_tokenized_digital_asset: Option<bool>,
+    /// productTaxCategoryCode property.
+    pub product_tax_category_code: Option<String>,
+    /// regionalProductAgeRatingInfos property.
+    pub regional_product_age_rating_infos: Option<Vec<RegionalProductAgeRatingInfo>>,
+    /// taxRateInfoByRegionCode property.
+    pub tax_rate_info_by_region_code: Option<serde_json::Value>,
+}
+
+/// `Price` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Price {
+    /// currency property.
+    pub currency: Option<String>,
+    /// priceMicros property.
+    pub price_micros: Option<String>,
 }
 
 /// `RegionalProductAgeRatingInfo` type.
@@ -44,15 +91,6 @@ pub struct RegionalProductAgeRatingInfo {
     pub product_age_rating_tier: Option<String>,
     /// regionCode property.
     pub region_code: Option<String>,
-}
-
-/// `TokenPagination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TokenPagination {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// previousPageToken property.
-    pub previous_page_token: Option<String>,
 }
 
 /// `InAppProduct` type.
@@ -87,54 +125,17 @@ pub struct InAppProduct {
     pub trial_period: Option<String>,
 }
 
-/// `Price` type.
+/// `InappproductsListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Price {
-    /// currency property.
-    pub currency: Option<String>,
-    /// priceMicros property.
-    pub price_micros: Option<String>,
-}
-
-/// `SubscriptionTaxAndComplianceSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubscriptionTaxAndComplianceSettings {
-    /// eeaWithdrawalRightType property.
-    pub eea_withdrawal_right_type: Option<String>,
-    /// isTokenizedDigitalAsset property.
-    pub is_tokenized_digital_asset: Option<bool>,
-    /// productTaxCategoryCode property.
-    pub product_tax_category_code: Option<String>,
-    /// regionalProductAgeRatingInfos property.
-    pub regional_product_age_rating_infos: Option<Vec<RegionalProductAgeRatingInfo>>,
-    /// taxRateInfoByRegionCode property.
-    pub tax_rate_info_by_region_code: Option<serde_json::Value>,
-}
-
-/// `PageInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PageInfo {
-    /// resultPerPage property.
-    pub result_per_page: Option<i64>,
-    /// startIndex property.
-    pub start_index: Option<i64>,
-    /// totalResults property.
-    pub total_results: Option<i64>,
-}
-
-/// `ManagedProductTaxAndComplianceSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedProductTaxAndComplianceSettings {
-    /// eeaWithdrawalRightType property.
-    pub eea_withdrawal_right_type: Option<String>,
-    /// isTokenizedDigitalAsset property.
-    pub is_tokenized_digital_asset: Option<bool>,
-    /// productTaxCategoryCode property.
-    pub product_tax_category_code: Option<String>,
-    /// regionalProductAgeRatingInfos property.
-    pub regional_product_age_rating_infos: Option<Vec<RegionalProductAgeRatingInfo>>,
-    /// taxRateInfoByRegionCode property.
-    pub tax_rate_info_by_region_code: Option<serde_json::Value>,
+pub struct InappproductsListResponse {
+    /// inappproduct property.
+    pub inappproduct: Option<Vec<InAppProduct>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// pageInfo property.
+    pub page_info: Option<PageInfo>,
+    /// tokenPagination property.
+    pub token_pagination: Option<TokenPagination>,
 }
 
 // =============================================================================

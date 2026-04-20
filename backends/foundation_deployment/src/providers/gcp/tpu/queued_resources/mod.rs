@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -31,13 +32,13 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Spot {}
 
-/// `MultisliceParams` type.
+/// `AttachedDisk` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MultisliceParams {
-    /// nodeCount property.
-    pub node_count: Option<i64>,
-    /// nodeIdPrefix property.
-    pub node_id_prefix: Option<String>,
+pub struct AttachedDisk {
+    /// mode property.
+    pub mode: Option<String>,
+    /// sourceDisk property.
+    pub source_disk: Option<String>,
 }
 
 /// `NetworkConfig` type.
@@ -55,94 +56,9 @@ pub struct NetworkConfig {
     pub subnetwork: Option<String>,
 }
 
-/// `BootDiskConfig` type.
+/// `CreatingData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BootDiskConfig {
-    /// customerEncryptionKey property.
-    pub customer_encryption_key: Option<CustomerEncryptionKey>,
-}
-
-/// `Interval` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Interval {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `AcceleratorConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcceleratorConfig {
-    /// topology property.
-    pub topology: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `SchedulingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SchedulingConfig {
-    /// preemptible property.
-    pub preemptible: Option<bool>,
-    /// reserved property.
-    pub reserved: Option<bool>,
-    /// spot property.
-    pub spot: Option<bool>,
-}
-
-/// `NodeSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeSpec {
-    /// multisliceParams property.
-    pub multislice_params: Option<MultisliceParams>,
-    /// node property.
-    pub node: Option<Node>,
-    /// nodeId property.
-    pub node_id: Option<String>,
-    /// parent property.
-    pub parent: Option<String>,
-}
-
-/// `AccessConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessConfig {
-    /// externalIp property.
-    pub external_ip: Option<String>,
-}
-
-/// `SuspendedData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SuspendedData {}
-
-/// `Tpu` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Tpu {
-    /// nodeSpec property.
-    pub node_spec: Option<Vec<NodeSpec>>,
-}
-
-/// `QueueingPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueueingPolicy {
-    /// validAfterDuration property.
-    pub valid_after_duration: Option<String>,
-    /// validAfterTime property.
-    pub valid_after_time: Option<String>,
-    /// validInterval property.
-    pub valid_interval: Option<Interval>,
-    /// validUntilDuration property.
-    pub valid_until_duration: Option<String>,
-    /// validUntilTime property.
-    pub valid_until_time: Option<String>,
-}
-
-/// `ShieldedInstanceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShieldedInstanceConfig {
-    /// enableSecureBoot property.
-    pub enable_secure_boot: Option<bool>,
-}
+pub struct CreatingData {}
 
 /// `UpcomingMaintenance` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -165,38 +81,6 @@ pub struct UpcomingMaintenance {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceptedData {}
 
-/// `FailedData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FailedData {
-    /// error property.
-    pub error: Option<Status>,
-}
-
-/// `CreatingData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreatingData {}
-
-/// `QueuedResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueuedResource {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// guaranteed property.
-    pub guaranteed: Option<Guaranteed>,
-    /// name property.
-    pub name: Option<String>,
-    /// queueingPolicy property.
-    pub queueing_policy: Option<QueueingPolicy>,
-    /// reservationName property.
-    pub reservation_name: Option<String>,
-    /// spot property.
-    pub spot: Option<Spot>,
-    /// state property.
-    pub state: Option<QueuedResourceState>,
-    /// tpu property.
-    pub tpu: Option<Tpu>,
-}
-
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
@@ -206,6 +90,81 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
+}
+
+/// `DeletingData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeletingData {}
+
+/// `AcceleratorConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AcceleratorConfig {
+    /// topology property.
+    pub topology: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ListQueuedResourcesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListQueuedResourcesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// queuedResources property.
+    pub queued_resources: Option<Vec<QueuedResource>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `MultisliceParams` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MultisliceParams {
+    /// nodeCount property.
+    pub node_count: Option<i64>,
+    /// nodeIdPrefix property.
+    pub node_id_prefix: Option<String>,
+}
+
+/// `QueueingPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueueingPolicy {
+    /// validAfterDuration property.
+    pub valid_after_duration: Option<String>,
+    /// validAfterTime property.
+    pub valid_after_time: Option<String>,
+    /// validInterval property.
+    pub valid_interval: Option<Interval>,
+    /// validUntilDuration property.
+    pub valid_until_duration: Option<String>,
+    /// validUntilTime property.
+    pub valid_until_time: Option<String>,
+}
+
+/// `Interval` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Interval {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `Guaranteed` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Guaranteed {
+    /// minDuration property.
+    pub min_duration: Option<String>,
+}
+
+/// `NetworkEndpoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkEndpoint {
+    /// accessConfig property.
+    pub access_config: Option<AccessConfig>,
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
 }
 
 /// `QueuedResourceState` type.
@@ -232,6 +191,109 @@ pub struct QueuedResourceState {
     /// suspendingData property.
     pub suspending_data: Option<SuspendingData>,
 }
+
+/// `QueuedResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueuedResource {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// guaranteed property.
+    pub guaranteed: Option<Guaranteed>,
+    /// name property.
+    pub name: Option<String>,
+    /// queueingPolicy property.
+    pub queueing_policy: Option<QueueingPolicy>,
+    /// reservationName property.
+    pub reservation_name: Option<String>,
+    /// spot property.
+    pub spot: Option<Spot>,
+    /// state property.
+    pub state: Option<QueuedResourceState>,
+    /// tpu property.
+    pub tpu: Option<Tpu>,
+}
+
+/// `Tpu` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Tpu {
+    /// nodeSpec property.
+    pub node_spec: Option<Vec<NodeSpec>>,
+}
+
+/// `CustomerEncryptionKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomerEncryptionKey {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+}
+
+/// `SuspendedData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SuspendedData {}
+
+/// `SuspendingData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SuspendingData {}
+
+/// `FailedData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FailedData {
+    /// error property.
+    pub error: Option<Status>,
+}
+
+/// `AccessConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessConfig {
+    /// externalIp property.
+    pub external_ip: Option<String>,
+}
+
+/// `Symptom` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Symptom {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// details property.
+    pub details: Option<String>,
+    /// symptomType property.
+    pub symptom_type: Option<String>,
+    /// workerId property.
+    pub worker_id: Option<String>,
+}
+
+/// `BootDiskConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BootDiskConfig {
+    /// customerEncryptionKey property.
+    pub customer_encryption_key: Option<CustomerEncryptionKey>,
+}
+
+/// `NodeSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodeSpec {
+    /// multisliceParams property.
+    pub multislice_params: Option<MultisliceParams>,
+    /// node property.
+    pub node: Option<Node>,
+    /// nodeId property.
+    pub node_id: Option<String>,
+    /// parent property.
+    pub parent: Option<String>,
+}
+
+/// `ServiceAccount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceAccount {
+    /// email property.
+    pub email: Option<String>,
+    /// scope property.
+    pub scope: Option<Vec<String>>,
+}
+
+/// `ActiveData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActiveData {}
 
 /// `Node` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -292,87 +354,26 @@ pub struct Node {
     pub upcoming_maintenance: Option<UpcomingMaintenance>,
 }
 
-/// `CustomerEncryptionKey` type.
+/// `ShieldedInstanceConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerEncryptionKey {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
+pub struct ShieldedInstanceConfig {
+    /// enableSecureBoot property.
+    pub enable_secure_boot: Option<bool>,
 }
-
-/// `ActiveData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActiveData {}
-
-/// `NetworkEndpoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkEndpoint {
-    /// accessConfig property.
-    pub access_config: Option<AccessConfig>,
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
-}
-
-/// `ListQueuedResourcesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListQueuedResourcesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// queuedResources property.
-    pub queued_resources: Option<Vec<QueuedResource>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `Symptom` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Symptom {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// details property.
-    pub details: Option<String>,
-    /// symptomType property.
-    pub symptom_type: Option<String>,
-    /// workerId property.
-    pub worker_id: Option<String>,
-}
-
-/// `DeletingData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeletingData {}
 
 /// `ProvisioningData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProvisioningData {}
 
-/// `ServiceAccount` type.
+/// `SchedulingConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceAccount {
-    /// email property.
-    pub email: Option<String>,
-    /// scope property.
-    pub scope: Option<Vec<String>>,
-}
-
-/// `SuspendingData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SuspendingData {}
-
-/// `AttachedDisk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AttachedDisk {
-    /// mode property.
-    pub mode: Option<String>,
-    /// sourceDisk property.
-    pub source_disk: Option<String>,
-}
-
-/// `Guaranteed` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Guaranteed {
-    /// minDuration property.
-    pub min_duration: Option<String>,
+pub struct SchedulingConfig {
+    /// preemptible property.
+    pub preemptible: Option<bool>,
+    /// reserved property.
+    pub reserved: Option<bool>,
+    /// spot property.
+    pub spot: Option<bool>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,22 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleCloudApigeeV1SharedFlowRevision;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudApigeeV1EntityMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1EntityMetadata {
+    /// createdAt property.
+    pub created_at: Option<String>,
+    /// lastModifiedAt property.
+    pub last_modified_at: Option<String>,
+    /// subType property.
+    pub sub_type: Option<String>,
+}
 
 /// `GoogleCloudApigeeV1SharedFlow` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,24 +52,6 @@ pub struct GoogleCloudApigeeV1SharedFlow {
     pub revision: Option<Vec<String>>,
     /// space property.
     pub space: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1EntityMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1EntityMetadata {
-    /// createdAt property.
-    pub created_at: Option<String>,
-    /// lastModifiedAt property.
-    pub last_modified_at: Option<String>,
-    /// subType property.
-    pub sub_type: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1ResourceFiles` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ResourceFiles {
-    /// resourceFile property.
-    pub resource_file: Option<Vec<GoogleCloudApigeeV1ResourceFile>>,
 }
 
 /// `GoogleCloudApigeeV1ConfigVersion` type.
@@ -76,6 +70,13 @@ pub struct GoogleCloudApigeeV1ResourceFile {
     pub name: Option<String>,
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1ResourceFiles` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ResourceFiles {
+    /// resourceFile property.
+    pub resource_file: Option<Vec<GoogleCloudApigeeV1ResourceFile>>,
 }
 
 /// `GoogleCloudApigeeV1ListSharedFlowsResponse` type.

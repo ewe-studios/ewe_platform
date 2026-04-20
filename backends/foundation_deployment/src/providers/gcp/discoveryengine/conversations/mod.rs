@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,240 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudDiscoveryengineV1DocumentIndexStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1DocumentIndexStatus {
+    /// errorSamples property.
+    pub error_samples: Option<Vec<GoogleRpcStatus>>,
+    /// indexTime property.
+    pub index_time: Option<String>,
+    /// pendingMessage property.
+    pub pending_message: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1DocumentContent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1DocumentContent {
+    /// mimeType property.
+    pub mime_type: Option<String>,
+    /// rawBytes property.
+    pub raw_bytes: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1ChunkChunkMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1ChunkChunkMetadata {
+    /// nextChunks property.
+    pub next_chunks: Option<Vec<Box<GoogleCloudDiscoveryengineV1Chunk>>>,
+    /// previousChunks property.
+    pub previous_chunks: Option<Vec<Box<GoogleCloudDiscoveryengineV1Chunk>>>,
+}
+
+/// `GoogleCloudDiscoveryengineV1TextInput` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1TextInput {
+    /// context property.
+    pub context: Option<GoogleCloudDiscoveryengineV1ConversationContext>,
+    /// input property.
+    pub input: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1ChunkStructuredContent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1ChunkStructuredContent {
+    /// content property.
+    pub content: Option<String>,
+    /// structureType property.
+    pub structure_type: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1SearchResponseSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1SearchResponseSummary {
+    /// safetyAttributes property.
+    pub safety_attributes:
+        Option<GoogleCloudDiscoveryengineV1SearchResponseSummarySafetyAttributes>,
+    /// summarySkippedReasons property.
+    pub summary_skipped_reasons: Option<Vec<String>>,
+    /// summaryText property.
+    pub summary_text: Option<String>,
+    /// summaryWithMetadata property.
+    pub summary_with_metadata:
+        Option<GoogleCloudDiscoveryengineV1SearchResponseSummarySummaryWithMetadata>,
+}
+
+/// `GoogleCloudDiscoveryengineV1SearchResponseSearchResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1SearchResponseSearchResult {
+    /// chunk property.
+    pub chunk: Option<Box<GoogleCloudDiscoveryengineV1Chunk>>,
+    /// document property.
+    pub document: Option<GoogleCloudDiscoveryengineV1Document>,
+    /// id property.
+    pub id: Option<String>,
+    /// modelScores property.
+    pub model_scores: Option<serde_json::Value>,
+    /// rankSignals property.
+    pub rank_signals: Option<GoogleCloudDiscoveryengineV1SearchResponseSearchResultRankSignals>,
+}
+
+/// `GoogleCloudDiscoveryengineV1SearchResponseSummaryReferenceChunkContent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1SearchResponseSummaryReferenceChunkContent {
+    /// content property.
+    pub content: Option<String>,
+    /// pageIdentifier property.
+    pub page_identifier: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1SearchResponseSummarySafetyAttributes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1SearchResponseSummarySafetyAttributes {
+    /// categories property.
+    pub categories: Option<Vec<String>>,
+    /// scores property.
+    pub scores: Option<Vec<f64>>,
+}
+
+/// `GoogleCloudDiscoveryengineV1SearchResponseSummaryReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1SearchResponseSummaryReference {
+    /// chunkContents property.
+    pub chunk_contents:
+        Option<Vec<GoogleCloudDiscoveryengineV1SearchResponseSummaryReferenceChunkContent>>,
+    /// document property.
+    pub document: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1Reply` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1Reply {
+    /// summary property.
+    pub summary: Option<GoogleCloudDiscoveryengineV1SearchResponseSummary>,
+}
+
+/// `GoogleCloudDiscoveryengineV1Document` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1Document {
+    /// aclInfo property.
+    pub acl_info: Option<GoogleCloudDiscoveryengineV1DocumentAclInfo>,
+    /// content property.
+    pub content: Option<GoogleCloudDiscoveryengineV1DocumentContent>,
+    /// derivedStructData property.
+    pub derived_struct_data: Option<serde_json::Value>,
+    /// id property.
+    pub id: Option<String>,
+    /// indexStatus property.
+    pub index_status: Option<GoogleCloudDiscoveryengineV1DocumentIndexStatus>,
+    /// indexTime property.
+    pub index_time: Option<String>,
+    /// jsonData property.
+    pub json_data: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// parentDocumentId property.
+    pub parent_document_id: Option<String>,
+    /// schemaId property.
+    pub schema_id: Option<String>,
+    /// structData property.
+    pub struct_data: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudDiscoveryengineV1ChunkAnnotationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1ChunkAnnotationMetadata {
+    /// imageId property.
+    pub image_id: Option<String>,
+    /// structuredContent property.
+    pub structured_content: Option<GoogleCloudDiscoveryengineV1ChunkStructuredContent>,
+}
+
+/// `GoogleCloudDiscoveryengineV1ChunkPageSpan` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1ChunkPageSpan {
+    /// pageEnd property.
+    pub page_end: Option<i64>,
+    /// pageStart property.
+    pub page_start: Option<i64>,
+}
+
+/// `GoogleCloudDiscoveryengineV1DocumentAclInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1DocumentAclInfo {
+    /// readers property.
+    pub readers: Option<Vec<GoogleCloudDiscoveryengineV1DocumentAclInfoAccessRestriction>>,
+}
+
+/// `GoogleCloudDiscoveryengineV1ConversationMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1ConversationMessage {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// reply property.
+    pub reply: Option<GoogleCloudDiscoveryengineV1Reply>,
+    /// userInput property.
+    pub user_input: Option<GoogleCloudDiscoveryengineV1TextInput>,
+}
+
+/// `GoogleCloudDiscoveryengineV1ConversationContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1ConversationContext {
+    /// activeDocument property.
+    pub active_document: Option<String>,
+    /// contextDocuments property.
+    pub context_documents: Option<Vec<String>>,
+}
+
+/// `GoogleCloudDiscoveryengineV1Principal` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1Principal {
+    /// externalEntityId property.
+    pub external_entity_id: Option<String>,
+    /// groupId property.
+    pub group_id: Option<String>,
+    /// userId property.
+    pub user_id: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1Conversation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1Conversation {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// messages property.
+    pub messages: Option<Vec<GoogleCloudDiscoveryengineV1ConversationMessage>>,
+    /// name property.
+    pub name: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// userPseudoId property.
+    pub user_pseudo_id: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1SearchResponseSummaryCitation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1SearchResponseSummaryCitation {
+    /// endIndex property.
+    pub end_index: Option<String>,
+    /// sources property.
+    pub sources: Option<Vec<GoogleCloudDiscoveryengineV1SearchResponseSummaryCitationSource>>,
+    /// startIndex property.
+    pub start_index: Option<String>,
+}
 
 /// `GoogleCloudDiscoveryengineV1ChunkDocumentMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,6 +270,56 @@ pub struct GoogleCloudDiscoveryengineV1ChunkDocumentMetadata {
     pub uri: Option<String>,
 }
 
+/// `GoogleCloudDiscoveryengineV1ConverseConversationResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1ConverseConversationResponse {
+    /// conversation property.
+    pub conversation: Option<GoogleCloudDiscoveryengineV1Conversation>,
+    /// reply property.
+    pub reply: Option<GoogleCloudDiscoveryengineV1Reply>,
+    /// searchResults property.
+    pub search_results: Option<Vec<GoogleCloudDiscoveryengineV1SearchResponseSearchResult>>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1ListConversationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1ListConversationsResponse {
+    /// conversations property.
+    pub conversations: Option<Vec<GoogleCloudDiscoveryengineV1Conversation>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1SearchResponseSummarySummaryWithMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1SearchResponseSummarySummaryWithMetadata {
+    /// citationMetadata property.
+    pub citation_metadata:
+        Option<GoogleCloudDiscoveryengineV1SearchResponseSummaryCitationMetadata>,
+    /// references property.
+    pub references: Option<Vec<GoogleCloudDiscoveryengineV1SearchResponseSummaryReference>>,
+    /// summary property.
+    pub summary: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1SearchResponseSummaryCitationSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1SearchResponseSummaryCitationSource {
+    /// referenceIndex property.
+    pub reference_index: Option<String>,
+}
+
 /// `GoogleCloudDiscoveryengineV1DocumentAclInfoAccessRestriction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DocumentAclInfoAccessRestriction {
@@ -49,56 +329,13 @@ pub struct GoogleCloudDiscoveryengineV1DocumentAclInfoAccessRestriction {
     pub principals: Option<Vec<GoogleCloudDiscoveryengineV1Principal>>,
 }
 
-/// `GoogleCloudDiscoveryengineV1ChunkChunkMetadata` type.
+/// `GoogleCloudDiscoveryengineV1SearchResponseSearchResultRankSignalsCustomSignal` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ChunkChunkMetadata {
-    /// nextChunks property.
-    pub next_chunks: Option<Vec<GoogleCloudDiscoveryengineV1Chunk>>,
-    /// previousChunks property.
-    pub previous_chunks: Option<Vec<GoogleCloudDiscoveryengineV1Chunk>>,
-}
-
-/// `GoogleCloudDiscoveryengineV1SearchResponseSummarySafetyAttributes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SearchResponseSummarySafetyAttributes {
-    /// categories property.
-    pub categories: Option<Vec<String>>,
-    /// scores property.
-    pub scores: Option<Vec<f64>>,
-}
-
-/// `GoogleCloudDiscoveryengineV1Chunk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1Chunk {
-    /// annotationContents property.
-    pub annotation_contents: Option<Vec<String>>,
-    /// annotationMetadata property.
-    pub annotation_metadata: Option<Vec<GoogleCloudDiscoveryengineV1ChunkAnnotationMetadata>>,
-    /// chunkMetadata property.
-    pub chunk_metadata: Option<GoogleCloudDiscoveryengineV1ChunkChunkMetadata>,
-    /// content property.
-    pub content: Option<String>,
-    /// dataUrls property.
-    pub data_urls: Option<Vec<String>>,
-    /// derivedStructData property.
-    pub derived_struct_data: Option<serde_json::Value>,
-    /// documentMetadata property.
-    pub document_metadata: Option<GoogleCloudDiscoveryengineV1ChunkDocumentMetadata>,
-    /// id property.
-    pub id: Option<String>,
+pub struct GoogleCloudDiscoveryengineV1SearchResponseSearchResultRankSignalsCustomSignal {
     /// name property.
     pub name: Option<String>,
-    /// pageSpan property.
-    pub page_span: Option<GoogleCloudDiscoveryengineV1ChunkPageSpan>,
-    /// relevanceScore property.
-    pub relevance_score: Option<f64>,
-}
-
-/// `GoogleCloudDiscoveryengineV1Reply` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1Reply {
-    /// summary property.
-    pub summary: Option<GoogleCloudDiscoveryengineV1SearchResponseSummary>,
+    /// value property.
+    pub value: Option<f64>,
 }
 
 /// `GoogleCloudDiscoveryengineV1SearchResponseSearchResultRankSignals` type.
@@ -127,213 +364,6 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseSearchResultRankSignals {
     pub topicality_rank: Option<f64>,
 }
 
-/// `GoogleCloudDiscoveryengineV1SearchResponseSummaryCitationSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SearchResponseSummaryCitationSource {
-    /// referenceIndex property.
-    pub reference_index: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1SearchResponseSearchResultRankSignalsCustomSignal` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SearchResponseSearchResultRankSignalsCustomSignal {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<f64>,
-}
-
-/// `GoogleCloudDiscoveryengineV1ConverseConversationResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ConverseConversationResponse {
-    /// conversation property.
-    pub conversation: Option<GoogleCloudDiscoveryengineV1Conversation>,
-    /// reply property.
-    pub reply: Option<GoogleCloudDiscoveryengineV1Reply>,
-    /// searchResults property.
-    pub search_results: Option<Vec<GoogleCloudDiscoveryengineV1SearchResponseSearchResult>>,
-}
-
-/// `GoogleCloudDiscoveryengineV1DocumentIndexStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DocumentIndexStatus {
-    /// errorSamples property.
-    pub error_samples: Option<Vec<GoogleRpcStatus>>,
-    /// indexTime property.
-    pub index_time: Option<String>,
-    /// pendingMessage property.
-    pub pending_message: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1ConversationMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ConversationMessage {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// reply property.
-    pub reply: Option<GoogleCloudDiscoveryengineV1Reply>,
-    /// userInput property.
-    pub user_input: Option<GoogleCloudDiscoveryengineV1TextInput>,
-}
-
-/// `GoogleCloudDiscoveryengineV1Principal` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1Principal {
-    /// externalEntityId property.
-    pub external_entity_id: Option<String>,
-    /// groupId property.
-    pub group_id: Option<String>,
-    /// userId property.
-    pub user_id: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1SearchResponseSearchResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SearchResponseSearchResult {
-    /// chunk property.
-    pub chunk: Option<GoogleCloudDiscoveryengineV1Chunk>,
-    /// document property.
-    pub document: Option<GoogleCloudDiscoveryengineV1Document>,
-    /// id property.
-    pub id: Option<String>,
-    /// modelScores property.
-    pub model_scores: Option<serde_json::Value>,
-    /// rankSignals property.
-    pub rank_signals: Option<GoogleCloudDiscoveryengineV1SearchResponseSearchResultRankSignals>,
-}
-
-/// `GoogleCloudDiscoveryengineV1SearchResponseSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SearchResponseSummary {
-    /// safetyAttributes property.
-    pub safety_attributes:
-        Option<GoogleCloudDiscoveryengineV1SearchResponseSummarySafetyAttributes>,
-    /// summarySkippedReasons property.
-    pub summary_skipped_reasons: Option<Vec<String>>,
-    /// summaryText property.
-    pub summary_text: Option<String>,
-    /// summaryWithMetadata property.
-    pub summary_with_metadata:
-        Option<GoogleCloudDiscoveryengineV1SearchResponseSummarySummaryWithMetadata>,
-}
-
-/// `GoogleCloudDiscoveryengineV1Conversation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1Conversation {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// messages property.
-    pub messages: Option<Vec<GoogleCloudDiscoveryengineV1ConversationMessage>>,
-    /// name property.
-    pub name: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// userPseudoId property.
-    pub user_pseudo_id: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1SearchResponseSummarySummaryWithMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SearchResponseSummarySummaryWithMetadata {
-    /// citationMetadata property.
-    pub citation_metadata:
-        Option<GoogleCloudDiscoveryengineV1SearchResponseSummaryCitationMetadata>,
-    /// references property.
-    pub references: Option<Vec<GoogleCloudDiscoveryengineV1SearchResponseSummaryReference>>,
-    /// summary property.
-    pub summary: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1SearchResponseSummaryReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SearchResponseSummaryReference {
-    /// chunkContents property.
-    pub chunk_contents:
-        Option<Vec<GoogleCloudDiscoveryengineV1SearchResponseSummaryReferenceChunkContent>>,
-    /// document property.
-    pub document: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1ChunkAnnotationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ChunkAnnotationMetadata {
-    /// imageId property.
-    pub image_id: Option<String>,
-    /// structuredContent property.
-    pub structured_content: Option<GoogleCloudDiscoveryengineV1ChunkStructuredContent>,
-}
-
-/// `GoogleCloudDiscoveryengineV1DocumentAclInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DocumentAclInfo {
-    /// readers property.
-    pub readers: Option<Vec<GoogleCloudDiscoveryengineV1DocumentAclInfoAccessRestriction>>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1SearchResponseSummaryCitation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SearchResponseSummaryCitation {
-    /// endIndex property.
-    pub end_index: Option<String>,
-    /// sources property.
-    pub sources: Option<Vec<GoogleCloudDiscoveryengineV1SearchResponseSummaryCitationSource>>,
-    /// startIndex property.
-    pub start_index: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1ChunkStructuredContent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ChunkStructuredContent {
-    /// content property.
-    pub content: Option<String>,
-    /// structureType property.
-    pub structure_type: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1SearchResponseSummaryReferenceChunkContent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SearchResponseSummaryReferenceChunkContent {
-    /// content property.
-    pub content: Option<String>,
-    /// pageIdentifier property.
-    pub page_identifier: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1ChunkPageSpan` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ChunkPageSpan {
-    /// pageEnd property.
-    pub page_end: Option<i64>,
-    /// pageStart property.
-    pub page_start: Option<i64>,
-}
-
-/// `GoogleCloudDiscoveryengineV1ConversationContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ConversationContext {
-    /// activeDocument property.
-    pub active_document: Option<String>,
-    /// contextDocuments property.
-    pub context_documents: Option<Vec<String>>,
-}
-
 /// `GoogleCloudDiscoveryengineV1SearchResponseSummaryCitationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseSummaryCitationMetadata {
@@ -341,60 +371,31 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseSummaryCitationMetadata {
     pub citations: Option<Vec<GoogleCloudDiscoveryengineV1SearchResponseSummaryCitation>>,
 }
 
-/// `GoogleCloudDiscoveryengineV1DocumentContent` type.
+/// `GoogleCloudDiscoveryengineV1Chunk` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DocumentContent {
-    /// mimeType property.
-    pub mime_type: Option<String>,
-    /// rawBytes property.
-    pub raw_bytes: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1ListConversationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ListConversationsResponse {
-    /// conversations property.
-    pub conversations: Option<Vec<GoogleCloudDiscoveryengineV1Conversation>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1TextInput` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1TextInput {
-    /// context property.
-    pub context: Option<GoogleCloudDiscoveryengineV1ConversationContext>,
-    /// input property.
-    pub input: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1Document` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1Document {
-    /// aclInfo property.
-    pub acl_info: Option<GoogleCloudDiscoveryengineV1DocumentAclInfo>,
+pub struct GoogleCloudDiscoveryengineV1Chunk {
+    /// annotationContents property.
+    pub annotation_contents: Option<Vec<String>>,
+    /// annotationMetadata property.
+    pub annotation_metadata: Option<Vec<GoogleCloudDiscoveryengineV1ChunkAnnotationMetadata>>,
+    /// chunkMetadata property.
+    pub chunk_metadata: Option<Box<GoogleCloudDiscoveryengineV1ChunkChunkMetadata>>,
     /// content property.
-    pub content: Option<GoogleCloudDiscoveryengineV1DocumentContent>,
+    pub content: Option<String>,
+    /// dataUrls property.
+    pub data_urls: Option<Vec<String>>,
     /// derivedStructData property.
     pub derived_struct_data: Option<serde_json::Value>,
+    /// documentMetadata property.
+    pub document_metadata: Option<GoogleCloudDiscoveryengineV1ChunkDocumentMetadata>,
     /// id property.
     pub id: Option<String>,
-    /// indexStatus property.
-    pub index_status: Option<GoogleCloudDiscoveryengineV1DocumentIndexStatus>,
-    /// indexTime property.
-    pub index_time: Option<String>,
-    /// jsonData property.
-    pub json_data: Option<String>,
     /// name property.
     pub name: Option<String>,
-    /// parentDocumentId property.
-    pub parent_document_id: Option<String>,
-    /// schemaId property.
-    pub schema_id: Option<String>,
-    /// structData property.
-    pub struct_data: Option<serde_json::Value>,
+    /// pageSpan property.
+    pub page_span: Option<GoogleCloudDiscoveryengineV1ChunkPageSpan>,
+    /// relevanceScore property.
+    pub relevance_score: Option<f64>,
 }
 
 // =============================================================================

@@ -12,17 +12,33 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `PlaylistItemContentDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlaylistItemContentDetails {
+    /// endAt property.
+    pub end_at: Option<String>,
+    /// note property.
+    pub note: Option<String>,
+    /// startAt property.
+    pub start_at: Option<String>,
+    /// videoId property.
+    pub video_id: Option<String>,
+    /// videoPublishedAt property.
+    pub video_published_at: Option<String>,
+}
 
 /// `ThumbnailDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -38,6 +54,26 @@ pub struct ThumbnailDetails {
     /// standard property.
     pub standard: Option<Thumbnail>,
 }
+
+/// `PageInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PageInfo {
+    /// resultsPerPage property.
+    pub results_per_page: Option<i64>,
+    /// totalResults property.
+    pub total_results: Option<i64>,
+}
+
+/// `PlaylistItemStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlaylistItemStatus {
+    /// privacyStatus property.
+    pub privacy_status: Option<String>,
+}
+
+/// `TokenPagination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TokenPagination {}
 
 /// `Thumbnail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -100,6 +136,19 @@ pub struct PlaylistItemSnippet {
     pub video_owner_channel_title: Option<String>,
 }
 
+/// `ResourceId` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceId {
+    /// channelId property.
+    pub channel_id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// playlistId property.
+    pub playlist_id: Option<String>,
+    /// videoId property.
+    pub video_id: Option<String>,
+}
+
 /// `PlaylistItem` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlaylistItem {
@@ -115,54 +164,6 @@ pub struct PlaylistItem {
     pub snippet: Option<PlaylistItemSnippet>,
     /// status property.
     pub status: Option<PlaylistItemStatus>,
-}
-
-/// `PlaylistItemStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlaylistItemStatus {
-    /// privacyStatus property.
-    pub privacy_status: Option<String>,
-}
-
-/// `PlaylistItemContentDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlaylistItemContentDetails {
-    /// endAt property.
-    pub end_at: Option<String>,
-    /// note property.
-    pub note: Option<String>,
-    /// startAt property.
-    pub start_at: Option<String>,
-    /// videoId property.
-    pub video_id: Option<String>,
-    /// videoPublishedAt property.
-    pub video_published_at: Option<String>,
-}
-
-/// `ResourceId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceId {
-    /// channelId property.
-    pub channel_id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// playlistId property.
-    pub playlist_id: Option<String>,
-    /// videoId property.
-    pub video_id: Option<String>,
-}
-
-/// `TokenPagination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TokenPagination {}
-
-/// `PageInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PageInfo {
-    /// resultsPerPage property.
-    pub results_per_page: Option<i64>,
-    /// totalResults property.
-    pub total_results: Option<i64>,
 }
 
 // =============================================================================

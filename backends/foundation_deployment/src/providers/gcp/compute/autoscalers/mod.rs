@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,45 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `RegionAutoscalerList` type.
+/// `LocalizedMessage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegionAutoscalerList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<Autoscaler>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `SetCommonInstanceMetadataOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetCommonInstanceMetadataOperationMetadata {
-    /// clientOperationId property.
-    pub client_operation_id: Option<String>,
-    /// perLocationOperations property.
-    pub per_location_operations: Option<serde_json::Value>,
-}
-
-/// `HelpLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `AutoscalingPolicyCpuUtilization` type.
@@ -69,6 +44,13 @@ pub struct AutoscalingPolicyCpuUtilization {
     pub predictive_method: Option<String>,
     /// utilizationTarget property.
     pub utilization_target: Option<f64>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
 }
 
 /// `Autoscaler` type.
@@ -104,6 +86,118 @@ pub struct Autoscaler {
     pub zone: Option<String>,
 }
 
+/// `GetVersionOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadata {
+    /// inlineSbomInfo property.
+    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+}
+
+/// `AutoscalingPolicyCustomMetricUtilization` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutoscalingPolicyCustomMetricUtilization {
+    /// filter property.
+    pub filter: Option<String>,
+    /// metric property.
+    pub metric: Option<String>,
+    /// singleInstanceAssignment property.
+    pub single_instance_assignment: Option<f64>,
+    /// utilizationTarget property.
+    pub utilization_target: Option<f64>,
+    /// utilizationTargetType property.
+    pub utilization_target_type: Option<String>,
+}
+
+/// `AutoscalingPolicyScaleInControl` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutoscalingPolicyScaleInControl {
+    /// maxScaledInReplicas property.
+    pub max_scaled_in_replicas: Option<FixedOrPercent>,
+    /// timeWindowSec property.
+    pub time_window_sec: Option<i64>,
+}
+
+/// `FixedOrPercent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FixedOrPercent {
+    /// calculated property.
+    pub calculated: Option<i64>,
+    /// fixed property.
+    pub fixed: Option<i64>,
+    /// percent property.
+    pub percent: Option<i64>,
+}
+
+/// `RegionAutoscalerList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegionAutoscalerList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<Autoscaler>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `HelpLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `AutoscalerList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutoscalerList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<Autoscaler>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `AutoscalerStatusDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutoscalerStatusDetails {
+    /// message property.
+    pub message: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `AutoscalingPolicyLoadBalancingUtilization` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutoscalingPolicyLoadBalancingUtilization {
+    /// utilizationTarget property.
+    pub utilization_target: Option<f64>,
+}
+
+/// `ErrorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
 /// `Help` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Help {
@@ -111,22 +205,32 @@ pub struct Help {
     pub links: Option<Vec<HelpLink>>,
 }
 
-/// `LocalizedMessage` type.
+/// `AutoscalerAggregatedList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
+pub struct AutoscalerAggregatedList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<serde_json::Value>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// unreachables property.
+    pub unreachables: Option<Vec<String>>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `GetVersionOperationMetadataSbomInfo` type.
+/// `SetCommonInstanceMetadataOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
+pub struct SetCommonInstanceMetadataOperationMetadata {
+    /// clientOperationId property.
+    pub client_operation_id: Option<String>,
+    /// perLocationOperations property.
+    pub per_location_operations: Option<serde_json::Value>,
 }
 
 /// `QuotaExceededInfo` type.
@@ -169,116 +273,13 @@ pub struct AutoscalingPolicy {
     pub scaling_schedules: Option<serde_json::Value>,
 }
 
-/// `AutoscalerStatusDetails` type.
+/// `GetVersionOperationMetadataSbomInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoscalerStatusDetails {
-    /// message property.
-    pub message: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `AutoscalingPolicyLoadBalancingUtilization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoscalingPolicyLoadBalancingUtilization {
-    /// utilizationTarget property.
-    pub utilization_target: Option<f64>,
-}
-
-/// `AutoscalingPolicyCustomMetricUtilization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoscalingPolicyCustomMetricUtilization {
-    /// filter property.
-    pub filter: Option<String>,
-    /// metric property.
-    pub metric: Option<String>,
-    /// singleInstanceAssignment property.
-    pub single_instance_assignment: Option<f64>,
-    /// utilizationTarget property.
-    pub utilization_target: Option<f64>,
-    /// utilizationTargetType property.
-    pub utilization_target_type: Option<String>,
-}
-
-/// `InstancesBulkInsertOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
-}
-
-/// `FixedOrPercent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FixedOrPercent {
-    /// calculated property.
-    pub calculated: Option<i64>,
-    /// fixed property.
-    pub fixed: Option<i64>,
-    /// percent property.
-    pub percent: Option<i64>,
-}
-
-/// `GetVersionOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadata {
-    /// inlineSbomInfo property.
-    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
-}
-
-/// `AutoscalerList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoscalerList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<Autoscaler>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `ErrorInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `AutoscalerAggregatedList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoscalerAggregatedList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<serde_json::Value>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// unreachables property.
-    pub unreachables: Option<Vec<String>>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `AutoscalingPolicyScaleInControl` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoscalingPolicyScaleInControl {
-    /// maxScaledInReplicas property.
-    pub max_scaled_in_replicas: Option<FixedOrPercent>,
-    /// timeWindowSec property.
-    pub time_window_sec: Option<i64>,
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
 }
 
 // =============================================================================

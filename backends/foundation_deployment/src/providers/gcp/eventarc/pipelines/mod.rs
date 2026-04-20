@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,11 +24,51 @@ use super::shared::GoogleLongrunningOperation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudEventarcV1PipelineMessagePayloadFormat` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudEventarcV1PipelineMessagePayloadFormat {
+    /// avro property.
+    pub avro: Option<GoogleCloudEventarcV1PipelineMessagePayloadFormatAvroFormat>,
+    /// json property.
+    pub json: Option<GoogleCloudEventarcV1PipelineMessagePayloadFormatJsonFormat>,
+    /// protobuf property.
+    pub protobuf: Option<GoogleCloudEventarcV1PipelineMessagePayloadFormatProtobufFormat>,
+}
+
+/// `GoogleCloudEventarcV1PipelineDestinationAuthenticationConfigOidcToken` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudEventarcV1PipelineDestinationAuthenticationConfigOidcToken {
+    /// audience property.
+    pub audience: Option<String>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+}
+
+/// `GoogleCloudEventarcV1PipelineDestinationHttpEndpoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudEventarcV1PipelineDestinationHttpEndpoint {
+    /// messageBindingTemplate property.
+    pub message_binding_template: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `ListPipelinesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListPipelinesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// pipelines property.
+    pub pipelines: Option<Vec<Pipeline>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
 
 /// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,42 +81,18 @@ pub struct Binding {
     pub role: Option<String>,
 }
 
-/// `GoogleCloudEventarcV1PipelineMessagePayloadFormatAvroFormat` type.
+/// `GoogleCloudEventarcV1PipelineMediation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudEventarcV1PipelineMessagePayloadFormatAvroFormat {
-    /// schemaDefinition property.
-    pub schema_definition: Option<String>,
+pub struct GoogleCloudEventarcV1PipelineMediation {
+    /// transformation property.
+    pub transformation: Option<GoogleCloudEventarcV1PipelineMediationTransformation>,
 }
 
-/// `AuditConfig` type.
+/// `GoogleCloudEventarcV1PipelineMediationTransformation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudEventarcV1PipelineRetryPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudEventarcV1PipelineRetryPolicy {
-    /// maxAttempts property.
-    pub max_attempts: Option<i64>,
-    /// maxRetryDelay property.
-    pub max_retry_delay: Option<String>,
-    /// minRetryDelay property.
-    pub min_retry_delay: Option<String>,
+pub struct GoogleCloudEventarcV1PipelineMediationTransformation {
+    /// transformationTemplate property.
+    pub transformation_template: Option<String>,
 }
 
 /// `GoogleCloudEventarcV1PipelineMessagePayloadFormatProtobufFormat` type.
@@ -94,48 +111,11 @@ pub struct GoogleCloudEventarcV1PipelineDestinationAuthenticationConfig {
     pub oauth_token: Option<GoogleCloudEventarcV1PipelineDestinationAuthenticationConfigOAuthToken>,
 }
 
-/// `GoogleCloudEventarcV1PipelineDestination` type.
+/// `LoggingConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudEventarcV1PipelineDestination {
-    /// authenticationConfig property.
-    pub authentication_config: Option<GoogleCloudEventarcV1PipelineDestinationAuthenticationConfig>,
-    /// httpEndpoint property.
-    pub http_endpoint: Option<GoogleCloudEventarcV1PipelineDestinationHttpEndpoint>,
-    /// messageBus property.
-    pub message_bus: Option<String>,
-    /// networkConfig property.
-    pub network_config: Option<GoogleCloudEventarcV1PipelineDestinationNetworkConfig>,
-    /// outputPayloadFormat property.
-    pub output_payload_format: Option<GoogleCloudEventarcV1PipelineMessagePayloadFormat>,
-    /// topic property.
-    pub topic: Option<String>,
-    /// workflow property.
-    pub workflow: Option<String>,
-}
-
-/// `GoogleCloudEventarcV1PipelineDestinationHttpEndpoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudEventarcV1PipelineDestinationHttpEndpoint {
-    /// messageBindingTemplate property.
-    pub message_binding_template: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `GoogleCloudEventarcV1PipelineDestinationAuthenticationConfigOidcToken` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudEventarcV1PipelineDestinationAuthenticationConfigOidcToken {
-    /// audience property.
-    pub audience: Option<String>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-}
-
-/// `GoogleCloudEventarcV1PipelineMediation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudEventarcV1PipelineMediation {
-    /// transformation property.
-    pub transformation: Option<GoogleCloudEventarcV1PipelineMediationTransformation>,
+pub struct LoggingConfig {
+    /// logSeverity property.
+    pub log_severity: Option<String>,
 }
 
 /// `Pipeline` type.
@@ -173,6 +153,68 @@ pub struct Pipeline {
     pub update_time: Option<String>,
 }
 
+/// `GoogleCloudEventarcV1PipelineDestinationNetworkConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudEventarcV1PipelineDestinationNetworkConfig {
+    /// networkAttachment property.
+    pub network_attachment: Option<String>,
+}
+
+/// `GoogleCloudEventarcV1PipelineRetryPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudEventarcV1PipelineRetryPolicy {
+    /// maxAttempts property.
+    pub max_attempts: Option<i64>,
+    /// maxRetryDelay property.
+    pub max_retry_delay: Option<String>,
+    /// minRetryDelay property.
+    pub min_retry_delay: Option<String>,
+}
+
+/// `GoogleCloudEventarcV1PipelineMessagePayloadFormatAvroFormat` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudEventarcV1PipelineMessagePayloadFormatAvroFormat {
+    /// schemaDefinition property.
+    pub schema_definition: Option<String>,
+}
+
+/// `GoogleCloudEventarcV1PipelineDestination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudEventarcV1PipelineDestination {
+    /// authenticationConfig property.
+    pub authentication_config: Option<GoogleCloudEventarcV1PipelineDestinationAuthenticationConfig>,
+    /// httpEndpoint property.
+    pub http_endpoint: Option<GoogleCloudEventarcV1PipelineDestinationHttpEndpoint>,
+    /// messageBus property.
+    pub message_bus: Option<String>,
+    /// networkConfig property.
+    pub network_config: Option<GoogleCloudEventarcV1PipelineDestinationNetworkConfig>,
+    /// outputPayloadFormat property.
+    pub output_payload_format: Option<GoogleCloudEventarcV1PipelineMessagePayloadFormat>,
+    /// topic property.
+    pub topic: Option<String>,
+    /// workflow property.
+    pub workflow: Option<String>,
+}
+
+/// `GoogleCloudEventarcV1PipelineDestinationAuthenticationConfigOAuthToken` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudEventarcV1PipelineDestinationAuthenticationConfigOAuthToken {
+    /// scope property.
+    pub scope: Option<String>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
 /// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
@@ -186,62 +228,6 @@ pub struct Expr {
     pub title: Option<String>,
 }
 
-/// `GoogleCloudEventarcV1PipelineMediationTransformation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudEventarcV1PipelineMediationTransformation {
-    /// transformationTemplate property.
-    pub transformation_template: Option<String>,
-}
-
-/// `LoggingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoggingConfig {
-    /// logSeverity property.
-    pub log_severity: Option<String>,
-}
-
-/// `GoogleCloudEventarcV1PipelineDestinationAuthenticationConfigOAuthToken` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudEventarcV1PipelineDestinationAuthenticationConfigOAuthToken {
-    /// scope property.
-    pub scope: Option<String>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-}
-
-/// `GoogleCloudEventarcV1PipelineMessagePayloadFormatJsonFormat` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudEventarcV1PipelineMessagePayloadFormatJsonFormat {}
-
-/// `ListPipelinesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListPipelinesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// pipelines property.
-    pub pipelines: Option<Vec<Pipeline>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `GoogleCloudEventarcV1PipelineMessagePayloadFormat` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudEventarcV1PipelineMessagePayloadFormat {
-    /// avro property.
-    pub avro: Option<GoogleCloudEventarcV1PipelineMessagePayloadFormatAvroFormat>,
-    /// json property.
-    pub json: Option<GoogleCloudEventarcV1PipelineMessagePayloadFormatJsonFormat>,
-    /// protobuf property.
-    pub protobuf: Option<GoogleCloudEventarcV1PipelineMessagePayloadFormatProtobufFormat>,
-}
-
-/// `GoogleCloudEventarcV1PipelineDestinationNetworkConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudEventarcV1PipelineDestinationNetworkConfig {
-    /// networkAttachment property.
-    pub network_attachment: Option<String>,
-}
-
 /// `AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
@@ -249,6 +235,21 @@ pub struct AuditLogConfig {
     pub exempted_members: Option<Vec<String>>,
     /// logType property.
     pub log_type: Option<String>,
+}
+
+/// `GoogleCloudEventarcV1PipelineMessagePayloadFormatJsonFormat` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudEventarcV1PipelineMessagePayloadFormatJsonFormat {}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

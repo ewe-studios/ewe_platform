@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudKmsV1CryptoKeyVersionTemplate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudKmsV1CryptoKeyVersionTemplate {
+    /// algorithm property.
+    pub algorithm: Option<String>,
+    /// protectionLevel property.
+    pub protection_level: Option<String>,
+}
 
 /// `GoogleCloudKmsV1ExternalProtectionLevelOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -31,6 +41,42 @@ pub struct GoogleCloudKmsV1ExternalProtectionLevelOptions {
     pub ekm_connection_key_path: Option<String>,
     /// externalKeyUri property.
     pub external_key_uri: Option<String>,
+}
+
+/// `GoogleCloudKmsV1CryptoKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudKmsV1CryptoKey {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// cryptoKeyBackend property.
+    pub crypto_key_backend: Option<String>,
+    /// destroyScheduledDuration property.
+    pub destroy_scheduled_duration: Option<String>,
+    /// importOnly property.
+    pub import_only: Option<bool>,
+    /// keyAccessJustificationsPolicy property.
+    pub key_access_justifications_policy: Option<GoogleCloudKmsV1KeyAccessJustificationsPolicy>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// nextRotationTime property.
+    pub next_rotation_time: Option<String>,
+    /// primary property.
+    pub primary: Option<GoogleCloudKmsV1CryptoKeyVersion>,
+    /// purpose property.
+    pub purpose: Option<String>,
+    /// rotationPeriod property.
+    pub rotation_period: Option<String>,
+    /// versionTemplate property.
+    pub version_template: Option<GoogleCloudKmsV1CryptoKeyVersionTemplate>,
+}
+
+/// `GoogleCloudKmsV1KeyAccessJustificationsPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudKmsV1KeyAccessJustificationsPolicy {
+    /// allowedAccessReasons property.
+    pub allowed_access_reasons: Option<Vec<String>>,
 }
 
 /// `GoogleCloudKmsV1CryptoKeyVersion` type.
@@ -70,58 +116,15 @@ pub struct GoogleCloudKmsV1CryptoKeyVersion {
     pub state: Option<String>,
 }
 
-/// `GoogleCloudKmsV1CryptoKey` type.
+/// `GoogleCloudKmsV1KeyOperationAttestation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudKmsV1CryptoKey {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// cryptoKeyBackend property.
-    pub crypto_key_backend: Option<String>,
-    /// destroyScheduledDuration property.
-    pub destroy_scheduled_duration: Option<String>,
-    /// importOnly property.
-    pub import_only: Option<bool>,
-    /// keyAccessJustificationsPolicy property.
-    pub key_access_justifications_policy: Option<GoogleCloudKmsV1KeyAccessJustificationsPolicy>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// nextRotationTime property.
-    pub next_rotation_time: Option<String>,
-    /// primary property.
-    pub primary: Option<GoogleCloudKmsV1CryptoKeyVersion>,
-    /// purpose property.
-    pub purpose: Option<String>,
-    /// rotationPeriod property.
-    pub rotation_period: Option<String>,
-    /// versionTemplate property.
-    pub version_template: Option<GoogleCloudKmsV1CryptoKeyVersionTemplate>,
-}
-
-/// `GoogleCloudKmsInventoryV1ListCryptoKeysResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudKmsInventoryV1ListCryptoKeysResponse {
-    /// cryptoKeys property.
-    pub crypto_keys: Option<Vec<GoogleCloudKmsV1CryptoKey>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudKmsV1CryptoKeyVersionTemplate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudKmsV1CryptoKeyVersionTemplate {
-    /// algorithm property.
-    pub algorithm: Option<String>,
-    /// protectionLevel property.
-    pub protection_level: Option<String>,
-}
-
-/// `GoogleCloudKmsV1KeyAccessJustificationsPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudKmsV1KeyAccessJustificationsPolicy {
-    /// allowedAccessReasons property.
-    pub allowed_access_reasons: Option<Vec<String>>,
+pub struct GoogleCloudKmsV1KeyOperationAttestation {
+    /// certChains property.
+    pub cert_chains: Option<GoogleCloudKmsV1KeyOperationAttestationCertificateChains>,
+    /// content property.
+    pub content: Option<String>,
+    /// format property.
+    pub format: Option<String>,
 }
 
 /// `GoogleCloudKmsV1KeyOperationAttestationCertificateChains` type.
@@ -135,15 +138,13 @@ pub struct GoogleCloudKmsV1KeyOperationAttestationCertificateChains {
     pub google_partition_certs: Option<Vec<String>>,
 }
 
-/// `GoogleCloudKmsV1KeyOperationAttestation` type.
+/// `GoogleCloudKmsInventoryV1ListCryptoKeysResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudKmsV1KeyOperationAttestation {
-    /// certChains property.
-    pub cert_chains: Option<GoogleCloudKmsV1KeyOperationAttestationCertificateChains>,
-    /// content property.
-    pub content: Option<String>,
-    /// format property.
-    pub format: Option<String>,
+pub struct GoogleCloudKmsInventoryV1ListCryptoKeysResponse {
+    /// cryptoKeys property.
+    pub crypto_keys: Option<Vec<GoogleCloudKmsV1CryptoKey>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

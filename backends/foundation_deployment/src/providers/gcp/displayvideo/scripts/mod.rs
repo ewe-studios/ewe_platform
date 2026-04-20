@@ -12,37 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `CustomBiddingScriptRef` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomBiddingScriptRef {
-    /// resourceName property.
-    pub resource_name: Option<String>,
-}
-
-/// `ScriptError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScriptError {
-    /// column property.
-    pub column: Option<String>,
-    /// errorCode property.
-    pub error_code: Option<String>,
-    /// errorMessage property.
-    pub error_message: Option<String>,
-    /// line property.
-    pub line: Option<String>,
-}
 
 /// `CustomBiddingScript` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -72,6 +53,26 @@ pub struct ListCustomBiddingScriptsResponse {
     pub custom_bidding_scripts: Option<Vec<CustomBiddingScript>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `ScriptError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ScriptError {
+    /// column property.
+    pub column: Option<String>,
+    /// errorCode property.
+    pub error_code: Option<String>,
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// line property.
+    pub line: Option<String>,
+}
+
+/// `CustomBiddingScriptRef` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomBiddingScriptRef {
+    /// resourceName property.
+    pub resource_name: Option<String>,
 }
 
 // =============================================================================

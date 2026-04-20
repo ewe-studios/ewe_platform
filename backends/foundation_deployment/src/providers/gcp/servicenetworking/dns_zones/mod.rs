@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GetDnsZoneResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetDnsZoneResponse {
-    /// consumerPeeringZone property.
-    pub consumer_peering_zone: Option<DnsZone>,
-    /// producerPrivateZone property.
-    pub producer_private_zone: Option<DnsZone>,
-}
 
 /// `DnsZone` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,6 +32,15 @@ pub struct DnsZone {
     pub dns_suffix: Option<String>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `GetDnsZoneResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetDnsZoneResponse {
+    /// consumerPeeringZone property.
+    pub consumer_peering_zone: Option<DnsZone>,
+    /// producerPrivateZone property.
+    pub producer_private_zone: Option<DnsZone>,
 }
 
 // =============================================================================

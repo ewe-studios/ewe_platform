@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,103 +24,25 @@ use super::shared::Empty;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `AwsMsk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AwsMsk {
-    /// awsRoleArn property.
-    pub aws_role_arn: Option<String>,
-    /// clusterArn property.
-    pub cluster_arn: Option<String>,
-    /// gcpServiceAccount property.
-    pub gcp_service_account: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// topic property.
-    pub topic: Option<String>,
-}
-
-/// `CloudStorage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudStorage {
-    /// avroFormat property.
-    pub avro_format: Option<AvroFormat>,
-    /// bucket property.
-    pub bucket: Option<String>,
-    /// matchGlob property.
-    pub match_glob: Option<String>,
-    /// minimumObjectCreateTime property.
-    pub minimum_object_create_time: Option<String>,
-    /// pubsubAvroFormat property.
-    pub pubsub_avro_format: Option<PubSubAvroFormat>,
-    /// state property.
-    pub state: Option<String>,
-    /// textFormat property.
-    pub text_format: Option<TextFormat>,
-}
-
-/// `Topic` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Topic {
-    /// ingestionDataSourceSettings property.
-    pub ingestion_data_source_settings: Option<IngestionDataSourceSettings>,
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// messageRetentionDuration property.
-    pub message_retention_duration: Option<String>,
-    /// messageStoragePolicy property.
-    pub message_storage_policy: Option<MessageStoragePolicy>,
-    /// messageTransforms property.
-    pub message_transforms: Option<Vec<MessageTransform>>,
-    /// name property.
-    pub name: Option<String>,
-    /// satisfiesPzs property.
-    pub satisfies_pzs: Option<bool>,
-    /// schemaSettings property.
-    pub schema_settings: Option<SchemaSettings>,
-    /// state property.
-    pub state: Option<String>,
-    /// tags property.
-    pub tags: Option<serde_json::Value>,
-}
-
-/// `ConfluentCloud` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfluentCloud {
-    /// bootstrapServer property.
-    pub bootstrap_server: Option<String>,
-    /// clusterId property.
-    pub cluster_id: Option<String>,
-    /// gcpServiceAccount property.
-    pub gcp_service_account: Option<String>,
-    /// identityPoolId property.
-    pub identity_pool_id: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// topic property.
-    pub topic: Option<String>,
-}
-
 /// `AvroFormat` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AvroFormat {}
 
-/// `PubSubAvroFormat` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PubSubAvroFormat {}
-
-/// `TextFormat` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextFormat {
-    /// delimiter property.
-    pub delimiter: Option<String>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `IngestionDataSourceSettings` type.
@@ -176,6 +99,88 @@ pub struct AIInference {
     pub unstructured_inference: Option<UnstructuredInference>,
 }
 
+/// `CloudStorage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudStorage {
+    /// avroFormat property.
+    pub avro_format: Option<AvroFormat>,
+    /// bucket property.
+    pub bucket: Option<String>,
+    /// matchGlob property.
+    pub match_glob: Option<String>,
+    /// minimumObjectCreateTime property.
+    pub minimum_object_create_time: Option<String>,
+    /// pubsubAvroFormat property.
+    pub pubsub_avro_format: Option<PubSubAvroFormat>,
+    /// state property.
+    pub state: Option<String>,
+    /// textFormat property.
+    pub text_format: Option<TextFormat>,
+}
+
+/// `MessageStoragePolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MessageStoragePolicy {
+    /// allowedPersistenceRegions property.
+    pub allowed_persistence_regions: Option<Vec<String>>,
+    /// enforceInTransit property.
+    pub enforce_in_transit: Option<bool>,
+}
+
+/// `AwsMsk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AwsMsk {
+    /// awsRoleArn property.
+    pub aws_role_arn: Option<String>,
+    /// clusterArn property.
+    pub cluster_arn: Option<String>,
+    /// gcpServiceAccount property.
+    pub gcp_service_account: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// topic property.
+    pub topic: Option<String>,
+}
+
+/// `PlatformLogsSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlatformLogsSettings {
+    /// severity property.
+    pub severity: Option<String>,
+}
+
+/// `AwsKinesis` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AwsKinesis {
+    /// awsRoleArn property.
+    pub aws_role_arn: Option<String>,
+    /// consumerArn property.
+    pub consumer_arn: Option<String>,
+    /// gcpServiceAccount property.
+    pub gcp_service_account: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// streamArn property.
+    pub stream_arn: Option<String>,
+}
+
+/// `PubSubAvroFormat` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PubSubAvroFormat {}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
 /// `ListTopicsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTopicsResponse {
@@ -183,6 +188,22 @@ pub struct ListTopicsResponse {
     pub next_page_token: Option<String>,
     /// topics property.
     pub topics: Option<Vec<Topic>>,
+}
+
+/// `PublishResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PublishResponse {
+    /// messageIds property.
+    pub message_ids: Option<Vec<String>>,
+}
+
+/// `JavaScriptUDF` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JavaScriptUDF {
+    /// code property.
+    pub code: Option<String>,
+    /// functionName property.
+    pub function_name: Option<String>,
 }
 
 /// `AzureEventHubs` type.
@@ -206,53 +227,6 @@ pub struct AzureEventHubs {
     pub tenant_id: Option<String>,
 }
 
-/// `JavaScriptUDF` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JavaScriptUDF {
-    /// code property.
-    pub code: Option<String>,
-    /// functionName property.
-    pub function_name: Option<String>,
-}
-
-/// `PlatformLogsSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlatformLogsSettings {
-    /// severity property.
-    pub severity: Option<String>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `PublishResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PublishResponse {
-    /// messageIds property.
-    pub message_ids: Option<Vec<String>>,
-}
-
 /// `UnstructuredInference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnstructuredInference {
@@ -260,28 +234,55 @@ pub struct UnstructuredInference {
     pub parameters: Option<serde_json::Value>,
 }
 
-/// `MessageStoragePolicy` type.
+/// `ConfluentCloud` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MessageStoragePolicy {
-    /// allowedPersistenceRegions property.
-    pub allowed_persistence_regions: Option<Vec<String>>,
-    /// enforceInTransit property.
-    pub enforce_in_transit: Option<bool>,
-}
-
-/// `AwsKinesis` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AwsKinesis {
-    /// awsRoleArn property.
-    pub aws_role_arn: Option<String>,
-    /// consumerArn property.
-    pub consumer_arn: Option<String>,
+pub struct ConfluentCloud {
+    /// bootstrapServer property.
+    pub bootstrap_server: Option<String>,
+    /// clusterId property.
+    pub cluster_id: Option<String>,
     /// gcpServiceAccount property.
     pub gcp_service_account: Option<String>,
+    /// identityPoolId property.
+    pub identity_pool_id: Option<String>,
     /// state property.
     pub state: Option<String>,
-    /// streamArn property.
-    pub stream_arn: Option<String>,
+    /// topic property.
+    pub topic: Option<String>,
+}
+
+/// `Topic` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Topic {
+    /// ingestionDataSourceSettings property.
+    pub ingestion_data_source_settings: Option<IngestionDataSourceSettings>,
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// messageRetentionDuration property.
+    pub message_retention_duration: Option<String>,
+    /// messageStoragePolicy property.
+    pub message_storage_policy: Option<MessageStoragePolicy>,
+    /// messageTransforms property.
+    pub message_transforms: Option<Vec<MessageTransform>>,
+    /// name property.
+    pub name: Option<String>,
+    /// satisfiesPzs property.
+    pub satisfies_pzs: Option<bool>,
+    /// schemaSettings property.
+    pub schema_settings: Option<SchemaSettings>,
+    /// state property.
+    pub state: Option<String>,
+    /// tags property.
+    pub tags: Option<serde_json::Value>,
+}
+
+/// `TextFormat` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextFormat {
+    /// delimiter property.
+    pub delimiter: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,19 +23,26 @@ use serde::{Deserialize, Serialize};
 use super::shared::GoogleLongrunningOperation;
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudDatalabelingV1beta1ListInstructionsResponse` type.
+/// `GoogleCloudDatalabelingV1Beta1PdfInstruction` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatalabelingV1beta1ListInstructionsResponse {
-    /// instructions property.
-    pub instructions: Option<Vec<GoogleCloudDatalabelingV1Beta1Instruction>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct GoogleCloudDatalabelingV1Beta1PdfInstruction {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudDatalabelingV1Beta1CsvInstruction` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatalabelingV1Beta1CsvInstruction {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `GoogleCloudDatalabelingV1Beta1Instruction` response type.
@@ -54,22 +62,6 @@ pub struct GoogleRpcStatus {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
-}
-
-/// `GoogleCloudDatalabelingV1Beta1CsvInstruction` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatalabelingV1Beta1CsvInstruction {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleCloudDatalabelingV1Beta1PdfInstruction` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatalabelingV1Beta1PdfInstruction {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `GoogleCloudDatalabelingV1beta1Instruction` type.
@@ -93,6 +85,15 @@ pub struct GoogleCloudDatalabelingV1beta1Instruction {
     pub pdf_instruction: Option<GoogleCloudDatalabelingV1Beta1PdfInstruction>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `GoogleCloudDatalabelingV1beta1ListInstructionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatalabelingV1beta1ListInstructionsResponse {
+    /// instructions property.
+    pub instructions: Option<Vec<GoogleCloudDatalabelingV1Beta1Instruction>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

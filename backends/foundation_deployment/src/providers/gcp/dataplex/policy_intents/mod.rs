@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,21 +23,19 @@ use serde::{Deserialize, Serialize};
 use super::shared::GoogleIamV1Policy;
 use super::shared::GoogleIamV1TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleIamV1Binding` type.
+/// `GoogleIamV1AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Binding {
-    /// condition property.
-    pub condition: Option<GoogleTypeExpr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct GoogleIamV1AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
 /// `GoogleTypeExpr` type.
@@ -52,15 +51,6 @@ pub struct GoogleTypeExpr {
     pub title: Option<String>,
 }
 
-/// `GoogleIamV1AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
 /// `GoogleIamV1AuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditConfig {
@@ -68,6 +58,17 @@ pub struct GoogleIamV1AuditConfig {
     pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
     /// service property.
     pub service: Option<String>,
+}
+
+/// `GoogleIamV1Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1Binding {
+    /// condition property.
+    pub condition: Option<GoogleTypeExpr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 // =============================================================================

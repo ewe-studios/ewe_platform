@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,11 +24,30 @@ use super::shared::GoogleIamV1Policy;
 use super::shared::GoogleIamV1TestIamPermissionsResponse;
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListAddressGroupReferencesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAddressGroupReferencesResponse {
+    /// addressGroupReferences property.
+    pub address_group_references:
+        Option<Vec<ListAddressGroupReferencesResponseAddressGroupReference>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleIamV1AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
 
 /// `AddressGroup` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -54,39 +74,6 @@ pub struct AddressGroup {
     pub update_time: Option<String>,
 }
 
-/// `ListAddressGroupsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAddressGroupsResponse {
-    /// addressGroups property.
-    pub address_groups: Option<Vec<AddressGroup>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `GoogleIamV1AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
 /// `GoogleIamV1Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Binding {
@@ -96,6 +83,17 @@ pub struct GoogleIamV1Binding {
     pub members: Option<Vec<String>>,
     /// role property.
     pub role: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `GoogleIamV1AuditLogConfig` type.
@@ -118,25 +116,28 @@ pub struct ListAddressGroupReferencesResponseAddressGroupReference {
     pub security_policy: Option<String>,
 }
 
-/// `Status` type.
+/// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
-/// `ListAddressGroupReferencesResponse` type.
+/// `ListAddressGroupsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAddressGroupReferencesResponse {
-    /// addressGroupReferences property.
-    pub address_group_references:
-        Option<Vec<ListAddressGroupReferencesResponseAddressGroupReference>>,
+pub struct ListAddressGroupsResponse {
+    /// addressGroups property.
+    pub address_groups: Option<Vec<AddressGroup>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 // =============================================================================

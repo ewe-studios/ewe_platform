@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,35 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::LoyaltyObject;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `TextModuleData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextModuleData {
-    /// body property.
-    pub body: Option<String>,
-    /// header property.
-    pub header: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// localizedBody property.
-    pub localized_body: Option<LocalizedString>,
-    /// localizedHeader property.
-    pub localized_header: Option<LocalizedString>,
-}
-
-/// `DiscoverableProgramMerchantSignupInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiscoverableProgramMerchantSignupInfo {
-    /// signupSharedDatas property.
-    pub signup_shared_datas: Option<Vec<String>>,
-    /// signupWebsite property.
-    pub signup_website: Option<Uri>,
-}
 
 /// `LabelValueRow` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -58,33 +35,26 @@ pub struct LabelValueRow {
     pub columns: Option<Vec<LabelValue>>,
 }
 
-/// `ModuleViewConstraints` type.
+/// `LoyaltyPoints` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ModuleViewConstraints {
-    /// displayInterval property.
-    pub display_interval: Option<TimeInterval>,
+pub struct LoyaltyPoints {
+    /// balance property.
+    pub balance: Option<LoyaltyPointsBalance>,
+    /// label property.
+    pub label: Option<String>,
+    /// localizedLabel property.
+    pub localized_label: Option<LocalizedString>,
 }
 
-/// `LocalizedString` type.
+/// `ListTemplateOverride` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedString {
-    /// defaultValue property.
-    pub default_value: Option<TranslatedString>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// translatedValues property.
-    pub translated_values: Option<Vec<TranslatedString>>,
-}
-
-/// `CardRowTemplateInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CardRowTemplateInfo {
-    /// oneItem property.
-    pub one_item: Option<CardRowOneItem>,
-    /// threeItems property.
-    pub three_items: Option<CardRowThreeItems>,
-    /// twoItems property.
-    pub two_items: Option<CardRowTwoItems>,
+pub struct ListTemplateOverride {
+    /// firstRowOption property.
+    pub first_row_option: Option<FirstRowOption>,
+    /// secondRowOption property.
+    pub second_row_option: Option<FieldSelector>,
+    /// thirdRowOption property.
+    pub third_row_option: Option<FieldSelector>,
 }
 
 /// `Uri` type.
@@ -102,20 +72,22 @@ pub struct Uri {
     pub uri: Option<String>,
 }
 
-/// `CardTemplateOverride` type.
+/// `DateTime` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CardTemplateOverride {
-    /// cardRowTemplateInfos property.
-    pub card_row_template_infos: Option<Vec<CardRowTemplateInfo>>,
+pub struct DateTime {
+    /// date property.
+    pub date: Option<String>,
 }
 
-/// `InfoModuleData` type.
+/// `RotatingBarcodeTotpDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InfoModuleData {
-    /// labelValueRows property.
-    pub label_value_rows: Option<Vec<LabelValueRow>>,
-    /// showLastUpdateTime property.
-    pub show_last_update_time: Option<bool>,
+pub struct RotatingBarcodeTotpDetails {
+    /// algorithm property.
+    pub algorithm: Option<String>,
+    /// parameters property.
+    pub parameters: Option<Vec<RotatingBarcodeTotpDetailsTotpParameters>>,
+    /// periodMillis property.
+    pub period_millis: Option<String>,
 }
 
 /// `RotatingBarcodeTotpDetailsTotpParameters` type.
@@ -125,159 +97,6 @@ pub struct RotatingBarcodeTotpDetailsTotpParameters {
     pub key: Option<String>,
     /// valueLength property.
     pub value_length: Option<i64>,
-}
-
-/// `MerchantLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MerchantLocation {
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
-}
-
-/// `Money` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Money {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// micros property.
-    pub micros: Option<String>,
-}
-
-/// `TimeInterval` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeInterval {
-    /// end property.
-    pub end: Option<DateTime>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// start property.
-    pub start: Option<DateTime>,
-}
-
-/// `LabelValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LabelValue {
-    /// label property.
-    pub label: Option<String>,
-    /// localizedLabel property.
-    pub localized_label: Option<LocalizedString>,
-    /// localizedValue property.
-    pub localized_value: Option<LocalizedString>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `ClassTemplateInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClassTemplateInfo {
-    /// cardBarcodeSectionDetails property.
-    pub card_barcode_section_details: Option<CardBarcodeSectionDetails>,
-    /// cardTemplateOverride property.
-    pub card_template_override: Option<CardTemplateOverride>,
-    /// detailsTemplateOverride property.
-    pub details_template_override: Option<DetailsTemplateOverride>,
-    /// listTemplateOverride property.
-    pub list_template_override: Option<ListTemplateOverride>,
-}
-
-/// `AppLinkDataAppLinkInfoAppTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppLinkDataAppLinkInfoAppTarget {
-    /// packageName property.
-    pub package_name: Option<String>,
-    /// targetUri property.
-    pub target_uri: Option<Uri>,
-}
-
-/// `DetailsItemInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DetailsItemInfo {
-    /// item property.
-    pub item: Option<TemplateItem>,
-}
-
-/// `GroupingInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GroupingInfo {
-    /// groupingId property.
-    pub grouping_id: Option<String>,
-    /// sortIndex property.
-    pub sort_index: Option<i64>,
-}
-
-/// `LatLongPoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LatLongPoint {
-    /// kind property.
-    pub kind: Option<String>,
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
-}
-
-/// `Pagination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Pagination {
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// resultsPerPage property.
-    pub results_per_page: Option<i64>,
-}
-
-/// `Barcode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Barcode {
-    /// alternateText property.
-    pub alternate_text: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// renderEncoding property.
-    pub render_encoding: Option<String>,
-    /// showCodeText property.
-    pub show_code_text: Option<LocalizedString>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `SaveRestrictions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SaveRestrictions {
-    /// restrictToEmailSha256 property.
-    pub restrict_to_email_sha256: Option<String>,
-}
-
-/// `DiscoverableProgram` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiscoverableProgram {
-    /// merchantSigninInfo property.
-    pub merchant_signin_info: Option<DiscoverableProgramMerchantSigninInfo>,
-    /// merchantSignupInfo property.
-    pub merchant_signup_info: Option<DiscoverableProgramMerchantSignupInfo>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `DateTime` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DateTime {
-    /// date property.
-    pub date: Option<String>,
-}
-
-/// `FieldSelector` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FieldSelector {
-    /// fields property.
-    pub fields: Option<Vec<FieldReference>>,
 }
 
 /// `Message` type.
@@ -301,83 +120,29 @@ pub struct Message {
     pub message_type: Option<String>,
 }
 
-/// `Image` type.
+/// `LoyaltyObjectListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Image {
-    /// contentDescription property.
-    pub content_description: Option<LocalizedString>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// privateImageId property.
-    pub private_image_id: Option<String>,
-    /// sourceUri property.
-    pub source_uri: Option<ImageUri>,
+pub struct LoyaltyObjectListResponse {
+    /// pagination property.
+    pub pagination: Option<Pagination>,
+    /// resources property.
+    pub resources: Option<Vec<LoyaltyObject>>,
 }
 
-/// `CallbackOptions` type.
+/// `ModuleViewConstraints` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CallbackOptions {
-    /// updateRequestUrl property.
-    pub update_request_url: Option<String>,
-    /// url property.
-    pub url: Option<String>,
+pub struct ModuleViewConstraints {
+    /// displayInterval property.
+    pub display_interval: Option<TimeInterval>,
 }
 
-/// `BarcodeSectionDetail` type.
+/// `FirstRowOption` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BarcodeSectionDetail {
-    /// fieldSelector property.
-    pub field_selector: Option<FieldSelector>,
-}
-
-/// `CardBarcodeSectionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CardBarcodeSectionDetails {
-    /// firstBottomDetail property.
-    pub first_bottom_detail: Option<BarcodeSectionDetail>,
-    /// firstTopDetail property.
-    pub first_top_detail: Option<BarcodeSectionDetail>,
-    /// secondTopDetail property.
-    pub second_top_detail: Option<BarcodeSectionDetail>,
-}
-
-/// `CardRowOneItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CardRowOneItem {
-    /// item property.
-    pub item: Option<TemplateItem>,
-}
-
-/// `SecurityAnimation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityAnimation {
-    /// animationType property.
-    pub animation_type: Option<String>,
-}
-
-/// `TranslatedString` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TranslatedString {
-    /// kind property.
-    pub kind: Option<String>,
-    /// language property.
-    pub language: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `DetailsTemplateOverride` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DetailsTemplateOverride {
-    /// detailsItemInfos property.
-    pub details_item_infos: Option<Vec<DetailsItemInfo>>,
-}
-
-/// `DiscoverableProgramMerchantSigninInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiscoverableProgramMerchantSigninInfo {
-    /// signinWebsite property.
-    pub signin_website: Option<Uri>,
+pub struct FirstRowOption {
+    /// fieldOption property.
+    pub field_option: Option<FieldSelector>,
+    /// transitOption property.
+    pub transit_option: Option<String>,
 }
 
 /// `RotatingBarcodeValues` type.
@@ -391,46 +156,20 @@ pub struct RotatingBarcodeValues {
     pub values: Option<Vec<String>>,
 }
 
-/// `RotatingBarcodeTotpDetails` type.
+/// `FieldReference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RotatingBarcodeTotpDetails {
-    /// algorithm property.
-    pub algorithm: Option<String>,
-    /// parameters property.
-    pub parameters: Option<Vec<RotatingBarcodeTotpDetailsTotpParameters>>,
-    /// periodMillis property.
-    pub period_millis: Option<String>,
+pub struct FieldReference {
+    /// dateFormat property.
+    pub date_format: Option<String>,
+    /// fieldPath property.
+    pub field_path: Option<String>,
 }
 
-/// `CardRowThreeItems` type.
+/// `CardTemplateOverride` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CardRowThreeItems {
-    /// endItem property.
-    pub end_item: Option<TemplateItem>,
-    /// middleItem property.
-    pub middle_item: Option<TemplateItem>,
-    /// startItem property.
-    pub start_item: Option<TemplateItem>,
-}
-
-/// `ImageUri` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImageUri {
-    /// description property.
-    pub description: Option<String>,
-    /// localizedDescription property.
-    pub localized_description: Option<LocalizedString>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `CardRowTwoItems` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CardRowTwoItems {
-    /// endItem property.
-    pub end_item: Option<TemplateItem>,
-    /// startItem property.
-    pub start_item: Option<TemplateItem>,
+pub struct CardTemplateOverride {
+    /// cardRowTemplateInfos property.
+    pub card_row_template_infos: Option<Vec<CardRowTemplateInfo>>,
 }
 
 /// `AppLinkDataAppLinkInfo` type.
@@ -446,13 +185,65 @@ pub struct AppLinkDataAppLinkInfo {
     pub title: Option<LocalizedString>,
 }
 
-/// `LoyaltyObjectListResponse` type.
+/// `Barcode` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoyaltyObjectListResponse {
-    /// pagination property.
-    pub pagination: Option<Pagination>,
-    /// resources property.
-    pub resources: Option<Vec<LoyaltyObject>>,
+pub struct Barcode {
+    /// alternateText property.
+    pub alternate_text: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// renderEncoding property.
+    pub render_encoding: Option<String>,
+    /// showCodeText property.
+    pub show_code_text: Option<LocalizedString>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `PassConstraints` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PassConstraints {
+    /// nfcConstraint property.
+    pub nfc_constraint: Option<Vec<String>>,
+    /// screenshotEligibility property.
+    pub screenshot_eligibility: Option<String>,
+}
+
+/// `DiscoverableProgram` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiscoverableProgram {
+    /// merchantSigninInfo property.
+    pub merchant_signin_info: Option<DiscoverableProgramMerchantSigninInfo>,
+    /// merchantSignupInfo property.
+    pub merchant_signup_info: Option<DiscoverableProgramMerchantSignupInfo>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `AppLinkData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppLinkData {
+    /// androidAppLinkInfo property.
+    pub android_app_link_info: Option<AppLinkDataAppLinkInfo>,
+    /// displayText property.
+    pub display_text: Option<LocalizedString>,
+    /// iosAppLinkInfo property.
+    pub ios_app_link_info: Option<AppLinkDataAppLinkInfo>,
+    /// webAppLinkInfo property.
+    pub web_app_link_info: Option<AppLinkDataAppLinkInfo>,
+}
+
+/// `TranslatedString` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TranslatedString {
+    /// kind property.
+    pub kind: Option<String>,
+    /// language property.
+    pub language: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
 /// `ValueAddedModuleData` type.
@@ -472,42 +263,218 @@ pub struct ValueAddedModuleData {
     pub view_constraints: Option<ModuleViewConstraints>,
 }
 
-/// `FirstRowOption` type.
+/// `DiscoverableProgramMerchantSignupInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirstRowOption {
-    /// fieldOption property.
-    pub field_option: Option<FieldSelector>,
-    /// transitOption property.
-    pub transit_option: Option<String>,
+pub struct DiscoverableProgramMerchantSignupInfo {
+    /// signupSharedDatas property.
+    pub signup_shared_datas: Option<Vec<String>>,
+    /// signupWebsite property.
+    pub signup_website: Option<Uri>,
 }
 
-/// `FieldReference` type.
+/// `InfoModuleData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FieldReference {
-    /// dateFormat property.
-    pub date_format: Option<String>,
-    /// fieldPath property.
-    pub field_path: Option<String>,
+pub struct InfoModuleData {
+    /// labelValueRows property.
+    pub label_value_rows: Option<Vec<LabelValueRow>>,
+    /// showLastUpdateTime property.
+    pub show_last_update_time: Option<bool>,
 }
 
-/// `LinksModuleData` type.
+/// `Review` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LinksModuleData {
-    /// uris property.
-    pub uris: Option<Vec<Uri>>,
+pub struct Review {
+    /// comments property.
+    pub comments: Option<String>,
 }
 
-/// `AppLinkData` type.
+/// `ImageUri` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppLinkData {
-    /// androidAppLinkInfo property.
-    pub android_app_link_info: Option<AppLinkDataAppLinkInfo>,
-    /// displayText property.
-    pub display_text: Option<LocalizedString>,
-    /// iosAppLinkInfo property.
-    pub ios_app_link_info: Option<AppLinkDataAppLinkInfo>,
-    /// webAppLinkInfo property.
-    pub web_app_link_info: Option<AppLinkDataAppLinkInfo>,
+pub struct ImageUri {
+    /// description property.
+    pub description: Option<String>,
+    /// localizedDescription property.
+    pub localized_description: Option<LocalizedString>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `LatLongPoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LatLongPoint {
+    /// kind property.
+    pub kind: Option<String>,
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
+}
+
+/// `CardRowThreeItems` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CardRowThreeItems {
+    /// endItem property.
+    pub end_item: Option<TemplateItem>,
+    /// middleItem property.
+    pub middle_item: Option<TemplateItem>,
+    /// startItem property.
+    pub start_item: Option<TemplateItem>,
+}
+
+/// `DetailsItemInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DetailsItemInfo {
+    /// item property.
+    pub item: Option<TemplateItem>,
+}
+
+/// `SecurityAnimation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityAnimation {
+    /// animationType property.
+    pub animation_type: Option<String>,
+}
+
+/// `CardRowTemplateInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CardRowTemplateInfo {
+    /// oneItem property.
+    pub one_item: Option<CardRowOneItem>,
+    /// threeItems property.
+    pub three_items: Option<CardRowThreeItems>,
+    /// twoItems property.
+    pub two_items: Option<CardRowTwoItems>,
+}
+
+/// `CallbackOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CallbackOptions {
+    /// updateRequestUrl property.
+    pub update_request_url: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `DiscoverableProgramMerchantSigninInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiscoverableProgramMerchantSigninInfo {
+    /// signinWebsite property.
+    pub signin_website: Option<Uri>,
+}
+
+/// `LoyaltyPointsBalance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoyaltyPointsBalance {
+    /// double property.
+    pub double: Option<f64>,
+    /// int property.
+    pub int: Option<i64>,
+    /// money property.
+    pub money: Option<Money>,
+    /// string property.
+    pub string: Option<String>,
+}
+
+/// `LocalizedString` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedString {
+    /// defaultValue property.
+    pub default_value: Option<TranslatedString>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// translatedValues property.
+    pub translated_values: Option<Vec<TranslatedString>>,
+}
+
+/// `CardRowTwoItems` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CardRowTwoItems {
+    /// endItem property.
+    pub end_item: Option<TemplateItem>,
+    /// startItem property.
+    pub start_item: Option<TemplateItem>,
+}
+
+/// `CardBarcodeSectionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CardBarcodeSectionDetails {
+    /// firstBottomDetail property.
+    pub first_bottom_detail: Option<BarcodeSectionDetail>,
+    /// firstTopDetail property.
+    pub first_top_detail: Option<BarcodeSectionDetail>,
+    /// secondTopDetail property.
+    pub second_top_detail: Option<BarcodeSectionDetail>,
+}
+
+/// `ImageModuleData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImageModuleData {
+    /// id property.
+    pub id: Option<String>,
+    /// mainImage property.
+    pub main_image: Option<Image>,
+}
+
+/// `DetailsTemplateOverride` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DetailsTemplateOverride {
+    /// detailsItemInfos property.
+    pub details_item_infos: Option<Vec<DetailsItemInfo>>,
+}
+
+/// `TextModuleData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextModuleData {
+    /// body property.
+    pub body: Option<String>,
+    /// header property.
+    pub header: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// localizedBody property.
+    pub localized_body: Option<LocalizedString>,
+    /// localizedHeader property.
+    pub localized_header: Option<LocalizedString>,
+}
+
+/// `GroupingInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GroupingInfo {
+    /// groupingId property.
+    pub grouping_id: Option<String>,
+    /// sortIndex property.
+    pub sort_index: Option<i64>,
+}
+
+/// `Pagination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Pagination {
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// resultsPerPage property.
+    pub results_per_page: Option<i64>,
+}
+
+/// `ClassTemplateInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClassTemplateInfo {
+    /// cardBarcodeSectionDetails property.
+    pub card_barcode_section_details: Option<CardBarcodeSectionDetails>,
+    /// cardTemplateOverride property.
+    pub card_template_override: Option<CardTemplateOverride>,
+    /// detailsTemplateOverride property.
+    pub details_template_override: Option<DetailsTemplateOverride>,
+    /// listTemplateOverride property.
+    pub list_template_override: Option<ListTemplateOverride>,
+}
+
+/// `SaveRestrictions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SaveRestrictions {
+    /// restrictToEmailSha256 property.
+    pub restrict_to_email_sha256: Option<String>,
 }
 
 /// `TemplateItem` type.
@@ -521,24 +488,70 @@ pub struct TemplateItem {
     pub second_value: Option<FieldSelector>,
 }
 
-/// `ImageModuleData` type.
+/// `AppLinkDataAppLinkInfoAppTarget` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImageModuleData {
-    /// id property.
-    pub id: Option<String>,
-    /// mainImage property.
-    pub main_image: Option<Image>,
+pub struct AppLinkDataAppLinkInfoAppTarget {
+    /// packageName property.
+    pub package_name: Option<String>,
+    /// targetUri property.
+    pub target_uri: Option<Uri>,
 }
 
-/// `ListTemplateOverride` type.
+/// `Image` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListTemplateOverride {
-    /// firstRowOption property.
-    pub first_row_option: Option<FirstRowOption>,
-    /// secondRowOption property.
-    pub second_row_option: Option<FieldSelector>,
-    /// thirdRowOption property.
-    pub third_row_option: Option<FieldSelector>,
+pub struct Image {
+    /// contentDescription property.
+    pub content_description: Option<LocalizedString>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// privateImageId property.
+    pub private_image_id: Option<String>,
+    /// sourceUri property.
+    pub source_uri: Option<ImageUri>,
+}
+
+/// `BarcodeSectionDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BarcodeSectionDetail {
+    /// fieldSelector property.
+    pub field_selector: Option<FieldSelector>,
+}
+
+/// `FieldSelector` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FieldSelector {
+    /// fields property.
+    pub fields: Option<Vec<FieldReference>>,
+}
+
+/// `RotatingBarcode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RotatingBarcode {
+    /// alternateText property.
+    pub alternate_text: Option<String>,
+    /// initialRotatingBarcodeValues property.
+    pub initial_rotating_barcode_values: Option<RotatingBarcodeValues>,
+    /// renderEncoding property.
+    pub render_encoding: Option<String>,
+    /// showCodeText property.
+    pub show_code_text: Option<LocalizedString>,
+    /// totpDetails property.
+    pub totp_details: Option<RotatingBarcodeTotpDetails>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// valuePattern property.
+    pub value_pattern: Option<String>,
+}
+
+/// `Money` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Money {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// micros property.
+    pub micros: Option<String>,
 }
 
 /// `LoyaltyClass` type.
@@ -640,63 +653,51 @@ pub struct LoyaltyClass {
     pub word_mark: Option<Image>,
 }
 
-/// `LoyaltyPoints` type.
+/// `TimeInterval` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoyaltyPoints {
-    /// balance property.
-    pub balance: Option<LoyaltyPointsBalance>,
+pub struct TimeInterval {
+    /// end property.
+    pub end: Option<DateTime>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// start property.
+    pub start: Option<DateTime>,
+}
+
+/// `LabelValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LabelValue {
     /// label property.
     pub label: Option<String>,
     /// localizedLabel property.
     pub localized_label: Option<LocalizedString>,
+    /// localizedValue property.
+    pub localized_value: Option<LocalizedString>,
+    /// value property.
+    pub value: Option<String>,
 }
 
-/// `LoyaltyPointsBalance` type.
+/// `LinksModuleData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoyaltyPointsBalance {
-    /// double property.
-    pub double: Option<f64>,
-    /// int property.
-    pub int: Option<i64>,
-    /// money property.
-    pub money: Option<Money>,
-    /// string property.
-    pub string: Option<String>,
+pub struct LinksModuleData {
+    /// uris property.
+    pub uris: Option<Vec<Uri>>,
 }
 
-/// `Review` type.
+/// `MerchantLocation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Review {
-    /// comments property.
-    pub comments: Option<String>,
+pub struct MerchantLocation {
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
 }
 
-/// `PassConstraints` type.
+/// `CardRowOneItem` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PassConstraints {
-    /// nfcConstraint property.
-    pub nfc_constraint: Option<Vec<String>>,
-    /// screenshotEligibility property.
-    pub screenshot_eligibility: Option<String>,
-}
-
-/// `RotatingBarcode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RotatingBarcode {
-    /// alternateText property.
-    pub alternate_text: Option<String>,
-    /// initialRotatingBarcodeValues property.
-    pub initial_rotating_barcode_values: Option<RotatingBarcodeValues>,
-    /// renderEncoding property.
-    pub render_encoding: Option<String>,
-    /// showCodeText property.
-    pub show_code_text: Option<LocalizedString>,
-    /// totpDetails property.
-    pub totp_details: Option<RotatingBarcodeTotpDetails>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// valuePattern property.
-    pub value_pattern: Option<String>,
+pub struct CardRowOneItem {
+    /// item property.
+    pub item: Option<TemplateItem>,
 }
 
 // =============================================================================

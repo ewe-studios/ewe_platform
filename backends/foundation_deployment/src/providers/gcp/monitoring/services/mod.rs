@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,19 +22,38 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `BasicService` type.
+/// `GkeService` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BasicService {
-    /// serviceLabels property.
-    pub service_labels: Option<serde_json::Value>,
-    /// serviceType property.
-    pub service_type: Option<String>,
+pub struct GkeService {
+    /// clusterName property.
+    pub cluster_name: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// namespaceName property.
+    pub namespace_name: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// serviceName property.
+    pub service_name: Option<String>,
+}
+
+/// `ClusterIstio` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterIstio {
+    /// clusterName property.
+    pub cluster_name: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// serviceName property.
+    pub service_name: Option<String>,
+    /// serviceNamespace property.
+    pub service_namespace: Option<String>,
 }
 
 /// `CloudEndpoints` type.
@@ -43,13 +63,28 @@ pub struct CloudEndpoints {
     pub service: Option<String>,
 }
 
-/// `CloudRun` type.
+/// `Custom` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudRun {
-    /// location property.
-    pub location: Option<String>,
+pub struct Custom {}
+
+/// `MeshIstio` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MeshIstio {
+    /// meshUid property.
+    pub mesh_uid: Option<String>,
     /// serviceName property.
     pub service_name: Option<String>,
+    /// serviceNamespace property.
+    pub service_namespace: Option<String>,
+}
+
+/// `ListServicesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListServicesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// services property.
+    pub services: Option<Vec<Service>>,
 }
 
 /// `GkeNamespace` type.
@@ -63,6 +98,33 @@ pub struct GkeNamespace {
     pub namespace_name: Option<String>,
     /// projectId property.
     pub project_id: Option<String>,
+}
+
+/// `IstioCanonicalService` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IstioCanonicalService {
+    /// canonicalService property.
+    pub canonical_service: Option<String>,
+    /// canonicalServiceNamespace property.
+    pub canonical_service_namespace: Option<String>,
+    /// meshUid property.
+    pub mesh_uid: Option<String>,
+}
+
+/// `AppEngine` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppEngine {
+    /// moduleId property.
+    pub module_id: Option<String>,
+}
+
+/// `BasicService` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BasicService {
+    /// serviceLabels property.
+    pub service_labels: Option<serde_json::Value>,
+    /// serviceType property.
+    pub service_type: Option<String>,
 }
 
 /// `Service` type.
@@ -100,13 +162,13 @@ pub struct Service {
     pub user_labels: Option<serde_json::Value>,
 }
 
-/// `ListServicesResponse` type.
+/// `CloudRun` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListServicesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// services property.
-    pub services: Option<Vec<Service>>,
+pub struct CloudRun {
+    /// location property.
+    pub location: Option<String>,
+    /// serviceName property.
+    pub service_name: Option<String>,
 }
 
 /// `GkeWorkload` type.
@@ -126,73 +188,12 @@ pub struct GkeWorkload {
     pub top_level_controller_type: Option<String>,
 }
 
-/// `AppEngine` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppEngine {
-    /// moduleId property.
-    pub module_id: Option<String>,
-}
-
-/// `IstioCanonicalService` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IstioCanonicalService {
-    /// canonicalService property.
-    pub canonical_service: Option<String>,
-    /// canonicalServiceNamespace property.
-    pub canonical_service_namespace: Option<String>,
-    /// meshUid property.
-    pub mesh_uid: Option<String>,
-}
-
 /// `Telemetry` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Telemetry {
     /// resourceName property.
     pub resource_name: Option<String>,
 }
-
-/// `ClusterIstio` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterIstio {
-    /// clusterName property.
-    pub cluster_name: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// serviceName property.
-    pub service_name: Option<String>,
-    /// serviceNamespace property.
-    pub service_namespace: Option<String>,
-}
-
-/// `GkeService` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GkeService {
-    /// clusterName property.
-    pub cluster_name: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// namespaceName property.
-    pub namespace_name: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// serviceName property.
-    pub service_name: Option<String>,
-}
-
-/// `MeshIstio` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MeshIstio {
-    /// meshUid property.
-    pub mesh_uid: Option<String>,
-    /// serviceName property.
-    pub service_name: Option<String>,
-    /// serviceNamespace property.
-    pub service_namespace: Option<String>,
-}
-
-/// `Custom` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Custom {}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

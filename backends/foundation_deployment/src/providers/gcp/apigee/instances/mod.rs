@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,22 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudApigeeV1ScheduledMaintenance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ScheduledMaintenance {
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1ReportInstanceStatusResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ReportInstanceStatusResponse {}
 
 /// `GoogleCloudApigeeV1AccessLoggingConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -54,6 +44,22 @@ pub struct GoogleCloudApigeeV1ListInstancesResponse {
     pub instances: Option<Vec<GoogleCloudApigeeV1Instance>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1ScheduledMaintenance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ScheduledMaintenance {
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1MaintenanceUpdatePolicyMaintenanceWindow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1MaintenanceUpdatePolicyMaintenanceWindow {
+    /// day property.
+    pub day: Option<String>,
+    /// startTime property.
+    pub start_time: Option<GoogleTypeTimeOfDay>,
 }
 
 /// `GoogleCloudApigeeV1Instance` type.
@@ -99,26 +105,15 @@ pub struct GoogleCloudApigeeV1Instance {
     pub state: Option<String>,
 }
 
-/// `GoogleTypeTimeOfDay` type.
+/// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeTimeOfDay {
-    /// hours property.
-    pub hours: Option<i64>,
-    /// minutes property.
-    pub minutes: Option<i64>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<i64>,
-}
-
-/// `GoogleCloudApigeeV1MaintenanceUpdatePolicyMaintenanceWindow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1MaintenanceUpdatePolicyMaintenanceWindow {
-    /// day property.
-    pub day: Option<String>,
-    /// startTime property.
-    pub start_time: Option<GoogleTypeTimeOfDay>,
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `GoogleCloudApigeeV1MaintenanceUpdatePolicy` type.
@@ -131,15 +126,21 @@ pub struct GoogleCloudApigeeV1MaintenanceUpdatePolicy {
         Option<Vec<GoogleCloudApigeeV1MaintenanceUpdatePolicyMaintenanceWindow>>,
 }
 
-/// `GoogleRpcStatus` type.
+/// `GoogleCloudApigeeV1ReportInstanceStatusResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct GoogleCloudApigeeV1ReportInstanceStatusResponse {}
+
+/// `GoogleTypeTimeOfDay` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeTimeOfDay {
+    /// hours property.
+    pub hours: Option<i64>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<i64>,
 }
 
 // =============================================================================

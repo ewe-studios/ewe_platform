@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `TracksListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TracksListResponse {
+    /// kind property.
+    pub kind: Option<String>,
+    /// tracks property.
+    pub tracks: Option<Vec<Track>>,
+}
 
 /// `TrackRelease` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -52,24 +62,6 @@ pub struct Track {
     pub track: Option<String>,
 }
 
-/// `LocalizedText` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedText {
-    /// language property.
-    pub language: Option<String>,
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `TracksListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TracksListResponse {
-    /// kind property.
-    pub kind: Option<String>,
-    /// tracks property.
-    pub tracks: Option<Vec<Track>>,
-}
-
 /// `CountryTargeting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CountryTargeting {
@@ -77,6 +69,15 @@ pub struct CountryTargeting {
     pub countries: Option<Vec<String>>,
     /// includeRestOfWorld property.
     pub include_rest_of_world: Option<bool>,
+}
+
+/// `LocalizedText` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedText {
+    /// language property.
+    pub language: Option<String>,
+    /// text property.
+    pub text: Option<String>,
 }
 
 // =============================================================================

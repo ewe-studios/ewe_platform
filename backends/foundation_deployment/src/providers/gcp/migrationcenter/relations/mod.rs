@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListRelationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListRelationsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// relations property.
-    pub relations: Option<Vec<Relation>>,
-}
 
 /// `Relation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -46,6 +38,15 @@ pub struct Relation {
     pub src_asset: Option<String>,
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `ListRelationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListRelationsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// relations property.
+    pub relations: Option<Vec<Relation>>,
 }
 
 // =============================================================================

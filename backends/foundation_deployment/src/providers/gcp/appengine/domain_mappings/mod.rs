@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -36,6 +37,26 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
+}
+
+/// `ListDomainMappingsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDomainMappingsResponse {
+    /// domainMappings property.
+    pub domain_mappings: Option<Vec<DomainMapping>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `ResourceRecord` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceRecord {
+    /// name property.
+    pub name: Option<String>,
+    /// rrdata property.
+    pub rrdata: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `SslSettings` type.
@@ -60,26 +81,6 @@ pub struct DomainMapping {
     pub resource_records: Option<Vec<ResourceRecord>>,
     /// sslSettings property.
     pub ssl_settings: Option<SslSettings>,
-}
-
-/// `ListDomainMappingsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDomainMappingsResponse {
-    /// domainMappings property.
-    pub domain_mappings: Option<Vec<DomainMapping>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `ResourceRecord` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceRecord {
-    /// name property.
-    pub name: Option<String>,
-    /// rrdata property.
-    pub rrdata: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
 }
 
 // =============================================================================

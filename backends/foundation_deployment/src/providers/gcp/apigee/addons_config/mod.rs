@@ -12,25 +12,30 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudApigeeV1ConnectorsPlatformConfig` type.
+/// `GoogleCloudApigeeV1AnalyticsConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ConnectorsPlatformConfig {
+pub struct GoogleCloudApigeeV1AnalyticsConfig {
     /// enabled property.
     pub enabled: Option<bool>,
-    /// expiresAt property.
-    pub expires_at: Option<String>,
+    /// expireTimeMillis property.
+    pub expire_time_millis: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
 }
 
 /// `GoogleCloudApigeeV1AdvancedApiOpsConfig` type.
@@ -40,13 +45,11 @@ pub struct GoogleCloudApigeeV1AdvancedApiOpsConfig {
     pub enabled: Option<bool>,
 }
 
-/// `GoogleCloudApigeeV1ApiSecurityConfig` type.
+/// `GoogleCloudApigeeV1MonetizationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ApiSecurityConfig {
+pub struct GoogleCloudApigeeV1MonetizationConfig {
     /// enabled property.
     pub enabled: Option<bool>,
-    /// expiresAt property.
-    pub expires_at: Option<String>,
 }
 
 /// `GoogleCloudApigeeV1AddonsConfig` type.
@@ -66,31 +69,29 @@ pub struct GoogleCloudApigeeV1AddonsConfig {
     pub monetization_config: Option<GoogleCloudApigeeV1MonetizationConfig>,
 }
 
+/// `GoogleCloudApigeeV1ApiSecurityConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ApiSecurityConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// expiresAt property.
+    pub expires_at: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1ConnectorsPlatformConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ConnectorsPlatformConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// expiresAt property.
+    pub expires_at: Option<String>,
+}
+
 /// `GoogleCloudApigeeV1IntegrationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1IntegrationConfig {
     /// enabled property.
     pub enabled: Option<bool>,
-}
-
-/// `GoogleCloudApigeeV1MonetizationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1MonetizationConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `GoogleCloudApigeeV1AnalyticsConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1AnalyticsConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// expireTimeMillis property.
-    pub expire_time_millis: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
 }
 
 // =============================================================================

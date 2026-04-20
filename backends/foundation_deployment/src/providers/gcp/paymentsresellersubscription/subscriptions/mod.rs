@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,32 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Subscription;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `SubscriptionLineItemBundleDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SubscriptionLineItemBundleDetails {
+    /// bundleElementDetails property.
+    pub bundle_element_details: Option<Vec<SubscriptionLineItemBundleDetailsBundleElementDetails>>,
+}
+
+/// `SubscriptionMigrationDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SubscriptionMigrationDetails {
+    /// migratedSubscriptionId property.
+    pub migrated_subscription_id: Option<String>,
+}
+
+/// `SubscriptionLineItemOneTimeRecurrenceDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SubscriptionLineItemOneTimeRecurrenceDetails {
+    /// servicePeriod property.
+    pub service_period: Option<ServicePeriod>,
+}
 
 /// `Duration` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -36,20 +58,18 @@ pub struct Duration {
     pub unit: Option<String>,
 }
 
-/// `SubscriptionLineItemBundleDetails` type.
+/// `FiniteBillingCycleDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubscriptionLineItemBundleDetails {
-    /// bundleElementDetails property.
-    pub bundle_element_details: Option<Vec<SubscriptionLineItemBundleDetailsBundleElementDetails>>,
+pub struct FiniteBillingCycleDetails {
+    /// billingCycleCountLimit property.
+    pub billing_cycle_count_limit: Option<String>,
 }
 
-/// `SubscriptionUpgradeDowngradeDetails` type.
+/// `CancelSubscriptionResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubscriptionUpgradeDowngradeDetails {
-    /// billingCycleSpec property.
-    pub billing_cycle_spec: Option<String>,
-    /// previousSubscriptionId property.
-    pub previous_subscription_id: Option<String>,
+pub struct CancelSubscriptionResponse {
+    /// subscription property.
+    pub subscription: Option<Subscription>,
 }
 
 /// `ProductPayload` type.
@@ -63,6 +83,15 @@ pub struct ProductPayload {
     pub youtube_payload: Option<YoutubePayload>,
 }
 
+/// `Amount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Amount {
+    /// amountMicros property.
+    pub amount_micros: Option<String>,
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+}
+
 /// `GoogleHomePayload` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleHomePayload {
@@ -72,76 +101,6 @@ pub struct GoogleHomePayload {
     pub google_structure_id: Option<String>,
     /// partnerStructureId property.
     pub partner_structure_id: Option<String>,
-}
-
-/// `SubscriptionMigrationDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubscriptionMigrationDetails {
-    /// migratedSubscriptionId property.
-    pub migrated_subscription_id: Option<String>,
-}
-
-/// `ResumeSubscriptionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResumeSubscriptionResponse {
-    /// subscription property.
-    pub subscription: Option<Subscription>,
-}
-
-/// `SuspendSubscriptionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SuspendSubscriptionResponse {
-    /// subscription property.
-    pub subscription: Option<Subscription>,
-}
-
-/// `PromotionIntroductoryPricingDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PromotionIntroductoryPricingDetails {
-    /// introductoryPricingSpecs property.
-    pub introductory_pricing_specs:
-        Option<Vec<PromotionIntroductoryPricingDetailsIntroductoryPricingSpec>>,
-}
-
-/// `YoutubePayload` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct YoutubePayload {
-    /// accessEndTime property.
-    pub access_end_time: Option<String>,
-    /// partnerEligibilityIds property.
-    pub partner_eligibility_ids: Option<Vec<String>>,
-    /// partnerPlanType property.
-    pub partner_plan_type: Option<String>,
-}
-
-/// `SubscriptionLineItemOneTimeRecurrenceDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubscriptionLineItemOneTimeRecurrenceDetails {
-    /// servicePeriod property.
-    pub service_period: Option<ServicePeriod>,
-}
-
-/// `CancelSubscriptionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelSubscriptionResponse {
-    /// subscription property.
-    pub subscription: Option<Subscription>,
-}
-
-/// `FiniteBillingCycleDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FiniteBillingCycleDetails {
-    /// billingCycleCountLimit property.
-    pub billing_cycle_count_limit: Option<String>,
-}
-
-/// `ServicePeriod` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServicePeriod {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
 }
 
 /// `SubscriptionLineItemBundleDetailsBundleElementDetails` type.
@@ -184,6 +143,22 @@ pub struct SubscriptionLineItem {
     pub state: Option<String>,
 }
 
+/// `SubscriptionUpgradeDowngradeDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SubscriptionUpgradeDowngradeDetails {
+    /// billingCycleSpec property.
+    pub billing_cycle_spec: Option<String>,
+    /// previousSubscriptionId property.
+    pub previous_subscription_id: Option<String>,
+}
+
+/// `ResumeSubscriptionResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResumeSubscriptionResponse {
+    /// subscription property.
+    pub subscription: Option<Subscription>,
+}
+
 /// `SubscriptionPromotionSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionPromotionSpec {
@@ -197,38 +172,9 @@ pub struct SubscriptionPromotionSpec {
     pub r#type: Option<String>,
 }
 
-/// `EntitleSubscriptionResponse` type.
+/// `SuspendSubscriptionResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EntitleSubscriptionResponse {
-    /// subscription property.
-    pub subscription: Option<Subscription>,
-}
-
-/// `GoogleOnePayload` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleOnePayload {
-    /// campaigns property.
-    pub campaigns: Option<Vec<String>>,
-    /// offering property.
-    pub offering: Option<String>,
-    /// salesChannel property.
-    pub sales_channel: Option<String>,
-    /// storeId property.
-    pub store_id: Option<String>,
-}
-
-/// `Location` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Location {
-    /// postalCode property.
-    pub postal_code: Option<String>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-}
-
-/// `UndoCancelSubscriptionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UndoCancelSubscriptionResponse {
+pub struct SuspendSubscriptionResponse {
     /// subscription property.
     pub subscription: Option<Subscription>,
 }
@@ -246,20 +192,37 @@ pub struct PromotionIntroductoryPricingDetailsIntroductoryPricingSpec {
     pub region_code: Option<String>,
 }
 
-/// `SubscriptionCancellationDetails` type.
+/// `GoogleOnePayload` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubscriptionCancellationDetails {
-    /// reason property.
-    pub reason: Option<String>,
+pub struct GoogleOnePayload {
+    /// campaigns property.
+    pub campaigns: Option<Vec<String>>,
+    /// offering property.
+    pub offering: Option<String>,
+    /// salesChannel property.
+    pub sales_channel: Option<String>,
+    /// storeId property.
+    pub store_id: Option<String>,
 }
 
-/// `Amount` type.
+/// `ServicePeriod` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Amount {
-    /// amountMicros property.
-    pub amount_micros: Option<String>,
-    /// currencyCode property.
-    pub currency_code: Option<String>,
+pub struct ServicePeriod {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `YoutubePayload` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct YoutubePayload {
+    /// accessEndTime property.
+    pub access_end_time: Option<String>,
+    /// partnerEligibilityIds property.
+    pub partner_eligibility_ids: Option<Vec<String>>,
+    /// partnerPlanType property.
+    pub partner_plan_type: Option<String>,
 }
 
 /// `ExtendSubscriptionResponse` type.
@@ -271,6 +234,44 @@ pub struct ExtendSubscriptionResponse {
     pub free_trial_end_time: Option<String>,
     /// renewalTime property.
     pub renewal_time: Option<String>,
+}
+
+/// `SubscriptionCancellationDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SubscriptionCancellationDetails {
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `UndoCancelSubscriptionResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UndoCancelSubscriptionResponse {
+    /// subscription property.
+    pub subscription: Option<Subscription>,
+}
+
+/// `Location` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Location {
+    /// postalCode property.
+    pub postal_code: Option<String>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+}
+
+/// `EntitleSubscriptionResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EntitleSubscriptionResponse {
+    /// subscription property.
+    pub subscription: Option<Subscription>,
+}
+
+/// `PromotionIntroductoryPricingDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PromotionIntroductoryPricingDetails {
+    /// introductoryPricingSpecs property.
+    pub introductory_pricing_specs:
+        Option<Vec<PromotionIntroductoryPricingDetailsIntroductoryPricingSpec>>,
 }
 
 // =============================================================================

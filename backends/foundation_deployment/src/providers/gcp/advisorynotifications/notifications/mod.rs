@@ -12,30 +12,32 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudAdvisorynotificationsV1MessageBody` type.
+/// `GoogleCloudAdvisorynotificationsV1Notification` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAdvisorynotificationsV1MessageBody {
-    /// text property.
-    pub text: Option<GoogleCloudAdvisorynotificationsV1Text>,
-}
-
-/// `GoogleCloudAdvisorynotificationsV1CsvCsvRow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAdvisorynotificationsV1CsvCsvRow {
-    /// entries property.
-    pub entries: Option<Vec<String>>,
+pub struct GoogleCloudAdvisorynotificationsV1Notification {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// messages property.
+    pub messages: Option<Vec<GoogleCloudAdvisorynotificationsV1Message>>,
+    /// name property.
+    pub name: Option<String>,
+    /// notificationType property.
+    pub notification_type: Option<String>,
+    /// subject property.
+    pub subject: Option<GoogleCloudAdvisorynotificationsV1Subject>,
 }
 
 /// `GoogleCloudAdvisorynotificationsV1Message` type.
@@ -51,15 +53,11 @@ pub struct GoogleCloudAdvisorynotificationsV1Message {
     pub localization_time: Option<String>,
 }
 
-/// `GoogleCloudAdvisorynotificationsV1Text` type.
+/// `GoogleCloudAdvisorynotificationsV1MessageBody` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAdvisorynotificationsV1Text {
-    /// enText property.
-    pub en_text: Option<String>,
-    /// localizationState property.
-    pub localization_state: Option<String>,
-    /// localizedText property.
-    pub localized_text: Option<String>,
+pub struct GoogleCloudAdvisorynotificationsV1MessageBody {
+    /// text property.
+    pub text: Option<GoogleCloudAdvisorynotificationsV1Text>,
 }
 
 /// `GoogleCloudAdvisorynotificationsV1Csv` type.
@@ -71,13 +69,6 @@ pub struct GoogleCloudAdvisorynotificationsV1Csv {
     pub headers: Option<Vec<String>>,
 }
 
-/// `GoogleCloudAdvisorynotificationsV1Subject` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAdvisorynotificationsV1Subject {
-    /// text property.
-    pub text: Option<GoogleCloudAdvisorynotificationsV1Text>,
-}
-
 /// `GoogleCloudAdvisorynotificationsV1Attachment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAdvisorynotificationsV1Attachment {
@@ -85,6 +76,13 @@ pub struct GoogleCloudAdvisorynotificationsV1Attachment {
     pub csv: Option<GoogleCloudAdvisorynotificationsV1Csv>,
     /// displayName property.
     pub display_name: Option<String>,
+}
+
+/// `GoogleCloudAdvisorynotificationsV1Subject` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAdvisorynotificationsV1Subject {
+    /// text property.
+    pub text: Option<GoogleCloudAdvisorynotificationsV1Text>,
 }
 
 /// `GoogleCloudAdvisorynotificationsV1ListNotificationsResponse` type.
@@ -98,19 +96,22 @@ pub struct GoogleCloudAdvisorynotificationsV1ListNotificationsResponse {
     pub total_size: Option<i64>,
 }
 
-/// `GoogleCloudAdvisorynotificationsV1Notification` type.
+/// `GoogleCloudAdvisorynotificationsV1CsvCsvRow` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAdvisorynotificationsV1Notification {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// messages property.
-    pub messages: Option<Vec<GoogleCloudAdvisorynotificationsV1Message>>,
-    /// name property.
-    pub name: Option<String>,
-    /// notificationType property.
-    pub notification_type: Option<String>,
-    /// subject property.
-    pub subject: Option<GoogleCloudAdvisorynotificationsV1Subject>,
+pub struct GoogleCloudAdvisorynotificationsV1CsvCsvRow {
+    /// entries property.
+    pub entries: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAdvisorynotificationsV1Text` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAdvisorynotificationsV1Text {
+    /// enText property.
+    pub en_text: Option<String>,
+    /// localizationState property.
+    pub localization_state: Option<String>,
+    /// localizedText property.
+    pub localized_text: Option<String>,
 }
 
 // =============================================================================

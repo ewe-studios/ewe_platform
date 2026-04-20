@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,11 +23,18 @@ use serde::{Deserialize, Serialize};
 use super::shared::Empty;
 use super::shared::HttpBody;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `StructuredStorageInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StructuredStorageInfo {
+    /// sizeBytes property.
+    pub size_bytes: Option<String>,
+}
 
 /// `StorageInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -37,13 +45,6 @@ pub struct StorageInfo {
     pub referenced_resource: Option<String>,
     /// structuredStorageInfo property.
     pub structured_storage_info: Option<StructuredStorageInfo>,
-}
-
-/// `StructuredStorageInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StructuredStorageInfo {
-    /// sizeBytes property.
-    pub size_bytes: Option<String>,
 }
 
 /// `BlobStorageInfo` type.

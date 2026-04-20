@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,29 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListWasmPluginsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListWasmPluginsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+    /// wasmPlugins property.
+    pub wasm_plugins: Option<Vec<WasmPlugin>>,
+}
+
+/// `WasmPluginUsedBy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WasmPluginUsedBy {
+    /// name property.
+    pub name: Option<String>,
+}
 
 /// `WasmPlugin` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -50,35 +69,6 @@ pub struct WasmPlugin {
     pub versions: Option<serde_json::Value>,
 }
 
-/// `WasmPluginLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WasmPluginLogConfig {
-    /// enable property.
-    pub enable: Option<bool>,
-    /// minLogLevel property.
-    pub min_log_level: Option<String>,
-    /// sampleRate property.
-    pub sample_rate: Option<f64>,
-}
-
-/// `ListWasmPluginsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListWasmPluginsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-    /// wasmPlugins property.
-    pub wasm_plugins: Option<Vec<WasmPlugin>>,
-}
-
-/// `WasmPluginUsedBy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WasmPluginUsedBy {
-    /// name property.
-    pub name: Option<String>,
-}
-
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
@@ -88,6 +78,17 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
+}
+
+/// `WasmPluginLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WasmPluginLogConfig {
+    /// enable property.
+    pub enable: Option<bool>,
+    /// minLogLevel property.
+    pub min_log_level: Option<String>,
+    /// sampleRate property.
+    pub sample_rate: Option<f64>,
 }
 
 // =============================================================================

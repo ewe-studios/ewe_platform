@@ -12,17 +12,50 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Space;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `MembershipCount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MembershipCount {
+    /// joinedDirectHumanUserCount property.
+    pub joined_direct_human_user_count: Option<i64>,
+    /// joinedGroupCount property.
+    pub joined_group_count: Option<i64>,
+}
+
+/// `SpaceDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpaceDetails {
+    /// description property.
+    pub description: Option<String>,
+    /// guidelines property.
+    pub guidelines: Option<String>,
+}
+
+/// `PermissionSetting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PermissionSetting {
+    /// assistantManagersAllowed property.
+    pub assistant_managers_allowed: Option<bool>,
+    /// managersAllowed property.
+    pub managers_allowed: Option<bool>,
+    /// membersAllowed property.
+    pub members_allowed: Option<bool>,
+}
 
 /// `SearchSpacesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -33,6 +66,15 @@ pub struct SearchSpacesResponse {
     pub spaces: Option<Vec<Space>>,
     /// totalSize property.
     pub total_size: Option<i64>,
+}
+
+/// `AccessSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessSettings {
+    /// accessState property.
+    pub access_state: Option<String>,
+    /// audience property.
+    pub audience: Option<String>,
 }
 
 /// `PermissionSettings` type.
@@ -54,44 +96,6 @@ pub struct PermissionSettings {
     pub toggle_history: Option<PermissionSetting>,
     /// useAtMentionAll property.
     pub use_at_mention_all: Option<PermissionSetting>,
-}
-
-/// `AccessSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessSettings {
-    /// accessState property.
-    pub access_state: Option<String>,
-    /// audience property.
-    pub audience: Option<String>,
-}
-
-/// `PermissionSetting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PermissionSetting {
-    /// assistantManagersAllowed property.
-    pub assistant_managers_allowed: Option<bool>,
-    /// managersAllowed property.
-    pub managers_allowed: Option<bool>,
-    /// membersAllowed property.
-    pub members_allowed: Option<bool>,
-}
-
-/// `SpaceDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpaceDetails {
-    /// description property.
-    pub description: Option<String>,
-    /// guidelines property.
-    pub guidelines: Option<String>,
-}
-
-/// `MembershipCount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MembershipCount {
-    /// joinedDirectHumanUserCount property.
-    pub joined_direct_human_user_count: Option<i64>,
-    /// joinedGroupCount property.
-    pub joined_group_count: Option<i64>,
 }
 
 // =============================================================================

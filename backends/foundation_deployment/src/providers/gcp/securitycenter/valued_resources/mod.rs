@@ -12,35 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListValuedResourcesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListValuedResourcesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// totalSize property.
-    pub total_size: Option<i64>,
-    /// valuedResources property.
-    pub valued_resources: Option<Vec<ValuedResource>>,
-}
-
-/// `ResourceValueConfigMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceValueConfigMetadata {
-    /// name property.
-    pub name: Option<String>,
-}
 
 /// `ValuedResource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -59,6 +42,24 @@ pub struct ValuedResource {
     pub resource_value: Option<String>,
     /// resourceValueConfigsUsed property.
     pub resource_value_configs_used: Option<Vec<ResourceValueConfigMetadata>>,
+}
+
+/// `ListValuedResourcesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListValuedResourcesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// totalSize property.
+    pub total_size: Option<i64>,
+    /// valuedResources property.
+    pub valued_resources: Option<Vec<ValuedResource>>,
+}
+
+/// `ResourceValueConfigMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceValueConfigMetadata {
+    /// name property.
+    pub name: Option<String>,
 }
 
 // =============================================================================

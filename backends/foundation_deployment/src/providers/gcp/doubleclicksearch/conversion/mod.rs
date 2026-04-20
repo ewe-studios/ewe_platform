@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -31,24 +32,6 @@ pub struct ConversionList {
     pub conversion: Option<Vec<Conversion>>,
     /// kind property.
     pub kind: Option<String>,
-}
-
-/// `CustomDimension` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomDimension {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `CustomMetric` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomMetric {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<f64>,
 }
 
 /// `Conversion` type.
@@ -124,6 +107,24 @@ pub struct Conversion {
     pub store_id: Option<String>,
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `CustomDimension` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomDimension {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `CustomMetric` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomMetric {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<f64>,
 }
 
 // =============================================================================

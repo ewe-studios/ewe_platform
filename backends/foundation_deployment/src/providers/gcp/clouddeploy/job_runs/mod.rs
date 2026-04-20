@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `AdvanceChildRolloutJobRun` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdvanceChildRolloutJobRun {
-    /// rollout property.
-    pub rollout: Option<String>,
-    /// rolloutPhaseId property.
-    pub rollout_phase_id: Option<String>,
-}
 
 /// `ListJobRunsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,35 +36,6 @@ pub struct ListJobRunsResponse {
     pub unreachable: Option<Vec<String>>,
 }
 
-/// `CustomMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomMetadata {
-    /// values property.
-    pub values: Option<serde_json::Value>,
-}
-
-/// `DeployJobRunMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeployJobRunMetadata {
-    /// cloudRun property.
-    pub cloud_run: Option<CloudRunMetadata>,
-    /// custom property.
-    pub custom: Option<CustomMetadata>,
-    /// customTarget property.
-    pub custom_target: Option<CustomTargetDeployMetadata>,
-}
-
-/// `AnalysisJobRun` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AnalysisJobRun {
-    /// alertPolicyAnalyses property.
-    pub alert_policy_analyses: Option<Vec<AlertPolicyCheckStatus>>,
-    /// customCheckAnalyses property.
-    pub custom_check_analyses: Option<Vec<CustomCheckStatus>>,
-    /// failedCheckId property.
-    pub failed_check_id: Option<String>,
-}
-
 /// `DeployArtifact` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeployArtifact {
@@ -80,80 +43,6 @@ pub struct DeployArtifact {
     pub artifact_uri: Option<String>,
     /// manifestPaths property.
     pub manifest_paths: Option<Vec<String>>,
-}
-
-/// `CloudRunMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudRunMetadata {
-    /// job property.
-    pub job: Option<String>,
-    /// previousRevision property.
-    pub previous_revision: Option<String>,
-    /// revision property.
-    pub revision: Option<String>,
-    /// service property.
-    pub service: Option<String>,
-    /// serviceUrls property.
-    pub service_urls: Option<Vec<String>>,
-    /// workerPool property.
-    pub worker_pool: Option<String>,
-}
-
-/// `CustomTargetDeployMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomTargetDeployMetadata {
-    /// skipMessage property.
-    pub skip_message: Option<String>,
-}
-
-/// `AlertPolicyCheckStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AlertPolicyCheckStatus {
-    /// alertPolicies property.
-    pub alert_policies: Option<Vec<String>>,
-    /// failedAlertPolicies property.
-    pub failed_alert_policies: Option<Vec<FailedAlertPolicy>>,
-    /// failureMessage property.
-    pub failure_message: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-}
-
-/// `DeployJobRun` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeployJobRun {
-    /// artifact property.
-    pub artifact: Option<DeployArtifact>,
-    /// build property.
-    pub build: Option<String>,
-    /// failureCause property.
-    pub failure_cause: Option<String>,
-    /// failureMessage property.
-    pub failure_message: Option<String>,
-    /// metadata property.
-    pub metadata: Option<DeployJobRunMetadata>,
-}
-
-/// `VerifyJobRunMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VerifyJobRunMetadata {
-    /// custom property.
-    pub custom: Option<CustomMetadata>,
-}
-
-/// `PostdeployJobRun` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostdeployJobRun {
-    /// build property.
-    pub build: Option<String>,
-    /// failureCause property.
-    pub failure_cause: Option<String>,
-    /// failureMessage property.
-    pub failure_message: Option<String>,
-    /// metadata property.
-    pub metadata: Option<PostdeployJobRunMetadata>,
 }
 
 /// `PredeployJobRun` type.
@@ -169,20 +58,11 @@ pub struct PredeployJobRun {
     pub metadata: Option<PredeployJobRunMetadata>,
 }
 
-/// `PostdeployJobRunMetadata` type.
+/// `CustomMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostdeployJobRunMetadata {
-    /// custom property.
-    pub custom: Option<CustomMetadata>,
-}
-
-/// `CreateChildRolloutJobRun` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateChildRolloutJobRun {
-    /// rollout property.
-    pub rollout: Option<String>,
-    /// rolloutPhaseId property.
-    pub rollout_phase_id: Option<String>,
+pub struct CustomMetadata {
+    /// values property.
+    pub values: Option<serde_json::Value>,
 }
 
 /// `CustomCheckStatus` type.
@@ -204,6 +84,82 @@ pub struct CustomCheckStatus {
     pub task: Option<Task>,
 }
 
+/// `AnalysisJobRun` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AnalysisJobRun {
+    /// alertPolicyAnalyses property.
+    pub alert_policy_analyses: Option<Vec<AlertPolicyCheckStatus>>,
+    /// customCheckAnalyses property.
+    pub custom_check_analyses: Option<Vec<CustomCheckStatus>>,
+    /// failedCheckId property.
+    pub failed_check_id: Option<String>,
+}
+
+/// `AdvanceChildRolloutJobRun` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdvanceChildRolloutJobRun {
+    /// rollout property.
+    pub rollout: Option<String>,
+    /// rolloutPhaseId property.
+    pub rollout_phase_id: Option<String>,
+}
+
+/// `Task` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Task {
+    /// container property.
+    pub container: Option<ContainerTask>,
+}
+
+/// `AlertPolicyCheckStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AlertPolicyCheckStatus {
+    /// alertPolicies property.
+    pub alert_policies: Option<Vec<String>>,
+    /// failedAlertPolicies property.
+    pub failed_alert_policies: Option<Vec<FailedAlertPolicy>>,
+    /// failureMessage property.
+    pub failure_message: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+}
+
+/// `TerminateJobRunResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TerminateJobRunResponse {}
+
+/// `PostdeployJobRunMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostdeployJobRunMetadata {
+    /// custom property.
+    pub custom: Option<CustomMetadata>,
+}
+
+/// `VerifyJobRunMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VerifyJobRunMetadata {
+    /// custom property.
+    pub custom: Option<CustomMetadata>,
+}
+
+/// `CustomTargetDeployMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomTargetDeployMetadata {
+    /// skipMessage property.
+    pub skip_message: Option<String>,
+}
+
+/// `CreateChildRolloutJobRun` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateChildRolloutJobRun {
+    /// rollout property.
+    pub rollout: Option<String>,
+    /// rolloutPhaseId property.
+    pub rollout_phase_id: Option<String>,
+}
+
 /// `ContainerTask` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContainerTask {
@@ -215,6 +171,95 @@ pub struct ContainerTask {
     pub env: Option<serde_json::Value>,
     /// image property.
     pub image: Option<String>,
+}
+
+/// `DeployJobRun` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeployJobRun {
+    /// artifact property.
+    pub artifact: Option<DeployArtifact>,
+    /// build property.
+    pub build: Option<String>,
+    /// failureCause property.
+    pub failure_cause: Option<String>,
+    /// failureMessage property.
+    pub failure_message: Option<String>,
+    /// metadata property.
+    pub metadata: Option<DeployJobRunMetadata>,
+}
+
+/// `PredeployJobRunMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PredeployJobRunMetadata {
+    /// custom property.
+    pub custom: Option<CustomMetadata>,
+}
+
+/// `VerifyJobRun` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VerifyJobRun {
+    /// artifactUri property.
+    pub artifact_uri: Option<String>,
+    /// build property.
+    pub build: Option<String>,
+    /// eventLogPath property.
+    pub event_log_path: Option<String>,
+    /// failureCause property.
+    pub failure_cause: Option<String>,
+    /// failureMessage property.
+    pub failure_message: Option<String>,
+    /// metadata property.
+    pub metadata: Option<VerifyJobRunMetadata>,
+}
+
+/// `CloudRunMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudRunMetadata {
+    /// job property.
+    pub job: Option<String>,
+    /// previousRevision property.
+    pub previous_revision: Option<String>,
+    /// revision property.
+    pub revision: Option<String>,
+    /// service property.
+    pub service: Option<String>,
+    /// serviceUrls property.
+    pub service_urls: Option<Vec<String>>,
+    /// workerPool property.
+    pub worker_pool: Option<String>,
+}
+
+/// `DeployJobRunMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeployJobRunMetadata {
+    /// cloudRun property.
+    pub cloud_run: Option<CloudRunMetadata>,
+    /// custom property.
+    pub custom: Option<CustomMetadata>,
+    /// customTarget property.
+    pub custom_target: Option<CustomTargetDeployMetadata>,
+}
+
+/// `PostdeployJobRun` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostdeployJobRun {
+    /// build property.
+    pub build: Option<String>,
+    /// failureCause property.
+    pub failure_cause: Option<String>,
+    /// failureMessage property.
+    pub failure_message: Option<String>,
+    /// metadata property.
+    pub metadata: Option<PostdeployJobRunMetadata>,
+}
+
+/// `FailedAlertPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FailedAlertPolicy {
+    /// alertPolicy property.
+    pub alert_policy: Option<String>,
+    /// alerts property.
+    pub alerts: Option<Vec<String>>,
 }
 
 /// `JobRun` type.
@@ -252,50 +297,6 @@ pub struct JobRun {
     pub uid: Option<String>,
     /// verifyJobRun property.
     pub verify_job_run: Option<VerifyJobRun>,
-}
-
-/// `VerifyJobRun` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VerifyJobRun {
-    /// artifactUri property.
-    pub artifact_uri: Option<String>,
-    /// build property.
-    pub build: Option<String>,
-    /// eventLogPath property.
-    pub event_log_path: Option<String>,
-    /// failureCause property.
-    pub failure_cause: Option<String>,
-    /// failureMessage property.
-    pub failure_message: Option<String>,
-    /// metadata property.
-    pub metadata: Option<VerifyJobRunMetadata>,
-}
-
-/// `TerminateJobRunResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TerminateJobRunResponse {}
-
-/// `Task` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Task {
-    /// container property.
-    pub container: Option<ContainerTask>,
-}
-
-/// `PredeployJobRunMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PredeployJobRunMetadata {
-    /// custom property.
-    pub custom: Option<CustomMetadata>,
-}
-
-/// `FailedAlertPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FailedAlertPolicy {
-    /// alertPolicy property.
-    pub alert_policy: Option<String>,
-    /// alerts property.
-    pub alerts: Option<Vec<String>>,
 }
 
 // =============================================================================

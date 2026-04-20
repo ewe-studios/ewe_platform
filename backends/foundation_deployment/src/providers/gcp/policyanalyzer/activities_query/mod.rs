@@ -12,30 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudPolicyanalyzerV1Activity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicyanalyzerV1Activity {
-    /// activity property.
-    pub activity: Option<serde_json::Value>,
-    /// activityType property.
-    pub activity_type: Option<String>,
-    /// fullResourceName property.
-    pub full_resource_name: Option<String>,
-    /// observationPeriod property.
-    pub observation_period: Option<GoogleCloudPolicyanalyzerV1ObservationPeriod>,
-}
 
 /// `GoogleCloudPolicyanalyzerV1ObservationPeriod` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -53,6 +41,19 @@ pub struct GoogleCloudPolicyanalyzerV1QueryActivityResponse {
     pub activities: Option<Vec<GoogleCloudPolicyanalyzerV1Activity>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudPolicyanalyzerV1Activity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicyanalyzerV1Activity {
+    /// activity property.
+    pub activity: Option<serde_json::Value>,
+    /// activityType property.
+    pub activity_type: Option<String>,
+    /// fullResourceName property.
+    pub full_resource_name: Option<String>,
+    /// observationPeriod property.
+    pub observation_period: Option<GoogleCloudPolicyanalyzerV1ObservationPeriod>,
 }
 
 // =============================================================================

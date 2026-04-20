@@ -12,17 +12,64 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudAiplatformV1MigratableResourceDataLabelingDatasetDataLabelingAnnotatedDataset` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1MigratableResourceDataLabelingDatasetDataLabelingAnnotatedDataset
+{
+    /// annotatedDataset property.
+    pub annotated_dataset: Option<String>,
+    /// annotatedDatasetDisplayName property.
+    pub annotated_dataset_display_name: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1MigratableResourceAutomlDataset` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1MigratableResourceAutomlDataset {
+    /// dataset property.
+    pub dataset: Option<String>,
+    /// datasetDisplayName property.
+    pub dataset_display_name: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1SearchMigratableResourcesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1SearchMigratableResourcesResponse {
+    /// migratableResources property.
+    pub migratable_resources: Option<Vec<GoogleCloudAiplatformV1MigratableResource>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1MigratableResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1MigratableResource {
+    /// automlDataset property.
+    pub automl_dataset: Option<GoogleCloudAiplatformV1MigratableResourceAutomlDataset>,
+    /// automlModel property.
+    pub automl_model: Option<GoogleCloudAiplatformV1MigratableResourceAutomlModel>,
+    /// dataLabelingDataset property.
+    pub data_labeling_dataset: Option<GoogleCloudAiplatformV1MigratableResourceDataLabelingDataset>,
+    /// lastMigrateTime property.
+    pub last_migrate_time: Option<String>,
+    /// lastUpdateTime property.
+    pub last_update_time: Option<String>,
+    /// mlEngineModelVersion property.
+    pub ml_engine_model_version:
+        Option<GoogleCloudAiplatformV1MigratableResourceMlEngineModelVersion>,
+}
 
 /// `GoogleCloudAiplatformV1MigratableResourceAutomlModel` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,15 +91,6 @@ pub struct GoogleCloudAiplatformV1MigratableResourceDataLabelingDataset {
     pub dataset_display_name: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1MigratableResourceAutomlDataset` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MigratableResourceAutomlDataset {
-    /// dataset property.
-    pub dataset: Option<String>,
-    /// datasetDisplayName property.
-    pub dataset_display_name: Option<String>,
-}
-
 /// `GoogleCloudAiplatformV1MigratableResourceMlEngineModelVersion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MigratableResourceMlEngineModelVersion {
@@ -60,43 +98,6 @@ pub struct GoogleCloudAiplatformV1MigratableResourceMlEngineModelVersion {
     pub endpoint: Option<String>,
     /// version property.
     pub version: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1MigratableResourceDataLabelingDatasetDataLabelingAnnotatedDataset` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MigratableResourceDataLabelingDatasetDataLabelingAnnotatedDataset
-{
-    /// annotatedDataset property.
-    pub annotated_dataset: Option<String>,
-    /// annotatedDatasetDisplayName property.
-    pub annotated_dataset_display_name: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1MigratableResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MigratableResource {
-    /// automlDataset property.
-    pub automl_dataset: Option<GoogleCloudAiplatformV1MigratableResourceAutomlDataset>,
-    /// automlModel property.
-    pub automl_model: Option<GoogleCloudAiplatformV1MigratableResourceAutomlModel>,
-    /// dataLabelingDataset property.
-    pub data_labeling_dataset: Option<GoogleCloudAiplatformV1MigratableResourceDataLabelingDataset>,
-    /// lastMigrateTime property.
-    pub last_migrate_time: Option<String>,
-    /// lastUpdateTime property.
-    pub last_update_time: Option<String>,
-    /// mlEngineModelVersion property.
-    pub ml_engine_model_version:
-        Option<GoogleCloudAiplatformV1MigratableResourceMlEngineModelVersion>,
-}
-
-/// `GoogleCloudAiplatformV1SearchMigratableResourcesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SearchMigratableResourcesResponse {
-    /// migratableResources property.
-    pub migratable_resources: Option<Vec<GoogleCloudAiplatformV1MigratableResource>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

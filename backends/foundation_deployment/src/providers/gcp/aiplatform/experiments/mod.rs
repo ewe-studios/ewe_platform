@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,31 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudAiplatformV1ListTensorboardExperimentsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ListTensorboardExperimentsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// tensorboardExperiments property.
+    pub tensorboard_experiments: Option<Vec<GoogleCloudAiplatformV1TensorboardExperiment>>,
+}
+
+/// `GoogleCloudAiplatformV1TensorboardTimeSeriesMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1TensorboardTimeSeriesMetadata {
+    /// maxBlobSequenceLength property.
+    pub max_blob_sequence_length: Option<String>,
+    /// maxStep property.
+    pub max_step: Option<String>,
+    /// maxWallTime property.
+    pub max_wall_time: Option<String>,
+}
 
 /// `GoogleCloudAiplatformV1TensorboardExperiment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -46,6 +67,17 @@ pub struct GoogleCloudAiplatformV1TensorboardExperiment {
     pub source: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1TensorboardTimeSeries` type.
@@ -73,46 +105,15 @@ pub struct GoogleCloudAiplatformV1TensorboardTimeSeries {
     pub value_type: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1ListTensorboardExperimentsResponse` type.
+/// `GoogleCloudAiplatformV1WriteTensorboardExperimentDataResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListTensorboardExperimentsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// tensorboardExperiments property.
-    pub tensorboard_experiments: Option<Vec<GoogleCloudAiplatformV1TensorboardExperiment>>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
+pub struct GoogleCloudAiplatformV1WriteTensorboardExperimentDataResponse {}
 
 /// `GoogleCloudAiplatformV1BatchCreateTensorboardTimeSeriesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchCreateTensorboardTimeSeriesResponse {
     /// tensorboardTimeSeries property.
     pub tensorboard_time_series: Option<Vec<GoogleCloudAiplatformV1TensorboardTimeSeries>>,
-}
-
-/// `GoogleCloudAiplatformV1WriteTensorboardExperimentDataResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1WriteTensorboardExperimentDataResponse {}
-
-/// `GoogleCloudAiplatformV1TensorboardTimeSeriesMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1TensorboardTimeSeriesMetadata {
-    /// maxBlobSequenceLength property.
-    pub max_blob_sequence_length: Option<String>,
-    /// maxStep property.
-    pub max_step: Option<String>,
-    /// maxWallTime property.
-    pub max_wall_time: Option<String>,
 }
 
 // =============================================================================

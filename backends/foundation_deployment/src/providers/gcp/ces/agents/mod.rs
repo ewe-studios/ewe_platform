@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,19 +22,47 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ModelSettings` type.
+/// `Callback` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ModelSettings {
-    /// model property.
-    pub model: Option<String>,
-    /// temperature property.
-    pub temperature: Option<f64>,
+pub struct Callback {
+    /// description property.
+    pub description: Option<String>,
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// proactiveExecutionEnabled property.
+    pub proactive_execution_enabled: Option<bool>,
+    /// pythonCode property.
+    pub python_code: Option<String>,
+}
+
+/// `AgentLlmAgent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AgentLlmAgent {}
+
+/// `TransferRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TransferRule {
+    /// childAgent property.
+    pub child_agent: Option<String>,
+    /// deterministicTransfer property.
+    pub deterministic_transfer: Option<TransferRuleDeterministicTransfer>,
+    /// direction property.
+    pub direction: Option<String>,
+    /// disablePlannerTransfer property.
+    pub disable_planner_transfer: Option<TransferRuleDisablePlannerTransfer>,
+}
+
+/// `ExpressionCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExpressionCondition {
+    /// expression property.
+    pub expression: Option<String>,
 }
 
 /// `Agent` type.
@@ -85,6 +114,22 @@ pub struct Agent {
     pub update_time: Option<String>,
 }
 
+/// `TransferRuleDeterministicTransfer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TransferRuleDeterministicTransfer {
+    /// expressionCondition property.
+    pub expression_condition: Option<ExpressionCondition>,
+    /// pythonCodeCondition property.
+    pub python_code_condition: Option<PythonCodeCondition>,
+}
+
+/// `PythonCodeCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PythonCodeCondition {
+    /// pythonCode property.
+    pub python_code: Option<String>,
+}
+
 /// `ListAgentsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAgentsResponse {
@@ -92,6 +137,15 @@ pub struct ListAgentsResponse {
     pub agents: Option<Vec<Agent>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `ModelSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ModelSettings {
+    /// model property.
+    pub model: Option<String>,
+    /// temperature property.
+    pub temperature: Option<f64>,
 }
 
 /// `AgentAgentToolset` type.
@@ -103,28 +157,11 @@ pub struct AgentAgentToolset {
     pub toolset: Option<String>,
 }
 
-/// `PythonCodeCondition` type.
+/// `TransferRuleDisablePlannerTransfer` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PythonCodeCondition {
-    /// pythonCode property.
-    pub python_code: Option<String>,
-}
-
-/// `AgentLlmAgent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AgentLlmAgent {}
-
-/// `Callback` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Callback {
-    /// description property.
-    pub description: Option<String>,
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// proactiveExecutionEnabled property.
-    pub proactive_execution_enabled: Option<bool>,
-    /// pythonCode property.
-    pub python_code: Option<String>,
+pub struct TransferRuleDisablePlannerTransfer {
+    /// expressionCondition property.
+    pub expression_condition: Option<ExpressionCondition>,
 }
 
 /// `AgentRemoteDialogflowAgent` type.
@@ -142,42 +179,6 @@ pub struct AgentRemoteDialogflowAgent {
     pub output_variable_mapping: Option<serde_json::Value>,
     /// respectResponseInterruptionSettings property.
     pub respect_response_interruption_settings: Option<bool>,
-}
-
-/// `TransferRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransferRule {
-    /// childAgent property.
-    pub child_agent: Option<String>,
-    /// deterministicTransfer property.
-    pub deterministic_transfer: Option<TransferRuleDeterministicTransfer>,
-    /// direction property.
-    pub direction: Option<String>,
-    /// disablePlannerTransfer property.
-    pub disable_planner_transfer: Option<TransferRuleDisablePlannerTransfer>,
-}
-
-/// `TransferRuleDeterministicTransfer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransferRuleDeterministicTransfer {
-    /// expressionCondition property.
-    pub expression_condition: Option<ExpressionCondition>,
-    /// pythonCodeCondition property.
-    pub python_code_condition: Option<PythonCodeCondition>,
-}
-
-/// `TransferRuleDisablePlannerTransfer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransferRuleDisablePlannerTransfer {
-    /// expressionCondition property.
-    pub expression_condition: Option<ExpressionCondition>,
-}
-
-/// `ExpressionCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExpressionCondition {
-    /// expression property.
-    pub expression: Option<String>,
 }
 
 // =============================================================================

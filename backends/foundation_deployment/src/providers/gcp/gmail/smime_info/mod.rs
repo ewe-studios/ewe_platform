@@ -12,24 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListSmimeInfoResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSmimeInfoResponse {
-    /// smimeInfo property.
-    pub smime_info: Option<Vec<SmimeInfo>>,
-}
 
 /// `SmimeInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -48,6 +42,13 @@ pub struct SmimeInfo {
     pub pem: Option<String>,
     /// pkcs12 property.
     pub pkcs12: Option<String>,
+}
+
+/// `ListSmimeInfoResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListSmimeInfoResponse {
+    /// smimeInfo property.
+    pub smime_info: Option<Vec<SmimeInfo>>,
 }
 
 // =============================================================================

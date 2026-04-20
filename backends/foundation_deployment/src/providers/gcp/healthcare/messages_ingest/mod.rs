@@ -12,53 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ParsedData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ParsedData {
-    /// segments property.
-    pub segments: Option<Vec<Segment>>,
-}
-
-/// `SchematizedData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SchematizedData {
-    /// data property.
-    pub data: Option<String>,
-    /// error property.
-    pub error: Option<String>,
-}
-
-/// `IngestMessageResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IngestMessageResponse {
-    /// hl7Ack property.
-    pub hl7_ack: Option<String>,
-    /// message property.
-    pub message: Option<Message>,
-}
-
-/// `Segment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Segment {
-    /// fields property.
-    pub fields: Option<serde_json::Value>,
-    /// segmentId property.
-    pub segment_id: Option<String>,
-    /// setId property.
-    pub set_id: Option<String>,
-}
 
 /// `Message` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -85,6 +50,15 @@ pub struct Message {
     pub send_time: Option<String>,
 }
 
+/// `IngestMessageResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IngestMessageResponse {
+    /// hl7Ack property.
+    pub hl7_ack: Option<String>,
+    /// message property.
+    pub message: Option<Message>,
+}
+
 /// `PatientId` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PatientId {
@@ -92,6 +66,33 @@ pub struct PatientId {
     pub r#type: Option<String>,
     /// value property.
     pub value: Option<String>,
+}
+
+/// `ParsedData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ParsedData {
+    /// segments property.
+    pub segments: Option<Vec<Segment>>,
+}
+
+/// `SchematizedData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SchematizedData {
+    /// data property.
+    pub data: Option<String>,
+    /// error property.
+    pub error: Option<String>,
+}
+
+/// `Segment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Segment {
+    /// fields property.
+    pub fields: Option<serde_json::Value>,
+    /// segmentId property.
+    pub segment_id: Option<String>,
+    /// setId property.
+    pub set_id: Option<String>,
 }
 
 // =============================================================================

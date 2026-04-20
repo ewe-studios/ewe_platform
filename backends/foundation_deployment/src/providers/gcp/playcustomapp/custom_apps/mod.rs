@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Organization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Organization {
-    /// organizationId property.
-    pub organization_id: Option<String>,
-    /// organizationName property.
-    pub organization_name: Option<String>,
-}
 
 /// `CustomApp` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,6 +36,15 @@ pub struct CustomApp {
     pub package_name: Option<String>,
     /// title property.
     pub title: Option<String>,
+}
+
+/// `Organization` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Organization {
+    /// organizationId property.
+    pub organization_id: Option<String>,
+    /// organizationName property.
+    pub organization_name: Option<String>,
 }
 
 // =============================================================================

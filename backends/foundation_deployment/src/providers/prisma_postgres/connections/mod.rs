@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -24,6 +25,24 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `ConnectionsGetResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectionsGetResponse {
+    /// data property.
+    pub data: Connections,
+}
+
+/// `DatabasesConnectionsEndpointsAccelerate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesConnectionsEndpointsAccelerate {
+    /// connectionString property.
+    pub connection_string: String,
+    /// host property.
+    pub host: String,
+    /// port property.
+    pub port: f64,
+}
+
 /// `DatabasesConnectionsDatabase` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabasesConnectionsDatabase {
@@ -35,15 +54,33 @@ pub struct DatabasesConnectionsDatabase {
     pub url: String,
 }
 
-/// `ConnectionsDatabase` type.
+/// `ConnectionsPostRequest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionsDatabase {
-    /// id property.
-    pub id: String,
+pub struct ConnectionsPostRequest {
+    /// databaseId property.
+    pub database_id: String,
     /// name property.
     pub name: String,
-    /// url property.
-    pub url: String,
+}
+
+/// `DatabasesConnectionsGetResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesConnectionsGetResponse {
+    /// data property.
+    pub data: Vec<DatabasesConnections>,
+    /// pagination property.
+    pub pagination: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ConnectionsEndpoints` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectionsEndpoints {
+    /// accelerate property.
+    pub accelerate: Option<ConnectionsEndpointsAccelerate>,
+    /// direct property.
+    pub direct: Option<ConnectionsEndpointsDirect>,
+    /// pooled property.
+    pub pooled: Option<ConnectionsEndpointsPooled>,
 }
 
 /// `DatabasesConnectionsPostResponse` type.
@@ -53,11 +90,38 @@ pub struct DatabasesConnectionsPostResponse {
     pub data: DatabasesConnections,
 }
 
-/// `ConnectionsGetResponse` type.
+/// `DatabasesConnectionsPostRequest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionsGetResponse {
+pub struct DatabasesConnectionsPostRequest {
+    /// name property.
+    pub name: String,
+}
+
+/// `ConnectionsEndpointsAccelerate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectionsEndpointsAccelerate {
+    /// host property.
+    pub host: String,
+    /// port property.
+    pub port: f64,
+}
+
+/// `ConnectionsPostResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectionsPostResponse {
     /// data property.
     pub data: Connections,
+}
+
+/// `DatabasesConnectionsEndpoints` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesConnectionsEndpoints {
+    /// accelerate property.
+    pub accelerate: Option<DatabasesConnectionsEndpointsAccelerate>,
+    /// direct property.
+    pub direct: Option<DatabasesConnectionsEndpointsDirect>,
+    /// pooled property.
+    pub pooled: Option<DatabasesConnectionsEndpointsPooled>,
 }
 
 /// `Connections` type.
@@ -83,67 +147,37 @@ pub struct Connections {
     pub url: String,
 }
 
-/// `DatabasesConnectionsPostRequest` type.
+/// `DatabasesConnectionsEndpointsDirect` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesConnectionsPostRequest {
-    /// name property.
-    pub name: String,
-}
-
-/// `ConnectionsPostRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionsPostRequest {
-    /// databaseId property.
-    pub database_id: String,
-    /// name property.
-    pub name: String,
-}
-
-/// `DatabasesConnectionsEndpoints` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesConnectionsEndpoints {
-    /// accelerate property.
-    pub accelerate: Option<DatabasesConnectionsEndpointsAccelerate>,
-    /// direct property.
-    pub direct: Option<DatabasesConnectionsEndpointsDirect>,
-    /// pooled property.
-    pub pooled: Option<DatabasesConnectionsEndpointsPooled>,
-}
-
-/// `ConnectionsEndpoints` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionsEndpoints {
-    /// accelerate property.
-    pub accelerate: Option<ConnectionsEndpointsAccelerate>,
-    /// direct property.
-    pub direct: Option<ConnectionsEndpointsDirect>,
-    /// pooled property.
-    pub pooled: Option<ConnectionsEndpointsPooled>,
-}
-
-/// `ConnectionsPostResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionsPostResponse {
-    /// data property.
-    pub data: Connections,
-}
-
-/// `ConnectionsEndpointsAccelerate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionsEndpointsAccelerate {
+pub struct DatabasesConnectionsEndpointsDirect {
+    /// connectionString property.
+    pub connection_string: String,
     /// host property.
     pub host: String,
     /// port property.
     pub port: f64,
 }
 
-/// `ConnectionsEndpointsDirect` type.
+/// `DatabasesConnectionsEndpointsPooled` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionsEndpointsDirect {
+pub struct DatabasesConnectionsEndpointsPooled {
+    /// connectionString property.
+    pub connection_string: String,
     /// host property.
     pub host: String,
     /// port property.
     pub port: f64,
+}
+
+/// `ConnectionsDatabase` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectionsDatabase {
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+    /// url property.
+    pub url: String,
 }
 
 /// `ConnectionsEndpointsPooled` type.
@@ -155,20 +189,9 @@ pub struct ConnectionsEndpointsPooled {
     pub port: f64,
 }
 
-/// `DatabasesConnectionsGetResponse` type.
+/// `ConnectionsEndpointsDirect` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesConnectionsGetResponse {
-    /// data property.
-    pub data: Vec<DatabasesConnections>,
-    /// pagination property.
-    pub pagination: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DatabasesConnectionsEndpointsPooled` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesConnectionsEndpointsPooled {
-    /// connectionString property.
-    pub connection_string: String,
+pub struct ConnectionsEndpointsDirect {
     /// host property.
     pub host: String,
     /// port property.
@@ -204,28 +227,6 @@ pub struct DatabasesConnections {
     pub url: String,
     /// user property.
     pub user: String,
-}
-
-/// `DatabasesConnectionsEndpointsAccelerate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesConnectionsEndpointsAccelerate {
-    /// connectionString property.
-    pub connection_string: String,
-    /// host property.
-    pub host: String,
-    /// port property.
-    pub port: f64,
-}
-
-/// `DatabasesConnectionsEndpointsDirect` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesConnectionsEndpointsDirect {
-    /// connectionString property.
-    pub connection_string: String,
-    /// host property.
-    pub host: String,
-    /// port property.
-    pub port: f64,
 }
 
 // =============================================================================

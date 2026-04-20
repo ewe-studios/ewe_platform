@@ -12,17 +12,125 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `CloudExportAdditionalProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudExportAdditionalProperties {
+    /// boolValue property.
+    pub bool_value: Option<bool>,
+    /// floatValue property.
+    pub float_value: Option<Vec<f64>>,
+    /// intValue property.
+    pub int_value: Option<Vec<String>>,
+    /// maxValue property.
+    pub max_value: Option<f64>,
+    /// minValue property.
+    pub min_value: Option<f64>,
+    /// propertyName property.
+    pub property_name: Option<String>,
+    /// textValue property.
+    pub text_value: Option<Vec<String>>,
+    /// unitCode property.
+    pub unit_code: Option<String>,
+}
+
+/// `ProductShippingDimension` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductShippingDimension {
+    /// unit property.
+    pub unit: Option<String>,
+    /// value property.
+    pub value: Option<f64>,
+}
+
+/// `LoyaltyProgram` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoyaltyProgram {
+    /// cashbackForFutureUse property.
+    pub cashback_for_future_use: Option<Price>,
+    /// loyaltyPoints property.
+    pub loyalty_points: Option<String>,
+    /// memberPriceEffectiveDate property.
+    pub member_price_effective_date: Option<String>,
+    /// price property.
+    pub price: Option<Price>,
+    /// programLabel property.
+    pub program_label: Option<String>,
+    /// shippingLabel property.
+    pub shipping_label: Option<String>,
+    /// tierLabel property.
+    pub tier_label: Option<String>,
+}
+
+/// `Price` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Price {
+    /// currency property.
+    pub currency: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `ProductsListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductsListResponse {
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// resources property.
+    pub resources: Option<Vec<Product>>,
+}
+
+/// `ProductSustainabilityIncentive` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductSustainabilityIncentive {
+    /// amount property.
+    pub amount: Option<Price>,
+    /// percentage property.
+    pub percentage: Option<f64>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ProductShipping` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductShipping {
+    /// country property.
+    pub country: Option<String>,
+    /// locationGroupName property.
+    pub location_group_name: Option<String>,
+    /// locationId property.
+    pub location_id: Option<String>,
+    /// maxHandlingTime property.
+    pub max_handling_time: Option<String>,
+    /// maxTransitTime property.
+    pub max_transit_time: Option<String>,
+    /// minHandlingTime property.
+    pub min_handling_time: Option<String>,
+    /// minTransitTime property.
+    pub min_transit_time: Option<String>,
+    /// postalCode property.
+    pub postal_code: Option<String>,
+    /// price property.
+    pub price: Option<Price>,
+    /// region property.
+    pub region: Option<String>,
+    /// service property.
+    pub service: Option<String>,
+}
 
 /// `ProductProductDetail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -33,6 +141,34 @@ pub struct ProductProductDetail {
     pub attribute_value: Option<String>,
     /// sectionName property.
     pub section_name: Option<String>,
+}
+
+/// `ProductTax` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductTax {
+    /// country property.
+    pub country: Option<String>,
+    /// locationId property.
+    pub location_id: Option<String>,
+    /// postalCode property.
+    pub postal_code: Option<String>,
+    /// rate property.
+    pub rate: Option<f64>,
+    /// region property.
+    pub region: Option<String>,
+    /// taxShip property.
+    pub tax_ship: Option<bool>,
+}
+
+/// `CustomAttribute` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomAttribute {
+    /// groupValues property.
+    pub group_values: Option<Vec<Box<CustomAttribute>>>,
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
 /// `Installment` type.
@@ -48,75 +184,15 @@ pub struct Installment {
     pub months: Option<String>,
 }
 
-/// `ProductCertification` type.
+/// `ProductSubscriptionCost` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductCertification {
-    /// certificationAuthority property.
-    pub certification_authority: Option<String>,
-    /// certificationCode property.
-    pub certification_code: Option<String>,
-    /// certificationName property.
-    pub certification_name: Option<String>,
-    /// certificationValue property.
-    pub certification_value: Option<String>,
-}
-
-/// `ProductUnitPricingMeasure` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductUnitPricingMeasure {
-    /// unit property.
-    pub unit: Option<String>,
-    /// value property.
-    pub value: Option<f64>,
-}
-
-/// `ProductDimension` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductDimension {
-    /// unit property.
-    pub unit: Option<String>,
-    /// value property.
-    pub value: Option<f64>,
-}
-
-/// `ProductsListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductsListResponse {
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// resources property.
-    pub resources: Option<Vec<Product>>,
-}
-
-/// `Price` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Price {
-    /// currency property.
-    pub currency: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `ProductShippingDimension` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductShippingDimension {
-    /// unit property.
-    pub unit: Option<String>,
-    /// value property.
-    pub value: Option<f64>,
-}
-
-/// `ProductSustainabilityIncentive` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductSustainabilityIncentive {
+pub struct ProductSubscriptionCost {
     /// amount property.
     pub amount: Option<Price>,
-    /// percentage property.
-    pub percentage: Option<f64>,
-    /// type property.
-    pub r#type: Option<String>,
+    /// period property.
+    pub period: Option<String>,
+    /// periodLength property.
+    pub period_length: Option<String>,
 }
 
 /// `ProductUnitPricingBaseMeasure` type.
@@ -128,6 +204,24 @@ pub struct ProductUnitPricingBaseMeasure {
     pub value: Option<String>,
 }
 
+/// `ProductShippingWeight` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductShippingWeight {
+    /// unit property.
+    pub unit: Option<String>,
+    /// value property.
+    pub value: Option<f64>,
+}
+
+/// `ProductStructuredDescription` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductStructuredDescription {
+    /// content property.
+    pub content: Option<String>,
+    /// digitalSourceType property.
+    pub digital_source_type: Option<String>,
+}
+
 /// `FreeShippingThreshold` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FreeShippingThreshold {
@@ -135,6 +229,19 @@ pub struct FreeShippingThreshold {
     pub country: Option<String>,
     /// priceThreshold property.
     pub price_threshold: Option<Price>,
+}
+
+/// `ProductCertification` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductCertification {
+    /// certificationAuthority property.
+    pub certification_authority: Option<String>,
+    /// certificationCode property.
+    pub certification_code: Option<String>,
+    /// certificationName property.
+    pub certification_name: Option<String>,
+    /// certificationValue property.
+    pub certification_value: Option<String>,
 }
 
 /// `Product` type.
@@ -179,7 +286,7 @@ pub struct Product {
     /// costOfGoodsSold property.
     pub cost_of_goods_sold: Option<Price>,
     /// customAttributes property.
-    pub custom_attributes: Option<Vec<CustomAttribute>>,
+    pub custom_attributes: Option<Vec<Box<CustomAttribute>>>,
     /// customLabel0 property.
     pub custom_label0: Option<String>,
     /// customLabel1 property.
@@ -350,26 +457,6 @@ pub struct Product {
     pub virtual_model_link: Option<String>,
 }
 
-/// `ProductStructuredDescription` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductStructuredDescription {
-    /// content property.
-    pub content: Option<String>,
-    /// digitalSourceType property.
-    pub digital_source_type: Option<String>,
-}
-
-/// `ProductSubscriptionCost` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductSubscriptionCost {
-    /// amount property.
-    pub amount: Option<Price>,
-    /// period property.
-    pub period: Option<String>,
-    /// periodLength property.
-    pub period_length: Option<String>,
-}
-
 /// `ProductWeight` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductWeight {
@@ -377,33 +464,6 @@ pub struct ProductWeight {
     pub unit: Option<String>,
     /// value property.
     pub value: Option<f64>,
-}
-
-/// `ProductShipping` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductShipping {
-    /// country property.
-    pub country: Option<String>,
-    /// locationGroupName property.
-    pub location_group_name: Option<String>,
-    /// locationId property.
-    pub location_id: Option<String>,
-    /// maxHandlingTime property.
-    pub max_handling_time: Option<String>,
-    /// maxTransitTime property.
-    pub max_transit_time: Option<String>,
-    /// minHandlingTime property.
-    pub min_handling_time: Option<String>,
-    /// minTransitTime property.
-    pub min_transit_time: Option<String>,
-    /// postalCode property.
-    pub postal_code: Option<String>,
-    /// price property.
-    pub price: Option<Price>,
-    /// region property.
-    pub region: Option<String>,
-    /// service property.
-    pub service: Option<String>,
 }
 
 /// `ProductStructuredTitle` type.
@@ -415,81 +475,22 @@ pub struct ProductStructuredTitle {
     pub digital_source_type: Option<String>,
 }
 
-/// `CloudExportAdditionalProperties` type.
+/// `ProductUnitPricingMeasure` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudExportAdditionalProperties {
-    /// boolValue property.
-    pub bool_value: Option<bool>,
-    /// floatValue property.
-    pub float_value: Option<Vec<f64>>,
-    /// intValue property.
-    pub int_value: Option<Vec<String>>,
-    /// maxValue property.
-    pub max_value: Option<f64>,
-    /// minValue property.
-    pub min_value: Option<f64>,
-    /// propertyName property.
-    pub property_name: Option<String>,
-    /// textValue property.
-    pub text_value: Option<Vec<String>>,
-    /// unitCode property.
-    pub unit_code: Option<String>,
-}
-
-/// `ProductShippingWeight` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductShippingWeight {
+pub struct ProductUnitPricingMeasure {
     /// unit property.
     pub unit: Option<String>,
     /// value property.
     pub value: Option<f64>,
 }
 
-/// `CustomAttribute` type.
+/// `ProductDimension` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomAttribute {
-    /// groupValues property.
-    pub group_values: Option<Vec<CustomAttribute>>,
-    /// name property.
-    pub name: Option<String>,
+pub struct ProductDimension {
+    /// unit property.
+    pub unit: Option<String>,
     /// value property.
-    pub value: Option<String>,
-}
-
-/// `ProductTax` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductTax {
-    /// country property.
-    pub country: Option<String>,
-    /// locationId property.
-    pub location_id: Option<String>,
-    /// postalCode property.
-    pub postal_code: Option<String>,
-    /// rate property.
-    pub rate: Option<f64>,
-    /// region property.
-    pub region: Option<String>,
-    /// taxShip property.
-    pub tax_ship: Option<bool>,
-}
-
-/// `LoyaltyProgram` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoyaltyProgram {
-    /// cashbackForFutureUse property.
-    pub cashback_for_future_use: Option<Price>,
-    /// loyaltyPoints property.
-    pub loyalty_points: Option<String>,
-    /// memberPriceEffectiveDate property.
-    pub member_price_effective_date: Option<String>,
-    /// price property.
-    pub price: Option<Price>,
-    /// programLabel property.
-    pub program_label: Option<String>,
-    /// shippingLabel property.
-    pub shipping_label: Option<String>,
-    /// tierLabel property.
-    pub tier_label: Option<String>,
+    pub value: Option<f64>,
 }
 
 // =============================================================================

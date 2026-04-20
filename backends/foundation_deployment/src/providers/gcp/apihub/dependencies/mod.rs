@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,30 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudApihubV1DependencyErrorDetail` type.
+/// `GoogleCloudApihubV1ListDependenciesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1DependencyErrorDetail {
-    /// error property.
-    pub error: Option<String>,
-    /// errorTime property.
-    pub error_time: Option<String>,
-}
-
-/// `GoogleCloudApihubV1DependencyEntityReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1DependencyEntityReference {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// externalApiResourceName property.
-    pub external_api_resource_name: Option<String>,
-    /// operationResourceName property.
-    pub operation_resource_name: Option<String>,
+pub struct GoogleCloudApihubV1ListDependenciesResponse {
+    /// dependencies property.
+    pub dependencies: Option<Vec<GoogleCloudApihubV1Dependency>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `GoogleCloudApihubV1Dependency` type.
@@ -72,13 +62,24 @@ pub struct GoogleCloudApihubV1Dependency {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudApihubV1ListDependenciesResponse` type.
+/// `GoogleCloudApihubV1DependencyErrorDetail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1ListDependenciesResponse {
-    /// dependencies property.
-    pub dependencies: Option<Vec<GoogleCloudApihubV1Dependency>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct GoogleCloudApihubV1DependencyErrorDetail {
+    /// error property.
+    pub error: Option<String>,
+    /// errorTime property.
+    pub error_time: Option<String>,
+}
+
+/// `GoogleCloudApihubV1DependencyEntityReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1DependencyEntityReference {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// externalApiResourceName property.
+    pub external_api_resource_name: Option<String>,
+    /// operationResourceName property.
+    pub operation_resource_name: Option<String>,
 }
 
 // =============================================================================

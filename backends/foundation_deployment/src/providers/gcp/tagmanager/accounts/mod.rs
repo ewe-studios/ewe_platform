@@ -12,35 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListAccountsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAccountsResponse {
-    /// account property.
-    pub account: Option<Vec<Account>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `AccountFeatures` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountFeatures {
-    /// supportMultipleContainers property.
-    pub support_multiple_containers: Option<bool>,
-    /// supportUserPermissions property.
-    pub support_user_permissions: Option<bool>,
-}
 
 /// `Account` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -59,6 +42,24 @@ pub struct Account {
     pub share_data: Option<bool>,
     /// tagManagerUrl property.
     pub tag_manager_url: Option<String>,
+}
+
+/// `ListAccountsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAccountsResponse {
+    /// account property.
+    pub account: Option<Vec<Account>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `AccountFeatures` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountFeatures {
+    /// supportMultipleContainers property.
+    pub support_multiple_containers: Option<bool>,
+    /// supportUserPermissions property.
+    pub support_user_permissions: Option<bool>,
 }
 
 // =============================================================================

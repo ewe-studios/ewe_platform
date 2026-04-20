@@ -12,17 +12,38 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListPolicyIssuesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListPolicyIssuesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// policyIssues property.
+    pub policy_issues: Option<Vec<PolicyIssue>>,
+}
+
+/// `PolicyTopic` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PolicyTopic {
+    /// mustFix property.
+    pub must_fix: Option<bool>,
+    /// topic property.
+    pub topic: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
 
 /// `PolicyIssue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -62,26 +83,6 @@ pub struct Date {
     pub month: Option<i64>,
     /// year property.
     pub year: Option<i64>,
-}
-
-/// `ListPolicyIssuesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListPolicyIssuesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// policyIssues property.
-    pub policy_issues: Option<Vec<PolicyIssue>>,
-}
-
-/// `PolicyTopic` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PolicyTopic {
-    /// mustFix property.
-    pub must_fix: Option<bool>,
-    /// topic property.
-    pub topic: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
 }
 
 // =============================================================================

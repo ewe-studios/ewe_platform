@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,55 +24,45 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `AuthorizedNetwork` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthorizedNetwork {
-    /// cidrRange property.
-    pub cidr_range: Option<String>,
-}
-
-/// `CloudSqlConnectionProfile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudSqlConnectionProfile {
-    /// additionalPublicIp property.
-    pub additional_public_ip: Option<String>,
-    /// cloudSqlId property.
-    pub cloud_sql_id: Option<String>,
-    /// privateIp property.
-    pub private_ip: Option<String>,
-    /// publicIp property.
-    pub public_ip: Option<String>,
-    /// settings property.
-    pub settings: Option<CloudSqlSettings>,
-}
-
-/// `AlloyDbConnectionProfile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AlloyDbConnectionProfile {
-    /// clusterId property.
-    pub cluster_id: Option<String>,
-    /// settings property.
-    pub settings: Option<AlloyDbSettings>,
-}
-
 /// `StaticIpConnectivity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StaticIpConnectivity {}
+
+/// `OracleAsmConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OracleAsmConfig {
+    /// asmService property.
+    pub asm_service: Option<String>,
+    /// hostname property.
+    pub hostname: Option<String>,
+    /// password property.
+    pub password: Option<String>,
+    /// passwordSet property.
+    pub password_set: Option<bool>,
+    /// port property.
+    pub port: Option<i64>,
+    /// ssl property.
+    pub ssl: Option<SslConfig>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
 
 /// `PostgreSqlConnectionProfile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -108,21 +99,40 @@ pub struct PostgreSqlConnectionProfile {
     pub username: Option<String>,
 }
 
-/// `SqlServerConnectionProfile` type.
+/// `SqlAclEntry` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerConnectionProfile {
-    /// backups property.
-    pub backups: Option<SqlServerBackups>,
+pub struct SqlAclEntry {
+    /// expireTime property.
+    pub expire_time: Option<String>,
+    /// label property.
+    pub label: Option<String>,
+    /// ttl property.
+    pub ttl: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `PrivateConnectivity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrivateConnectivity {
+    /// privateConnection property.
+    pub private_connection: Option<String>,
+}
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `MySqlConnectionProfile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MySqlConnectionProfile {
     /// cloudSqlId property.
     pub cloud_sql_id: Option<String>,
-    /// cloudSqlProjectId property.
-    pub cloud_sql_project_id: Option<String>,
-    /// database property.
-    pub database: Option<String>,
-    /// dbmPort property.
-    pub dbm_port: Option<i64>,
-    /// forwardSshConnectivity property.
-    pub forward_ssh_connectivity: Option<ForwardSshTunnelConnectivity>,
     /// host property.
     pub host: Option<String>,
     /// password property.
@@ -131,171 +141,10 @@ pub struct SqlServerConnectionProfile {
     pub password_set: Option<bool>,
     /// port property.
     pub port: Option<i64>,
-    /// privateConnectivity property.
-    pub private_connectivity: Option<PrivateConnectivity>,
-    /// privateServiceConnectConnectivity property.
-    pub private_service_connect_connectivity: Option<PrivateServiceConnectConnectivity>,
-    /// ssl property.
-    pub ssl: Option<SslConfig>,
-    /// staticIpConnectivity property.
-    pub static_ip_connectivity: Option<StaticIpConnectivity>,
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `ForwardSshTunnelConnectivity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ForwardSshTunnelConnectivity {
-    /// hostname property.
-    pub hostname: Option<String>,
-    /// password property.
-    pub password: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
-    /// privateKey property.
-    pub private_key: Option<String>,
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `SqlIpConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlIpConfig {
-    /// allocatedIpRange property.
-    pub allocated_ip_range: Option<String>,
-    /// authorizedNetworks property.
-    pub authorized_networks: Option<Vec<SqlAclEntry>>,
-    /// enableIpv4 property.
-    pub enable_ipv4: Option<bool>,
-    /// privateNetwork property.
-    pub private_network: Option<String>,
-    /// requireSsl property.
-    pub require_ssl: Option<bool>,
-}
-
-/// `OracleConnectionProfile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OracleConnectionProfile {
-    /// databaseService property.
-    pub database_service: Option<String>,
-    /// forwardSshConnectivity property.
-    pub forward_ssh_connectivity: Option<ForwardSshTunnelConnectivity>,
-    /// host property.
-    pub host: Option<String>,
-    /// oracleAsmConfig property.
-    pub oracle_asm_config: Option<OracleAsmConfig>,
-    /// password property.
-    pub password: Option<String>,
-    /// passwordSet property.
-    pub password_set: Option<bool>,
-    /// port property.
-    pub port: Option<i64>,
-    /// privateConnectivity property.
-    pub private_connectivity: Option<PrivateConnectivity>,
-    /// ssl property.
-    pub ssl: Option<SslConfig>,
-    /// staticServiceIpConnectivity property.
-    pub static_service_ip_connectivity: Option<StaticServiceIpConnectivity>,
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `DataCacheConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataCacheConfig {
-    /// dataCacheEnabled property.
-    pub data_cache_enabled: Option<bool>,
-}
-
-/// `UserPassword` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserPassword {
-    /// password property.
-    pub password: Option<String>,
-    /// passwordSet property.
-    pub password_set: Option<bool>,
-    /// user property.
-    pub user: Option<String>,
-}
-
-/// `AlloyDbSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AlloyDbSettings {
-    /// databaseVersion property.
-    pub database_version: Option<String>,
-    /// encryptionConfig property.
-    pub encryption_config: Option<EncryptionConfig>,
-    /// initialUser property.
-    pub initial_user: Option<UserPassword>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// primaryInstanceSettings property.
-    pub primary_instance_settings: Option<PrimaryInstanceSettings>,
-    /// vpcNetwork property.
-    pub vpc_network: Option<String>,
-}
-
-/// `ListConnectionProfilesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListConnectionProfilesResponse {
-    /// connectionProfiles property.
-    pub connection_profiles: Option<Vec<ConnectionProfile>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `SqlServerBackups` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerBackups {
-    /// gcsBucket property.
-    pub gcs_bucket: Option<String>,
-    /// gcsPrefix property.
-    pub gcs_prefix: Option<String>,
-}
-
-/// `OracleAsmConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OracleAsmConfig {
-    /// asmService property.
-    pub asm_service: Option<String>,
-    /// hostname property.
-    pub hostname: Option<String>,
-    /// password property.
-    pub password: Option<String>,
-    /// passwordSet property.
-    pub password_set: Option<bool>,
-    /// port property.
-    pub port: Option<i64>,
     /// ssl property.
     pub ssl: Option<SslConfig>,
     /// username property.
     pub username: Option<String>,
-}
-
-/// `MachineConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MachineConfig {
-    /// cpuCount property.
-    pub cpu_count: Option<i64>,
-    /// machineType property.
-    pub machine_type: Option<String>,
-}
-
-/// `SslConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SslConfig {
-    /// caCertificate property.
-    pub ca_certificate: Option<String>,
-    /// clientCertificate property.
-    pub client_certificate: Option<String>,
-    /// clientKey property.
-    pub client_key: Option<String>,
-    /// sslFlags property.
-    pub ssl_flags: Option<serde_json::Value>,
-    /// type property.
-    pub r#type: Option<String>,
 }
 
 /// `Binding` type.
@@ -309,17 +158,13 @@ pub struct Binding {
     pub role: Option<String>,
 }
 
-/// `SqlAclEntry` type.
+/// `MachineConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlAclEntry {
-    /// expireTime property.
-    pub expire_time: Option<String>,
-    /// label property.
-    pub label: Option<String>,
-    /// ttl property.
-    pub ttl: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct MachineConfig {
+    /// cpuCount property.
+    pub cpu_count: Option<i64>,
+    /// machineType property.
+    pub machine_type: Option<String>,
 }
 
 /// `CloudSqlSettings` type.
@@ -373,113 +218,6 @@ pub struct CloudSqlSettings {
     pub zone: Option<String>,
 }
 
-/// `EncryptionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionConfig {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `PrimaryInstanceSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrimaryInstanceSettings {
-    /// databaseFlags property.
-    pub database_flags: Option<serde_json::Value>,
-    /// id property.
-    pub id: Option<String>,
-    /// instanceNetworkConfig property.
-    pub instance_network_config: Option<InstanceNetworkConfig>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// machineConfig property.
-    pub machine_config: Option<MachineConfig>,
-    /// outboundPublicIpAddresses property.
-    pub outbound_public_ip_addresses: Option<Vec<String>>,
-    /// privateIp property.
-    pub private_ip: Option<String>,
-}
-
-/// `InstanceNetworkConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceNetworkConfig {
-    /// authorizedExternalNetworks property.
-    pub authorized_external_networks: Option<Vec<AuthorizedNetwork>>,
-    /// enableOutboundPublicIp property.
-    pub enable_outbound_public_ip: Option<bool>,
-    /// enablePublicIp property.
-    pub enable_public_ip: Option<bool>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `MySqlConnectionProfile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MySqlConnectionProfile {
-    /// cloudSqlId property.
-    pub cloud_sql_id: Option<String>,
-    /// host property.
-    pub host: Option<String>,
-    /// password property.
-    pub password: Option<String>,
-    /// passwordSet property.
-    pub password_set: Option<bool>,
-    /// port property.
-    pub port: Option<i64>,
-    /// ssl property.
-    pub ssl: Option<SslConfig>,
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `PrivateConnectivity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrivateConnectivity {
-    /// privateConnection property.
-    pub private_connection: Option<String>,
-}
-
-/// `PrivateServiceConnectConnectivity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrivateServiceConnectConnectivity {
-    /// serviceAttachment property.
-    pub service_attachment: Option<String>,
-}
-
-/// `StaticServiceIpConnectivity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StaticServiceIpConnectivity {}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
 /// `ConnectionProfile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectionProfile {
@@ -517,6 +255,269 @@ pub struct ConnectionProfile {
     pub state: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `ListConnectionProfilesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListConnectionProfilesResponse {
+    /// connectionProfiles property.
+    pub connection_profiles: Option<Vec<ConnectionProfile>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `SslConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SslConfig {
+    /// caCertificate property.
+    pub ca_certificate: Option<String>,
+    /// clientCertificate property.
+    pub client_certificate: Option<String>,
+    /// clientKey property.
+    pub client_key: Option<String>,
+    /// sslFlags property.
+    pub ssl_flags: Option<serde_json::Value>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `PrivateServiceConnectConnectivity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrivateServiceConnectConnectivity {
+    /// serviceAttachment property.
+    pub service_attachment: Option<String>,
+}
+
+/// `DataCacheConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataCacheConfig {
+    /// dataCacheEnabled property.
+    pub data_cache_enabled: Option<bool>,
+}
+
+/// `InstanceNetworkConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceNetworkConfig {
+    /// authorizedExternalNetworks property.
+    pub authorized_external_networks: Option<Vec<AuthorizedNetwork>>,
+    /// enableOutboundPublicIp property.
+    pub enable_outbound_public_ip: Option<bool>,
+    /// enablePublicIp property.
+    pub enable_public_ip: Option<bool>,
+}
+
+/// `ForwardSshTunnelConnectivity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ForwardSshTunnelConnectivity {
+    /// hostname property.
+    pub hostname: Option<String>,
+    /// password property.
+    pub password: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
+    /// privateKey property.
+    pub private_key: Option<String>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `AuthorizedNetwork` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthorizedNetwork {
+    /// cidrRange property.
+    pub cidr_range: Option<String>,
+}
+
+/// `SqlServerConnectionProfile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerConnectionProfile {
+    /// backups property.
+    pub backups: Option<SqlServerBackups>,
+    /// cloudSqlId property.
+    pub cloud_sql_id: Option<String>,
+    /// cloudSqlProjectId property.
+    pub cloud_sql_project_id: Option<String>,
+    /// database property.
+    pub database: Option<String>,
+    /// dbmPort property.
+    pub dbm_port: Option<i64>,
+    /// forwardSshConnectivity property.
+    pub forward_ssh_connectivity: Option<ForwardSshTunnelConnectivity>,
+    /// host property.
+    pub host: Option<String>,
+    /// password property.
+    pub password: Option<String>,
+    /// passwordSet property.
+    pub password_set: Option<bool>,
+    /// port property.
+    pub port: Option<i64>,
+    /// privateConnectivity property.
+    pub private_connectivity: Option<PrivateConnectivity>,
+    /// privateServiceConnectConnectivity property.
+    pub private_service_connect_connectivity: Option<PrivateServiceConnectConnectivity>,
+    /// ssl property.
+    pub ssl: Option<SslConfig>,
+    /// staticIpConnectivity property.
+    pub static_ip_connectivity: Option<StaticIpConnectivity>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `SqlServerBackups` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerBackups {
+    /// gcsBucket property.
+    pub gcs_bucket: Option<String>,
+    /// gcsPrefix property.
+    pub gcs_prefix: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `AlloyDbSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AlloyDbSettings {
+    /// databaseVersion property.
+    pub database_version: Option<String>,
+    /// encryptionConfig property.
+    pub encryption_config: Option<EncryptionConfig>,
+    /// initialUser property.
+    pub initial_user: Option<UserPassword>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// primaryInstanceSettings property.
+    pub primary_instance_settings: Option<PrimaryInstanceSettings>,
+    /// vpcNetwork property.
+    pub vpc_network: Option<String>,
+}
+
+/// `SqlIpConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlIpConfig {
+    /// allocatedIpRange property.
+    pub allocated_ip_range: Option<String>,
+    /// authorizedNetworks property.
+    pub authorized_networks: Option<Vec<SqlAclEntry>>,
+    /// enableIpv4 property.
+    pub enable_ipv4: Option<bool>,
+    /// privateNetwork property.
+    pub private_network: Option<String>,
+    /// requireSsl property.
+    pub require_ssl: Option<bool>,
+}
+
+/// `CloudSqlConnectionProfile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudSqlConnectionProfile {
+    /// additionalPublicIp property.
+    pub additional_public_ip: Option<String>,
+    /// cloudSqlId property.
+    pub cloud_sql_id: Option<String>,
+    /// privateIp property.
+    pub private_ip: Option<String>,
+    /// publicIp property.
+    pub public_ip: Option<String>,
+    /// settings property.
+    pub settings: Option<CloudSqlSettings>,
+}
+
+/// `UserPassword` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UserPassword {
+    /// password property.
+    pub password: Option<String>,
+    /// passwordSet property.
+    pub password_set: Option<bool>,
+    /// user property.
+    pub user: Option<String>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `StaticServiceIpConnectivity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StaticServiceIpConnectivity {}
+
+/// `EncryptionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EncryptionConfig {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+}
+
+/// `OracleConnectionProfile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OracleConnectionProfile {
+    /// databaseService property.
+    pub database_service: Option<String>,
+    /// forwardSshConnectivity property.
+    pub forward_ssh_connectivity: Option<ForwardSshTunnelConnectivity>,
+    /// host property.
+    pub host: Option<String>,
+    /// oracleAsmConfig property.
+    pub oracle_asm_config: Option<OracleAsmConfig>,
+    /// password property.
+    pub password: Option<String>,
+    /// passwordSet property.
+    pub password_set: Option<bool>,
+    /// port property.
+    pub port: Option<i64>,
+    /// privateConnectivity property.
+    pub private_connectivity: Option<PrivateConnectivity>,
+    /// ssl property.
+    pub ssl: Option<SslConfig>,
+    /// staticServiceIpConnectivity property.
+    pub static_service_ip_connectivity: Option<StaticServiceIpConnectivity>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `PrimaryInstanceSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrimaryInstanceSettings {
+    /// databaseFlags property.
+    pub database_flags: Option<serde_json::Value>,
+    /// id property.
+    pub id: Option<String>,
+    /// instanceNetworkConfig property.
+    pub instance_network_config: Option<InstanceNetworkConfig>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// machineConfig property.
+    pub machine_config: Option<MachineConfig>,
+    /// outboundPublicIpAddresses property.
+    pub outbound_public_ip_addresses: Option<Vec<String>>,
+    /// privateIp property.
+    pub private_ip: Option<String>,
+}
+
+/// `AlloyDbConnectionProfile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AlloyDbConnectionProfile {
+    /// clusterId property.
+    pub cluster_id: Option<String>,
+    /// settings property.
+    pub settings: Option<AlloyDbSettings>,
 }
 
 // =============================================================================

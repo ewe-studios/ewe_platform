@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudRecommenderV1ListRecommendationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecommenderV1ListRecommendationsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// recommendations property.
-    pub recommendations: Option<Vec<GoogleCloudRecommenderV1Recommendation>>,
-}
 
 /// `GoogleCloudRecommenderV1CostProjection` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,47 +36,11 @@ pub struct GoogleCloudRecommenderV1CostProjection {
     pub duration: Option<String>,
 }
 
-/// `GoogleCloudRecommenderV1RecommendationInsightReference` type.
+/// `GoogleCloudRecommenderV1OperationGroup` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecommenderV1RecommendationInsightReference {
-    /// insight property.
-    pub insight: Option<String>,
-}
-
-/// `GoogleCloudRecommenderV1RecommendationStateInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecommenderV1RecommendationStateInfo {
-    /// state property.
-    pub state: Option<String>,
-    /// stateMetadata property.
-    pub state_metadata: Option<serde_json::Value>,
-}
-
-/// `GoogleCloudRecommenderV1RecommendationContent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecommenderV1RecommendationContent {
-    /// operationGroups property.
-    pub operation_groups: Option<Vec<GoogleCloudRecommenderV1OperationGroup>>,
-    /// overview property.
-    pub overview: Option<serde_json::Value>,
-}
-
-/// `GoogleTypeMoney` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeMoney {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// units property.
-    pub units: Option<String>,
-}
-
-/// `GoogleCloudRecommenderV1ValueMatcher` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecommenderV1ValueMatcher {
-    /// matchesPattern property.
-    pub matches_pattern: Option<String>,
+pub struct GoogleCloudRecommenderV1OperationGroup {
+    /// operations property.
+    pub operations: Option<Vec<GoogleCloudRecommenderV1Operation>>,
 }
 
 /// `GoogleCloudRecommenderV1Operation` type.
@@ -110,15 +66,6 @@ pub struct GoogleCloudRecommenderV1Operation {
     pub value: Option<serde_json::Value>,
     /// valueMatcher property.
     pub value_matcher: Option<GoogleCloudRecommenderV1ValueMatcher>,
-}
-
-/// `GoogleCloudRecommenderV1SustainabilityProjection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecommenderV1SustainabilityProjection {
-    /// duration property.
-    pub duration: Option<String>,
-    /// kgCO2e property.
-    pub kg_co2e: Option<f64>,
 }
 
 /// `GoogleCloudRecommenderV1Recommendation` type.
@@ -152,6 +99,15 @@ pub struct GoogleCloudRecommenderV1Recommendation {
     pub xor_group_id: Option<String>,
 }
 
+/// `GoogleCloudRecommenderV1RecommendationStateInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecommenderV1RecommendationStateInfo {
+    /// state property.
+    pub state: Option<String>,
+    /// stateMetadata property.
+    pub state_metadata: Option<serde_json::Value>,
+}
+
 /// `GoogleCloudRecommenderV1Impact` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1Impact {
@@ -169,18 +125,27 @@ pub struct GoogleCloudRecommenderV1Impact {
     pub sustainability_projection: Option<GoogleCloudRecommenderV1SustainabilityProjection>,
 }
 
-/// `GoogleCloudRecommenderV1OperationGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecommenderV1OperationGroup {
-    /// operations property.
-    pub operations: Option<Vec<GoogleCloudRecommenderV1Operation>>,
-}
-
 /// `GoogleCloudRecommenderV1SecurityProjection` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1SecurityProjection {
     /// details property.
     pub details: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudRecommenderV1RecommendationInsightReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecommenderV1RecommendationInsightReference {
+    /// insight property.
+    pub insight: Option<String>,
+}
+
+/// `GoogleCloudRecommenderV1SustainabilityProjection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecommenderV1SustainabilityProjection {
+    /// duration property.
+    pub duration: Option<String>,
+    /// kgCO2e property.
+    pub kg_co2e: Option<f64>,
 }
 
 /// `GoogleCloudRecommenderV1ReliabilityProjection` type.
@@ -190,6 +155,42 @@ pub struct GoogleCloudRecommenderV1ReliabilityProjection {
     pub details: Option<serde_json::Value>,
     /// risks property.
     pub risks: Option<Vec<String>>,
+}
+
+/// `GoogleCloudRecommenderV1ValueMatcher` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecommenderV1ValueMatcher {
+    /// matchesPattern property.
+    pub matches_pattern: Option<String>,
+}
+
+/// `GoogleCloudRecommenderV1RecommendationContent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecommenderV1RecommendationContent {
+    /// operationGroups property.
+    pub operation_groups: Option<Vec<GoogleCloudRecommenderV1OperationGroup>>,
+    /// overview property.
+    pub overview: Option<serde_json::Value>,
+}
+
+/// `GoogleTypeMoney` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeMoney {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// units property.
+    pub units: Option<String>,
+}
+
+/// `GoogleCloudRecommenderV1ListRecommendationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecommenderV1ListRecommendationsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// recommendations property.
+    pub recommendations: Option<Vec<GoogleCloudRecommenderV1Recommendation>>,
 }
 
 // =============================================================================

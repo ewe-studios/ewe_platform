@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,34 +22,21 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Expr` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `Policy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Policy {
-    /// bindings property.
-    pub bindings: Option<Vec<Binding>>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// version property.
-    pub version: Option<i64>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `TestIamPermissionsResponse` type.
@@ -56,15 +44,6 @@ pub struct Policy {
 pub struct TestIamPermissionsResponse {
     /// permissions property.
     pub permissions: Option<Vec<String>>,
-}
-
-/// `ListViewsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListViewsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// views property.
-    pub views: Option<Vec<LogView>>,
 }
 
 /// `LogView` type.
@@ -82,15 +61,37 @@ pub struct LogView {
     pub update_time: Option<String>,
 }
 
-/// `Binding` type.
+/// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `ListViewsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListViewsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// views property.
+    pub views: Option<Vec<LogView>>,
+}
+
+/// `Policy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Policy {
+    /// bindings property.
+    pub bindings: Option<Vec<Binding>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// version property.
+    pub version: Option<i64>,
 }
 
 // =============================================================================

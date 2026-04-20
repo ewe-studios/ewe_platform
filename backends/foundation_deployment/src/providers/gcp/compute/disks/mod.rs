@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,37 +22,117 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ErrorInfo` type.
+/// `DiskAggregatedList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
+pub struct DiskAggregatedList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<serde_json::Value>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// unreachables property.
+    pub unreachables: Option<Vec<String>>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `GetVersionOperationMetadata` type.
+/// `LocalizedMessage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadata {
-    /// inlineSbomInfo property.
-    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
 }
 
-/// `SetCommonInstanceMetadataOperationMetadata` type.
+/// `DiskList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetCommonInstanceMetadataOperationMetadata {
-    /// clientOperationId property.
-    pub client_operation_id: Option<String>,
-    /// perLocationOperations property.
-    pub per_location_operations: Option<serde_json::Value>,
+pub struct DiskList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<Disk>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `DiskResourceStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskResourceStatus {
+    /// asyncPrimaryDisk property.
+    pub async_primary_disk: Option<DiskResourceStatusAsyncReplicationStatus>,
+    /// asyncSecondaryDisks property.
+    pub async_secondary_disks: Option<serde_json::Value>,
+}
+
+/// `DiskResourceStatusAsyncReplicationStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskResourceStatusAsyncReplicationStatus {
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `CustomerEncryptionKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomerEncryptionKey {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+    /// kmsKeyServiceAccount property.
+    pub kms_key_service_account: Option<String>,
+    /// rawKey property.
+    pub raw_key: Option<String>,
+    /// rsaEncryptedKey property.
+    pub rsa_encrypted_key: Option<String>,
+    /// sha256 property.
+    pub sha256: Option<String>,
+}
+
+/// `Help` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
+}
+
+/// `QuotaExceededInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuotaExceededInfo {
+    /// dimensions property.
+    pub dimensions: Option<serde_json::Value>,
+    /// futureLimit property.
+    pub future_limit: Option<f64>,
+    /// limit property.
+    pub limit: Option<f64>,
+    /// limitName property.
+    pub limit_name: Option<String>,
+    /// metricName property.
+    pub metric_name: Option<String>,
+    /// rolloutStatus property.
+    pub rollout_status: Option<String>,
 }
 
 /// `GuestOsFeature` type.
@@ -59,35 +140,6 @@ pub struct SetCommonInstanceMetadataOperationMetadata {
 pub struct GuestOsFeature {
     /// type property.
     pub r#type: Option<String>,
-}
-
-/// `DiskParams` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskParams {
-    /// resourceManagerTags property.
-    pub resource_manager_tags: Option<serde_json::Value>,
-}
-
-/// `DiskAsyncReplication` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskAsyncReplication {
-    /// consistencyGroupPolicy property.
-    pub consistency_group_policy: Option<String>,
-    /// consistencyGroupPolicyId property.
-    pub consistency_group_policy_id: Option<String>,
-    /// disk property.
-    pub disk: Option<String>,
-    /// diskId property.
-    pub disk_id: Option<String>,
-}
-
-/// `GetVersionOperationMetadataSbomInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
 }
 
 /// `Disk` type.
@@ -195,111 +247,40 @@ pub struct Disk {
     pub zone: Option<String>,
 }
 
-/// `DiskAggregatedList` type.
+/// `GetVersionOperationMetadataSbomInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskAggregatedList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<serde_json::Value>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// unreachables property.
-    pub unreachables: Option<Vec<String>>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
 }
 
-/// `Help` type.
+/// `ErrorInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
 }
 
-/// `DiskList` type.
+/// `SetCommonInstanceMetadataOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<Disk>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+pub struct SetCommonInstanceMetadataOperationMetadata {
+    /// clientOperationId property.
+    pub client_operation_id: Option<String>,
+    /// perLocationOperations property.
+    pub per_location_operations: Option<serde_json::Value>,
 }
 
-/// `CustomerEncryptionKey` type.
+/// `GetVersionOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerEncryptionKey {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-    /// kmsKeyServiceAccount property.
-    pub kms_key_service_account: Option<String>,
-    /// rawKey property.
-    pub raw_key: Option<String>,
-    /// rsaEncryptedKey property.
-    pub rsa_encrypted_key: Option<String>,
-    /// sha256 property.
-    pub sha256: Option<String>,
-}
-
-/// `DiskResourceStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskResourceStatus {
-    /// asyncPrimaryDisk property.
-    pub async_primary_disk: Option<DiskResourceStatusAsyncReplicationStatus>,
-    /// asyncSecondaryDisks property.
-    pub async_secondary_disks: Option<serde_json::Value>,
-}
-
-/// `DiskResourceStatusAsyncReplicationStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskResourceStatusAsyncReplicationStatus {
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `QuotaExceededInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotaExceededInfo {
-    /// dimensions property.
-    pub dimensions: Option<serde_json::Value>,
-    /// futureLimit property.
-    pub future_limit: Option<f64>,
-    /// limit property.
-    pub limit: Option<f64>,
-    /// limitName property.
-    pub limit_name: Option<String>,
-    /// metricName property.
-    pub metric_name: Option<String>,
-    /// rolloutStatus property.
-    pub rollout_status: Option<String>,
-}
-
-/// `InstancesBulkInsertOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
+pub struct GetVersionOperationMetadata {
+    /// inlineSbomInfo property.
+    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
 }
 
 /// `HelpLink` type.
@@ -309,6 +290,26 @@ pub struct HelpLink {
     pub description: Option<String>,
     /// url property.
     pub url: Option<String>,
+}
+
+/// `DiskAsyncReplication` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskAsyncReplication {
+    /// consistencyGroupPolicy property.
+    pub consistency_group_policy: Option<String>,
+    /// consistencyGroupPolicyId property.
+    pub consistency_group_policy_id: Option<String>,
+    /// disk property.
+    pub disk: Option<String>,
+    /// diskId property.
+    pub disk_id: Option<String>,
+}
+
+/// `DiskParams` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskParams {
+    /// resourceManagerTags property.
+    pub resource_manager_tags: Option<serde_json::Value>,
 }
 
 // =============================================================================

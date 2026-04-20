@@ -12,85 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `BuildingInsights` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BuildingInsights {
-    /// administrativeArea property.
-    pub administrative_area: Option<String>,
-    /// boundingBox property.
-    pub bounding_box: Option<LatLngBox>,
-    /// center property.
-    pub center: Option<LatLng>,
-    /// imageryDate property.
-    pub imagery_date: Option<Date>,
-    /// imageryProcessedDate property.
-    pub imagery_processed_date: Option<Date>,
-    /// imageryQuality property.
-    pub imagery_quality: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// postalCode property.
-    pub postal_code: Option<String>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-    /// solarPotential property.
-    pub solar_potential: Option<SolarPotential>,
-    /// statisticalArea property.
-    pub statistical_area: Option<String>,
-}
-
-/// `SolarPanel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SolarPanel {
-    /// center property.
-    pub center: Option<LatLng>,
-    /// orientation property.
-    pub orientation: Option<String>,
-    /// segmentIndex property.
-    pub segment_index: Option<i64>,
-    /// yearlyEnergyDcKwh property.
-    pub yearly_energy_dc_kwh: Option<f64>,
-}
-
-/// `RoofSegmentSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RoofSegmentSummary {
-    /// azimuthDegrees property.
-    pub azimuth_degrees: Option<f64>,
-    /// panelsCount property.
-    pub panels_count: Option<i64>,
-    /// pitchDegrees property.
-    pub pitch_degrees: Option<f64>,
-    /// segmentIndex property.
-    pub segment_index: Option<i64>,
-    /// yearlyEnergyDcKwh property.
-    pub yearly_energy_dc_kwh: Option<f64>,
-}
-
-/// `FinancedPurchaseSavings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FinancedPurchaseSavings {
-    /// annualLoanPayment property.
-    pub annual_loan_payment: Option<Money>,
-    /// loanInterestRate property.
-    pub loan_interest_rate: Option<f64>,
-    /// rebateValue property.
-    pub rebate_value: Option<Money>,
-    /// savings property.
-    pub savings: Option<SavingsOverTime>,
-}
 
 /// `LeasingSavings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -114,6 +47,17 @@ pub struct Date {
     pub month: Option<i64>,
     /// year property.
     pub year: Option<i64>,
+}
+
+/// `Money` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Money {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// units property.
+    pub units: Option<String>,
 }
 
 /// `SolarPotential` type.
@@ -149,28 +93,17 @@ pub struct SolarPotential {
     pub whole_roof_stats: Option<SizeAndSunshineStats>,
 }
 
-/// `CashPurchaseSavings` type.
+/// `RoofSegmentSummary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CashPurchaseSavings {
-    /// outOfPocketCost property.
-    pub out_of_pocket_cost: Option<Money>,
-    /// paybackYears property.
-    pub payback_years: Option<f64>,
-    /// rebateValue property.
-    pub rebate_value: Option<Money>,
-    /// savings property.
-    pub savings: Option<SavingsOverTime>,
-    /// upfrontCost property.
-    pub upfront_cost: Option<Money>,
-}
-
-/// `SolarPanelConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SolarPanelConfig {
+pub struct RoofSegmentSummary {
+    /// azimuthDegrees property.
+    pub azimuth_degrees: Option<f64>,
     /// panelsCount property.
     pub panels_count: Option<i64>,
-    /// roofSegmentSummaries property.
-    pub roof_segment_summaries: Option<Vec<RoofSegmentSummary>>,
+    /// pitchDegrees property.
+    pub pitch_degrees: Option<f64>,
+    /// segmentIndex property.
+    pub segment_index: Option<i64>,
     /// yearlyEnergyDcKwh property.
     pub yearly_energy_dc_kwh: Option<f64>,
 }
@@ -190,6 +123,52 @@ pub struct SavingsOverTime {
     pub savings_year1: Option<Money>,
     /// savingsYear20 property.
     pub savings_year20: Option<Money>,
+}
+
+/// `LatLngBox` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LatLngBox {
+    /// ne property.
+    pub ne: Option<LatLng>,
+    /// sw property.
+    pub sw: Option<LatLng>,
+}
+
+/// `LatLng` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LatLng {
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
+}
+
+/// `SolarPanel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SolarPanel {
+    /// center property.
+    pub center: Option<LatLng>,
+    /// orientation property.
+    pub orientation: Option<String>,
+    /// segmentIndex property.
+    pub segment_index: Option<i64>,
+    /// yearlyEnergyDcKwh property.
+    pub yearly_energy_dc_kwh: Option<f64>,
+}
+
+/// `CashPurchaseSavings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CashPurchaseSavings {
+    /// outOfPocketCost property.
+    pub out_of_pocket_cost: Option<Money>,
+    /// paybackYears property.
+    pub payback_years: Option<f64>,
+    /// rebateValue property.
+    pub rebate_value: Option<Money>,
+    /// savings property.
+    pub savings: Option<SavingsOverTime>,
+    /// upfrontCost property.
+    pub upfront_cost: Option<Money>,
 }
 
 /// `FinancialDetails` type.
@@ -238,26 +217,6 @@ pub struct FinancialAnalysis {
     pub panel_config_index: Option<i64>,
 }
 
-/// `LatLngBox` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LatLngBox {
-    /// ne property.
-    pub ne: Option<LatLng>,
-    /// sw property.
-    pub sw: Option<LatLng>,
-}
-
-/// `Money` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Money {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// units property.
-    pub units: Option<String>,
-}
-
 /// `RoofSegmentSizeAndSunshineStats` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RoofSegmentSizeAndSunshineStats {
@@ -275,15 +234,6 @@ pub struct RoofSegmentSizeAndSunshineStats {
     pub stats: Option<SizeAndSunshineStats>,
 }
 
-/// `LatLng` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LatLng {
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
-}
-
 /// `SizeAndSunshineStats` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SizeAndSunshineStats {
@@ -293,6 +243,57 @@ pub struct SizeAndSunshineStats {
     pub ground_area_meters2: Option<f64>,
     /// sunshineQuantiles property.
     pub sunshine_quantiles: Option<Vec<f64>>,
+}
+
+/// `SolarPanelConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SolarPanelConfig {
+    /// panelsCount property.
+    pub panels_count: Option<i64>,
+    /// roofSegmentSummaries property.
+    pub roof_segment_summaries: Option<Vec<RoofSegmentSummary>>,
+    /// yearlyEnergyDcKwh property.
+    pub yearly_energy_dc_kwh: Option<f64>,
+}
+
+/// `FinancedPurchaseSavings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FinancedPurchaseSavings {
+    /// annualLoanPayment property.
+    pub annual_loan_payment: Option<Money>,
+    /// loanInterestRate property.
+    pub loan_interest_rate: Option<f64>,
+    /// rebateValue property.
+    pub rebate_value: Option<Money>,
+    /// savings property.
+    pub savings: Option<SavingsOverTime>,
+}
+
+/// `BuildingInsights` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BuildingInsights {
+    /// administrativeArea property.
+    pub administrative_area: Option<String>,
+    /// boundingBox property.
+    pub bounding_box: Option<LatLngBox>,
+    /// center property.
+    pub center: Option<LatLng>,
+    /// imageryDate property.
+    pub imagery_date: Option<Date>,
+    /// imageryProcessedDate property.
+    pub imagery_processed_date: Option<Date>,
+    /// imageryQuality property.
+    pub imagery_quality: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// postalCode property.
+    pub postal_code: Option<String>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+    /// solarPotential property.
+    pub solar_potential: Option<SolarPotential>,
+    /// statisticalArea property.
+    pub statistical_area: Option<String>,
 }
 
 // =============================================================================

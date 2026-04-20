@@ -12,17 +12,25 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ReservationSubBlocksGetResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReservationSubBlocksGetResponse {
+    /// resource property.
+    pub resource: Option<ReservationSubBlock>,
+}
 
 /// `ReservationSubBlock` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -59,21 +67,30 @@ pub struct ReservationSubBlock {
     pub zone: Option<String>,
 }
 
-/// `ReservationSubBlocksGetResponse` type.
+/// `ReservationSubBlockHealthInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReservationSubBlocksGetResponse {
-    /// resource property.
-    pub resource: Option<ReservationSubBlock>,
+pub struct ReservationSubBlockHealthInfo {
+    /// degradedHostCount property.
+    pub degraded_host_count: Option<i64>,
+    /// degradedInfraCount property.
+    pub degraded_infra_count: Option<i64>,
+    /// healthStatus property.
+    pub health_status: Option<String>,
+    /// healthyHostCount property.
+    pub healthy_host_count: Option<i64>,
+    /// healthyInfraCount property.
+    pub healthy_infra_count: Option<i64>,
 }
 
-/// `AcceleratorTopologiesInfoAcceleratorTopologyInfo` type.
+/// `ReservationSubBlockPhysicalTopology` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcceleratorTopologiesInfoAcceleratorTopologyInfo {
-    /// acceleratorTopology property.
-    pub accelerator_topology: Option<String>,
-    /// infoPerTopologyStates property.
-    pub info_per_topology_states:
-        Option<Vec<AcceleratorTopologiesInfoAcceleratorTopologyInfoInfoPerTopologyState>>,
+pub struct ReservationSubBlockPhysicalTopology {
+    /// block property.
+    pub block: Option<String>,
+    /// cluster property.
+    pub cluster: Option<String>,
+    /// subBlock property.
+    pub sub_block: Option<String>,
 }
 
 /// `UpcomingMaintenance` type.
@@ -114,41 +131,6 @@ pub struct ReservationSubBlocksListResponse {
     pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `AcceleratorTopologiesInfoAcceleratorTopologyInfoInfoPerTopologyState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcceleratorTopologiesInfoAcceleratorTopologyInfoInfoPerTopologyState {
-    /// count property.
-    pub count: Option<i64>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `ReservationSubBlockHealthInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReservationSubBlockHealthInfo {
-    /// degradedHostCount property.
-    pub degraded_host_count: Option<i64>,
-    /// degradedInfraCount property.
-    pub degraded_infra_count: Option<i64>,
-    /// healthStatus property.
-    pub health_status: Option<String>,
-    /// healthyHostCount property.
-    pub healthy_host_count: Option<i64>,
-    /// healthyInfraCount property.
-    pub healthy_infra_count: Option<i64>,
-}
-
-/// `ReservationSubBlockPhysicalTopology` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReservationSubBlockPhysicalTopology {
-    /// block property.
-    pub block: Option<String>,
-    /// cluster property.
-    pub cluster: Option<String>,
-    /// subBlock property.
-    pub sub_block: Option<String>,
-}
-
 /// `GroupMaintenanceInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupMaintenanceInfo {
@@ -175,6 +157,25 @@ pub struct GroupMaintenanceInfo {
 pub struct AcceleratorTopologiesInfo {
     /// acceleratorTopologyInfos property.
     pub accelerator_topology_infos: Option<Vec<AcceleratorTopologiesInfoAcceleratorTopologyInfo>>,
+}
+
+/// `AcceleratorTopologiesInfoAcceleratorTopologyInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AcceleratorTopologiesInfoAcceleratorTopologyInfo {
+    /// acceleratorTopology property.
+    pub accelerator_topology: Option<String>,
+    /// infoPerTopologyStates property.
+    pub info_per_topology_states:
+        Option<Vec<AcceleratorTopologiesInfoAcceleratorTopologyInfoInfoPerTopologyState>>,
+}
+
+/// `AcceleratorTopologiesInfoAcceleratorTopologyInfoInfoPerTopologyState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AcceleratorTopologiesInfoAcceleratorTopologyInfoInfoPerTopologyState {
+    /// count property.
+    pub count: Option<i64>,
+    /// state property.
+    pub state: Option<String>,
 }
 
 // =============================================================================

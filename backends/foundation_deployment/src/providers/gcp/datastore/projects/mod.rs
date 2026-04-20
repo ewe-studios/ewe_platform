@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,36 +22,15 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Query` type.
+/// `ReserveIdsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Query {
-    /// distinctOn property.
-    pub distinct_on: Option<Vec<PropertyReference>>,
-    /// endCursor property.
-    pub end_cursor: Option<String>,
-    /// filter property.
-    pub filter: Option<Filter>,
-    /// findNearest property.
-    pub find_nearest: Option<FindNearest>,
-    /// kind property.
-    pub kind: Option<Vec<KindExpression>>,
-    /// limit property.
-    pub limit: Option<i64>,
-    /// offset property.
-    pub offset: Option<i64>,
-    /// order property.
-    pub order: Option<Vec<PropertyOrder>>,
-    /// projection property.
-    pub projection: Option<Vec<Projection>>,
-    /// startCursor property.
-    pub start_cursor: Option<String>,
-}
+pub struct ReserveIdsResponse {}
 
 /// `Projection` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -59,115 +39,38 @@ pub struct Projection {
     pub property: Option<PropertyReference>,
 }
 
-/// `PathElement` type.
+/// `ExecutionStats` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PathElement {
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
+pub struct ExecutionStats {
+    /// debugStats property.
+    pub debug_stats: Option<serde_json::Value>,
+    /// executionDuration property.
+    pub execution_duration: Option<String>,
+    /// readOperations property.
+    pub read_operations: Option<String>,
+    /// resultsReturned property.
+    pub results_returned: Option<String>,
 }
 
-/// `Count` type.
+/// `QueryResultBatch` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Count {
-    /// upTo property.
-    pub up_to: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `KindExpression` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KindExpression {
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `PropertyFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PropertyFilter {
-    /// op property.
-    pub op: Option<String>,
-    /// property property.
-    pub property: Option<PropertyReference>,
-    /// value property.
-    pub value: Option<Value>,
-}
-
-/// `RunAggregationQueryResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RunAggregationQueryResponse {
-    /// batch property.
-    pub batch: Option<AggregationResultBatch>,
-    /// explainMetrics property.
-    pub explain_metrics: Option<ExplainMetrics>,
-    /// query property.
-    pub query: Option<AggregationQuery>,
-    /// transaction property.
-    pub transaction: Option<String>,
-}
-
-/// `Avg` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Avg {
-    /// property property.
-    pub property: Option<PropertyReference>,
-}
-
-/// `RollbackResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RollbackResponse {}
-
-/// `RunQueryResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RunQueryResponse {
-    /// batch property.
-    pub batch: Option<QueryResultBatch>,
-    /// explainMetrics property.
-    pub explain_metrics: Option<ExplainMetrics>,
-    /// query property.
-    pub query: Option<Query>,
-    /// transaction property.
-    pub transaction: Option<String>,
-}
-
-/// `Filter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Filter {
-    /// compositeFilter property.
-    pub composite_filter: Option<CompositeFilter>,
-    /// propertyFilter property.
-    pub property_filter: Option<PropertyFilter>,
-}
-
-/// `Key` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Key {
-    /// partitionId property.
-    pub partition_id: Option<PartitionId>,
-    /// path property.
-    pub path: Option<Vec<PathElement>>,
-}
-
-/// `CompositeFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompositeFilter {
-    /// filters property.
-    pub filters: Option<Vec<Filter>>,
-    /// op property.
-    pub op: Option<String>,
+pub struct QueryResultBatch {
+    /// endCursor property.
+    pub end_cursor: Option<String>,
+    /// entityResultType property.
+    pub entity_result_type: Option<String>,
+    /// entityResults property.
+    pub entity_results: Option<Vec<EntityResult>>,
+    /// moreResults property.
+    pub more_results: Option<String>,
+    /// readTime property.
+    pub read_time: Option<String>,
+    /// skippedCursor property.
+    pub skipped_cursor: Option<String>,
+    /// skippedResults property.
+    pub skipped_results: Option<i64>,
+    /// snapshotVersion property.
+    pub snapshot_version: Option<String>,
 }
 
 /// `EntityResult` type.
@@ -185,67 +88,41 @@ pub struct EntityResult {
     pub version: Option<String>,
 }
 
-/// `ExplainMetrics` type.
+/// `FindNearest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExplainMetrics {
-    /// executionStats property.
-    pub execution_stats: Option<ExecutionStats>,
-    /// planSummary property.
-    pub plan_summary: Option<PlanSummary>,
+pub struct FindNearest {
+    /// distanceMeasure property.
+    pub distance_measure: Option<String>,
+    /// distanceResultProperty property.
+    pub distance_result_property: Option<String>,
+    /// distanceThreshold property.
+    pub distance_threshold: Option<f64>,
+    /// limit property.
+    pub limit: Option<i64>,
+    /// queryVector property.
+    pub query_vector: Option<Box<Value>>,
+    /// vectorProperty property.
+    pub vector_property: Option<PropertyReference>,
 }
 
-/// `Sum` type.
+/// `Entity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Sum {
+pub struct Entity {
+    /// key property.
+    pub key: Option<Key>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
+}
+
+/// `PropertyFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PropertyFilter {
+    /// op property.
+    pub op: Option<String>,
     /// property property.
     pub property: Option<PropertyReference>,
-}
-
-/// `AggregationResultBatch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AggregationResultBatch {
-    /// aggregationResults property.
-    pub aggregation_results: Option<Vec<AggregationResult>>,
-    /// moreResults property.
-    pub more_results: Option<String>,
-    /// readTime property.
-    pub read_time: Option<String>,
-}
-
-/// `ReserveIdsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReserveIdsResponse {}
-
-/// `LatLng` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LatLng {
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
-}
-
-/// `AggregationQuery` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AggregationQuery {
-    /// aggregations property.
-    pub aggregations: Option<Vec<Aggregation>>,
-    /// nestedQuery property.
-    pub nested_query: Option<Query>,
-}
-
-/// `AllocateIdsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AllocateIdsResponse {
-    /// keys property.
-    pub keys: Option<Vec<Key>>,
-}
-
-/// `PlanSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlanSummary {
-    /// indexesUsed property.
-    pub indexes_used: Option<Vec<serde_json::Value>>,
+    /// value property.
+    pub value: Option<Box<Value>>,
 }
 
 /// `PropertyOrder` type.
@@ -255,6 +132,13 @@ pub struct PropertyOrder {
     pub direction: Option<String>,
     /// property property.
     pub property: Option<PropertyReference>,
+}
+
+/// `Count` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Count {
+    /// upTo property.
+    pub up_to: Option<String>,
 }
 
 /// `MutationResult` type.
@@ -267,7 +151,7 @@ pub struct MutationResult {
     /// key property.
     pub key: Option<Key>,
     /// transformResults property.
-    pub transform_results: Option<Vec<Value>>,
+    pub transform_results: Option<Vec<Box<Value>>>,
     /// updateTime property.
     pub update_time: Option<String>,
     /// version property.
@@ -278,7 +162,7 @@ pub struct MutationResult {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Value {
     /// arrayValue property.
-    pub array_value: Option<ArrayValue>,
+    pub array_value: Option<Box<ArrayValue>>,
     /// blobValue property.
     pub blob_value: Option<String>,
     /// booleanValue property.
@@ -305,127 +189,78 @@ pub struct Value {
     pub timestamp_value: Option<String>,
 }
 
-/// `CommitResponse` type.
+/// `RunAggregationQueryResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CommitResponse {
-    /// commitTime property.
-    pub commit_time: Option<String>,
-    /// indexUpdates property.
-    pub index_updates: Option<i64>,
-    /// mutationResults property.
-    pub mutation_results: Option<Vec<MutationResult>>,
-}
-
-/// `ArrayValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArrayValue {
-    /// values property.
-    pub values: Option<Vec<Value>>,
-}
-
-/// `PartitionId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PartitionId {
-    /// databaseId property.
-    pub database_id: Option<String>,
-    /// namespaceId property.
-    pub namespace_id: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-}
-
-/// `Entity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Entity {
-    /// key property.
-    pub key: Option<Key>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
-}
-
-/// `ExecutionStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExecutionStats {
-    /// debugStats property.
-    pub debug_stats: Option<serde_json::Value>,
-    /// executionDuration property.
-    pub execution_duration: Option<String>,
-    /// readOperations property.
-    pub read_operations: Option<String>,
-    /// resultsReturned property.
-    pub results_returned: Option<String>,
-}
-
-/// `FindNearest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FindNearest {
-    /// distanceMeasure property.
-    pub distance_measure: Option<String>,
-    /// distanceResultProperty property.
-    pub distance_result_property: Option<String>,
-    /// distanceThreshold property.
-    pub distance_threshold: Option<f64>,
-    /// limit property.
-    pub limit: Option<i64>,
-    /// queryVector property.
-    pub query_vector: Option<Value>,
-    /// vectorProperty property.
-    pub vector_property: Option<PropertyReference>,
-}
-
-/// `QueryResultBatch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryResultBatch {
-    /// endCursor property.
-    pub end_cursor: Option<String>,
-    /// entityResultType property.
-    pub entity_result_type: Option<String>,
-    /// entityResults property.
-    pub entity_results: Option<Vec<EntityResult>>,
-    /// moreResults property.
-    pub more_results: Option<String>,
-    /// readTime property.
-    pub read_time: Option<String>,
-    /// skippedCursor property.
-    pub skipped_cursor: Option<String>,
-    /// skippedResults property.
-    pub skipped_results: Option<i64>,
-    /// snapshotVersion property.
-    pub snapshot_version: Option<String>,
-}
-
-/// `PropertyReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PropertyReference {
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `BeginTransactionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BeginTransactionResponse {
+pub struct RunAggregationQueryResponse {
+    /// batch property.
+    pub batch: Option<AggregationResultBatch>,
+    /// explainMetrics property.
+    pub explain_metrics: Option<ExplainMetrics>,
+    /// query property.
+    pub query: Option<AggregationQuery>,
     /// transaction property.
     pub transaction: Option<String>,
 }
 
-/// `Aggregation` type.
+/// `RollbackResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Aggregation {
-    /// alias property.
-    pub alias: Option<String>,
-    /// avg property.
-    pub avg: Option<Avg>,
-    /// count property.
-    pub count: Option<Count>,
-    /// sum property.
-    pub sum: Option<Sum>,
+pub struct RollbackResponse {}
+
+/// `LatLng` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LatLng {
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
 }
 
-/// `AggregationResult` type.
+/// `Query` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AggregationResult {
-    /// aggregateProperties property.
-    pub aggregate_properties: Option<serde_json::Value>,
+pub struct Query {
+    /// distinctOn property.
+    pub distinct_on: Option<Vec<PropertyReference>>,
+    /// endCursor property.
+    pub end_cursor: Option<String>,
+    /// filter property.
+    pub filter: Option<Box<Filter>>,
+    /// findNearest property.
+    pub find_nearest: Option<FindNearest>,
+    /// kind property.
+    pub kind: Option<Vec<KindExpression>>,
+    /// limit property.
+    pub limit: Option<i64>,
+    /// offset property.
+    pub offset: Option<i64>,
+    /// order property.
+    pub order: Option<Vec<PropertyOrder>>,
+    /// projection property.
+    pub projection: Option<Vec<Projection>>,
+    /// startCursor property.
+    pub start_cursor: Option<String>,
+}
+
+/// `PlanSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlanSummary {
+    /// indexesUsed property.
+    pub indexes_used: Option<Vec<serde_json::Value>>,
+}
+
+/// `Key` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Key {
+    /// partitionId property.
+    pub partition_id: Option<PartitionId>,
+    /// path property.
+    pub path: Option<Vec<PathElement>>,
+}
+
+/// `Avg` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Avg {
+    /// property property.
+    pub property: Option<PropertyReference>,
 }
 
 /// `LookupResponse` type.
@@ -441,6 +276,172 @@ pub struct LookupResponse {
     pub read_time: Option<String>,
     /// transaction property.
     pub transaction: Option<String>,
+}
+
+/// `PathElement` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PathElement {
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `CommitResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CommitResponse {
+    /// commitTime property.
+    pub commit_time: Option<String>,
+    /// indexUpdates property.
+    pub index_updates: Option<i64>,
+    /// mutationResults property.
+    pub mutation_results: Option<Vec<MutationResult>>,
+}
+
+/// `AllocateIdsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AllocateIdsResponse {
+    /// keys property.
+    pub keys: Option<Vec<Key>>,
+}
+
+/// `AggregationResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AggregationResult {
+    /// aggregateProperties property.
+    pub aggregate_properties: Option<serde_json::Value>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ArrayValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ArrayValue {
+    /// values property.
+    pub values: Option<Vec<Box<Value>>>,
+}
+
+/// `CompositeFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CompositeFilter {
+    /// filters property.
+    pub filters: Option<Vec<Box<Filter>>>,
+    /// op property.
+    pub op: Option<String>,
+}
+
+/// `AggregationResultBatch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AggregationResultBatch {
+    /// aggregationResults property.
+    pub aggregation_results: Option<Vec<AggregationResult>>,
+    /// moreResults property.
+    pub more_results: Option<String>,
+    /// readTime property.
+    pub read_time: Option<String>,
+}
+
+/// `AggregationQuery` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AggregationQuery {
+    /// aggregations property.
+    pub aggregations: Option<Vec<Aggregation>>,
+    /// nestedQuery property.
+    pub nested_query: Option<Query>,
+}
+
+/// `Aggregation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Aggregation {
+    /// alias property.
+    pub alias: Option<String>,
+    /// avg property.
+    pub avg: Option<Avg>,
+    /// count property.
+    pub count: Option<Count>,
+    /// sum property.
+    pub sum: Option<Sum>,
+}
+
+/// `Sum` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Sum {
+    /// property property.
+    pub property: Option<PropertyReference>,
+}
+
+/// `PartitionId` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PartitionId {
+    /// databaseId property.
+    pub database_id: Option<String>,
+    /// namespaceId property.
+    pub namespace_id: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+}
+
+/// `BeginTransactionResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BeginTransactionResponse {
+    /// transaction property.
+    pub transaction: Option<String>,
+}
+
+/// `RunQueryResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RunQueryResponse {
+    /// batch property.
+    pub batch: Option<QueryResultBatch>,
+    /// explainMetrics property.
+    pub explain_metrics: Option<ExplainMetrics>,
+    /// query property.
+    pub query: Option<Query>,
+    /// transaction property.
+    pub transaction: Option<String>,
+}
+
+/// `ExplainMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExplainMetrics {
+    /// executionStats property.
+    pub execution_stats: Option<ExecutionStats>,
+    /// planSummary property.
+    pub plan_summary: Option<PlanSummary>,
+}
+
+/// `PropertyReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PropertyReference {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `KindExpression` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KindExpression {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `Filter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Filter {
+    /// compositeFilter property.
+    pub composite_filter: Option<Box<CompositeFilter>>,
+    /// propertyFilter property.
+    pub property_filter: Option<PropertyFilter>,
 }
 
 // =============================================================================

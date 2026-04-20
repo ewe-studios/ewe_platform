@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,141 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleAppsCloudidentityDevicesV1BrowserInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCloudidentityDevicesV1BrowserInfo {
-    /// browserManagementState property.
-    pub browser_management_state: Option<String>,
-    /// browserVersion property.
-    pub browser_version: Option<String>,
-    /// isBuiltInDnsClientEnabled property.
-    pub is_built_in_dns_client_enabled: Option<bool>,
-    /// isBulkDataEntryAnalysisEnabled property.
-    pub is_bulk_data_entry_analysis_enabled: Option<bool>,
-    /// isChromeCleanupEnabled property.
-    pub is_chrome_cleanup_enabled: Option<bool>,
-    /// isChromeRemoteDesktopAppBlocked property.
-    pub is_chrome_remote_desktop_app_blocked: Option<bool>,
-    /// isFileDownloadAnalysisEnabled property.
-    pub is_file_download_analysis_enabled: Option<bool>,
-    /// isFileUploadAnalysisEnabled property.
-    pub is_file_upload_analysis_enabled: Option<bool>,
-    /// isRealtimeUrlCheckEnabled property.
-    pub is_realtime_url_check_enabled: Option<bool>,
-    /// isSecurityEventAnalysisEnabled property.
-    pub is_security_event_analysis_enabled: Option<bool>,
-    /// isSiteIsolationEnabled property.
-    pub is_site_isolation_enabled: Option<bool>,
-    /// isThirdPartyBlockingEnabled property.
-    pub is_third_party_blocking_enabled: Option<bool>,
-    /// passwordProtectionWarningTrigger property.
-    pub password_protection_warning_trigger: Option<String>,
-    /// safeBrowsingProtectionLevel property.
-    pub safe_browsing_protection_level: Option<String>,
-}
-
-/// `GoogleAppsCloudidentityDevicesV1CertificateAttributes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCloudidentityDevicesV1CertificateAttributes {
-    /// certificateTemplate property.
-    pub certificate_template: Option<GoogleAppsCloudidentityDevicesV1CertificateTemplate>,
-    /// fingerprint property.
-    pub fingerprint: Option<String>,
-    /// issuer property.
-    pub issuer: Option<String>,
-    /// serialNumber property.
-    pub serial_number: Option<String>,
-    /// subject property.
-    pub subject: Option<String>,
-    /// thumbprint property.
-    pub thumbprint: Option<String>,
-    /// validationState property.
-    pub validation_state: Option<String>,
-    /// validityExpirationTime property.
-    pub validity_expiration_time: Option<String>,
-    /// validityStartTime property.
-    pub validity_start_time: Option<String>,
-}
-
-/// `GoogleAppsCloudidentityDevicesV1ListDevicesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCloudidentityDevicesV1ListDevicesResponse {
-    /// devices property.
-    pub devices: Option<Vec<GoogleAppsCloudidentityDevicesV1Device>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleAppsCloudidentityDevicesV1BrowserAttributes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCloudidentityDevicesV1BrowserAttributes {
-    /// chromeBrowserInfo property.
-    pub chrome_browser_info: Option<GoogleAppsCloudidentityDevicesV1BrowserInfo>,
-    /// chromeProfileId property.
-    pub chrome_profile_id: Option<String>,
-    /// lastProfileSyncTime property.
-    pub last_profile_sync_time: Option<String>,
-}
-
-/// `GoogleAppsCloudidentityDevicesV1EndpointVerificationSpecificAttributes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCloudidentityDevicesV1EndpointVerificationSpecificAttributes {
-    /// additionalSignals property.
-    pub additional_signals: Option<serde_json::Value>,
-    /// browserAttributes property.
-    pub browser_attributes: Option<Vec<GoogleAppsCloudidentityDevicesV1BrowserAttributes>>,
-    /// certificateAttributes property.
-    pub certificate_attributes: Option<Vec<GoogleAppsCloudidentityDevicesV1CertificateAttributes>>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleAppsCloudidentityDevicesV1AndroidAttributes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCloudidentityDevicesV1AndroidAttributes {
-    /// ctsProfileMatch property.
-    pub cts_profile_match: Option<bool>,
-    /// enabledUnknownSources property.
-    pub enabled_unknown_sources: Option<bool>,
-    /// hasPotentiallyHarmfulApps property.
-    pub has_potentially_harmful_apps: Option<bool>,
-    /// ownerProfileAccount property.
-    pub owner_profile_account: Option<bool>,
-    /// ownershipPrivilege property.
-    pub ownership_privilege: Option<String>,
-    /// supportsWorkProfile property.
-    pub supports_work_profile: Option<bool>,
-    /// verifiedBoot property.
-    pub verified_boot: Option<bool>,
-    /// verifyAppsEnabled property.
-    pub verify_apps_enabled: Option<bool>,
-}
-
-/// `GoogleAppsCloudidentityDevicesV1CertificateTemplate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCloudidentityDevicesV1CertificateTemplate {
-    /// id property.
-    pub id: Option<String>,
-    /// majorVersion property.
-    pub major_version: Option<i64>,
-    /// minorVersion property.
-    pub minor_version: Option<i64>,
-}
 
 /// `GoogleAppsCloudidentityDevicesV1Device` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -225,6 +96,136 @@ pub struct GoogleAppsCloudidentityDevicesV1Device {
     pub unified_device_id: Option<String>,
     /// wifiMacAddresses property.
     pub wifi_mac_addresses: Option<Vec<String>>,
+}
+
+/// `GoogleAppsCloudidentityDevicesV1AndroidAttributes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCloudidentityDevicesV1AndroidAttributes {
+    /// ctsProfileMatch property.
+    pub cts_profile_match: Option<bool>,
+    /// enabledUnknownSources property.
+    pub enabled_unknown_sources: Option<bool>,
+    /// hasPotentiallyHarmfulApps property.
+    pub has_potentially_harmful_apps: Option<bool>,
+    /// ownerProfileAccount property.
+    pub owner_profile_account: Option<bool>,
+    /// ownershipPrivilege property.
+    pub ownership_privilege: Option<String>,
+    /// supportsWorkProfile property.
+    pub supports_work_profile: Option<bool>,
+    /// verifiedBoot property.
+    pub verified_boot: Option<bool>,
+    /// verifyAppsEnabled property.
+    pub verify_apps_enabled: Option<bool>,
+}
+
+/// `GoogleAppsCloudidentityDevicesV1BrowserAttributes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCloudidentityDevicesV1BrowserAttributes {
+    /// chromeBrowserInfo property.
+    pub chrome_browser_info: Option<GoogleAppsCloudidentityDevicesV1BrowserInfo>,
+    /// chromeProfileId property.
+    pub chrome_profile_id: Option<String>,
+    /// lastProfileSyncTime property.
+    pub last_profile_sync_time: Option<String>,
+}
+
+/// `GoogleAppsCloudidentityDevicesV1CertificateAttributes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCloudidentityDevicesV1CertificateAttributes {
+    /// certificateTemplate property.
+    pub certificate_template: Option<GoogleAppsCloudidentityDevicesV1CertificateTemplate>,
+    /// fingerprint property.
+    pub fingerprint: Option<String>,
+    /// issuer property.
+    pub issuer: Option<String>,
+    /// serialNumber property.
+    pub serial_number: Option<String>,
+    /// subject property.
+    pub subject: Option<String>,
+    /// thumbprint property.
+    pub thumbprint: Option<String>,
+    /// validationState property.
+    pub validation_state: Option<String>,
+    /// validityExpirationTime property.
+    pub validity_expiration_time: Option<String>,
+    /// validityStartTime property.
+    pub validity_start_time: Option<String>,
+}
+
+/// `GoogleAppsCloudidentityDevicesV1BrowserInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCloudidentityDevicesV1BrowserInfo {
+    /// browserManagementState property.
+    pub browser_management_state: Option<String>,
+    /// browserVersion property.
+    pub browser_version: Option<String>,
+    /// isBuiltInDnsClientEnabled property.
+    pub is_built_in_dns_client_enabled: Option<bool>,
+    /// isBulkDataEntryAnalysisEnabled property.
+    pub is_bulk_data_entry_analysis_enabled: Option<bool>,
+    /// isChromeCleanupEnabled property.
+    pub is_chrome_cleanup_enabled: Option<bool>,
+    /// isChromeRemoteDesktopAppBlocked property.
+    pub is_chrome_remote_desktop_app_blocked: Option<bool>,
+    /// isFileDownloadAnalysisEnabled property.
+    pub is_file_download_analysis_enabled: Option<bool>,
+    /// isFileUploadAnalysisEnabled property.
+    pub is_file_upload_analysis_enabled: Option<bool>,
+    /// isRealtimeUrlCheckEnabled property.
+    pub is_realtime_url_check_enabled: Option<bool>,
+    /// isSecurityEventAnalysisEnabled property.
+    pub is_security_event_analysis_enabled: Option<bool>,
+    /// isSiteIsolationEnabled property.
+    pub is_site_isolation_enabled: Option<bool>,
+    /// isThirdPartyBlockingEnabled property.
+    pub is_third_party_blocking_enabled: Option<bool>,
+    /// passwordProtectionWarningTrigger property.
+    pub password_protection_warning_trigger: Option<String>,
+    /// safeBrowsingProtectionLevel property.
+    pub safe_browsing_protection_level: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleAppsCloudidentityDevicesV1ListDevicesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCloudidentityDevicesV1ListDevicesResponse {
+    /// devices property.
+    pub devices: Option<Vec<GoogleAppsCloudidentityDevicesV1Device>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleAppsCloudidentityDevicesV1CertificateTemplate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCloudidentityDevicesV1CertificateTemplate {
+    /// id property.
+    pub id: Option<String>,
+    /// majorVersion property.
+    pub major_version: Option<i64>,
+    /// minorVersion property.
+    pub minor_version: Option<i64>,
+}
+
+/// `GoogleAppsCloudidentityDevicesV1EndpointVerificationSpecificAttributes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCloudidentityDevicesV1EndpointVerificationSpecificAttributes {
+    /// additionalSignals property.
+    pub additional_signals: Option<serde_json::Value>,
+    /// browserAttributes property.
+    pub browser_attributes: Option<Vec<GoogleAppsCloudidentityDevicesV1BrowserAttributes>>,
+    /// certificateAttributes property.
+    pub certificate_attributes: Option<Vec<GoogleAppsCloudidentityDevicesV1CertificateAttributes>>,
 }
 
 // =============================================================================

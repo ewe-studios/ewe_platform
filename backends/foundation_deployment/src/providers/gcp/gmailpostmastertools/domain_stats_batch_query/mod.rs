@@ -12,35 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `StringList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StringList {
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `Date` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
 
 /// `DomainStat` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -53,6 +36,15 @@ pub struct DomainStat {
     pub name: Option<String>,
     /// value property.
     pub value: Option<StatisticValue>,
+}
+
+/// `BatchQueryDomainStatsResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BatchQueryDomainStatsResult {
+    /// error property.
+    pub error: Option<Status>,
+    /// response property.
+    pub response: Option<QueryDomainStatsResponse>,
 }
 
 /// `StatisticValue` type.
@@ -70,15 +62,11 @@ pub struct StatisticValue {
     pub string_value: Option<String>,
 }
 
-/// `Status` type.
+/// `StringList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct StringList {
+    /// values property.
+    pub values: Option<Vec<String>>,
 }
 
 /// `QueryDomainStatsResponse` type.
@@ -90,13 +78,15 @@ pub struct QueryDomainStatsResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `BatchQueryDomainStatsResult` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BatchQueryDomainStatsResult {
-    /// error property.
-    pub error: Option<Status>,
-    /// response property.
-    pub response: Option<QueryDomainStatsResponse>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `BatchQueryDomainStatsResponse` type.
@@ -104,6 +94,17 @@ pub struct BatchQueryDomainStatsResult {
 pub struct BatchQueryDomainStatsResponse {
     /// results property.
     pub results: Option<Vec<BatchQueryDomainStatsResult>>,
+}
+
+/// `Date` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
 }
 
 // =============================================================================

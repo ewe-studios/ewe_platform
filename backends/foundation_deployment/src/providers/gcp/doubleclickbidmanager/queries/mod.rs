@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,48 +22,23 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Report;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Options` type.
+/// `Query` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Options {
-    /// includeOnlyTargetedUserLists property.
-    pub include_only_targeted_user_lists: Option<bool>,
-}
-
-/// `ReportKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportKey {
+pub struct Query {
+    /// metadata property.
+    pub metadata: Option<QueryMetadata>,
+    /// params property.
+    pub params: Option<Parameters>,
     /// queryId property.
     pub query_id: Option<String>,
-    /// reportId property.
-    pub report_id: Option<String>,
-}
-
-/// `ListQueriesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListQueriesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// queries property.
-    pub queries: Option<Vec<Query>>,
-}
-
-/// `ReportMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportMetadata {
-    /// googleCloudStoragePath property.
-    pub google_cloud_storage_path: Option<String>,
-    /// reportDataEndDate property.
-    pub report_data_end_date: Option<Date>,
-    /// reportDataStartDate property.
-    pub report_data_start_date: Option<Date>,
-    /// status property.
-    pub status: Option<ReportStatus>,
+    /// schedule property.
+    pub schedule: Option<QuerySchedule>,
 }
 
 /// `ReportStatus` type.
@@ -76,19 +52,15 @@ pub struct ReportStatus {
     pub state: Option<String>,
 }
 
-/// `Parameters` type.
+/// `DataRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Parameters {
-    /// filters property.
-    pub filters: Option<Vec<FilterPair>>,
-    /// groupBys property.
-    pub group_bys: Option<Vec<String>>,
-    /// metrics property.
-    pub metrics: Option<Vec<String>>,
-    /// options property.
-    pub options: Option<Options>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct DataRange {
+    /// customEndDate property.
+    pub custom_end_date: Option<Date>,
+    /// customStartDate property.
+    pub custom_start_date: Option<Date>,
+    /// range property.
+    pub range: Option<String>,
 }
 
 /// `QueryMetadata` type.
@@ -106,17 +78,46 @@ pub struct QueryMetadata {
     pub title: Option<String>,
 }
 
-/// `Query` type.
+/// `ReportKey` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Query {
-    /// metadata property.
-    pub metadata: Option<QueryMetadata>,
-    /// params property.
-    pub params: Option<Parameters>,
+pub struct ReportKey {
     /// queryId property.
     pub query_id: Option<String>,
-    /// schedule property.
-    pub schedule: Option<QuerySchedule>,
+    /// reportId property.
+    pub report_id: Option<String>,
+}
+
+/// `Date` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `FilterPair` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FilterPair {
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `ReportMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportMetadata {
+    /// googleCloudStoragePath property.
+    pub google_cloud_storage_path: Option<String>,
+    /// reportDataEndDate property.
+    pub report_data_end_date: Option<Date>,
+    /// reportDataStartDate property.
+    pub report_data_start_date: Option<Date>,
+    /// status property.
+    pub status: Option<ReportStatus>,
 }
 
 /// `QuerySchedule` type.
@@ -132,35 +133,35 @@ pub struct QuerySchedule {
     pub start_date: Option<Date>,
 }
 
-/// `DataRange` type.
+/// `Options` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataRange {
-    /// customEndDate property.
-    pub custom_end_date: Option<Date>,
-    /// customStartDate property.
-    pub custom_start_date: Option<Date>,
-    /// range property.
-    pub range: Option<String>,
+pub struct Options {
+    /// includeOnlyTargetedUserLists property.
+    pub include_only_targeted_user_lists: Option<bool>,
 }
 
-/// `FilterPair` type.
+/// `ListQueriesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FilterPair {
+pub struct ListQueriesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// queries property.
+    pub queries: Option<Vec<Query>>,
+}
+
+/// `Parameters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Parameters {
+    /// filters property.
+    pub filters: Option<Vec<FilterPair>>,
+    /// groupBys property.
+    pub group_bys: Option<Vec<String>>,
+    /// metrics property.
+    pub metrics: Option<Vec<String>>,
+    /// options property.
+    pub options: Option<Options>,
     /// type property.
     pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Date` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
 }
 
 // =============================================================================

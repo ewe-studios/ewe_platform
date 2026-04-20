@@ -12,43 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ClearValuesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClearValuesResponse {
-    /// clearedRange property.
-    pub cleared_range: Option<String>,
-    /// spreadsheetId property.
-    pub spreadsheet_id: Option<String>,
-}
-
-/// `UpdateValuesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateValuesResponse {
-    /// spreadsheetId property.
-    pub spreadsheet_id: Option<String>,
-    /// updatedCells property.
-    pub updated_cells: Option<i64>,
-    /// updatedColumns property.
-    pub updated_columns: Option<i64>,
-    /// updatedData property.
-    pub updated_data: Option<ValueRange>,
-    /// updatedRange property.
-    pub updated_range: Option<String>,
-    /// updatedRows property.
-    pub updated_rows: Option<i64>,
-}
 
 /// `AppendValuesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -70,6 +45,32 @@ pub struct ValueRange {
     pub range: Option<String>,
     /// values property.
     pub values: Option<Vec<Vec<serde_json::Value>>>,
+}
+
+/// `UpdateValuesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateValuesResponse {
+    /// spreadsheetId property.
+    pub spreadsheet_id: Option<String>,
+    /// updatedCells property.
+    pub updated_cells: Option<i64>,
+    /// updatedColumns property.
+    pub updated_columns: Option<i64>,
+    /// updatedData property.
+    pub updated_data: Option<ValueRange>,
+    /// updatedRange property.
+    pub updated_range: Option<String>,
+    /// updatedRows property.
+    pub updated_rows: Option<i64>,
+}
+
+/// `ClearValuesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClearValuesResponse {
+    /// clearedRange property.
+    pub cleared_range: Option<String>,
+    /// spreadsheetId property.
+    pub spreadsheet_id: Option<String>,
 }
 
 // =============================================================================

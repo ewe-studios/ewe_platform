@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -27,22 +28,6 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 /// `GoogleCloudDatalabelingV1Beta1ConfusionMatrixEntry` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1Beta1ConfusionMatrixEntry {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleCloudDatalabelingV1Beta1BoundingBoxEvaluationOptions` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatalabelingV1Beta1BoundingBoxEvaluationOptions {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleCloudDatalabelingV1Beta1EvaluationMetrics` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatalabelingV1Beta1EvaluationMetrics {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -72,33 +57,9 @@ pub struct GoogleCloudDatalabelingV1Beta1Evaluation {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleCloudDatalabelingV1Beta1ObjectDetectionMetrics` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatalabelingV1Beta1ObjectDetectionMetrics {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `GoogleCloudDatalabelingV1Beta1PrCurve` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1Beta1PrCurve {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleCloudDatalabelingV1Beta1AnnotationSpec` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatalabelingV1Beta1AnnotationSpec {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleCloudDatalabelingV1Beta1ConfidenceMetricsEntry` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatalabelingV1Beta1ConfidenceMetricsEntry {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -112,14 +73,6 @@ pub struct GoogleCloudDatalabelingV1Beta1ConfusionMatrix {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleCloudDatalabelingV1Beta1Row` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatalabelingV1Beta1Row {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `GoogleCloudDatalabelingV1beta1SearchEvaluationsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1SearchEvaluationsResponse {
@@ -127,6 +80,54 @@ pub struct GoogleCloudDatalabelingV1beta1SearchEvaluationsResponse {
     pub evaluations: Option<Vec<GoogleCloudDatalabelingV1Beta1Evaluation>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudDatalabelingV1Beta1BoundingBoxEvaluationOptions` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatalabelingV1Beta1BoundingBoxEvaluationOptions {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudDatalabelingV1Beta1AnnotationSpec` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatalabelingV1Beta1AnnotationSpec {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudDatalabelingV1Beta1EvaluationMetrics` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatalabelingV1Beta1EvaluationMetrics {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudDatalabelingV1Beta1ObjectDetectionMetrics` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatalabelingV1Beta1ObjectDetectionMetrics {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudDatalabelingV1Beta1ConfidenceMetricsEntry` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatalabelingV1Beta1ConfidenceMetricsEntry {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudDatalabelingV1Beta1Row` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatalabelingV1Beta1Row {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 // =============================================================================

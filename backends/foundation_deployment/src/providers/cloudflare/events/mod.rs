@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -28,9 +29,81 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `AaaAlertsResponseCollection` response type.
+/// `AaaHistoryComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AaaAlertsResponseCollection {
+pub struct AaaHistoryComponentsSchemasResponseCollection {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AaaSilencesComponentsSchemasResponseCollection` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AaaSilencesComponentsSchemasResponseCollection {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AaaSchemasApiResponseCommon` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AaaSchemasApiResponseCommon {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AaaSilenceCreateRequest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AaaSilenceCreateRequest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AaaSilenceComponentsSchemasResponseCollection` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AaaSilenceComponentsSchemasResponseCollection {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ResourceTaggingTagKeysResponseCollection` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceTaggingTagKeysResponseCollection {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ResourceTaggingTaggedResourceResponseCollection` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceTaggingTaggedResourceResponseCollection {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AaaSensitiveIdResponse` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AaaSensitiveIdResponse {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AaaWebhooksComponentsSchemasResponseCollection` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AaaWebhooksComponentsSchemasResponseCollection {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ResourceTaggingSetTagsRequestAccountLevel` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceTaggingSetTagsRequestAccountLevel {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -44,17 +117,9 @@ pub struct AaaComponentsSchemasResponseCollection {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `AaaHistoryComponentsSchemasResponseCollection` response type.
+/// `AaaAlertsResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AaaHistoryComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AaaSchemasApiResponseCommon` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AaaSchemasApiResponseCommon {
+pub struct AaaAlertsResponseCollection {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -76,49 +141,9 @@ pub struct AaaSchemasSingleResponse {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `AaaSensitiveIdResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AaaSensitiveIdResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AaaSilenceComponentsSchemasResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AaaSilenceComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AaaSilenceCreateRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AaaSilenceCreateRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `AaaSilenceUpdateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AaaSilenceUpdateRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AaaSilencesComponentsSchemasResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AaaSilencesComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AaaWebhooksComponentsSchemasResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AaaWebhooksComponentsSchemasResponseCollection {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -132,33 +157,9 @@ pub struct ResourceTaggingDeleteTagsRequestAccountLevel {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `ResourceTaggingSetTagsRequestAccountLevel` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingSetTagsRequestAccountLevel {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ResourceTaggingTagKeysResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTagKeysResponseCollection {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `ResourceTaggingTagValuesResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTagValuesResponseCollection {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ResourceTaggingTaggedResourceResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceResponseCollection {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -430,7 +431,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -448,8 +451,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: AaaAlertsResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: AaaAlertsResponseCollection =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -518,7 +523,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -536,8 +543,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: AaaSchemasResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: AaaSchemasResponseCollection =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -609,7 +618,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -628,7 +639,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: AaaComponentsSchemasResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -697,7 +710,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -715,8 +730,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: AaaSchemasApiResponseCommon = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: AaaSchemasApiResponseCommon =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -785,7 +802,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -803,8 +822,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: AaaSensitiveIdResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: AaaSensitiveIdResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -876,7 +897,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -895,8 +918,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: AaaWebhooksComponentsSchemasResponseCollection =
-                    serde_json::from_str(&body)
-                        .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -965,7 +989,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -983,8 +1009,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: AaaIdResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: AaaIdResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -1053,7 +1081,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1071,8 +1101,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: AaaSchemasSingleResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: AaaSchemasSingleResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -1141,7 +1173,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1159,8 +1193,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: AaaIdResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: AaaIdResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -1229,7 +1265,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1247,8 +1285,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: AaaSchemasApiResponseCommon = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: AaaSchemasApiResponseCommon =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -1320,7 +1360,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1339,8 +1381,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: AaaHistoryComponentsSchemasResponseCollection =
-                    serde_json::from_str(&body)
-                        .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -1412,7 +1455,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1431,8 +1476,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: AaaSilencesComponentsSchemasResponseCollection =
-                    serde_json::from_str(&body)
-                        .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -1505,7 +1551,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1523,8 +1571,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: AaaSchemasApiResponseCommon = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: AaaSchemasApiResponseCommon =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -1600,7 +1650,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1619,8 +1671,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: AaaSilencesComponentsSchemasResponseCollection =
-                    serde_json::from_str(&body)
-                        .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -1692,7 +1745,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1711,8 +1766,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: AaaSilenceComponentsSchemasResponseCollection =
-                    serde_json::from_str(&body)
-                        .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -1781,7 +1837,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1799,8 +1857,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: AaaSchemasApiResponseCommon = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: AaaSchemasApiResponseCommon =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -1872,7 +1932,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1891,8 +1953,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: ResourceTaggingTaggedResourceResponseSingle =
-                    serde_json::from_str(&body)
-                        .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -1968,7 +2031,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1987,8 +2052,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: ResourceTaggingTaggedResourceResponseSingle =
-                    serde_json::from_str(&body)
-                        .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -2061,7 +2127,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2148,7 +2216,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2167,7 +2237,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: ResourceTaggingTagKeysResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -2239,7 +2311,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2258,8 +2332,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: ResourceTaggingTaggedResourceResponseCollection =
-                    serde_json::from_str(&body)
-                        .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -2331,7 +2406,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2350,8 +2427,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: ResourceTaggingTagValuesResponseCollection =
-                    serde_json::from_str(&body)
-                        .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -2420,7 +2498,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,

@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -33,6 +34,46 @@ pub struct GoogleCloudBaremetalsolutionV2LogicalInterface {
     pub logical_network_interfaces: Option<Vec<LogicalNetworkInterface>>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `VolumeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VolumeConfig {
+    /// gcpService property.
+    pub gcp_service: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// lunRanges property.
+    pub lun_ranges: Option<Vec<LunRange>>,
+    /// machineIds property.
+    pub machine_ids: Option<Vec<String>>,
+    /// name property.
+    pub name: Option<String>,
+    /// nfsExports property.
+    pub nfs_exports: Option<Vec<NfsExport>>,
+    /// performanceTier property.
+    pub performance_tier: Option<String>,
+    /// protocol property.
+    pub protocol: Option<String>,
+    /// sizeGb property.
+    pub size_gb: Option<i64>,
+    /// snapshotsEnabled property.
+    pub snapshots_enabled: Option<bool>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// userNote property.
+    pub user_note: Option<String>,
+}
+
+/// `NetworkAddress` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkAddress {
+    /// address property.
+    pub address: Option<String>,
+    /// existingNetworkId property.
+    pub existing_network_id: Option<String>,
+    /// networkId property.
+    pub network_id: Option<String>,
 }
 
 /// `InstanceConfig` type.
@@ -66,6 +107,63 @@ pub struct InstanceConfig {
     pub ssh_key_names: Option<Vec<String>>,
     /// userNote property.
     pub user_note: Option<String>,
+}
+
+/// `LunRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LunRange {
+    /// quantity property.
+    pub quantity: Option<i64>,
+    /// sizeGb property.
+    pub size_gb: Option<i64>,
+}
+
+/// `NetworkConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkConfig {
+    /// bandwidth property.
+    pub bandwidth: Option<String>,
+    /// cidr property.
+    pub cidr: Option<String>,
+    /// gcpService property.
+    pub gcp_service: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// jumboFramesEnabled property.
+    pub jumbo_frames_enabled: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+    /// serviceCidr property.
+    pub service_cidr: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// userNote property.
+    pub user_note: Option<String>,
+    /// vlanAttachments property.
+    pub vlan_attachments: Option<Vec<IntakeVlanAttachment>>,
+    /// vlanSameProject property.
+    pub vlan_same_project: Option<bool>,
+    /// vrf property.
+    pub vrf: Option<String>,
+}
+
+/// `NfsExport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NfsExport {
+    /// allowDev property.
+    pub allow_dev: Option<bool>,
+    /// allowSuid property.
+    pub allow_suid: Option<bool>,
+    /// cidr property.
+    pub cidr: Option<String>,
+    /// machineId property.
+    pub machine_id: Option<String>,
+    /// networkId property.
+    pub network_id: Option<String>,
+    /// noRootSquash property.
+    pub no_root_squash: Option<bool>,
+    /// permissions property.
+    pub permissions: Option<String>,
 }
 
 /// `ProvisioningConfig` type.
@@ -103,74 +201,6 @@ pub struct ProvisioningConfig {
     pub vpc_sc_enabled: Option<bool>,
 }
 
-/// `LunRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LunRange {
-    /// quantity property.
-    pub quantity: Option<i64>,
-    /// sizeGb property.
-    pub size_gb: Option<i64>,
-}
-
-/// `VolumeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VolumeConfig {
-    /// gcpService property.
-    pub gcp_service: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// lunRanges property.
-    pub lun_ranges: Option<Vec<LunRange>>,
-    /// machineIds property.
-    pub machine_ids: Option<Vec<String>>,
-    /// name property.
-    pub name: Option<String>,
-    /// nfsExports property.
-    pub nfs_exports: Option<Vec<NfsExport>>,
-    /// performanceTier property.
-    pub performance_tier: Option<String>,
-    /// protocol property.
-    pub protocol: Option<String>,
-    /// sizeGb property.
-    pub size_gb: Option<i64>,
-    /// snapshotsEnabled property.
-    pub snapshots_enabled: Option<bool>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// userNote property.
-    pub user_note: Option<String>,
-}
-
-/// `NfsExport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NfsExport {
-    /// allowDev property.
-    pub allow_dev: Option<bool>,
-    /// allowSuid property.
-    pub allow_suid: Option<bool>,
-    /// cidr property.
-    pub cidr: Option<String>,
-    /// machineId property.
-    pub machine_id: Option<String>,
-    /// networkId property.
-    pub network_id: Option<String>,
-    /// noRootSquash property.
-    pub no_root_squash: Option<bool>,
-    /// permissions property.
-    pub permissions: Option<String>,
-}
-
-/// `NetworkAddress` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkAddress {
-    /// address property.
-    pub address: Option<String>,
-    /// existingNetworkId property.
-    pub existing_network_id: Option<String>,
-    /// networkId property.
-    pub network_id: Option<String>,
-}
-
 /// `IntakeVlanAttachment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntakeVlanAttachment {
@@ -193,35 +223,6 @@ pub struct LogicalNetworkInterface {
     pub network: Option<String>,
     /// networkType property.
     pub network_type: Option<String>,
-}
-
-/// `NetworkConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkConfig {
-    /// bandwidth property.
-    pub bandwidth: Option<String>,
-    /// cidr property.
-    pub cidr: Option<String>,
-    /// gcpService property.
-    pub gcp_service: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// jumboFramesEnabled property.
-    pub jumbo_frames_enabled: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-    /// serviceCidr property.
-    pub service_cidr: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// userNote property.
-    pub user_note: Option<String>,
-    /// vlanAttachments property.
-    pub vlan_attachments: Option<Vec<IntakeVlanAttachment>>,
-    /// vlanSameProject property.
-    pub vlan_same_project: Option<bool>,
-    /// vrf property.
-    pub vrf: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -44,64 +45,6 @@ pub struct NetworkConfig {
     pub reserved_ip_range: Option<String>,
 }
 
-/// `IOPSPerTB` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IOPSPerTB {
-    /// maxIopsPerTb property.
-    pub max_iops_per_tb: Option<String>,
-}
-
-/// `FileShareConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FileShareConfig {
-    /// capacityGb property.
-    pub capacity_gb: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// nfsExportOptions property.
-    pub nfs_export_options: Option<Vec<NfsExportOptions>>,
-    /// sourceBackup property.
-    pub source_backup: Option<String>,
-    /// sourceBackupdrBackup property.
-    pub source_backupdr_backup: Option<String>,
-}
-
-/// `FixedIOPS` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FixedIOPS {
-    /// maxIops property.
-    pub max_iops: Option<String>,
-}
-
-/// `PscConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PscConfig {
-    /// endpointProject property.
-    pub endpoint_project: Option<String>,
-}
-
-/// `PerformanceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PerformanceConfig {
-    /// fixedIops property.
-    pub fixed_iops: Option<FixedIOPS>,
-    /// iopsPerTb property.
-    pub iops_per_tb: Option<IOPSPerTB>,
-}
-
-/// `LdapConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LdapConfig {
-    /// domain property.
-    pub domain: Option<String>,
-    /// groupsOu property.
-    pub groups_ou: Option<String>,
-    /// servers property.
-    pub servers: Option<Vec<String>>,
-    /// usersOu property.
-    pub users_ou: Option<String>,
-}
-
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
@@ -113,78 +56,11 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `PerformanceLimits` type.
+/// `IOPSPerTB` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PerformanceLimits {
-    /// maxIops property.
-    pub max_iops: Option<String>,
-    /// maxReadIops property.
-    pub max_read_iops: Option<String>,
-    /// maxReadThroughputBps property.
-    pub max_read_throughput_bps: Option<String>,
-    /// maxWriteIops property.
-    pub max_write_iops: Option<String>,
-    /// maxWriteThroughputBps property.
-    pub max_write_throughput_bps: Option<String>,
-}
-
-/// `DirectoryServicesConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DirectoryServicesConfig {
-    /// ldap property.
-    pub ldap: Option<LdapConfig>,
-}
-
-/// `Replication` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Replication {
-    /// replicas property.
-    pub replicas: Option<Vec<ReplicaConfig>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `NfsExportOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NfsExportOptions {
-    /// accessMode property.
-    pub access_mode: Option<String>,
-    /// anonGid property.
-    pub anon_gid: Option<String>,
-    /// anonUid property.
-    pub anon_uid: Option<String>,
-    /// ipRanges property.
-    pub ip_ranges: Option<Vec<String>>,
-    /// network property.
-    pub network: Option<String>,
-    /// squashMode property.
-    pub squash_mode: Option<String>,
-}
-
-/// `ListInstancesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListInstancesResponse {
-    /// instances property.
-    pub instances: Option<Vec<Instance>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `ReplicaConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReplicaConfig {
-    /// lastActiveSyncTime property.
-    pub last_active_sync_time: Option<String>,
-    /// peerInstance property.
-    pub peer_instance: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// stateReasons property.
-    pub state_reasons: Option<Vec<String>>,
-    /// stateUpdateTime property.
-    pub state_update_time: Option<String>,
+pub struct IOPSPerTB {
+    /// maxIopsPerTb property.
+    pub max_iops_per_tb: Option<String>,
 }
 
 /// `Instance` type.
@@ -242,6 +118,131 @@ pub struct Instance {
     pub tags: Option<serde_json::Value>,
     /// tier property.
     pub tier: Option<String>,
+}
+
+/// `PerformanceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PerformanceConfig {
+    /// fixedIops property.
+    pub fixed_iops: Option<FixedIOPS>,
+    /// iopsPerTb property.
+    pub iops_per_tb: Option<IOPSPerTB>,
+}
+
+/// `FileShareConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FileShareConfig {
+    /// capacityGb property.
+    pub capacity_gb: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// nfsExportOptions property.
+    pub nfs_export_options: Option<Vec<NfsExportOptions>>,
+    /// sourceBackup property.
+    pub source_backup: Option<String>,
+    /// sourceBackupdrBackup property.
+    pub source_backupdr_backup: Option<String>,
+}
+
+/// `DirectoryServicesConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DirectoryServicesConfig {
+    /// ldap property.
+    pub ldap: Option<LdapConfig>,
+}
+
+/// `PerformanceLimits` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PerformanceLimits {
+    /// maxIops property.
+    pub max_iops: Option<String>,
+    /// maxReadIops property.
+    pub max_read_iops: Option<String>,
+    /// maxReadThroughputBps property.
+    pub max_read_throughput_bps: Option<String>,
+    /// maxWriteIops property.
+    pub max_write_iops: Option<String>,
+    /// maxWriteThroughputBps property.
+    pub max_write_throughput_bps: Option<String>,
+}
+
+/// `ReplicaConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReplicaConfig {
+    /// lastActiveSyncTime property.
+    pub last_active_sync_time: Option<String>,
+    /// peerInstance property.
+    pub peer_instance: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// stateReasons property.
+    pub state_reasons: Option<Vec<String>>,
+    /// stateUpdateTime property.
+    pub state_update_time: Option<String>,
+}
+
+/// `NfsExportOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NfsExportOptions {
+    /// accessMode property.
+    pub access_mode: Option<String>,
+    /// anonGid property.
+    pub anon_gid: Option<String>,
+    /// anonUid property.
+    pub anon_uid: Option<String>,
+    /// ipRanges property.
+    pub ip_ranges: Option<Vec<String>>,
+    /// network property.
+    pub network: Option<String>,
+    /// squashMode property.
+    pub squash_mode: Option<String>,
+}
+
+/// `LdapConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LdapConfig {
+    /// domain property.
+    pub domain: Option<String>,
+    /// groupsOu property.
+    pub groups_ou: Option<String>,
+    /// servers property.
+    pub servers: Option<Vec<String>>,
+    /// usersOu property.
+    pub users_ou: Option<String>,
+}
+
+/// `PscConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PscConfig {
+    /// endpointProject property.
+    pub endpoint_project: Option<String>,
+}
+
+/// `Replication` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Replication {
+    /// replicas property.
+    pub replicas: Option<Vec<ReplicaConfig>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `FixedIOPS` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FixedIOPS {
+    /// maxIops property.
+    pub max_iops: Option<String>,
+}
+
+/// `ListInstancesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListInstancesResponse {
+    /// instances property.
+    pub instances: Option<Vec<Instance>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 // =============================================================================

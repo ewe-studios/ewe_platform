@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,49 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GclbObservationSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GclbObservationSource {
+    /// pscNetworkConfigs property.
+    pub psc_network_configs: Option<Vec<GclbObservationSourcePscNetworkConfig>>,
+}
+
+/// `GclbObservationSourcePscNetworkConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GclbObservationSourcePscNetworkConfig {
+    /// network property.
+    pub network: Option<String>,
+    /// subnetwork property.
+    pub subnetwork: Option<String>,
+}
+
+/// `ListObservationSourcesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListObservationSourcesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// observationSources property.
+    pub observation_sources: Option<Vec<ObservationSource>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
 
 /// `ObservationSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,44 +79,6 @@ pub struct ObservationSource {
     pub state: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `ListObservationSourcesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListObservationSourcesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// observationSources property.
-    pub observation_sources: Option<Vec<ObservationSource>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `GclbObservationSourcePscNetworkConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GclbObservationSourcePscNetworkConfig {
-    /// network property.
-    pub network: Option<String>,
-    /// subnetwork property.
-    pub subnetwork: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GclbObservationSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GclbObservationSource {
-    /// pscNetworkConfigs property.
-    pub psc_network_configs: Option<Vec<GclbObservationSourcePscNetworkConfig>>,
 }
 
 // =============================================================================

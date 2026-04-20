@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,34 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `EthereumDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EthereumDetails {
+    /// additionalEndpoints property.
+    pub additional_endpoints: Option<EthereumEndpoints>,
+    /// apiEnableAdmin property.
+    pub api_enable_admin: Option<bool>,
+    /// apiEnableDebug property.
+    pub api_enable_debug: Option<bool>,
+    /// consensusClient property.
+    pub consensus_client: Option<String>,
+    /// executionClient property.
+    pub execution_client: Option<String>,
+    /// gethDetails property.
+    pub geth_details: Option<GethDetails>,
+    /// network property.
+    pub network: Option<String>,
+    /// nodeType property.
+    pub node_type: Option<String>,
+    /// validatorConfig property.
+    pub validator_config: Option<ValidatorConfig>,
+}
 
 /// `EndpointInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -34,6 +58,44 @@ pub struct EndpointInfo {
     pub json_rpc_api_endpoint: Option<String>,
     /// websocketsApiEndpoint property.
     pub websockets_api_endpoint: Option<String>,
+}
+
+/// `EthereumEndpoints` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EthereumEndpoints {
+    /// beaconApiEndpoint property.
+    pub beacon_api_endpoint: Option<String>,
+    /// beaconPrometheusMetricsApiEndpoint property.
+    pub beacon_prometheus_metrics_api_endpoint: Option<String>,
+    /// executionClientPrometheusMetricsApiEndpoint property.
+    pub execution_client_prometheus_metrics_api_endpoint: Option<String>,
+}
+
+/// `ListBlockchainNodesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListBlockchainNodesResponse {
+    /// blockchainNodes property.
+    pub blockchain_nodes: Option<Vec<BlockchainNode>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `GethDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GethDetails {
+    /// garbageCollectionMode property.
+    pub garbage_collection_mode: Option<String>,
+}
+
+/// `ConnectionInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectionInfo {
+    /// endpointInfo property.
+    pub endpoint_info: Option<EndpointInfo>,
+    /// serviceAttachment property.
+    pub service_attachment: Option<String>,
 }
 
 /// `BlockchainNode` type.
@@ -59,58 +121,6 @@ pub struct BlockchainNode {
     pub update_time: Option<String>,
 }
 
-/// `EthereumDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EthereumDetails {
-    /// additionalEndpoints property.
-    pub additional_endpoints: Option<EthereumEndpoints>,
-    /// apiEnableAdmin property.
-    pub api_enable_admin: Option<bool>,
-    /// apiEnableDebug property.
-    pub api_enable_debug: Option<bool>,
-    /// consensusClient property.
-    pub consensus_client: Option<String>,
-    /// executionClient property.
-    pub execution_client: Option<String>,
-    /// gethDetails property.
-    pub geth_details: Option<GethDetails>,
-    /// network property.
-    pub network: Option<String>,
-    /// nodeType property.
-    pub node_type: Option<String>,
-    /// validatorConfig property.
-    pub validator_config: Option<ValidatorConfig>,
-}
-
-/// `GethDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GethDetails {
-    /// garbageCollectionMode property.
-    pub garbage_collection_mode: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `ListBlockchainNodesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListBlockchainNodesResponse {
-    /// blockchainNodes property.
-    pub blockchain_nodes: Option<Vec<BlockchainNode>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
 /// `ValidatorConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValidatorConfig {
@@ -122,24 +132,15 @@ pub struct ValidatorConfig {
     pub mev_relay_urls: Option<Vec<String>>,
 }
 
-/// `ConnectionInfo` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionInfo {
-    /// endpointInfo property.
-    pub endpoint_info: Option<EndpointInfo>,
-    /// serviceAttachment property.
-    pub service_attachment: Option<String>,
-}
-
-/// `EthereumEndpoints` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EthereumEndpoints {
-    /// beaconApiEndpoint property.
-    pub beacon_api_endpoint: Option<String>,
-    /// beaconPrometheusMetricsApiEndpoint property.
-    pub beacon_prometheus_metrics_api_endpoint: Option<String>,
-    /// executionClientPrometheusMetricsApiEndpoint property.
-    pub execution_client_prometheus_metrics_api_endpoint: Option<String>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

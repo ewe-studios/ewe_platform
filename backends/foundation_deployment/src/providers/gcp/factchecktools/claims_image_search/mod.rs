@@ -12,17 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleFactcheckingFactchecktoolsV1Alpha1FactCheckedClaimImageSearchResponseResult` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFactcheckingFactchecktoolsV1Alpha1FactCheckedClaimImageSearchResponseResult {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
 
 /// `GoogleFactcheckingFactchecktoolsV1Alpha1Claim` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -32,17 +41,9 @@ pub struct GoogleFactcheckingFactchecktoolsV1Alpha1Claim {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleFactcheckingFactchecktoolsV1Alpha1ClaimReview` response type.
+/// `GoogleFactcheckingFactchecktoolsV1Alpha1Publisher` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFactcheckingFactchecktoolsV1Alpha1ClaimReview {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleFactcheckingFactchecktoolsV1Alpha1FactCheckedClaimImageSearchResponseResult` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFactcheckingFactchecktoolsV1Alpha1FactCheckedClaimImageSearchResponseResult {
+pub struct GoogleFactcheckingFactchecktoolsV1Alpha1Publisher {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -59,9 +60,9 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimImageSearchRe
     >,
 }
 
-/// `GoogleFactcheckingFactchecktoolsV1Alpha1Publisher` response type.
+/// `GoogleFactcheckingFactchecktoolsV1Alpha1ClaimReview` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFactcheckingFactchecktoolsV1Alpha1Publisher {
+pub struct GoogleFactcheckingFactchecktoolsV1Alpha1ClaimReview {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

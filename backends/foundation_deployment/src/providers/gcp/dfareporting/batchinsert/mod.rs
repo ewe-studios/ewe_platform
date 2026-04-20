@@ -12,50 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ConversionStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConversionStatus {
-    /// conversion property.
-    pub conversion: Option<Conversion>,
-    /// errors property.
-    pub errors: Option<Vec<ConversionError>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `ConversionError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConversionError {
-    /// code property.
-    pub code: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `CustomFloodlightVariable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomFloodlightVariable {
-    /// kind property.
-    pub kind: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
 
 /// `ConversionsBatchInsertResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -68,36 +36,15 @@ pub struct ConversionsBatchInsertResponse {
     pub status: Option<Vec<ConversionStatus>>,
 }
 
-/// `CartData` type.
+/// `UserIdentifier` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CartData {
-    /// items property.
-    pub items: Option<Vec<CartDataItem>>,
-    /// merchantFeedLabel property.
-    pub merchant_feed_label: Option<String>,
-    /// merchantFeedLanguage property.
-    pub merchant_feed_language: Option<String>,
-    /// merchantId property.
-    pub merchant_id: Option<String>,
-}
-
-/// `OfflineUserAddressInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OfflineUserAddressInfo {
-    /// city property.
-    pub city: Option<String>,
-    /// countryCode property.
-    pub country_code: Option<String>,
-    /// hashedFirstName property.
-    pub hashed_first_name: Option<String>,
-    /// hashedLastName property.
-    pub hashed_last_name: Option<String>,
-    /// hashedStreetAddress property.
-    pub hashed_street_address: Option<String>,
-    /// postalCode property.
-    pub postal_code: Option<String>,
-    /// state property.
-    pub state: Option<String>,
+pub struct UserIdentifier {
+    /// addressInfo property.
+    pub address_info: Option<OfflineUserAddressInfo>,
+    /// hashedEmail property.
+    pub hashed_email: Option<String>,
+    /// hashedPhoneNumber property.
+    pub hashed_phone_number: Option<String>,
 }
 
 /// `CartDataItem` type.
@@ -109,17 +56,6 @@ pub struct CartDataItem {
     pub quantity: Option<i64>,
     /// unitPrice property.
     pub unit_price: Option<f64>,
-}
-
-/// `UserIdentifier` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserIdentifier {
-    /// addressInfo property.
-    pub address_info: Option<OfflineUserAddressInfo>,
-    /// hashedEmail property.
-    pub hashed_email: Option<String>,
-    /// hashedPhoneNumber property.
-    pub hashed_phone_number: Option<String>,
 }
 
 /// `Conversion` type.
@@ -171,6 +107,71 @@ pub struct Conversion {
     pub user_identifiers: Option<Vec<UserIdentifier>>,
     /// value property.
     pub value: Option<f64>,
+}
+
+/// `ConversionError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConversionError {
+    /// code property.
+    pub code: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `CartData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CartData {
+    /// items property.
+    pub items: Option<Vec<CartDataItem>>,
+    /// merchantFeedLabel property.
+    pub merchant_feed_label: Option<String>,
+    /// merchantFeedLanguage property.
+    pub merchant_feed_language: Option<String>,
+    /// merchantId property.
+    pub merchant_id: Option<String>,
+}
+
+/// `ConversionStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConversionStatus {
+    /// conversion property.
+    pub conversion: Option<Conversion>,
+    /// errors property.
+    pub errors: Option<Vec<ConversionError>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `CustomFloodlightVariable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomFloodlightVariable {
+    /// kind property.
+    pub kind: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `OfflineUserAddressInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OfflineUserAddressInfo {
+    /// city property.
+    pub city: Option<String>,
+    /// countryCode property.
+    pub country_code: Option<String>,
+    /// hashedFirstName property.
+    pub hashed_first_name: Option<String>,
+    /// hashedLastName property.
+    pub hashed_last_name: Option<String>,
+    /// hashedStreetAddress property.
+    pub hashed_street_address: Option<String>,
+    /// postalCode property.
+    pub postal_code: Option<String>,
+    /// state property.
+    pub state: Option<String>,
 }
 
 // =============================================================================

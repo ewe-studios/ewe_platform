@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,26 +22,24 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `PacketMirroringMirroredResourceInfoSubnetInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PacketMirroringMirroredResourceInfoSubnetInfo {
-    /// canonicalUrl property.
-    pub canonical_url: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
 
 /// `GetVersionOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetVersionOperationMetadata {
     /// inlineSbomInfo property.
     pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+}
+
+/// `Help` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
 }
 
 /// `SetCommonInstanceMetadataOperationMetadata` type.
@@ -50,24 +49,6 @@ pub struct SetCommonInstanceMetadataOperationMetadata {
     pub client_operation_id: Option<String>,
     /// perLocationOperations property.
     pub per_location_operations: Option<serde_json::Value>,
-}
-
-/// `HelpLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `GetVersionOperationMetadataSbomInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
 }
 
 /// `PacketMirroringList` type.
@@ -87,51 +68,6 @@ pub struct PacketMirroringList {
     pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `PacketMirroringAggregatedList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PacketMirroringAggregatedList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<serde_json::Value>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// unreachables property.
-    pub unreachables: Option<Vec<String>>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `PacketMirroringMirroredResourceInfoInstanceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PacketMirroringMirroredResourceInfoInstanceInfo {
-    /// canonicalUrl property.
-    pub canonical_url: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `QuotaExceededInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotaExceededInfo {
-    /// dimensions property.
-    pub dimensions: Option<serde_json::Value>,
-    /// futureLimit property.
-    pub future_limit: Option<f64>,
-    /// limit property.
-    pub limit: Option<f64>,
-    /// limitName property.
-    pub limit_name: Option<String>,
-    /// metricName property.
-    pub metric_name: Option<String>,
-    /// rolloutStatus property.
-    pub rollout_status: Option<String>,
-}
-
 /// `ErrorInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorInfo {
@@ -143,15 +79,38 @@ pub struct ErrorInfo {
     pub reason: Option<String>,
 }
 
-/// `PacketMirroringMirroredResourceInfo` type.
+/// `PacketMirroringMirroredResourceInfoInstanceInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PacketMirroringMirroredResourceInfo {
-    /// instances property.
-    pub instances: Option<Vec<PacketMirroringMirroredResourceInfoInstanceInfo>>,
-    /// subnetworks property.
-    pub subnetworks: Option<Vec<PacketMirroringMirroredResourceInfoSubnetInfo>>,
-    /// tags property.
-    pub tags: Option<Vec<String>>,
+pub struct PacketMirroringMirroredResourceInfoInstanceInfo {
+    /// canonicalUrl property.
+    pub canonical_url: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `LocalizedMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `PacketMirroringForwardingRuleInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PacketMirroringForwardingRuleInfo {
+    /// canonicalUrl property.
+    pub canonical_url: Option<String>,
+    /// url property.
+    pub url: Option<String>,
 }
 
 /// `PacketMirroringFilter` type.
@@ -165,29 +124,6 @@ pub struct PacketMirroringFilter {
     pub direction: Option<String>,
 }
 
-/// `InstancesBulkInsertOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
-}
-
-/// `Help` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
-}
-
-/// `PacketMirroringForwardingRuleInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PacketMirroringForwardingRuleInfo {
-    /// canonicalUrl property.
-    pub canonical_url: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
 /// `PacketMirroringNetworkInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PacketMirroringNetworkInfo {
@@ -195,6 +131,26 @@ pub struct PacketMirroringNetworkInfo {
     pub canonical_url: Option<String>,
     /// url property.
     pub url: Option<String>,
+}
+
+/// `GetVersionOperationMetadataSbomInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
+}
+
+/// `PacketMirroringMirroredResourceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PacketMirroringMirroredResourceInfo {
+    /// instances property.
+    pub instances: Option<Vec<PacketMirroringMirroredResourceInfoInstanceInfo>>,
+    /// subnetworks property.
+    pub subnetworks: Option<Vec<PacketMirroringMirroredResourceInfoSubnetInfo>>,
+    /// tags property.
+    pub tags: Option<Vec<String>>,
 }
 
 /// `PacketMirroring` type.
@@ -228,13 +184,58 @@ pub struct PacketMirroring {
     pub self_link: Option<String>,
 }
 
-/// `LocalizedMessage` type.
+/// `HelpLink` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `QuotaExceededInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuotaExceededInfo {
+    /// dimensions property.
+    pub dimensions: Option<serde_json::Value>,
+    /// futureLimit property.
+    pub future_limit: Option<f64>,
+    /// limit property.
+    pub limit: Option<f64>,
+    /// limitName property.
+    pub limit_name: Option<String>,
+    /// metricName property.
+    pub metric_name: Option<String>,
+    /// rolloutStatus property.
+    pub rollout_status: Option<String>,
+}
+
+/// `PacketMirroringMirroredResourceInfoSubnetInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PacketMirroringMirroredResourceInfoSubnetInfo {
+    /// canonicalUrl property.
+    pub canonical_url: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `PacketMirroringAggregatedList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PacketMirroringAggregatedList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<serde_json::Value>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// unreachables property.
+    pub unreachables: Option<Vec<String>>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 // =============================================================================

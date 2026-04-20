@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,20 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListNegativeKeywordListsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListNegativeKeywordListsResponse {
+    /// negativeKeywordLists property.
+    pub negative_keyword_lists: Option<Vec<NegativeKeywordList>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `NegativeKeywordList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,15 +50,6 @@ pub struct NegativeKeywordList {
     pub negative_keyword_list_id: Option<String>,
     /// targetedLineItemCount property.
     pub targeted_line_item_count: Option<String>,
-}
-
-/// `ListNegativeKeywordListsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListNegativeKeywordListsResponse {
-    /// negativeKeywordLists property.
-    pub negative_keyword_lists: Option<Vec<NegativeKeywordList>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,71 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `ResourcePolicyInstanceSchedulePolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourcePolicyInstanceSchedulePolicy {
-    /// expirationTime property.
-    pub expiration_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// timeZone property.
-    pub time_zone: Option<String>,
-    /// vmStartSchedule property.
-    pub vm_start_schedule: Option<ResourcePolicyInstanceSchedulePolicySchedule>,
-    /// vmStopSchedule property.
-    pub vm_stop_schedule: Option<ResourcePolicyInstanceSchedulePolicySchedule>,
-}
-
-/// `InstancesBulkInsertOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
-}
-
-/// `ResourcePolicyWeeklyCycle` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourcePolicyWeeklyCycle {
-    /// dayOfWeeks property.
-    pub day_of_weeks: Option<Vec<ResourcePolicyWeeklyCycleDayOfWeek>>,
-}
-
-/// `ResourcePolicyWeeklyCycleDayOfWeek` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourcePolicyWeeklyCycleDayOfWeek {
-    /// day property.
-    pub day: Option<String>,
-    /// duration property.
-    pub duration: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `ResourcePolicyInstanceSchedulePolicySchedule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourcePolicyInstanceSchedulePolicySchedule {
-    /// schedule property.
-    pub schedule: Option<String>,
-}
-
-/// `ResourcePolicyDiskConsistencyGroupPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourcePolicyDiskConsistencyGroupPolicy {}
 
 /// `ResourcePolicyWorkloadPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -109,6 +50,22 @@ pub struct ResourcePolicySnapshotSchedulePolicyRetentionPolicy {
     pub on_source_disk_delete: Option<String>,
 }
 
+/// `GetVersionOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadata {
+    /// inlineSbomInfo property.
+    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+}
+
+/// `GetVersionOperationMetadataSbomInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
+}
+
 /// `SetCommonInstanceMetadataOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetCommonInstanceMetadataOperationMetadata {
@@ -118,50 +75,45 @@ pub struct SetCommonInstanceMetadataOperationMetadata {
     pub per_location_operations: Option<serde_json::Value>,
 }
 
-/// `ResourcePolicyGroupPlacementPolicy` type.
+/// `LocalizedMessage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourcePolicyGroupPlacementPolicy {
-    /// acceleratorTopologyMode property.
-    pub accelerator_topology_mode: Option<String>,
-    /// availabilityDomainCount property.
-    pub availability_domain_count: Option<i64>,
-    /// collocation property.
-    pub collocation: Option<String>,
-    /// gpuTopology property.
-    pub gpu_topology: Option<String>,
-    /// vmCount property.
-    pub vm_count: Option<i64>,
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
 }
 
-/// `ResourcePolicyHourlyCycle` type.
+/// `ResourcePolicyAggregatedList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourcePolicyHourlyCycle {
-    /// duration property.
-    pub duration: Option<String>,
-    /// hoursInCycle property.
-    pub hours_in_cycle: Option<i64>,
-    /// startTime property.
-    pub start_time: Option<String>,
+pub struct ResourcePolicyAggregatedList {
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<serde_json::Value>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// unreachables property.
+    pub unreachables: Option<Vec<String>>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `ResourcePolicyResourceStatusInstanceSchedulePolicyStatus` type.
+/// `ResourcePolicySnapshotSchedulePolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourcePolicyResourceStatusInstanceSchedulePolicyStatus {
-    /// lastRunStartTime property.
-    pub last_run_start_time: Option<String>,
-    /// nextRunStartTime property.
-    pub next_run_start_time: Option<String>,
-}
-
-/// `ResourcePolicyDailyCycle` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourcePolicyDailyCycle {
-    /// daysInCycle property.
-    pub days_in_cycle: Option<i64>,
-    /// duration property.
-    pub duration: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
+pub struct ResourcePolicySnapshotSchedulePolicy {
+    /// retentionPolicy property.
+    pub retention_policy: Option<ResourcePolicySnapshotSchedulePolicyRetentionPolicy>,
+    /// schedule property.
+    pub schedule: Option<ResourcePolicySnapshotSchedulePolicySchedule>,
+    /// snapshotProperties property.
+    pub snapshot_properties: Option<ResourcePolicySnapshotSchedulePolicySnapshotProperties>,
 }
 
 /// `HelpLink` type.
@@ -173,47 +125,29 @@ pub struct HelpLink {
     pub url: Option<String>,
 }
 
-/// `QuotaExceededInfo` type.
+/// `ResourcePolicyWeeklyCycleDayOfWeek` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotaExceededInfo {
-    /// dimensions property.
-    pub dimensions: Option<serde_json::Value>,
-    /// futureLimit property.
-    pub future_limit: Option<f64>,
-    /// limit property.
-    pub limit: Option<f64>,
-    /// limitName property.
-    pub limit_name: Option<String>,
-    /// metricName property.
-    pub metric_name: Option<String>,
-    /// rolloutStatus property.
-    pub rollout_status: Option<String>,
+pub struct ResourcePolicyWeeklyCycleDayOfWeek {
+    /// day property.
+    pub day: Option<String>,
+    /// duration property.
+    pub duration: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
 }
 
-/// `GetVersionOperationMetadata` type.
+/// `ResourcePolicyResourceStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadata {
-    /// inlineSbomInfo property.
-    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+pub struct ResourcePolicyResourceStatus {
+    /// instanceSchedulePolicy property.
+    pub instance_schedule_policy: Option<ResourcePolicyResourceStatusInstanceSchedulePolicyStatus>,
 }
 
-/// `ResourcePolicyList` type.
+/// `ResourcePolicyWeeklyCycle` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourcePolicyList {
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<ResourcePolicy>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+pub struct ResourcePolicyWeeklyCycle {
+    /// dayOfWeeks property.
+    pub day_of_weeks: Option<Vec<ResourcePolicyWeeklyCycleDayOfWeek>>,
 }
 
 /// `ResourcePolicy` type.
@@ -249,6 +183,25 @@ pub struct ResourcePolicy {
     pub workload_policy: Option<ResourcePolicyWorkloadPolicy>,
 }
 
+/// `ResourcePolicyList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourcePolicyList {
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<ResourcePolicy>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
 /// `ResourcePolicySnapshotSchedulePolicySchedule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePolicySnapshotSchedulePolicySchedule {
@@ -260,41 +213,83 @@ pub struct ResourcePolicySnapshotSchedulePolicySchedule {
     pub weekly_schedule: Option<ResourcePolicyWeeklyCycle>,
 }
 
-/// `ResourcePolicyAggregatedList` type.
+/// `ResourcePolicyDailyCycle` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourcePolicyAggregatedList {
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<serde_json::Value>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// unreachables property.
-    pub unreachables: Option<Vec<String>>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+pub struct ResourcePolicyDailyCycle {
+    /// daysInCycle property.
+    pub days_in_cycle: Option<i64>,
+    /// duration property.
+    pub duration: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
 }
 
-/// `GetVersionOperationMetadataSbomInfo` type.
+/// `ResourcePolicyDiskConsistencyGroupPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
+pub struct ResourcePolicyDiskConsistencyGroupPolicy {}
+
+/// `ResourcePolicyHourlyCycle` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourcePolicyHourlyCycle {
+    /// duration property.
+    pub duration: Option<String>,
+    /// hoursInCycle property.
+    pub hours_in_cycle: Option<i64>,
+    /// startTime property.
+    pub start_time: Option<String>,
 }
 
-/// `ResourcePolicyResourceStatus` type.
+/// `ResourcePolicyResourceStatusInstanceSchedulePolicyStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourcePolicyResourceStatus {
-    /// instanceSchedulePolicy property.
-    pub instance_schedule_policy: Option<ResourcePolicyResourceStatusInstanceSchedulePolicyStatus>,
+pub struct ResourcePolicyResourceStatusInstanceSchedulePolicyStatus {
+    /// lastRunStartTime property.
+    pub last_run_start_time: Option<String>,
+    /// nextRunStartTime property.
+    pub next_run_start_time: Option<String>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `ResourcePolicyInstanceSchedulePolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourcePolicyInstanceSchedulePolicy {
+    /// expirationTime property.
+    pub expiration_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// timeZone property.
+    pub time_zone: Option<String>,
+    /// vmStartSchedule property.
+    pub vm_start_schedule: Option<ResourcePolicyInstanceSchedulePolicySchedule>,
+    /// vmStopSchedule property.
+    pub vm_stop_schedule: Option<ResourcePolicyInstanceSchedulePolicySchedule>,
+}
+
+/// `ResourcePolicyInstanceSchedulePolicySchedule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourcePolicyInstanceSchedulePolicySchedule {
+    /// schedule property.
+    pub schedule: Option<String>,
+}
+
+/// `ResourcePolicyGroupPlacementPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourcePolicyGroupPlacementPolicy {
+    /// acceleratorTopologyMode property.
+    pub accelerator_topology_mode: Option<String>,
+    /// availabilityDomainCount property.
+    pub availability_domain_count: Option<i64>,
+    /// collocation property.
+    pub collocation: Option<String>,
+    /// gpuTopology property.
+    pub gpu_topology: Option<String>,
+    /// vmCount property.
+    pub vm_count: Option<i64>,
 }
 
 /// `ErrorInfo` type.
@@ -315,15 +310,21 @@ pub struct Help {
     pub links: Option<Vec<HelpLink>>,
 }
 
-/// `ResourcePolicySnapshotSchedulePolicy` type.
+/// `QuotaExceededInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourcePolicySnapshotSchedulePolicy {
-    /// retentionPolicy property.
-    pub retention_policy: Option<ResourcePolicySnapshotSchedulePolicyRetentionPolicy>,
-    /// schedule property.
-    pub schedule: Option<ResourcePolicySnapshotSchedulePolicySchedule>,
-    /// snapshotProperties property.
-    pub snapshot_properties: Option<ResourcePolicySnapshotSchedulePolicySnapshotProperties>,
+pub struct QuotaExceededInfo {
+    /// dimensions property.
+    pub dimensions: Option<serde_json::Value>,
+    /// futureLimit property.
+    pub future_limit: Option<f64>,
+    /// limit property.
+    pub limit: Option<f64>,
+    /// limitName property.
+    pub limit_name: Option<String>,
+    /// metricName property.
+    pub metric_name: Option<String>,
+    /// rolloutStatus property.
+    pub rollout_status: Option<String>,
 }
 
 /// `ResourcePolicySnapshotSchedulePolicySnapshotProperties` type.

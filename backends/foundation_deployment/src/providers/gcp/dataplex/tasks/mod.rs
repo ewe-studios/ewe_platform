@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,66 +24,11 @@ use super::shared::GoogleIamV1Policy;
 use super::shared::GoogleIamV1TestIamPermissionsResponse;
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudDataplexV1TaskInfrastructureSpecBatchComputeResources` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1TaskInfrastructureSpecBatchComputeResources {
-    /// executorsCount property.
-    pub executors_count: Option<i64>,
-    /// maxExecutorsCount property.
-    pub max_executors_count: Option<i64>,
-}
-
-/// `GoogleIamV1AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1TaskExecutionSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1TaskExecutionSpec {
-    /// args property.
-    pub args: Option<serde_json::Value>,
-    /// kmsKey property.
-    pub kms_key: Option<String>,
-    /// maxJobExecutionLifetime property.
-    pub max_job_execution_lifetime: Option<String>,
-    /// project property.
-    pub project: Option<String>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1ListTasksResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1ListTasksResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// tasks property.
-    pub tasks: Option<Vec<GoogleCloudDataplexV1Task>>,
-    /// unreachableLocations property.
-    pub unreachable_locations: Option<Vec<String>>,
-}
 
 /// `GoogleCloudDataplexV1TaskExecutionStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -91,91 +37,6 @@ pub struct GoogleCloudDataplexV1TaskExecutionStatus {
     pub latest_job: Option<GoogleCloudDataplexV1Job>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1TaskTriggerSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1TaskTriggerSpec {
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// maxRetries property.
-    pub max_retries: Option<i64>,
-    /// schedule property.
-    pub schedule: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1TaskInfrastructureSpecVpcNetwork` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1TaskInfrastructureSpecVpcNetwork {
-    /// network property.
-    pub network: Option<String>,
-    /// networkTags property.
-    pub network_tags: Option<Vec<String>>,
-    /// subNetwork property.
-    pub sub_network: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1Job` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1Job {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// executionSpec property.
-    pub execution_spec: Option<GoogleCloudDataplexV1TaskExecutionSpec>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// message property.
-    pub message: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// retryCount property.
-    pub retry_count: Option<i64>,
-    /// service property.
-    pub service: Option<String>,
-    /// serviceJob property.
-    pub service_job: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// trigger property.
-    pub trigger: Option<String>,
-    /// uid property.
-    pub uid: Option<String>,
-}
-
-/// `GoogleIamV1AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1TaskSparkTaskConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1TaskSparkTaskConfig {
-    /// archiveUris property.
-    pub archive_uris: Option<Vec<String>>,
-    /// fileUris property.
-    pub file_uris: Option<Vec<String>>,
-    /// infrastructureSpec property.
-    pub infrastructure_spec: Option<GoogleCloudDataplexV1TaskInfrastructureSpec>,
-    /// mainClass property.
-    pub main_class: Option<String>,
-    /// mainJarFileUri property.
-    pub main_jar_file_uri: Option<String>,
-    /// pythonScriptFile property.
-    pub python_script_file: Option<String>,
-    /// sqlScript property.
-    pub sql_script: Option<String>,
-    /// sqlScriptFile property.
-    pub sql_script_file: Option<String>,
 }
 
 /// `GoogleCloudDataplexV1TaskInfrastructureSpecContainerImageRuntime` type.
@@ -191,24 +52,22 @@ pub struct GoogleCloudDataplexV1TaskInfrastructureSpecContainerImageRuntime {
     pub python_packages: Option<Vec<String>>,
 }
 
-/// `GoogleTypeExpr` type.
+/// `GoogleCloudDataplexV1TaskInfrastructureSpecBatchComputeResources` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeExpr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct GoogleCloudDataplexV1TaskInfrastructureSpecBatchComputeResources {
+    /// executorsCount property.
+    pub executors_count: Option<i64>,
+    /// maxExecutorsCount property.
+    pub max_executors_count: Option<i64>,
 }
 
-/// `GoogleCloudDataplexV1RunTaskResponse` type.
+/// `GoogleIamV1AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1RunTaskResponse {
-    /// job property.
-    pub job: Option<GoogleCloudDataplexV1Job>,
+pub struct GoogleIamV1AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
 /// `GoogleCloudDataplexV1Task` type.
@@ -242,6 +101,70 @@ pub struct GoogleCloudDataplexV1Task {
     pub update_time: Option<String>,
 }
 
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1ListTasksResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1ListTasksResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// tasks property.
+    pub tasks: Option<Vec<GoogleCloudDataplexV1Task>>,
+    /// unreachableLocations property.
+    pub unreachable_locations: Option<Vec<String>>,
+}
+
+/// `GoogleTypeExpr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeExpr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1Job` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1Job {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// executionSpec property.
+    pub execution_spec: Option<GoogleCloudDataplexV1TaskExecutionSpec>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// message property.
+    pub message: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// retryCount property.
+    pub retry_count: Option<i64>,
+    /// service property.
+    pub service: Option<String>,
+    /// serviceJob property.
+    pub service_job: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// trigger property.
+    pub trigger: Option<String>,
+    /// uid property.
+    pub uid: Option<String>,
+}
+
 /// `GoogleCloudDataplexV1TaskInfrastructureSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1TaskInfrastructureSpec {
@@ -251,6 +174,24 @@ pub struct GoogleCloudDataplexV1TaskInfrastructureSpec {
     pub container_image: Option<GoogleCloudDataplexV1TaskInfrastructureSpecContainerImageRuntime>,
     /// vpcNetwork property.
     pub vpc_network: Option<GoogleCloudDataplexV1TaskInfrastructureSpecVpcNetwork>,
+}
+
+/// `GoogleIamV1Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1Binding {
+    /// condition property.
+    pub condition: Option<GoogleTypeExpr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1RunTaskResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1RunTaskResponse {
+    /// job property.
+    pub job: Option<GoogleCloudDataplexV1Job>,
 }
 
 /// `GoogleCloudDataplexV1TaskNotebookTaskConfig` type.
@@ -266,15 +207,75 @@ pub struct GoogleCloudDataplexV1TaskNotebookTaskConfig {
     pub notebook: Option<String>,
 }
 
-/// `GoogleIamV1Binding` type.
+/// `GoogleCloudDataplexV1TaskExecutionSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Binding {
-    /// condition property.
-    pub condition: Option<GoogleTypeExpr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct GoogleCloudDataplexV1TaskExecutionSpec {
+    /// args property.
+    pub args: Option<serde_json::Value>,
+    /// kmsKey property.
+    pub kms_key: Option<String>,
+    /// maxJobExecutionLifetime property.
+    pub max_job_execution_lifetime: Option<String>,
+    /// project property.
+    pub project: Option<String>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1TaskSparkTaskConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1TaskSparkTaskConfig {
+    /// archiveUris property.
+    pub archive_uris: Option<Vec<String>>,
+    /// fileUris property.
+    pub file_uris: Option<Vec<String>>,
+    /// infrastructureSpec property.
+    pub infrastructure_spec: Option<GoogleCloudDataplexV1TaskInfrastructureSpec>,
+    /// mainClass property.
+    pub main_class: Option<String>,
+    /// mainJarFileUri property.
+    pub main_jar_file_uri: Option<String>,
+    /// pythonScriptFile property.
+    pub python_script_file: Option<String>,
+    /// sqlScript property.
+    pub sql_script: Option<String>,
+    /// sqlScriptFile property.
+    pub sql_script_file: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1TaskTriggerSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1TaskTriggerSpec {
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// maxRetries property.
+    pub max_retries: Option<i64>,
+    /// schedule property.
+    pub schedule: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1TaskInfrastructureSpecVpcNetwork` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1TaskInfrastructureSpecVpcNetwork {
+    /// network property.
+    pub network: Option<String>,
+    /// networkTags property.
+    pub network_tags: Option<Vec<String>>,
+    /// subNetwork property.
+    pub sub_network: Option<String>,
+}
+
+/// `GoogleIamV1AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
 }
 
 // =============================================================================

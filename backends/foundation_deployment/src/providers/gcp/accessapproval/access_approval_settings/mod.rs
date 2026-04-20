@@ -12,17 +12,30 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Empty;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `EnrolledService` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnrolledService {
+    /// cloudProduct property.
+    pub cloud_product: Option<String>,
+    /// enrollmentLevel property.
+    pub enrollment_level: Option<String>,
+}
 
 /// `AccessApprovalSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -64,19 +77,6 @@ pub struct AccessApprovalSettings {
 pub struct CustomerApprovalApprovalPolicy {
     /// justificationBasedApprovalPolicy property.
     pub justification_based_approval_policy: Option<String>,
-}
-
-/// `Empty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
-
-/// `EnrolledService` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnrolledService {
-    /// cloudProduct property.
-    pub cloud_product: Option<String>,
-    /// enrollmentLevel property.
-    pub enrollment_level: Option<String>,
 }
 
 // =============================================================================

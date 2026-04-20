@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,51 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListTlsRoutesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListTlsRoutesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// tlsRoutes property.
+    pub tls_routes: Option<Vec<TlsRoute>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `TlsRouteRouteDestination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TlsRouteRouteDestination {
+    /// serviceName property.
+    pub service_name: Option<String>,
+    /// weight property.
+    pub weight: Option<i64>,
+}
+
+/// `TlsRouteRouteMatch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TlsRouteRouteMatch {
+    /// alpn property.
+    pub alpn: Option<Vec<String>>,
+    /// sniHost property.
+    pub sni_host: Option<Vec<String>>,
+}
 
 /// `TlsRoute` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -52,17 +93,6 @@ pub struct TlsRoute {
     pub update_time: Option<String>,
 }
 
-/// `ListTlsRoutesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListTlsRoutesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// tlsRoutes property.
-    pub tls_routes: Option<Vec<TlsRoute>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
 /// `TlsRouteRouteAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsRouteRouteAction {
@@ -79,35 +109,6 @@ pub struct TlsRouteRouteRule {
     pub action: Option<TlsRouteRouteAction>,
     /// matches property.
     pub matches: Option<Vec<TlsRouteRouteMatch>>,
-}
-
-/// `TlsRouteRouteMatch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TlsRouteRouteMatch {
-    /// alpn property.
-    pub alpn: Option<Vec<String>>,
-    /// sniHost property.
-    pub sni_host: Option<Vec<String>>,
-}
-
-/// `TlsRouteRouteDestination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TlsRouteRouteDestination {
-    /// serviceName property.
-    pub service_name: Option<String>,
-    /// weight property.
-    pub weight: Option<i64>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 // =============================================================================

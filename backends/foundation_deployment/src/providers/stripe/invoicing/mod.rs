@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -27,6 +28,14 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `DeletedInvoiceitem` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeletedInvoiceitem {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `Invoiceitem` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Invoiceitem {
@@ -35,9 +44,9 @@ pub struct Invoiceitem {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `DeletedInvoice` response type.
+/// `LineItem` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeletedInvoice {
+pub struct LineItem {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -51,17 +60,9 @@ pub struct InvoiceRenderingTemplate {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `DeletedInvoiceitem` response type.
+/// `DeletedInvoice` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeletedInvoiceitem {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `LineItem` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LineItem {
+pub struct DeletedInvoice {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

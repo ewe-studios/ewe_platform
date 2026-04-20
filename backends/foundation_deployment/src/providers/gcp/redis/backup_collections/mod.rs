@@ -12,17 +12,29 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListBackupCollectionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListBackupCollectionsResponse {
+    /// backupCollections property.
+    pub backup_collections: Option<Vec<BackupCollection>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
 
 /// `BackupCollection` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,17 +57,6 @@ pub struct BackupCollection {
     pub total_backup_size_bytes: Option<String>,
     /// uid property.
     pub uid: Option<String>,
-}
-
-/// `ListBackupCollectionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListBackupCollectionsResponse {
-    /// backupCollections property.
-    pub backup_collections: Option<Vec<BackupCollection>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
 }
 
 // =============================================================================

@@ -12,17 +12,63 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `LookbackConfiguration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LookbackConfiguration {
+    /// clickDuration property.
+    pub click_duration: Option<i64>,
+    /// postImpressionActivitiesDuration property.
+    pub post_impression_activities_duration: Option<i64>,
+}
+
+/// `PricingSchedule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PricingSchedule {
+    /// capCostOption property.
+    pub cap_cost_option: Option<String>,
+    /// endDate property.
+    pub end_date: Option<String>,
+    /// flighted property.
+    pub flighted: Option<bool>,
+    /// floodlightActivityId property.
+    pub floodlight_activity_id: Option<String>,
+    /// pricingPeriods property.
+    pub pricing_periods: Option<Vec<PricingSchedulePricingPeriod>>,
+    /// pricingType property.
+    pub pricing_type: Option<String>,
+    /// startDate property.
+    pub start_date: Option<String>,
+    /// testingStartDate property.
+    pub testing_start_date: Option<String>,
+}
+
+/// `PricingSchedulePricingPeriod` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PricingSchedulePricingPeriod {
+    /// endDate property.
+    pub end_date: Option<String>,
+    /// pricingComment property.
+    pub pricing_comment: Option<String>,
+    /// rateOrCostNanos property.
+    pub rate_or_cost_nanos: Option<String>,
+    /// startDate property.
+    pub start_date: Option<String>,
+    /// units property.
+    pub units: Option<String>,
+}
 
 /// `PlacementSingleConversionDomain` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -31,6 +77,27 @@ pub struct PlacementSingleConversionDomain {
     pub conversion_domain_id: Option<String>,
     /// conversionDomainValue property.
     pub conversion_domain_value: Option<String>,
+}
+
+/// `ObaIcon` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ObaIcon {
+    /// iconClickThroughUrl property.
+    pub icon_click_through_url: Option<String>,
+    /// iconClickTrackingUrl property.
+    pub icon_click_tracking_url: Option<String>,
+    /// iconViewTrackingUrl property.
+    pub icon_view_tracking_url: Option<String>,
+    /// program property.
+    pub program: Option<String>,
+    /// resourceUrl property.
+    pub resource_url: Option<String>,
+    /// size property.
+    pub size: Option<Size>,
+    /// xPosition property.
+    pub x_position: Option<String>,
+    /// yPosition property.
+    pub y_position: Option<String>,
 }
 
 /// `Placement` type.
@@ -134,62 +201,26 @@ pub struct Placement {
     pub youtube_settings: Option<YoutubeSettings>,
 }
 
-/// `MeasurementPartnerWrappingData` type.
+/// `TagSetting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MeasurementPartnerWrappingData {
-    /// linkStatus property.
-    pub link_status: Option<String>,
-    /// measurementPartner property.
-    pub measurement_partner: Option<String>,
-    /// tagWrappingMode property.
-    pub tag_wrapping_mode: Option<String>,
-    /// wrappedTag property.
-    pub wrapped_tag: Option<String>,
+pub struct TagSetting {
+    /// additionalKeyValues property.
+    pub additional_key_values: Option<String>,
+    /// includeClickThroughUrls property.
+    pub include_click_through_urls: Option<bool>,
+    /// includeClickTracking property.
+    pub include_click_tracking: Option<bool>,
+    /// includeUnescapedlpurlMacro property.
+    pub include_unescapedlpurl_macro: Option<bool>,
+    /// keywordOption property.
+    pub keyword_option: Option<String>,
 }
 
-/// `PlacementConversionDomainOverride` type.
+/// `LastModifiedInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlacementConversionDomainOverride {
-    /// conversionDomains property.
-    pub conversion_domains: Option<Vec<PlacementSingleConversionDomain>>,
-}
-
-/// `PricingSchedule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PricingSchedule {
-    /// capCostOption property.
-    pub cap_cost_option: Option<String>,
-    /// endDate property.
-    pub end_date: Option<String>,
-    /// flighted property.
-    pub flighted: Option<bool>,
-    /// floodlightActivityId property.
-    pub floodlight_activity_id: Option<String>,
-    /// pricingPeriods property.
-    pub pricing_periods: Option<Vec<PricingSchedulePricingPeriod>>,
-    /// pricingType property.
-    pub pricing_type: Option<String>,
-    /// startDate property.
-    pub start_date: Option<String>,
-    /// testingStartDate property.
-    pub testing_start_date: Option<String>,
-}
-
-/// `YoutubeSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct YoutubeSettings {
-    /// businessLogoCreativeIds property.
-    pub business_logo_creative_ids: Option<Vec<String>>,
-    /// businessName property.
-    pub business_name: Option<String>,
-    /// callToActions property.
-    pub call_to_actions: Option<Vec<String>>,
-    /// descriptions property.
-    pub descriptions: Option<Vec<String>>,
-    /// headlines property.
-    pub headlines: Option<Vec<String>>,
-    /// longHeadlines property.
-    pub long_headlines: Option<Vec<String>>,
+pub struct LastModifiedInfo {
+    /// time property.
+    pub time: Option<String>,
 }
 
 /// `VideoSettings` type.
@@ -215,6 +246,19 @@ pub struct VideoSettings {
     pub transcode_settings: Option<TranscodeSetting>,
 }
 
+/// `SkippableSetting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SkippableSetting {
+    /// kind property.
+    pub kind: Option<String>,
+    /// progressOffset property.
+    pub progress_offset: Option<VideoOffset>,
+    /// skipOffset property.
+    pub skip_offset: Option<VideoOffset>,
+    /// skippable property.
+    pub skippable: Option<bool>,
+}
+
 /// `CompanionSetting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompanionSetting {
@@ -228,48 +272,50 @@ pub struct CompanionSetting {
     pub kind: Option<String>,
 }
 
-/// `VideoOffset` type.
+/// `MeasurementPartnerWrappingData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoOffset {
-    /// offsetPercentage property.
-    pub offset_percentage: Option<i64>,
-    /// offsetSeconds property.
-    pub offset_seconds: Option<i64>,
+pub struct MeasurementPartnerWrappingData {
+    /// linkStatus property.
+    pub link_status: Option<String>,
+    /// measurementPartner property.
+    pub measurement_partner: Option<String>,
+    /// tagWrappingMode property.
+    pub tag_wrapping_mode: Option<String>,
+    /// wrappedTag property.
+    pub wrapped_tag: Option<String>,
 }
 
-/// `TagSetting` type.
+/// `YoutubeSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TagSetting {
-    /// additionalKeyValues property.
-    pub additional_key_values: Option<String>,
-    /// includeClickThroughUrls property.
-    pub include_click_through_urls: Option<bool>,
-    /// includeClickTracking property.
-    pub include_click_tracking: Option<bool>,
-    /// includeUnescapedlpurlMacro property.
-    pub include_unescapedlpurl_macro: Option<bool>,
-    /// keywordOption property.
-    pub keyword_option: Option<String>,
+pub struct YoutubeSettings {
+    /// businessLogoCreativeIds property.
+    pub business_logo_creative_ids: Option<Vec<String>>,
+    /// businessName property.
+    pub business_name: Option<String>,
+    /// callToActions property.
+    pub call_to_actions: Option<Vec<String>>,
+    /// descriptions property.
+    pub descriptions: Option<Vec<String>>,
+    /// headlines property.
+    pub headlines: Option<Vec<String>>,
+    /// longHeadlines property.
+    pub long_headlines: Option<Vec<String>>,
 }
 
-/// `LookbackConfiguration` type.
+/// `PlacementConversionDomainOverride` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LookbackConfiguration {
-    /// clickDuration property.
-    pub click_duration: Option<i64>,
-    /// postImpressionActivitiesDuration property.
-    pub post_impression_activities_duration: Option<i64>,
+pub struct PlacementConversionDomainOverride {
+    /// conversionDomains property.
+    pub conversion_domains: Option<Vec<PlacementSingleConversionDomain>>,
 }
 
-/// `PlacementsListResponse` type.
+/// `TranscodeSetting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlacementsListResponse {
+pub struct TranscodeSetting {
+    /// enabledVideoFormats property.
+    pub enabled_video_formats: Option<Vec<i64>>,
     /// kind property.
     pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// placements property.
-    pub placements: Option<Vec<Placement>>,
 }
 
 /// `Size` type.
@@ -287,69 +333,15 @@ pub struct Size {
     pub width: Option<i64>,
 }
 
-/// `ObaIcon` type.
+/// `PlacementsListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObaIcon {
-    /// iconClickThroughUrl property.
-    pub icon_click_through_url: Option<String>,
-    /// iconClickTrackingUrl property.
-    pub icon_click_tracking_url: Option<String>,
-    /// iconViewTrackingUrl property.
-    pub icon_view_tracking_url: Option<String>,
-    /// program property.
-    pub program: Option<String>,
-    /// resourceUrl property.
-    pub resource_url: Option<String>,
-    /// size property.
-    pub size: Option<Size>,
-    /// xPosition property.
-    pub x_position: Option<String>,
-    /// yPosition property.
-    pub y_position: Option<String>,
-}
-
-/// `LastModifiedInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LastModifiedInfo {
-    /// time property.
-    pub time: Option<String>,
-}
-
-/// `SkippableSetting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SkippableSetting {
+pub struct PlacementsListResponse {
     /// kind property.
     pub kind: Option<String>,
-    /// progressOffset property.
-    pub progress_offset: Option<VideoOffset>,
-    /// skipOffset property.
-    pub skip_offset: Option<VideoOffset>,
-    /// skippable property.
-    pub skippable: Option<bool>,
-}
-
-/// `PricingSchedulePricingPeriod` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PricingSchedulePricingPeriod {
-    /// endDate property.
-    pub end_date: Option<String>,
-    /// pricingComment property.
-    pub pricing_comment: Option<String>,
-    /// rateOrCostNanos property.
-    pub rate_or_cost_nanos: Option<String>,
-    /// startDate property.
-    pub start_date: Option<String>,
-    /// units property.
-    pub units: Option<String>,
-}
-
-/// `TranscodeSetting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TranscodeSetting {
-    /// enabledVideoFormats property.
-    pub enabled_video_formats: Option<Vec<i64>>,
-    /// kind property.
-    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// placements property.
+    pub placements: Option<Vec<Placement>>,
 }
 
 /// `DimensionValue` type.
@@ -367,6 +359,15 @@ pub struct DimensionValue {
     pub match_type: Option<String>,
     /// value property.
     pub value: Option<String>,
+}
+
+/// `VideoOffset` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoOffset {
+    /// offsetPercentage property.
+    pub offset_percentage: Option<i64>,
+    /// offsetSeconds property.
+    pub offset_seconds: Option<i64>,
 }
 
 // =============================================================================

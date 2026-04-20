@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,7 +24,7 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -40,24 +41,17 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `AuditConfig` type.
+/// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `ListFederationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListFederationsResponse {
-    /// federations property.
-    pub federations: Option<Vec<Federation>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 /// `Federation` type.
@@ -87,6 +81,17 @@ pub struct Federation {
     pub version: Option<String>,
 }
 
+/// `ListFederationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListFederationsResponse {
+    /// federations property.
+    pub federations: Option<Vec<Federation>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
 /// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
@@ -98,19 +103,6 @@ pub struct Binding {
     pub role: Option<String>,
 }
 
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
 /// `AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
@@ -118,6 +110,15 @@ pub struct AuditLogConfig {
     pub exempted_members: Option<Vec<String>>,
     /// logType property.
     pub log_type: Option<String>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
 }
 
 // =============================================================================

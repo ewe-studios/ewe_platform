@@ -12,17 +12,30 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::UploadRef;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `LatLng` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LatLng {
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
+}
 
 /// `Level` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -31,29 +44,6 @@ pub struct Level {
     pub name: Option<String>,
     /// number property.
     pub number: Option<f64>,
-}
-
-/// `Connection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Connection {
-    /// target property.
-    pub target: Option<PhotoId>,
-}
-
-/// `PhotoId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PhotoId {
-    /// id property.
-    pub id: Option<String>,
-}
-
-/// `ListPhotosResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListPhotosResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// photos property.
-    pub photos: Option<Vec<Photo>>,
 }
 
 /// `Place` type.
@@ -65,6 +55,20 @@ pub struct Place {
     pub name: Option<String>,
     /// placeId property.
     pub place_id: Option<String>,
+}
+
+/// `PhotoId` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PhotoId {
+    /// id property.
+    pub id: Option<String>,
+}
+
+/// `Connection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Connection {
+    /// target property.
+    pub target: Option<PhotoId>,
 }
 
 /// `Pose` type.
@@ -88,13 +92,13 @@ pub struct Pose {
     pub roll: Option<f64>,
 }
 
-/// `LatLng` type.
+/// `ListPhotosResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LatLng {
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
+pub struct ListPhotosResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// photos property.
+    pub photos: Option<Vec<Photo>>,
 }
 
 /// `Photo` type.

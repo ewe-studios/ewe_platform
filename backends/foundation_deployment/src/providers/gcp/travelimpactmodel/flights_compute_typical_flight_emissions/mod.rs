@@ -12,17 +12,49 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ModelVersion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ModelVersion {
+    /// dated property.
+    pub dated: Option<String>,
+    /// major property.
+    pub major: Option<i64>,
+    /// minor property.
+    pub minor: Option<i64>,
+    /// patch property.
+    pub patch: Option<i64>,
+}
+
+/// `TypicalFlightEmissions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TypicalFlightEmissions {
+    /// emissionsGramsPerPax property.
+    pub emissions_grams_per_pax: Option<EmissionsGramsPerPax>,
+    /// market property.
+    pub market: Option<Market>,
+}
+
+/// `ComputeTypicalFlightEmissionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeTypicalFlightEmissionsResponse {
+    /// modelVersion property.
+    pub model_version: Option<ModelVersion>,
+    /// typicalFlightEmissions property.
+    pub typical_flight_emissions: Option<Vec<TypicalFlightEmissions>>,
+}
 
 /// `EmissionsGramsPerPax` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,37 +76,6 @@ pub struct Market {
     pub destination: Option<String>,
     /// origin property.
     pub origin: Option<String>,
-}
-
-/// `ModelVersion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ModelVersion {
-    /// dated property.
-    pub dated: Option<String>,
-    /// major property.
-    pub major: Option<i64>,
-    /// minor property.
-    pub minor: Option<i64>,
-    /// patch property.
-    pub patch: Option<i64>,
-}
-
-/// `ComputeTypicalFlightEmissionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeTypicalFlightEmissionsResponse {
-    /// modelVersion property.
-    pub model_version: Option<ModelVersion>,
-    /// typicalFlightEmissions property.
-    pub typical_flight_emissions: Option<Vec<TypicalFlightEmissions>>,
-}
-
-/// `TypicalFlightEmissions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TypicalFlightEmissions {
-    /// emissionsGramsPerPax property.
-    pub emissions_grams_per_pax: Option<EmissionsGramsPerPax>,
-    /// market property.
-    pub market: Option<Market>,
 }
 
 // =============================================================================

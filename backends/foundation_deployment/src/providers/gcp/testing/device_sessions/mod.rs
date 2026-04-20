@@ -12,17 +12,41 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Empty;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `SessionStateEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SessionStateEvent {
+    /// eventTime property.
+    pub event_time: Option<String>,
+    /// sessionState property.
+    pub session_state: Option<String>,
+    /// stateMessage property.
+    pub state_message: Option<String>,
+}
+
+/// `ListDeviceSessionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDeviceSessionsResponse {
+    /// deviceSessions property.
+    pub device_sessions: Option<Vec<DeviceSession>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `DeviceSession` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -48,30 +72,6 @@ pub struct DeviceSession {
     /// ttl property.
     pub ttl: Option<String>,
 }
-
-/// `SessionStateEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SessionStateEvent {
-    /// eventTime property.
-    pub event_time: Option<String>,
-    /// sessionState property.
-    pub session_state: Option<String>,
-    /// stateMessage property.
-    pub state_message: Option<String>,
-}
-
-/// `ListDeviceSessionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDeviceSessionsResponse {
-    /// deviceSessions property.
-    pub device_sessions: Option<Vec<DeviceSession>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `Empty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
 
 /// `AndroidDevice` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

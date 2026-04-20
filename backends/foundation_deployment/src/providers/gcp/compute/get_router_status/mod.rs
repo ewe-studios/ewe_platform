@@ -12,17 +12,68 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `BfdPacket` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BfdPacket {
+    /// authenticationPresent property.
+    pub authentication_present: Option<bool>,
+    /// controlPlaneIndependent property.
+    pub control_plane_independent: Option<bool>,
+    /// demand property.
+    pub demand: Option<bool>,
+    /// diagnostic property.
+    pub diagnostic: Option<String>,
+    /// final property.
+    pub r#final: Option<bool>,
+    /// length property.
+    pub length: Option<i64>,
+    /// minEchoRxIntervalMs property.
+    pub min_echo_rx_interval_ms: Option<i64>,
+    /// minRxIntervalMs property.
+    pub min_rx_interval_ms: Option<i64>,
+    /// minTxIntervalMs property.
+    pub min_tx_interval_ms: Option<i64>,
+    /// multiplier property.
+    pub multiplier: Option<i64>,
+    /// multipoint property.
+    pub multipoint: Option<bool>,
+    /// myDiscriminator property.
+    pub my_discriminator: Option<i64>,
+    /// poll property.
+    pub poll: Option<bool>,
+    /// state property.
+    pub state: Option<String>,
+    /// version property.
+    pub version: Option<i64>,
+    /// yourDiscriminator property.
+    pub your_discriminator: Option<i64>,
+}
+
+/// `BfdStatusPacketCounts` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BfdStatusPacketCounts {
+    /// numRx property.
+    pub num_rx: Option<i64>,
+    /// numRxRejected property.
+    pub num_rx_rejected: Option<i64>,
+    /// numRxSuccessful property.
+    pub num_rx_successful: Option<i64>,
+    /// numTx property.
+    pub num_tx: Option<i64>,
+}
 
 /// `RouteParams` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -31,67 +82,28 @@ pub struct RouteParams {
     pub resource_manager_tags: Option<serde_json::Value>,
 }
 
-/// `RouterStatusNatStatusNatRuleStatus` type.
+/// `RouteAsPath` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterStatusNatStatusNatRuleStatus {
-    /// activeNatIps property.
-    pub active_nat_ips: Option<Vec<String>>,
-    /// drainNatIps property.
-    pub drain_nat_ips: Option<Vec<String>>,
-    /// minExtraIpsNeeded property.
-    pub min_extra_ips_needed: Option<i64>,
-    /// numVmEndpointsWithNatMappings property.
-    pub num_vm_endpoints_with_nat_mappings: Option<i64>,
-    /// ruleNumber property.
-    pub rule_number: Option<i64>,
+pub struct RouteAsPath {
+    /// asLists property.
+    pub as_lists: Option<Vec<i64>>,
+    /// pathSegmentType property.
+    pub path_segment_type: Option<String>,
 }
 
-/// `BfdStatus` type.
+/// `RouterStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BfdStatus {
-    /// bfdSessionInitializationMode property.
-    pub bfd_session_initialization_mode: Option<String>,
-    /// configUpdateTimestampMicros property.
-    pub config_update_timestamp_micros: Option<String>,
-    /// controlPacketCounts property.
-    pub control_packet_counts: Option<BfdStatusPacketCounts>,
-    /// controlPacketIntervals property.
-    pub control_packet_intervals: Option<Vec<PacketIntervals>>,
-    /// localDiagnostic property.
-    pub local_diagnostic: Option<String>,
-    /// localState property.
-    pub local_state: Option<String>,
-    /// negotiatedLocalControlTxIntervalMs property.
-    pub negotiated_local_control_tx_interval_ms: Option<i64>,
-    /// rxPacket property.
-    pub rx_packet: Option<BfdPacket>,
-    /// txPacket property.
-    pub tx_packet: Option<BfdPacket>,
-    /// uptimeMs property.
-    pub uptime_ms: Option<String>,
-}
-
-/// `RouterStatusNatStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterStatusNatStatus {
-    /// autoAllocatedNatIps property.
-    pub auto_allocated_nat_ips: Option<Vec<String>>,
-    /// drainAutoAllocatedNatIps property.
-    pub drain_auto_allocated_nat_ips: Option<Vec<String>>,
-    /// drainUserAllocatedNatIps property.
-    pub drain_user_allocated_nat_ips: Option<Vec<String>>,
-    /// minExtraNatIpsNeeded property.
-    pub min_extra_nat_ips_needed: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-    /// numVmEndpointsWithNatMappings property.
-    pub num_vm_endpoints_with_nat_mappings: Option<i64>,
-    /// ruleStatus property.
-    pub rule_status: Option<Vec<RouterStatusNatStatusNatRuleStatus>>,
-    /// userAllocatedNatIpResources property.
-    pub user_allocated_nat_ip_resources: Option<Vec<String>>,
-    /// userAllocatedNatIps property.
-    pub user_allocated_nat_ips: Option<Vec<String>>,
+pub struct RouterStatus {
+    /// bestRoutes property.
+    pub best_routes: Option<Vec<Route>>,
+    /// bestRoutesForRouter property.
+    pub best_routes_for_router: Option<Vec<Route>>,
+    /// bgpPeerStatus property.
+    pub bgp_peer_status: Option<Vec<RouterStatusBgpPeerStatus>>,
+    /// natStatus property.
+    pub nat_status: Option<Vec<RouterStatusNatStatus>>,
+    /// network property.
+    pub network: Option<String>,
 }
 
 /// `Route` type.
@@ -153,97 +165,6 @@ pub struct Route {
     pub warnings: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
 }
 
-/// `RouterStatusResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterStatusResponse {
-    /// kind property.
-    pub kind: Option<String>,
-    /// result property.
-    pub result: Option<RouterStatus>,
-}
-
-/// `BfdStatusPacketCounts` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BfdStatusPacketCounts {
-    /// numRx property.
-    pub num_rx: Option<i64>,
-    /// numRxRejected property.
-    pub num_rx_rejected: Option<i64>,
-    /// numRxSuccessful property.
-    pub num_rx_successful: Option<i64>,
-    /// numTx property.
-    pub num_tx: Option<i64>,
-}
-
-/// `PacketIntervals` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PacketIntervals {
-    /// avgMs property.
-    pub avg_ms: Option<String>,
-    /// duration property.
-    pub duration: Option<String>,
-    /// maxMs property.
-    pub max_ms: Option<String>,
-    /// minMs property.
-    pub min_ms: Option<String>,
-    /// numIntervals property.
-    pub num_intervals: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `BfdPacket` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BfdPacket {
-    /// authenticationPresent property.
-    pub authentication_present: Option<bool>,
-    /// controlPlaneIndependent property.
-    pub control_plane_independent: Option<bool>,
-    /// demand property.
-    pub demand: Option<bool>,
-    /// diagnostic property.
-    pub diagnostic: Option<String>,
-    /// final property.
-    pub r#final: Option<bool>,
-    /// length property.
-    pub length: Option<i64>,
-    /// minEchoRxIntervalMs property.
-    pub min_echo_rx_interval_ms: Option<i64>,
-    /// minRxIntervalMs property.
-    pub min_rx_interval_ms: Option<i64>,
-    /// minTxIntervalMs property.
-    pub min_tx_interval_ms: Option<i64>,
-    /// multiplier property.
-    pub multiplier: Option<i64>,
-    /// multipoint property.
-    pub multipoint: Option<bool>,
-    /// myDiscriminator property.
-    pub my_discriminator: Option<i64>,
-    /// poll property.
-    pub poll: Option<bool>,
-    /// state property.
-    pub state: Option<String>,
-    /// version property.
-    pub version: Option<i64>,
-    /// yourDiscriminator property.
-    pub your_discriminator: Option<i64>,
-}
-
-/// `RouterStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterStatus {
-    /// bestRoutes property.
-    pub best_routes: Option<Vec<Route>>,
-    /// bestRoutesForRouter property.
-    pub best_routes_for_router: Option<Vec<Route>>,
-    /// bgpPeerStatus property.
-    pub bgp_peer_status: Option<Vec<RouterStatusBgpPeerStatus>>,
-    /// natStatus property.
-    pub nat_status: Option<Vec<RouterStatusNatStatus>>,
-    /// network property.
-    pub network: Option<String>,
-}
-
 /// `RouterStatusBgpPeerStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterStatusBgpPeerStatus {
@@ -289,13 +210,93 @@ pub struct RouterStatusBgpPeerStatus {
     pub uptime_seconds: Option<String>,
 }
 
-/// `RouteAsPath` type.
+/// `RouterStatusNatStatusNatRuleStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouteAsPath {
-    /// asLists property.
-    pub as_lists: Option<Vec<i64>>,
-    /// pathSegmentType property.
-    pub path_segment_type: Option<String>,
+pub struct RouterStatusNatStatusNatRuleStatus {
+    /// activeNatIps property.
+    pub active_nat_ips: Option<Vec<String>>,
+    /// drainNatIps property.
+    pub drain_nat_ips: Option<Vec<String>>,
+    /// minExtraIpsNeeded property.
+    pub min_extra_ips_needed: Option<i64>,
+    /// numVmEndpointsWithNatMappings property.
+    pub num_vm_endpoints_with_nat_mappings: Option<i64>,
+    /// ruleNumber property.
+    pub rule_number: Option<i64>,
+}
+
+/// `RouterStatusNatStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouterStatusNatStatus {
+    /// autoAllocatedNatIps property.
+    pub auto_allocated_nat_ips: Option<Vec<String>>,
+    /// drainAutoAllocatedNatIps property.
+    pub drain_auto_allocated_nat_ips: Option<Vec<String>>,
+    /// drainUserAllocatedNatIps property.
+    pub drain_user_allocated_nat_ips: Option<Vec<String>>,
+    /// minExtraNatIpsNeeded property.
+    pub min_extra_nat_ips_needed: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// numVmEndpointsWithNatMappings property.
+    pub num_vm_endpoints_with_nat_mappings: Option<i64>,
+    /// ruleStatus property.
+    pub rule_status: Option<Vec<RouterStatusNatStatusNatRuleStatus>>,
+    /// userAllocatedNatIpResources property.
+    pub user_allocated_nat_ip_resources: Option<Vec<String>>,
+    /// userAllocatedNatIps property.
+    pub user_allocated_nat_ips: Option<Vec<String>>,
+}
+
+/// `RouterStatusResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouterStatusResponse {
+    /// kind property.
+    pub kind: Option<String>,
+    /// result property.
+    pub result: Option<RouterStatus>,
+}
+
+/// `BfdStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BfdStatus {
+    /// bfdSessionInitializationMode property.
+    pub bfd_session_initialization_mode: Option<String>,
+    /// configUpdateTimestampMicros property.
+    pub config_update_timestamp_micros: Option<String>,
+    /// controlPacketCounts property.
+    pub control_packet_counts: Option<BfdStatusPacketCounts>,
+    /// controlPacketIntervals property.
+    pub control_packet_intervals: Option<Vec<PacketIntervals>>,
+    /// localDiagnostic property.
+    pub local_diagnostic: Option<String>,
+    /// localState property.
+    pub local_state: Option<String>,
+    /// negotiatedLocalControlTxIntervalMs property.
+    pub negotiated_local_control_tx_interval_ms: Option<i64>,
+    /// rxPacket property.
+    pub rx_packet: Option<BfdPacket>,
+    /// txPacket property.
+    pub tx_packet: Option<BfdPacket>,
+    /// uptimeMs property.
+    pub uptime_ms: Option<String>,
+}
+
+/// `PacketIntervals` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PacketIntervals {
+    /// avgMs property.
+    pub avg_ms: Option<String>,
+    /// duration property.
+    pub duration: Option<String>,
+    /// maxMs property.
+    pub max_ms: Option<String>,
+    /// minMs property.
+    pub min_ms: Option<String>,
+    /// numIntervals property.
+    pub num_intervals: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 // =============================================================================

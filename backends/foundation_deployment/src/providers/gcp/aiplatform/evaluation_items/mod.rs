@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,34 +22,30 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudAiplatformV1CandidateResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1CandidateResult {
-    /// additionalResults property.
-    pub additional_results: Option<serde_json::Value>,
-    /// candidate property.
-    pub candidate: Option<String>,
-    /// explanation property.
-    pub explanation: Option<String>,
-    /// metric property.
-    pub metric: Option<String>,
-    /// rubricVerdicts property.
-    pub rubric_verdicts: Option<Vec<GoogleCloudAiplatformV1RubricVerdict>>,
-    /// score property.
-    pub score: Option<f64>,
-}
 
 /// `GoogleCloudAiplatformV1EvaluationPromptPromptTemplateData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationPromptPromptTemplateData {
     /// values property.
     pub values: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudAiplatformV1EvaluationRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1EvaluationRequest {
+    /// candidateResponses property.
+    pub candidate_responses: Option<Vec<GoogleCloudAiplatformV1CandidateResponse>>,
+    /// goldenResponse property.
+    pub golden_response: Option<GoogleCloudAiplatformV1CandidateResponse>,
+    /// prompt property.
+    pub prompt: Option<GoogleCloudAiplatformV1EvaluationPrompt>,
+    /// rubrics property.
+    pub rubrics: Option<serde_json::Value>,
 }
 
 /// `GoogleCloudAiplatformV1EvaluationItem` type.
@@ -74,19 +71,6 @@ pub struct GoogleCloudAiplatformV1EvaluationItem {
     pub metadata: Option<serde_json::Value>,
     /// name property.
     pub name: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1CandidateResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1CandidateResponse {
-    /// candidate property.
-    pub candidate: Option<String>,
-    /// error property.
-    pub error: Option<GoogleRpcStatus>,
-    /// text property.
-    pub text: Option<String>,
-    /// value property.
-    pub value: Option<serde_json::Value>,
 }
 
 /// `GoogleCloudAiplatformV1RubricVerdict` type.
@@ -117,22 +101,6 @@ pub struct GoogleCloudAiplatformV1EvaluationResult {
     pub request: Option<GoogleCloudAiplatformV1EvaluationRequest>,
 }
 
-/// `GoogleCloudAiplatformV1ListEvaluationItemsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListEvaluationItemsResponse {
-    /// evaluationItems property.
-    pub evaluation_items: Option<Vec<GoogleCloudAiplatformV1EvaluationItem>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1RubricContentProperty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RubricContentProperty {
-    /// description property.
-    pub description: Option<String>,
-}
-
 /// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
@@ -142,6 +110,59 @@ pub struct GoogleRpcStatus {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1CandidateResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1CandidateResult {
+    /// additionalResults property.
+    pub additional_results: Option<serde_json::Value>,
+    /// candidate property.
+    pub candidate: Option<String>,
+    /// explanation property.
+    pub explanation: Option<String>,
+    /// metric property.
+    pub metric: Option<String>,
+    /// rubricVerdicts property.
+    pub rubric_verdicts: Option<Vec<GoogleCloudAiplatformV1RubricVerdict>>,
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1CandidateResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1CandidateResponse {
+    /// candidate property.
+    pub candidate: Option<String>,
+    /// error property.
+    pub error: Option<GoogleRpcStatus>,
+    /// text property.
+    pub text: Option<String>,
+    /// value property.
+    pub value: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudAiplatformV1RubricContentProperty` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RubricContentProperty {
+    /// description property.
+    pub description: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1RubricContent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RubricContent {
+    /// property property.
+    pub property: Option<GoogleCloudAiplatformV1RubricContentProperty>,
+}
+
+/// `GoogleCloudAiplatformV1ListEvaluationItemsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ListEvaluationItemsResponse {
+    /// evaluationItems property.
+    pub evaluation_items: Option<Vec<GoogleCloudAiplatformV1EvaluationItem>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1EvaluationPrompt` type.
@@ -166,26 +187,6 @@ pub struct GoogleCloudAiplatformV1Rubric {
     pub rubric_id: Option<String>,
     /// type property.
     pub r#type: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1RubricContent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RubricContent {
-    /// property property.
-    pub property: Option<GoogleCloudAiplatformV1RubricContentProperty>,
-}
-
-/// `GoogleCloudAiplatformV1EvaluationRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EvaluationRequest {
-    /// candidateResponses property.
-    pub candidate_responses: Option<Vec<GoogleCloudAiplatformV1CandidateResponse>>,
-    /// goldenResponse property.
-    pub golden_response: Option<GoogleCloudAiplatformV1CandidateResponse>,
-    /// prompt property.
-    pub prompt: Option<GoogleCloudAiplatformV1EvaluationPrompt>,
-    /// rubrics property.
-    pub rubrics: Option<serde_json::Value>,
 }
 
 // =============================================================================

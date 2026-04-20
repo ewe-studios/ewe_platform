@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,56 +22,27 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListPullRequestCommentsResponse` type.
+/// `PullRequestComment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListPullRequestCommentsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// pullRequestComments property.
-    pub pull_request_comments: Option<Vec<PullRequestComment>>,
-}
-
-/// `Position` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Position {
-    /// line property.
-    pub line: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
+pub struct PullRequestComment {
     /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `Code` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Code {
-    /// body property.
-    pub body: Option<String>,
-    /// effectiveCommitSha property.
-    pub effective_commit_sha: Option<String>,
-    /// effectiveRootComment property.
-    pub effective_root_comment: Option<String>,
-    /// position property.
-    pub position: Option<Position>,
-    /// reply property.
-    pub reply: Option<String>,
-    /// resolved property.
-    pub resolved: Option<bool>,
+    pub code: Option<Code>,
+    /// comment property.
+    pub comment: Option<Comment>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// review property.
+    pub review: Option<Review>,
+    /// updateTime property.
+    pub update_time: Option<String>,
 }
 
 /// `Comment` type.
@@ -91,21 +63,50 @@ pub struct Review {
     pub effective_commit_sha: Option<String>,
 }
 
-/// `PullRequestComment` type.
+/// `Position` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PullRequestComment {
+pub struct Position {
+    /// line property.
+    pub line: Option<String>,
+    /// path property.
+    pub path: Option<String>,
+}
+
+/// `ListPullRequestCommentsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListPullRequestCommentsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// pullRequestComments property.
+    pub pull_request_comments: Option<Vec<PullRequestComment>>,
+}
+
+/// `Code` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Code {
+    /// body property.
+    pub body: Option<String>,
+    /// effectiveCommitSha property.
+    pub effective_commit_sha: Option<String>,
+    /// effectiveRootComment property.
+    pub effective_root_comment: Option<String>,
+    /// position property.
+    pub position: Option<Position>,
+    /// reply property.
+    pub reply: Option<String>,
+    /// resolved property.
+    pub resolved: Option<bool>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
     /// code property.
-    pub code: Option<Code>,
-    /// comment property.
-    pub comment: Option<Comment>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// review property.
-    pub review: Option<Review>,
-    /// updateTime property.
-    pub update_time: Option<String>,
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

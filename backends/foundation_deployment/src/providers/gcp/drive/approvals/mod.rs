@@ -12,28 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ReviewerResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReviewerResponse {
-    /// kind property.
-    pub kind: Option<String>,
-    /// response property.
-    pub response: Option<String>,
-    /// reviewer property.
-    pub reviewer: Option<User>,
-}
 
 /// `Approval` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -60,6 +50,28 @@ pub struct Approval {
     pub target_file_id: Option<String>,
 }
 
+/// `ApprovalList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApprovalList {
+    /// items property.
+    pub items: Option<Vec<Approval>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `ReviewerResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReviewerResponse {
+    /// kind property.
+    pub kind: Option<String>,
+    /// response property.
+    pub response: Option<String>,
+    /// reviewer property.
+    pub reviewer: Option<User>,
+}
+
 /// `User` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct User {
@@ -75,17 +87,6 @@ pub struct User {
     pub permission_id: Option<String>,
     /// photoLink property.
     pub photo_link: Option<String>,
-}
-
-/// `ApprovalList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApprovalList {
-    /// items property.
-    pub items: Option<Vec<Approval>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

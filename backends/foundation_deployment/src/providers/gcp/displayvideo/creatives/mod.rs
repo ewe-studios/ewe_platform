@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,31 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ObaIcon` type.
+/// `AudioVideoOffset` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObaIcon {
-    /// clickTrackingUrl property.
-    pub click_tracking_url: Option<String>,
-    /// dimensions property.
-    pub dimensions: Option<Dimensions>,
-    /// landingPageUrl property.
-    pub landing_page_url: Option<String>,
-    /// position property.
-    pub position: Option<String>,
-    /// program property.
-    pub program: Option<String>,
-    /// resourceMimeType property.
-    pub resource_mime_type: Option<String>,
-    /// resourceUrl property.
-    pub resource_url: Option<String>,
-    /// viewTrackingUrl property.
-    pub view_tracking_url: Option<String>,
+pub struct AudioVideoOffset {
+    /// percentage property.
+    pub percentage: Option<String>,
+    /// seconds property.
+    pub seconds: Option<String>,
 }
 
 /// `CounterEvent` type.
@@ -57,28 +46,6 @@ pub struct CounterEvent {
     pub reporting_name: Option<String>,
 }
 
-/// `ExitEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExitEvent {
-    /// name property.
-    pub name: Option<String>,
-    /// reportingName property.
-    pub reporting_name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `Asset` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Asset {
-    /// content property.
-    pub content: Option<String>,
-    /// mediaId property.
-    pub media_id: Option<String>,
-}
-
 /// `ListCreativesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCreativesResponse {
@@ -88,36 +55,17 @@ pub struct ListCreativesResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `Transcode` type.
+/// `ReviewStatusInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Transcode {
-    /// audioBitRateKbps property.
-    pub audio_bit_rate_kbps: Option<String>,
-    /// audioSampleRateHz property.
-    pub audio_sample_rate_hz: Option<String>,
-    /// bitRateKbps property.
-    pub bit_rate_kbps: Option<String>,
-    /// dimensions property.
-    pub dimensions: Option<Dimensions>,
-    /// fileSizeBytes property.
-    pub file_size_bytes: Option<String>,
-    /// frameRate property.
-    pub frame_rate: Option<f64>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// transcoded property.
-    pub transcoded: Option<bool>,
-}
-
-/// `AssetAssociation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AssetAssociation {
-    /// asset property.
-    pub asset: Option<Asset>,
-    /// role property.
-    pub role: Option<String>,
+pub struct ReviewStatusInfo {
+    /// approvalStatus property.
+    pub approval_status: Option<String>,
+    /// contentAndPolicyReviewStatus property.
+    pub content_and_policy_review_status: Option<String>,
+    /// creativeAndLandingPageReviewStatus property.
+    pub creative_and_landing_page_review_status: Option<String>,
+    /// exchangeReviewStatuses property.
+    pub exchange_review_statuses: Option<Vec<ExchangeReviewStatus>>,
 }
 
 /// `Dimensions` type.
@@ -129,24 +77,13 @@ pub struct Dimensions {
     pub width_pixels: Option<i64>,
 }
 
-/// `ExchangeReviewStatus` type.
+/// `TimerEvent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExchangeReviewStatus {
-    /// exchange property.
-    pub exchange: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-}
-
-/// `CmTrackingAd` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CmTrackingAd {
-    /// cmAdId property.
-    pub cm_ad_id: Option<String>,
-    /// cmCreativeId property.
-    pub cm_creative_id: Option<String>,
-    /// cmPlacementId property.
-    pub cm_placement_id: Option<String>,
+pub struct TimerEvent {
+    /// name property.
+    pub name: Option<String>,
+    /// reportingName property.
+    pub reporting_name: Option<String>,
 }
 
 /// `Creative` type.
@@ -248,26 +185,35 @@ pub struct Creative {
     pub vpaid: Option<bool>,
 }
 
-/// `UniversalAdId` type.
+/// `ExchangeReviewStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UniversalAdId {
-    /// id property.
-    pub id: Option<String>,
-    /// registry property.
-    pub registry: Option<String>,
+pub struct ExchangeReviewStatus {
+    /// exchange property.
+    pub exchange: Option<String>,
+    /// status property.
+    pub status: Option<String>,
 }
 
-/// `ReviewStatusInfo` type.
+/// `Asset` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReviewStatusInfo {
-    /// approvalStatus property.
-    pub approval_status: Option<String>,
-    /// contentAndPolicyReviewStatus property.
-    pub content_and_policy_review_status: Option<String>,
-    /// creativeAndLandingPageReviewStatus property.
-    pub creative_and_landing_page_review_status: Option<String>,
-    /// exchangeReviewStatuses property.
-    pub exchange_review_statuses: Option<Vec<ExchangeReviewStatus>>,
+pub struct Asset {
+    /// content property.
+    pub content: Option<String>,
+    /// mediaId property.
+    pub media_id: Option<String>,
+}
+
+/// `ExitEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExitEvent {
+    /// name property.
+    pub name: Option<String>,
+    /// reportingName property.
+    pub reporting_name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// url property.
+    pub url: Option<String>,
 }
 
 /// `ThirdPartyUrl` type.
@@ -279,22 +225,77 @@ pub struct ThirdPartyUrl {
     pub url: Option<String>,
 }
 
-/// `TimerEvent` type.
+/// `UniversalAdId` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimerEvent {
-    /// name property.
-    pub name: Option<String>,
-    /// reportingName property.
-    pub reporting_name: Option<String>,
+pub struct UniversalAdId {
+    /// id property.
+    pub id: Option<String>,
+    /// registry property.
+    pub registry: Option<String>,
 }
 
-/// `AudioVideoOffset` type.
+/// `ObaIcon` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AudioVideoOffset {
-    /// percentage property.
-    pub percentage: Option<String>,
-    /// seconds property.
-    pub seconds: Option<String>,
+pub struct ObaIcon {
+    /// clickTrackingUrl property.
+    pub click_tracking_url: Option<String>,
+    /// dimensions property.
+    pub dimensions: Option<Dimensions>,
+    /// landingPageUrl property.
+    pub landing_page_url: Option<String>,
+    /// position property.
+    pub position: Option<String>,
+    /// program property.
+    pub program: Option<String>,
+    /// resourceMimeType property.
+    pub resource_mime_type: Option<String>,
+    /// resourceUrl property.
+    pub resource_url: Option<String>,
+    /// viewTrackingUrl property.
+    pub view_tracking_url: Option<String>,
+}
+
+/// `Transcode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Transcode {
+    /// audioBitRateKbps property.
+    pub audio_bit_rate_kbps: Option<String>,
+    /// audioSampleRateHz property.
+    pub audio_sample_rate_hz: Option<String>,
+    /// bitRateKbps property.
+    pub bit_rate_kbps: Option<String>,
+    /// dimensions property.
+    pub dimensions: Option<Dimensions>,
+    /// fileSizeBytes property.
+    pub file_size_bytes: Option<String>,
+    /// frameRate property.
+    pub frame_rate: Option<f64>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// transcoded property.
+    pub transcoded: Option<bool>,
+}
+
+/// `CmTrackingAd` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CmTrackingAd {
+    /// cmAdId property.
+    pub cm_ad_id: Option<String>,
+    /// cmCreativeId property.
+    pub cm_creative_id: Option<String>,
+    /// cmPlacementId property.
+    pub cm_placement_id: Option<String>,
+}
+
+/// `AssetAssociation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AssetAssociation {
+    /// asset property.
+    pub asset: Option<Asset>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 // =============================================================================

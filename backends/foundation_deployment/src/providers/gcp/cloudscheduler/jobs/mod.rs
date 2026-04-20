@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -62,6 +63,65 @@ pub struct Job {
     pub user_update_time: Option<String>,
 }
 
+/// `AppEngineRouting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppEngineRouting {
+    /// host property.
+    pub host: Option<String>,
+    /// instance property.
+    pub instance: Option<String>,
+    /// service property.
+    pub service: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `PubsubTarget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PubsubTarget {
+    /// attributes property.
+    pub attributes: Option<serde_json::Value>,
+    /// data property.
+    pub data: Option<String>,
+    /// topicName property.
+    pub topic_name: Option<String>,
+}
+
+/// `AppEngineHttpTarget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppEngineHttpTarget {
+    /// appEngineRouting property.
+    pub app_engine_routing: Option<AppEngineRouting>,
+    /// body property.
+    pub body: Option<String>,
+    /// headers property.
+    pub headers: Option<serde_json::Value>,
+    /// httpMethod property.
+    pub http_method: Option<String>,
+    /// relativeUri property.
+    pub relative_uri: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `OidcToken` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OidcToken {
+    /// audience property.
+    pub audience: Option<String>,
+    /// serviceAccountEmail property.
+    pub service_account_email: Option<String>,
+}
+
 /// `RetryConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetryConfig {
@@ -75,6 +135,15 @@ pub struct RetryConfig {
     pub min_backoff_duration: Option<String>,
     /// retryCount property.
     pub retry_count: Option<i64>,
+}
+
+/// `ListJobsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListJobsResponse {
+    /// jobs property.
+    pub jobs: Option<Vec<Job>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `HttpTarget` type.
@@ -94,17 +163,6 @@ pub struct HttpTarget {
     pub uri: Option<String>,
 }
 
-/// `PubsubTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PubsubTarget {
-    /// attributes property.
-    pub attributes: Option<serde_json::Value>,
-    /// data property.
-    pub data: Option<String>,
-    /// topicName property.
-    pub topic_name: Option<String>,
-}
-
 /// `OAuthToken` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OAuthToken {
@@ -112,63 +170,6 @@ pub struct OAuthToken {
     pub scope: Option<String>,
     /// serviceAccountEmail property.
     pub service_account_email: Option<String>,
-}
-
-/// `OidcToken` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OidcToken {
-    /// audience property.
-    pub audience: Option<String>,
-    /// serviceAccountEmail property.
-    pub service_account_email: Option<String>,
-}
-
-/// `ListJobsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListJobsResponse {
-    /// jobs property.
-    pub jobs: Option<Vec<Job>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `AppEngineHttpTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppEngineHttpTarget {
-    /// appEngineRouting property.
-    pub app_engine_routing: Option<AppEngineRouting>,
-    /// body property.
-    pub body: Option<String>,
-    /// headers property.
-    pub headers: Option<serde_json::Value>,
-    /// httpMethod property.
-    pub http_method: Option<String>,
-    /// relativeUri property.
-    pub relative_uri: Option<String>,
-}
-
-/// `AppEngineRouting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppEngineRouting {
-    /// host property.
-    pub host: Option<String>,
-    /// instance property.
-    pub instance: Option<String>,
-    /// service property.
-    pub service: Option<String>,
-    /// version property.
-    pub version: Option<String>,
 }
 
 // =============================================================================

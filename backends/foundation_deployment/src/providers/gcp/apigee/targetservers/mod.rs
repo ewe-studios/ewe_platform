@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -49,15 +50,6 @@ pub struct GoogleCloudApigeeV1TlsInfo {
     pub trust_store: Option<String>,
 }
 
-/// `GoogleCloudApigeeV1TlsInfoCommonName` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1TlsInfoCommonName {
-    /// value property.
-    pub value: Option<String>,
-    /// wildcardMatch property.
-    pub wildcard_match: Option<bool>,
-}
-
 /// `GoogleCloudApigeeV1TargetServer` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1TargetServer {
@@ -75,6 +67,15 @@ pub struct GoogleCloudApigeeV1TargetServer {
     pub protocol: Option<String>,
     /// sSLInfo property.
     pub s_sl_info: Option<GoogleCloudApigeeV1TlsInfo>,
+}
+
+/// `GoogleCloudApigeeV1TlsInfoCommonName` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1TlsInfoCommonName {
+    /// value property.
+    pub value: Option<String>,
+    /// wildcardMatch property.
+    pub wildcard_match: Option<bool>,
 }
 
 // =============================================================================

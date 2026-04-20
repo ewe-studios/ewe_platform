@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,20 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Subscription;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `RenewalSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RenewalSettings {
-    /// kind property.
-    pub kind: Option<String>,
-    /// renewalType property.
-    pub renewal_type: Option<String>,
-}
 
 /// `Seats` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -47,6 +39,15 @@ pub struct Seats {
     pub maximum_number_of_seats: Option<i64>,
     /// numberOfSeats property.
     pub number_of_seats: Option<i64>,
+}
+
+/// `RenewalSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RenewalSettings {
+    /// kind property.
+    pub kind: Option<String>,
+    /// renewalType property.
+    pub renewal_type: Option<String>,
 }
 
 // =============================================================================

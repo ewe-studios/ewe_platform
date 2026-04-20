@@ -12,17 +12,29 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Date` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
 
 /// `ComputeFlightEmissionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -33,19 +45,17 @@ pub struct ComputeFlightEmissionsResponse {
     pub model_version: Option<ModelVersion>,
 }
 
-/// `FlightWithEmissions` type.
+/// `EmissionsGramsPerPax` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlightWithEmissions {
-    /// contrailsImpactBucket property.
-    pub contrails_impact_bucket: Option<String>,
-    /// easaLabelMetadata property.
-    pub easa_label_metadata: Option<EasaLabelMetadata>,
-    /// emissionsGramsPerPax property.
-    pub emissions_grams_per_pax: Option<EmissionsGramsPerPax>,
-    /// flight property.
-    pub flight: Option<Flight>,
-    /// source property.
-    pub source: Option<String>,
+pub struct EmissionsGramsPerPax {
+    /// business property.
+    pub business: Option<i64>,
+    /// economy property.
+    pub economy: Option<i64>,
+    /// first property.
+    pub first: Option<i64>,
+    /// premiumEconomy property.
+    pub premium_economy: Option<i64>,
 }
 
 /// `Flight` type.
@@ -63,15 +73,19 @@ pub struct Flight {
     pub origin: Option<String>,
 }
 
-/// `Date` type.
+/// `FlightWithEmissions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
+pub struct FlightWithEmissions {
+    /// contrailsImpactBucket property.
+    pub contrails_impact_bucket: Option<String>,
+    /// easaLabelMetadata property.
+    pub easa_label_metadata: Option<EasaLabelMetadata>,
+    /// emissionsGramsPerPax property.
+    pub emissions_grams_per_pax: Option<EmissionsGramsPerPax>,
+    /// flight property.
+    pub flight: Option<Flight>,
+    /// source property.
+    pub source: Option<String>,
 }
 
 /// `EasaLabelMetadata` type.
@@ -98,19 +112,6 @@ pub struct ModelVersion {
     pub minor: Option<i64>,
     /// patch property.
     pub patch: Option<i64>,
-}
-
-/// `EmissionsGramsPerPax` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EmissionsGramsPerPax {
-    /// business property.
-    pub business: Option<i64>,
-    /// economy property.
-    pub economy: Option<i64>,
-    /// first property.
-    pub first: Option<i64>,
-    /// premiumEconomy property.
-    pub premium_economy: Option<i64>,
 }
 
 // =============================================================================

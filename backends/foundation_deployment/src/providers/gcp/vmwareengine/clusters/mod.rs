@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,11 +24,68 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `DatastoreNetwork` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatastoreNetwork {
+    /// connectionCount property.
+    pub connection_count: Option<i64>,
+    /// mtu property.
+    pub mtu: Option<i64>,
+    /// networkPeering property.
+    pub network_peering: Option<String>,
+    /// subnet property.
+    pub subnet: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `ListClustersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListClustersResponse {
+    /// clusters property.
+    pub clusters: Option<Vec<Cluster>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
 
 /// `StretchedClusterConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -36,6 +94,47 @@ pub struct StretchedClusterConfig {
     pub preferred_location: Option<String>,
     /// secondaryLocation property.
     pub secondary_location: Option<String>,
+}
+
+/// `AutoscalingSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutoscalingSettings {
+    /// autoscalingPolicies property.
+    pub autoscaling_policies: Option<serde_json::Value>,
+    /// coolDownPeriod property.
+    pub cool_down_period: Option<String>,
+    /// maxClusterNodeCount property.
+    pub max_cluster_node_count: Option<i64>,
+    /// minClusterNodeCount property.
+    pub min_cluster_node_count: Option<i64>,
+}
+
+/// `DatastoreMountConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatastoreMountConfig {
+    /// accessMode property.
+    pub access_mode: Option<String>,
+    /// datastore property.
+    pub datastore: Option<String>,
+    /// datastoreNetwork property.
+    pub datastore_network: Option<DatastoreNetwork>,
+    /// fileShare property.
+    pub file_share: Option<String>,
+    /// nfsVersion property.
+    pub nfs_version: Option<String>,
+    /// servers property.
+    pub servers: Option<Vec<String>>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `AuditLogConfig` type.
@@ -70,104 +169,6 @@ pub struct Cluster {
     pub uid: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `DatastoreNetwork` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatastoreNetwork {
-    /// connectionCount property.
-    pub connection_count: Option<i64>,
-    /// mtu property.
-    pub mtu: Option<i64>,
-    /// networkPeering property.
-    pub network_peering: Option<String>,
-    /// subnet property.
-    pub subnet: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `AutoscalingSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoscalingSettings {
-    /// autoscalingPolicies property.
-    pub autoscaling_policies: Option<serde_json::Value>,
-    /// coolDownPeriod property.
-    pub cool_down_period: Option<String>,
-    /// maxClusterNodeCount property.
-    pub max_cluster_node_count: Option<i64>,
-    /// minClusterNodeCount property.
-    pub min_cluster_node_count: Option<i64>,
-}
-
-/// `DatastoreMountConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatastoreMountConfig {
-    /// accessMode property.
-    pub access_mode: Option<String>,
-    /// datastore property.
-    pub datastore: Option<String>,
-    /// datastoreNetwork property.
-    pub datastore_network: Option<DatastoreNetwork>,
-    /// fileShare property.
-    pub file_share: Option<String>,
-    /// nfsVersion property.
-    pub nfs_version: Option<String>,
-    /// servers property.
-    pub servers: Option<Vec<String>>,
-}
-
-/// `ListClustersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListClustersResponse {
-    /// clusters property.
-    pub clusters: Option<Vec<Cluster>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
 }
 
 // =============================================================================

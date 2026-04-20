@@ -12,17 +12,38 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudAiplatformV1FeatureViewSyncSyncSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FeatureViewSyncSyncSummary {
+    /// rowSynced property.
+    pub row_synced: Option<String>,
+    /// systemWatermarkTime property.
+    pub system_watermark_time: Option<String>,
+    /// totalSlot property.
+    pub total_slot: Option<String>,
+}
+
+/// `GoogleTypeInterval` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeInterval {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
 
 /// `GoogleCloudAiplatformV1FeatureViewSync` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -43,17 +64,6 @@ pub struct GoogleCloudAiplatformV1FeatureViewSync {
     pub sync_summary: Option<GoogleCloudAiplatformV1FeatureViewSyncSyncSummary>,
 }
 
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
 /// `GoogleCloudAiplatformV1ListFeatureViewSyncsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListFeatureViewSyncsResponse {
@@ -63,24 +73,15 @@ pub struct GoogleCloudAiplatformV1ListFeatureViewSyncsResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `GoogleTypeInterval` type.
+/// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeInterval {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1FeatureViewSyncSyncSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureViewSyncSyncSummary {
-    /// rowSynced property.
-    pub row_synced: Option<String>,
-    /// systemWatermarkTime property.
-    pub system_watermark_time: Option<String>,
-    /// totalSlot property.
-    pub total_slot: Option<String>,
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

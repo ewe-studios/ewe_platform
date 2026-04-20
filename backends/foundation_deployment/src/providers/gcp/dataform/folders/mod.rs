@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -24,11 +25,41 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `FolderContentsEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FolderContentsEntry {
+    /// folder property.
+    pub folder: Option<Folder>,
+    /// repository property.
+    pub repository: Option<Repository>,
+}
+
+/// `Folder` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Folder {
+    /// containingFolder property.
+    pub containing_folder: Option<String>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// creatorIamPrincipal property.
+    pub creator_iam_principal: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// internalMetadata property.
+    pub internal_metadata: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// teamFolderName property.
+    pub team_folder_name: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
 
 /// `GitRemoteSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,29 +76,48 @@ pub struct GitRemoteSettings {
     pub url: Option<String>,
 }
 
-/// `FolderContentsEntry` type.
+/// `Repository` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FolderContentsEntry {
-    /// folder property.
-    pub folder: Option<Folder>,
-    /// repository property.
-    pub repository: Option<Repository>,
+pub struct Repository {
+    /// containingFolder property.
+    pub containing_folder: Option<String>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// dataEncryptionState property.
+    pub data_encryption_state: Option<DataEncryptionState>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// gitRemoteSettings property.
+    pub git_remote_settings: Option<GitRemoteSettings>,
+    /// internalMetadata property.
+    pub internal_metadata: Option<String>,
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// npmrcEnvironmentVariablesSecretVersion property.
+    pub npmrc_environment_variables_secret_version: Option<String>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// setAuthenticatedUserAdmin property.
+    pub set_authenticated_user_admin: Option<bool>,
+    /// teamFolderName property.
+    pub team_folder_name: Option<String>,
+    /// workspaceCompilationOverrides property.
+    pub workspace_compilation_overrides: Option<WorkspaceCompilationOverrides>,
 }
 
-/// `DataEncryptionState` type.
+/// `WorkspaceCompilationOverrides` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataEncryptionState {
-    /// kmsKeyVersionName property.
-    pub kms_key_version_name: Option<String>,
-}
-
-/// `QueryFolderContentsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryFolderContentsResponse {
-    /// entries property.
-    pub entries: Option<Vec<FolderContentsEntry>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct WorkspaceCompilationOverrides {
+    /// defaultDatabase property.
+    pub default_database: Option<String>,
+    /// schemaSuffix property.
+    pub schema_suffix: Option<String>,
+    /// tablePrefix property.
+    pub table_prefix: Option<String>,
 }
 
 /// `Status` type.
@@ -105,69 +155,13 @@ pub struct Expr {
     pub title: Option<String>,
 }
 
-/// `Folder` type.
+/// `QueryFolderContentsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Folder {
-    /// containingFolder property.
-    pub containing_folder: Option<String>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// creatorIamPrincipal property.
-    pub creator_iam_principal: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// internalMetadata property.
-    pub internal_metadata: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// teamFolderName property.
-    pub team_folder_name: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `WorkspaceCompilationOverrides` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkspaceCompilationOverrides {
-    /// defaultDatabase property.
-    pub default_database: Option<String>,
-    /// schemaSuffix property.
-    pub schema_suffix: Option<String>,
-    /// tablePrefix property.
-    pub table_prefix: Option<String>,
-}
-
-/// `Repository` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Repository {
-    /// containingFolder property.
-    pub containing_folder: Option<String>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// dataEncryptionState property.
-    pub data_encryption_state: Option<DataEncryptionState>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// gitRemoteSettings property.
-    pub git_remote_settings: Option<GitRemoteSettings>,
-    /// internalMetadata property.
-    pub internal_metadata: Option<String>,
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// npmrcEnvironmentVariablesSecretVersion property.
-    pub npmrc_environment_variables_secret_version: Option<String>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-    /// setAuthenticatedUserAdmin property.
-    pub set_authenticated_user_admin: Option<bool>,
-    /// teamFolderName property.
-    pub team_folder_name: Option<String>,
-    /// workspaceCompilationOverrides property.
-    pub workspace_compilation_overrides: Option<WorkspaceCompilationOverrides>,
+pub struct QueryFolderContentsResponse {
+    /// entries property.
+    pub entries: Option<Vec<FolderContentsEntry>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `SshAuthenticationConfig` type.
@@ -177,6 +171,13 @@ pub struct SshAuthenticationConfig {
     pub host_public_key: Option<String>,
     /// userPrivateKeySecretVersion property.
     pub user_private_key_secret_version: Option<String>,
+}
+
+/// `DataEncryptionState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataEncryptionState {
+    /// kmsKeyVersionName property.
+    pub kms_key_version_name: Option<String>,
 }
 
 // =============================================================================

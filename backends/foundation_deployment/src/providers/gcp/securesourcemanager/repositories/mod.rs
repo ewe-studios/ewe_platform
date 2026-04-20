@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,29 +24,11 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
 
 /// `URIs` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -58,15 +41,6 @@ pub struct URIs {
     pub html: Option<String>,
 }
 
-/// `FetchBlobResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FetchBlobResponse {
-    /// content property.
-    pub content: Option<String>,
-    /// sha property.
-    pub sha: Option<String>,
-}
-
 /// `ListRepositoriesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRepositoriesResponse {
@@ -76,15 +50,22 @@ pub struct ListRepositoriesResponse {
     pub repositories: Option<Vec<Repository>>,
 }
 
-/// `Status` type.
+/// `AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `FetchTreeResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FetchTreeResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// treeEntries property.
+    pub tree_entries: Option<Vec<TreeEntry>>,
 }
 
 /// `Expr` type.
@@ -100,26 +81,6 @@ pub struct Expr {
     pub title: Option<String>,
 }
 
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `FetchTreeResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FetchTreeResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// treeEntries property.
-    pub tree_entries: Option<Vec<TreeEntry>>,
-}
-
 /// `TreeEntry` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreeEntry {
@@ -133,6 +94,15 @@ pub struct TreeEntry {
     pub size: Option<String>,
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `FetchBlobResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FetchBlobResponse {
+    /// content property.
+    pub content: Option<String>,
+    /// sha property.
+    pub sha: Option<String>,
 }
 
 /// `Repository` type.
@@ -169,6 +139,37 @@ pub struct InitialConfig {
     pub license: Option<String>,
     /// readme property.
     pub readme: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 // =============================================================================

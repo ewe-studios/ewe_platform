@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -33,15 +34,6 @@ pub struct GoogleCloudDatalabelingV1Beta1AnnotationSpecSet {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleCloudDatalabelingV1beta1ListAnnotationSpecSetsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatalabelingV1beta1ListAnnotationSpecSetsResponse {
-    /// annotationSpecSets property.
-    pub annotation_spec_sets: Option<Vec<GoogleCloudDatalabelingV1Beta1AnnotationSpecSet>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 /// `GoogleCloudDatalabelingV1beta1AnnotationSpecSet` type.
@@ -65,6 +57,15 @@ pub struct GoogleCloudDatalabelingV1Beta1AnnotationSpec {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudDatalabelingV1beta1ListAnnotationSpecSetsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatalabelingV1beta1ListAnnotationSpecSetsResponse {
+    /// annotationSpecSets property.
+    pub annotation_spec_sets: Option<Vec<GoogleCloudDatalabelingV1Beta1AnnotationSpecSet>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

@@ -12,25 +12,28 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `NamedPort` type.
+/// `InstanceWithNamedPorts` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NamedPort {
-    /// name property.
-    pub name: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
+pub struct InstanceWithNamedPorts {
+    /// instance property.
+    pub instance: Option<String>,
+    /// namedPorts property.
+    pub named_ports: Option<Vec<NamedPort>>,
+    /// status property.
+    pub status: Option<String>,
 }
 
 /// `InstanceGroupsListInstances` type.
@@ -67,15 +70,13 @@ pub struct RegionInstanceGroupsListInstances {
     pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `InstanceWithNamedPorts` type.
+/// `NamedPort` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceWithNamedPorts {
-    /// instance property.
-    pub instance: Option<String>,
-    /// namedPorts property.
-    pub named_ports: Option<Vec<NamedPort>>,
-    /// status property.
-    pub status: Option<String>,
+pub struct NamedPort {
+    /// name property.
+    pub name: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
 }
 
 // =============================================================================

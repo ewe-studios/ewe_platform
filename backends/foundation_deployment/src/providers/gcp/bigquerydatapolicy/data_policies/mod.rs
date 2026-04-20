@@ -12,53 +12,45 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Empty;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DataGovernanceTag` type.
+/// `AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataGovernanceTag {
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
-/// `Expr` type.
+/// `ListDataPoliciesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct ListDataPoliciesResponse {
+    /// dataPolicies property.
+    pub data_policies: Option<Vec<DataPolicy>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
-/// `Empty` type.
+/// `TestIamPermissionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct TestIamPermissionsResponse {
+    /// permissions property.
+    pub permissions: Option<Vec<String>>,
 }
 
 /// `AuditConfig` type.
@@ -68,28 +60,6 @@ pub struct AuditConfig {
     pub audit_log_configs: Option<Vec<AuditLogConfig>>,
     /// service property.
     pub service: Option<String>,
-}
-
-/// `DataMaskingPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataMaskingPolicy {
-    /// predefinedExpression property.
-    pub predefined_expression: Option<String>,
-    /// routine property.
-    pub routine: Option<String>,
-}
-
-/// `Policy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Policy {
-    /// auditConfigs property.
-    pub audit_configs: Option<Vec<AuditConfig>>,
-    /// bindings property.
-    pub bindings: Option<Vec<Binding>>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// version property.
-    pub version: Option<i64>,
 }
 
 /// `DataPolicy` type.
@@ -115,29 +85,59 @@ pub struct DataPolicy {
     pub version: Option<String>,
 }
 
-/// `ListDataPoliciesResponse` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDataPoliciesResponse {
-    /// dataPolicies property.
-    pub data_policies: Option<Vec<DataPolicy>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
-/// `AuditLogConfig` type.
+/// `DataMaskingPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
+pub struct DataMaskingPolicy {
+    /// predefinedExpression property.
+    pub predefined_expression: Option<String>,
+    /// routine property.
+    pub routine: Option<String>,
 }
 
-/// `TestIamPermissionsResponse` type.
+/// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestIamPermissionsResponse {
-    /// permissions property.
-    pub permissions: Option<Vec<String>>,
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `DataGovernanceTag` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataGovernanceTag {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Policy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Policy {
+    /// auditConfigs property.
+    pub audit_configs: Option<Vec<AuditConfig>>,
+    /// bindings property.
+    pub bindings: Option<Vec<Binding>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// version property.
+    pub version: Option<i64>,
 }
 
 // =============================================================================

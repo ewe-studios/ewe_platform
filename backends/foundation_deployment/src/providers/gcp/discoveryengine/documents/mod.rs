@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,22 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudDiscoveryengineV1Principal` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1Principal {
+    /// externalEntityId property.
+    pub external_entity_id: Option<String>,
+    /// groupId property.
+    pub group_id: Option<String>,
+    /// userId property.
+    pub user_id: Option<String>,
+}
 
 /// `GoogleCloudDiscoveryengineV1Document` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -54,6 +66,17 @@ pub struct GoogleCloudDiscoveryengineV1Document {
     pub struct_data: Option<serde_json::Value>,
 }
 
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
 /// `GoogleCloudDiscoveryengineV1DocumentIndexStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DocumentIndexStatus {
@@ -63,26 +86,6 @@ pub struct GoogleCloudDiscoveryengineV1DocumentIndexStatus {
     pub index_time: Option<String>,
     /// pendingMessage property.
     pub pending_message: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1Principal` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1Principal {
-    /// externalEntityId property.
-    pub external_entity_id: Option<String>,
-    /// groupId property.
-    pub group_id: Option<String>,
-    /// userId property.
-    pub user_id: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1DocumentAclInfoAccessRestriction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DocumentAclInfoAccessRestriction {
-    /// idpWide property.
-    pub idp_wide: Option<bool>,
-    /// principals property.
-    pub principals: Option<Vec<GoogleCloudDiscoveryengineV1Principal>>,
 }
 
 /// `GoogleCloudDiscoveryengineV1DocumentContent` type.
@@ -96,15 +99,20 @@ pub struct GoogleCloudDiscoveryengineV1DocumentContent {
     pub uri: Option<String>,
 }
 
-/// `GoogleRpcStatus` type.
+/// `GoogleCloudDiscoveryengineV1DocumentAclInfoAccessRestriction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct GoogleCloudDiscoveryengineV1DocumentAclInfoAccessRestriction {
+    /// idpWide property.
+    pub idp_wide: Option<bool>,
+    /// principals property.
+    pub principals: Option<Vec<GoogleCloudDiscoveryengineV1Principal>>,
+}
+
+/// `GoogleCloudDiscoveryengineV1DocumentAclInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1DocumentAclInfo {
+    /// readers property.
+    pub readers: Option<Vec<GoogleCloudDiscoveryengineV1DocumentAclInfoAccessRestriction>>,
 }
 
 /// `GoogleCloudDiscoveryengineV1ListDocumentsResponse` type.
@@ -114,13 +122,6 @@ pub struct GoogleCloudDiscoveryengineV1ListDocumentsResponse {
     pub documents: Option<Vec<GoogleCloudDiscoveryengineV1Document>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1DocumentAclInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DocumentAclInfo {
-    /// readers property.
-    pub readers: Option<Vec<GoogleCloudDiscoveryengineV1DocumentAclInfoAccessRestriction>>,
 }
 
 // =============================================================================

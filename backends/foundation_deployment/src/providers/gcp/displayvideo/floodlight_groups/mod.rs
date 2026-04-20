@@ -12,25 +12,32 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `LookbackWindow` type.
+/// `ActiveViewVideoViewabilityMetricConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LookbackWindow {
-    /// clickDays property.
-    pub click_days: Option<i64>,
-    /// impressionDays property.
-    pub impression_days: Option<i64>,
+pub struct ActiveViewVideoViewabilityMetricConfig {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// minimumDuration property.
+    pub minimum_duration: Option<String>,
+    /// minimumQuartile property.
+    pub minimum_quartile: Option<String>,
+    /// minimumViewability property.
+    pub minimum_viewability: Option<String>,
+    /// minimumVolume property.
+    pub minimum_volume: Option<String>,
 }
 
 /// `FloodlightGroup` type.
@@ -52,19 +59,13 @@ pub struct FloodlightGroup {
     pub web_tag_type: Option<String>,
 }
 
-/// `ActiveViewVideoViewabilityMetricConfig` type.
+/// `LookbackWindow` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActiveViewVideoViewabilityMetricConfig {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// minimumDuration property.
-    pub minimum_duration: Option<String>,
-    /// minimumQuartile property.
-    pub minimum_quartile: Option<String>,
-    /// minimumViewability property.
-    pub minimum_viewability: Option<String>,
-    /// minimumVolume property.
-    pub minimum_volume: Option<String>,
+pub struct LookbackWindow {
+    /// clickDays property.
+    pub click_days: Option<i64>,
+    /// impressionDays property.
+    pub impression_days: Option<i64>,
 }
 
 // =============================================================================

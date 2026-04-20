@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,60 +22,137 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `TextPropertyOptions` type.
+/// `IntegerOperatorOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextPropertyOptions {
+pub struct IntegerOperatorOptions {
+    /// greaterThanOperatorName property.
+    pub greater_than_operator_name: Option<String>,
+    /// lessThanOperatorName property.
+    pub less_than_operator_name: Option<String>,
+    /// operatorName property.
+    pub operator_name: Option<String>,
+}
+
+/// `BooleanOperatorOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BooleanOperatorOptions {
+    /// operatorName property.
+    pub operator_name: Option<String>,
+}
+
+/// `EnumPropertyOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnumPropertyOptions {
     /// operatorOptions property.
-    pub operator_options: Option<TextOperatorOptions>,
-    /// retrievalImportance property.
-    pub retrieval_importance: Option<RetrievalImportance>,
+    pub operator_options: Option<EnumOperatorOptions>,
+    /// orderedRanking property.
+    pub ordered_ranking: Option<String>,
+    /// possibleValues property.
+    pub possible_values: Option<Vec<EnumValuePair>>,
 }
 
-/// `DisplayedProperty` type.
+/// `TimestampPropertyOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DisplayedProperty {
-    /// propertyName property.
-    pub property_name: Option<String>,
-}
-
-/// `DoublePropertyOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DoublePropertyOptions {
+pub struct TimestampPropertyOptions {
     /// operatorOptions property.
-    pub operator_options: Option<DoubleOperatorOptions>,
+    pub operator_options: Option<TimestampOperatorOptions>,
 }
 
-/// `FreshnessOptions` type.
+/// `TextOperatorOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FreshnessOptions {
-    /// freshnessDuration property.
-    pub freshness_duration: Option<String>,
-    /// freshnessProperty property.
-    pub freshness_property: Option<String>,
+pub struct TextOperatorOptions {
+    /// exactMatchWithOperator property.
+    pub exact_match_with_operator: Option<bool>,
+    /// operatorName property.
+    pub operator_name: Option<String>,
 }
 
-/// `ObjectOptions` type.
+/// `IntegerFacetingOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObjectOptions {
-    /// displayOptions property.
-    pub display_options: Option<ObjectDisplayOptions>,
-    /// freshnessOptions property.
-    pub freshness_options: Option<FreshnessOptions>,
-    /// suggestionFilteringOperators property.
-    pub suggestion_filtering_operators: Option<Vec<String>>,
+pub struct IntegerFacetingOptions {
+    /// integerBuckets property.
+    pub integer_buckets: Option<Vec<String>>,
 }
 
-/// `RetrievalImportance` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RetrievalImportance {
-    /// importance property.
-    pub importance: Option<String>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `HtmlOperatorOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HtmlOperatorOptions {
+    /// operatorName property.
+    pub operator_name: Option<String>,
+}
+
+/// `ObjectDefinition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ObjectDefinition {
+    /// name property.
+    pub name: Option<String>,
+    /// options property.
+    pub options: Option<ObjectOptions>,
+    /// propertyDefinitions property.
+    pub property_definitions: Option<Vec<Box<PropertyDefinition>>>,
+}
+
+/// `DatePropertyOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatePropertyOptions {
+    /// operatorOptions property.
+    pub operator_options: Option<DateOperatorOptions>,
+}
+
+/// `DoubleOperatorOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DoubleOperatorOptions {
+    /// operatorName property.
+    pub operator_name: Option<String>,
+}
+
+/// `Schema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Schema {
+    /// objectDefinitions property.
+    pub object_definitions: Option<Vec<ObjectDefinition>>,
+    /// operationIds property.
+    pub operation_ids: Option<Vec<String>>,
+}
+
+/// `ObjectDisplayOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ObjectDisplayOptions {
+    /// metalines property.
+    pub metalines: Option<Vec<Metaline>>,
+    /// objectDisplayLabel property.
+    pub object_display_label: Option<String>,
+}
+
+/// `PropertyDisplayOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PropertyDisplayOptions {
+    /// displayLabel property.
+    pub display_label: Option<String>,
+}
+
+/// `EnumOperatorOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnumOperatorOptions {
+    /// operatorName property.
+    pub operator_name: Option<String>,
 }
 
 /// `TimestampOperatorOptions` type.
@@ -88,18 +166,18 @@ pub struct TimestampOperatorOptions {
     pub operator_name: Option<String>,
 }
 
-/// `EnumOperatorOptions` type.
+/// `DoublePropertyOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnumOperatorOptions {
-    /// operatorName property.
-    pub operator_name: Option<String>,
+pub struct DoublePropertyOptions {
+    /// operatorOptions property.
+    pub operator_options: Option<DoubleOperatorOptions>,
 }
 
-/// `PropertyDisplayOptions` type.
+/// `Metaline` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PropertyDisplayOptions {
-    /// displayLabel property.
-    pub display_label: Option<String>,
+pub struct Metaline {
+    /// properties property.
+    pub properties: Option<Vec<DisplayedProperty>>,
 }
 
 /// `DateOperatorOptions` type.
@@ -111,6 +189,48 @@ pub struct DateOperatorOptions {
     pub less_than_operator_name: Option<String>,
     /// operatorName property.
     pub operator_name: Option<String>,
+}
+
+/// `DisplayedProperty` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DisplayedProperty {
+    /// propertyName property.
+    pub property_name: Option<String>,
+}
+
+/// `ObjectOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ObjectOptions {
+    /// displayOptions property.
+    pub display_options: Option<ObjectDisplayOptions>,
+    /// freshnessOptions property.
+    pub freshness_options: Option<FreshnessOptions>,
+    /// suggestionFilteringOperators property.
+    pub suggestion_filtering_operators: Option<Vec<String>>,
+}
+
+/// `IntegerPropertyOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntegerPropertyOptions {
+    /// integerFacetingOptions property.
+    pub integer_faceting_options: Option<IntegerFacetingOptions>,
+    /// maximumValue property.
+    pub maximum_value: Option<String>,
+    /// minimumValue property.
+    pub minimum_value: Option<String>,
+    /// operatorOptions property.
+    pub operator_options: Option<IntegerOperatorOptions>,
+    /// orderedRanking property.
+    pub ordered_ranking: Option<String>,
+}
+
+/// `FreshnessOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FreshnessOptions {
+    /// freshnessDuration property.
+    pub freshness_duration: Option<String>,
+    /// freshnessProperty property.
+    pub freshness_property: Option<String>,
 }
 
 /// `PropertyDefinition` type.
@@ -145,74 +265,11 @@ pub struct PropertyDefinition {
     /// name property.
     pub name: Option<String>,
     /// objectPropertyOptions property.
-    pub object_property_options: Option<ObjectPropertyOptions>,
+    pub object_property_options: Option<Box<ObjectPropertyOptions>>,
     /// textPropertyOptions property.
     pub text_property_options: Option<TextPropertyOptions>,
     /// timestampPropertyOptions property.
     pub timestamp_property_options: Option<TimestampPropertyOptions>,
-}
-
-/// `DatePropertyOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatePropertyOptions {
-    /// operatorOptions property.
-    pub operator_options: Option<DateOperatorOptions>,
-}
-
-/// `IntegerPropertyOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntegerPropertyOptions {
-    /// integerFacetingOptions property.
-    pub integer_faceting_options: Option<IntegerFacetingOptions>,
-    /// maximumValue property.
-    pub maximum_value: Option<String>,
-    /// minimumValue property.
-    pub minimum_value: Option<String>,
-    /// operatorOptions property.
-    pub operator_options: Option<IntegerOperatorOptions>,
-    /// orderedRanking property.
-    pub ordered_ranking: Option<String>,
-}
-
-/// `ObjectPropertyOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObjectPropertyOptions {
-    /// subobjectProperties property.
-    pub subobject_properties: Option<Vec<PropertyDefinition>>,
-}
-
-/// `TextOperatorOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextOperatorOptions {
-    /// exactMatchWithOperator property.
-    pub exact_match_with_operator: Option<bool>,
-    /// operatorName property.
-    pub operator_name: Option<String>,
-}
-
-/// `IntegerFacetingOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntegerFacetingOptions {
-    /// integerBuckets property.
-    pub integer_buckets: Option<Vec<String>>,
-}
-
-/// `TimestampPropertyOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimestampPropertyOptions {
-    /// operatorOptions property.
-    pub operator_options: Option<TimestampOperatorOptions>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 /// `BooleanPropertyOptions` type.
@@ -222,92 +279,20 @@ pub struct BooleanPropertyOptions {
     pub operator_options: Option<BooleanOperatorOptions>,
 }
 
-/// `BooleanOperatorOptions` type.
+/// `ObjectPropertyOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BooleanOperatorOptions {
-    /// operatorName property.
-    pub operator_name: Option<String>,
+pub struct ObjectPropertyOptions {
+    /// subobjectProperties property.
+    pub subobject_properties: Option<Vec<Box<PropertyDefinition>>>,
 }
 
-/// `ObjectDefinition` type.
+/// `TextPropertyOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObjectDefinition {
-    /// name property.
-    pub name: Option<String>,
-    /// options property.
-    pub options: Option<ObjectOptions>,
-    /// propertyDefinitions property.
-    pub property_definitions: Option<Vec<PropertyDefinition>>,
-}
-
-/// `EnumValuePair` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnumValuePair {
-    /// integerValue property.
-    pub integer_value: Option<i64>,
-    /// stringValue property.
-    pub string_value: Option<String>,
-}
-
-/// `HtmlOperatorOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HtmlOperatorOptions {
-    /// operatorName property.
-    pub operator_name: Option<String>,
-}
-
-/// `IntegerOperatorOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntegerOperatorOptions {
-    /// greaterThanOperatorName property.
-    pub greater_than_operator_name: Option<String>,
-    /// lessThanOperatorName property.
-    pub less_than_operator_name: Option<String>,
-    /// operatorName property.
-    pub operator_name: Option<String>,
-}
-
-/// `DoubleOperatorOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DoubleOperatorOptions {
-    /// operatorName property.
-    pub operator_name: Option<String>,
-}
-
-/// `Schema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Schema {
-    /// objectDefinitions property.
-    pub object_definitions: Option<Vec<ObjectDefinition>>,
-    /// operationIds property.
-    pub operation_ids: Option<Vec<String>>,
-}
-
-/// `ObjectDisplayOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObjectDisplayOptions {
-    /// metalines property.
-    pub metalines: Option<Vec<Metaline>>,
-    /// objectDisplayLabel property.
-    pub object_display_label: Option<String>,
-}
-
-/// `Metaline` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Metaline {
-    /// properties property.
-    pub properties: Option<Vec<DisplayedProperty>>,
-}
-
-/// `EnumPropertyOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnumPropertyOptions {
+pub struct TextPropertyOptions {
     /// operatorOptions property.
-    pub operator_options: Option<EnumOperatorOptions>,
-    /// orderedRanking property.
-    pub ordered_ranking: Option<String>,
-    /// possibleValues property.
-    pub possible_values: Option<Vec<EnumValuePair>>,
+    pub operator_options: Option<TextOperatorOptions>,
+    /// retrievalImportance property.
+    pub retrieval_importance: Option<RetrievalImportance>,
 }
 
 /// `HtmlPropertyOptions` type.
@@ -317,6 +302,22 @@ pub struct HtmlPropertyOptions {
     pub operator_options: Option<HtmlOperatorOptions>,
     /// retrievalImportance property.
     pub retrieval_importance: Option<RetrievalImportance>,
+}
+
+/// `RetrievalImportance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RetrievalImportance {
+    /// importance property.
+    pub importance: Option<String>,
+}
+
+/// `EnumValuePair` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnumValuePair {
+    /// integerValue property.
+    pub integer_value: Option<i64>,
+    /// stringValue property.
+    pub string_value: Option<String>,
 }
 
 // =============================================================================

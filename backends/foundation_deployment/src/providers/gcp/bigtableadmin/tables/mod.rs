@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -24,82 +25,68 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `RestoreInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RestoreInfo {
+    /// backupInfo property.
+    pub backup_info: Option<BackupInfo>,
+    /// sourceType property.
+    pub source_type: Option<String>,
+}
+
 /// `GoogleBigtableAdminV2TypeArray` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeArray {
     /// elementType property.
-    pub element_type: Option<Type>,
+    pub element_type: Option<Box<Type>>,
 }
 
-/// `GenerateConsistencyTokenResponse` type.
+/// `CheckConsistencyResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GenerateConsistencyTokenResponse {
-    /// consistencyToken property.
-    pub consistency_token: Option<String>,
+pub struct CheckConsistencyResponse {
+    /// consistent property.
+    pub consistent: Option<bool>,
 }
 
-/// `ChangeStreamConfig` type.
+/// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChangeStreamConfig {
-    /// retentionPeriod property.
-    pub retention_period: Option<String>,
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
-/// `GoogleBigtableAdminV2TypeFloat64` type.
+/// `GoogleBigtableAdminV2TypeAggregateMax` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeFloat64 {}
+pub struct GoogleBigtableAdminV2TypeAggregateMax {}
 
-/// `GoogleBigtableAdminV2TypeStringEncoding` type.
+/// `GoogleBigtableAdminV2TypeString` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeStringEncoding {
-    /// utf8Bytes property.
-    pub utf8_bytes: Option<GoogleBigtableAdminV2TypeStringEncodingUtf8Bytes>,
-    /// utf8Raw property.
-    pub utf8_raw: Option<GoogleBigtableAdminV2TypeStringEncodingUtf8Raw>,
-}
-
-/// `GoogleBigtableAdminV2TypeTimestamp` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeTimestamp {
+pub struct GoogleBigtableAdminV2TypeString {
     /// encoding property.
-    pub encoding: Option<GoogleBigtableAdminV2TypeTimestampEncoding>,
+    pub encoding: Option<GoogleBigtableAdminV2TypeStringEncoding>,
 }
 
-/// `GoogleBigtableAdminV2TypeStructEncodingDelimitedBytes` type.
+/// `GoogleBigtableAdminV2TypeAggregateMin` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeStructEncodingDelimitedBytes {
-    /// delimiter property.
-    pub delimiter: Option<String>,
-}
+pub struct GoogleBigtableAdminV2TypeAggregateMin {}
 
-/// `GoogleBigtableAdminV2TypeEnum` type.
+/// `GoogleBigtableAdminV2TypeInt32` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeEnum {
-    /// enumName property.
-    pub enum_name: Option<String>,
-    /// schemaBundleId property.
-    pub schema_bundle_id: Option<String>,
-}
-
-/// `BackupInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupInfo {
-    /// backup property.
-    pub backup: Option<String>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// sourceBackup property.
-    pub source_backup: Option<String>,
-    /// sourceTable property.
-    pub source_table: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
+pub struct GoogleBigtableAdminV2TypeInt32 {
+    /// encoding property.
+    pub encoding: Option<GoogleBigtableAdminV2TypeInt32Encoding>,
 }
 
 /// `AutomatedBackupPolicy` type.
@@ -113,26 +100,125 @@ pub struct AutomatedBackupPolicy {
     pub retention_period: Option<String>,
 }
 
-/// `GoogleBigtableAdminV2TypeInt32Encoding` type.
+/// `GoogleBigtableAdminV2TypeStructEncodingSingleton` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeInt32Encoding {
-    /// bigEndianBytes property.
-    pub big_endian_bytes: Option<GoogleBigtableAdminV2TypeInt32EncodingBigEndianBytes>,
-    /// orderedCodeBytes property.
-    pub ordered_code_bytes: Option<GoogleBigtableAdminV2TypeInt32EncodingOrderedCodeBytes>,
+pub struct GoogleBigtableAdminV2TypeStructEncodingSingleton {}
+
+/// `GoogleBigtableAdminV2TypeEnum` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeEnum {
+    /// enumName property.
+    pub enum_name: Option<String>,
+    /// schemaBundleId property.
+    pub schema_bundle_id: Option<String>,
 }
 
-/// `GoogleBigtableAdminV2TypeInt32EncodingOrderedCodeBytes` type.
+/// `GoogleBigtableAdminV2TypeBytesEncoding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeInt32EncodingOrderedCodeBytes {}
+pub struct GoogleBigtableAdminV2TypeBytesEncoding {
+    /// raw property.
+    pub r#raw: Option<GoogleBigtableAdminV2TypeBytesEncodingRaw>,
+}
 
-/// `GoogleBigtableAdminV2TypeAggregateHyperLogLogPlusPlusUniqueCount` type.
+/// `Type` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeAggregateHyperLogLogPlusPlusUniqueCount {}
+pub struct Type {
+    /// aggregateType property.
+    pub aggregate_type: Option<Box<GoogleBigtableAdminV2TypeAggregate>>,
+    /// arrayType property.
+    pub array_type: Option<Box<GoogleBigtableAdminV2TypeArray>>,
+    /// boolType property.
+    pub bool_type: Option<GoogleBigtableAdminV2TypeBool>,
+    /// bytesType property.
+    pub bytes_type: Option<GoogleBigtableAdminV2TypeBytes>,
+    /// dateType property.
+    pub date_type: Option<GoogleBigtableAdminV2TypeDate>,
+    /// enumType property.
+    pub enum_type: Option<GoogleBigtableAdminV2TypeEnum>,
+    /// float32Type property.
+    pub float32_type: Option<GoogleBigtableAdminV2TypeFloat32>,
+    /// float64Type property.
+    pub float64_type: Option<GoogleBigtableAdminV2TypeFloat64>,
+    /// geographyType property.
+    pub geography_type: Option<GoogleBigtableAdminV2TypeGeography>,
+    /// int32Type property.
+    pub int32_type: Option<GoogleBigtableAdminV2TypeInt32>,
+    /// int64Type property.
+    pub int64_type: Option<GoogleBigtableAdminV2TypeInt64>,
+    /// mapType property.
+    pub map_type: Option<Box<GoogleBigtableAdminV2TypeMap>>,
+    /// protoType property.
+    pub proto_type: Option<GoogleBigtableAdminV2TypeProto>,
+    /// stringType property.
+    pub string_type: Option<GoogleBigtableAdminV2TypeString>,
+    /// structType property.
+    pub struct_type: Option<Box<GoogleBigtableAdminV2TypeStruct>>,
+    /// timestampType property.
+    pub timestamp_type: Option<GoogleBigtableAdminV2TypeTimestamp>,
+}
+
+/// `GenerateConsistencyTokenResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GenerateConsistencyTokenResponse {
+    /// consistencyToken property.
+    pub consistency_token: Option<String>,
+}
 
 /// `GoogleBigtableAdminV2TypeDate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeDate {}
+
+/// `GoogleBigtableAdminV2TypeInt64EncodingBigEndianBytes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeInt64EncodingBigEndianBytes {
+    /// bytesType property.
+    pub bytes_type: Option<GoogleBigtableAdminV2TypeBytes>,
+}
+
+/// `GoogleBigtableAdminV2TypeAggregate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeAggregate {
+    /// hllppUniqueCount property.
+    pub hllpp_unique_count:
+        Option<GoogleBigtableAdminV2TypeAggregateHyperLogLogPlusPlusUniqueCount>,
+    /// inputType property.
+    pub input_type: Option<Box<Type>>,
+    /// max property.
+    pub max: Option<GoogleBigtableAdminV2TypeAggregateMax>,
+    /// min property.
+    pub min: Option<GoogleBigtableAdminV2TypeAggregateMin>,
+    /// stateType property.
+    pub state_type: Option<Box<Type>>,
+    /// sum property.
+    pub sum: Option<GoogleBigtableAdminV2TypeAggregateSum>,
+}
+
+/// `GoogleBigtableAdminV2TypeInt64Encoding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeInt64Encoding {
+    /// bigEndianBytes property.
+    pub big_endian_bytes: Option<GoogleBigtableAdminV2TypeInt64EncodingBigEndianBytes>,
+    /// orderedCodeBytes property.
+    pub ordered_code_bytes: Option<GoogleBigtableAdminV2TypeInt64EncodingOrderedCodeBytes>,
+}
+
+/// `TieredStorageRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TieredStorageRule {
+    /// includeIfOlderThan property.
+    pub include_if_older_than: Option<String>,
+}
+
+/// `GoogleBigtableAdminV2TypeStringEncodingUtf8Bytes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeStringEncodingUtf8Bytes {
+    /// nullEscapeChar property.
+    pub null_escape_char: Option<String>,
+}
+
+/// `GoogleBigtableAdminV2TypeGeography` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeGeography {}
 
 /// `GoogleBigtableAdminV2TypeStructField` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -140,14 +226,54 @@ pub struct GoogleBigtableAdminV2TypeStructField {
     /// fieldName property.
     pub field_name: Option<String>,
     /// type property.
-    pub r#type: Option<Type>,
+    pub r#type: Option<Box<Type>>,
 }
 
-/// `GoogleBigtableAdminV2TypeBool` type.
+/// `TieredStorageConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeBool {
+pub struct TieredStorageConfig {
+    /// infrequentAccess property.
+    pub infrequent_access: Option<TieredStorageRule>,
+}
+
+/// `GoogleBigtableAdminV2TypeInt32EncodingBigEndianBytes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeInt32EncodingBigEndianBytes {}
+
+/// `GoogleBigtableAdminV2TypeStructEncodingDelimitedBytes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeStructEncodingDelimitedBytes {
+    /// delimiter property.
+    pub delimiter: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleBigtableAdminV2TypeStruct` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeStruct {
     /// encoding property.
-    pub encoding: Option<GoogleBigtableAdminV2TypeBoolEncoding>,
+    pub encoding: Option<GoogleBigtableAdminV2TypeStructEncoding>,
+    /// fields property.
+    pub fields: Option<Vec<Box<GoogleBigtableAdminV2TypeStructField>>>,
+}
+
+/// `GoogleBigtableAdminV2TypeMap` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeMap {
+    /// keyType property.
+    pub key_type: Option<Box<Type>>,
+    /// valueType property.
+    pub value_type: Option<Box<Type>>,
 }
 
 /// `Table` type.
@@ -170,132 +296,84 @@ pub struct Table {
     /// restoreInfo property.
     pub restore_info: Option<RestoreInfo>,
     /// rowKeySchema property.
-    pub row_key_schema: Option<GoogleBigtableAdminV2TypeStruct>,
+    pub row_key_schema: Option<Box<GoogleBigtableAdminV2TypeStruct>>,
     /// stats property.
     pub stats: Option<TableStats>,
     /// tieredStorageConfig property.
     pub tiered_storage_config: Option<TieredStorageConfig>,
 }
 
-/// `GoogleBigtableAdminV2TypeInt32` type.
+/// `TableStats` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeInt32 {
-    /// encoding property.
-    pub encoding: Option<GoogleBigtableAdminV2TypeInt32Encoding>,
+pub struct TableStats {
+    /// averageCellsPerColumn property.
+    pub average_cells_per_column: Option<f64>,
+    /// averageColumnsPerRow property.
+    pub average_columns_per_row: Option<f64>,
+    /// logicalDataBytes property.
+    pub logical_data_bytes: Option<String>,
+    /// rowCount property.
+    pub row_count: Option<String>,
 }
 
-/// `RestoreInfo` type.
+/// `BackupInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RestoreInfo {
-    /// backupInfo property.
-    pub backup_info: Option<BackupInfo>,
-    /// sourceType property.
-    pub source_type: Option<String>,
+pub struct BackupInfo {
+    /// backup property.
+    pub backup: Option<String>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// sourceBackup property.
+    pub source_backup: Option<String>,
+    /// sourceTable property.
+    pub source_table: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
 }
 
-/// `Status` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
-/// `GoogleBigtableAdminV2TypeInt64Encoding` type.
+/// `GoogleBigtableAdminV2TypeStringEncoding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeInt64Encoding {
+pub struct GoogleBigtableAdminV2TypeStringEncoding {
+    /// utf8Bytes property.
+    pub utf8_bytes: Option<GoogleBigtableAdminV2TypeStringEncodingUtf8Bytes>,
+    /// utf8Raw property.
+    pub utf8_raw: Option<GoogleBigtableAdminV2TypeStringEncodingUtf8Raw>,
+}
+
+/// `GoogleBigtableAdminV2TypeInt32Encoding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeInt32Encoding {
     /// bigEndianBytes property.
-    pub big_endian_bytes: Option<GoogleBigtableAdminV2TypeInt64EncodingBigEndianBytes>,
+    pub big_endian_bytes: Option<GoogleBigtableAdminV2TypeInt32EncodingBigEndianBytes>,
     /// orderedCodeBytes property.
-    pub ordered_code_bytes: Option<GoogleBigtableAdminV2TypeInt64EncodingOrderedCodeBytes>,
+    pub ordered_code_bytes: Option<GoogleBigtableAdminV2TypeInt32EncodingOrderedCodeBytes>,
 }
 
-/// `GoogleBigtableAdminV2TypeGeography` type.
+/// `ListTablesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeGeography {}
+pub struct ListTablesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// tables property.
+    pub tables: Option<Vec<Table>>,
+}
 
-/// `GoogleBigtableAdminV2TypeAggregateMin` type.
+/// `GoogleBigtableAdminV2TypeBytes` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeAggregateMin {}
-
-/// `GoogleBigtableAdminV2TypeString` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeString {
+pub struct GoogleBigtableAdminV2TypeBytes {
     /// encoding property.
-    pub encoding: Option<GoogleBigtableAdminV2TypeStringEncoding>,
-}
-
-/// `GoogleBigtableAdminV2TypeAggregateSum` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeAggregateSum {}
-
-/// `Type` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Type {
-    /// aggregateType property.
-    pub aggregate_type: Option<GoogleBigtableAdminV2TypeAggregate>,
-    /// arrayType property.
-    pub array_type: Option<GoogleBigtableAdminV2TypeArray>,
-    /// boolType property.
-    pub bool_type: Option<GoogleBigtableAdminV2TypeBool>,
-    /// bytesType property.
-    pub bytes_type: Option<GoogleBigtableAdminV2TypeBytes>,
-    /// dateType property.
-    pub date_type: Option<GoogleBigtableAdminV2TypeDate>,
-    /// enumType property.
-    pub enum_type: Option<GoogleBigtableAdminV2TypeEnum>,
-    /// float32Type property.
-    pub float32_type: Option<GoogleBigtableAdminV2TypeFloat32>,
-    /// float64Type property.
-    pub float64_type: Option<GoogleBigtableAdminV2TypeFloat64>,
-    /// geographyType property.
-    pub geography_type: Option<GoogleBigtableAdminV2TypeGeography>,
-    /// int32Type property.
-    pub int32_type: Option<GoogleBigtableAdminV2TypeInt32>,
-    /// int64Type property.
-    pub int64_type: Option<GoogleBigtableAdminV2TypeInt64>,
-    /// mapType property.
-    pub map_type: Option<GoogleBigtableAdminV2TypeMap>,
-    /// protoType property.
-    pub proto_type: Option<GoogleBigtableAdminV2TypeProto>,
-    /// stringType property.
-    pub string_type: Option<GoogleBigtableAdminV2TypeString>,
-    /// structType property.
-    pub struct_type: Option<GoogleBigtableAdminV2TypeStruct>,
-    /// timestampType property.
-    pub timestamp_type: Option<GoogleBigtableAdminV2TypeTimestamp>,
-}
-
-/// `GoogleBigtableAdminV2TypeInt64` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeInt64 {
-    /// encoding property.
-    pub encoding: Option<GoogleBigtableAdminV2TypeInt64Encoding>,
-}
-
-/// `GoogleBigtableAdminV2TypeAggregateMax` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeAggregateMax {}
-
-/// `GoogleBigtableAdminV2TypeInt64EncodingOrderedCodeBytes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeInt64EncodingOrderedCodeBytes {}
-
-/// `GoogleBigtableAdminV2TypeTimestampEncoding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeTimestampEncoding {
-    /// unixMicrosInt64 property.
-    pub unix_micros_int64: Option<GoogleBigtableAdminV2TypeInt64Encoding>,
-}
-
-/// `GoogleBigtableAdminV2TypeInt64EncodingBigEndianBytes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeInt64EncodingBigEndianBytes {
-    /// bytesType property.
-    pub bytes_type: Option<GoogleBigtableAdminV2TypeBytes>,
+    pub encoding: Option<GoogleBigtableAdminV2TypeBytesEncoding>,
 }
 
 /// `AuditLogConfig` type.
@@ -307,13 +385,29 @@ pub struct AuditLogConfig {
     pub log_type: Option<String>,
 }
 
-/// `ListTablesResponse` type.
+/// `GoogleBigtableAdminV2TypeProto` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListTablesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// tables property.
-    pub tables: Option<Vec<Table>>,
+pub struct GoogleBigtableAdminV2TypeProto {
+    /// messageName property.
+    pub message_name: Option<String>,
+    /// schemaBundleId property.
+    pub schema_bundle_id: Option<String>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `GoogleBigtableAdminV2TypeTimestamp` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeTimestamp {
+    /// encoding property.
+    pub encoding: Option<GoogleBigtableAdminV2TypeTimestampEncoding>,
 }
 
 /// `GoogleBigtableAdminV2TypeStructEncoding` type.
@@ -331,149 +425,29 @@ pub struct GoogleBigtableAdminV2TypeStructEncoding {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeStructEncodingOrderedCodeBytes {}
 
-/// `GoogleBigtableAdminV2TypeStruct` type.
+/// `GoogleBigtableAdminV2TypeFloat64` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeStruct {
+pub struct GoogleBigtableAdminV2TypeFloat64 {}
+
+/// `ChangeStreamConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChangeStreamConfig {
+    /// retentionPeriod property.
+    pub retention_period: Option<String>,
+}
+
+/// `GoogleBigtableAdminV2TypeInt64` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeInt64 {
     /// encoding property.
-    pub encoding: Option<GoogleBigtableAdminV2TypeStructEncoding>,
-    /// fields property.
-    pub fields: Option<Vec<GoogleBigtableAdminV2TypeStructField>>,
+    pub encoding: Option<GoogleBigtableAdminV2TypeInt64Encoding>,
 }
 
-/// `TieredStorageRule` type.
+/// `GoogleBigtableAdminV2TypeTimestampEncoding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TieredStorageRule {
-    /// includeIfOlderThan property.
-    pub include_if_older_than: Option<String>,
-}
-
-/// `GoogleBigtableAdminV2TypeAggregate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeAggregate {
-    /// hllppUniqueCount property.
-    pub hllpp_unique_count:
-        Option<GoogleBigtableAdminV2TypeAggregateHyperLogLogPlusPlusUniqueCount>,
-    /// inputType property.
-    pub input_type: Option<Type>,
-    /// max property.
-    pub max: Option<GoogleBigtableAdminV2TypeAggregateMax>,
-    /// min property.
-    pub min: Option<GoogleBigtableAdminV2TypeAggregateMin>,
-    /// stateType property.
-    pub state_type: Option<Type>,
-    /// sum property.
-    pub sum: Option<GoogleBigtableAdminV2TypeAggregateSum>,
-}
-
-/// `GoogleBigtableAdminV2TypeBytesEncoding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeBytesEncoding {
-    /// raw property.
-    pub r#raw: Option<GoogleBigtableAdminV2TypeBytesEncodingRaw>,
-}
-
-/// `GoogleBigtableAdminV2TypeStructEncodingSingleton` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeStructEncodingSingleton {}
-
-/// `TieredStorageConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TieredStorageConfig {
-    /// infrequentAccess property.
-    pub infrequent_access: Option<TieredStorageRule>,
-}
-
-/// `CheckConsistencyResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CheckConsistencyResponse {
-    /// consistent property.
-    pub consistent: Option<bool>,
-}
-
-/// `GoogleBigtableAdminV2TypeInt32EncodingBigEndianBytes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeInt32EncodingBigEndianBytes {}
-
-/// `GoogleBigtableAdminV2TypeStringEncodingUtf8Raw` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeStringEncodingUtf8Raw {}
-
-/// `GoogleBigtableAdminV2TypeMap` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeMap {
-    /// keyType property.
-    pub key_type: Option<Type>,
-    /// valueType property.
-    pub value_type: Option<Type>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `GoogleBigtableAdminV2TypeStringEncodingUtf8Bytes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeStringEncodingUtf8Bytes {
-    /// nullEscapeChar property.
-    pub null_escape_char: Option<String>,
-}
-
-/// `GoogleBigtableAdminV2TypeProto` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeProto {
-    /// messageName property.
-    pub message_name: Option<String>,
-    /// schemaBundleId property.
-    pub schema_bundle_id: Option<String>,
-}
-
-/// `GoogleBigtableAdminV2TypeBytes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeBytes {
-    /// encoding property.
-    pub encoding: Option<GoogleBigtableAdminV2TypeBytesEncoding>,
-}
-
-/// `TableStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableStats {
-    /// averageCellsPerColumn property.
-    pub average_cells_per_column: Option<f64>,
-    /// averageColumnsPerRow property.
-    pub average_columns_per_row: Option<f64>,
-    /// logicalDataBytes property.
-    pub logical_data_bytes: Option<String>,
-    /// rowCount property.
-    pub row_count: Option<String>,
+pub struct GoogleBigtableAdminV2TypeTimestampEncoding {
+    /// unixMicrosInt64 property.
+    pub unix_micros_int64: Option<GoogleBigtableAdminV2TypeInt64Encoding>,
 }
 
 /// `GoogleBigtableAdminV2TypeBytesEncodingRaw` type.
@@ -483,13 +457,40 @@ pub struct GoogleBigtableAdminV2TypeBytesEncodingRaw {
     pub escape_nulls: Option<bool>,
 }
 
-/// `GoogleBigtableAdminV2TypeBoolEncoding` type.
+/// `GoogleBigtableAdminV2TypeAggregateSum` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeBoolEncoding {}
+pub struct GoogleBigtableAdminV2TypeAggregateSum {}
+
+/// `GoogleBigtableAdminV2TypeInt64EncodingOrderedCodeBytes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeInt64EncodingOrderedCodeBytes {}
 
 /// `GoogleBigtableAdminV2TypeFloat32` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeFloat32 {}
+
+/// `GoogleBigtableAdminV2TypeInt32EncodingOrderedCodeBytes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeInt32EncodingOrderedCodeBytes {}
+
+/// `GoogleBigtableAdminV2TypeAggregateHyperLogLogPlusPlusUniqueCount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeAggregateHyperLogLogPlusPlusUniqueCount {}
+
+/// `GoogleBigtableAdminV2TypeBoolEncoding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeBoolEncoding {}
+
+/// `GoogleBigtableAdminV2TypeStringEncodingUtf8Raw` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeStringEncodingUtf8Raw {}
+
+/// `GoogleBigtableAdminV2TypeBool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeBool {
+    /// encoding property.
+    pub encoding: Option<GoogleBigtableAdminV2TypeBoolEncoding>,
+}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

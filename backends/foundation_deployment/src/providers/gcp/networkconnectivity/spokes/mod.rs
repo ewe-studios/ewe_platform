@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,22 +24,11 @@ use super::shared::GoogleLongrunningOperation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListSpokesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSpokesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// spokes property.
-    pub spokes: Option<Vec<Spoke>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
 
 /// `LinkedRouterApplianceInstances` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -59,9 +49,37 @@ pub struct LinkedRouterApplianceInstances {
     pub vpc_network: Option<String>,
 }
 
-/// `LinkedInterconnectAttachments` type.
+/// `StateReason` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LinkedInterconnectAttachments {
+pub struct StateReason {
+    /// code property.
+    pub code: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// userDetails property.
+    pub user_details: Option<String>,
+}
+
+/// `LinkedVpcNetwork` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LinkedVpcNetwork {
+    /// excludeExportRanges property.
+    pub exclude_export_ranges: Option<Vec<String>>,
+    /// includeExportRanges property.
+    pub include_export_ranges: Option<Vec<String>>,
+    /// producerVpcSpokes property.
+    pub producer_vpc_spokes: Option<Vec<String>>,
+    /// proposedExcludeExportRanges property.
+    pub proposed_exclude_export_ranges: Option<Vec<String>>,
+    /// proposedIncludeExportRanges property.
+    pub proposed_include_export_ranges: Option<Vec<String>>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `LinkedVpnTunnels` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LinkedVpnTunnels {
     /// excludeExportRanges property.
     pub exclude_export_ranges: Option<Vec<String>>,
     /// excludeImportRanges property.
@@ -76,48 +94,6 @@ pub struct LinkedInterconnectAttachments {
     pub uris: Option<Vec<String>>,
     /// vpcNetwork property.
     pub vpc_network: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `RouterApplianceInstance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterApplianceInstance {
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// virtualMachine property.
-    pub virtual_machine: Option<String>,
-}
-
-/// `StateReason` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StateReason {
-    /// code property.
-    pub code: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// userDetails property.
-    pub user_details: Option<String>,
 }
 
 /// `Expr` type.
@@ -140,6 +116,77 @@ pub struct AuditConfig {
     pub audit_log_configs: Option<Vec<AuditLogConfig>>,
     /// service property.
     pub service: Option<String>,
+}
+
+/// `LinkedInterconnectAttachments` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LinkedInterconnectAttachments {
+    /// excludeExportRanges property.
+    pub exclude_export_ranges: Option<Vec<String>>,
+    /// excludeImportRanges property.
+    pub exclude_import_ranges: Option<Vec<String>>,
+    /// includeExportRanges property.
+    pub include_export_ranges: Option<Vec<String>>,
+    /// includeImportRanges property.
+    pub include_import_ranges: Option<Vec<String>>,
+    /// siteToSiteDataTransfer property.
+    pub site_to_site_data_transfer: Option<bool>,
+    /// uris property.
+    pub uris: Option<Vec<String>>,
+    /// vpcNetwork property.
+    pub vpc_network: Option<String>,
+}
+
+/// `LinkedProducerVpcNetwork` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LinkedProducerVpcNetwork {
+    /// excludeExportRanges property.
+    pub exclude_export_ranges: Option<Vec<String>>,
+    /// includeExportRanges property.
+    pub include_export_ranges: Option<Vec<String>>,
+    /// network property.
+    pub network: Option<String>,
+    /// peering property.
+    pub peering: Option<String>,
+    /// producerNetwork property.
+    pub producer_network: Option<String>,
+    /// proposedExcludeExportRanges property.
+    pub proposed_exclude_export_ranges: Option<Vec<String>>,
+    /// proposedIncludeExportRanges property.
+    pub proposed_include_export_ranges: Option<Vec<String>>,
+    /// serviceConsumerVpcSpoke property.
+    pub service_consumer_vpc_spoke: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `ListSpokesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListSpokesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// spokes property.
+    pub spokes: Option<Vec<Spoke>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `RouterApplianceInstance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouterApplianceInstance {
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// virtualMachine property.
+    pub virtual_machine: Option<String>,
 }
 
 /// `Spoke` type.
@@ -183,61 +230,15 @@ pub struct Spoke {
     pub update_time: Option<String>,
 }
 
-/// `LinkedVpnTunnels` type.
+/// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LinkedVpnTunnels {
-    /// excludeExportRanges property.
-    pub exclude_export_ranges: Option<Vec<String>>,
-    /// excludeImportRanges property.
-    pub exclude_import_ranges: Option<Vec<String>>,
-    /// includeExportRanges property.
-    pub include_export_ranges: Option<Vec<String>>,
-    /// includeImportRanges property.
-    pub include_import_ranges: Option<Vec<String>>,
-    /// siteToSiteDataTransfer property.
-    pub site_to_site_data_transfer: Option<bool>,
-    /// uris property.
-    pub uris: Option<Vec<String>>,
-    /// vpcNetwork property.
-    pub vpc_network: Option<String>,
-}
-
-/// `LinkedProducerVpcNetwork` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LinkedProducerVpcNetwork {
-    /// excludeExportRanges property.
-    pub exclude_export_ranges: Option<Vec<String>>,
-    /// includeExportRanges property.
-    pub include_export_ranges: Option<Vec<String>>,
-    /// network property.
-    pub network: Option<String>,
-    /// peering property.
-    pub peering: Option<String>,
-    /// producerNetwork property.
-    pub producer_network: Option<String>,
-    /// proposedExcludeExportRanges property.
-    pub proposed_exclude_export_ranges: Option<Vec<String>>,
-    /// proposedIncludeExportRanges property.
-    pub proposed_include_export_ranges: Option<Vec<String>>,
-    /// serviceConsumerVpcSpoke property.
-    pub service_consumer_vpc_spoke: Option<String>,
-}
-
-/// `LinkedVpcNetwork` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LinkedVpcNetwork {
-    /// excludeExportRanges property.
-    pub exclude_export_ranges: Option<Vec<String>>,
-    /// includeExportRanges property.
-    pub include_export_ranges: Option<Vec<String>>,
-    /// producerVpcSpokes property.
-    pub producer_vpc_spokes: Option<Vec<String>>,
-    /// proposedExcludeExportRanges property.
-    pub proposed_exclude_export_ranges: Option<Vec<String>>,
-    /// proposedIncludeExportRanges property.
-    pub proposed_include_export_ranges: Option<Vec<String>>,
-    /// uri property.
-    pub uri: Option<String>,
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `AuditLogConfig` type.

@@ -12,25 +12,50 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudApigeeV1ListRatePlansResponse` type.
+/// `GoogleTypeMoney` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ListRatePlansResponse {
-    /// nextStartKey property.
-    pub next_start_key: Option<String>,
-    /// ratePlans property.
-    pub rate_plans: Option<Vec<GoogleCloudApigeeV1RatePlan>>,
+pub struct GoogleTypeMoney {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// units property.
+    pub units: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1RevenueShareRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1RevenueShareRange {
+    /// end property.
+    pub end: Option<String>,
+    /// sharePercentage property.
+    pub share_percentage: Option<f64>,
+    /// start property.
+    pub start: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1RateRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1RateRange {
+    /// end property.
+    pub end: Option<String>,
+    /// fee property.
+    pub fee: Option<GoogleTypeMoney>,
+    /// start property.
+    pub start: Option<String>,
 }
 
 /// `GoogleCloudApigeeV1RatePlan` type.
@@ -76,37 +101,13 @@ pub struct GoogleCloudApigeeV1RatePlan {
     pub state: Option<String>,
 }
 
-/// `GoogleCloudApigeeV1RateRange` type.
+/// `GoogleCloudApigeeV1ListRatePlansResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1RateRange {
-    /// end property.
-    pub end: Option<String>,
-    /// fee property.
-    pub fee: Option<GoogleTypeMoney>,
-    /// start property.
-    pub start: Option<String>,
-}
-
-/// `GoogleTypeMoney` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeMoney {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// units property.
-    pub units: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1RevenueShareRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1RevenueShareRange {
-    /// end property.
-    pub end: Option<String>,
-    /// sharePercentage property.
-    pub share_percentage: Option<f64>,
-    /// start property.
-    pub start: Option<String>,
+pub struct GoogleCloudApigeeV1ListRatePlansResponse {
+    /// nextStartKey property.
+    pub next_start_key: Option<String>,
+    /// ratePlans property.
+    pub rate_plans: Option<Vec<GoogleCloudApigeeV1RatePlan>>,
 }
 
 // =============================================================================

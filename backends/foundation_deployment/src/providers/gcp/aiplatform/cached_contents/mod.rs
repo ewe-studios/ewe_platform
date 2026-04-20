@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,103 +22,57 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudAiplatformV1GoogleMaps` type.
+/// `GoogleCloudAiplatformV1FunctionResponseFileData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GoogleMaps {
-    /// enableWidget property.
-    pub enable_widget: Option<bool>,
-}
-
-/// `GoogleCloudAiplatformV1AuthConfigOidcConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1AuthConfigOidcConfig {
-    /// idToken property.
-    pub id_token: Option<String>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ToolGoogleSearchImageSearch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ToolGoogleSearchImageSearch {}
-
-/// `GoogleCloudAiplatformV1ToolCodeExecution` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ToolCodeExecution {}
-
-/// `GoogleCloudAiplatformV1Part` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Part {
-    /// codeExecutionResult property.
-    pub code_execution_result: Option<GoogleCloudAiplatformV1CodeExecutionResult>,
-    /// executableCode property.
-    pub executable_code: Option<GoogleCloudAiplatformV1ExecutableCode>,
-    /// fileData property.
-    pub file_data: Option<GoogleCloudAiplatformV1FileData>,
-    /// functionCall property.
-    pub function_call: Option<GoogleCloudAiplatformV1FunctionCall>,
-    /// functionResponse property.
-    pub function_response: Option<GoogleCloudAiplatformV1FunctionResponse>,
-    /// inlineData property.
-    pub inline_data: Option<GoogleCloudAiplatformV1Blob>,
-    /// mediaResolution property.
-    pub media_resolution: Option<GoogleCloudAiplatformV1PartMediaResolution>,
-    /// text property.
-    pub text: Option<String>,
-    /// thought property.
-    pub thought: Option<bool>,
-    /// thoughtSignature property.
-    pub thought_signature: Option<String>,
-    /// videoMetadata property.
-    pub video_metadata: Option<GoogleCloudAiplatformV1VideoMetadata>,
-}
-
-/// `GoogleTypeLatLng` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeLatLng {
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1FunctionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FunctionResponse {
-    /// name property.
-    pub name: Option<String>,
-    /// parts property.
-    pub parts: Option<Vec<GoogleCloudAiplatformV1FunctionResponsePart>>,
-    /// response property.
-    pub response: Option<serde_json::Value>,
-    /// scheduling property.
-    pub scheduling: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1AuthConfigOauthConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1AuthConfigOauthConfig {
-    /// accessToken property.
-    pub access_token: Option<String>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1FileData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FileData {
+pub struct GoogleCloudAiplatformV1FunctionResponseFileData {
     /// displayName property.
     pub display_name: Option<String>,
     /// fileUri property.
     pub file_uri: Option<String>,
     /// mimeType property.
     pub mime_type: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1AuthConfigHttpBasicAuthConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1AuthConfigHttpBasicAuthConfig {
+    /// credentialSecret property.
+    pub credential_secret: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1RagRetrievalConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RagRetrievalConfig {
+    /// filter property.
+    pub filter: Option<GoogleCloudAiplatformV1RagRetrievalConfigFilter>,
+    /// ranking property.
+    pub ranking: Option<GoogleCloudAiplatformV1RagRetrievalConfigRanking>,
+    /// topK property.
+    pub top_k: Option<i64>,
+}
+
+/// `GoogleCloudAiplatformV1RagRetrievalConfigRankingRankService` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RagRetrievalConfigRankingRankService {
+    /// modelName property.
+    pub model_name: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ExternalApiElasticSearchParams` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ExternalApiElasticSearchParams {
+    /// index property.
+    pub index: Option<String>,
+    /// numHits property.
+    pub num_hits: Option<i64>,
+    /// searchTemplate property.
+    pub search_template: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1AuthConfig` type.
@@ -138,58 +93,227 @@ pub struct GoogleCloudAiplatformV1AuthConfig {
     pub oidc_config: Option<GoogleCloudAiplatformV1AuthConfigOidcConfig>,
 }
 
-/// `GoogleCloudAiplatformV1AuthConfigHttpBasicAuthConfig` type.
+/// `GoogleCloudAiplatformV1EnterpriseWebSearch` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1AuthConfigHttpBasicAuthConfig {
-    /// credentialSecret property.
-    pub credential_secret: Option<String>,
+pub struct GoogleCloudAiplatformV1EnterpriseWebSearch {
+    /// blockingConfidence property.
+    pub blocking_confidence: Option<String>,
+    /// excludeDomains property.
+    pub exclude_domains: Option<Vec<String>>,
 }
 
-/// `GoogleCloudAiplatformV1RagRetrievalConfigFilter` type.
+/// `GoogleCloudAiplatformV1VideoMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RagRetrievalConfigFilter {
-    /// metadataFilter property.
-    pub metadata_filter: Option<String>,
+pub struct GoogleCloudAiplatformV1VideoMetadata {
+    /// endOffset property.
+    pub end_offset: Option<String>,
+    /// fps property.
+    pub fps: Option<f64>,
+    /// startOffset property.
+    pub start_offset: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ToolGoogleSearch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ToolGoogleSearch {
+    /// blockingConfidence property.
+    pub blocking_confidence: Option<String>,
+    /// excludeDomains property.
+    pub exclude_domains: Option<Vec<String>>,
+    /// searchTypes property.
+    pub search_types: Option<GoogleCloudAiplatformV1ToolGoogleSearchSearchTypes>,
+}
+
+/// `GoogleCloudAiplatformV1Tool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1Tool {
+    /// codeExecution property.
+    pub code_execution: Option<GoogleCloudAiplatformV1ToolCodeExecution>,
+    /// computerUse property.
+    pub computer_use: Option<GoogleCloudAiplatformV1ToolComputerUse>,
+    /// enterpriseWebSearch property.
+    pub enterprise_web_search: Option<GoogleCloudAiplatformV1EnterpriseWebSearch>,
+    /// functionDeclarations property.
+    pub function_declarations: Option<Vec<GoogleCloudAiplatformV1FunctionDeclaration>>,
+    /// googleMaps property.
+    pub google_maps: Option<GoogleCloudAiplatformV1GoogleMaps>,
+    /// googleSearch property.
+    pub google_search: Option<GoogleCloudAiplatformV1ToolGoogleSearch>,
+    /// googleSearchRetrieval property.
+    pub google_search_retrieval: Option<GoogleCloudAiplatformV1GoogleSearchRetrieval>,
+    /// parallelAiSearch property.
+    pub parallel_ai_search: Option<GoogleCloudAiplatformV1ToolParallelAiSearch>,
+    /// retrieval property.
+    pub retrieval: Option<GoogleCloudAiplatformV1Retrieval>,
+    /// urlContext property.
+    pub url_context: Option<GoogleCloudAiplatformV1UrlContext>,
+}
+
+/// `GoogleCloudAiplatformV1EncryptionSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1EncryptionSpec {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1RagRetrievalConfigRankingLlmRanker` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RagRetrievalConfigRankingLlmRanker {
+    /// modelName property.
+    pub model_name: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1GoogleSearchRetrieval` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1GoogleSearchRetrieval {
+    /// dynamicRetrievalConfig property.
+    pub dynamic_retrieval_config: Option<GoogleCloudAiplatformV1DynamicRetrievalConfig>,
+}
+
+/// `GoogleCloudAiplatformV1FunctionCall` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FunctionCall {
+    /// args property.
+    pub args: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// partialArgs property.
+    pub partial_args: Option<Vec<GoogleCloudAiplatformV1PartialArg>>,
+    /// willContinue property.
+    pub will_continue: Option<bool>,
+}
+
+/// `GoogleCloudAiplatformV1RagRetrievalConfigRanking` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RagRetrievalConfigRanking {
+    /// llmRanker property.
+    pub llm_ranker: Option<GoogleCloudAiplatformV1RagRetrievalConfigRankingLlmRanker>,
+    /// rankService property.
+    pub rank_service: Option<GoogleCloudAiplatformV1RagRetrievalConfigRankingRankService>,
+}
+
+/// `GoogleCloudAiplatformV1VertexRagStore` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1VertexRagStore {
+    /// ragResources property.
+    pub rag_resources: Option<Vec<GoogleCloudAiplatformV1VertexRagStoreRagResource>>,
+    /// ragRetrievalConfig property.
+    pub rag_retrieval_config: Option<GoogleCloudAiplatformV1RagRetrievalConfig>,
+    /// similarityTopK property.
+    pub similarity_top_k: Option<i64>,
     /// vectorDistanceThreshold property.
     pub vector_distance_threshold: Option<f64>,
-    /// vectorSimilarityThreshold property.
-    pub vector_similarity_threshold: Option<f64>,
 }
 
-/// `GoogleCloudAiplatformV1VertexRagStoreRagResource` type.
+/// `GoogleCloudAiplatformV1ToolParallelAiSearch` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1VertexRagStoreRagResource {
-    /// ragCorpus property.
-    pub rag_corpus: Option<String>,
-    /// ragFileIds property.
-    pub rag_file_ids: Option<Vec<String>>,
+pub struct GoogleCloudAiplatformV1ToolParallelAiSearch {
+    /// apiKey property.
+    pub api_key: Option<String>,
+    /// customConfigs property.
+    pub custom_configs: Option<serde_json::Value>,
 }
 
-/// `GoogleCloudAiplatformV1UrlContext` type.
+/// `GoogleCloudAiplatformV1DynamicRetrievalConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1UrlContext {}
-
-/// `GoogleCloudAiplatformV1ApiAuth` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ApiAuth {
-    /// apiKeyConfig property.
-    pub api_key_config: Option<GoogleCloudAiplatformV1ApiAuthApiKeyConfig>,
+pub struct GoogleCloudAiplatformV1DynamicRetrievalConfig {
+    /// dynamicThreshold property.
+    pub dynamic_threshold: Option<f64>,
+    /// mode property.
+    pub mode: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1CachedContentUsageMetadata` type.
+/// `GoogleCloudAiplatformV1FunctionResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1CachedContentUsageMetadata {
-    /// audioDurationSeconds property.
-    pub audio_duration_seconds: Option<i64>,
-    /// imageCount property.
-    pub image_count: Option<i64>,
-    /// textCount property.
-    pub text_count: Option<i64>,
-    /// totalTokenCount property.
-    pub total_token_count: Option<i64>,
-    /// videoDurationSeconds property.
-    pub video_duration_seconds: Option<i64>,
+pub struct GoogleCloudAiplatformV1FunctionResponse {
+    /// name property.
+    pub name: Option<String>,
+    /// parts property.
+    pub parts: Option<Vec<GoogleCloudAiplatformV1FunctionResponsePart>>,
+    /// response property.
+    pub response: Option<serde_json::Value>,
+    /// scheduling property.
+    pub scheduling: Option<String>,
 }
+
+/// `GoogleCloudAiplatformV1ExternalApiSimpleSearchParams` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ExternalApiSimpleSearchParams {}
+
+/// `GoogleCloudAiplatformV1Retrieval` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1Retrieval {
+    /// disableAttribution property.
+    pub disable_attribution: Option<bool>,
+    /// externalApi property.
+    pub external_api: Option<GoogleCloudAiplatformV1ExternalApi>,
+    /// vertexAiSearch property.
+    pub vertex_ai_search: Option<GoogleCloudAiplatformV1VertexAISearch>,
+    /// vertexRagStore property.
+    pub vertex_rag_store: Option<GoogleCloudAiplatformV1VertexRagStore>,
+}
+
+/// `GoogleCloudAiplatformV1VertexAISearchDataStoreSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1VertexAISearchDataStoreSpec {
+    /// dataStore property.
+    pub data_store: Option<String>,
+    /// filter property.
+    pub filter: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1VertexAISearch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1VertexAISearch {
+    /// dataStoreSpecs property.
+    pub data_store_specs: Option<Vec<GoogleCloudAiplatformV1VertexAISearchDataStoreSpec>>,
+    /// datastore property.
+    pub datastore: Option<String>,
+    /// engine property.
+    pub engine: Option<String>,
+    /// filter property.
+    pub filter: Option<String>,
+    /// maxResults property.
+    pub max_results: Option<i64>,
+}
+
+/// `GoogleCloudAiplatformV1Content` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1Content {
+    /// parts property.
+    pub parts: Option<Vec<GoogleCloudAiplatformV1Part>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ApiAuthApiKeyConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ApiAuthApiKeyConfig {
+    /// apiKeySecretVersion property.
+    pub api_key_secret_version: Option<String>,
+    /// apiKeyString property.
+    pub api_key_string: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1AuthConfigGoogleServiceAccountConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1AuthConfigGoogleServiceAccountConfig {
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ExecutableCode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ExecutableCode {
+    /// code property.
+    pub code: Option<String>,
+    /// language property.
+    pub language: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ToolGoogleSearchImageSearch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ToolGoogleSearchImageSearch {}
 
 /// `GoogleCloudAiplatformV1FunctionResponsePart` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -198,6 +322,15 @@ pub struct GoogleCloudAiplatformV1FunctionResponsePart {
     pub file_data: Option<GoogleCloudAiplatformV1FunctionResponseFileData>,
     /// inlineData property.
     pub inline_data: Option<GoogleCloudAiplatformV1FunctionResponseBlob>,
+}
+
+/// `GoogleCloudAiplatformV1ToolConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ToolConfig {
+    /// functionCallingConfig property.
+    pub function_calling_config: Option<GoogleCloudAiplatformV1FunctionCallingConfig>,
+    /// retrievalConfig property.
+    pub retrieval_config: Option<GoogleCloudAiplatformV1RetrievalConfig>,
 }
 
 /// `GoogleCloudAiplatformV1CachedContent` type.
@@ -231,243 +364,13 @@ pub struct GoogleCloudAiplatformV1CachedContent {
     pub usage_metadata: Option<GoogleCloudAiplatformV1CachedContentUsageMetadata>,
 }
 
-/// `GoogleCloudAiplatformV1FunctionResponseBlob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FunctionResponseBlob {
-    /// data property.
-    pub data: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ToolComputerUse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ToolComputerUse {
-    /// environment property.
-    pub environment: Option<String>,
-    /// excludedPredefinedFunctions property.
-    pub excluded_predefined_functions: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAiplatformV1EnterpriseWebSearch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EnterpriseWebSearch {
-    /// blockingConfidence property.
-    pub blocking_confidence: Option<String>,
-    /// excludeDomains property.
-    pub exclude_domains: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAiplatformV1ExternalApi` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ExternalApi {
-    /// apiAuth property.
-    pub api_auth: Option<GoogleCloudAiplatformV1ApiAuth>,
-    /// apiSpec property.
-    pub api_spec: Option<String>,
-    /// authConfig property.
-    pub auth_config: Option<GoogleCloudAiplatformV1AuthConfig>,
-    /// elasticSearchParams property.
-    pub elastic_search_params: Option<GoogleCloudAiplatformV1ExternalApiElasticSearchParams>,
-    /// endpoint property.
-    pub endpoint: Option<String>,
-    /// simpleSearchParams property.
-    pub simple_search_params: Option<GoogleCloudAiplatformV1ExternalApiSimpleSearchParams>,
-}
-
-/// `GoogleCloudAiplatformV1RagRetrievalConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RagRetrievalConfig {
-    /// filter property.
-    pub filter: Option<GoogleCloudAiplatformV1RagRetrievalConfigFilter>,
-    /// ranking property.
-    pub ranking: Option<GoogleCloudAiplatformV1RagRetrievalConfigRanking>,
-    /// topK property.
-    pub top_k: Option<i64>,
-}
-
-/// `GoogleCloudAiplatformV1FunctionCall` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FunctionCall {
-    /// args property.
-    pub args: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// partialArgs property.
-    pub partial_args: Option<Vec<GoogleCloudAiplatformV1PartialArg>>,
-    /// willContinue property.
-    pub will_continue: Option<bool>,
-}
-
-/// `GoogleCloudAiplatformV1ToolConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ToolConfig {
-    /// functionCallingConfig property.
-    pub function_calling_config: Option<GoogleCloudAiplatformV1FunctionCallingConfig>,
-    /// retrievalConfig property.
-    pub retrieval_config: Option<GoogleCloudAiplatformV1RetrievalConfig>,
-}
-
-/// `GoogleCloudAiplatformV1VideoMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1VideoMetadata {
-    /// endOffset property.
-    pub end_offset: Option<String>,
-    /// fps property.
-    pub fps: Option<f64>,
-    /// startOffset property.
-    pub start_offset: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1Tool` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Tool {
-    /// codeExecution property.
-    pub code_execution: Option<GoogleCloudAiplatformV1ToolCodeExecution>,
-    /// computerUse property.
-    pub computer_use: Option<GoogleCloudAiplatformV1ToolComputerUse>,
-    /// enterpriseWebSearch property.
-    pub enterprise_web_search: Option<GoogleCloudAiplatformV1EnterpriseWebSearch>,
-    /// functionDeclarations property.
-    pub function_declarations: Option<Vec<GoogleCloudAiplatformV1FunctionDeclaration>>,
-    /// googleMaps property.
-    pub google_maps: Option<GoogleCloudAiplatformV1GoogleMaps>,
-    /// googleSearch property.
-    pub google_search: Option<GoogleCloudAiplatformV1ToolGoogleSearch>,
-    /// googleSearchRetrieval property.
-    pub google_search_retrieval: Option<GoogleCloudAiplatformV1GoogleSearchRetrieval>,
-    /// parallelAiSearch property.
-    pub parallel_ai_search: Option<GoogleCloudAiplatformV1ToolParallelAiSearch>,
-    /// retrieval property.
-    pub retrieval: Option<GoogleCloudAiplatformV1Retrieval>,
-    /// urlContext property.
-    pub url_context: Option<GoogleCloudAiplatformV1UrlContext>,
-}
-
-/// `GoogleCloudAiplatformV1GoogleSearchRetrieval` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GoogleSearchRetrieval {
-    /// dynamicRetrievalConfig property.
-    pub dynamic_retrieval_config: Option<GoogleCloudAiplatformV1DynamicRetrievalConfig>,
-}
-
-/// `GoogleCloudAiplatformV1ApiAuthApiKeyConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ApiAuthApiKeyConfig {
-    /// apiKeySecretVersion property.
-    pub api_key_secret_version: Option<String>,
-    /// apiKeyString property.
-    pub api_key_string: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ToolGoogleSearch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ToolGoogleSearch {
-    /// blockingConfidence property.
-    pub blocking_confidence: Option<String>,
-    /// excludeDomains property.
-    pub exclude_domains: Option<Vec<String>>,
-    /// searchTypes property.
-    pub search_types: Option<GoogleCloudAiplatformV1ToolGoogleSearchSearchTypes>,
-}
-
-/// `GoogleCloudAiplatformV1FunctionResponseFileData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FunctionResponseFileData {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// fileUri property.
-    pub file_uri: Option<String>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1FunctionDeclaration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FunctionDeclaration {
-    /// description property.
-    pub description: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// parameters property.
-    pub parameters: Option<GoogleCloudAiplatformV1Schema>,
-    /// parametersJsonSchema property.
-    pub parameters_json_schema: Option<serde_json::Value>,
-    /// response property.
-    pub response: Option<GoogleCloudAiplatformV1Schema>,
-    /// responseJsonSchema property.
-    pub response_json_schema: Option<serde_json::Value>,
-}
-
-/// `GoogleCloudAiplatformV1FunctionCallingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FunctionCallingConfig {
-    /// allowedFunctionNames property.
-    pub allowed_function_names: Option<Vec<String>>,
-    /// mode property.
-    pub mode: Option<String>,
-    /// streamFunctionCallArguments property.
-    pub stream_function_call_arguments: Option<bool>,
-}
-
-/// `GoogleCloudAiplatformV1PartialArg` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PartialArg {
-    /// boolValue property.
-    pub bool_value: Option<bool>,
-    /// jsonPath property.
-    pub json_path: Option<String>,
-    /// nullValue property.
-    pub null_value: Option<String>,
-    /// numberValue property.
-    pub number_value: Option<f64>,
-    /// stringValue property.
-    pub string_value: Option<String>,
-    /// willContinue property.
-    pub will_continue: Option<bool>,
-}
-
-/// `GoogleCloudAiplatformV1RetrievalConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RetrievalConfig {
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// latLng property.
-    pub lat_lng: Option<GoogleTypeLatLng>,
-}
-
-/// `GoogleCloudAiplatformV1RagRetrievalConfigRanking` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RagRetrievalConfigRanking {
-    /// llmRanker property.
-    pub llm_ranker: Option<GoogleCloudAiplatformV1RagRetrievalConfigRankingLlmRanker>,
-    /// rankService property.
-    pub rank_service: Option<GoogleCloudAiplatformV1RagRetrievalConfigRankingRankService>,
-}
-
-/// `GoogleCloudAiplatformV1PartMediaResolution` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PartMediaResolution {
-    /// level property.
-    pub level: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1AuthConfigGoogleServiceAccountConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1AuthConfigGoogleServiceAccountConfig {
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-}
-
 /// `GoogleCloudAiplatformV1Schema` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Schema {
     /// additionalProperties property.
     pub additional_properties: Option<serde_json::Value>,
     /// anyOf property.
-    pub any_of: Option<Vec<GoogleCloudAiplatformV1Schema>>,
+    pub any_of: Option<Vec<Box<GoogleCloudAiplatformV1Schema>>>,
     /// default property.
     pub default: Option<serde_json::Value>,
     /// defs property.
@@ -481,7 +384,7 @@ pub struct GoogleCloudAiplatformV1Schema {
     /// format property.
     pub format: Option<String>,
     /// items property.
-    pub items: Option<GoogleCloudAiplatformV1Schema>,
+    pub items: Option<Box<GoogleCloudAiplatformV1Schema>>,
     /// maxItems property.
     pub max_items: Option<String>,
     /// maxLength property.
@@ -516,122 +419,6 @@ pub struct GoogleCloudAiplatformV1Schema {
     pub r#type: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1Retrieval` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Retrieval {
-    /// disableAttribution property.
-    pub disable_attribution: Option<bool>,
-    /// externalApi property.
-    pub external_api: Option<GoogleCloudAiplatformV1ExternalApi>,
-    /// vertexAiSearch property.
-    pub vertex_ai_search: Option<GoogleCloudAiplatformV1VertexAISearch>,
-    /// vertexRagStore property.
-    pub vertex_rag_store: Option<GoogleCloudAiplatformV1VertexRagStore>,
-}
-
-/// `GoogleCloudAiplatformV1VertexAISearchDataStoreSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1VertexAISearchDataStoreSpec {
-    /// dataStore property.
-    pub data_store: Option<String>,
-    /// filter property.
-    pub filter: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1VertexRagStore` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1VertexRagStore {
-    /// ragResources property.
-    pub rag_resources: Option<Vec<GoogleCloudAiplatformV1VertexRagStoreRagResource>>,
-    /// ragRetrievalConfig property.
-    pub rag_retrieval_config: Option<GoogleCloudAiplatformV1RagRetrievalConfig>,
-    /// similarityTopK property.
-    pub similarity_top_k: Option<i64>,
-    /// vectorDistanceThreshold property.
-    pub vector_distance_threshold: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1ToolGoogleSearchWebSearch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ToolGoogleSearchWebSearch {}
-
-/// `GoogleCloudAiplatformV1ExternalApiElasticSearchParams` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ExternalApiElasticSearchParams {
-    /// index property.
-    pub index: Option<String>,
-    /// numHits property.
-    pub num_hits: Option<i64>,
-    /// searchTemplate property.
-    pub search_template: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ListCachedContentsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListCachedContentsResponse {
-    /// cachedContents property.
-    pub cached_contents: Option<Vec<GoogleCloudAiplatformV1CachedContent>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1Content` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Content {
-    /// parts property.
-    pub parts: Option<Vec<GoogleCloudAiplatformV1Part>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ToolGoogleSearchSearchTypes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ToolGoogleSearchSearchTypes {
-    /// imageSearch property.
-    pub image_search: Option<GoogleCloudAiplatformV1ToolGoogleSearchImageSearch>,
-    /// webSearch property.
-    pub web_search: Option<GoogleCloudAiplatformV1ToolGoogleSearchWebSearch>,
-}
-
-/// `GoogleCloudAiplatformV1RagRetrievalConfigRankingLlmRanker` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RagRetrievalConfigRankingLlmRanker {
-    /// modelName property.
-    pub model_name: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1CodeExecutionResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1CodeExecutionResult {
-    /// outcome property.
-    pub outcome: Option<String>,
-    /// output property.
-    pub output: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1RagRetrievalConfigRankingRankService` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RagRetrievalConfigRankingRankService {
-    /// modelName property.
-    pub model_name: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1EncryptionSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EncryptionSpec {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ToolParallelAiSearch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ToolParallelAiSearch {
-    /// apiKey property.
-    pub api_key: Option<String>,
-    /// customConfigs property.
-    pub custom_configs: Option<serde_json::Value>,
-}
-
 /// `GoogleCloudAiplatformV1Blob` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Blob {
@@ -643,28 +430,255 @@ pub struct GoogleCloudAiplatformV1Blob {
     pub mime_type: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1VertexAISearch` type.
+/// `GoogleCloudAiplatformV1RetrievalConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1VertexAISearch {
-    /// dataStoreSpecs property.
-    pub data_store_specs: Option<Vec<GoogleCloudAiplatformV1VertexAISearchDataStoreSpec>>,
-    /// datastore property.
-    pub datastore: Option<String>,
-    /// engine property.
-    pub engine: Option<String>,
-    /// filter property.
-    pub filter: Option<String>,
-    /// maxResults property.
-    pub max_results: Option<i64>,
+pub struct GoogleCloudAiplatformV1RetrievalConfig {
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// latLng property.
+    pub lat_lng: Option<GoogleTypeLatLng>,
 }
 
-/// `GoogleCloudAiplatformV1DynamicRetrievalConfig` type.
+/// `GoogleCloudAiplatformV1ToolGoogleSearchSearchTypes` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DynamicRetrievalConfig {
-    /// dynamicThreshold property.
-    pub dynamic_threshold: Option<f64>,
+pub struct GoogleCloudAiplatformV1ToolGoogleSearchSearchTypes {
+    /// imageSearch property.
+    pub image_search: Option<GoogleCloudAiplatformV1ToolGoogleSearchImageSearch>,
+    /// webSearch property.
+    pub web_search: Option<GoogleCloudAiplatformV1ToolGoogleSearchWebSearch>,
+}
+
+/// `GoogleCloudAiplatformV1PartialArg` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PartialArg {
+    /// boolValue property.
+    pub bool_value: Option<bool>,
+    /// jsonPath property.
+    pub json_path: Option<String>,
+    /// nullValue property.
+    pub null_value: Option<String>,
+    /// numberValue property.
+    pub number_value: Option<f64>,
+    /// stringValue property.
+    pub string_value: Option<String>,
+    /// willContinue property.
+    pub will_continue: Option<bool>,
+}
+
+/// `GoogleCloudAiplatformV1AuthConfigOauthConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1AuthConfigOauthConfig {
+    /// accessToken property.
+    pub access_token: Option<String>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1FunctionResponseBlob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FunctionResponseBlob {
+    /// data property.
+    pub data: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1RagRetrievalConfigFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RagRetrievalConfigFilter {
+    /// metadataFilter property.
+    pub metadata_filter: Option<String>,
+    /// vectorDistanceThreshold property.
+    pub vector_distance_threshold: Option<f64>,
+    /// vectorSimilarityThreshold property.
+    pub vector_similarity_threshold: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1FileData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FileData {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// fileUri property.
+    pub file_uri: Option<String>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ApiAuth` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ApiAuth {
+    /// apiKeyConfig property.
+    pub api_key_config: Option<GoogleCloudAiplatformV1ApiAuthApiKeyConfig>,
+}
+
+/// `GoogleCloudAiplatformV1Part` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1Part {
+    /// codeExecutionResult property.
+    pub code_execution_result: Option<GoogleCloudAiplatformV1CodeExecutionResult>,
+    /// executableCode property.
+    pub executable_code: Option<GoogleCloudAiplatformV1ExecutableCode>,
+    /// fileData property.
+    pub file_data: Option<GoogleCloudAiplatformV1FileData>,
+    /// functionCall property.
+    pub function_call: Option<GoogleCloudAiplatformV1FunctionCall>,
+    /// functionResponse property.
+    pub function_response: Option<GoogleCloudAiplatformV1FunctionResponse>,
+    /// inlineData property.
+    pub inline_data: Option<GoogleCloudAiplatformV1Blob>,
+    /// mediaResolution property.
+    pub media_resolution: Option<GoogleCloudAiplatformV1PartMediaResolution>,
+    /// text property.
+    pub text: Option<String>,
+    /// thought property.
+    pub thought: Option<bool>,
+    /// thoughtSignature property.
+    pub thought_signature: Option<String>,
+    /// videoMetadata property.
+    pub video_metadata: Option<GoogleCloudAiplatformV1VideoMetadata>,
+}
+
+/// `GoogleCloudAiplatformV1ListCachedContentsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ListCachedContentsResponse {
+    /// cachedContents property.
+    pub cached_contents: Option<Vec<GoogleCloudAiplatformV1CachedContent>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ToolComputerUse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ToolComputerUse {
+    /// environment property.
+    pub environment: Option<String>,
+    /// excludedPredefinedFunctions property.
+    pub excluded_predefined_functions: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAiplatformV1ToolCodeExecution` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ToolCodeExecution {}
+
+/// `GoogleCloudAiplatformV1AuthConfigOidcConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1AuthConfigOidcConfig {
+    /// idToken property.
+    pub id_token: Option<String>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1CodeExecutionResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1CodeExecutionResult {
+    /// outcome property.
+    pub outcome: Option<String>,
+    /// output property.
+    pub output: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1PartMediaResolution` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PartMediaResolution {
+    /// level property.
+    pub level: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1GoogleMaps` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1GoogleMaps {
+    /// enableWidget property.
+    pub enable_widget: Option<bool>,
+}
+
+/// `GoogleCloudAiplatformV1UrlContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1UrlContext {}
+
+/// `GoogleCloudAiplatformV1VertexRagStoreRagResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1VertexRagStoreRagResource {
+    /// ragCorpus property.
+    pub rag_corpus: Option<String>,
+    /// ragFileIds property.
+    pub rag_file_ids: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAiplatformV1ToolGoogleSearchWebSearch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ToolGoogleSearchWebSearch {}
+
+/// `GoogleCloudAiplatformV1FunctionCallingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FunctionCallingConfig {
+    /// allowedFunctionNames property.
+    pub allowed_function_names: Option<Vec<String>>,
     /// mode property.
     pub mode: Option<String>,
+    /// streamFunctionCallArguments property.
+    pub stream_function_call_arguments: Option<bool>,
+}
+
+/// `GoogleCloudAiplatformV1CachedContentUsageMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1CachedContentUsageMetadata {
+    /// audioDurationSeconds property.
+    pub audio_duration_seconds: Option<i64>,
+    /// imageCount property.
+    pub image_count: Option<i64>,
+    /// textCount property.
+    pub text_count: Option<i64>,
+    /// totalTokenCount property.
+    pub total_token_count: Option<i64>,
+    /// videoDurationSeconds property.
+    pub video_duration_seconds: Option<i64>,
+}
+
+/// `GoogleTypeLatLng` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeLatLng {
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1FunctionDeclaration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FunctionDeclaration {
+    /// description property.
+    pub description: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// parameters property.
+    pub parameters: Option<Box<GoogleCloudAiplatformV1Schema>>,
+    /// parametersJsonSchema property.
+    pub parameters_json_schema: Option<serde_json::Value>,
+    /// response property.
+    pub response: Option<Box<GoogleCloudAiplatformV1Schema>>,
+    /// responseJsonSchema property.
+    pub response_json_schema: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudAiplatformV1ExternalApi` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ExternalApi {
+    /// apiAuth property.
+    pub api_auth: Option<GoogleCloudAiplatformV1ApiAuth>,
+    /// apiSpec property.
+    pub api_spec: Option<String>,
+    /// authConfig property.
+    pub auth_config: Option<GoogleCloudAiplatformV1AuthConfig>,
+    /// elasticSearchParams property.
+    pub elastic_search_params: Option<GoogleCloudAiplatformV1ExternalApiElasticSearchParams>,
+    /// endpoint property.
+    pub endpoint: Option<String>,
+    /// simpleSearchParams property.
+    pub simple_search_params: Option<GoogleCloudAiplatformV1ExternalApiSimpleSearchParams>,
 }
 
 /// `GoogleCloudAiplatformV1AuthConfigApiKeyConfig` type.
@@ -679,19 +693,6 @@ pub struct GoogleCloudAiplatformV1AuthConfigApiKeyConfig {
     /// name property.
     pub name: Option<String>,
 }
-
-/// `GoogleCloudAiplatformV1ExecutableCode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ExecutableCode {
-    /// code property.
-    pub code: Option<String>,
-    /// language property.
-    pub language: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ExternalApiSimpleSearchParams` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ExternalApiSimpleSearchParams {}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

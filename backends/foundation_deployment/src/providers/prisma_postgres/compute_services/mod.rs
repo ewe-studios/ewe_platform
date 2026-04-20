@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -23,67 +24,6 @@ use super::shared::ApiResponse;
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ProjectsComputeservicesGetResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsComputeservicesGetResponse {
-    /// data property.
-    pub data: Vec<ProjectsComputeservices>,
-    /// pagination property.
-    pub pagination: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ProjectsComputeservicesPostRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsComputeservicesPostRequest {
-    /// displayName property.
-    pub display_name: String,
-    /// regionId property.
-    pub region_id: Option<String>,
-}
-
-/// `ProjectsComputeservicesRegion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsComputeservicesRegion {
-    /// id property.
-    pub id: String,
-    /// name property.
-    pub name: String,
-}
-
-/// `ComputeservicesRegion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeservicesRegion {
-    /// id property.
-    pub id: String,
-    /// name property.
-    pub name: String,
-}
-
-/// `ComputeservicesPostResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeservicesPostResponse {
-    /// data property.
-    pub data: Computeservices,
-}
-
-/// `ComputeservicesPatchResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeservicesPatchResponse {
-    /// data property.
-    pub data: Computeservices,
-}
-
-/// `ComputeservicesPostRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeservicesPostRequest {
-    /// displayName property.
-    pub display_name: String,
-    /// projectId property.
-    pub project_id: String,
-    /// regionId property.
-    pub region_id: Option<String>,
-}
 
 /// `ProjectsComputeservices` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -108,11 +48,20 @@ pub struct ProjectsComputeservices {
     pub url: String,
 }
 
-/// `ComputeservicesGetResponse` type.
+/// `ProjectsComputeservicesRegion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeservicesGetResponse {
-    /// data property.
-    pub data: Computeservices,
+pub struct ProjectsComputeservicesRegion {
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+}
+
+/// `ComputeservicesPatchRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeservicesPatchRequest {
+    /// displayName property.
+    pub display_name: String,
 }
 
 /// `ProjectsComputeservicesPostResponse` type.
@@ -120,6 +69,56 @@ pub struct ComputeservicesGetResponse {
 pub struct ProjectsComputeservicesPostResponse {
     /// data property.
     pub data: ProjectsComputeservices,
+}
+
+/// `ComputeservicesPostRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeservicesPostRequest {
+    /// displayName property.
+    pub display_name: String,
+    /// projectId property.
+    pub project_id: String,
+    /// regionId property.
+    pub region_id: Option<String>,
+}
+
+/// `ComputeservicesPatchResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeservicesPatchResponse {
+    /// data property.
+    pub data: Computeservices,
+}
+
+/// `ProjectsComputeservicesGetResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsComputeservicesGetResponse {
+    /// data property.
+    pub data: Vec<ProjectsComputeservices>,
+    /// pagination property.
+    pub pagination: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ComputeservicesGetResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeservicesGetResponse {
+    /// data property.
+    pub data: Computeservices,
+}
+
+/// `ComputeservicesPostResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeservicesPostResponse {
+    /// data property.
+    pub data: Computeservices,
+}
+
+/// `ProjectsComputeservicesPostRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsComputeservicesPostRequest {
+    /// displayName property.
+    pub display_name: String,
+    /// regionId property.
+    pub region_id: Option<String>,
 }
 
 /// `Computeservices` type.
@@ -145,11 +144,13 @@ pub struct Computeservices {
     pub url: String,
 }
 
-/// `ComputeservicesPatchRequest` type.
+/// `ComputeservicesRegion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeservicesPatchRequest {
-    /// displayName property.
-    pub display_name: String,
+pub struct ComputeservicesRegion {
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
 }
 
 // =============================================================================

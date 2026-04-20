@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -23,6 +24,13 @@ use super::shared::ApiResponse;
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `WorkspacesGetResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkspacesGetResponse {
+    /// data property.
+    pub data: Workspaces,
+}
 
 /// `Workspaces` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -37,13 +45,6 @@ pub struct Workspaces {
     pub r#type: String,
     /// url property.
     pub url: String,
-}
-
-/// `WorkspacesGetResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkspacesGetResponse {
-    /// data property.
-    pub data: Workspaces,
 }
 
 // =============================================================================

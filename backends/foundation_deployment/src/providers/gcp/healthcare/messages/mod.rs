@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -32,15 +33,6 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 pub struct ParsedData {
     /// segments property.
     pub segments: Option<Vec<Segment>>,
-}
-
-/// `PatientId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PatientId {
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
 }
 
 /// `Message` type.
@@ -68,13 +60,13 @@ pub struct Message {
     pub send_time: Option<String>,
 }
 
-/// `ListMessagesResponse` type.
+/// `SchematizedData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListMessagesResponse {
-    /// hl7V2Messages property.
-    pub hl7_v2_messages: Option<Vec<Message>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct SchematizedData {
+    /// data property.
+    pub data: Option<String>,
+    /// error property.
+    pub error: Option<String>,
 }
 
 /// `Segment` type.
@@ -88,13 +80,22 @@ pub struct Segment {
     pub set_id: Option<String>,
 }
 
-/// `SchematizedData` type.
+/// `PatientId` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SchematizedData {
-    /// data property.
-    pub data: Option<String>,
-    /// error property.
-    pub error: Option<String>,
+pub struct PatientId {
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `ListMessagesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListMessagesResponse {
+    /// hl7V2Messages property.
+    pub hl7_v2_messages: Option<Vec<Message>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

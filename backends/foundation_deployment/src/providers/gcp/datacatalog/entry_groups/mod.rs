@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,7 +24,7 @@ use super::shared::Empty;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -36,6 +37,30 @@ pub struct GoogleCloudDatacatalogV1ListEntryGroupsResponse {
     pub entry_groups: Option<Vec<GoogleCloudDatacatalogV1EntryGroup>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogV1SystemTimestamps` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1SystemTimestamps {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// expireTime property.
+    pub expire_time: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
 }
 
 /// `Binding` type.
@@ -62,30 +87,6 @@ pub struct GoogleCloudDatacatalogV1EntryGroup {
     pub name: Option<String>,
     /// transferredToDataplex property.
     pub transferred_to_dataplex: Option<bool>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogV1SystemTimestamps` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1SystemTimestamps {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// expireTime property.
-    pub expire_time: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
 }
 
 // =============================================================================

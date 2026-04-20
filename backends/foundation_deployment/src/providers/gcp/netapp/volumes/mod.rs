@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,110 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `HybridReplicationParameters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HybridReplicationParameters {
+    /// clusterLocation property.
+    pub cluster_location: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// hybridReplicationType property.
+    pub hybrid_replication_type: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// largeVolumeConstituentCount property.
+    pub large_volume_constituent_count: Option<i64>,
+    /// peerClusterName property.
+    pub peer_cluster_name: Option<String>,
+    /// peerIpAddresses property.
+    pub peer_ip_addresses: Option<Vec<String>>,
+    /// peerSvmName property.
+    pub peer_svm_name: Option<String>,
+    /// peerVolumeName property.
+    pub peer_volume_name: Option<String>,
+    /// replication property.
+    pub replication: Option<String>,
+    /// replicationSchedule property.
+    pub replication_schedule: Option<String>,
+}
+
+/// `CachePrePopulate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CachePrePopulate {
+    /// excludePathList property.
+    pub exclude_path_list: Option<Vec<String>>,
+    /// pathList property.
+    pub path_list: Option<Vec<String>>,
+    /// recursion property.
+    pub recursion: Option<bool>,
+}
+
+/// `ListVolumesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListVolumesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+    /// volumes property.
+    pub volumes: Option<Vec<Volume>>,
+}
+
+/// `MountOption` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MountOption {
+    /// export property.
+    pub export: Option<String>,
+    /// exportFull property.
+    pub export_full: Option<String>,
+    /// instructions property.
+    pub instructions: Option<String>,
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// protocol property.
+    pub protocol: Option<String>,
+}
+
+/// `DailySchedule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DailySchedule {
+    /// hour property.
+    pub hour: Option<f64>,
+    /// minute property.
+    pub minute: Option<f64>,
+    /// snapshotsToKeep property.
+    pub snapshots_to_keep: Option<f64>,
+}
+
+/// `CloneDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloneDetails {
+    /// sharedSpaceGib property.
+    pub shared_space_gib: Option<String>,
+    /// sourceSnapshot property.
+    pub source_snapshot: Option<String>,
+    /// sourceVolume property.
+    pub source_volume: Option<String>,
+}
+
+/// `MonthlySchedule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MonthlySchedule {
+    /// daysOfMonth property.
+    pub days_of_month: Option<String>,
+    /// hour property.
+    pub hour: Option<f64>,
+    /// minute property.
+    pub minute: Option<f64>,
+    /// snapshotsToKeep property.
+    pub snapshots_to_keep: Option<f64>,
+}
 
 /// `WeeklySchedule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -53,15 +153,90 @@ pub struct CacheConfig {
     pub writeback_enabled: Option<bool>,
 }
 
-/// `DailySchedule` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DailySchedule {
-    /// hour property.
-    pub hour: Option<f64>,
-    /// minute property.
-    pub minute: Option<f64>,
-    /// snapshotsToKeep property.
-    pub snapshots_to_keep: Option<f64>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ExportPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExportPolicy {
+    /// rules property.
+    pub rules: Option<Vec<SimpleExportPolicyRule>>,
+}
+
+/// `BackupConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupConfig {
+    /// backupChainBytes property.
+    pub backup_chain_bytes: Option<String>,
+    /// backupPolicies property.
+    pub backup_policies: Option<Vec<String>>,
+    /// backupVault property.
+    pub backup_vault: Option<String>,
+    /// scheduledBackupEnabled property.
+    pub scheduled_backup_enabled: Option<bool>,
+}
+
+/// `BlockDevice` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BlockDevice {
+    /// hostGroups property.
+    pub host_groups: Option<Vec<String>>,
+    /// identifier property.
+    pub identifier: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// osType property.
+    pub os_type: Option<String>,
+    /// sizeGib property.
+    pub size_gib: Option<String>,
+}
+
+/// `SimpleExportPolicyRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SimpleExportPolicyRule {
+    /// accessType property.
+    pub access_type: Option<String>,
+    /// allowedClients property.
+    pub allowed_clients: Option<String>,
+    /// anonUid property.
+    pub anon_uid: Option<String>,
+    /// hasRootAccess property.
+    pub has_root_access: Option<String>,
+    /// kerberos5ReadOnly property.
+    pub kerberos5_read_only: Option<bool>,
+    /// kerberos5ReadWrite property.
+    pub kerberos5_read_write: Option<bool>,
+    /// kerberos5iReadOnly property.
+    pub kerberos5i_read_only: Option<bool>,
+    /// kerberos5iReadWrite property.
+    pub kerberos5i_read_write: Option<bool>,
+    /// kerberos5pReadOnly property.
+    pub kerberos5p_read_only: Option<bool>,
+    /// kerberos5pReadWrite property.
+    pub kerberos5p_read_write: Option<bool>,
+    /// nfsv3 property.
+    pub nfsv3: Option<bool>,
+    /// nfsv4 property.
+    pub nfsv4: Option<bool>,
+    /// squashMode property.
+    pub squash_mode: Option<String>,
+}
+
+/// `RestoreParameters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RestoreParameters {
+    /// sourceBackup property.
+    pub source_backup: Option<String>,
+    /// sourceSnapshot property.
+    pub source_snapshot: Option<String>,
 }
 
 /// `Volume` type.
@@ -157,161 +332,30 @@ pub struct Volume {
     pub zone: Option<String>,
 }
 
-/// `CloneDetails` type.
+/// `SnapshotPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloneDetails {
-    /// sharedSpaceGib property.
-    pub shared_space_gib: Option<String>,
-    /// sourceSnapshot property.
-    pub source_snapshot: Option<String>,
-    /// sourceVolume property.
-    pub source_volume: Option<String>,
+pub struct SnapshotPolicy {
+    /// dailySchedule property.
+    pub daily_schedule: Option<DailySchedule>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// hourlySchedule property.
+    pub hourly_schedule: Option<HourlySchedule>,
+    /// monthlySchedule property.
+    pub monthly_schedule: Option<MonthlySchedule>,
+    /// weeklySchedule property.
+    pub weekly_schedule: Option<WeeklySchedule>,
 }
 
-/// `BlockDevice` type.
+/// `TieringPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BlockDevice {
-    /// hostGroups property.
-    pub host_groups: Option<Vec<String>>,
-    /// identifier property.
-    pub identifier: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// osType property.
-    pub os_type: Option<String>,
-    /// sizeGib property.
-    pub size_gib: Option<String>,
-}
-
-/// `MountOption` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MountOption {
-    /// export property.
-    pub export: Option<String>,
-    /// exportFull property.
-    pub export_full: Option<String>,
-    /// instructions property.
-    pub instructions: Option<String>,
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// protocol property.
-    pub protocol: Option<String>,
-}
-
-/// `CachePrePopulate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CachePrePopulate {
-    /// excludePathList property.
-    pub exclude_path_list: Option<Vec<String>>,
-    /// pathList property.
-    pub path_list: Option<Vec<String>>,
-    /// recursion property.
-    pub recursion: Option<bool>,
-}
-
-/// `HybridReplicationParameters` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HybridReplicationParameters {
-    /// clusterLocation property.
-    pub cluster_location: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// hybridReplicationType property.
-    pub hybrid_replication_type: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// largeVolumeConstituentCount property.
-    pub large_volume_constituent_count: Option<i64>,
-    /// peerClusterName property.
-    pub peer_cluster_name: Option<String>,
-    /// peerIpAddresses property.
-    pub peer_ip_addresses: Option<Vec<String>>,
-    /// peerSvmName property.
-    pub peer_svm_name: Option<String>,
-    /// peerVolumeName property.
-    pub peer_volume_name: Option<String>,
-    /// replication property.
-    pub replication: Option<String>,
-    /// replicationSchedule property.
-    pub replication_schedule: Option<String>,
-}
-
-/// `BackupConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupConfig {
-    /// backupChainBytes property.
-    pub backup_chain_bytes: Option<String>,
-    /// backupPolicies property.
-    pub backup_policies: Option<Vec<String>>,
-    /// backupVault property.
-    pub backup_vault: Option<String>,
-    /// scheduledBackupEnabled property.
-    pub scheduled_backup_enabled: Option<bool>,
-}
-
-/// `LargeCapacityConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LargeCapacityConfig {
-    /// constituentCount property.
-    pub constituent_count: Option<i64>,
-}
-
-/// `SimpleExportPolicyRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SimpleExportPolicyRule {
-    /// accessType property.
-    pub access_type: Option<String>,
-    /// allowedClients property.
-    pub allowed_clients: Option<String>,
-    /// anonUid property.
-    pub anon_uid: Option<String>,
-    /// hasRootAccess property.
-    pub has_root_access: Option<String>,
-    /// kerberos5ReadOnly property.
-    pub kerberos5_read_only: Option<bool>,
-    /// kerberos5ReadWrite property.
-    pub kerberos5_read_write: Option<bool>,
-    /// kerberos5iReadOnly property.
-    pub kerberos5i_read_only: Option<bool>,
-    /// kerberos5iReadWrite property.
-    pub kerberos5i_read_write: Option<bool>,
-    /// kerberos5pReadOnly property.
-    pub kerberos5p_read_only: Option<bool>,
-    /// kerberos5pReadWrite property.
-    pub kerberos5p_read_write: Option<bool>,
-    /// nfsv3 property.
-    pub nfsv3: Option<bool>,
-    /// nfsv4 property.
-    pub nfsv4: Option<bool>,
-    /// squashMode property.
-    pub squash_mode: Option<String>,
-}
-
-/// `ListVolumesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListVolumesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-    /// volumes property.
-    pub volumes: Option<Vec<Volume>>,
-}
-
-/// `ExportPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExportPolicy {
-    /// rules property.
-    pub rules: Option<Vec<SimpleExportPolicyRule>>,
-}
-
-/// `RestoreParameters` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RestoreParameters {
-    /// sourceBackup property.
-    pub source_backup: Option<String>,
-    /// sourceSnapshot property.
-    pub source_snapshot: Option<String>,
+pub struct TieringPolicy {
+    /// coolingThresholdDays property.
+    pub cooling_threshold_days: Option<i64>,
+    /// hotTierBypassModeEnabled property.
+    pub hot_tier_bypass_mode_enabled: Option<bool>,
+    /// tierAction property.
+    pub tier_action: Option<String>,
 }
 
 /// `CacheParameters` type.
@@ -341,32 +385,6 @@ pub struct CacheParameters {
     pub state_details: Option<String>,
 }
 
-/// `SnapshotPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SnapshotPolicy {
-    /// dailySchedule property.
-    pub daily_schedule: Option<DailySchedule>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// hourlySchedule property.
-    pub hourly_schedule: Option<HourlySchedule>,
-    /// monthlySchedule property.
-    pub monthly_schedule: Option<MonthlySchedule>,
-    /// weeklySchedule property.
-    pub weekly_schedule: Option<WeeklySchedule>,
-}
-
-/// `TieringPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TieringPolicy {
-    /// coolingThresholdDays property.
-    pub cooling_threshold_days: Option<i64>,
-    /// hotTierBypassModeEnabled property.
-    pub hot_tier_bypass_mode_enabled: Option<bool>,
-    /// tierAction property.
-    pub tier_action: Option<String>,
-}
-
 /// `HourlySchedule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HourlySchedule {
@@ -376,28 +394,11 @@ pub struct HourlySchedule {
     pub snapshots_to_keep: Option<f64>,
 }
 
-/// `Status` type.
+/// `LargeCapacityConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `MonthlySchedule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MonthlySchedule {
-    /// daysOfMonth property.
-    pub days_of_month: Option<String>,
-    /// hour property.
-    pub hour: Option<f64>,
-    /// minute property.
-    pub minute: Option<f64>,
-    /// snapshotsToKeep property.
-    pub snapshots_to_keep: Option<f64>,
+pub struct LargeCapacityConfig {
+    /// constituentCount property.
+    pub constituent_count: Option<i64>,
 }
 
 // =============================================================================

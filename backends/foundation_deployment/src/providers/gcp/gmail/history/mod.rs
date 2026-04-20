@@ -12,49 +12,31 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Message;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ClassificationLabelValue` type.
+/// `ListHistoryResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClassificationLabelValue {
-    /// fields property.
-    pub fields: Option<Vec<ClassificationLabelFieldValue>>,
-    /// labelId property.
-    pub label_id: Option<String>,
-}
-
-/// `HistoryMessageAdded` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HistoryMessageAdded {
-    /// message property.
-    pub message: Option<Message>,
-}
-
-/// `MessagePart` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MessagePart {
-    /// body property.
-    pub body: Option<MessagePartBody>,
-    /// filename property.
-    pub filename: Option<String>,
-    /// headers property.
-    pub headers: Option<Vec<MessagePartHeader>>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-    /// partId property.
-    pub part_id: Option<String>,
-    /// parts property.
-    pub parts: Option<Vec<MessagePart>>,
+pub struct ListHistoryResponse {
+    /// history property.
+    pub history: Option<Vec<History>>,
+    /// historyId property.
+    pub history_id: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `HistoryLabelRemoved` type.
@@ -64,24 +46,6 @@ pub struct HistoryLabelRemoved {
     pub label_ids: Option<Vec<String>>,
     /// message property.
     pub message: Option<Message>,
-}
-
-/// `ClassificationLabelFieldValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClassificationLabelFieldValue {
-    /// fieldId property.
-    pub field_id: Option<String>,
-    /// selection property.
-    pub selection: Option<String>,
-}
-
-/// `MessagePartHeader` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MessagePartHeader {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
 }
 
 /// `MessagePartBody` type.
@@ -95,13 +59,13 @@ pub struct MessagePartBody {
     pub size: Option<i64>,
 }
 
-/// `HistoryLabelAdded` type.
+/// `MessagePartHeader` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HistoryLabelAdded {
-    /// labelIds property.
-    pub label_ids: Option<Vec<String>>,
-    /// message property.
-    pub message: Option<Message>,
+pub struct MessagePartHeader {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
 /// `History` type.
@@ -121,22 +85,62 @@ pub struct History {
     pub messages_deleted: Option<Vec<HistoryMessageDeleted>>,
 }
 
+/// `ClassificationLabelValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClassificationLabelValue {
+    /// fields property.
+    pub fields: Option<Vec<ClassificationLabelFieldValue>>,
+    /// labelId property.
+    pub label_id: Option<String>,
+}
+
+/// `HistoryLabelAdded` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HistoryLabelAdded {
+    /// labelIds property.
+    pub label_ids: Option<Vec<String>>,
+    /// message property.
+    pub message: Option<Message>,
+}
+
+/// `HistoryMessageAdded` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HistoryMessageAdded {
+    /// message property.
+    pub message: Option<Message>,
+}
+
+/// `ClassificationLabelFieldValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClassificationLabelFieldValue {
+    /// fieldId property.
+    pub field_id: Option<String>,
+    /// selection property.
+    pub selection: Option<String>,
+}
+
+/// `MessagePart` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MessagePart {
+    /// body property.
+    pub body: Option<MessagePartBody>,
+    /// filename property.
+    pub filename: Option<String>,
+    /// headers property.
+    pub headers: Option<Vec<MessagePartHeader>>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+    /// partId property.
+    pub part_id: Option<String>,
+    /// parts property.
+    pub parts: Option<Vec<Box<MessagePart>>>,
+}
+
 /// `HistoryMessageDeleted` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HistoryMessageDeleted {
     /// message property.
     pub message: Option<Message>,
-}
-
-/// `ListHistoryResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListHistoryResponse {
-    /// history property.
-    pub history: Option<Vec<History>>,
-    /// historyId property.
-    pub history_id: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

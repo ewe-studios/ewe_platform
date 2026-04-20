@@ -12,17 +12,25 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudDatacatalogV1ImportTaxonomiesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1ImportTaxonomiesResponse {
+    /// taxonomies property.
+    pub taxonomies: Option<Vec<GoogleCloudDatacatalogV1Taxonomy>>,
+}
 
 /// `GoogleCloudDatacatalogV1Taxonomy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -43,22 +51,6 @@ pub struct GoogleCloudDatacatalogV1Taxonomy {
     pub taxonomy_timestamps: Option<GoogleCloudDatacatalogV1SystemTimestamps>,
 }
 
-/// `GoogleCloudDatacatalogV1TaxonomyService` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1TaxonomyService {
-    /// identity property.
-    pub identity: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogV1ImportTaxonomiesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1ImportTaxonomiesResponse {
-    /// taxonomies property.
-    pub taxonomies: Option<Vec<GoogleCloudDatacatalogV1Taxonomy>>,
-}
-
 /// `GoogleCloudDatacatalogV1SystemTimestamps` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1SystemTimestamps {
@@ -68,6 +60,15 @@ pub struct GoogleCloudDatacatalogV1SystemTimestamps {
     pub expire_time: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogV1TaxonomyService` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1TaxonomyService {
+    /// identity property.
+    pub identity: Option<String>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 // =============================================================================

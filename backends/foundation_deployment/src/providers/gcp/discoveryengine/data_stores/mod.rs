@@ -12,35 +12,35 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
+use super::shared::GoogleCloudDiscoveryengineV1CmekConfig;
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigOcrParsingConfig` type.
+/// `GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigOcrParsingConfig {
-    /// enhancedDocumentElements property.
-    pub enhanced_document_elements: Option<Vec<String>>,
-    /// useNativeText property.
-    pub use_native_text: Option<bool>,
-}
-
-/// `GoogleCloudDiscoveryengineV1DataStoreServingConfigDataStore` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DataStoreServingConfigDataStore {
-    /// disabledForServing property.
-    pub disabled_for_serving: Option<bool>,
+pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfig {
+    /// alloyDbConfig property.
+    pub alloy_db_config:
+        Option<GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConfig>,
+    /// notebooklmConfig property.
+    pub notebooklm_config:
+        Option<GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigNotebooklmConfig>,
+    /// thirdPartyOauthConfig property.
+    pub third_party_oauth_config:
+        Option<GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigThirdPartyOauthConfig>,
 }
 
 /// `GoogleRpcStatus` type.
@@ -54,6 +54,23 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
+/// `GoogleCloudDiscoveryengineV1ListDataStoresResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1ListDataStoresResponse {
+    /// dataStores property.
+    pub data_stores: Option<Vec<GoogleCloudDiscoveryengineV1DataStore>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConfigAlloyDbAiNaturalLanguageConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConfigAlloyDbAiNaturalLanguageConfig
+{
+    /// nlConfigId property.
+    pub nl_config_id: Option<String>,
+}
+
 /// `GoogleCloudDiscoveryengineV1HealthcareFhirConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1HealthcareFhirConfig {
@@ -65,15 +82,62 @@ pub struct GoogleCloudDiscoveryengineV1HealthcareFhirConfig {
     pub initial_filter_groups: Option<Vec<String>>,
 }
 
-/// `GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConfig` type.
+/// `GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigNotebooklmConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConfig {
-    /// alloydbAiNlConfig property.
-    pub alloydb_ai_nl_config: Option<GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConfigAlloyDbAiNaturalLanguageConfig>,
-    /// alloydbConnectionConfig property.
-    pub alloydb_connection_config: Option<GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConfigAlloyDbConnectionConfig>,
-    /// returnedFields property.
-    pub returned_fields: Option<Vec<String>>,
+pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigNotebooklmConfig {
+    /// searchConfig property.
+    pub search_config: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1Schema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1Schema {
+    /// jsonSchema property.
+    pub json_schema: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// structSchema property.
+    pub struct_schema: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudDiscoveryengineV1DocumentProcessingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfig {
+    /// chunkingConfig property.
+    pub chunking_config: Option<GoogleCloudDiscoveryengineV1DocumentProcessingConfigChunkingConfig>,
+    /// defaultParsingConfig property.
+    pub default_parsing_config:
+        Option<GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfig>,
+    /// name property.
+    pub name: Option<String>,
+    /// parsingConfigOverrides property.
+    pub parsing_config_overrides: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudDiscoveryengineV1DataStoreBillingEstimation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1DataStoreBillingEstimation {
+    /// structuredDataSize property.
+    pub structured_data_size: Option<String>,
+    /// structuredDataUpdateTime property.
+    pub structured_data_update_time: Option<String>,
+    /// unstructuredDataSize property.
+    pub unstructured_data_size: Option<String>,
+    /// unstructuredDataUpdateTime property.
+    pub unstructured_data_update_time: Option<String>,
+    /// websiteDataSize property.
+    pub website_data_size: Option<String>,
+    /// websiteDataUpdateTime property.
+    pub website_data_update_time: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigThirdPartyOauthConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigThirdPartyOauthConfig {
+    /// appName property.
+    pub app_name: Option<String>,
+    /// instanceName property.
+    pub instance_name: Option<String>,
 }
 
 /// `GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConfigAlloyDbConnectionConfig` type.
@@ -94,13 +158,37 @@ pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConf
     pub user: Option<String>,
 }
 
-/// `GoogleCloudDiscoveryengineV1CompleteQueryResponseQuerySuggestion` type.
+/// `GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigDigitalParsingConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1CompleteQueryResponseQuerySuggestion {
-    /// completableFieldPaths property.
-    pub completable_field_paths: Option<Vec<String>>,
-    /// suggestion property.
-    pub suggestion: Option<String>,
+pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigDigitalParsingConfig {
+}
+
+/// `GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigOcrParsingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigOcrParsingConfig {
+    /// enhancedDocumentElements property.
+    pub enhanced_document_elements: Option<Vec<String>>,
+    /// useNativeText property.
+    pub use_native_text: Option<bool>,
+}
+
+/// `GoogleCloudDiscoveryengineV1DocumentProcessingConfigChunkingConfigLayoutBasedChunkingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigChunkingConfigLayoutBasedChunkingConfig
+{
+    /// chunkSize property.
+    pub chunk_size: Option<i64>,
+    /// includeAncestorHeadings property.
+    pub include_ancestor_headings: Option<bool>,
+}
+
+/// `GoogleCloudDiscoveryengineV1AdvancedSiteSearchConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1AdvancedSiteSearchConfig {
+    /// disableAutomaticRefresh property.
+    pub disable_automatic_refresh: Option<bool>,
+    /// disableInitialIndex property.
+    pub disable_initial_index: Option<bool>,
 }
 
 /// `GoogleCloudDiscoveryengineV1CompleteQueryResponse` type.
@@ -111,6 +199,46 @@ pub struct GoogleCloudDiscoveryengineV1CompleteQueryResponse {
         Option<Vec<GoogleCloudDiscoveryengineV1CompleteQueryResponseQuerySuggestion>>,
     /// tailMatchTriggered property.
     pub tail_match_triggered: Option<bool>,
+}
+
+/// `GoogleCloudDiscoveryengineV1CompleteQueryResponseQuerySuggestion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1CompleteQueryResponseQuerySuggestion {
+    /// completableFieldPaths property.
+    pub completable_field_paths: Option<Vec<String>>,
+    /// suggestion property.
+    pub suggestion: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1NaturalLanguageQueryUnderstandingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1NaturalLanguageQueryUnderstandingConfig {
+    /// mode property.
+    pub mode: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1WorkspaceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1WorkspaceConfig {
+    /// dasherCustomerId property.
+    pub dasher_customer_id: Option<String>,
+    /// superAdminEmailAddress property.
+    pub super_admin_email_address: Option<String>,
+    /// superAdminServiceAccount property.
+    pub super_admin_service_account: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConfig {
+    /// alloydbAiNlConfig property.
+    pub alloydb_ai_nl_config: Option<GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConfigAlloyDbAiNaturalLanguageConfig>,
+    /// alloydbConnectionConfig property.
+    pub alloydb_connection_config: Option<GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConfigAlloyDbConnectionConfig>,
+    /// returnedFields property.
+    pub returned_fields: Option<Vec<String>>,
 }
 
 /// `GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfig` type.
@@ -127,91 +255,6 @@ pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfig {
     /// ocrParsingConfig property.
     pub ocr_parsing_config:
         Option<GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigOcrParsingConfig>,
-}
-
-/// `GoogleCloudDiscoveryengineV1Schema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1Schema {
-    /// jsonSchema property.
-    pub json_schema: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// structSchema property.
-    pub struct_schema: Option<serde_json::Value>,
-}
-
-/// `GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigThirdPartyOauthConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigThirdPartyOauthConfig {
-    /// appName property.
-    pub app_name: Option<String>,
-    /// instanceName property.
-    pub instance_name: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1SingleRegionKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SingleRegionKey {
-    /// kmsKey property.
-    pub kms_key: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigLayoutParsingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigLayoutParsingConfig {
-    /// enableGetProcessedDocument property.
-    pub enable_get_processed_document: Option<bool>,
-    /// enableImageAnnotation property.
-    pub enable_image_annotation: Option<bool>,
-    /// enableLlmLayoutParsing property.
-    pub enable_llm_layout_parsing: Option<bool>,
-    /// enableTableAnnotation property.
-    pub enable_table_annotation: Option<bool>,
-    /// excludeHtmlClasses property.
-    pub exclude_html_classes: Option<Vec<String>>,
-    /// excludeHtmlElements property.
-    pub exclude_html_elements: Option<Vec<String>>,
-    /// excludeHtmlIds property.
-    pub exclude_html_ids: Option<Vec<String>>,
-    /// structuredContentTypes property.
-    pub structured_content_types: Option<Vec<String>>,
-}
-
-/// `GoogleCloudDiscoveryengineV1DocumentProcessingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfig {
-    /// chunkingConfig property.
-    pub chunking_config: Option<GoogleCloudDiscoveryengineV1DocumentProcessingConfigChunkingConfig>,
-    /// defaultParsingConfig property.
-    pub default_parsing_config:
-        Option<GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfig>,
-    /// name property.
-    pub name: Option<String>,
-    /// parsingConfigOverrides property.
-    pub parsing_config_overrides: Option<serde_json::Value>,
-}
-
-/// `GoogleCloudDiscoveryengineV1NaturalLanguageQueryUnderstandingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1NaturalLanguageQueryUnderstandingConfig {
-    /// mode property.
-    pub mode: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigNotebooklmConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigNotebooklmConfig {
-    /// searchConfig property.
-    pub search_config: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1AdvancedSiteSearchConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AdvancedSiteSearchConfig {
-    /// disableAutomaticRefresh property.
-    pub disable_automatic_refresh: Option<bool>,
-    /// disableInitialIndex property.
-    pub disable_initial_index: Option<bool>,
 }
 
 /// `GoogleCloudDiscoveryengineV1DataStore` type.
@@ -267,48 +310,11 @@ pub struct GoogleCloudDiscoveryengineV1DataStore {
     pub workspace_config: Option<GoogleCloudDiscoveryengineV1WorkspaceConfig>,
 }
 
-/// `GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfig` type.
+/// `GoogleCloudDiscoveryengineV1SingleRegionKey` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfig {
-    /// alloyDbConfig property.
-    pub alloy_db_config:
-        Option<GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConfig>,
-    /// notebooklmConfig property.
-    pub notebooklm_config:
-        Option<GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigNotebooklmConfig>,
-    /// thirdPartyOauthConfig property.
-    pub third_party_oauth_config:
-        Option<GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigThirdPartyOauthConfig>,
-}
-
-/// `GoogleCloudDiscoveryengineV1DataStoreBillingEstimation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DataStoreBillingEstimation {
-    /// structuredDataSize property.
-    pub structured_data_size: Option<String>,
-    /// structuredDataUpdateTime property.
-    pub structured_data_update_time: Option<String>,
-    /// unstructuredDataSize property.
-    pub unstructured_data_size: Option<String>,
-    /// unstructuredDataUpdateTime property.
-    pub unstructured_data_update_time: Option<String>,
-    /// websiteDataSize property.
-    pub website_data_size: Option<String>,
-    /// websiteDataUpdateTime property.
-    pub website_data_update_time: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1WorkspaceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1WorkspaceConfig {
-    /// dasherCustomerId property.
-    pub dasher_customer_id: Option<String>,
-    /// superAdminEmailAddress property.
-    pub super_admin_email_address: Option<String>,
-    /// superAdminServiceAccount property.
-    pub super_admin_service_account: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct GoogleCloudDiscoveryengineV1SingleRegionKey {
+    /// kmsKey property.
+    pub kms_key: Option<String>,
 }
 
 /// `GoogleCloudDiscoveryengineV1DocumentProcessingConfigChunkingConfig` type.
@@ -320,36 +326,32 @@ pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigChunkingConfig {
     >,
 }
 
-/// `GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigDigitalParsingConfig` type.
+/// `GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigLayoutParsingConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigDigitalParsingConfig {
+pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigLayoutParsingConfig {
+    /// enableGetProcessedDocument property.
+    pub enable_get_processed_document: Option<bool>,
+    /// enableImageAnnotation property.
+    pub enable_image_annotation: Option<bool>,
+    /// enableLlmLayoutParsing property.
+    pub enable_llm_layout_parsing: Option<bool>,
+    /// enableTableAnnotation property.
+    pub enable_table_annotation: Option<bool>,
+    /// excludeHtmlClasses property.
+    pub exclude_html_classes: Option<Vec<String>>,
+    /// excludeHtmlElements property.
+    pub exclude_html_elements: Option<Vec<String>>,
+    /// excludeHtmlIds property.
+    pub exclude_html_ids: Option<Vec<String>>,
+    /// structuredContentTypes property.
+    pub structured_content_types: Option<Vec<String>>,
 }
 
-/// `GoogleCloudDiscoveryengineV1ListDataStoresResponse` type.
+/// `GoogleCloudDiscoveryengineV1DataStoreServingConfigDataStore` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ListDataStoresResponse {
-    /// dataStores property.
-    pub data_stores: Option<Vec<GoogleCloudDiscoveryengineV1DataStore>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConfigAlloyDbAiNaturalLanguageConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConfigAlloyDbAiNaturalLanguageConfig
-{
-    /// nlConfigId property.
-    pub nl_config_id: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1DocumentProcessingConfigChunkingConfigLayoutBasedChunkingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigChunkingConfigLayoutBasedChunkingConfig
-{
-    /// chunkSize property.
-    pub chunk_size: Option<i64>,
-    /// includeAncestorHeadings property.
-    pub include_ancestor_headings: Option<bool>,
+pub struct GoogleCloudDiscoveryengineV1DataStoreServingConfigDataStore {
+    /// disabledForServing property.
+    pub disabled_for_serving: Option<bool>,
 }
 
 // =============================================================================

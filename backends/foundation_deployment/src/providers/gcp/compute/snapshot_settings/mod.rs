@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,41 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GetVersionOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadata {
+    /// inlineSbomInfo property.
+    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+}
+
+/// `Help` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `SetCommonInstanceMetadataOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetCommonInstanceMetadataOperationMetadata {
+    /// clientOperationId property.
+    pub client_operation_id: Option<String>,
+    /// perLocationOperations property.
+    pub per_location_operations: Option<serde_json::Value>,
+}
 
 /// `ErrorInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -38,25 +69,49 @@ pub struct ErrorInfo {
     pub reason: Option<String>,
 }
 
-/// `Help` type.
+/// `HelpLink` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
 }
 
-/// `GetVersionOperationMetadata` type.
+/// `LocalizedMessage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadata {
-    /// inlineSbomInfo property.
-    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
 }
 
-/// `InstancesBulkInsertOperationMetadata` type.
+/// `GetVersionOperationMetadataSbomInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
+}
+
+/// `SnapshotSettingsAccessLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SnapshotSettingsAccessLocation {
+    /// locations property.
+    pub locations: Option<serde_json::Value>,
+    /// policy property.
+    pub policy: Option<String>,
+}
+
+/// `SnapshotSettingsStorageLocationSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SnapshotSettingsStorageLocationSettings {
+    /// locations property.
+    pub locations: Option<serde_json::Value>,
+    /// policy property.
+    pub policy: Option<String>,
 }
 
 /// `QuotaExceededInfo` type.
@@ -83,60 +138,6 @@ pub struct SnapshotSettings {
     pub access_location: Option<SnapshotSettingsAccessLocation>,
     /// storageLocation property.
     pub storage_location: Option<SnapshotSettingsStorageLocationSettings>,
-}
-
-/// `GetVersionOperationMetadataSbomInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
-}
-
-/// `SetCommonInstanceMetadataOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetCommonInstanceMetadataOperationMetadata {
-    /// clientOperationId property.
-    pub client_operation_id: Option<String>,
-    /// perLocationOperations property.
-    pub per_location_operations: Option<serde_json::Value>,
-}
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `SnapshotSettingsAccessLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SnapshotSettingsAccessLocation {
-    /// locations property.
-    pub locations: Option<serde_json::Value>,
-    /// policy property.
-    pub policy: Option<String>,
-}
-
-/// `HelpLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `SnapshotSettingsStorageLocationSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SnapshotSettingsStorageLocationSettings {
-    /// locations property.
-    pub locations: Option<serde_json::Value>,
-    /// policy property.
-    pub policy: Option<String>,
 }
 
 // =============================================================================

@@ -12,17 +12,60 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `NamespacedName` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NamespacedName {
+    /// name property.
+    pub name: Option<String>,
+    /// namespace property.
+    pub namespace: Option<String>,
+}
+
+/// `EncryptionKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EncryptionKey {
+    /// gcpKmsEncryptionKey property.
+    pub gcp_kms_encryption_key: Option<String>,
+}
+
+/// `RetentionPolicyDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RetentionPolicyDetails {
+    /// backupDeleteLockDays property.
+    pub backup_delete_lock_days: Option<i64>,
+    /// backupRetainDays property.
+    pub backup_retain_days: Option<i64>,
+}
+
+/// `BackupConfigDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupConfigDetails {
+    /// allNamespaces property.
+    pub all_namespaces: Option<bool>,
+    /// encryptionKey property.
+    pub encryption_key: Option<EncryptionKey>,
+    /// includeSecrets property.
+    pub include_secrets: Option<bool>,
+    /// includeVolumeData property.
+    pub include_volume_data: Option<bool>,
+    /// selectedApplications property.
+    pub selected_applications: Option<NamespacedNames>,
+    /// selectedNamespaces property.
+    pub selected_namespaces: Option<Namespaces>,
+}
 
 /// `BackupPlanBinding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,53 +88,11 @@ pub struct BackupPlanBinding {
     pub update_time: Option<String>,
 }
 
-/// `BackupConfigDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupConfigDetails {
-    /// allNamespaces property.
-    pub all_namespaces: Option<bool>,
-    /// encryptionKey property.
-    pub encryption_key: Option<EncryptionKey>,
-    /// includeSecrets property.
-    pub include_secrets: Option<bool>,
-    /// includeVolumeData property.
-    pub include_volume_data: Option<bool>,
-    /// selectedApplications property.
-    pub selected_applications: Option<NamespacedNames>,
-    /// selectedNamespaces property.
-    pub selected_namespaces: Option<Namespaces>,
-}
-
-/// `EncryptionKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionKey {
-    /// gcpKmsEncryptionKey property.
-    pub gcp_kms_encryption_key: Option<String>,
-}
-
-/// `NamespacedNames` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NamespacedNames {
-    /// namespacedNames property.
-    pub namespaced_names: Option<Vec<NamespacedName>>,
-}
-
 /// `Namespaces` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Namespaces {
     /// namespaces property.
     pub namespaces: Option<Vec<String>>,
-}
-
-/// `ListBackupPlanBindingsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListBackupPlanBindingsResponse {
-    /// backupPlanBindings property.
-    pub backup_plan_bindings: Option<Vec<BackupPlanBinding>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
 }
 
 /// `BackupPlanDetails` type.
@@ -115,22 +116,22 @@ pub struct BackupPlanDetails {
     pub state: Option<String>,
 }
 
-/// `RetentionPolicyDetails` type.
+/// `ListBackupPlanBindingsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RetentionPolicyDetails {
-    /// backupDeleteLockDays property.
-    pub backup_delete_lock_days: Option<i64>,
-    /// backupRetainDays property.
-    pub backup_retain_days: Option<i64>,
+pub struct ListBackupPlanBindingsResponse {
+    /// backupPlanBindings property.
+    pub backup_plan_bindings: Option<Vec<BackupPlanBinding>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
-/// `NamespacedName` type.
+/// `NamespacedNames` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NamespacedName {
-    /// name property.
-    pub name: Option<String>,
-    /// namespace property.
-    pub namespace: Option<String>,
+pub struct NamespacedNames {
+    /// namespacedNames property.
+    pub namespaced_names: Option<Vec<NamespacedName>>,
 }
 
 // =============================================================================

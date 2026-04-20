@@ -12,17 +12,60 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `CompositeHealthCheckHealth` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CompositeHealthCheckHealth {
+    /// healthSources property.
+    pub health_sources: Option<Vec<CompositeHealthChecksGetHealthResponseHealthSourceHealth>>,
+    /// healthState property.
+    pub health_state: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `BackendServiceGroupHealth` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendServiceGroupHealth {
+    /// annotations property.
+    pub annotations: Option<serde_json::Value>,
+    /// healthStatus property.
+    pub health_status: Option<Vec<HealthStatus>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `CompositeHealthChecksGetHealthResponseHealthSourceHealth` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CompositeHealthChecksGetHealthResponseHealthSourceHealth {
+    /// healthState property.
+    pub health_state: Option<String>,
+    /// source property.
+    pub source: Option<String>,
+}
+
+/// `HealthSourceHealth` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HealthSourceHealth {
+    /// healthState property.
+    pub health_state: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// sources property.
+    pub sources: Option<Vec<HealthSourcesGetHealthResponseSourceInfo>>,
+}
 
 /// `HealthStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -51,35 +94,13 @@ pub struct HealthStatus {
     pub weight_error: Option<String>,
 }
 
-/// `HealthSourcesGetHealthResponseSourceInfo` type.
+/// `TargetPoolInstanceHealth` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HealthSourcesGetHealthResponseSourceInfo {
-    /// backends property.
-    pub backends: Option<Vec<HealthSourcesGetHealthResponseSourceInfoBackendInfo>>,
-    /// forwardingRule property.
-    pub forwarding_rule: Option<String>,
-    /// source property.
-    pub source: Option<String>,
-}
-
-/// `CompositeHealthChecksGetHealthResponseHealthSourceHealth` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompositeHealthChecksGetHealthResponseHealthSourceHealth {
-    /// healthState property.
-    pub health_state: Option<String>,
-    /// source property.
-    pub source: Option<String>,
-}
-
-/// `HealthSourceHealth` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HealthSourceHealth {
-    /// healthState property.
-    pub health_state: Option<String>,
+pub struct TargetPoolInstanceHealth {
+    /// healthStatus property.
+    pub health_status: Option<Vec<HealthStatus>>,
     /// kind property.
     pub kind: Option<String>,
-    /// sources property.
-    pub sources: Option<Vec<HealthSourcesGetHealthResponseSourceInfo>>,
 }
 
 /// `HealthSourcesGetHealthResponseSourceInfoBackendInfo` type.
@@ -93,35 +114,15 @@ pub struct HealthSourcesGetHealthResponseSourceInfoBackendInfo {
     pub healthy_endpoint_count: Option<i64>,
 }
 
-/// `TargetPoolInstanceHealth` type.
+/// `HealthSourcesGetHealthResponseSourceInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TargetPoolInstanceHealth {
-    /// healthStatus property.
-    pub health_status: Option<Vec<HealthStatus>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `CompositeHealthCheckHealth` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompositeHealthCheckHealth {
-    /// healthSources property.
-    pub health_sources: Option<Vec<CompositeHealthChecksGetHealthResponseHealthSourceHealth>>,
-    /// healthState property.
-    pub health_state: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `BackendServiceGroupHealth` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendServiceGroupHealth {
-    /// annotations property.
-    pub annotations: Option<serde_json::Value>,
-    /// healthStatus property.
-    pub health_status: Option<Vec<HealthStatus>>,
-    /// kind property.
-    pub kind: Option<String>,
+pub struct HealthSourcesGetHealthResponseSourceInfo {
+    /// backends property.
+    pub backends: Option<Vec<HealthSourcesGetHealthResponseSourceInfoBackendInfo>>,
+    /// forwardingRule property.
+    pub forwarding_rule: Option<String>,
+    /// source property.
+    pub source: Option<String>,
 }
 
 // =============================================================================

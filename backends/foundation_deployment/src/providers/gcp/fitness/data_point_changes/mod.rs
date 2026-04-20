@@ -12,17 +12,40 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ValueMapValEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ValueMapValEntry {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<MapValue>,
+}
+
+/// `Value` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Value {
+    /// fpVal property.
+    pub fp_val: Option<f64>,
+    /// intVal property.
+    pub int_val: Option<i64>,
+    /// mapVal property.
+    pub map_val: Option<Vec<ValueMapValEntry>>,
+    /// stringVal property.
+    pub string_val: Option<String>,
+}
 
 /// `DataPoint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,19 +68,6 @@ pub struct DataPoint {
     pub value: Option<Vec<Value>>,
 }
 
-/// `Value` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Value {
-    /// fpVal property.
-    pub fp_val: Option<f64>,
-    /// intVal property.
-    pub int_val: Option<i64>,
-    /// mapVal property.
-    pub map_val: Option<Vec<ValueMapValEntry>>,
-    /// stringVal property.
-    pub string_val: Option<String>,
-}
-
 /// `ListDataPointChangesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDataPointChangesResponse {
@@ -69,15 +79,6 @@ pub struct ListDataPointChangesResponse {
     pub inserted_data_point: Option<Vec<DataPoint>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-}
-
-/// `ValueMapValEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValueMapValEntry {
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<MapValue>,
 }
 
 /// `MapValue` type.

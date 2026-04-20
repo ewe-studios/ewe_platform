@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,21 +22,33 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudAiplatformV1TensorboardTimeSeriesMetadata` type.
+/// `GoogleCloudAiplatformV1ReadTensorboardTimeSeriesDataResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1TensorboardTimeSeriesMetadata {
-    /// maxBlobSequenceLength property.
-    pub max_blob_sequence_length: Option<String>,
-    /// maxStep property.
-    pub max_step: Option<String>,
-    /// maxWallTime property.
-    pub max_wall_time: Option<String>,
+pub struct GoogleCloudAiplatformV1ReadTensorboardTimeSeriesDataResponse {
+    /// timeSeriesData property.
+    pub time_series_data: Option<GoogleCloudAiplatformV1TimeSeriesData>,
+}
+
+/// `GoogleCloudAiplatformV1ReadTensorboardBlobDataResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ReadTensorboardBlobDataResponse {
+    /// blobs property.
+    pub blobs: Option<Vec<GoogleCloudAiplatformV1TensorboardBlob>>,
+}
+
+/// `GoogleCloudAiplatformV1TensorboardBlob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1TensorboardBlob {
+    /// data property.
+    pub data: Option<String>,
+    /// id property.
+    pub id: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1TimeSeriesData` type.
@@ -47,6 +60,15 @@ pub struct GoogleCloudAiplatformV1TimeSeriesData {
     pub value_type: Option<String>,
     /// values property.
     pub values: Option<Vec<GoogleCloudAiplatformV1TimeSeriesDataPoint>>,
+}
+
+/// `GoogleCloudAiplatformV1ListTensorboardTimeSeriesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ListTensorboardTimeSeriesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// tensorboardTimeSeries property.
+    pub tensorboard_time_series: Option<Vec<GoogleCloudAiplatformV1TensorboardTimeSeries>>,
 }
 
 /// `GoogleRpcStatus` type.
@@ -69,27 +91,26 @@ pub struct GoogleCloudAiplatformV1ExportTensorboardTimeSeriesDataResponse {
     pub time_series_data_points: Option<Vec<GoogleCloudAiplatformV1TimeSeriesDataPoint>>,
 }
 
-/// `GoogleCloudAiplatformV1ReadTensorboardTimeSeriesDataResponse` type.
+/// `GoogleCloudAiplatformV1Scalar` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReadTensorboardTimeSeriesDataResponse {
-    /// timeSeriesData property.
-    pub time_series_data: Option<GoogleCloudAiplatformV1TimeSeriesData>,
+pub struct GoogleCloudAiplatformV1Scalar {
+    /// value property.
+    pub value: Option<f64>,
 }
 
-/// `GoogleCloudAiplatformV1ListTensorboardTimeSeriesResponse` type.
+/// `GoogleCloudAiplatformV1TimeSeriesDataPoint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListTensorboardTimeSeriesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// tensorboardTimeSeries property.
-    pub tensorboard_time_series: Option<Vec<GoogleCloudAiplatformV1TensorboardTimeSeries>>,
-}
-
-/// `GoogleCloudAiplatformV1ReadTensorboardBlobDataResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReadTensorboardBlobDataResponse {
+pub struct GoogleCloudAiplatformV1TimeSeriesDataPoint {
     /// blobs property.
-    pub blobs: Option<Vec<GoogleCloudAiplatformV1TensorboardBlob>>,
+    pub blobs: Option<GoogleCloudAiplatformV1TensorboardBlobSequence>,
+    /// scalar property.
+    pub scalar: Option<GoogleCloudAiplatformV1Scalar>,
+    /// step property.
+    pub step: Option<String>,
+    /// tensor property.
+    pub tensor: Option<GoogleCloudAiplatformV1TensorboardTensor>,
+    /// wallTime property.
+    pub wall_time: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1TensorboardTimeSeries` type.
@@ -124,6 +145,17 @@ pub struct GoogleCloudAiplatformV1TensorboardBlobSequence {
     pub values: Option<Vec<GoogleCloudAiplatformV1TensorboardBlob>>,
 }
 
+/// `GoogleCloudAiplatformV1TensorboardTimeSeriesMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1TensorboardTimeSeriesMetadata {
+    /// maxBlobSequenceLength property.
+    pub max_blob_sequence_length: Option<String>,
+    /// maxStep property.
+    pub max_step: Option<String>,
+    /// maxWallTime property.
+    pub max_wall_time: Option<String>,
+}
+
 /// `GoogleCloudAiplatformV1TensorboardTensor` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TensorboardTensor {
@@ -131,37 +163,6 @@ pub struct GoogleCloudAiplatformV1TensorboardTensor {
     pub value: Option<String>,
     /// versionNumber property.
     pub version_number: Option<i64>,
-}
-
-/// `GoogleCloudAiplatformV1Scalar` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Scalar {
-    /// value property.
-    pub value: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1TimeSeriesDataPoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1TimeSeriesDataPoint {
-    /// blobs property.
-    pub blobs: Option<GoogleCloudAiplatformV1TensorboardBlobSequence>,
-    /// scalar property.
-    pub scalar: Option<GoogleCloudAiplatformV1Scalar>,
-    /// step property.
-    pub step: Option<String>,
-    /// tensor property.
-    pub tensor: Option<GoogleCloudAiplatformV1TensorboardTensor>,
-    /// wallTime property.
-    pub wall_time: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1TensorboardBlob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1TensorboardBlob {
-    /// data property.
-    pub data: Option<String>,
-    /// id property.
-    pub id: Option<String>,
 }
 
 // =============================================================================

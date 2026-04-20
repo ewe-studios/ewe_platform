@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `SearchTenancyUnitsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchTenancyUnitsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// tenancyUnits property.
-    pub tenancy_units: Option<Vec<TenancyUnit>>,
-}
 
 /// `TenantResource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,6 +36,15 @@ pub struct TenantResource {
     pub status: Option<String>,
     /// tag property.
     pub tag: Option<String>,
+}
+
+/// `SearchTenancyUnitsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchTenancyUnitsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// tenancyUnits property.
+    pub tenancy_units: Option<Vec<TenancyUnit>>,
 }
 
 /// `TenancyUnit` type.

@@ -12,17 +12,52 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GooglePrivacyDlpV2VersionDescription` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2VersionDescription {
+    /// description property.
+    pub description: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2ListInfoTypesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2ListInfoTypesResponse {
+    /// infoTypes property.
+    pub info_types: Option<Vec<GooglePrivacyDlpV2InfoTypeDescription>>,
+}
+
+/// `GooglePrivacyDlpV2SensitivityScore` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2SensitivityScore {
+    /// score property.
+    pub score: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2InfoTypeCategory` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2InfoTypeCategory {
+    /// industryCategory property.
+    pub industry_category: Option<String>,
+    /// locationCategory property.
+    pub location_category: Option<String>,
+    /// typeCategory property.
+    pub type_category: Option<String>,
+}
 
 /// `GooglePrivacyDlpV2InfoTypeDescription` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -51,13 +86,6 @@ pub struct GooglePrivacyDlpV2InfoTypeDescription {
     pub versions: Option<Vec<GooglePrivacyDlpV2VersionDescription>>,
 }
 
-/// `GooglePrivacyDlpV2ListInfoTypesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ListInfoTypesResponse {
-    /// infoTypes property.
-    pub info_types: Option<Vec<GooglePrivacyDlpV2InfoTypeDescription>>,
-}
-
 /// `GooglePrivacyDlpV2LocationSupport` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2LocationSupport {
@@ -65,33 +93,6 @@ pub struct GooglePrivacyDlpV2LocationSupport {
     pub locations: Option<Vec<String>>,
     /// regionalizationScope property.
     pub regionalization_scope: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2SensitivityScore` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2SensitivityScore {
-    /// score property.
-    pub score: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2VersionDescription` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2VersionDescription {
-    /// description property.
-    pub description: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2InfoTypeCategory` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2InfoTypeCategory {
-    /// industryCategory property.
-    pub industry_category: Option<String>,
-    /// locationCategory property.
-    pub location_category: Option<String>,
-    /// typeCategory property.
-    pub type_category: Option<String>,
 }
 
 // =============================================================================

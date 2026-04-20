@@ -12,117 +12,28 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudDiscoveryengineV1DestinationConfigDestination` type.
+/// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DestinationConfigDestination {
-    /// host property.
-    pub host: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
-}
-
-/// `GoogleCloudDiscoveryengineV1DataConnectorSourceEntity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DataConnectorSourceEntity {
-    /// dataStore property.
-    pub data_store: Option<String>,
-    /// entityName property.
-    pub entity_name: Option<String>,
-    /// healthcareFhirConfig property.
-    pub healthcare_fhir_config: Option<GoogleCloudDiscoveryengineV1HealthcareFhirConfig>,
-    /// jsonParams property.
-    pub json_params: Option<String>,
-    /// keyPropertyMappings property.
-    pub key_property_mappings: Option<serde_json::Value>,
-    /// params property.
-    pub params: Option<serde_json::Value>,
-    /// startingSchema property.
-    pub starting_schema: Option<GoogleCloudDiscoveryengineV1Schema>,
-}
-
-/// `GoogleTypeTimeZone` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeTimeZone {
-    /// id property.
-    pub id: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1AlertPolicyConfigAlertEnrollment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AlertPolicyConfigAlertEnrollment {
-    /// alertId property.
-    pub alert_id: Option<String>,
-    /// enrollState property.
-    pub enroll_state: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1IdentityScheduleConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1IdentityScheduleConfig {
-    /// nextSyncTime property.
-    pub next_sync_time: Option<GoogleTypeDateTime>,
-    /// refreshInterval property.
-    pub refresh_interval: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1HealthcareFhirConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1HealthcareFhirConfig {
-    /// enableConfigurableSchema property.
-    pub enable_configurable_schema: Option<bool>,
-    /// enableStaticIndexingForBatchIngestion property.
-    pub enable_static_indexing_for_batch_ingestion: Option<bool>,
-    /// initialFilterGroups property.
-    pub initial_filter_groups: Option<Vec<String>>,
-}
-
-/// `GoogleCloudDiscoveryengineV1DataConnectorFederatedConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DataConnectorFederatedConfig {
-    /// additionalParams property.
-    pub additional_params: Option<serde_json::Value>,
-    /// authParams property.
-    pub auth_params: Option<serde_json::Value>,
-    /// jsonAuthParams property.
-    pub json_auth_params: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1Schema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1Schema {
-    /// jsonSchema property.
-    pub json_schema: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// structSchema property.
-    pub struct_schema: Option<serde_json::Value>,
-}
-
-/// `GoogleCloudDiscoveryengineV1DataConnectorEndUserConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DataConnectorEndUserConfig {
-    /// additionalParams property.
-    pub additional_params: Option<serde_json::Value>,
-    /// authParams property.
-    pub auth_params: Option<serde_json::Value>,
-    /// jsonAuthParams property.
-    pub json_auth_params: Option<String>,
-    /// tenant property.
-    pub tenant: Option<GoogleCloudDiscoveryengineV1Tenant>,
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `GoogleCloudDiscoveryengineV1ActionConfig` type.
@@ -144,24 +55,47 @@ pub struct GoogleCloudDiscoveryengineV1ActionConfig {
     pub user_defined_scopes_mapping: Option<serde_json::Value>,
 }
 
-/// `GoogleRpcStatus` type.
+/// `GoogleCloudDiscoveryengineV1HealthcareFhirConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct GoogleCloudDiscoveryengineV1HealthcareFhirConfig {
+    /// enableConfigurableSchema property.
+    pub enable_configurable_schema: Option<bool>,
+    /// enableStaticIndexingForBatchIngestion property.
+    pub enable_static_indexing_for_batch_ingestion: Option<bool>,
+    /// initialFilterGroups property.
+    pub initial_filter_groups: Option<Vec<String>>,
 }
 
-/// `GoogleCloudDiscoveryengineV1BAPConfig` type.
+/// `GoogleCloudDiscoveryengineV1AlertPolicyConfigAlertEnrollment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1BAPConfig {
-    /// enabledActions property.
-    pub enabled_actions: Option<Vec<String>>,
-    /// supportedConnectorModes property.
-    pub supported_connector_modes: Option<Vec<String>>,
+pub struct GoogleCloudDiscoveryengineV1AlertPolicyConfigAlertEnrollment {
+    /// alertId property.
+    pub alert_id: Option<String>,
+    /// enrollState property.
+    pub enroll_state: Option<String>,
+}
+
+/// `GoogleTypeDateTime` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeDateTime {
+    /// day property.
+    pub day: Option<i64>,
+    /// hours property.
+    pub hours: Option<i64>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<i64>,
+    /// timeZone property.
+    pub time_zone: Option<GoogleTypeTimeZone>,
+    /// utcOffset property.
+    pub utc_offset: Option<String>,
+    /// year property.
+    pub year: Option<i64>,
 }
 
 /// `GoogleCloudDiscoveryengineV1DataConnector` type.
@@ -253,29 +187,6 @@ pub struct GoogleCloudDiscoveryengineV1DataConnector {
     pub vpcsc_enabled: Option<bool>,
 }
 
-/// `GoogleTypeDateTime` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeDateTime {
-    /// day property.
-    pub day: Option<i64>,
-    /// hours property.
-    pub hours: Option<i64>,
-    /// minutes property.
-    pub minutes: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<i64>,
-    /// timeZone property.
-    pub time_zone: Option<GoogleTypeTimeZone>,
-    /// utcOffset property.
-    pub utc_offset: Option<String>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
 /// `GoogleCloudDiscoveryengineV1DataConnectorRealtimeSyncConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DataConnectorRealtimeSyncConfig {
@@ -301,6 +212,117 @@ pub struct GoogleCloudDiscoveryengineV1DynamicTool {
     pub name: Option<String>,
 }
 
+/// `GoogleCloudDiscoveryengineV1Tenant` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1Tenant {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1DataConnectorRealtimeSyncConfigStreamingError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1DataConnectorRealtimeSyncConfigStreamingError {
+    /// error property.
+    pub error: Option<GoogleRpcStatus>,
+    /// streamingErrorReason property.
+    pub streaming_error_reason: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1Schema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1Schema {
+    /// jsonSchema property.
+    pub json_schema: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// structSchema property.
+    pub struct_schema: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudDiscoveryengineV1BAPConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1BAPConfig {
+    /// enabledActions property.
+    pub enabled_actions: Option<Vec<String>>,
+    /// supportedConnectorModes property.
+    pub supported_connector_modes: Option<Vec<String>>,
+}
+
+/// `GoogleCloudDiscoveryengineV1DataConnectorEndUserConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1DataConnectorEndUserConfig {
+    /// additionalParams property.
+    pub additional_params: Option<serde_json::Value>,
+    /// authParams property.
+    pub auth_params: Option<serde_json::Value>,
+    /// jsonAuthParams property.
+    pub json_auth_params: Option<String>,
+    /// tenant property.
+    pub tenant: Option<GoogleCloudDiscoveryengineV1Tenant>,
+}
+
+/// `GoogleCloudDiscoveryengineV1IdentityScheduleConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1IdentityScheduleConfig {
+    /// nextSyncTime property.
+    pub next_sync_time: Option<GoogleTypeDateTime>,
+    /// refreshInterval property.
+    pub refresh_interval: Option<String>,
+}
+
+/// `GoogleTypeTimeZone` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeTimeZone {
+    /// id property.
+    pub id: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1DataConnectorSourceEntity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1DataConnectorSourceEntity {
+    /// dataStore property.
+    pub data_store: Option<String>,
+    /// entityName property.
+    pub entity_name: Option<String>,
+    /// healthcareFhirConfig property.
+    pub healthcare_fhir_config: Option<GoogleCloudDiscoveryengineV1HealthcareFhirConfig>,
+    /// jsonParams property.
+    pub json_params: Option<String>,
+    /// keyPropertyMappings property.
+    pub key_property_mappings: Option<serde_json::Value>,
+    /// params property.
+    pub params: Option<serde_json::Value>,
+    /// startingSchema property.
+    pub starting_schema: Option<GoogleCloudDiscoveryengineV1Schema>,
+}
+
+/// `GoogleCloudDiscoveryengineV1AlertPolicyConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1AlertPolicyConfig {
+    /// alertEnrollments property.
+    pub alert_enrollments:
+        Option<Vec<GoogleCloudDiscoveryengineV1AlertPolicyConfigAlertEnrollment>>,
+    /// alertPolicyName property.
+    pub alert_policy_name: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1DataConnectorFederatedConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1DataConnectorFederatedConfig {
+    /// additionalParams property.
+    pub additional_params: Option<serde_json::Value>,
+    /// authParams property.
+    pub auth_params: Option<serde_json::Value>,
+    /// jsonAuthParams property.
+    pub json_auth_params: Option<String>,
+}
+
 /// `GoogleCloudDiscoveryengineV1DestinationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DestinationConfig {
@@ -314,34 +336,13 @@ pub struct GoogleCloudDiscoveryengineV1DestinationConfig {
     pub params: Option<serde_json::Value>,
 }
 
-/// `GoogleCloudDiscoveryengineV1AlertPolicyConfig` type.
+/// `GoogleCloudDiscoveryengineV1DestinationConfigDestination` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AlertPolicyConfig {
-    /// alertEnrollments property.
-    pub alert_enrollments:
-        Option<Vec<GoogleCloudDiscoveryengineV1AlertPolicyConfigAlertEnrollment>>,
-    /// alertPolicyName property.
-    pub alert_policy_name: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1DataConnectorRealtimeSyncConfigStreamingError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DataConnectorRealtimeSyncConfigStreamingError {
-    /// error property.
-    pub error: Option<GoogleRpcStatus>,
-    /// streamingErrorReason property.
-    pub streaming_error_reason: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1Tenant` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1Tenant {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
+pub struct GoogleCloudDiscoveryengineV1DestinationConfigDestination {
+    /// host property.
+    pub host: Option<String>,
+    /// port property.
+    pub port: Option<i64>,
 }
 
 // =============================================================================

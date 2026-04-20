@@ -12,24 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ProjectReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectReference {
-    /// projectId property.
-    pub project_id: Option<String>,
-}
 
 /// `ProjectList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,6 +38,13 @@ pub struct ProjectList {
     pub projects: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
     /// totalItems property.
     pub total_items: Option<i64>,
+}
+
+/// `ProjectReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectReference {
+    /// projectId property.
+    pub project_id: Option<String>,
 }
 
 // =============================================================================

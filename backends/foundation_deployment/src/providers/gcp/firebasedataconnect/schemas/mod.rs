@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,33 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListSchemasResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSchemasResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// schemas property.
-    pub schemas: Option<Vec<Schema>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
 
 /// `File` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -58,11 +37,30 @@ pub struct File {
     pub path: Option<String>,
 }
 
-/// `CloudSqlInstance` type.
+/// `PostgreSql` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudSqlInstance {
-    /// instance property.
-    pub instance: Option<String>,
+pub struct PostgreSql {
+    /// cloudSql property.
+    pub cloud_sql: Option<CloudSqlInstance>,
+    /// database property.
+    pub database: Option<String>,
+    /// ephemeral property.
+    pub ephemeral: Option<bool>,
+    /// schema property.
+    pub schema: Option<String>,
+    /// schemaMigration property.
+    pub schema_migration: Option<String>,
+    /// schemaValidation property.
+    pub schema_validation: Option<String>,
+    /// unlinked property.
+    pub unlinked: Option<bool>,
+}
+
+/// `Source` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Source {
+    /// files property.
+    pub files: Option<Vec<File>>,
 }
 
 /// `Schema` type.
@@ -92,13 +90,22 @@ pub struct Schema {
     pub update_time: Option<String>,
 }
 
-/// `HttpGraphql` type.
+/// `CloudSqlInstance` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpGraphql {
-    /// timeout property.
-    pub timeout: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
+pub struct CloudSqlInstance {
+    /// instance property.
+    pub instance: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `Datasource` type.
@@ -110,30 +117,24 @@ pub struct Datasource {
     pub postgresql: Option<PostgreSql>,
 }
 
-/// `Source` type.
+/// `ListSchemasResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Source {
-    /// files property.
-    pub files: Option<Vec<File>>,
+pub struct ListSchemasResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// schemas property.
+    pub schemas: Option<Vec<Schema>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
-/// `PostgreSql` type.
+/// `HttpGraphql` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostgreSql {
-    /// cloudSql property.
-    pub cloud_sql: Option<CloudSqlInstance>,
-    /// database property.
-    pub database: Option<String>,
-    /// ephemeral property.
-    pub ephemeral: Option<bool>,
-    /// schema property.
-    pub schema: Option<String>,
-    /// schemaMigration property.
-    pub schema_migration: Option<String>,
-    /// schemaValidation property.
-    pub schema_validation: Option<String>,
-    /// unlinked property.
-    pub unlinked: Option<bool>,
+pub struct HttpGraphql {
+    /// timeout property.
+    pub timeout: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
 }
 
 // =============================================================================

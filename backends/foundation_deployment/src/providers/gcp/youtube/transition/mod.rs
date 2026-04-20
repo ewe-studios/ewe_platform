@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,42 +23,95 @@ use serde::{Deserialize, Serialize};
 use super::shared::LiveBroadcast;
 use super::shared::LiveChatMessage;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `LiveChatGiftDetails` type.
+/// `LiveChatPollDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveChatGiftDetails {
-    /// altText property.
-    pub alt_text: Option<String>,
-    /// comboCount property.
-    pub combo_count: Option<i64>,
-    /// giftDuration property.
-    pub gift_duration: Option<String>,
-    /// giftName property.
-    pub gift_name: Option<String>,
-    /// giftUrl property.
-    pub gift_url: Option<String>,
-    /// hasVisualEffect property.
-    pub has_visual_effect: Option<bool>,
-    /// jewelsAmount property.
-    pub jewels_amount: Option<i64>,
-    /// language property.
-    pub language: Option<String>,
+pub struct LiveChatPollDetails {
+    /// metadata property.
+    pub metadata: Option<LiveChatPollDetailsPollMetadata>,
+    /// status property.
+    pub status: Option<String>,
 }
 
-/// `MonitorStreamInfo` type.
+/// `LiveChatMessageAuthorDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MonitorStreamInfo {
-    /// broadcastStreamDelayMs property.
-    pub broadcast_stream_delay_ms: Option<i64>,
-    /// embedHtml property.
-    pub embed_html: Option<String>,
-    /// enableMonitorStream property.
-    pub enable_monitor_stream: Option<bool>,
+pub struct LiveChatMessageAuthorDetails {
+    /// channelId property.
+    pub channel_id: Option<String>,
+    /// channelUrl property.
+    pub channel_url: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// isChatModerator property.
+    pub is_chat_moderator: Option<bool>,
+    /// isChatOwner property.
+    pub is_chat_owner: Option<bool>,
+    /// isChatSponsor property.
+    pub is_chat_sponsor: Option<bool>,
+    /// isVerified property.
+    pub is_verified: Option<bool>,
+    /// profileImageUrl property.
+    pub profile_image_url: Option<String>,
+}
+
+/// `LiveChatUserBannedMessageDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiveChatUserBannedMessageDetails {
+    /// banDurationSeconds property.
+    pub ban_duration_seconds: Option<String>,
+    /// banType property.
+    pub ban_type: Option<String>,
+    /// bannedUserDetails property.
+    pub banned_user_details: Option<ChannelProfileDetails>,
+}
+
+/// `LiveChatPollDetailsPollMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiveChatPollDetailsPollMetadata {
+    /// options property.
+    pub options: Option<Vec<LiveChatPollDetailsPollMetadataPollOption>>,
+    /// questionText property.
+    pub question_text: Option<String>,
+}
+
+/// `Thumbnail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Thumbnail {
+    /// height property.
+    pub height: Option<i64>,
+    /// url property.
+    pub url: Option<String>,
+    /// width property.
+    pub width: Option<i64>,
+}
+
+/// `LiveBroadcastMonetizationDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiveBroadcastMonetizationDetails {
+    /// cuepointSchedule property.
+    pub cuepoint_schedule: Option<CuepointSchedule>,
+}
+
+/// `LiveBroadcastStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiveBroadcastStatus {
+    /// lifeCycleStatus property.
+    pub life_cycle_status: Option<String>,
+    /// liveBroadcastPriority property.
+    pub live_broadcast_priority: Option<String>,
+    /// madeForKids property.
+    pub made_for_kids: Option<bool>,
+    /// privacyStatus property.
+    pub privacy_status: Option<String>,
+    /// recordingStatus property.
+    pub recording_status: Option<String>,
+    /// selfDeclaredMadeForKids property.
+    pub self_declared_made_for_kids: Option<bool>,
 }
 
 /// `LiveChatSuperStickerDetails` type.
@@ -75,17 +129,48 @@ pub struct LiveChatSuperStickerDetails {
     pub tier: Option<i64>,
 }
 
-/// `CuepointSchedule` type.
+/// `LiveChatSuperChatDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CuepointSchedule {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// pauseAdsUntil property.
-    pub pause_ads_until: Option<String>,
-    /// repeatIntervalSecs property.
-    pub repeat_interval_secs: Option<i64>,
-    /// scheduleStrategy property.
-    pub schedule_strategy: Option<String>,
+pub struct LiveChatSuperChatDetails {
+    /// amountDisplayString property.
+    pub amount_display_string: Option<String>,
+    /// amountMicros property.
+    pub amount_micros: Option<String>,
+    /// currency property.
+    pub currency: Option<String>,
+    /// tier property.
+    pub tier: Option<i64>,
+    /// userComment property.
+    pub user_comment: Option<String>,
+}
+
+/// `LiveChatMembershipGiftingDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiveChatMembershipGiftingDetails {
+    /// giftMembershipsCount property.
+    pub gift_memberships_count: Option<i64>,
+    /// giftMembershipsLevelName property.
+    pub gift_memberships_level_name: Option<String>,
+}
+
+/// `LiveChatGiftMembershipReceivedDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiveChatGiftMembershipReceivedDetails {
+    /// associatedMembershipGiftingMessageId property.
+    pub associated_membership_gifting_message_id: Option<String>,
+    /// gifterChannelId property.
+    pub gifter_channel_id: Option<String>,
+    /// memberLevelName property.
+    pub member_level_name: Option<String>,
+}
+
+/// `LiveChatPollDetailsPollMetadataPollOption` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiveChatPollDetailsPollMetadataPollOption {
+    /// optionText property.
+    pub option_text: Option<String>,
+    /// tally property.
+    pub tally: Option<String>,
 }
 
 /// `LiveBroadcastSnippet` type.
@@ -113,86 +198,6 @@ pub struct LiveBroadcastSnippet {
     pub thumbnails: Option<ThumbnailDetails>,
     /// title property.
     pub title: Option<String>,
-}
-
-/// `LiveChatPollDetailsPollMetadataPollOption` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveChatPollDetailsPollMetadataPollOption {
-    /// optionText property.
-    pub option_text: Option<String>,
-    /// tally property.
-    pub tally: Option<String>,
-}
-
-/// `LiveBroadcastStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveBroadcastStatus {
-    /// lifeCycleStatus property.
-    pub life_cycle_status: Option<String>,
-    /// liveBroadcastPriority property.
-    pub live_broadcast_priority: Option<String>,
-    /// madeForKids property.
-    pub made_for_kids: Option<bool>,
-    /// privacyStatus property.
-    pub privacy_status: Option<String>,
-    /// recordingStatus property.
-    pub recording_status: Option<String>,
-    /// selfDeclaredMadeForKids property.
-    pub self_declared_made_for_kids: Option<bool>,
-}
-
-/// `LiveChatMessageRetractedDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveChatMessageRetractedDetails {
-    /// retractedMessageId property.
-    pub retracted_message_id: Option<String>,
-}
-
-/// `LiveChatTextMessageDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveChatTextMessageDetails {
-    /// messageText property.
-    pub message_text: Option<String>,
-}
-
-/// `LiveChatFanFundingEventDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveChatFanFundingEventDetails {
-    /// amountDisplayString property.
-    pub amount_display_string: Option<String>,
-    /// amountMicros property.
-    pub amount_micros: Option<String>,
-    /// currency property.
-    pub currency: Option<String>,
-    /// userComment property.
-    pub user_comment: Option<String>,
-}
-
-/// `LiveChatPollDetailsPollMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveChatPollDetailsPollMetadata {
-    /// options property.
-    pub options: Option<Vec<LiveChatPollDetailsPollMetadataPollOption>>,
-    /// questionText property.
-    pub question_text: Option<String>,
-}
-
-/// `LiveBroadcastStatistics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveBroadcastStatistics {
-    /// concurrentViewers property.
-    pub concurrent_viewers: Option<String>,
-}
-
-/// `LiveChatUserBannedMessageDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveChatUserBannedMessageDetails {
-    /// banDurationSeconds property.
-    pub ban_duration_seconds: Option<String>,
-    /// banType property.
-    pub ban_type: Option<String>,
-    /// bannedUserDetails property.
-    pub banned_user_details: Option<ChannelProfileDetails>,
 }
 
 /// `LiveBroadcastContentDetails` type.
@@ -232,6 +237,104 @@ pub struct LiveBroadcastContentDetails {
     pub start_with_slate: Option<bool>,
     /// stereoLayout property.
     pub stereo_layout: Option<String>,
+}
+
+/// `SuperStickerMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SuperStickerMetadata {
+    /// altText property.
+    pub alt_text: Option<String>,
+    /// altTextLanguage property.
+    pub alt_text_language: Option<String>,
+    /// stickerId property.
+    pub sticker_id: Option<String>,
+}
+
+/// `LiveChatNewSponsorDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiveChatNewSponsorDetails {
+    /// isUpgrade property.
+    pub is_upgrade: Option<bool>,
+    /// memberLevelName property.
+    pub member_level_name: Option<String>,
+}
+
+/// `LiveChatMemberMilestoneChatDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiveChatMemberMilestoneChatDetails {
+    /// memberLevelName property.
+    pub member_level_name: Option<String>,
+    /// memberMonth property.
+    pub member_month: Option<i64>,
+    /// userComment property.
+    pub user_comment: Option<String>,
+}
+
+/// `LiveChatFanFundingEventDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiveChatFanFundingEventDetails {
+    /// amountDisplayString property.
+    pub amount_display_string: Option<String>,
+    /// amountMicros property.
+    pub amount_micros: Option<String>,
+    /// currency property.
+    pub currency: Option<String>,
+    /// userComment property.
+    pub user_comment: Option<String>,
+}
+
+/// `ChannelProfileDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChannelProfileDetails {
+    /// channelId property.
+    pub channel_id: Option<String>,
+    /// channelUrl property.
+    pub channel_url: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// profileImageUrl property.
+    pub profile_image_url: Option<String>,
+}
+
+/// `CuepointSchedule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CuepointSchedule {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// pauseAdsUntil property.
+    pub pause_ads_until: Option<String>,
+    /// repeatIntervalSecs property.
+    pub repeat_interval_secs: Option<i64>,
+    /// scheduleStrategy property.
+    pub schedule_strategy: Option<String>,
+}
+
+/// `LiveChatTextMessageDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiveChatTextMessageDetails {
+    /// messageText property.
+    pub message_text: Option<String>,
+}
+
+/// `LiveChatGiftDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiveChatGiftDetails {
+    /// altText property.
+    pub alt_text: Option<String>,
+    /// comboCount property.
+    pub combo_count: Option<i64>,
+    /// giftDuration property.
+    pub gift_duration: Option<String>,
+    /// giftName property.
+    pub gift_name: Option<String>,
+    /// giftUrl property.
+    pub gift_url: Option<String>,
+    /// hasVisualEffect property.
+    pub has_visual_effect: Option<bool>,
+    /// jewelsAmount property.
+    pub jewels_amount: Option<i64>,
+    /// language property.
+    pub language: Option<String>,
 }
 
 /// `LiveChatMessageSnippet` type.
@@ -277,40 +380,6 @@ pub struct LiveChatMessageSnippet {
     pub user_banned_details: Option<LiveChatUserBannedMessageDetails>,
 }
 
-/// `LiveChatGiftMembershipReceivedDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveChatGiftMembershipReceivedDetails {
-    /// associatedMembershipGiftingMessageId property.
-    pub associated_membership_gifting_message_id: Option<String>,
-    /// gifterChannelId property.
-    pub gifter_channel_id: Option<String>,
-    /// memberLevelName property.
-    pub member_level_name: Option<String>,
-}
-
-/// `LiveBroadcastMonetizationDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveBroadcastMonetizationDetails {
-    /// cuepointSchedule property.
-    pub cuepoint_schedule: Option<CuepointSchedule>,
-}
-
-/// `LiveChatNewSponsorDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveChatNewSponsorDetails {
-    /// isUpgrade property.
-    pub is_upgrade: Option<bool>,
-    /// memberLevelName property.
-    pub member_level_name: Option<String>,
-}
-
-/// `LiveChatMessageDeletedDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveChatMessageDeletedDetails {
-    /// deletedMessageId property.
-    pub deleted_message_id: Option<String>,
-}
-
 /// `ThumbnailDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThumbnailDetails {
@@ -326,104 +395,36 @@ pub struct ThumbnailDetails {
     pub standard: Option<Thumbnail>,
 }
 
-/// `Thumbnail` type.
+/// `LiveChatMessageDeletedDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Thumbnail {
-    /// height property.
-    pub height: Option<i64>,
-    /// url property.
-    pub url: Option<String>,
-    /// width property.
-    pub width: Option<i64>,
+pub struct LiveChatMessageDeletedDetails {
+    /// deletedMessageId property.
+    pub deleted_message_id: Option<String>,
 }
 
-/// `LiveChatPollDetails` type.
+/// `LiveBroadcastStatistics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveChatPollDetails {
-    /// metadata property.
-    pub metadata: Option<LiveChatPollDetailsPollMetadata>,
-    /// status property.
-    pub status: Option<String>,
+pub struct LiveBroadcastStatistics {
+    /// concurrentViewers property.
+    pub concurrent_viewers: Option<String>,
 }
 
-/// `LiveChatMemberMilestoneChatDetails` type.
+/// `LiveChatMessageRetractedDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveChatMemberMilestoneChatDetails {
-    /// memberLevelName property.
-    pub member_level_name: Option<String>,
-    /// memberMonth property.
-    pub member_month: Option<i64>,
-    /// userComment property.
-    pub user_comment: Option<String>,
+pub struct LiveChatMessageRetractedDetails {
+    /// retractedMessageId property.
+    pub retracted_message_id: Option<String>,
 }
 
-/// `LiveChatMessageAuthorDetails` type.
+/// `MonitorStreamInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveChatMessageAuthorDetails {
-    /// channelId property.
-    pub channel_id: Option<String>,
-    /// channelUrl property.
-    pub channel_url: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// isChatModerator property.
-    pub is_chat_moderator: Option<bool>,
-    /// isChatOwner property.
-    pub is_chat_owner: Option<bool>,
-    /// isChatSponsor property.
-    pub is_chat_sponsor: Option<bool>,
-    /// isVerified property.
-    pub is_verified: Option<bool>,
-    /// profileImageUrl property.
-    pub profile_image_url: Option<String>,
-}
-
-/// `LiveChatSuperChatDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveChatSuperChatDetails {
-    /// amountDisplayString property.
-    pub amount_display_string: Option<String>,
-    /// amountMicros property.
-    pub amount_micros: Option<String>,
-    /// currency property.
-    pub currency: Option<String>,
-    /// tier property.
-    pub tier: Option<i64>,
-    /// userComment property.
-    pub user_comment: Option<String>,
-}
-
-/// `LiveChatMembershipGiftingDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveChatMembershipGiftingDetails {
-    /// giftMembershipsCount property.
-    pub gift_memberships_count: Option<i64>,
-    /// giftMembershipsLevelName property.
-    pub gift_memberships_level_name: Option<String>,
-}
-
-/// `ChannelProfileDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelProfileDetails {
-    /// channelId property.
-    pub channel_id: Option<String>,
-    /// channelUrl property.
-    pub channel_url: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// profileImageUrl property.
-    pub profile_image_url: Option<String>,
-}
-
-/// `SuperStickerMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SuperStickerMetadata {
-    /// altText property.
-    pub alt_text: Option<String>,
-    /// altTextLanguage property.
-    pub alt_text_language: Option<String>,
-    /// stickerId property.
-    pub sticker_id: Option<String>,
+pub struct MonitorStreamInfo {
+    /// broadcastStreamDelayMs property.
+    pub broadcast_stream_delay_ms: Option<i64>,
+    /// embedHtml property.
+    pub embed_html: Option<String>,
+    /// enableMonitorStream property.
+    pub enable_monitor_stream: Option<bool>,
 }
 
 // =============================================================================

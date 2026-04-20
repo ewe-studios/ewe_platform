@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -37,6 +38,13 @@ pub struct UpgradeDependency {
     pub target_version: Option<String>,
 }
 
+/// `QueryBareMetalAdminVersionConfigResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueryBareMetalAdminVersionConfigResponse {
+    /// versions property.
+    pub versions: Option<Vec<BareMetalVersionInfo>>,
+}
+
 /// `BareMetalVersionInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalVersionInfo {
@@ -46,13 +54,6 @@ pub struct BareMetalVersionInfo {
     pub has_dependencies: Option<bool>,
     /// version property.
     pub version: Option<String>,
-}
-
-/// `QueryBareMetalAdminVersionConfigResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryBareMetalAdminVersionConfigResponse {
-    /// versions property.
-    pub versions: Option<Vec<BareMetalVersionInfo>>,
 }
 
 // =============================================================================

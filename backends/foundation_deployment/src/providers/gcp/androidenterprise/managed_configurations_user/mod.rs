@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,25 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::ManagedConfiguration;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ManagedPropertyBundle` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedPropertyBundle {
-    /// managedProperty property.
-    pub managed_property: Option<Vec<ManagedProperty>>,
-}
-
-/// `ManagedConfigurationsForUserListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedConfigurationsForUserListResponse {
-    /// managedConfigurationForUser property.
-    pub managed_configuration_for_user: Option<Vec<ManagedConfiguration>>,
-}
 
 /// `VariableSet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -50,13 +37,11 @@ pub struct VariableSet {
     pub user_value: Option<String>,
 }
 
-/// `ConfigurationVariables` type.
+/// `ManagedConfigurationsForUserListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigurationVariables {
-    /// mcmId property.
-    pub mcm_id: Option<String>,
-    /// variableSet property.
-    pub variable_set: Option<Vec<VariableSet>>,
+pub struct ManagedConfigurationsForUserListResponse {
+    /// managedConfigurationForUser property.
+    pub managed_configuration_for_user: Option<Vec<ManagedConfiguration>>,
 }
 
 /// `ManagedProperty` type.
@@ -67,15 +52,31 @@ pub struct ManagedProperty {
     /// valueBool property.
     pub value_bool: Option<bool>,
     /// valueBundle property.
-    pub value_bundle: Option<ManagedPropertyBundle>,
+    pub value_bundle: Option<Box<ManagedPropertyBundle>>,
     /// valueBundleArray property.
-    pub value_bundle_array: Option<Vec<ManagedPropertyBundle>>,
+    pub value_bundle_array: Option<Vec<Box<ManagedPropertyBundle>>>,
     /// valueInteger property.
     pub value_integer: Option<i64>,
     /// valueString property.
     pub value_string: Option<String>,
     /// valueStringArray property.
     pub value_string_array: Option<Vec<String>>,
+}
+
+/// `ManagedPropertyBundle` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedPropertyBundle {
+    /// managedProperty property.
+    pub managed_property: Option<Vec<Box<ManagedProperty>>>,
+}
+
+/// `ConfigurationVariables` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigurationVariables {
+    /// mcmId property.
+    pub mcm_id: Option<String>,
+    /// variableSet property.
+    pub variable_set: Option<Vec<VariableSet>>,
 }
 
 // =============================================================================

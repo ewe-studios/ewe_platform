@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -37,6 +38,23 @@ pub struct GoogleCloudApigeeV1SecurityReportResultView {
     pub rows: Option<Vec<serde_json::Value>>,
     /// state property.
     pub state: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1SecurityReportMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1SecurityReportMetadata {
+    /// dimensions property.
+    pub dimensions: Option<Vec<String>>,
+    /// endTimestamp property.
+    pub end_timestamp: Option<String>,
+    /// metrics property.
+    pub metrics: Option<Vec<String>>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+    /// startTimestamp property.
+    pub start_timestamp: Option<String>,
+    /// timeUnit property.
+    pub time_unit: Option<String>,
 }
 
 /// `GoogleCloudApigeeV1AsyncQueryResultView` type.
@@ -65,23 +83,6 @@ pub struct GoogleCloudApigeeV1QueryMetadata {
     pub metrics: Option<Vec<String>>,
     /// outputFormat property.
     pub output_format: Option<String>,
-    /// startTimestamp property.
-    pub start_timestamp: Option<String>,
-    /// timeUnit property.
-    pub time_unit: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1SecurityReportMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1SecurityReportMetadata {
-    /// dimensions property.
-    pub dimensions: Option<Vec<String>>,
-    /// endTimestamp property.
-    pub end_timestamp: Option<String>,
-    /// metrics property.
-    pub metrics: Option<Vec<String>>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
     /// startTimestamp property.
     pub start_timestamp: Option<String>,
     /// timeUnit property.

@@ -12,31 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `UsersListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UsersListResponse {
-    /// user property.
-    pub user: Option<Vec<User>>,
-}
-
-/// `GroupLicenseUsersListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GroupLicenseUsersListResponse {
-    /// user property.
-    pub user: Option<Vec<User>>,
-}
 
 /// `User` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -53,6 +40,20 @@ pub struct User {
     pub management_type: Option<String>,
     /// primaryEmail property.
     pub primary_email: Option<String>,
+}
+
+/// `GroupLicenseUsersListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GroupLicenseUsersListResponse {
+    /// user property.
+    pub user: Option<Vec<User>>,
+}
+
+/// `UsersListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UsersListResponse {
+    /// user property.
+    pub user: Option<Vec<User>>,
 }
 
 // =============================================================================

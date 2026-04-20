@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,20 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListDnsPeeringsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDnsPeeringsResponse {
-    /// dnsPeerings property.
-    pub dns_peerings: Option<Vec<DnsPeering>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `DnsPeering` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,6 +41,15 @@ pub struct DnsPeering {
     pub target_network: Option<String>,
     /// targetProject property.
     pub target_project: Option<String>,
+}
+
+/// `ListDnsPeeringsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDnsPeeringsResponse {
+    /// dnsPeerings property.
+    pub dns_peerings: Option<Vec<DnsPeering>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

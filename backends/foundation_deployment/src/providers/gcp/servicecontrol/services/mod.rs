@@ -12,17 +12,29 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `CheckResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CheckResponse {
+    /// dynamicMetadata property.
+    pub dynamic_metadata: Option<serde_json::Value>,
+    /// headers property.
+    pub headers: Option<serde_json::Value>,
+    /// status property.
+    pub status: Option<Status>,
+}
 
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,17 +52,6 @@ pub struct Status {
 pub struct ReportResponse {
     /// extensions property.
     pub extensions: Option<serde_json::Value>,
-}
-
-/// `CheckResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CheckResponse {
-    /// dynamicMetadata property.
-    pub dynamic_metadata: Option<serde_json::Value>,
-    /// headers property.
-    pub headers: Option<serde_json::Value>,
-    /// status property.
-    pub status: Option<Status>,
 }
 
 // =============================================================================

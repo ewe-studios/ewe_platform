@@ -12,17 +12,47 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `NetworkEndpointGroupsListNetworkEndpoints` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkEndpointGroupsListNetworkEndpoints {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<NetworkEndpointWithHealthStatus>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `BackendServiceReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendServiceReference {
+    /// backendService property.
+    pub backend_service: Option<String>,
+}
+
+/// `HealthCheckReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HealthCheckReference {
+    /// healthCheck property.
+    pub health_check: Option<String>,
+}
 
 /// `HealthCheckServiceReference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -55,13 +85,6 @@ pub struct ForwardingRuleReference {
     pub forwarding_rule: Option<String>,
 }
 
-/// `BackendServiceReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackendServiceReference {
-    /// backendService property.
-    pub backend_service: Option<String>,
-}
-
 /// `NetworkEndpoint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkEndpoint {
@@ -79,28 +102,6 @@ pub struct NetworkEndpoint {
     pub ipv6_address: Option<String>,
     /// port property.
     pub port: Option<i64>,
-}
-
-/// `HealthCheckReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HealthCheckReference {
-    /// healthCheck property.
-    pub health_check: Option<String>,
-}
-
-/// `NetworkEndpointGroupsListNetworkEndpoints` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkEndpointGroupsListNetworkEndpoints {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<NetworkEndpointWithHealthStatus>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `NetworkEndpointWithHealthStatus` type.

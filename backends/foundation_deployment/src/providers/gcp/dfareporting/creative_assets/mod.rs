@@ -12,44 +12,28 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ClickTag` type.
+/// `CreativeClickThroughUrl` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClickTag {
-    /// clickThroughUrl property.
-    pub click_through_url: Option<CreativeClickThroughUrl>,
-    /// eventName property.
-    pub event_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `DimensionValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DimensionValue {
-    /// dimensionName property.
-    pub dimension_name: Option<String>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// matchType property.
-    pub match_type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct CreativeClickThroughUrl {
+    /// computedClickThroughUrl property.
+    pub computed_click_through_url: Option<String>,
+    /// customClickThroughUrl property.
+    pub custom_click_through_url: Option<String>,
+    /// landingPageId property.
+    pub landing_page_id: Option<String>,
 }
 
 /// `PopupWindowProperties` type.
@@ -75,28 +59,29 @@ pub struct PopupWindowProperties {
     pub title: Option<String>,
 }
 
-/// `OffsetPosition` type.
+/// `StudioCreativeAsset` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OffsetPosition {
-    /// left property.
-    pub left: Option<i64>,
-    /// top property.
-    pub top: Option<i64>,
-}
-
-/// `Size` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Size {
-    /// height property.
-    pub height: Option<i64>,
-    /// iab property.
-    pub iab: Option<bool>,
+pub struct StudioCreativeAsset {
+    /// createInfo property.
+    pub create_info: Option<LastModifiedInfo>,
+    /// filename property.
+    pub filename: Option<String>,
+    /// filesize property.
+    pub filesize: Option<String>,
     /// id property.
     pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// width property.
-    pub width: Option<i64>,
+    /// lastModifiedInfo property.
+    pub last_modified_info: Option<LastModifiedInfo>,
+    /// studioAccountId property.
+    pub studio_account_id: Option<String>,
+    /// studioAdvertiserId property.
+    pub studio_advertiser_id: Option<String>,
+    /// studioCreativeId property.
+    pub studio_creative_id: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// videoProcessingData property.
+    pub video_processing_data: Option<VideoProcessingData>,
 }
 
 /// `LastModifiedInfo` type.
@@ -106,20 +91,13 @@ pub struct LastModifiedInfo {
     pub time: Option<String>,
 }
 
-/// `VideoProcessingData` type.
+/// `OffsetPosition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoProcessingData {
-    /// errorReason property.
-    pub error_reason: Option<String>,
-    /// processingState property.
-    pub processing_state: Option<String>,
-}
-
-/// `StudioCreativeAssetsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StudioCreativeAssetsResponse {
-    /// assets property.
-    pub assets: Option<Vec<StudioCreativeAsset>>,
+pub struct OffsetPosition {
+    /// left property.
+    pub left: Option<i64>,
+    /// top property.
+    pub top: Option<i64>,
 }
 
 /// `CreativeAssetMetadata` type.
@@ -149,6 +127,13 @@ pub struct CreativeAssetMetadata {
     pub warned_validation_rules: Option<Vec<String>>,
 }
 
+/// `StudioCreativeAssetsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StudioCreativeAssetsResponse {
+    /// assets property.
+    pub assets: Option<Vec<StudioCreativeAsset>>,
+}
+
 /// `CreativeAssetId` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeAssetId {
@@ -158,29 +143,28 @@ pub struct CreativeAssetId {
     pub r#type: Option<String>,
 }
 
-/// `StudioCreativeAsset` type.
+/// `Size` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StudioCreativeAsset {
-    /// createInfo property.
-    pub create_info: Option<LastModifiedInfo>,
-    /// filename property.
-    pub filename: Option<String>,
-    /// filesize property.
-    pub filesize: Option<String>,
+pub struct Size {
+    /// height property.
+    pub height: Option<i64>,
+    /// iab property.
+    pub iab: Option<bool>,
     /// id property.
     pub id: Option<String>,
-    /// lastModifiedInfo property.
-    pub last_modified_info: Option<LastModifiedInfo>,
-    /// studioAccountId property.
-    pub studio_account_id: Option<String>,
-    /// studioAdvertiserId property.
-    pub studio_advertiser_id: Option<String>,
-    /// studioCreativeId property.
-    pub studio_creative_id: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// videoProcessingData property.
-    pub video_processing_data: Option<VideoProcessingData>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// width property.
+    pub width: Option<i64>,
+}
+
+/// `VideoProcessingData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoProcessingData {
+    /// errorReason property.
+    pub error_reason: Option<String>,
+    /// processingState property.
+    pub processing_state: Option<String>,
 }
 
 /// `CreativeCustomEvent` type.
@@ -208,15 +192,32 @@ pub struct CreativeCustomEvent {
     pub video_reporting_id: Option<String>,
 }
 
-/// `CreativeClickThroughUrl` type.
+/// `DimensionValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreativeClickThroughUrl {
-    /// computedClickThroughUrl property.
-    pub computed_click_through_url: Option<String>,
-    /// customClickThroughUrl property.
-    pub custom_click_through_url: Option<String>,
-    /// landingPageId property.
-    pub landing_page_id: Option<String>,
+pub struct DimensionValue {
+    /// dimensionName property.
+    pub dimension_name: Option<String>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// matchType property.
+    pub match_type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `ClickTag` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClickTag {
+    /// clickThroughUrl property.
+    pub click_through_url: Option<CreativeClickThroughUrl>,
+    /// eventName property.
+    pub event_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,83 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `LoadInstanceAuthInfoResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoadInstanceAuthInfoResponse {
-    /// sshKeys property.
-    pub ssh_keys: Option<Vec<SSHKey>>,
-    /// userAccounts property.
-    pub user_accounts: Option<serde_json::Value>,
-}
-
-/// `ListInstancesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListInstancesResponse {
-    /// instances property.
-    pub instances: Option<Vec<Instance>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `NetworkMountPoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkMountPoint {
-    /// defaultGateway property.
-    pub default_gateway: Option<bool>,
-    /// instance property.
-    pub instance: Option<String>,
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// logicalInterface property.
-    pub logical_interface: Option<String>,
-}
-
-/// `Network` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Network {
-    /// cidr property.
-    pub cidr: Option<String>,
-    /// gatewayIp property.
-    pub gateway_ip: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// jumboFramesEnabled property.
-    pub jumbo_frames_enabled: Option<bool>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// macAddress property.
-    pub mac_address: Option<Vec<String>>,
-    /// mountPoints property.
-    pub mount_points: Option<Vec<NetworkMountPoint>>,
-    /// name property.
-    pub name: Option<String>,
-    /// pod property.
-    pub pod: Option<String>,
-    /// reservations property.
-    pub reservations: Option<Vec<NetworkAddressReservation>>,
-    /// servicesCidr property.
-    pub services_cidr: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// vlanId property.
-    pub vlan_id: Option<String>,
-    /// vrf property.
-    pub vrf: Option<VRF>,
-    /// vrfAttachment property.
-    pub vrf_attachment: Option<String>,
-}
 
 /// `GoogleCloudBaremetalsolutionV2LogicalInterface` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -110,131 +39,11 @@ pub struct GoogleCloudBaremetalsolutionV2LogicalInterface {
     pub name: Option<String>,
 }
 
-/// `SnapshotReservationDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SnapshotReservationDetail {
-    /// reservedSpaceGib property.
-    pub reserved_space_gib: Option<String>,
-    /// reservedSpacePercent property.
-    pub reserved_space_percent: Option<i64>,
-    /// reservedSpaceRemainingGib property.
-    pub reserved_space_remaining_gib: Option<String>,
-    /// reservedSpaceUsedPercent property.
-    pub reserved_space_used_percent: Option<i64>,
-}
-
-/// `VRF` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VRF {
-    /// name property.
-    pub name: Option<String>,
-    /// qosPolicy property.
-    pub qos_policy: Option<QosPolicy>,
-    /// state property.
-    pub state: Option<String>,
-    /// vlanAttachments property.
-    pub vlan_attachments: Option<Vec<VlanAttachment>>,
-}
-
-/// `SSHKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SSHKey {
-    /// name property.
-    pub name: Option<String>,
-    /// publicKey property.
-    pub public_key: Option<String>,
-}
-
-/// `NetworkAddressReservation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkAddressReservation {
-    /// endAddress property.
-    pub end_address: Option<String>,
-    /// note property.
-    pub note: Option<String>,
-    /// startAddress property.
-    pub start_address: Option<String>,
-}
-
-/// `VlanAttachment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VlanAttachment {
-    /// id property.
-    pub id: Option<String>,
-    /// interconnectAttachment property.
-    pub interconnect_attachment: Option<String>,
-    /// pairingKey property.
-    pub pairing_key: Option<String>,
-    /// peerIp property.
-    pub peer_ip: Option<String>,
-    /// peerVlanId property.
-    pub peer_vlan_id: Option<String>,
-    /// qosPolicy property.
-    pub qos_policy: Option<QosPolicy>,
-    /// routerIp property.
-    pub router_ip: Option<String>,
-}
-
-/// `Lun` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Lun {
-    /// bootLun property.
-    pub boot_lun: Option<bool>,
-    /// expireTime property.
-    pub expire_time: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// instances property.
-    pub instances: Option<Vec<String>>,
-    /// multiprotocolType property.
-    pub multiprotocol_type: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// shareable property.
-    pub shareable: Option<bool>,
-    /// sizeGb property.
-    pub size_gb: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// storageType property.
-    pub storage_type: Option<String>,
-    /// storageVolume property.
-    pub storage_volume: Option<String>,
-    /// wwid property.
-    pub wwid: Option<String>,
-}
-
 /// `QosPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QosPolicy {
     /// bandwidthGbps property.
     pub bandwidth_gbps: Option<f64>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `LogicalNetworkInterface` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LogicalNetworkInterface {
-    /// defaultGateway property.
-    pub default_gateway: Option<bool>,
-    /// id property.
-    pub id: Option<String>,
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// network property.
-    pub network: Option<String>,
-    /// networkType property.
-    pub network_type: Option<String>,
 }
 
 /// `Volume` type.
@@ -290,6 +99,163 @@ pub struct Volume {
     pub workload_profile: Option<String>,
 }
 
+/// `Lun` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Lun {
+    /// bootLun property.
+    pub boot_lun: Option<bool>,
+    /// expireTime property.
+    pub expire_time: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// instances property.
+    pub instances: Option<Vec<String>>,
+    /// multiprotocolType property.
+    pub multiprotocol_type: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// shareable property.
+    pub shareable: Option<bool>,
+    /// sizeGb property.
+    pub size_gb: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// storageType property.
+    pub storage_type: Option<String>,
+    /// storageVolume property.
+    pub storage_volume: Option<String>,
+    /// wwid property.
+    pub wwid: Option<String>,
+}
+
+/// `VlanAttachment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VlanAttachment {
+    /// id property.
+    pub id: Option<String>,
+    /// interconnectAttachment property.
+    pub interconnect_attachment: Option<String>,
+    /// pairingKey property.
+    pub pairing_key: Option<String>,
+    /// peerIp property.
+    pub peer_ip: Option<String>,
+    /// peerVlanId property.
+    pub peer_vlan_id: Option<String>,
+    /// qosPolicy property.
+    pub qos_policy: Option<QosPolicy>,
+    /// routerIp property.
+    pub router_ip: Option<String>,
+}
+
+/// `SnapshotReservationDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SnapshotReservationDetail {
+    /// reservedSpaceGib property.
+    pub reserved_space_gib: Option<String>,
+    /// reservedSpacePercent property.
+    pub reserved_space_percent: Option<i64>,
+    /// reservedSpaceRemainingGib property.
+    pub reserved_space_remaining_gib: Option<String>,
+    /// reservedSpaceUsedPercent property.
+    pub reserved_space_used_percent: Option<i64>,
+}
+
+/// `VRF` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VRF {
+    /// name property.
+    pub name: Option<String>,
+    /// qosPolicy property.
+    pub qos_policy: Option<QosPolicy>,
+    /// state property.
+    pub state: Option<String>,
+    /// vlanAttachments property.
+    pub vlan_attachments: Option<Vec<VlanAttachment>>,
+}
+
+/// `NetworkMountPoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkMountPoint {
+    /// defaultGateway property.
+    pub default_gateway: Option<bool>,
+    /// instance property.
+    pub instance: Option<String>,
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// logicalInterface property.
+    pub logical_interface: Option<String>,
+}
+
+/// `SSHKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SSHKey {
+    /// name property.
+    pub name: Option<String>,
+    /// publicKey property.
+    pub public_key: Option<String>,
+}
+
+/// `ListInstancesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListInstancesResponse {
+    /// instances property.
+    pub instances: Option<Vec<Instance>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `Network` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Network {
+    /// cidr property.
+    pub cidr: Option<String>,
+    /// gatewayIp property.
+    pub gateway_ip: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// jumboFramesEnabled property.
+    pub jumbo_frames_enabled: Option<bool>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// macAddress property.
+    pub mac_address: Option<Vec<String>>,
+    /// mountPoints property.
+    pub mount_points: Option<Vec<NetworkMountPoint>>,
+    /// name property.
+    pub name: Option<String>,
+    /// pod property.
+    pub pod: Option<String>,
+    /// reservations property.
+    pub reservations: Option<Vec<NetworkAddressReservation>>,
+    /// servicesCidr property.
+    pub services_cidr: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// vlanId property.
+    pub vlan_id: Option<String>,
+    /// vrf property.
+    pub vrf: Option<VRF>,
+    /// vrfAttachment property.
+    pub vrf_attachment: Option<String>,
+}
+
 /// `Instance` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Instance {
@@ -335,6 +301,41 @@ pub struct Instance {
     pub volumes: Option<Vec<Volume>>,
     /// workloadProfile property.
     pub workload_profile: Option<String>,
+}
+
+/// `LoadInstanceAuthInfoResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoadInstanceAuthInfoResponse {
+    /// sshKeys property.
+    pub ssh_keys: Option<Vec<SSHKey>>,
+    /// userAccounts property.
+    pub user_accounts: Option<serde_json::Value>,
+}
+
+/// `LogicalNetworkInterface` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogicalNetworkInterface {
+    /// defaultGateway property.
+    pub default_gateway: Option<bool>,
+    /// id property.
+    pub id: Option<String>,
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// network property.
+    pub network: Option<String>,
+    /// networkType property.
+    pub network_type: Option<String>,
+}
+
+/// `NetworkAddressReservation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkAddressReservation {
+    /// endAddress property.
+    pub end_address: Option<String>,
+    /// note property.
+    pub note: Option<String>,
+    /// startAddress property.
+    pub start_address: Option<String>,
 }
 
 // =============================================================================

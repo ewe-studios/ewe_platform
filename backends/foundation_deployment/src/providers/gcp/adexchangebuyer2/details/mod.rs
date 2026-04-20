@@ -12,29 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `FilteredBidDetailRow` type.
+/// `MetricValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FilteredBidDetailRow {
-    /// bidCount property.
-    pub bid_count: Option<MetricValue>,
-    /// detail property.
-    pub detail: Option<String>,
-    /// detailId property.
-    pub detail_id: Option<i64>,
-    /// rowDimensions property.
-    pub row_dimensions: Option<RowDimensions>,
+pub struct MetricValue {
+    /// value property.
+    pub value: Option<String>,
+    /// variance property.
+    pub variance: Option<String>,
 }
 
 /// `RowDimensions` type.
@@ -66,13 +63,17 @@ pub struct TimeInterval {
     pub start_time: Option<String>,
 }
 
-/// `MetricValue` type.
+/// `FilteredBidDetailRow` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetricValue {
-    /// value property.
-    pub value: Option<String>,
-    /// variance property.
-    pub variance: Option<String>,
+pub struct FilteredBidDetailRow {
+    /// bidCount property.
+    pub bid_count: Option<MetricValue>,
+    /// detail property.
+    pub detail: Option<String>,
+    /// detailId property.
+    pub detail_id: Option<i64>,
+    /// rowDimensions property.
+    pub row_dimensions: Option<RowDimensions>,
 }
 
 // =============================================================================

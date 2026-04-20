@@ -12,20 +12,29 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
+use super::shared::GoogleCloudDiscoveryengineV1CmekConfig;
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudDiscoveryengineV1SingleRegionKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1SingleRegionKey {
+    /// kmsKey property.
+    pub kms_key: Option<String>,
+}
 
 /// `GoogleCloudDiscoveryengineV1IdentityMappingEntry` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,33 +49,6 @@ pub struct GoogleCloudDiscoveryengineV1IdentityMappingEntry {
     pub user_id: Option<String>,
 }
 
-/// `GoogleCloudDiscoveryengineV1IdentityMappingStore` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1IdentityMappingStore {
-    /// cmekConfig property.
-    pub cmek_config: Option<GoogleCloudDiscoveryengineV1CmekConfig>,
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1ListIdentityMappingStoresResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ListIdentityMappingStoresResponse {
-    /// identityMappingStores property.
-    pub identity_mapping_stores: Option<Vec<GoogleCloudDiscoveryengineV1IdentityMappingStore>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1SingleRegionKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SingleRegionKey {
-    /// kmsKey property.
-    pub kms_key: Option<String>,
-}
-
 /// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
@@ -78,6 +60,15 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
+/// `GoogleCloudDiscoveryengineV1ListIdentityMappingStoresResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1ListIdentityMappingStoresResponse {
+    /// identityMappingStores property.
+    pub identity_mapping_stores: Option<Vec<GoogleCloudDiscoveryengineV1IdentityMappingStore>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
 /// `GoogleCloudDiscoveryengineV1ListIdentityMappingsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ListIdentityMappingsResponse {
@@ -85,6 +76,17 @@ pub struct GoogleCloudDiscoveryengineV1ListIdentityMappingsResponse {
     pub identity_mapping_entries: Option<Vec<GoogleCloudDiscoveryengineV1IdentityMappingEntry>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1IdentityMappingStore` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1IdentityMappingStore {
+    /// cmekConfig property.
+    pub cmek_config: Option<GoogleCloudDiscoveryengineV1CmekConfig>,
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 // =============================================================================

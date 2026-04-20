@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,25 +22,17 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `SecurityPolicyUserDefinedField` type.
+/// `InstancesBulkInsertOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyUserDefinedField {
-    /// base property.
-    pub base: Option<String>,
-    /// mask property.
-    pub mask: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// offset property.
-    pub offset: Option<i64>,
-    /// size property.
-    pub size: Option<i64>,
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
 }
 
 /// `LocalizedMessage` type.
@@ -51,100 +44,16 @@ pub struct LocalizedMessage {
     pub message: Option<String>,
 }
 
-/// `SecurityPolicyRuleRateLimitOptionsThreshold` type.
+/// `SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyRuleRateLimitOptionsThreshold {
-    /// count property.
-    pub count: Option<i64>,
-    /// intervalSec property.
-    pub interval_sec: Option<i64>,
-}
-
-/// `SecurityPoliciesAggregatedList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPoliciesAggregatedList {
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<serde_json::Value>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// unreachables property.
-    pub unreachables: Option<Vec<String>>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `SecurityPolicyAdvancedOptionsConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyAdvancedOptionsConfig {
-    /// jsonCustomConfig property.
-    pub json_custom_config: Option<SecurityPolicyAdvancedOptionsConfigJsonCustomConfig>,
-    /// jsonParsing property.
-    pub json_parsing: Option<String>,
-    /// logLevel property.
-    pub log_level: Option<String>,
-    /// requestBodyInspectionSize property.
-    pub request_body_inspection_size: Option<String>,
-    /// userIpRequestHeaders property.
-    pub user_ip_request_headers: Option<Vec<String>>,
-}
-
-/// `SecurityPolicyRuleRateLimitOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyRuleRateLimitOptions {
-    /// banDurationSec property.
-    pub ban_duration_sec: Option<i64>,
-    /// banThreshold property.
-    pub ban_threshold: Option<SecurityPolicyRuleRateLimitOptionsThreshold>,
-    /// conformAction property.
-    pub conform_action: Option<String>,
-    /// enforceOnKey property.
-    pub enforce_on_key: Option<String>,
-    /// enforceOnKeyConfigs property.
-    pub enforce_on_key_configs: Option<Vec<SecurityPolicyRuleRateLimitOptionsEnforceOnKeyConfig>>,
-    /// enforceOnKeyName property.
-    pub enforce_on_key_name: Option<String>,
-    /// exceedAction property.
-    pub exceed_action: Option<String>,
-    /// exceedRedirectOptions property.
-    pub exceed_redirect_options: Option<SecurityPolicyRuleRedirectOptions>,
-    /// rateLimitThreshold property.
-    pub rate_limit_threshold: Option<SecurityPolicyRuleRateLimitOptionsThreshold>,
-}
-
-/// `SecurityPolicyRuleNetworkMatcherUserDefinedFieldMatch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyRuleNetworkMatcherUserDefinedFieldMatch {
-    /// name property.
-    pub name: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfigThresholdConfigTrafficGranularityConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfigThresholdConfigTrafficGranularityConfig
-{
-    /// enableEachUniqueValue property.
-    pub enable_each_unique_value: Option<bool>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `SecurityPolicyRuleHttpHeaderAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyRuleHttpHeaderAction {
-    /// requestHeadersToAdds property.
-    pub request_headers_to_adds: Option<Vec<SecurityPolicyRuleHttpHeaderActionHttpHeaderOption>>,
+pub struct SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfig {
+    /// enable property.
+    pub enable: Option<bool>,
+    /// ruleVisibility property.
+    pub rule_visibility: Option<String>,
+    /// thresholdConfigs property.
+    pub threshold_configs:
+        Option<Vec<SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfigThresholdConfig>>,
 }
 
 /// `SecurityPolicyAdvancedOptionsConfigJsonCustomConfig` type.
@@ -152,205 +61,6 @@ pub struct SecurityPolicyRuleHttpHeaderAction {
 pub struct SecurityPolicyAdvancedOptionsConfigJsonCustomConfig {
     /// contentTypes property.
     pub content_types: Option<Vec<String>>,
-}
-
-/// `SecurityPolicyRuleHttpHeaderActionHttpHeaderOption` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyRuleHttpHeaderActionHttpHeaderOption {
-    /// headerName property.
-    pub header_name: Option<String>,
-    /// headerValue property.
-    pub header_value: Option<String>,
-}
-
-/// `InstancesBulkInsertOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
-}
-
-/// `SecurityPolicyRuleMatcherExprOptionsRecaptchaOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyRuleMatcherExprOptionsRecaptchaOptions {
-    /// actionTokenSiteKeys property.
-    pub action_token_site_keys: Option<Vec<String>>,
-    /// sessionTokenSiteKeys property.
-    pub session_token_site_keys: Option<Vec<String>>,
-}
-
-/// `SecurityPolicyRulePreconfiguredWafConfigExclusionFieldParams` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyRulePreconfiguredWafConfigExclusionFieldParams {
-    /// op property.
-    pub op: Option<String>,
-    /// val property.
-    pub val: Option<String>,
-}
-
-/// `SecurityPolicyRuleNetworkMatcher` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyRuleNetworkMatcher {
-    /// destIpRanges property.
-    pub dest_ip_ranges: Option<Vec<String>>,
-    /// destPorts property.
-    pub dest_ports: Option<Vec<String>>,
-    /// ipProtocols property.
-    pub ip_protocols: Option<Vec<String>>,
-    /// srcAsns property.
-    pub src_asns: Option<Vec<i64>>,
-    /// srcIpRanges property.
-    pub src_ip_ranges: Option<Vec<String>>,
-    /// srcPorts property.
-    pub src_ports: Option<Vec<String>>,
-    /// srcRegionCodes property.
-    pub src_region_codes: Option<Vec<String>>,
-    /// userDefinedFields property.
-    pub user_defined_fields: Option<Vec<SecurityPolicyRuleNetworkMatcherUserDefinedFieldMatch>>,
-}
-
-/// `SecurityPolicyRuleRateLimitOptionsEnforceOnKeyConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyRuleRateLimitOptionsEnforceOnKeyConfig {
-    /// enforceOnKeyName property.
-    pub enforce_on_key_name: Option<String>,
-    /// enforceOnKeyType property.
-    pub enforce_on_key_type: Option<String>,
-}
-
-/// `HelpLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `SecurityPolicyRulePreconfiguredWafConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyRulePreconfiguredWafConfig {
-    /// exclusions property.
-    pub exclusions: Option<Vec<SecurityPolicyRulePreconfiguredWafConfigExclusion>>,
-}
-
-/// `ErrorInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `SecurityPolicyRuleMatcher` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyRuleMatcher {
-    /// config property.
-    pub config: Option<SecurityPolicyRuleMatcherConfig>,
-    /// expr property.
-    pub expr: Option<Expr>,
-    /// exprOptions property.
-    pub expr_options: Option<SecurityPolicyRuleMatcherExprOptions>,
-    /// versionedExpr property.
-    pub versioned_expr: Option<String>,
-}
-
-/// `SecurityPolicyList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<SecurityPolicy>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `SecurityPolicyRulePreconfiguredWafConfigExclusion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyRulePreconfiguredWafConfigExclusion {
-    /// requestCookiesToExclude property.
-    pub request_cookies_to_exclude:
-        Option<Vec<SecurityPolicyRulePreconfiguredWafConfigExclusionFieldParams>>,
-    /// requestHeadersToExclude property.
-    pub request_headers_to_exclude:
-        Option<Vec<SecurityPolicyRulePreconfiguredWafConfigExclusionFieldParams>>,
-    /// requestQueryParamsToExclude property.
-    pub request_query_params_to_exclude:
-        Option<Vec<SecurityPolicyRulePreconfiguredWafConfigExclusionFieldParams>>,
-    /// requestUrisToExclude property.
-    pub request_uris_to_exclude:
-        Option<Vec<SecurityPolicyRulePreconfiguredWafConfigExclusionFieldParams>>,
-    /// targetRuleIds property.
-    pub target_rule_ids: Option<Vec<String>>,
-    /// targetRuleSet property.
-    pub target_rule_set: Option<String>,
-}
-
-/// `SecurityPolicyAdaptiveProtectionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyAdaptiveProtectionConfig {
-    /// layer7DdosDefenseConfig property.
-    pub layer7_ddos_defense_config:
-        Option<SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfig>,
-}
-
-/// `SecurityPolicyDdosProtectionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyDdosProtectionConfig {
-    /// ddosProtection property.
-    pub ddos_protection: Option<String>,
-}
-
-/// `SecurityPolicyRecaptchaOptionsConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyRecaptchaOptionsConfig {
-    /// redirectSiteKey property.
-    pub redirect_site_key: Option<String>,
-}
-
-/// `Help` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
-}
-
-/// `QuotaExceededInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotaExceededInfo {
-    /// dimensions property.
-    pub dimensions: Option<serde_json::Value>,
-    /// futureLimit property.
-    pub future_limit: Option<f64>,
-    /// limit property.
-    pub limit: Option<f64>,
-    /// limitName property.
-    pub limit_name: Option<String>,
-    /// metricName property.
-    pub metric_name: Option<String>,
-    /// rolloutStatus property.
-    pub rollout_status: Option<String>,
 }
 
 /// `SecurityPolicy` type.
@@ -398,55 +108,25 @@ pub struct SecurityPolicy {
     pub user_defined_fields: Option<Vec<SecurityPolicyUserDefinedField>>,
 }
 
-/// `SecurityPolicyRuleMatcherExprOptions` type.
+/// `SecurityPolicyRuleMatcher` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyRuleMatcherExprOptions {
-    /// recaptchaOptions property.
-    pub recaptcha_options: Option<SecurityPolicyRuleMatcherExprOptionsRecaptchaOptions>,
+pub struct SecurityPolicyRuleMatcher {
+    /// config property.
+    pub config: Option<SecurityPolicyRuleMatcherConfig>,
+    /// expr property.
+    pub expr: Option<Expr>,
+    /// exprOptions property.
+    pub expr_options: Option<SecurityPolicyRuleMatcherExprOptions>,
+    /// versionedExpr property.
+    pub versioned_expr: Option<String>,
 }
 
-/// `GetVersionOperationMetadataSbomInfo` type.
+/// `SecurityPolicyAdaptiveProtectionConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
-}
-
-/// `SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfigThresholdConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfigThresholdConfig {
-    /// autoDeployConfidenceThreshold property.
-    pub auto_deploy_confidence_threshold: Option<f64>,
-    /// autoDeployExpirationSec property.
-    pub auto_deploy_expiration_sec: Option<i64>,
-    /// autoDeployImpactedBaselineThreshold property.
-    pub auto_deploy_impacted_baseline_threshold: Option<f64>,
-    /// autoDeployLoadThreshold property.
-    pub auto_deploy_load_threshold: Option<f64>,
-    /// detectionAbsoluteQps property.
-    pub detection_absolute_qps: Option<f64>,
-    /// detectionLoadThreshold property.
-    pub detection_load_threshold: Option<f64>,
-    /// detectionRelativeToBaselineQps property.
-    pub detection_relative_to_baseline_qps: Option<f64>,
-    /// name property.
-    pub name: Option<String>,
-    /// trafficGranularityConfigs property.
-    pub traffic_granularity_configs: Option<Vec<SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfigThresholdConfigTrafficGranularityConfig>>,
-}
-
-/// `SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfig {
-    /// enable property.
-    pub enable: Option<bool>,
-    /// ruleVisibility property.
-    pub rule_visibility: Option<String>,
-    /// thresholdConfigs property.
-    pub threshold_configs:
-        Option<Vec<SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfigThresholdConfig>>,
+pub struct SecurityPolicyAdaptiveProtectionConfig {
+    /// layer7DdosDefenseConfig property.
+    pub layer7_ddos_defense_config:
+        Option<SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfig>,
 }
 
 /// `SecurityPolicyAssociation` type.
@@ -468,29 +148,52 @@ pub struct SecurityPolicyAssociation {
     pub short_name: Option<String>,
 }
 
-/// `SetCommonInstanceMetadataOperationMetadata` type.
+/// `SecurityPolicyRuleRateLimitOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetCommonInstanceMetadataOperationMetadata {
-    /// clientOperationId property.
-    pub client_operation_id: Option<String>,
-    /// perLocationOperations property.
-    pub per_location_operations: Option<serde_json::Value>,
+pub struct SecurityPolicyRuleRateLimitOptions {
+    /// banDurationSec property.
+    pub ban_duration_sec: Option<i64>,
+    /// banThreshold property.
+    pub ban_threshold: Option<SecurityPolicyRuleRateLimitOptionsThreshold>,
+    /// conformAction property.
+    pub conform_action: Option<String>,
+    /// enforceOnKey property.
+    pub enforce_on_key: Option<String>,
+    /// enforceOnKeyConfigs property.
+    pub enforce_on_key_configs: Option<Vec<SecurityPolicyRuleRateLimitOptionsEnforceOnKeyConfig>>,
+    /// enforceOnKeyName property.
+    pub enforce_on_key_name: Option<String>,
+    /// exceedAction property.
+    pub exceed_action: Option<String>,
+    /// exceedRedirectOptions property.
+    pub exceed_redirect_options: Option<SecurityPolicyRuleRedirectOptions>,
+    /// rateLimitThreshold property.
+    pub rate_limit_threshold: Option<SecurityPolicyRuleRateLimitOptionsThreshold>,
 }
 
-/// `SecurityPolicyRuleRedirectOptions` type.
+/// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyRuleRedirectOptions {
-    /// target property.
-    pub target: Option<String>,
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfigThresholdConfigTrafficGranularityConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfigThresholdConfigTrafficGranularityConfig
+{
+    /// enableEachUniqueValue property.
+    pub enable_each_unique_value: Option<bool>,
     /// type property.
     pub r#type: Option<String>,
-}
-
-/// `SecurityPolicyRuleMatcherConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicyRuleMatcherConfig {
-    /// srcIpRanges property.
-    pub src_ip_ranges: Option<Vec<String>>,
+    /// value property.
+    pub value: Option<String>,
 }
 
 /// `GetVersionOperationMetadata` type.
@@ -498,6 +201,76 @@ pub struct SecurityPolicyRuleMatcherConfig {
 pub struct GetVersionOperationMetadata {
     /// inlineSbomInfo property.
     pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+}
+
+/// `GetVersionOperationMetadataSbomInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
+}
+
+/// `SecurityPolicyRulePreconfiguredWafConfigExclusionFieldParams` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPolicyRulePreconfiguredWafConfigExclusionFieldParams {
+    /// op property.
+    pub op: Option<String>,
+    /// val property.
+    pub val: Option<String>,
+}
+
+/// `SecurityPolicyList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPolicyList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<SecurityPolicy>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `SecurityPolicyRuleMatcherExprOptionsRecaptchaOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPolicyRuleMatcherExprOptionsRecaptchaOptions {
+    /// actionTokenSiteKeys property.
+    pub action_token_site_keys: Option<Vec<String>>,
+    /// sessionTokenSiteKeys property.
+    pub session_token_site_keys: Option<Vec<String>>,
+}
+
+/// `SecurityPolicyRuleMatcherExprOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPolicyRuleMatcherExprOptions {
+    /// recaptchaOptions property.
+    pub recaptcha_options: Option<SecurityPolicyRuleMatcherExprOptionsRecaptchaOptions>,
+}
+
+/// `SecurityPoliciesAggregatedList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPoliciesAggregatedList {
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<serde_json::Value>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// unreachables property.
+    pub unreachables: Option<Vec<String>>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `SecurityPolicyRule` type.
@@ -525,6 +298,234 @@ pub struct SecurityPolicyRule {
     pub rate_limit_options: Option<SecurityPolicyRuleRateLimitOptions>,
     /// redirectOptions property.
     pub redirect_options: Option<SecurityPolicyRuleRedirectOptions>,
+}
+
+/// `SecurityPolicyUserDefinedField` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPolicyUserDefinedField {
+    /// base property.
+    pub base: Option<String>,
+    /// mask property.
+    pub mask: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// offset property.
+    pub offset: Option<i64>,
+    /// size property.
+    pub size: Option<i64>,
+}
+
+/// `SecurityPolicyRuleMatcherConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPolicyRuleMatcherConfig {
+    /// srcIpRanges property.
+    pub src_ip_ranges: Option<Vec<String>>,
+}
+
+/// `SecurityPolicyRuleNetworkMatcher` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPolicyRuleNetworkMatcher {
+    /// destIpRanges property.
+    pub dest_ip_ranges: Option<Vec<String>>,
+    /// destPorts property.
+    pub dest_ports: Option<Vec<String>>,
+    /// ipProtocols property.
+    pub ip_protocols: Option<Vec<String>>,
+    /// srcAsns property.
+    pub src_asns: Option<Vec<i64>>,
+    /// srcIpRanges property.
+    pub src_ip_ranges: Option<Vec<String>>,
+    /// srcPorts property.
+    pub src_ports: Option<Vec<String>>,
+    /// srcRegionCodes property.
+    pub src_region_codes: Option<Vec<String>>,
+    /// userDefinedFields property.
+    pub user_defined_fields: Option<Vec<SecurityPolicyRuleNetworkMatcherUserDefinedFieldMatch>>,
+}
+
+/// `HelpLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `SecurityPolicyRuleRedirectOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPolicyRuleRedirectOptions {
+    /// target property.
+    pub target: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `Help` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
+}
+
+/// `SecurityPolicyAdvancedOptionsConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPolicyAdvancedOptionsConfig {
+    /// jsonCustomConfig property.
+    pub json_custom_config: Option<SecurityPolicyAdvancedOptionsConfigJsonCustomConfig>,
+    /// jsonParsing property.
+    pub json_parsing: Option<String>,
+    /// logLevel property.
+    pub log_level: Option<String>,
+    /// requestBodyInspectionSize property.
+    pub request_body_inspection_size: Option<String>,
+    /// userIpRequestHeaders property.
+    pub user_ip_request_headers: Option<Vec<String>>,
+}
+
+/// `SecurityPolicyRulePreconfiguredWafConfigExclusion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPolicyRulePreconfiguredWafConfigExclusion {
+    /// requestCookiesToExclude property.
+    pub request_cookies_to_exclude:
+        Option<Vec<SecurityPolicyRulePreconfiguredWafConfigExclusionFieldParams>>,
+    /// requestHeadersToExclude property.
+    pub request_headers_to_exclude:
+        Option<Vec<SecurityPolicyRulePreconfiguredWafConfigExclusionFieldParams>>,
+    /// requestQueryParamsToExclude property.
+    pub request_query_params_to_exclude:
+        Option<Vec<SecurityPolicyRulePreconfiguredWafConfigExclusionFieldParams>>,
+    /// requestUrisToExclude property.
+    pub request_uris_to_exclude:
+        Option<Vec<SecurityPolicyRulePreconfiguredWafConfigExclusionFieldParams>>,
+    /// targetRuleIds property.
+    pub target_rule_ids: Option<Vec<String>>,
+    /// targetRuleSet property.
+    pub target_rule_set: Option<String>,
+}
+
+/// `SecurityPolicyRuleHttpHeaderActionHttpHeaderOption` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPolicyRuleHttpHeaderActionHttpHeaderOption {
+    /// headerName property.
+    pub header_name: Option<String>,
+    /// headerValue property.
+    pub header_value: Option<String>,
+}
+
+/// `SecurityPolicyRecaptchaOptionsConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPolicyRecaptchaOptionsConfig {
+    /// redirectSiteKey property.
+    pub redirect_site_key: Option<String>,
+}
+
+/// `SetCommonInstanceMetadataOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetCommonInstanceMetadataOperationMetadata {
+    /// clientOperationId property.
+    pub client_operation_id: Option<String>,
+    /// perLocationOperations property.
+    pub per_location_operations: Option<serde_json::Value>,
+}
+
+/// `ErrorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `SecurityPolicyRulePreconfiguredWafConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPolicyRulePreconfiguredWafConfig {
+    /// exclusions property.
+    pub exclusions: Option<Vec<SecurityPolicyRulePreconfiguredWafConfigExclusion>>,
+}
+
+/// `SecurityPolicyRuleHttpHeaderAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPolicyRuleHttpHeaderAction {
+    /// requestHeadersToAdds property.
+    pub request_headers_to_adds: Option<Vec<SecurityPolicyRuleHttpHeaderActionHttpHeaderOption>>,
+}
+
+/// `SecurityPolicyDdosProtectionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPolicyDdosProtectionConfig {
+    /// ddosProtection property.
+    pub ddos_protection: Option<String>,
+}
+
+/// `SecurityPolicyRuleRateLimitOptionsEnforceOnKeyConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPolicyRuleRateLimitOptionsEnforceOnKeyConfig {
+    /// enforceOnKeyName property.
+    pub enforce_on_key_name: Option<String>,
+    /// enforceOnKeyType property.
+    pub enforce_on_key_type: Option<String>,
+}
+
+/// `SecurityPolicyRuleNetworkMatcherUserDefinedFieldMatch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPolicyRuleNetworkMatcherUserDefinedFieldMatch {
+    /// name property.
+    pub name: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfigThresholdConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfigThresholdConfig {
+    /// autoDeployConfidenceThreshold property.
+    pub auto_deploy_confidence_threshold: Option<f64>,
+    /// autoDeployExpirationSec property.
+    pub auto_deploy_expiration_sec: Option<i64>,
+    /// autoDeployImpactedBaselineThreshold property.
+    pub auto_deploy_impacted_baseline_threshold: Option<f64>,
+    /// autoDeployLoadThreshold property.
+    pub auto_deploy_load_threshold: Option<f64>,
+    /// detectionAbsoluteQps property.
+    pub detection_absolute_qps: Option<f64>,
+    /// detectionLoadThreshold property.
+    pub detection_load_threshold: Option<f64>,
+    /// detectionRelativeToBaselineQps property.
+    pub detection_relative_to_baseline_qps: Option<f64>,
+    /// name property.
+    pub name: Option<String>,
+    /// trafficGranularityConfigs property.
+    pub traffic_granularity_configs: Option<Vec<SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfigThresholdConfigTrafficGranularityConfig>>,
+}
+
+/// `SecurityPolicyRuleRateLimitOptionsThreshold` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPolicyRuleRateLimitOptionsThreshold {
+    /// count property.
+    pub count: Option<i64>,
+    /// intervalSec property.
+    pub interval_sec: Option<i64>,
+}
+
+/// `QuotaExceededInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuotaExceededInfo {
+    /// dimensions property.
+    pub dimensions: Option<serde_json::Value>,
+    /// futureLimit property.
+    pub future_limit: Option<f64>,
+    /// limit property.
+    pub limit: Option<f64>,
+    /// limitName property.
+    pub limit_name: Option<String>,
+    /// metricName property.
+    pub metric_name: Option<String>,
+    /// rolloutStatus property.
+    pub rollout_status: Option<String>,
 }
 
 // =============================================================================

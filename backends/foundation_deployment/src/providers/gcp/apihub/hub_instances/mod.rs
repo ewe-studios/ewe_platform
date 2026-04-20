@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -38,19 +39,11 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `GoogleCloudApihubV1Config` type.
+/// `GoogleCloudApihubV1AgentRegistrySyncConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1Config {
-    /// agentRegistrySyncConfig property.
-    pub agent_registry_sync_config: Option<GoogleCloudApihubV1AgentRegistrySyncConfig>,
-    /// cmekKeyName property.
-    pub cmek_key_name: Option<String>,
-    /// disableSearch property.
-    pub disable_search: Option<bool>,
-    /// encryptionType property.
-    pub encryption_type: Option<String>,
-    /// vertexLocation property.
-    pub vertex_location: Option<String>,
+pub struct GoogleCloudApihubV1AgentRegistrySyncConfig {
+    /// disabled property.
+    pub disabled: Option<bool>,
 }
 
 /// `GoogleCloudApihubV1ApiHubInstance` type.
@@ -74,11 +67,19 @@ pub struct GoogleCloudApihubV1ApiHubInstance {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudApihubV1AgentRegistrySyncConfig` type.
+/// `GoogleCloudApihubV1Config` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1AgentRegistrySyncConfig {
-    /// disabled property.
-    pub disabled: Option<bool>,
+pub struct GoogleCloudApihubV1Config {
+    /// agentRegistrySyncConfig property.
+    pub agent_registry_sync_config: Option<GoogleCloudApihubV1AgentRegistrySyncConfig>,
+    /// cmekKeyName property.
+    pub cmek_key_name: Option<String>,
+    /// disableSearch property.
+    pub disable_search: Option<bool>,
+    /// encryptionType property.
+    pub encryption_type: Option<String>,
+    /// vertexLocation property.
+    pub vertex_location: Option<String>,
 }
 
 // =============================================================================

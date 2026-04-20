@@ -12,63 +12,28 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Annotationsdata` type.
+/// `Geolayerdata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Annotationsdata {
-    /// items property.
-    pub items: Option<Vec<GeoAnnotationdata>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// totalItems property.
-    pub total_items: Option<i64>,
-}
-
-/// `Dictlayerdata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Dictlayerdata {
+pub struct Geolayerdata {
     /// common property.
     pub common: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// dict property.
-    pub dict: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// geo property.
+    pub geo: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// kind property.
     pub kind: Option<String>,
-}
-
-/// `GeoAnnotationdata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeoAnnotationdata {
-    /// annotationType property.
-    pub annotation_type: Option<String>,
-    /// data property.
-    pub data: Option<Geolayerdata>,
-    /// encodedData property.
-    pub encoded_data: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// layerId property.
-    pub layer_id: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// updated property.
-    pub updated: Option<String>,
-    /// volumeId property.
-    pub volume_id: Option<String>,
 }
 
 /// `DictionaryAnnotationdata` type.
@@ -94,15 +59,51 @@ pub struct DictionaryAnnotationdata {
     pub volume_id: Option<String>,
 }
 
-/// `Geolayerdata` type.
+/// `Dictlayerdata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Geolayerdata {
+pub struct Dictlayerdata {
     /// common property.
     pub common: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// geo property.
-    pub geo: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// dict property.
+    pub dict: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// kind property.
     pub kind: Option<String>,
+}
+
+/// `Annotationsdata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Annotationsdata {
+    /// items property.
+    pub items: Option<Vec<GeoAnnotationdata>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// totalItems property.
+    pub total_items: Option<i64>,
+}
+
+/// `GeoAnnotationdata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GeoAnnotationdata {
+    /// annotationType property.
+    pub annotation_type: Option<String>,
+    /// data property.
+    pub data: Option<Geolayerdata>,
+    /// encodedData property.
+    pub encoded_data: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// layerId property.
+    pub layer_id: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// updated property.
+    pub updated: Option<String>,
+    /// volumeId property.
+    pub volume_id: Option<String>,
 }
 
 // =============================================================================

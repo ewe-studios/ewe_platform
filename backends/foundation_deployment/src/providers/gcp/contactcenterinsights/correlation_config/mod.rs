@@ -12,30 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudContactcenterinsightsV1CorrelationRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1CorrelationRule {
-    /// active property.
-    pub active: Option<bool>,
-    /// constraintExpression property.
-    pub constraint_expression: Option<String>,
-    /// joinKeyExpression property.
-    pub join_key_expression: Option<String>,
-    /// ruleId property.
-    pub rule_id: Option<String>,
-}
 
 /// `GoogleCloudContactcenterinsightsV1CorrelationTypeConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -55,6 +43,19 @@ pub struct GoogleCloudContactcenterinsightsV1CorrelationConfig {
     pub name: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1CorrelationRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1CorrelationRule {
+    /// active property.
+    pub active: Option<bool>,
+    /// constraintExpression property.
+    pub constraint_expression: Option<String>,
+    /// joinKeyExpression property.
+    pub join_key_expression: Option<String>,
+    /// ruleId property.
+    pub rule_id: Option<String>,
 }
 
 // =============================================================================

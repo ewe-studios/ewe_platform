@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -24,89 +25,9 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `CallsAppEditableFields` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CallsAppEditableFields {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `CallsAppResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CallsAppResponseCollection {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CallsAppResponseSingle` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CallsAppResponseSingle {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CallsAppResponseSingleWithSecret` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CallsAppResponseSingleWithSecret {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CallsTurnKeyCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CallsTurnKeyCollection {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CallsTurnKeyEditableFields` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CallsTurnKeyEditableFields {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CallsTurnKeyResponseSingle` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CallsTurnKeyResponseSingle {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CallsTurnKeySingleWithSecret` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CallsTurnKeySingleWithSecret {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ImagesDeletedResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImagesDeletedResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ImagesImageDirectUploadResponseV2` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImagesImageDirectUploadResponseV2 {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ImagesImageKeyResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImagesImageKeyResponseCollection {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -120,41 +41,9 @@ pub struct ImagesImagePatchRequest {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `ImagesImageResponseSingle` response type.
+/// `RealtimekitWebhooksListSuccessResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImagesImageResponseSingle {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ImagesImageVariantDefinition` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImagesImageVariantDefinition {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ImagesImageVariantFlatResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImagesImageVariantFlatResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ImagesImageVariantListResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImagesImageVariantListResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ImagesImageVariantPatchRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImagesImageVariantPatchRequest {
+pub struct RealtimekitWebhooksListSuccessResponse {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -168,9 +57,17 @@ pub struct ImagesImageVariantSimpleResponse {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `ImagesImagesListResponseV2` response type.
+/// `RealtimekitPatchWebhookRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImagesImagesListResponseV2 {
+pub struct RealtimekitPatchWebhookRequest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamVideoResponseCollection` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StreamVideoResponseCollection {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -184,17 +81,41 @@ pub struct ImagesImagesStatsResponse {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `RealtimekitPatchWebhookRequest` response type.
+/// `CallsTurnKeyEditableFields` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitPatchWebhookRequest {
+pub struct CallsTurnKeyEditableFields {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `RealtimekitWebhookRequest` response type.
+/// `ImagesImageVariantListResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitWebhookRequest {
+pub struct ImagesImageVariantListResponse {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CallsTurnKeyResponseSingle` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CallsTurnKeyResponseSingle {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ImagesImageResponseSingle` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImagesImageResponseSingle {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ImagesImagesListResponseV2` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImagesImagesListResponseV2 {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -208,17 +129,97 @@ pub struct RealtimekitWebhookSuccessResponse {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `RealtimekitWebhooksListSuccessResponse` response type.
+/// `ImagesDeletedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitWebhooksListSuccessResponse {
+pub struct ImagesDeletedResponse {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamVideoResponseCollection` response type.
+/// `CallsTurnKeyCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StreamVideoResponseCollection {
+pub struct CallsTurnKeyCollection {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ImagesImageDirectUploadResponseV2` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImagesImageDirectUploadResponseV2 {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RealtimekitWebhookRequest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RealtimekitWebhookRequest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CallsAppResponseSingle` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CallsAppResponseSingle {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ImagesImageVariantDefinition` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImagesImageVariantDefinition {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CallsAppResponseSingleWithSecret` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CallsAppResponseSingleWithSecret {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ImagesImageVariantPatchRequest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImagesImageVariantPatchRequest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ImagesImageVariantFlatResponse` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImagesImageVariantFlatResponse {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CallsAppEditableFields` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CallsAppEditableFields {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CallsTurnKeySingleWithSecret` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CallsTurnKeySingleWithSecret {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ImagesImageKeyResponseCollection` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImagesImageKeyResponseCollection {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -1271,7 +1272,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -1355,7 +1358,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -1439,7 +1444,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -1523,7 +1530,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -1607,7 +1616,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -1691,7 +1702,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -1775,7 +1788,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -1859,7 +1874,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -1943,7 +1960,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2027,7 +2046,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2111,7 +2132,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2195,7 +2218,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2213,8 +2238,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: CallsAppResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: CallsAppResponseCollection =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -2287,7 +2314,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2306,7 +2335,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: CallsAppResponseSingleWithSecret = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -2375,7 +2406,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2393,8 +2426,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: CallsAppResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: CallsAppResponseSingle =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -2467,7 +2502,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2485,8 +2522,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: CallsAppResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: CallsAppResponseSingle =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -2555,7 +2594,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2573,8 +2614,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: CallsAppResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: CallsAppResponseSingle =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -2643,7 +2686,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2661,8 +2706,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: CallsTurnKeyCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: CallsTurnKeyCollection =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -2735,7 +2782,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2753,8 +2802,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: CallsTurnKeySingleWithSecret = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: CallsTurnKeySingleWithSecret =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -2823,7 +2874,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2841,8 +2894,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: CallsTurnKeyResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: CallsTurnKeyResponseSingle =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -2915,7 +2970,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2933,8 +2990,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: CallsTurnKeyResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: CallsTurnKeyResponseSingle =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -3003,7 +3062,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3021,8 +3082,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: CallsTurnKeyResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: CallsTurnKeyResponseSingle =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -3091,7 +3154,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3109,8 +3174,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ImagesImageResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: ImagesImageResponseSingle =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -3179,7 +3246,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3198,7 +3267,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: ImagesImageKeyResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -3267,7 +3338,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3286,7 +3359,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: ImagesImageKeyResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -3355,7 +3430,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3374,7 +3451,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: ImagesImageKeyResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -3443,7 +3522,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3461,8 +3542,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ImagesImagesStatsResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: ImagesImagesStatsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -3531,7 +3614,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3549,8 +3634,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ImagesImageVariantListResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: ImagesImageVariantListResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -3623,7 +3710,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3642,7 +3731,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: ImagesImageVariantSimpleResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -3711,7 +3802,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3730,7 +3823,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: ImagesImageVariantSimpleResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -3803,7 +3898,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3822,7 +3919,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: ImagesImageVariantSimpleResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -3891,7 +3990,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3909,8 +4010,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ImagesDeletedResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: ImagesDeletedResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -3979,7 +4082,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3997,8 +4102,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ImagesImageVariantFlatResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: ImagesImageVariantFlatResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -4067,7 +4174,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -4085,8 +4194,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ImagesImageResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: ImagesImageResponseSingle =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -4159,7 +4270,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -4177,8 +4290,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ImagesImageResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: ImagesImageResponseSingle =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -4247,7 +4362,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -4265,8 +4382,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ImagesDeletedResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: ImagesDeletedResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -4335,7 +4454,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4419,7 +4540,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -4437,8 +4560,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ImagesImagesListResponseV2 = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: ImagesImagesListResponseV2 =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -4507,7 +4632,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -4526,7 +4653,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: ImagesImageDirectUploadResponseV2 = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -4595,7 +4724,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4679,7 +4810,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4763,7 +4896,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4848,7 +4983,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4932,7 +5069,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5016,7 +5155,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5100,7 +5241,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5186,7 +5329,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5270,7 +5415,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5354,7 +5501,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5438,7 +5587,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5522,7 +5673,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5606,7 +5759,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5690,7 +5845,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5774,7 +5931,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5860,7 +6019,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5945,7 +6106,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6030,7 +6193,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6115,7 +6280,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6200,7 +6367,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6285,7 +6454,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6369,7 +6540,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6453,7 +6626,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6537,7 +6712,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6621,7 +6798,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6706,7 +6885,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6791,7 +6972,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6876,7 +7059,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6963,7 +7148,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7047,7 +7234,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7131,7 +7320,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7215,7 +7406,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7299,7 +7492,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7383,7 +7578,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7467,7 +7664,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7551,7 +7750,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7637,7 +7838,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7721,7 +7924,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7805,7 +8010,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7889,7 +8096,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7973,7 +8182,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -8057,7 +8268,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -8141,7 +8354,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -8227,7 +8442,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -8311,7 +8528,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -8398,7 +8617,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -8482,7 +8703,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -8566,7 +8789,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -8650,7 +8875,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -8737,7 +8964,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -8756,7 +8985,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: RealtimekitWebhooksListSuccessResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -8829,7 +9060,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -8848,7 +9081,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: RealtimekitWebhookSuccessResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -8917,7 +9152,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -8936,7 +9173,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: RealtimekitWebhookSuccessResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -9009,7 +9248,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -9028,7 +9269,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: RealtimekitWebhookSuccessResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -9101,7 +9344,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -9120,7 +9365,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: RealtimekitWebhookSuccessResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -9189,7 +9436,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -9208,7 +9457,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: RealtimekitWebhookSuccessResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -9277,7 +9528,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -9295,8 +9548,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: StreamVideoResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: StreamVideoResponseCollection =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -9365,7 +9620,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -9444,7 +9701,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,

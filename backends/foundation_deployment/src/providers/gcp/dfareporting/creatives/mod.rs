@@ -12,17 +12,64 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `UniversalAdId` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UniversalAdId {
+    /// registry property.
+    pub registry: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `ClickTag` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClickTag {
+    /// clickThroughUrl property.
+    pub click_through_url: Option<CreativeClickThroughUrl>,
+    /// eventName property.
+    pub event_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `DimensionValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DimensionValue {
+    /// dimensionName property.
+    pub dimension_name: Option<String>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// matchType property.
+    pub match_type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `TargetWindow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TargetWindow {
+    /// customHtml property.
+    pub custom_html: Option<String>,
+    /// targetWindowOption property.
+    pub target_window_option: Option<String>,
+}
 
 /// `Size` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -37,6 +84,137 @@ pub struct Size {
     pub kind: Option<String>,
     /// width property.
     pub width: Option<i64>,
+}
+
+/// `StudioCreative` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StudioCreative {
+    /// assetIds property.
+    pub asset_ids: Option<Vec<String>>,
+    /// backupImageAssetId property.
+    pub backup_image_asset_id: Option<String>,
+    /// createdInfo property.
+    pub created_info: Option<LastModifiedInfo>,
+    /// dimension property.
+    pub dimension: Option<StudioCreativeDimension>,
+    /// dynamicProfileId property.
+    pub dynamic_profile_id: Option<String>,
+    /// format property.
+    pub format: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// lastModifiedInfo property.
+    pub last_modified_info: Option<LastModifiedInfo>,
+    /// name property.
+    pub name: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+    /// studioAccountId property.
+    pub studio_account_id: Option<String>,
+    /// studioAdvertiserId property.
+    pub studio_advertiser_id: Option<String>,
+    /// studioCampaignId property.
+    pub studio_campaign_id: Option<String>,
+}
+
+/// `ObaIcon` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ObaIcon {
+    /// iconClickThroughUrl property.
+    pub icon_click_through_url: Option<String>,
+    /// iconClickTrackingUrl property.
+    pub icon_click_tracking_url: Option<String>,
+    /// iconViewTrackingUrl property.
+    pub icon_view_tracking_url: Option<String>,
+    /// program property.
+    pub program: Option<String>,
+    /// resourceUrl property.
+    pub resource_url: Option<String>,
+    /// size property.
+    pub size: Option<Size>,
+    /// xPosition property.
+    pub x_position: Option<String>,
+    /// yPosition property.
+    pub y_position: Option<String>,
+}
+
+/// `CreativeClickThroughUrl` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreativeClickThroughUrl {
+    /// computedClickThroughUrl property.
+    pub computed_click_through_url: Option<String>,
+    /// customClickThroughUrl property.
+    pub custom_click_through_url: Option<String>,
+    /// landingPageId property.
+    pub landing_page_id: Option<String>,
+}
+
+/// `PopupWindowProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PopupWindowProperties {
+    /// dimension property.
+    pub dimension: Option<Size>,
+    /// offset property.
+    pub offset: Option<OffsetPosition>,
+    /// positionType property.
+    pub position_type: Option<String>,
+    /// showAddressBar property.
+    pub show_address_bar: Option<bool>,
+    /// showMenuBar property.
+    pub show_menu_bar: Option<bool>,
+    /// showScrollBar property.
+    pub show_scroll_bar: Option<bool>,
+    /// showStatusBar property.
+    pub show_status_bar: Option<bool>,
+    /// showToolBar property.
+    pub show_tool_bar: Option<bool>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `ThirdPartyTrackingUrl` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ThirdPartyTrackingUrl {
+    /// thirdPartyUrlType property.
+    pub third_party_url_type: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `StudioCreativeDimension` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StudioCreativeDimension {
+    /// height property.
+    pub height: Option<i64>,
+    /// width property.
+    pub width: Option<i64>,
+}
+
+/// `CreativesListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreativesListResponse {
+    /// creatives property.
+    pub creatives: Option<Vec<Creative>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `CreativeAssetId` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreativeAssetId {
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `LastModifiedInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LastModifiedInfo {
+    /// time property.
+    pub time: Option<String>,
 }
 
 /// `CreativeCustomEvent` type.
@@ -62,162 +240,6 @@ pub struct CreativeCustomEvent {
     pub target_type: Option<String>,
     /// videoReportingId property.
     pub video_reporting_id: Option<String>,
-}
-
-/// `FsCommand` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FsCommand {
-    /// left property.
-    pub left: Option<i64>,
-    /// positionOption property.
-    pub position_option: Option<String>,
-    /// top property.
-    pub top: Option<i64>,
-    /// windowHeight property.
-    pub window_height: Option<i64>,
-    /// windowWidth property.
-    pub window_width: Option<i64>,
-}
-
-/// `ObaIcon` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObaIcon {
-    /// iconClickThroughUrl property.
-    pub icon_click_through_url: Option<String>,
-    /// iconClickTrackingUrl property.
-    pub icon_click_tracking_url: Option<String>,
-    /// iconViewTrackingUrl property.
-    pub icon_view_tracking_url: Option<String>,
-    /// program property.
-    pub program: Option<String>,
-    /// resourceUrl property.
-    pub resource_url: Option<String>,
-    /// size property.
-    pub size: Option<Size>,
-    /// xPosition property.
-    pub x_position: Option<String>,
-    /// yPosition property.
-    pub y_position: Option<String>,
-}
-
-/// `ClickTag` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClickTag {
-    /// clickThroughUrl property.
-    pub click_through_url: Option<CreativeClickThroughUrl>,
-    /// eventName property.
-    pub event_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `CreativeFieldAssignment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreativeFieldAssignment {
-    /// creativeFieldId property.
-    pub creative_field_id: Option<String>,
-    /// creativeFieldValueId property.
-    pub creative_field_value_id: Option<String>,
-}
-
-/// `LastModifiedInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LastModifiedInfo {
-    /// time property.
-    pub time: Option<String>,
-}
-
-/// `ThirdPartyTrackingUrl` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ThirdPartyTrackingUrl {
-    /// thirdPartyUrlType property.
-    pub third_party_url_type: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `UniversalAdId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UniversalAdId {
-    /// registry property.
-    pub registry: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `CreativeClickThroughUrl` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreativeClickThroughUrl {
-    /// computedClickThroughUrl property.
-    pub computed_click_through_url: Option<String>,
-    /// customClickThroughUrl property.
-    pub custom_click_through_url: Option<String>,
-    /// landingPageId property.
-    pub landing_page_id: Option<String>,
-}
-
-/// `CreativesListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreativesListResponse {
-    /// creatives property.
-    pub creatives: Option<Vec<Creative>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `TargetWindow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TargetWindow {
-    /// customHtml property.
-    pub custom_html: Option<String>,
-    /// targetWindowOption property.
-    pub target_window_option: Option<String>,
-}
-
-/// `DimensionValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DimensionValue {
-    /// dimensionName property.
-    pub dimension_name: Option<String>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// matchType property.
-    pub match_type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `VideoOffset` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoOffset {
-    /// offsetPercentage property.
-    pub offset_percentage: Option<i64>,
-    /// offsetSeconds property.
-    pub offset_seconds: Option<i64>,
-}
-
-/// `CreativeAssetId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreativeAssetId {
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `OffsetPosition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OffsetPosition {
-    /// left property.
-    pub left: Option<i64>,
-    /// top property.
-    pub top: Option<i64>,
 }
 
 /// `Creative` type.
@@ -351,69 +373,6 @@ pub struct Creative {
     pub version: Option<i64>,
 }
 
-/// `StudioCreativeDimension` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StudioCreativeDimension {
-    /// height property.
-    pub height: Option<i64>,
-    /// width property.
-    pub width: Option<i64>,
-}
-
-/// `StudioCreative` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StudioCreative {
-    /// assetIds property.
-    pub asset_ids: Option<Vec<String>>,
-    /// backupImageAssetId property.
-    pub backup_image_asset_id: Option<String>,
-    /// createdInfo property.
-    pub created_info: Option<LastModifiedInfo>,
-    /// dimension property.
-    pub dimension: Option<StudioCreativeDimension>,
-    /// dynamicProfileId property.
-    pub dynamic_profile_id: Option<String>,
-    /// format property.
-    pub format: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// lastModifiedInfo property.
-    pub last_modified_info: Option<LastModifiedInfo>,
-    /// name property.
-    pub name: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-    /// studioAccountId property.
-    pub studio_account_id: Option<String>,
-    /// studioAdvertiserId property.
-    pub studio_advertiser_id: Option<String>,
-    /// studioCampaignId property.
-    pub studio_campaign_id: Option<String>,
-}
-
-/// `PopupWindowProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PopupWindowProperties {
-    /// dimension property.
-    pub dimension: Option<Size>,
-    /// offset property.
-    pub offset: Option<OffsetPosition>,
-    /// positionType property.
-    pub position_type: Option<String>,
-    /// showAddressBar property.
-    pub show_address_bar: Option<bool>,
-    /// showMenuBar property.
-    pub show_menu_bar: Option<bool>,
-    /// showScrollBar property.
-    pub show_scroll_bar: Option<bool>,
-    /// showStatusBar property.
-    pub show_status_bar: Option<bool>,
-    /// showToolBar property.
-    pub show_tool_bar: Option<bool>,
-    /// title property.
-    pub title: Option<String>,
-}
-
 /// `CreativeAsset` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeAsset {
@@ -517,6 +476,48 @@ pub struct CreativeAsset {
     pub zip_filename: Option<String>,
     /// zipFilesize property.
     pub zip_filesize: Option<String>,
+}
+
+/// `CreativeFieldAssignment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreativeFieldAssignment {
+    /// creativeFieldId property.
+    pub creative_field_id: Option<String>,
+    /// creativeFieldValueId property.
+    pub creative_field_value_id: Option<String>,
+}
+
+/// `FsCommand` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FsCommand {
+    /// left property.
+    pub left: Option<i64>,
+    /// positionOption property.
+    pub position_option: Option<String>,
+    /// top property.
+    pub top: Option<i64>,
+    /// windowHeight property.
+    pub window_height: Option<i64>,
+    /// windowWidth property.
+    pub window_width: Option<i64>,
+}
+
+/// `VideoOffset` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoOffset {
+    /// offsetPercentage property.
+    pub offset_percentage: Option<i64>,
+    /// offsetSeconds property.
+    pub offset_seconds: Option<i64>,
+}
+
+/// `OffsetPosition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OffsetPosition {
+    /// left property.
+    pub left: Option<i64>,
+    /// top property.
+    pub top: Option<i64>,
 }
 
 // =============================================================================

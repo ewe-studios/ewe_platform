@@ -12,121 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudDialogflowCxV3PlaybookTransition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3PlaybookTransition {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// playbook property.
-    pub playbook: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3Flow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3Flow {
-    /// advancedSettings property.
-    pub advanced_settings: Option<GoogleCloudDialogflowCxV3AdvancedSettings>,
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// eventHandlers property.
-    pub event_handlers: Option<Vec<GoogleCloudDialogflowCxV3EventHandler>>,
-    /// inputParameterDefinitions property.
-    pub input_parameter_definitions: Option<Vec<GoogleCloudDialogflowCxV3ParameterDefinition>>,
-    /// knowledgeConnectorSettings property.
-    pub knowledge_connector_settings: Option<GoogleCloudDialogflowCxV3KnowledgeConnectorSettings>,
-    /// locked property.
-    pub locked: Option<bool>,
-    /// multiLanguageSettings property.
-    pub multi_language_settings: Option<GoogleCloudDialogflowCxV3FlowMultiLanguageSettings>,
-    /// name property.
-    pub name: Option<String>,
-    /// nluSettings property.
-    pub nlu_settings: Option<GoogleCloudDialogflowCxV3NluSettings>,
-    /// outputParameterDefinitions property.
-    pub output_parameter_definitions: Option<Vec<GoogleCloudDialogflowCxV3ParameterDefinition>>,
-    /// transitionRouteGroups property.
-    pub transition_route_groups: Option<Vec<String>>,
-    /// transitionRoutes property.
-    pub transition_routes: Option<Vec<GoogleCloudDialogflowCxV3TransitionRoute>>,
-}
-
-/// `GoogleCloudDialogflowCxV3Match` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3Match {
-    /// confidence property.
-    pub confidence: Option<f64>,
-    /// event property.
-    pub event: Option<String>,
-    /// intent property.
-    pub intent: Option<GoogleCloudDialogflowCxV3Intent>,
-    /// matchType property.
-    pub match_type: Option<String>,
-    /// parameters property.
-    pub parameters: Option<serde_json::Value>,
-    /// resolvedInput property.
-    pub resolved_input: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3PlaybookTraceMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3PlaybookTraceMetadata {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// playbook property.
-    pub playbook: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3ResponseMessageMixedAudioSegment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ResponseMessageMixedAudioSegment {
-    /// allowPlaybackInterruption property.
-    pub allow_playback_interruption: Option<bool>,
-    /// audio property.
-    pub audio: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3ResponseMessagePlayAudio` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ResponseMessagePlayAudio {
-    /// allowPlaybackInterruption property.
-    pub allow_playback_interruption: Option<bool>,
-    /// audioUri property.
-    pub audio_uri: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSafetySignals` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSafetySignals {
-    /// bannedPhraseMatch property.
-    pub banned_phrase_match: Option<String>,
-    /// decision property.
-    pub decision: Option<String>,
-    /// matchedBannedPhrase property.
-    pub matched_banned_phrase: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3FulfillmentConditionalCases` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3FulfillmentConditionalCases {
-    /// cases property.
-    pub cases: Option<Vec<GoogleCloudDialogflowCxV3FulfillmentConditionalCasesCase>>,
-}
 
 /// `GoogleCloudDialogflowCxV3Page` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -153,49 +50,6 @@ pub struct GoogleCloudDialogflowCxV3Page {
     pub transition_routes: Option<Vec<GoogleCloudDialogflowCxV3TransitionRoute>>,
 }
 
-/// `GoogleCloudDialogflowCxV3Intent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3Intent {
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// dtmfPattern property.
-    pub dtmf_pattern: Option<String>,
-    /// isFallback property.
-    pub is_fallback: Option<bool>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// parameters property.
-    pub parameters: Option<Vec<GoogleCloudDialogflowCxV3IntentParameter>>,
-    /// priority property.
-    pub priority: Option<i64>,
-    /// trainingPhrases property.
-    pub training_phrases: Option<Vec<GoogleCloudDialogflowCxV3IntentTrainingPhrase>>,
-}
-
-/// `GoogleCloudDialogflowCxV3FlowTraceMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3FlowTraceMetadata {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// flow property.
-    pub flow: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3IntentTrainingPhrase` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3IntentTrainingPhrase {
-    /// id property.
-    pub id: Option<String>,
-    /// parts property.
-    pub parts: Option<Vec<GoogleCloudDialogflowCxV3IntentTrainingPhrasePart>>,
-    /// repeatCount property.
-    pub repeat_count: Option<i64>,
-}
-
 /// `GoogleCloudDialogflowCxV3NluSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDialogflowCxV3NluSettings {
@@ -207,359 +61,23 @@ pub struct GoogleCloudDialogflowCxV3NluSettings {
     pub model_type: Option<String>,
 }
 
-/// `GoogleCloudDialogflowCxV3AdvancedSettingsDtmfSettings` type.
+/// `GoogleCloudDialogflowCxV3ResponseMessageText` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3AdvancedSettingsDtmfSettings {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// endpointingTimeoutDuration property.
-    pub endpointing_timeout_duration: Option<String>,
-    /// finishDigit property.
-    pub finish_digit: Option<String>,
-    /// interdigitTimeoutDuration property.
-    pub interdigit_timeout_duration: Option<String>,
-    /// maxDigits property.
-    pub max_digits: Option<i64>,
-}
-
-/// `GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSearchSnippet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSearchSnippet {
-    /// documentTitle property.
-    pub document_title: Option<String>,
-    /// documentUri property.
-    pub document_uri: Option<String>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
+pub struct GoogleCloudDialogflowCxV3ResponseMessageText {
+    /// allowPlaybackInterruption property.
+    pub allow_playback_interruption: Option<bool>,
     /// text property.
-    pub text: Option<String>,
+    pub text: Option<Vec<String>>,
 }
 
-/// `GoogleCloudDialogflowCxV3AdvancedSettingsSpeechSettings` type.
+/// `GoogleCloudDialogflowCxV3FulfillmentConditionalCasesCase` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3AdvancedSettingsSpeechSettings {
-    /// endpointerSensitivity property.
-    pub endpointer_sensitivity: Option<i64>,
-    /// models property.
-    pub models: Option<serde_json::Value>,
-    /// noSpeechTimeout property.
-    pub no_speech_timeout: Option<String>,
-    /// useTimeoutBasedEndpointing property.
-    pub use_timeout_based_endpointing: Option<bool>,
-}
-
-/// `GoogleCloudDialogflowCxV3AgentUtterance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3AgentUtterance {
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3ResponseMessageEndInteraction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ResponseMessageEndInteraction {}
-
-/// `GoogleCloudDialogflowCxV3KnowledgeConnectorSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3KnowledgeConnectorSettings {
-    /// dataStoreConnections property.
-    pub data_store_connections: Option<Vec<GoogleCloudDialogflowCxV3DataStoreConnection>>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// targetFlow property.
-    pub target_flow: Option<String>,
-    /// targetPage property.
-    pub target_page: Option<String>,
-    /// triggerFulfillment property.
-    pub trigger_fulfillment: Option<GoogleCloudDialogflowCxV3Fulfillment>,
-}
-
-/// `GoogleCloudDialogflowCxV3MatchIntentResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3MatchIntentResponse {
-    /// currentPage property.
-    pub current_page: Option<GoogleCloudDialogflowCxV3Page>,
-    /// matches property.
-    pub matches: Option<Vec<GoogleCloudDialogflowCxV3Match>>,
-    /// text property.
-    pub text: Option<String>,
-    /// transcript property.
-    pub transcript: Option<String>,
-    /// triggerEvent property.
-    pub trigger_event: Option<String>,
-    /// triggerIntent property.
-    pub trigger_intent: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3ToolUse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ToolUse {
-    /// action property.
-    pub action: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// inputActionParameters property.
-    pub input_action_parameters: Option<serde_json::Value>,
-    /// outputActionParameters property.
-    pub output_action_parameters: Option<serde_json::Value>,
-    /// tool property.
-    pub tool: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3PlaybookInput` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3PlaybookInput {
-    /// precedingConversationSummary property.
-    pub preceding_conversation_summary: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3AdvancedSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3AdvancedSettings {
-    /// audioExportGcsDestination property.
-    pub audio_export_gcs_destination: Option<GoogleCloudDialogflowCxV3GcsDestination>,
-    /// dtmfSettings property.
-    pub dtmf_settings: Option<GoogleCloudDialogflowCxV3AdvancedSettingsDtmfSettings>,
-    /// loggingSettings property.
-    pub logging_settings: Option<GoogleCloudDialogflowCxV3AdvancedSettingsLoggingSettings>,
-    /// speechSettings property.
-    pub speech_settings: Option<GoogleCloudDialogflowCxV3AdvancedSettingsSpeechSettings>,
-}
-
-/// `GoogleCloudDialogflowCxV3UserUtterance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3UserUtterance {
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3DataStoreConnectionSignalsGroundingSignals` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsGroundingSignals {
-    /// decision property.
-    pub decision: Option<String>,
-    /// score property.
-    pub score: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3ResponseMessageConversationSuccess` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ResponseMessageConversationSuccess {
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-}
-
-/// `GoogleCloudDialogflowCxV3ResponseMessageMixedAudio` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ResponseMessageMixedAudio {
-    /// segments property.
-    pub segments: Option<Vec<GoogleCloudDialogflowCxV3ResponseMessageMixedAudioSegment>>,
-}
-
-/// `GoogleCloudDialogflowCxV3TransitionRoute` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3TransitionRoute {
+pub struct GoogleCloudDialogflowCxV3FulfillmentConditionalCasesCase {
+    /// caseContent property.
+    pub case_content:
+        Option<Vec<Box<GoogleCloudDialogflowCxV3FulfillmentConditionalCasesCaseCaseContent>>>,
     /// condition property.
     pub condition: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// intent property.
-    pub intent: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// targetFlow property.
-    pub target_flow: Option<String>,
-    /// targetPage property.
-    pub target_page: Option<String>,
-    /// triggerFulfillment property.
-    pub trigger_fulfillment: Option<GoogleCloudDialogflowCxV3Fulfillment>,
-}
-
-/// `GoogleCloudDialogflowCxV3InlineSchema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3InlineSchema {
-    /// items property.
-    pub items: Option<GoogleCloudDialogflowCxV3TypeSchema>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3OutputAudioConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3OutputAudioConfig {
-    /// audioEncoding property.
-    pub audio_encoding: Option<String>,
-    /// sampleRateHertz property.
-    pub sample_rate_hertz: Option<i64>,
-    /// synthesizeSpeechConfig property.
-    pub synthesize_speech_config: Option<GoogleCloudDialogflowCxV3SynthesizeSpeechConfig>,
-}
-
-/// `GoogleCloudDialogflowCxV3GcsDestination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3GcsDestination {
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3SynthesizeSpeechConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3SynthesizeSpeechConfig {
-    /// effectsProfileId property.
-    pub effects_profile_id: Option<Vec<String>>,
-    /// pitch property.
-    pub pitch: Option<f64>,
-    /// speakingRate property.
-    pub speaking_rate: Option<f64>,
-    /// voice property.
-    pub voice: Option<GoogleCloudDialogflowCxV3VoiceSelectionParams>,
-    /// volumeGainDb property.
-    pub volume_gain_db: Option<f64>,
-}
-
-/// `GoogleCloudDialogflowCxV3DataStoreConnectionSignalsRewriterModelCallSignals` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsRewriterModelCallSignals {
-    /// model property.
-    pub model: Option<String>,
-    /// modelOutput property.
-    pub model_output: Option<String>,
-    /// renderedPrompt property.
-    pub rendered_prompt: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3DataStoreConnectionSignalsAnswerGenerationModelCallSignals` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsAnswerGenerationModelCallSignals {
-    /// model property.
-    pub model: Option<String>,
-    /// modelOutput property.
-    pub model_output: Option<String>,
-    /// renderedPrompt property.
-    pub rendered_prompt: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3FlowTransition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3FlowTransition {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// flow property.
-    pub flow: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3DtmfInput` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3DtmfInput {
-    /// digits property.
-    pub digits: Option<String>,
-    /// finishDigit property.
-    pub finish_digit: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3ResponseMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ResponseMessage {
-    /// channel property.
-    pub channel: Option<String>,
-    /// conversationSuccess property.
-    pub conversation_success: Option<GoogleCloudDialogflowCxV3ResponseMessageConversationSuccess>,
-    /// endInteraction property.
-    pub end_interaction: Option<GoogleCloudDialogflowCxV3ResponseMessageEndInteraction>,
-    /// knowledgeInfoCard property.
-    pub knowledge_info_card: Option<GoogleCloudDialogflowCxV3ResponseMessageKnowledgeInfoCard>,
-    /// liveAgentHandoff property.
-    pub live_agent_handoff: Option<GoogleCloudDialogflowCxV3ResponseMessageLiveAgentHandoff>,
-    /// mixedAudio property.
-    pub mixed_audio: Option<GoogleCloudDialogflowCxV3ResponseMessageMixedAudio>,
-    /// outputAudioText property.
-    pub output_audio_text: Option<GoogleCloudDialogflowCxV3ResponseMessageOutputAudioText>,
-    /// payload property.
-    pub payload: Option<serde_json::Value>,
-    /// playAudio property.
-    pub play_audio: Option<GoogleCloudDialogflowCxV3ResponseMessagePlayAudio>,
-    /// responseType property.
-    pub response_type: Option<String>,
-    /// telephonyTransferCall property.
-    pub telephony_transfer_call:
-        Option<GoogleCloudDialogflowCxV3ResponseMessageTelephonyTransferCall>,
-    /// text property.
-    pub text: Option<GoogleCloudDialogflowCxV3ResponseMessageText>,
-    /// toolCall property.
-    pub tool_call: Option<GoogleCloudDialogflowCxV3ToolCall>,
-}
-
-/// `GoogleCloudDialogflowCxV3SpeechProcessingMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3SpeechProcessingMetadata {
-    /// displayName property.
-    pub display_name: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3IntentTrainingPhrasePart` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3IntentTrainingPhrasePart {
-    /// parameterId property.
-    pub parameter_id: Option<String>,
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3FormParameterFillBehavior` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3FormParameterFillBehavior {
-    /// initialPromptFulfillment property.
-    pub initial_prompt_fulfillment: Option<GoogleCloudDialogflowCxV3Fulfillment>,
-    /// repromptEventHandlers property.
-    pub reprompt_event_handlers: Option<Vec<GoogleCloudDialogflowCxV3EventHandler>>,
-}
-
-/// `GoogleCloudDialogflowCxV3FulfillmentGeneratorSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3FulfillmentGeneratorSettings {
-    /// generator property.
-    pub generator: Option<String>,
-    /// inputParameters property.
-    pub input_parameters: Option<serde_json::Value>,
-    /// outputParameter property.
-    pub output_parameter: Option<String>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3EventHandler` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3EventHandler {
-    /// event property.
-    pub event: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// targetFlow property.
-    pub target_flow: Option<String>,
-    /// targetPage property.
-    pub target_page: Option<String>,
-    /// targetPlaybook property.
-    pub target_playbook: Option<String>,
-    /// triggerFulfillment property.
-    pub trigger_fulfillment: Option<GoogleCloudDialogflowCxV3Fulfillment>,
-}
-
-/// `GoogleCloudDialogflowCxV3DataStoreConnectionSignalsAnswerPart` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsAnswerPart {
-    /// supportingIndices property.
-    pub supporting_indices: Option<Vec<i64>>,
-    /// text property.
-    pub text: Option<String>,
 }
 
 /// `GoogleCloudDialogflowCxV3FormParameter` type.
@@ -583,117 +101,23 @@ pub struct GoogleCloudDialogflowCxV3FormParameter {
     pub required: Option<bool>,
 }
 
-/// `GoogleCloudDialogflowCxV3TypeSchemaSchemaReference` type.
+/// `GoogleCloudDialogflowCxV3FulfillmentSetParameterAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3TypeSchemaSchemaReference {
-    /// schema property.
-    pub schema: Option<String>,
-    /// tool property.
-    pub tool: Option<String>,
+pub struct GoogleCloudDialogflowCxV3FulfillmentSetParameterAction {
+    /// parameter property.
+    pub parameter: Option<String>,
+    /// value property.
+    pub value: Option<serde_json::Value>,
 }
 
-/// `GoogleCloudDialogflowCxV3SentimentAnalysisResult` type.
+/// `GoogleCloudDialogflowCxV3ResponseMessagePlayAudio` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3SentimentAnalysisResult {
-    /// magnitude property.
-    pub magnitude: Option<f64>,
-    /// score property.
-    pub score: Option<f64>,
+pub struct GoogleCloudDialogflowCxV3ResponseMessagePlayAudio {
+    /// allowPlaybackInterruption property.
+    pub allow_playback_interruption: Option<bool>,
+    /// audioUri property.
+    pub audio_uri: Option<String>,
 }
-
-/// `GoogleCloudDialogflowCxV3DetectIntentResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3DetectIntentResponse {
-    /// allowCancellation property.
-    pub allow_cancellation: Option<bool>,
-    /// outputAudio property.
-    pub output_audio: Option<String>,
-    /// outputAudioConfig property.
-    pub output_audio_config: Option<GoogleCloudDialogflowCxV3OutputAudioConfig>,
-    /// queryResult property.
-    pub query_result: Option<GoogleCloudDialogflowCxV3QueryResult>,
-    /// responseId property.
-    pub response_id: Option<String>,
-    /// responseType property.
-    pub response_type: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3Fulfillment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3Fulfillment {
-    /// advancedSettings property.
-    pub advanced_settings: Option<GoogleCloudDialogflowCxV3AdvancedSettings>,
-    /// conditionalCases property.
-    pub conditional_cases: Option<Vec<GoogleCloudDialogflowCxV3FulfillmentConditionalCases>>,
-    /// enableGenerativeFallback property.
-    pub enable_generative_fallback: Option<bool>,
-    /// generators property.
-    pub generators: Option<Vec<GoogleCloudDialogflowCxV3FulfillmentGeneratorSettings>>,
-    /// messages property.
-    pub messages: Option<Vec<GoogleCloudDialogflowCxV3ResponseMessage>>,
-    /// returnPartialResponses property.
-    pub return_partial_responses: Option<bool>,
-    /// setParameterActions property.
-    pub set_parameter_actions: Option<Vec<GoogleCloudDialogflowCxV3FulfillmentSetParameterAction>>,
-    /// tag property.
-    pub tag: Option<String>,
-    /// webhook property.
-    pub webhook: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3DataStoreConnectionSignals` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignals {
-    /// answer property.
-    pub answer: Option<String>,
-    /// answerGenerationModelCallSignals property.
-    pub answer_generation_model_call_signals:
-        Option<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsAnswerGenerationModelCallSignals>,
-    /// answerParts property.
-    pub answer_parts: Option<Vec<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsAnswerPart>>,
-    /// citedSnippets property.
-    pub cited_snippets:
-        Option<Vec<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsCitedSnippet>>,
-    /// groundingSignals property.
-    pub grounding_signals:
-        Option<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsGroundingSignals>,
-    /// rewriterModelCallSignals property.
-    pub rewriter_model_call_signals:
-        Option<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsRewriterModelCallSignals>,
-    /// rewrittenQuery property.
-    pub rewritten_query: Option<String>,
-    /// safetySignals property.
-    pub safety_signals: Option<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSafetySignals>,
-    /// searchSnippets property.
-    pub search_snippets:
-        Option<Vec<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSearchSnippet>>,
-}
-
-/// `GoogleCloudDialogflowCxV3FulfillIntentResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3FulfillIntentResponse {
-    /// outputAudio property.
-    pub output_audio: Option<String>,
-    /// outputAudioConfig property.
-    pub output_audio_config: Option<GoogleCloudDialogflowCxV3OutputAudioConfig>,
-    /// queryResult property.
-    pub query_result: Option<GoogleCloudDialogflowCxV3QueryResult>,
-    /// responseId property.
-    pub response_id: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3FulfillmentConditionalCasesCaseCaseContent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3FulfillmentConditionalCasesCaseCaseContent {
-    /// additionalCases property.
-    pub additional_cases: Option<GoogleCloudDialogflowCxV3FulfillmentConditionalCases>,
-    /// message property.
-    pub message: Option<GoogleCloudDialogflowCxV3ResponseMessage>,
-}
-
-/// `GoogleCloudDialogflowCxV3ResponseMessageKnowledgeInfoCard` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ResponseMessageKnowledgeInfoCard {}
 
 /// `GoogleCloudDialogflowCxV3FlowMultiLanguageSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -702,6 +126,32 @@ pub struct GoogleCloudDialogflowCxV3FlowMultiLanguageSettings {
     pub enable_multi_language_detection: Option<bool>,
     /// supportedResponseLanguageCodes property.
     pub supported_response_language_codes: Option<Vec<String>>,
+}
+
+/// `GoogleCloudDialogflowCxV3MatchIntentResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3MatchIntentResponse {
+    /// currentPage property.
+    pub current_page: Option<GoogleCloudDialogflowCxV3Page>,
+    /// matches property.
+    pub matches: Option<Vec<GoogleCloudDialogflowCxV3Match>>,
+    /// text property.
+    pub text: Option<String>,
+    /// transcript property.
+    pub transcript: Option<String>,
+    /// triggerEvent property.
+    pub trigger_event: Option<String>,
+    /// triggerIntent property.
+    pub trigger_intent: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3IntentTrainingPhrasePart` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3IntentTrainingPhrasePart {
+    /// parameterId property.
+    pub parameter_id: Option<String>,
+    /// text property.
+    pub text: Option<String>,
 }
 
 /// `GoogleCloudDialogflowCxV3QueryResult` type.
@@ -751,22 +201,118 @@ pub struct GoogleCloudDialogflowCxV3QueryResult {
     pub webhook_statuses: Option<Vec<GoogleRpcStatus>>,
 }
 
-/// `GoogleCloudDialogflowCxV3ResponseMessageLiveAgentHandoff` type.
+/// `GoogleCloudDialogflowCxV3TypeSchema` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ResponseMessageLiveAgentHandoff {
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
+pub struct GoogleCloudDialogflowCxV3TypeSchema {
+    /// inlineSchema property.
+    pub inline_schema: Option<Box<GoogleCloudDialogflowCxV3InlineSchema>>,
+    /// schemaReference property.
+    pub schema_reference: Option<GoogleCloudDialogflowCxV3TypeSchemaSchemaReference>,
 }
 
-/// `GoogleCloudDialogflowCxV3ResponseMessageOutputAudioText` type.
+/// `GoogleCloudDialogflowCxV3FulfillmentConditionalCases` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ResponseMessageOutputAudioText {
-    /// allowPlaybackInterruption property.
-    pub allow_playback_interruption: Option<bool>,
-    /// ssml property.
-    pub ssml: Option<String>,
-    /// text property.
-    pub text: Option<String>,
+pub struct GoogleCloudDialogflowCxV3FulfillmentConditionalCases {
+    /// cases property.
+    pub cases: Option<Vec<Box<GoogleCloudDialogflowCxV3FulfillmentConditionalCasesCase>>>,
+}
+
+/// `GoogleCloudDialogflowCxV3FulfillIntentResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3FulfillIntentResponse {
+    /// outputAudio property.
+    pub output_audio: Option<String>,
+    /// outputAudioConfig property.
+    pub output_audio_config: Option<GoogleCloudDialogflowCxV3OutputAudioConfig>,
+    /// queryResult property.
+    pub query_result: Option<GoogleCloudDialogflowCxV3QueryResult>,
+    /// responseId property.
+    pub response_id: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3AdvancedSettingsLoggingSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3AdvancedSettingsLoggingSettings {
+    /// enableConsentBasedRedaction property.
+    pub enable_consent_based_redaction: Option<bool>,
+    /// enableInteractionLogging property.
+    pub enable_interaction_logging: Option<bool>,
+    /// enableStackdriverLogging property.
+    pub enable_stackdriver_logging: Option<bool>,
+}
+
+/// `GoogleCloudDialogflowCxV3OutputAudioConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3OutputAudioConfig {
+    /// audioEncoding property.
+    pub audio_encoding: Option<String>,
+    /// sampleRateHertz property.
+    pub sample_rate_hertz: Option<i64>,
+    /// synthesizeSpeechConfig property.
+    pub synthesize_speech_config: Option<GoogleCloudDialogflowCxV3SynthesizeSpeechConfig>,
+}
+
+/// `GoogleCloudDialogflowCxV3DataStoreConnectionSignalsCitedSnippet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsCitedSnippet {
+    /// searchSnippet property.
+    pub search_snippet: Option<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSearchSnippet>,
+    /// snippetIndex property.
+    pub snippet_index: Option<i64>,
+}
+
+/// `GoogleCloudDialogflowCxV3PlaybookInvocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3PlaybookInvocation {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// playbook property.
+    pub playbook: Option<String>,
+    /// playbookInput property.
+    pub playbook_input: Option<GoogleCloudDialogflowCxV3PlaybookInput>,
+    /// playbookOutput property.
+    pub playbook_output: Option<GoogleCloudDialogflowCxV3PlaybookOutput>,
+    /// playbookState property.
+    pub playbook_state: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3EventHandler` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3EventHandler {
+    /// event property.
+    pub event: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// targetFlow property.
+    pub target_flow: Option<String>,
+    /// targetPage property.
+    pub target_page: Option<String>,
+    /// targetPlaybook property.
+    pub target_playbook: Option<String>,
+    /// triggerFulfillment property.
+    pub trigger_fulfillment: Option<GoogleCloudDialogflowCxV3Fulfillment>,
+}
+
+/// `GoogleCloudDialogflowCxV3ParameterDefinition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ParameterDefinition {
+    /// description property.
+    pub description: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// typeSchema property.
+    pub type_schema: Option<Box<GoogleCloudDialogflowCxV3TypeSchema>>,
+}
+
+/// `GoogleCloudDialogflowCxV3PlaybookTraceMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3PlaybookTraceMetadata {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// playbook property.
+    pub playbook: Option<String>,
 }
 
 /// `GoogleCloudDialogflowCxV3Form` type.
@@ -776,41 +322,132 @@ pub struct GoogleCloudDialogflowCxV3Form {
     pub parameters: Option<Vec<GoogleCloudDialogflowCxV3FormParameter>>,
 }
 
-/// `GoogleCloudDialogflowCxV3TypeSchema` type.
+/// `GoogleCloudDialogflowCxV3AdvancedSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3TypeSchema {
-    /// inlineSchema property.
-    pub inline_schema: Option<GoogleCloudDialogflowCxV3InlineSchema>,
-    /// schemaReference property.
-    pub schema_reference: Option<GoogleCloudDialogflowCxV3TypeSchemaSchemaReference>,
+pub struct GoogleCloudDialogflowCxV3AdvancedSettings {
+    /// audioExportGcsDestination property.
+    pub audio_export_gcs_destination: Option<GoogleCloudDialogflowCxV3GcsDestination>,
+    /// dtmfSettings property.
+    pub dtmf_settings: Option<GoogleCloudDialogflowCxV3AdvancedSettingsDtmfSettings>,
+    /// loggingSettings property.
+    pub logging_settings: Option<GoogleCloudDialogflowCxV3AdvancedSettingsLoggingSettings>,
+    /// speechSettings property.
+    pub speech_settings: Option<GoogleCloudDialogflowCxV3AdvancedSettingsSpeechSettings>,
 }
 
-/// `GoogleCloudDialogflowCxV3FulfillmentSetParameterAction` type.
+/// `GoogleCloudDialogflowCxV3ResponseMessageEndInteraction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3FulfillmentSetParameterAction {
-    /// parameter property.
-    pub parameter: Option<String>,
-    /// value property.
-    pub value: Option<serde_json::Value>,
+pub struct GoogleCloudDialogflowCxV3ResponseMessageEndInteraction {}
+
+/// `GoogleCloudDialogflowCxV3TypeSchemaSchemaReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3TypeSchemaSchemaReference {
+    /// schema property.
+    pub schema: Option<String>,
+    /// tool property.
+    pub tool: Option<String>,
 }
 
-/// `GoogleCloudDialogflowCxV3Action` type.
+/// `GoogleCloudDialogflowCxV3FormParameterFillBehavior` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3Action {
-    /// agentUtterance property.
-    pub agent_utterance: Option<GoogleCloudDialogflowCxV3AgentUtterance>,
-    /// flowInvocation property.
-    pub flow_invocation: Option<GoogleCloudDialogflowCxV3FlowInvocation>,
-    /// flowTransition property.
-    pub flow_transition: Option<GoogleCloudDialogflowCxV3FlowTransition>,
-    /// playbookInvocation property.
-    pub playbook_invocation: Option<GoogleCloudDialogflowCxV3PlaybookInvocation>,
-    /// playbookTransition property.
-    pub playbook_transition: Option<GoogleCloudDialogflowCxV3PlaybookTransition>,
-    /// toolUse property.
-    pub tool_use: Option<GoogleCloudDialogflowCxV3ToolUse>,
-    /// userUtterance property.
-    pub user_utterance: Option<GoogleCloudDialogflowCxV3UserUtterance>,
+pub struct GoogleCloudDialogflowCxV3FormParameterFillBehavior {
+    /// initialPromptFulfillment property.
+    pub initial_prompt_fulfillment: Option<GoogleCloudDialogflowCxV3Fulfillment>,
+    /// repromptEventHandlers property.
+    pub reprompt_event_handlers: Option<Vec<GoogleCloudDialogflowCxV3EventHandler>>,
+}
+
+/// `GoogleCloudDialogflowCxV3ResponseMessageMixedAudioSegment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ResponseMessageMixedAudioSegment {
+    /// allowPlaybackInterruption property.
+    pub allow_playback_interruption: Option<bool>,
+    /// audio property.
+    pub audio: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3Match` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3Match {
+    /// confidence property.
+    pub confidence: Option<f64>,
+    /// event property.
+    pub event: Option<String>,
+    /// intent property.
+    pub intent: Option<GoogleCloudDialogflowCxV3Intent>,
+    /// matchType property.
+    pub match_type: Option<String>,
+    /// parameters property.
+    pub parameters: Option<serde_json::Value>,
+    /// resolvedInput property.
+    pub resolved_input: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3FulfillmentConditionalCasesCaseCaseContent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3FulfillmentConditionalCasesCaseCaseContent {
+    /// additionalCases property.
+    pub additional_cases: Option<Box<GoogleCloudDialogflowCxV3FulfillmentConditionalCases>>,
+    /// message property.
+    pub message: Option<GoogleCloudDialogflowCxV3ResponseMessage>,
+}
+
+/// `GoogleCloudDialogflowCxV3Fulfillment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3Fulfillment {
+    /// advancedSettings property.
+    pub advanced_settings: Option<GoogleCloudDialogflowCxV3AdvancedSettings>,
+    /// conditionalCases property.
+    pub conditional_cases: Option<Vec<Box<GoogleCloudDialogflowCxV3FulfillmentConditionalCases>>>,
+    /// enableGenerativeFallback property.
+    pub enable_generative_fallback: Option<bool>,
+    /// generators property.
+    pub generators: Option<Vec<GoogleCloudDialogflowCxV3FulfillmentGeneratorSettings>>,
+    /// messages property.
+    pub messages: Option<Vec<GoogleCloudDialogflowCxV3ResponseMessage>>,
+    /// returnPartialResponses property.
+    pub return_partial_responses: Option<bool>,
+    /// setParameterActions property.
+    pub set_parameter_actions: Option<Vec<GoogleCloudDialogflowCxV3FulfillmentSetParameterAction>>,
+    /// tag property.
+    pub tag: Option<String>,
+    /// webhook property.
+    pub webhook: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3DataStoreConnectionSignalsAnswerGenerationModelCallSignals` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsAnswerGenerationModelCallSignals {
+    /// model property.
+    pub model: Option<String>,
+    /// modelOutput property.
+    pub model_output: Option<String>,
+    /// renderedPrompt property.
+    pub rendered_prompt: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3FlowTraceMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3FlowTraceMetadata {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// flow property.
+    pub flow: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSearchSnippet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSearchSnippet {
+    /// documentTitle property.
+    pub document_title: Option<String>,
+    /// documentUri property.
+    pub document_uri: Option<String>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// text property.
+    pub text: Option<String>,
 }
 
 /// `GoogleCloudDialogflowCxV3AnswerFeedback` type.
@@ -824,22 +461,43 @@ pub struct GoogleCloudDialogflowCxV3AnswerFeedback {
     pub rating_reason: Option<GoogleCloudDialogflowCxV3AnswerFeedbackRatingReason>,
 }
 
-/// `GoogleCloudDialogflowCxV3ToolCall` type.
+/// `GoogleCloudDialogflowCxV3FlowInvocation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ToolCall {
-    /// action property.
-    pub action: Option<String>,
-    /// inputParameters property.
-    pub input_parameters: Option<serde_json::Value>,
-    /// tool property.
-    pub tool: Option<String>,
+pub struct GoogleCloudDialogflowCxV3FlowInvocation {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// flow property.
+    pub flow: Option<String>,
+    /// flowState property.
+    pub flow_state: Option<String>,
 }
 
-/// `GoogleCloudDialogflowCxV3ResponseMessageTelephonyTransferCall` type.
+/// `GoogleCloudDialogflowCxV3DataStoreConnectionSignals` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ResponseMessageTelephonyTransferCall {
-    /// phoneNumber property.
-    pub phone_number: Option<String>,
+pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignals {
+    /// answer property.
+    pub answer: Option<String>,
+    /// answerGenerationModelCallSignals property.
+    pub answer_generation_model_call_signals:
+        Option<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsAnswerGenerationModelCallSignals>,
+    /// answerParts property.
+    pub answer_parts: Option<Vec<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsAnswerPart>>,
+    /// citedSnippets property.
+    pub cited_snippets:
+        Option<Vec<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsCitedSnippet>>,
+    /// groundingSignals property.
+    pub grounding_signals:
+        Option<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsGroundingSignals>,
+    /// rewriterModelCallSignals property.
+    pub rewriter_model_call_signals:
+        Option<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsRewriterModelCallSignals>,
+    /// rewrittenQuery property.
+    pub rewritten_query: Option<String>,
+    /// safetySignals property.
+    pub safety_signals: Option<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSafetySignals>,
+    /// searchSnippets property.
+    pub search_snippets:
+        Option<Vec<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSearchSnippet>>,
 }
 
 /// `GoogleCloudDialogflowCxV3IntentParameter` type.
@@ -855,84 +513,41 @@ pub struct GoogleCloudDialogflowCxV3IntentParameter {
     pub redact: Option<bool>,
 }
 
-/// `GoogleCloudDialogflowCxV3ParameterDefinition` type.
+/// `GoogleCloudDialogflowCxV3AdvancedSettingsSpeechSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ParameterDefinition {
-    /// description property.
-    pub description: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// typeSchema property.
-    pub type_schema: Option<GoogleCloudDialogflowCxV3TypeSchema>,
+pub struct GoogleCloudDialogflowCxV3AdvancedSettingsSpeechSettings {
+    /// endpointerSensitivity property.
+    pub endpointer_sensitivity: Option<i64>,
+    /// models property.
+    pub models: Option<serde_json::Value>,
+    /// noSpeechTimeout property.
+    pub no_speech_timeout: Option<String>,
+    /// useTimeoutBasedEndpointing property.
+    pub use_timeout_based_endpointing: Option<bool>,
 }
 
-/// `GoogleCloudDialogflowCxV3PlaybookOutput` type.
+/// `GoogleCloudDialogflowCxV3DtmfInput` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3PlaybookOutput {
-    /// executionSummary property.
-    pub execution_summary: Option<String>,
+pub struct GoogleCloudDialogflowCxV3DtmfInput {
+    /// digits property.
+    pub digits: Option<String>,
+    /// finishDigit property.
+    pub finish_digit: Option<String>,
 }
 
-/// `GoogleCloudDialogflowCxV3ResponseMessageText` type.
+/// `GoogleCloudDialogflowCxV3AdvancedSettingsDtmfSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ResponseMessageText {
-    /// allowPlaybackInterruption property.
-    pub allow_playback_interruption: Option<bool>,
-    /// text property.
-    pub text: Option<Vec<String>>,
-}
-
-/// `GoogleCloudDialogflowCxV3VoiceSelectionParams` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3VoiceSelectionParams {
-    /// name property.
-    pub name: Option<String>,
-    /// ssmlGender property.
-    pub ssml_gender: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3AdvancedSettingsLoggingSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3AdvancedSettingsLoggingSettings {
-    /// enableConsentBasedRedaction property.
-    pub enable_consent_based_redaction: Option<bool>,
-    /// enableInteractionLogging property.
-    pub enable_interaction_logging: Option<bool>,
-    /// enableStackdriverLogging property.
-    pub enable_stackdriver_logging: Option<bool>,
-}
-
-/// `GoogleCloudDialogflowCxV3DataStoreConnection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3DataStoreConnection {
-    /// dataStore property.
-    pub data_store: Option<String>,
-    /// dataStoreType property.
-    pub data_store_type: Option<String>,
-    /// documentProcessingMode property.
-    pub document_processing_mode: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3AnswerFeedbackRatingReason` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3AnswerFeedbackRatingReason {
-    /// feedback property.
-    pub feedback: Option<String>,
-    /// reasonLabels property.
-    pub reason_labels: Option<Vec<String>>,
-}
-
-/// `GoogleCloudDialogflowCxV3FlowInvocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3FlowInvocation {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// flow property.
-    pub flow: Option<String>,
-    /// flowState property.
-    pub flow_state: Option<String>,
+pub struct GoogleCloudDialogflowCxV3AdvancedSettingsDtmfSettings {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// endpointingTimeoutDuration property.
+    pub endpointing_timeout_duration: Option<String>,
+    /// finishDigit property.
+    pub finish_digit: Option<String>,
+    /// interdigitTimeoutDuration property.
+    pub interdigit_timeout_duration: Option<String>,
+    /// maxDigits property.
+    pub max_digits: Option<i64>,
 }
 
 /// `GoogleCloudDialogflowCxV3TraceBlock` type.
@@ -958,38 +573,424 @@ pub struct GoogleCloudDialogflowCxV3TraceBlock {
     pub start_time: Option<String>,
 }
 
-/// `GoogleCloudDialogflowCxV3FulfillmentConditionalCasesCase` type.
+/// `GoogleCloudDialogflowCxV3SentimentAnalysisResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3FulfillmentConditionalCasesCase {
-    /// caseContent property.
-    pub case_content:
-        Option<Vec<GoogleCloudDialogflowCxV3FulfillmentConditionalCasesCaseCaseContent>>,
-    /// condition property.
-    pub condition: Option<String>,
+pub struct GoogleCloudDialogflowCxV3SentimentAnalysisResult {
+    /// magnitude property.
+    pub magnitude: Option<f64>,
+    /// score property.
+    pub score: Option<f64>,
 }
 
-/// `GoogleCloudDialogflowCxV3PlaybookInvocation` type.
+/// `GoogleCloudDialogflowCxV3SpeechProcessingMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3PlaybookInvocation {
+pub struct GoogleCloudDialogflowCxV3SpeechProcessingMetadata {
+    /// displayName property.
+    pub display_name: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3ResponseMessageOutputAudioText` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ResponseMessageOutputAudioText {
+    /// allowPlaybackInterruption property.
+    pub allow_playback_interruption: Option<bool>,
+    /// ssml property.
+    pub ssml: Option<String>,
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3ToolCall` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ToolCall {
+    /// action property.
+    pub action: Option<String>,
+    /// inputParameters property.
+    pub input_parameters: Option<serde_json::Value>,
+    /// tool property.
+    pub tool: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3Intent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3Intent {
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// dtmfPattern property.
+    pub dtmf_pattern: Option<String>,
+    /// isFallback property.
+    pub is_fallback: Option<bool>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// parameters property.
+    pub parameters: Option<Vec<GoogleCloudDialogflowCxV3IntentParameter>>,
+    /// priority property.
+    pub priority: Option<i64>,
+    /// trainingPhrases property.
+    pub training_phrases: Option<Vec<GoogleCloudDialogflowCxV3IntentTrainingPhrase>>,
+}
+
+/// `GoogleCloudDialogflowCxV3DataStoreConnectionSignalsAnswerPart` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsAnswerPart {
+    /// supportingIndices property.
+    pub supporting_indices: Option<Vec<i64>>,
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3KnowledgeConnectorSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3KnowledgeConnectorSettings {
+    /// dataStoreConnections property.
+    pub data_store_connections: Option<Vec<GoogleCloudDialogflowCxV3DataStoreConnection>>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// targetFlow property.
+    pub target_flow: Option<String>,
+    /// targetPage property.
+    pub target_page: Option<String>,
+    /// triggerFulfillment property.
+    pub trigger_fulfillment: Option<GoogleCloudDialogflowCxV3Fulfillment>,
+}
+
+/// `GoogleCloudDialogflowCxV3FlowTransition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3FlowTransition {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// flow property.
+    pub flow: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3Action` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3Action {
+    /// agentUtterance property.
+    pub agent_utterance: Option<GoogleCloudDialogflowCxV3AgentUtterance>,
+    /// flowInvocation property.
+    pub flow_invocation: Option<GoogleCloudDialogflowCxV3FlowInvocation>,
+    /// flowTransition property.
+    pub flow_transition: Option<GoogleCloudDialogflowCxV3FlowTransition>,
+    /// playbookInvocation property.
+    pub playbook_invocation: Option<GoogleCloudDialogflowCxV3PlaybookInvocation>,
+    /// playbookTransition property.
+    pub playbook_transition: Option<GoogleCloudDialogflowCxV3PlaybookTransition>,
+    /// toolUse property.
+    pub tool_use: Option<GoogleCloudDialogflowCxV3ToolUse>,
+    /// userUtterance property.
+    pub user_utterance: Option<GoogleCloudDialogflowCxV3UserUtterance>,
+}
+
+/// `GoogleCloudDialogflowCxV3ResponseMessageKnowledgeInfoCard` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ResponseMessageKnowledgeInfoCard {}
+
+/// `GoogleCloudDialogflowCxV3FulfillmentGeneratorSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3FulfillmentGeneratorSettings {
+    /// generator property.
+    pub generator: Option<String>,
+    /// inputParameters property.
+    pub input_parameters: Option<serde_json::Value>,
+    /// outputParameter property.
+    pub output_parameter: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3DataStoreConnection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3DataStoreConnection {
+    /// dataStore property.
+    pub data_store: Option<String>,
+    /// dataStoreType property.
+    pub data_store_type: Option<String>,
+    /// documentProcessingMode property.
+    pub document_processing_mode: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3IntentTrainingPhrase` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3IntentTrainingPhrase {
+    /// id property.
+    pub id: Option<String>,
+    /// parts property.
+    pub parts: Option<Vec<GoogleCloudDialogflowCxV3IntentTrainingPhrasePart>>,
+    /// repeatCount property.
+    pub repeat_count: Option<i64>,
+}
+
+/// `GoogleCloudDialogflowCxV3AnswerFeedbackRatingReason` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3AnswerFeedbackRatingReason {
+    /// feedback property.
+    pub feedback: Option<String>,
+    /// reasonLabels property.
+    pub reason_labels: Option<Vec<String>>,
+}
+
+/// `GoogleCloudDialogflowCxV3ResponseMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ResponseMessage {
+    /// channel property.
+    pub channel: Option<String>,
+    /// conversationSuccess property.
+    pub conversation_success: Option<GoogleCloudDialogflowCxV3ResponseMessageConversationSuccess>,
+    /// endInteraction property.
+    pub end_interaction: Option<GoogleCloudDialogflowCxV3ResponseMessageEndInteraction>,
+    /// knowledgeInfoCard property.
+    pub knowledge_info_card: Option<GoogleCloudDialogflowCxV3ResponseMessageKnowledgeInfoCard>,
+    /// liveAgentHandoff property.
+    pub live_agent_handoff: Option<GoogleCloudDialogflowCxV3ResponseMessageLiveAgentHandoff>,
+    /// mixedAudio property.
+    pub mixed_audio: Option<GoogleCloudDialogflowCxV3ResponseMessageMixedAudio>,
+    /// outputAudioText property.
+    pub output_audio_text: Option<GoogleCloudDialogflowCxV3ResponseMessageOutputAudioText>,
+    /// payload property.
+    pub payload: Option<serde_json::Value>,
+    /// playAudio property.
+    pub play_audio: Option<GoogleCloudDialogflowCxV3ResponseMessagePlayAudio>,
+    /// responseType property.
+    pub response_type: Option<String>,
+    /// telephonyTransferCall property.
+    pub telephony_transfer_call:
+        Option<GoogleCloudDialogflowCxV3ResponseMessageTelephonyTransferCall>,
+    /// text property.
+    pub text: Option<GoogleCloudDialogflowCxV3ResponseMessageText>,
+    /// toolCall property.
+    pub tool_call: Option<GoogleCloudDialogflowCxV3ToolCall>,
+}
+
+/// `GoogleCloudDialogflowCxV3AgentUtterance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3AgentUtterance {
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3ResponseMessageConversationSuccess` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ResponseMessageConversationSuccess {
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudDialogflowCxV3ResponseMessageMixedAudio` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ResponseMessageMixedAudio {
+    /// segments property.
+    pub segments: Option<Vec<GoogleCloudDialogflowCxV3ResponseMessageMixedAudioSegment>>,
+}
+
+/// `GoogleCloudDialogflowCxV3GcsDestination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3GcsDestination {
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3TransitionRoute` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3TransitionRoute {
+    /// condition property.
+    pub condition: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// intent property.
+    pub intent: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// targetFlow property.
+    pub target_flow: Option<String>,
+    /// targetPage property.
+    pub target_page: Option<String>,
+    /// triggerFulfillment property.
+    pub trigger_fulfillment: Option<GoogleCloudDialogflowCxV3Fulfillment>,
+}
+
+/// `GoogleCloudDialogflowCxV3ResponseMessageTelephonyTransferCall` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ResponseMessageTelephonyTransferCall {
+    /// phoneNumber property.
+    pub phone_number: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3Flow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3Flow {
+    /// advancedSettings property.
+    pub advanced_settings: Option<GoogleCloudDialogflowCxV3AdvancedSettings>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// eventHandlers property.
+    pub event_handlers: Option<Vec<GoogleCloudDialogflowCxV3EventHandler>>,
+    /// inputParameterDefinitions property.
+    pub input_parameter_definitions: Option<Vec<GoogleCloudDialogflowCxV3ParameterDefinition>>,
+    /// knowledgeConnectorSettings property.
+    pub knowledge_connector_settings: Option<GoogleCloudDialogflowCxV3KnowledgeConnectorSettings>,
+    /// locked property.
+    pub locked: Option<bool>,
+    /// multiLanguageSettings property.
+    pub multi_language_settings: Option<GoogleCloudDialogflowCxV3FlowMultiLanguageSettings>,
+    /// name property.
+    pub name: Option<String>,
+    /// nluSettings property.
+    pub nlu_settings: Option<GoogleCloudDialogflowCxV3NluSettings>,
+    /// outputParameterDefinitions property.
+    pub output_parameter_definitions: Option<Vec<GoogleCloudDialogflowCxV3ParameterDefinition>>,
+    /// transitionRouteGroups property.
+    pub transition_route_groups: Option<Vec<String>>,
+    /// transitionRoutes property.
+    pub transition_routes: Option<Vec<GoogleCloudDialogflowCxV3TransitionRoute>>,
+}
+
+/// `GoogleCloudDialogflowCxV3ResponseMessageLiveAgentHandoff` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ResponseMessageLiveAgentHandoff {
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3PlaybookTransition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3PlaybookTransition {
     /// displayName property.
     pub display_name: Option<String>,
     /// playbook property.
     pub playbook: Option<String>,
-    /// playbookInput property.
-    pub playbook_input: Option<GoogleCloudDialogflowCxV3PlaybookInput>,
-    /// playbookOutput property.
-    pub playbook_output: Option<GoogleCloudDialogflowCxV3PlaybookOutput>,
-    /// playbookState property.
-    pub playbook_state: Option<String>,
 }
 
-/// `GoogleCloudDialogflowCxV3DataStoreConnectionSignalsCitedSnippet` type.
+/// `GoogleCloudDialogflowCxV3ToolUse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsCitedSnippet {
-    /// searchSnippet property.
-    pub search_snippet: Option<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSearchSnippet>,
-    /// snippetIndex property.
-    pub snippet_index: Option<i64>,
+pub struct GoogleCloudDialogflowCxV3ToolUse {
+    /// action property.
+    pub action: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// inputActionParameters property.
+    pub input_action_parameters: Option<serde_json::Value>,
+    /// outputActionParameters property.
+    pub output_action_parameters: Option<serde_json::Value>,
+    /// tool property.
+    pub tool: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3PlaybookInput` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3PlaybookInput {
+    /// precedingConversationSummary property.
+    pub preceding_conversation_summary: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3PlaybookOutput` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3PlaybookOutput {
+    /// executionSummary property.
+    pub execution_summary: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3DataStoreConnectionSignalsGroundingSignals` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsGroundingSignals {
+    /// decision property.
+    pub decision: Option<String>,
+    /// score property.
+    pub score: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3DataStoreConnectionSignalsRewriterModelCallSignals` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsRewriterModelCallSignals {
+    /// model property.
+    pub model: Option<String>,
+    /// modelOutput property.
+    pub model_output: Option<String>,
+    /// renderedPrompt property.
+    pub rendered_prompt: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3UserUtterance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3UserUtterance {
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSafetySignals` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSafetySignals {
+    /// bannedPhraseMatch property.
+    pub banned_phrase_match: Option<String>,
+    /// decision property.
+    pub decision: Option<String>,
+    /// matchedBannedPhrase property.
+    pub matched_banned_phrase: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3InlineSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3InlineSchema {
+    /// items property.
+    pub items: Option<Box<GoogleCloudDialogflowCxV3TypeSchema>>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3SynthesizeSpeechConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3SynthesizeSpeechConfig {
+    /// effectsProfileId property.
+    pub effects_profile_id: Option<Vec<String>>,
+    /// pitch property.
+    pub pitch: Option<f64>,
+    /// speakingRate property.
+    pub speaking_rate: Option<f64>,
+    /// voice property.
+    pub voice: Option<GoogleCloudDialogflowCxV3VoiceSelectionParams>,
+    /// volumeGainDb property.
+    pub volume_gain_db: Option<f64>,
+}
+
+/// `GoogleCloudDialogflowCxV3DetectIntentResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3DetectIntentResponse {
+    /// allowCancellation property.
+    pub allow_cancellation: Option<bool>,
+    /// outputAudio property.
+    pub output_audio: Option<String>,
+    /// outputAudioConfig property.
+    pub output_audio_config: Option<GoogleCloudDialogflowCxV3OutputAudioConfig>,
+    /// queryResult property.
+    pub query_result: Option<GoogleCloudDialogflowCxV3QueryResult>,
+    /// responseId property.
+    pub response_id: Option<String>,
+    /// responseType property.
+    pub response_type: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3VoiceSelectionParams` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3VoiceSelectionParams {
+    /// name property.
+    pub name: Option<String>,
+    /// ssmlGender property.
+    pub ssml_gender: Option<String>,
 }
 
 // =============================================================================

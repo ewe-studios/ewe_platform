@@ -12,17 +12,38 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `StepEntryMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StepEntryMetadata {
+    /// expectedIteration property.
+    pub expected_iteration: Option<String>,
+    /// progressNumber property.
+    pub progress_number: Option<String>,
+    /// progressType property.
+    pub progress_type: Option<String>,
+    /// threadId property.
+    pub thread_id: Option<String>,
+}
+
+/// `Exception` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Exception {
+    /// payload property.
+    pub payload: Option<String>,
+}
 
 /// `ListStepEntriesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -33,13 +54,6 @@ pub struct ListStepEntriesResponse {
     pub step_entries: Option<Vec<StepEntry>>,
     /// totalSize property.
     pub total_size: Option<i64>,
-}
-
-/// `Exception` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Exception {
-    /// payload property.
-    pub payload: Option<String>,
 }
 
 /// `StepEntry` type.
@@ -71,6 +85,13 @@ pub struct StepEntry {
     pub variable_data: Option<VariableData>,
 }
 
+/// `VariableData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VariableData {
+    /// variables property.
+    pub variables: Option<serde_json::Value>,
+}
+
 /// `NavigationInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NavigationInfo {
@@ -82,26 +103,6 @@ pub struct NavigationInfo {
     pub parent: Option<String>,
     /// previous property.
     pub previous: Option<String>,
-}
-
-/// `StepEntryMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StepEntryMetadata {
-    /// expectedIteration property.
-    pub expected_iteration: Option<String>,
-    /// progressNumber property.
-    pub progress_number: Option<String>,
-    /// progressType property.
-    pub progress_type: Option<String>,
-    /// threadId property.
-    pub thread_id: Option<String>,
-}
-
-/// `VariableData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VariableData {
-    /// variables property.
-    pub variables: Option<serde_json::Value>,
 }
 
 // =============================================================================

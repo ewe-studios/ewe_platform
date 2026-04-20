@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,37 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `QuotaExceededInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotaExceededInfo {
-    /// dimensions property.
-    pub dimensions: Option<serde_json::Value>,
-    /// futureLimit property.
-    pub future_limit: Option<f64>,
-    /// limit property.
-    pub limit: Option<f64>,
-    /// limitName property.
-    pub limit_name: Option<String>,
-    /// metricName property.
-    pub metric_name: Option<String>,
-    /// rolloutStatus property.
-    pub rollout_status: Option<String>,
-}
 
 /// `GetVersionOperationMetadataSbomInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -73,6 +48,15 @@ pub struct ErrorInfo {
     pub reason: Option<String>,
 }
 
+/// `HelpLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
 /// `GetVersionOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetVersionOperationMetadata {
@@ -80,11 +64,13 @@ pub struct GetVersionOperationMetadata {
     pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
 }
 
-/// `InstancesBulkInsertOperationMetadata` type.
+/// `LocalizedMessage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `Help` type.
@@ -94,6 +80,30 @@ pub struct Help {
     pub links: Option<Vec<HelpLink>>,
 }
 
+/// `QuotaExceededInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuotaExceededInfo {
+    /// dimensions property.
+    pub dimensions: Option<serde_json::Value>,
+    /// futureLimit property.
+    pub future_limit: Option<f64>,
+    /// limit property.
+    pub limit: Option<f64>,
+    /// limitName property.
+    pub limit_name: Option<String>,
+    /// metricName property.
+    pub metric_name: Option<String>,
+    /// rolloutStatus property.
+    pub rollout_status: Option<String>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
 /// `SetCommonInstanceMetadataOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetCommonInstanceMetadataOperationMetadata {
@@ -101,15 +111,6 @@ pub struct SetCommonInstanceMetadataOperationMetadata {
     pub client_operation_id: Option<String>,
     /// perLocationOperations property.
     pub per_location_operations: Option<serde_json::Value>,
-}
-
-/// `HelpLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
 }
 
 // =============================================================================

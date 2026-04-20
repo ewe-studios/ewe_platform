@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -39,15 +40,6 @@ pub struct CollectionStatusDestinationStatus {
     pub status: Option<String>,
 }
 
-/// `ListCollectionStatusesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCollectionStatusesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// resources property.
-    pub resources: Option<Vec<CollectionStatus>>,
-}
-
 /// `CollectionStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CollectionStatus {
@@ -61,6 +53,15 @@ pub struct CollectionStatus {
     pub id: Option<String>,
     /// lastUpdateDate property.
     pub last_update_date: Option<String>,
+}
+
+/// `ListCollectionStatusesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListCollectionStatusesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// resources property.
+    pub resources: Option<Vec<CollectionStatus>>,
 }
 
 /// `CollectionStatusItemLevelIssue` type.

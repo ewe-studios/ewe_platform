@@ -12,36 +12,46 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Thumbnail` type.
+/// `VideoFileDetailsAudioStream` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Thumbnail {
-    /// height property.
-    pub height: Option<i64>,
-    /// url property.
-    pub url: Option<String>,
-    /// width property.
-    pub width: Option<i64>,
+pub struct VideoFileDetailsAudioStream {
+    /// bitrateBps property.
+    pub bitrate_bps: Option<String>,
+    /// channelCount property.
+    pub channel_count: Option<i64>,
+    /// codec property.
+    pub codec: Option<String>,
+    /// vendor property.
+    pub vendor: Option<String>,
 }
 
-/// `VideoContentDetailsRegionRestriction` type.
+/// `PageInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoContentDetailsRegionRestriction {
-    /// allowed property.
-    pub allowed: Option<Vec<String>>,
-    /// blocked property.
-    pub blocked: Option<Vec<String>>,
+pub struct PageInfo {
+    /// resultsPerPage property.
+    pub results_per_page: Option<i64>,
+    /// totalResults property.
+    pub total_results: Option<i64>,
+}
+
+/// `VideoPaidProductPlacementDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoPaidProductPlacementDetails {
+    /// hasPaidProductPlacement property.
+    pub has_paid_product_placement: Option<bool>,
 }
 
 /// `VideoSnippet` type.
@@ -71,75 +81,6 @@ pub struct VideoSnippet {
     pub thumbnails: Option<ThumbnailDetails>,
     /// title property.
     pub title: Option<String>,
-}
-
-/// `TokenPagination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TokenPagination {}
-
-/// `VideoSuggestionsTagSuggestion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoSuggestionsTagSuggestion {
-    /// categoryRestricts property.
-    pub category_restricts: Option<Vec<String>>,
-    /// tag property.
-    pub tag: Option<String>,
-}
-
-/// `VideoMonetizationDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoMonetizationDetails {
-    /// access property.
-    pub access: Option<AccessPolicy>,
-}
-
-/// `AccessPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessPolicy {
-    /// allowed property.
-    pub allowed: Option<bool>,
-    /// exception property.
-    pub exception: Option<Vec<String>>,
-}
-
-/// `VideoFileDetailsAudioStream` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoFileDetailsAudioStream {
-    /// bitrateBps property.
-    pub bitrate_bps: Option<String>,
-    /// channelCount property.
-    pub channel_count: Option<i64>,
-    /// codec property.
-    pub codec: Option<String>,
-    /// vendor property.
-    pub vendor: Option<String>,
-}
-
-/// `VideoStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoStatus {
-    /// containsSyntheticMedia property.
-    pub contains_synthetic_media: Option<bool>,
-    /// embeddable property.
-    pub embeddable: Option<bool>,
-    /// failureReason property.
-    pub failure_reason: Option<String>,
-    /// license property.
-    pub license: Option<String>,
-    /// madeForKids property.
-    pub made_for_kids: Option<bool>,
-    /// privacyStatus property.
-    pub privacy_status: Option<String>,
-    /// publicStatsViewable property.
-    pub public_stats_viewable: Option<bool>,
-    /// publishAt property.
-    pub publish_at: Option<String>,
-    /// rejectionReason property.
-    pub rejection_reason: Option<String>,
-    /// selfDeclaredMadeForKids property.
-    pub self_declared_made_for_kids: Option<bool>,
-    /// uploadStatus property.
-    pub upload_status: Option<String>,
 }
 
 /// `ContentRating` type.
@@ -289,23 +230,6 @@ pub struct ContentRating {
     pub yt_rating: Option<String>,
 }
 
-/// `VideoLiveStreamingDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoLiveStreamingDetails {
-    /// activeLiveChatId property.
-    pub active_live_chat_id: Option<String>,
-    /// actualEndTime property.
-    pub actual_end_time: Option<String>,
-    /// actualStartTime property.
-    pub actual_start_time: Option<String>,
-    /// concurrentViewers property.
-    pub concurrent_viewers: Option<String>,
-    /// scheduledEndTime property.
-    pub scheduled_end_time: Option<String>,
-    /// scheduledStartTime property.
-    pub scheduled_start_time: Option<String>,
-}
-
 /// `VideoStatistics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoStatistics {
@@ -321,15 +245,6 @@ pub struct VideoStatistics {
     pub view_count: Option<String>,
 }
 
-/// `VideoLocalization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoLocalization {
-    /// description property.
-    pub description: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
 /// `VideoPlayer` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoPlayer {
@@ -341,102 +256,90 @@ pub struct VideoPlayer {
     pub embed_width: Option<String>,
 }
 
-/// `VideoContentDetails` type.
+/// `VideoRecordingDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoContentDetails {
-    /// caption property.
-    pub caption: Option<String>,
-    /// contentRating property.
-    pub content_rating: Option<ContentRating>,
-    /// countryRestriction property.
-    pub country_restriction: Option<AccessPolicy>,
-    /// definition property.
-    pub definition: Option<String>,
-    /// dimension property.
-    pub dimension: Option<String>,
-    /// duration property.
-    pub duration: Option<String>,
-    /// hasCustomThumbnail property.
-    pub has_custom_thumbnail: Option<bool>,
-    /// licensedContent property.
-    pub licensed_content: Option<bool>,
-    /// projection property.
-    pub projection: Option<String>,
-    /// regionRestriction property.
-    pub region_restriction: Option<VideoContentDetailsRegionRestriction>,
+pub struct VideoRecordingDetails {
+    /// location property.
+    pub location: Option<GeoPoint>,
+    /// locationDescription property.
+    pub location_description: Option<String>,
+    /// recordingDate property.
+    pub recording_date: Option<String>,
 }
 
-/// `VideoTopicDetails` type.
+/// `VideoFileDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoTopicDetails {
-    /// relevantTopicIds property.
-    pub relevant_topic_ids: Option<Vec<String>>,
-    /// topicCategories property.
-    pub topic_categories: Option<Vec<String>>,
-    /// topicIds property.
-    pub topic_ids: Option<Vec<String>>,
-}
-
-/// `VideoProjectDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoProjectDetails {}
-
-/// `ThumbnailDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ThumbnailDetails {
-    /// default property.
-    pub default: Option<Thumbnail>,
-    /// high property.
-    pub high: Option<Thumbnail>,
-    /// maxres property.
-    pub maxres: Option<Thumbnail>,
-    /// medium property.
-    pub medium: Option<Thumbnail>,
-    /// standard property.
-    pub standard: Option<Thumbnail>,
-}
-
-/// `VideoPaidProductPlacementDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoPaidProductPlacementDetails {
-    /// hasPaidProductPlacement property.
-    pub has_paid_product_placement: Option<bool>,
-}
-
-/// `VideoSuggestions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoSuggestions {
-    /// editorSuggestions property.
-    pub editor_suggestions: Option<Vec<String>>,
-    /// processingErrors property.
-    pub processing_errors: Option<Vec<String>>,
-    /// processingHints property.
-    pub processing_hints: Option<Vec<String>>,
-    /// processingWarnings property.
-    pub processing_warnings: Option<Vec<String>>,
-    /// tagSuggestions property.
-    pub tag_suggestions: Option<Vec<VideoSuggestionsTagSuggestion>>,
-}
-
-/// `VideoFileDetailsVideoStream` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoFileDetailsVideoStream {
-    /// aspectRatio property.
-    pub aspect_ratio: Option<f64>,
+pub struct VideoFileDetails {
+    /// audioStreams property.
+    pub audio_streams: Option<Vec<VideoFileDetailsAudioStream>>,
     /// bitrateBps property.
     pub bitrate_bps: Option<String>,
-    /// codec property.
-    pub codec: Option<String>,
-    /// frameRateFps property.
-    pub frame_rate_fps: Option<f64>,
-    /// heightPixels property.
-    pub height_pixels: Option<i64>,
-    /// rotation property.
-    pub rotation: Option<String>,
-    /// vendor property.
-    pub vendor: Option<String>,
-    /// widthPixels property.
-    pub width_pixels: Option<i64>,
+    /// container property.
+    pub container: Option<String>,
+    /// creationTime property.
+    pub creation_time: Option<String>,
+    /// durationMs property.
+    pub duration_ms: Option<String>,
+    /// fileName property.
+    pub file_name: Option<String>,
+    /// fileSize property.
+    pub file_size: Option<String>,
+    /// fileType property.
+    pub file_type: Option<String>,
+    /// videoStreams property.
+    pub video_streams: Option<Vec<VideoFileDetailsVideoStream>>,
+}
+
+/// `VideoProcessingDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoProcessingDetails {
+    /// editorSuggestionsAvailability property.
+    pub editor_suggestions_availability: Option<String>,
+    /// fileDetailsAvailability property.
+    pub file_details_availability: Option<String>,
+    /// processingFailureReason property.
+    pub processing_failure_reason: Option<String>,
+    /// processingIssuesAvailability property.
+    pub processing_issues_availability: Option<String>,
+    /// processingProgress property.
+    pub processing_progress: Option<VideoProcessingDetailsProcessingProgress>,
+    /// processingStatus property.
+    pub processing_status: Option<String>,
+    /// tagSuggestionsAvailability property.
+    pub tag_suggestions_availability: Option<String>,
+    /// thumbnailsAvailability property.
+    pub thumbnails_availability: Option<String>,
+}
+
+/// `VideoLocalization` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoLocalization {
+    /// description property.
+    pub description: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `Thumbnail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Thumbnail {
+    /// height property.
+    pub height: Option<i64>,
+    /// url property.
+    pub url: Option<String>,
+    /// width property.
+    pub width: Option<i64>,
+}
+
+/// `GeoPoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GeoPoint {
+    /// altitude property.
+    pub altitude: Option<f64>,
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
 }
 
 /// `Video` type.
@@ -482,26 +385,81 @@ pub struct Video {
     pub topic_details: Option<VideoTopicDetails>,
 }
 
-/// `GeoPoint` type.
+/// `VideoSuggestions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeoPoint {
-    /// altitude property.
-    pub altitude: Option<f64>,
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
+pub struct VideoSuggestions {
+    /// editorSuggestions property.
+    pub editor_suggestions: Option<Vec<String>>,
+    /// processingErrors property.
+    pub processing_errors: Option<Vec<String>>,
+    /// processingHints property.
+    pub processing_hints: Option<Vec<String>>,
+    /// processingWarnings property.
+    pub processing_warnings: Option<Vec<String>>,
+    /// tagSuggestions property.
+    pub tag_suggestions: Option<Vec<VideoSuggestionsTagSuggestion>>,
 }
 
-/// `VideoProcessingDetailsProcessingProgress` type.
+/// `VideoProjectDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoProcessingDetailsProcessingProgress {
-    /// partsProcessed property.
-    pub parts_processed: Option<String>,
-    /// partsTotal property.
-    pub parts_total: Option<String>,
-    /// timeLeftMs property.
-    pub time_left_ms: Option<String>,
+pub struct VideoProjectDetails {}
+
+/// `VideoStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoStatus {
+    /// containsSyntheticMedia property.
+    pub contains_synthetic_media: Option<bool>,
+    /// embeddable property.
+    pub embeddable: Option<bool>,
+    /// failureReason property.
+    pub failure_reason: Option<String>,
+    /// license property.
+    pub license: Option<String>,
+    /// madeForKids property.
+    pub made_for_kids: Option<bool>,
+    /// privacyStatus property.
+    pub privacy_status: Option<String>,
+    /// publicStatsViewable property.
+    pub public_stats_viewable: Option<bool>,
+    /// publishAt property.
+    pub publish_at: Option<String>,
+    /// rejectionReason property.
+    pub rejection_reason: Option<String>,
+    /// selfDeclaredMadeForKids property.
+    pub self_declared_made_for_kids: Option<bool>,
+    /// uploadStatus property.
+    pub upload_status: Option<String>,
+}
+
+/// `VideoTopicDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoTopicDetails {
+    /// relevantTopicIds property.
+    pub relevant_topic_ids: Option<Vec<String>>,
+    /// topicCategories property.
+    pub topic_categories: Option<Vec<String>>,
+    /// topicIds property.
+    pub topic_ids: Option<Vec<String>>,
+}
+
+/// `VideoSuggestionsTagSuggestion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoSuggestionsTagSuggestion {
+    /// categoryRestricts property.
+    pub category_restricts: Option<Vec<String>>,
+    /// tag property.
+    pub tag: Option<String>,
+}
+
+/// `VideoAgeGating` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoAgeGating {
+    /// alcoholContent property.
+    pub alcohol_content: Option<bool>,
+    /// restricted property.
+    pub restricted: Option<bool>,
+    /// videoGameRating property.
+    pub video_game_rating: Option<String>,
 }
 
 /// `VideoListResponse` type.
@@ -527,79 +485,122 @@ pub struct VideoListResponse {
     pub visitor_id: Option<String>,
 }
 
-/// `PageInfo` type.
+/// `VideoMonetizationDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PageInfo {
-    /// resultsPerPage property.
-    pub results_per_page: Option<i64>,
-    /// totalResults property.
-    pub total_results: Option<i64>,
+pub struct VideoMonetizationDetails {
+    /// access property.
+    pub access: Option<AccessPolicy>,
 }
 
-/// `VideoFileDetails` type.
+/// `VideoProcessingDetailsProcessingProgress` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoFileDetails {
-    /// audioStreams property.
-    pub audio_streams: Option<Vec<VideoFileDetailsAudioStream>>,
+pub struct VideoProcessingDetailsProcessingProgress {
+    /// partsProcessed property.
+    pub parts_processed: Option<String>,
+    /// partsTotal property.
+    pub parts_total: Option<String>,
+    /// timeLeftMs property.
+    pub time_left_ms: Option<String>,
+}
+
+/// `VideoLiveStreamingDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoLiveStreamingDetails {
+    /// activeLiveChatId property.
+    pub active_live_chat_id: Option<String>,
+    /// actualEndTime property.
+    pub actual_end_time: Option<String>,
+    /// actualStartTime property.
+    pub actual_start_time: Option<String>,
+    /// concurrentViewers property.
+    pub concurrent_viewers: Option<String>,
+    /// scheduledEndTime property.
+    pub scheduled_end_time: Option<String>,
+    /// scheduledStartTime property.
+    pub scheduled_start_time: Option<String>,
+}
+
+/// `AccessPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessPolicy {
+    /// allowed property.
+    pub allowed: Option<bool>,
+    /// exception property.
+    pub exception: Option<Vec<String>>,
+}
+
+/// `VideoContentDetailsRegionRestriction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoContentDetailsRegionRestriction {
+    /// allowed property.
+    pub allowed: Option<Vec<String>>,
+    /// blocked property.
+    pub blocked: Option<Vec<String>>,
+}
+
+/// `ThumbnailDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ThumbnailDetails {
+    /// default property.
+    pub default: Option<Thumbnail>,
+    /// high property.
+    pub high: Option<Thumbnail>,
+    /// maxres property.
+    pub maxres: Option<Thumbnail>,
+    /// medium property.
+    pub medium: Option<Thumbnail>,
+    /// standard property.
+    pub standard: Option<Thumbnail>,
+}
+
+/// `TokenPagination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TokenPagination {}
+
+/// `VideoFileDetailsVideoStream` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoFileDetailsVideoStream {
+    /// aspectRatio property.
+    pub aspect_ratio: Option<f64>,
     /// bitrateBps property.
     pub bitrate_bps: Option<String>,
-    /// container property.
-    pub container: Option<String>,
-    /// creationTime property.
-    pub creation_time: Option<String>,
-    /// durationMs property.
-    pub duration_ms: Option<String>,
-    /// fileName property.
-    pub file_name: Option<String>,
-    /// fileSize property.
-    pub file_size: Option<String>,
-    /// fileType property.
-    pub file_type: Option<String>,
-    /// videoStreams property.
-    pub video_streams: Option<Vec<VideoFileDetailsVideoStream>>,
+    /// codec property.
+    pub codec: Option<String>,
+    /// frameRateFps property.
+    pub frame_rate_fps: Option<f64>,
+    /// heightPixels property.
+    pub height_pixels: Option<i64>,
+    /// rotation property.
+    pub rotation: Option<String>,
+    /// vendor property.
+    pub vendor: Option<String>,
+    /// widthPixels property.
+    pub width_pixels: Option<i64>,
 }
 
-/// `VideoRecordingDetails` type.
+/// `VideoContentDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoRecordingDetails {
-    /// location property.
-    pub location: Option<GeoPoint>,
-    /// locationDescription property.
-    pub location_description: Option<String>,
-    /// recordingDate property.
-    pub recording_date: Option<String>,
-}
-
-/// `VideoProcessingDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoProcessingDetails {
-    /// editorSuggestionsAvailability property.
-    pub editor_suggestions_availability: Option<String>,
-    /// fileDetailsAvailability property.
-    pub file_details_availability: Option<String>,
-    /// processingFailureReason property.
-    pub processing_failure_reason: Option<String>,
-    /// processingIssuesAvailability property.
-    pub processing_issues_availability: Option<String>,
-    /// processingProgress property.
-    pub processing_progress: Option<VideoProcessingDetailsProcessingProgress>,
-    /// processingStatus property.
-    pub processing_status: Option<String>,
-    /// tagSuggestionsAvailability property.
-    pub tag_suggestions_availability: Option<String>,
-    /// thumbnailsAvailability property.
-    pub thumbnails_availability: Option<String>,
-}
-
-/// `VideoAgeGating` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoAgeGating {
-    /// alcoholContent property.
-    pub alcohol_content: Option<bool>,
-    /// restricted property.
-    pub restricted: Option<bool>,
-    /// videoGameRating property.
-    pub video_game_rating: Option<String>,
+pub struct VideoContentDetails {
+    /// caption property.
+    pub caption: Option<String>,
+    /// contentRating property.
+    pub content_rating: Option<ContentRating>,
+    /// countryRestriction property.
+    pub country_restriction: Option<AccessPolicy>,
+    /// definition property.
+    pub definition: Option<String>,
+    /// dimension property.
+    pub dimension: Option<String>,
+    /// duration property.
+    pub duration: Option<String>,
+    /// hasCustomThumbnail property.
+    pub has_custom_thumbnail: Option<bool>,
+    /// licensedContent property.
+    pub licensed_content: Option<bool>,
+    /// projection property.
+    pub projection: Option<String>,
+    /// regionRestriction property.
+    pub region_restriction: Option<VideoContentDetailsRegionRestriction>,
 }
 
 // =============================================================================

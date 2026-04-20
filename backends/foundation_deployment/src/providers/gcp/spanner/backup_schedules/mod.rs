@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,46 +24,11 @@ use super::shared::Empty;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `BackupScheduleSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupScheduleSpec {
-    /// cronSpec property.
-    pub cron_spec: Option<CrontabSpec>,
-}
-
-/// `IncrementalBackupSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IncrementalBackupSpec {}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
 
 /// `BackupSchedule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -83,20 +49,45 @@ pub struct BackupSchedule {
     pub update_time: Option<String>,
 }
 
-/// `CrontabSpec` type.
+/// `ListBackupSchedulesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CrontabSpec {
-    /// creationWindow property.
-    pub creation_window: Option<String>,
-    /// text property.
-    pub text: Option<String>,
-    /// timeZone property.
-    pub time_zone: Option<String>,
+pub struct ListBackupSchedulesResponse {
+    /// backupSchedules property.
+    pub backup_schedules: Option<Vec<BackupSchedule>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
-/// `FullBackupSpec` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FullBackupSpec {}
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `BackupScheduleSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupScheduleSpec {
+    /// cronSpec property.
+    pub cron_spec: Option<CrontabSpec>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
 
 /// `CreateBackupEncryptionConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -109,13 +100,23 @@ pub struct CreateBackupEncryptionConfig {
     pub kms_key_names: Option<Vec<String>>,
 }
 
-/// `ListBackupSchedulesResponse` type.
+/// `FullBackupSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListBackupSchedulesResponse {
-    /// backupSchedules property.
-    pub backup_schedules: Option<Vec<BackupSchedule>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct FullBackupSpec {}
+
+/// `IncrementalBackupSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IncrementalBackupSpec {}
+
+/// `CrontabSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CrontabSpec {
+    /// creationWindow property.
+    pub creation_window: Option<String>,
+    /// text property.
+    pub text: Option<String>,
+    /// timeZone property.
+    pub time_zone: Option<String>,
 }
 
 // =============================================================================

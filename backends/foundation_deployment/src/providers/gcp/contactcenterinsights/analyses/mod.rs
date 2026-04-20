@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,28 +23,114 @@ use serde::{Deserialize, Serialize};
 use super::shared::GoogleLongrunningOperation;
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudContactcenterinsightsV1ConversationLevelSentiment` type.
+/// `GoogleCloudContactcenterinsightsV1InterruptionData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1ConversationLevelSentiment {
-    /// channelTag property.
-    pub channel_tag: Option<i64>,
-    /// sentimentData property.
-    pub sentiment_data: Option<GoogleCloudContactcenterinsightsV1SentimentData>,
+pub struct GoogleCloudContactcenterinsightsV1InterruptionData {}
+
+/// `GoogleCloudContactcenterinsightsV1SilenceData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1SilenceData {}
+
+/// `GoogleCloudContactcenterinsightsV1SentimentData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1SentimentData {
+    /// magnitude property.
+    pub magnitude: Option<f64>,
+    /// score property.
+    pub score: Option<f64>,
 }
 
-/// `GoogleCloudContactcenterinsightsV1ConversationLevelSilence` type.
+/// `GoogleCloudContactcenterinsightsV1IssueAssignment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1ConversationLevelSilence {
-    /// silenceDuration property.
-    pub silence_duration: Option<String>,
-    /// silencePercentage property.
-    pub silence_percentage: Option<f64>,
+pub struct GoogleCloudContactcenterinsightsV1IssueAssignment {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// issue property.
+    pub issue: Option<String>,
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfig {
+    /// scorecardList property.
+    pub scorecard_list:
+        Option<GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfigScorecardList>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1Analysis` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1Analysis {
+    /// analysisResult property.
+    pub analysis_result: Option<GoogleCloudContactcenterinsightsV1AnalysisResult>,
+    /// annotatorSelector property.
+    pub annotator_selector: Option<GoogleCloudContactcenterinsightsV1AnnotatorSelector>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// requestTime property.
+    pub request_time: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1ListAnalysesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1ListAnalysesResponse {
+    /// analyses property.
+    pub analyses: Option<Vec<GoogleCloudContactcenterinsightsV1Analysis>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1QaScorecardResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1QaScorecardResult {
+    /// agentId property.
+    pub agent_id: Option<String>,
+    /// conversation property.
+    pub conversation: Option<String>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// normalizedScore property.
+    pub normalized_score: Option<f64>,
+    /// potentialScore property.
+    pub potential_score: Option<f64>,
+    /// qaAnswers property.
+    pub qa_answers: Option<Vec<GoogleCloudContactcenterinsightsV1QaAnswer>>,
+    /// qaScorecardRevision property.
+    pub qa_scorecard_revision: Option<String>,
+    /// qaTagResults property.
+    pub qa_tag_results: Option<Vec<GoogleCloudContactcenterinsightsV1QaScorecardResultQaTagResult>>,
+    /// score property.
+    pub score: Option<f64>,
+    /// scoreSources property.
+    pub score_sources: Option<Vec<GoogleCloudContactcenterinsightsV1QaScorecardResultScoreSource>>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1QaAnswer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1QaAnswer {
+    /// answerSources property.
+    pub answer_sources: Option<Vec<GoogleCloudContactcenterinsightsV1QaAnswerAnswerSource>>,
+    /// answerValue property.
+    pub answer_value: Option<GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue>,
+    /// conversation property.
+    pub conversation: Option<String>,
+    /// qaQuestion property.
+    pub qa_question: Option<String>,
+    /// questionBody property.
+    pub question_body: Option<String>,
+    /// tags property.
+    pub tags: Option<Vec<String>>,
 }
 
 /// `GoogleCloudContactcenterinsightsV1AnnotatorSelector` type.
@@ -80,31 +167,95 @@ pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelector {
         Option<GoogleCloudContactcenterinsightsV1AnnotatorSelectorSummarizationConfig>,
 }
 
-/// `GoogleCloudContactcenterinsightsV1SilenceData` type.
+/// `GoogleCloudContactcenterinsightsV1AnnotationBoundary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1SilenceData {}
+pub struct GoogleCloudContactcenterinsightsV1AnnotationBoundary {
+    /// transcriptIndex property.
+    pub transcript_index: Option<i64>,
+    /// wordIndex property.
+    pub word_index: Option<i64>,
+}
 
-/// `GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue` type.
+/// `GoogleCloudContactcenterinsightsV1QaAnswerAnswerSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue {
-    /// boolValue property.
-    pub bool_value: Option<bool>,
-    /// key property.
-    pub key: Option<String>,
-    /// naValue property.
-    pub na_value: Option<bool>,
+pub struct GoogleCloudContactcenterinsightsV1QaAnswerAnswerSource {
+    /// answerValue property.
+    pub answer_value: Option<GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue>,
+    /// sourceType property.
+    pub source_type: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1HoldData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1HoldData {}
+
+/// `GoogleCloudContactcenterinsightsV1IssueMatchData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1IssueMatchData {
+    /// issueAssignment property.
+    pub issue_assignment: Option<GoogleCloudContactcenterinsightsV1IssueAssignment>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1QaScorecardResultQaTagResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1QaScorecardResultQaTagResult {
     /// normalizedScore property.
     pub normalized_score: Option<f64>,
-    /// numValue property.
-    pub num_value: Option<f64>,
     /// potentialScore property.
     pub potential_score: Option<f64>,
     /// score property.
     pub score: Option<f64>,
-    /// skipValue property.
-    pub skip_value: Option<bool>,
-    /// strValue property.
-    pub str_value: Option<String>,
+    /// tag property.
+    pub tag: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1ConversationLevelSilence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1ConversationLevelSilence {
+    /// silenceDuration property.
+    pub silence_duration: Option<String>,
+    /// silencePercentage property.
+    pub silence_percentage: Option<f64>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1IntentMatchData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1IntentMatchData {
+    /// intentUniqueId property.
+    pub intent_unique_id: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1EntityMentionData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1EntityMentionData {
+    /// entityUniqueId property.
+    pub entity_unique_id: Option<String>,
+    /// sentiment property.
+    pub sentiment: Option<GoogleCloudContactcenterinsightsV1SentimentData>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1AnnotatorSelectorSummarizationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorSummarizationConfig {
+    /// conversationProfile property.
+    pub conversation_profile: Option<String>,
+    /// generator property.
+    pub generator: Option<String>,
+    /// summarizationModel property.
+    pub summarization_model: Option<String>,
 }
 
 /// `GoogleCloudContactcenterinsightsV1CallAnnotation` type.
@@ -134,23 +285,11 @@ pub struct GoogleCloudContactcenterinsightsV1CallAnnotation {
     pub silence_data: Option<GoogleCloudContactcenterinsightsV1SilenceData>,
 }
 
-/// `GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfig` type.
+/// `GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfigScorecardList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfig {
-    /// scorecardList property.
-    pub scorecard_list:
-        Option<GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfigScorecardList>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1InterruptionData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1InterruptionData {}
-
-/// `GoogleCloudContactcenterinsightsV1IssueMatchData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1IssueMatchData {
-    /// issueAssignment property.
-    pub issue_assignment: Option<GoogleCloudContactcenterinsightsV1IssueAssignment>,
+pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfigScorecardList {
+    /// qaScorecardRevisions property.
+    pub qa_scorecard_revisions: Option<Vec<String>>,
 }
 
 /// `GoogleCloudContactcenterinsightsV1AnalysisResultCallAnalysisMetadata` type.
@@ -174,26 +313,6 @@ pub struct GoogleCloudContactcenterinsightsV1AnalysisResultCallAnalysisMetadata 
     pub silence: Option<GoogleCloudContactcenterinsightsV1ConversationLevelSilence>,
 }
 
-/// `GoogleCloudContactcenterinsightsV1IssueModelResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1IssueModelResult {
-    /// issueModel property.
-    pub issue_model: Option<String>,
-    /// issues property.
-    pub issues: Option<Vec<GoogleCloudContactcenterinsightsV1IssueAssignment>>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1HoldData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1HoldData {}
-
-/// `GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfigScorecardList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfigScorecardList {
-    /// qaScorecardRevisions property.
-    pub qa_scorecard_revisions: Option<Vec<String>>,
-}
-
 /// `GoogleCloudContactcenterinsightsV1QaScorecardResultScoreSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QaScorecardResultScoreSource {
@@ -209,74 +328,22 @@ pub struct GoogleCloudContactcenterinsightsV1QaScorecardResultScoreSource {
     pub source_type: Option<String>,
 }
 
-/// `GoogleCloudContactcenterinsightsV1EntityMentionData` type.
+/// `GoogleCloudContactcenterinsightsV1IssueModelResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1EntityMentionData {
-    /// entityUniqueId property.
-    pub entity_unique_id: Option<String>,
-    /// sentiment property.
-    pub sentiment: Option<GoogleCloudContactcenterinsightsV1SentimentData>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct GoogleCloudContactcenterinsightsV1IssueModelResult {
+    /// issueModel property.
+    pub issue_model: Option<String>,
+    /// issues property.
+    pub issues: Option<Vec<GoogleCloudContactcenterinsightsV1IssueAssignment>>,
 }
 
-/// `GoogleCloudContactcenterinsightsV1SentimentData` type.
+/// `GoogleCloudContactcenterinsightsV1PhraseMatchData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1SentimentData {
-    /// magnitude property.
-    pub magnitude: Option<f64>,
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1QaAnswer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1QaAnswer {
-    /// answerSources property.
-    pub answer_sources: Option<Vec<GoogleCloudContactcenterinsightsV1QaAnswerAnswerSource>>,
-    /// answerValue property.
-    pub answer_value: Option<GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue>,
-    /// conversation property.
-    pub conversation: Option<String>,
-    /// qaQuestion property.
-    pub qa_question: Option<String>,
-    /// questionBody property.
-    pub question_body: Option<String>,
-    /// tags property.
-    pub tags: Option<Vec<String>>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1Analysis` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1Analysis {
-    /// analysisResult property.
-    pub analysis_result: Option<GoogleCloudContactcenterinsightsV1AnalysisResult>,
-    /// annotatorSelector property.
-    pub annotator_selector: Option<GoogleCloudContactcenterinsightsV1AnnotatorSelector>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// requestTime property.
-    pub request_time: Option<String>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1IntentMatchData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1IntentMatchData {
-    /// intentUniqueId property.
-    pub intent_unique_id: Option<String>,
+pub struct GoogleCloudContactcenterinsightsV1PhraseMatchData {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// phraseMatcher property.
+    pub phrase_matcher: Option<String>,
 }
 
 /// `GoogleCloudContactcenterinsightsV1AnalysisResult` type.
@@ -289,102 +356,36 @@ pub struct GoogleCloudContactcenterinsightsV1AnalysisResult {
     pub end_time: Option<String>,
 }
 
-/// `GoogleCloudContactcenterinsightsV1AnnotationBoundary` type.
+/// `GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1AnnotationBoundary {
-    /// transcriptIndex property.
-    pub transcript_index: Option<i64>,
-    /// wordIndex property.
-    pub word_index: Option<i64>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1PhraseMatchData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1PhraseMatchData {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// phraseMatcher property.
-    pub phrase_matcher: Option<String>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1AnnotatorSelectorSummarizationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorSummarizationConfig {
-    /// conversationProfile property.
-    pub conversation_profile: Option<String>,
-    /// generator property.
-    pub generator: Option<String>,
-    /// summarizationModel property.
-    pub summarization_model: Option<String>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1QaAnswerAnswerSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1QaAnswerAnswerSource {
-    /// answerValue property.
-    pub answer_value: Option<GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue>,
-    /// sourceType property.
-    pub source_type: Option<String>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1ListAnalysesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1ListAnalysesResponse {
-    /// analyses property.
-    pub analyses: Option<Vec<GoogleCloudContactcenterinsightsV1Analysis>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1QaScorecardResultQaTagResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1QaScorecardResultQaTagResult {
+pub struct GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue {
+    /// boolValue property.
+    pub bool_value: Option<bool>,
+    /// key property.
+    pub key: Option<String>,
+    /// naValue property.
+    pub na_value: Option<bool>,
     /// normalizedScore property.
     pub normalized_score: Option<f64>,
+    /// numValue property.
+    pub num_value: Option<f64>,
     /// potentialScore property.
     pub potential_score: Option<f64>,
     /// score property.
     pub score: Option<f64>,
-    /// tag property.
-    pub tag: Option<String>,
+    /// skipValue property.
+    pub skip_value: Option<bool>,
+    /// strValue property.
+    pub str_value: Option<String>,
 }
 
-/// `GoogleCloudContactcenterinsightsV1QaScorecardResult` type.
+/// `GoogleCloudContactcenterinsightsV1ConversationLevelSentiment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1QaScorecardResult {
-    /// agentId property.
-    pub agent_id: Option<String>,
-    /// conversation property.
-    pub conversation: Option<String>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// normalizedScore property.
-    pub normalized_score: Option<f64>,
-    /// potentialScore property.
-    pub potential_score: Option<f64>,
-    /// qaAnswers property.
-    pub qa_answers: Option<Vec<GoogleCloudContactcenterinsightsV1QaAnswer>>,
-    /// qaScorecardRevision property.
-    pub qa_scorecard_revision: Option<String>,
-    /// qaTagResults property.
-    pub qa_tag_results: Option<Vec<GoogleCloudContactcenterinsightsV1QaScorecardResultQaTagResult>>,
-    /// score property.
-    pub score: Option<f64>,
-    /// scoreSources property.
-    pub score_sources: Option<Vec<GoogleCloudContactcenterinsightsV1QaScorecardResultScoreSource>>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1IssueAssignment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1IssueAssignment {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// issue property.
-    pub issue: Option<String>,
-    /// score property.
-    pub score: Option<f64>,
+pub struct GoogleCloudContactcenterinsightsV1ConversationLevelSentiment {
+    /// channelTag property.
+    pub channel_tag: Option<i64>,
+    /// sentimentData property.
+    pub sentiment_data: Option<GoogleCloudContactcenterinsightsV1SentimentData>,
 }
 
 // =============================================================================

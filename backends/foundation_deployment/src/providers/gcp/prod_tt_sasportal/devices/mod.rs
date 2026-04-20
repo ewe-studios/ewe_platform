@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,11 +24,101 @@ use super::shared::SasPortalDevice;
 use super::shared::SasPortalEmpty;
 use super::shared::SasPortalOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `SasPortalDeviceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SasPortalDeviceConfig {
+    /// airInterface property.
+    pub air_interface: Option<SasPortalDeviceAirInterface>,
+    /// callSign property.
+    pub call_sign: Option<String>,
+    /// category property.
+    pub category: Option<String>,
+    /// installationParams property.
+    pub installation_params: Option<SasPortalInstallationParams>,
+    /// isSigned property.
+    pub is_signed: Option<bool>,
+    /// measurementCapabilities property.
+    pub measurement_capabilities: Option<Vec<String>>,
+    /// model property.
+    pub model: Option<SasPortalDeviceModel>,
+    /// state property.
+    pub state: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+    /// userId property.
+    pub user_id: Option<String>,
+}
+
+/// `SasPortalDeviceGrant` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SasPortalDeviceGrant {
+    /// channelType property.
+    pub channel_type: Option<String>,
+    /// expireTime property.
+    pub expire_time: Option<String>,
+    /// frequencyRange property.
+    pub frequency_range: Option<SasPortalFrequencyRange>,
+    /// grantId property.
+    pub grant_id: Option<String>,
+    /// lastHeartbeatTransmitExpireTime property.
+    pub last_heartbeat_transmit_expire_time: Option<String>,
+    /// maxEirp property.
+    pub max_eirp: Option<f64>,
+    /// moveList property.
+    pub move_list: Option<Vec<SasPortalDpaMoveList>>,
+    /// state property.
+    pub state: Option<String>,
+    /// suspensionReason property.
+    pub suspension_reason: Option<Vec<String>>,
+}
+
+/// `SasPortalDeviceAirInterface` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SasPortalDeviceAirInterface {
+    /// radioTechnology property.
+    pub radio_technology: Option<String>,
+    /// supportedSpec property.
+    pub supported_spec: Option<String>,
+}
+
+/// `SasPortalListDevicesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SasPortalListDevicesResponse {
+    /// devices property.
+    pub devices: Option<Vec<SasPortalDevice>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `SasPortalDpaMoveList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SasPortalDpaMoveList {
+    /// dpaId property.
+    pub dpa_id: Option<String>,
+    /// frequencyRange property.
+    pub frequency_range: Option<SasPortalFrequencyRange>,
+}
+
+/// `SasPortalDeviceMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SasPortalDeviceMetadata {
+    /// antennaModel property.
+    pub antenna_model: Option<String>,
+    /// commonChannelGroup property.
+    pub common_channel_group: Option<String>,
+    /// interferenceCoordinationGroup property.
+    pub interference_coordination_group: Option<String>,
+    /// nrqzValidated property.
+    pub nrqz_validated: Option<bool>,
+    /// nrqzValidation property.
+    pub nrqz_validation: Option<SasPortalNrqzValidation>,
+}
 
 /// `SasPortalInstallationParams` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -73,96 +164,6 @@ pub struct SasPortalStatus {
     pub message: Option<String>,
 }
 
-/// `SasPortalDeviceMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalDeviceMetadata {
-    /// antennaModel property.
-    pub antenna_model: Option<String>,
-    /// commonChannelGroup property.
-    pub common_channel_group: Option<String>,
-    /// interferenceCoordinationGroup property.
-    pub interference_coordination_group: Option<String>,
-    /// nrqzValidated property.
-    pub nrqz_validated: Option<bool>,
-    /// nrqzValidation property.
-    pub nrqz_validation: Option<SasPortalNrqzValidation>,
-}
-
-/// `SasPortalDeviceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalDeviceConfig {
-    /// airInterface property.
-    pub air_interface: Option<SasPortalDeviceAirInterface>,
-    /// callSign property.
-    pub call_sign: Option<String>,
-    /// category property.
-    pub category: Option<String>,
-    /// installationParams property.
-    pub installation_params: Option<SasPortalInstallationParams>,
-    /// isSigned property.
-    pub is_signed: Option<bool>,
-    /// measurementCapabilities property.
-    pub measurement_capabilities: Option<Vec<String>>,
-    /// model property.
-    pub model: Option<SasPortalDeviceModel>,
-    /// state property.
-    pub state: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-    /// userId property.
-    pub user_id: Option<String>,
-}
-
-/// `SasPortalChannelWithScore` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalChannelWithScore {
-    /// frequencyRange property.
-    pub frequency_range: Option<SasPortalFrequencyRange>,
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `SasPortalDeviceGrant` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalDeviceGrant {
-    /// channelType property.
-    pub channel_type: Option<String>,
-    /// expireTime property.
-    pub expire_time: Option<String>,
-    /// frequencyRange property.
-    pub frequency_range: Option<SasPortalFrequencyRange>,
-    /// grantId property.
-    pub grant_id: Option<String>,
-    /// lastHeartbeatTransmitExpireTime property.
-    pub last_heartbeat_transmit_expire_time: Option<String>,
-    /// maxEirp property.
-    pub max_eirp: Option<f64>,
-    /// moveList property.
-    pub move_list: Option<Vec<SasPortalDpaMoveList>>,
-    /// state property.
-    pub state: Option<String>,
-    /// suspensionReason property.
-    pub suspension_reason: Option<Vec<String>>,
-}
-
-/// `SasPortalListDevicesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalListDevicesResponse {
-    /// devices property.
-    pub devices: Option<Vec<SasPortalDevice>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `SasPortalDpaMoveList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalDpaMoveList {
-    /// dpaId property.
-    pub dpa_id: Option<String>,
-    /// frequencyRange property.
-    pub frequency_range: Option<SasPortalFrequencyRange>,
-}
-
 /// `SasPortalNrqzValidation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SasPortalNrqzValidation {
@@ -176,6 +177,15 @@ pub struct SasPortalNrqzValidation {
     pub longitude: Option<f64>,
     /// state property.
     pub state: Option<String>,
+}
+
+/// `SasPortalFrequencyRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SasPortalFrequencyRange {
+    /// highFrequencyMhz property.
+    pub high_frequency_mhz: Option<f64>,
+    /// lowFrequencyMhz property.
+    pub low_frequency_mhz: Option<f64>,
 }
 
 /// `SasPortalDeviceModel` type.
@@ -193,22 +203,13 @@ pub struct SasPortalDeviceModel {
     pub vendor: Option<String>,
 }
 
-/// `SasPortalFrequencyRange` type.
+/// `SasPortalChannelWithScore` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalFrequencyRange {
-    /// highFrequencyMhz property.
-    pub high_frequency_mhz: Option<f64>,
-    /// lowFrequencyMhz property.
-    pub low_frequency_mhz: Option<f64>,
-}
-
-/// `SasPortalDeviceAirInterface` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalDeviceAirInterface {
-    /// radioTechnology property.
-    pub radio_technology: Option<String>,
-    /// supportedSpec property.
-    pub supported_spec: Option<String>,
+pub struct SasPortalChannelWithScore {
+    /// frequencyRange property.
+    pub frequency_range: Option<SasPortalFrequencyRange>,
+    /// score property.
+    pub score: Option<f64>,
 }
 
 // =============================================================================

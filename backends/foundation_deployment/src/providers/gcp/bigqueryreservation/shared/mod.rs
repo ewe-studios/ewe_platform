@@ -4,7 +4,7 @@
 //! DO NOT EDIT MANUALLY.
 
 // Re-export common API types from foundation_deployment
-pub use crate::providers::common::{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, RequestIntro};
+pub use crate::providers::common::{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation, RequestIntro};
 
 // Imports for shared resource types
 use foundation_macros::JsonHash;
@@ -17,13 +17,6 @@ use serde::{Deserialize, Serialize};
 /// Shared type: `CapacityCommitment`.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CapacityCommitment {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `Empty`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }

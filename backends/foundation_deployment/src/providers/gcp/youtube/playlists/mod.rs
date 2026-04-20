@@ -12,23 +12,40 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `PlaylistPlayer` type.
+/// `PlaylistListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlaylistPlayer {
-    /// embedHtml property.
-    pub embed_html: Option<String>,
+pub struct PlaylistListResponse {
+    /// etag property.
+    pub etag: Option<String>,
+    /// eventId property.
+    pub event_id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<Playlist>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// pageInfo property.
+    pub page_info: Option<PageInfo>,
+    /// prevPageToken property.
+    pub prev_page_token: Option<String>,
+    /// tokenPagination property.
+    pub token_pagination: Option<TokenPagination>,
+    /// visitorId property.
+    pub visitor_id: Option<String>,
 }
 
 /// `PlaylistSnippet` type.
@@ -56,15 +73,64 @@ pub struct PlaylistSnippet {
     pub title: Option<String>,
 }
 
-/// `Thumbnail` type.
+/// `PlaylistContentDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Thumbnail {
-    /// height property.
-    pub height: Option<i64>,
-    /// url property.
-    pub url: Option<String>,
-    /// width property.
-    pub width: Option<i64>,
+pub struct PlaylistContentDetails {
+    /// itemCount property.
+    pub item_count: Option<i64>,
+}
+
+/// `PlaylistStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlaylistStatus {
+    /// podcastStatus property.
+    pub podcast_status: Option<String>,
+    /// privacyStatus property.
+    pub privacy_status: Option<String>,
+}
+
+/// `PlaylistLocalization` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlaylistLocalization {
+    /// description property.
+    pub description: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `ThumbnailDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ThumbnailDetails {
+    /// default property.
+    pub default: Option<Thumbnail>,
+    /// high property.
+    pub high: Option<Thumbnail>,
+    /// maxres property.
+    pub maxres: Option<Thumbnail>,
+    /// medium property.
+    pub medium: Option<Thumbnail>,
+    /// standard property.
+    pub standard: Option<Thumbnail>,
+}
+
+/// `TokenPagination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TokenPagination {}
+
+/// `PlaylistPlayer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlaylistPlayer {
+    /// embedHtml property.
+    pub embed_html: Option<String>,
+}
+
+/// `PageInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PageInfo {
+    /// resultsPerPage property.
+    pub results_per_page: Option<i64>,
+    /// totalResults property.
+    pub total_results: Option<i64>,
 }
 
 /// `Playlist` type.
@@ -88,80 +154,15 @@ pub struct Playlist {
     pub status: Option<PlaylistStatus>,
 }
 
-/// `TokenPagination` type.
+/// `Thumbnail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TokenPagination {}
-
-/// `PlaylistContentDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlaylistContentDetails {
-    /// itemCount property.
-    pub item_count: Option<i64>,
-}
-
-/// `ThumbnailDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ThumbnailDetails {
-    /// default property.
-    pub default: Option<Thumbnail>,
-    /// high property.
-    pub high: Option<Thumbnail>,
-    /// maxres property.
-    pub maxres: Option<Thumbnail>,
-    /// medium property.
-    pub medium: Option<Thumbnail>,
-    /// standard property.
-    pub standard: Option<Thumbnail>,
-}
-
-/// `PlaylistListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlaylistListResponse {
-    /// etag property.
-    pub etag: Option<String>,
-    /// eventId property.
-    pub event_id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<Playlist>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// pageInfo property.
-    pub page_info: Option<PageInfo>,
-    /// prevPageToken property.
-    pub prev_page_token: Option<String>,
-    /// tokenPagination property.
-    pub token_pagination: Option<TokenPagination>,
-    /// visitorId property.
-    pub visitor_id: Option<String>,
-}
-
-/// `PageInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PageInfo {
-    /// resultsPerPage property.
-    pub results_per_page: Option<i64>,
-    /// totalResults property.
-    pub total_results: Option<i64>,
-}
-
-/// `PlaylistStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlaylistStatus {
-    /// podcastStatus property.
-    pub podcast_status: Option<String>,
-    /// privacyStatus property.
-    pub privacy_status: Option<String>,
-}
-
-/// `PlaylistLocalization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlaylistLocalization {
-    /// description property.
-    pub description: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct Thumbnail {
+    /// height property.
+    pub height: Option<i64>,
+    /// url property.
+    pub url: Option<String>,
+    /// width property.
+    pub width: Option<i64>,
 }
 
 // =============================================================================

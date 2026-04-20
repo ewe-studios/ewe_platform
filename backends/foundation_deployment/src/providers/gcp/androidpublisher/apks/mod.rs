@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -33,15 +34,6 @@ pub struct Apk {
     pub version_code: Option<i64>,
 }
 
-/// `ApkBinary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApkBinary {
-    /// sha1 property.
-    pub sha1: Option<String>,
-    /// sha256 property.
-    pub sha256: Option<String>,
-}
-
 /// `ApksListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApksListResponse {
@@ -49,6 +41,15 @@ pub struct ApksListResponse {
     pub apks: Option<Vec<Apk>>,
     /// kind property.
     pub kind: Option<String>,
+}
+
+/// `ApkBinary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApkBinary {
+    /// sha1 property.
+    pub sha1: Option<String>,
+    /// sha256 property.
+    pub sha256: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,19 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `TlsConfig` type.
+/// `GcpConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TlsConfig {
-    /// sslPrincipalMappingRules property.
-    pub ssl_principal_mapping_rules: Option<String>,
-    /// trustConfig property.
-    pub trust_config: Option<TrustConfig>,
+pub struct GcpConfig {
+    /// accessConfig property.
+    pub access_config: Option<AccessConfig>,
+    /// kmsKey property.
+    pub kms_key: Option<String>,
 }
 
 /// `BrokerDetails` type.
@@ -54,34 +55,22 @@ pub struct UpdateOptions {
     pub allow_broker_downscale_on_cluster_upscale: Option<bool>,
 }
 
-/// `CertificateAuthorityServiceConfig` type.
+/// `RebalanceConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CertificateAuthorityServiceConfig {
-    /// caPool property.
-    pub ca_pool: Option<String>,
+pub struct RebalanceConfig {
+    /// mode property.
+    pub mode: Option<String>,
 }
 
-/// `NetworkConfig` type.
+/// `ListClustersResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkConfig {
-    /// subnet property.
-    pub subnet: Option<String>,
-}
-
-/// `GcpConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GcpConfig {
-    /// accessConfig property.
-    pub access_config: Option<AccessConfig>,
-    /// kmsKey property.
-    pub kms_key: Option<String>,
-}
-
-/// `TrustConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TrustConfig {
-    /// casConfigs property.
-    pub cas_configs: Option<Vec<CertificateAuthorityServiceConfig>>,
+pub struct ListClustersResponse {
+    /// clusters property.
+    pub clusters: Option<Vec<Cluster>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `AccessConfig` type.
@@ -91,11 +80,40 @@ pub struct AccessConfig {
     pub network_configs: Option<Vec<NetworkConfig>>,
 }
 
-/// `RebalanceConfig` type.
+/// `NetworkConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RebalanceConfig {
-    /// mode property.
-    pub mode: Option<String>,
+pub struct NetworkConfig {
+    /// subnet property.
+    pub subnet: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `TlsConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TlsConfig {
+    /// sslPrincipalMappingRules property.
+    pub ssl_principal_mapping_rules: Option<String>,
+    /// trustConfig property.
+    pub trust_config: Option<TrustConfig>,
+}
+
+/// `CapacityConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CapacityConfig {
+    /// memoryBytes property.
+    pub memory_bytes: Option<String>,
+    /// vcpuCount property.
+    pub vcpu_count: Option<String>,
 }
 
 /// `Cluster` type.
@@ -131,35 +149,18 @@ pub struct Cluster {
     pub update_time: Option<String>,
 }
 
-/// `ListClustersResponse` type.
+/// `TrustConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListClustersResponse {
-    /// clusters property.
-    pub clusters: Option<Vec<Cluster>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct TrustConfig {
+    /// casConfigs property.
+    pub cas_configs: Option<Vec<CertificateAuthorityServiceConfig>>,
 }
 
-/// `Status` type.
+/// `CertificateAuthorityServiceConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `CapacityConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CapacityConfig {
-    /// memoryBytes property.
-    pub memory_bytes: Option<String>,
-    /// vcpuCount property.
-    pub vcpu_count: Option<String>,
+pub struct CertificateAuthorityServiceConfig {
+    /// caPool property.
+    pub ca_pool: Option<String>,
 }
 
 // =============================================================================

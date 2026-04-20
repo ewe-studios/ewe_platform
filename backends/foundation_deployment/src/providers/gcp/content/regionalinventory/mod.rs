@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -33,24 +34,13 @@ pub struct Price {
     pub value: Option<String>,
 }
 
-/// `CustomAttribute` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomAttribute {
-    /// groupValues property.
-    pub group_values: Option<Vec<CustomAttribute>>,
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
 /// `RegionalInventory` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionalInventory {
     /// availability property.
     pub availability: Option<String>,
     /// customAttributes property.
-    pub custom_attributes: Option<Vec<CustomAttribute>>,
+    pub custom_attributes: Option<Vec<Box<CustomAttribute>>>,
     /// kind property.
     pub kind: Option<String>,
     /// price property.
@@ -61,6 +51,17 @@ pub struct RegionalInventory {
     pub sale_price: Option<Price>,
     /// salePriceEffectiveDate property.
     pub sale_price_effective_date: Option<String>,
+}
+
+/// `CustomAttribute` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomAttribute {
+    /// groupValues property.
+    pub group_values: Option<Vec<Box<CustomAttribute>>>,
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
 // =============================================================================

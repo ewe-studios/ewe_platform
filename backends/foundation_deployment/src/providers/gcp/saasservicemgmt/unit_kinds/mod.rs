@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -36,6 +37,26 @@ pub struct VariableMapping {
     pub to: Option<ToMapping>,
     /// variable property.
     pub variable: Option<String>,
+}
+
+/// `Dependency` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Dependency {
+    /// alias property.
+    pub alias: Option<String>,
+    /// unitKind property.
+    pub unit_kind: Option<String>,
+}
+
+/// `ListUnitKindsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListUnitKindsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unitKinds property.
+    pub unit_kinds: Option<Vec<UnitKind>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `UnitKind` type.
@@ -67,35 +88,6 @@ pub struct UnitKind {
     pub update_time: Option<String>,
 }
 
-/// `ListUnitKindsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListUnitKindsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unitKinds property.
-    pub unit_kinds: Option<Vec<UnitKind>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `Dependency` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Dependency {
-    /// alias property.
-    pub alias: Option<String>,
-    /// unitKind property.
-    pub unit_kind: Option<String>,
-}
-
-/// `FromMapping` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FromMapping {
-    /// dependency property.
-    pub dependency: Option<String>,
-    /// outputVariable property.
-    pub output_variable: Option<String>,
-}
-
 /// `ToMapping` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToMapping {
@@ -105,6 +97,15 @@ pub struct ToMapping {
     pub ignore_for_lookup: Option<bool>,
     /// inputVariable property.
     pub input_variable: Option<String>,
+}
+
+/// `FromMapping` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FromMapping {
+    /// dependency property.
+    pub dependency: Option<String>,
+    /// outputVariable property.
+    pub output_variable: Option<String>,
 }
 
 // =============================================================================

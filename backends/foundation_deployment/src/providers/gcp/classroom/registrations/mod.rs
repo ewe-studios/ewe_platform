@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,43 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Feed` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Feed {
+    /// courseRosterChangesInfo property.
+    pub course_roster_changes_info: Option<CourseRosterChangesInfo>,
+    /// courseWorkChangesInfo property.
+    pub course_work_changes_info: Option<CourseWorkChangesInfo>,
+    /// feedType property.
+    pub feed_type: Option<String>,
+}
+
+/// `CourseWorkChangesInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CourseWorkChangesInfo {
+    /// courseId property.
+    pub course_id: Option<String>,
+}
+
+/// `CourseRosterChangesInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CourseRosterChangesInfo {
+    /// courseId property.
+    pub course_id: Option<String>,
+}
+
+/// `CloudPubsubTopic` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudPubsubTopic {
+    /// topicName property.
+    pub topic_name: Option<String>,
+}
 
 /// `Registration` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -38,38 +71,6 @@ pub struct Registration {
     pub feed: Option<Feed>,
     /// registrationId property.
     pub registration_id: Option<String>,
-}
-
-/// `CourseRosterChangesInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CourseRosterChangesInfo {
-    /// courseId property.
-    pub course_id: Option<String>,
-}
-
-/// `CourseWorkChangesInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CourseWorkChangesInfo {
-    /// courseId property.
-    pub course_id: Option<String>,
-}
-
-/// `CloudPubsubTopic` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudPubsubTopic {
-    /// topicName property.
-    pub topic_name: Option<String>,
-}
-
-/// `Feed` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Feed {
-    /// courseRosterChangesInfo property.
-    pub course_roster_changes_info: Option<CourseRosterChangesInfo>,
-    /// courseWorkChangesInfo property.
-    pub course_work_changes_info: Option<CourseWorkChangesInfo>,
-    /// feedType property.
-    pub feed_type: Option<String>,
 }
 
 // =============================================================================

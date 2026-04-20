@@ -12,54 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ChannelSection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelSection {
-    /// contentDetails property.
-    pub content_details: Option<ChannelSectionContentDetails>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// localizations property.
-    pub localizations: Option<serde_json::Value>,
-    /// snippet property.
-    pub snippet: Option<ChannelSectionSnippet>,
-    /// targeting property.
-    pub targeting: Option<ChannelSectionTargeting>,
-}
-
-/// `ChannelSectionTargeting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelSectionTargeting {
-    /// countries property.
-    pub countries: Option<Vec<String>>,
-    /// languages property.
-    pub languages: Option<Vec<String>>,
-    /// regions property.
-    pub regions: Option<Vec<String>>,
-}
-
-/// `ChannelSectionLocalization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelSectionLocalization {
-    /// title property.
-    pub title: Option<String>,
-}
 
 /// `ChannelSectionListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -76,13 +40,22 @@ pub struct ChannelSectionListResponse {
     pub visitor_id: Option<String>,
 }
 
-/// `ChannelSectionContentDetails` type.
+/// `ChannelSectionLocalization` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelSectionContentDetails {
-    /// channels property.
-    pub channels: Option<Vec<String>>,
-    /// playlists property.
-    pub playlists: Option<Vec<String>>,
+pub struct ChannelSectionLocalization {
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `ChannelSectionTargeting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChannelSectionTargeting {
+    /// countries property.
+    pub countries: Option<Vec<String>>,
+    /// languages property.
+    pub languages: Option<Vec<String>>,
+    /// regions property.
+    pub regions: Option<Vec<String>>,
 }
 
 /// `ChannelSectionSnippet` type.
@@ -102,6 +75,34 @@ pub struct ChannelSectionSnippet {
     pub title: Option<String>,
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `ChannelSectionContentDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChannelSectionContentDetails {
+    /// channels property.
+    pub channels: Option<Vec<String>>,
+    /// playlists property.
+    pub playlists: Option<Vec<String>>,
+}
+
+/// `ChannelSection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChannelSection {
+    /// contentDetails property.
+    pub content_details: Option<ChannelSectionContentDetails>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// localizations property.
+    pub localizations: Option<serde_json::Value>,
+    /// snippet property.
+    pub snippet: Option<ChannelSectionSnippet>,
+    /// targeting property.
+    pub targeting: Option<ChannelSectionTargeting>,
 }
 
 // =============================================================================

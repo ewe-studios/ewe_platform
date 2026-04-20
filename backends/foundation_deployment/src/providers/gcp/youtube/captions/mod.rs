@@ -12,32 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `CaptionListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CaptionListResponse {
-    /// etag property.
-    pub etag: Option<String>,
-    /// eventId property.
-    pub event_id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<Caption>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// visitorId property.
-    pub visitor_id: Option<String>,
-}
 
 /// `CaptionSnippet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -68,6 +54,21 @@ pub struct CaptionSnippet {
     pub track_kind: Option<String>,
     /// videoId property.
     pub video_id: Option<String>,
+}
+
+/// `CaptionListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CaptionListResponse {
+    /// etag property.
+    pub etag: Option<String>,
+    /// eventId property.
+    pub event_id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<Caption>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// visitorId property.
+    pub visitor_id: Option<String>,
 }
 
 /// `Caption` type.

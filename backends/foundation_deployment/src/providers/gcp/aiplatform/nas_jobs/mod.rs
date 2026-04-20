@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,159 +23,35 @@ use serde::{Deserialize, Serialize};
 use super::shared::GoogleLongrunningOperation;
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudAiplatformV1LustreMount` type.
+/// `GoogleCloudAiplatformV1ContainerSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1LustreMount {
-    /// filesystem property.
-    pub filesystem: Option<String>,
-    /// instanceIp property.
-    pub instance_ip: Option<String>,
-    /// mountPoint property.
-    pub mount_point: Option<String>,
-    /// volumeHandle property.
-    pub volume_handle: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1PythonPackageSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PythonPackageSpec {
+pub struct GoogleCloudAiplatformV1ContainerSpec {
     /// args property.
     pub args: Option<Vec<String>>,
+    /// command property.
+    pub command: Option<Vec<String>>,
     /// env property.
     pub env: Option<Vec<GoogleCloudAiplatformV1EnvVar>>,
-    /// executorImageUri property.
-    pub executor_image_uri: Option<String>,
-    /// packageUris property.
-    pub package_uris: Option<Vec<String>>,
-    /// pythonModule property.
-    pub python_module: Option<String>,
+    /// imageUri property.
+    pub image_uri: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1NasTrial` type.
+/// `GoogleCloudAiplatformV1NasJobSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1NasTrial {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// finalMeasurement property.
-    pub final_measurement: Option<GoogleCloudAiplatformV1Measurement>,
-    /// id property.
-    pub id: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1MeasurementMetric` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MeasurementMetric {
-    /// metricId property.
-    pub metric_id: Option<String>,
-    /// value property.
-    pub value: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1Measurement` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Measurement {
-    /// elapsedDuration property.
-    pub elapsed_duration: Option<String>,
-    /// metrics property.
-    pub metrics: Option<Vec<GoogleCloudAiplatformV1MeasurementMetric>>,
-    /// stepCount property.
-    pub step_count: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1GcsDestination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GcsDestination {
-    /// outputUriPrefix property.
-    pub output_uri_prefix: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ListNasJobsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListNasJobsResponse {
-    /// nasJobs property.
-    pub nas_jobs: Option<Vec<GoogleCloudAiplatformV1NasJob>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpec {
-    /// metric property.
-    pub metric: Option<GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpecMetricSpec>,
-    /// multiTrialAlgorithm property.
-    pub multi_trial_algorithm: Option<String>,
-    /// searchTrialSpec property.
-    pub search_trial_spec:
-        Option<GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpecSearchTrialSpec>,
-    /// trainTrialSpec property.
-    pub train_trial_spec:
-        Option<GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpecTrainTrialSpec>,
-}
-
-/// `GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpecTrainTrialSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpecTrainTrialSpec {
-    /// frequency property.
-    pub frequency: Option<i64>,
-    /// maxParallelTrialCount property.
-    pub max_parallel_trial_count: Option<i64>,
-    /// trainTrialJobSpec property.
-    pub train_trial_job_spec: Option<GoogleCloudAiplatformV1CustomJobSpec>,
-}
-
-/// `GoogleCloudAiplatformV1EnvVar` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EnvVar {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1PscInterfaceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PscInterfaceConfig {
-    /// dnsPeeringConfigs property.
-    pub dns_peering_configs: Option<Vec<GoogleCloudAiplatformV1DnsPeeringConfig>>,
-    /// networkAttachment property.
-    pub network_attachment: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1Scheduling` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Scheduling {
-    /// disableRetries property.
-    pub disable_retries: Option<bool>,
-    /// maxWaitDuration property.
-    pub max_wait_duration: Option<String>,
-    /// restartJobOnWorkerRestart property.
-    pub restart_job_on_worker_restart: Option<bool>,
-    /// strategy property.
-    pub strategy: Option<String>,
-    /// timeout property.
-    pub timeout: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1DnsPeeringConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DnsPeeringConfig {
-    /// domain property.
-    pub domain: Option<String>,
-    /// targetNetwork property.
-    pub target_network: Option<String>,
-    /// targetProject property.
-    pub target_project: Option<String>,
+pub struct GoogleCloudAiplatformV1NasJobSpec {
+    /// multiTrialAlgorithmSpec property.
+    pub multi_trial_algorithm_spec:
+        Option<GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpec>,
+    /// resumeNasJobId property.
+    pub resume_nas_job_id: Option<String>,
+    /// searchSpaceSpec property.
+    pub search_space_spec: Option<String>,
 }
 
 /// `GoogleRpcStatus` type.
@@ -186,97 +63,6 @@ pub struct GoogleRpcStatus {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1CustomJobSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1CustomJobSpec {
-    /// baseOutputDirectory property.
-    pub base_output_directory: Option<GoogleCloudAiplatformV1GcsDestination>,
-    /// enableDashboardAccess property.
-    pub enable_dashboard_access: Option<bool>,
-    /// enableWebAccess property.
-    pub enable_web_access: Option<bool>,
-    /// experiment property.
-    pub experiment: Option<String>,
-    /// experimentRun property.
-    pub experiment_run: Option<String>,
-    /// models property.
-    pub models: Option<Vec<String>>,
-    /// network property.
-    pub network: Option<String>,
-    /// persistentResourceId property.
-    pub persistent_resource_id: Option<String>,
-    /// protectedArtifactLocationId property.
-    pub protected_artifact_location_id: Option<String>,
-    /// pscInterfaceConfig property.
-    pub psc_interface_config: Option<GoogleCloudAiplatformV1PscInterfaceConfig>,
-    /// reservedIpRanges property.
-    pub reserved_ip_ranges: Option<Vec<String>>,
-    /// scheduling property.
-    pub scheduling: Option<GoogleCloudAiplatformV1Scheduling>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-    /// tensorboard property.
-    pub tensorboard: Option<String>,
-    /// workerPoolSpecs property.
-    pub worker_pool_specs: Option<Vec<GoogleCloudAiplatformV1WorkerPoolSpec>>,
-}
-
-/// `GoogleCloudAiplatformV1NasJobOutputMultiTrialJobOutput` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1NasJobOutputMultiTrialJobOutput {
-    /// searchTrials property.
-    pub search_trials: Option<Vec<GoogleCloudAiplatformV1NasTrial>>,
-    /// trainTrials property.
-    pub train_trials: Option<Vec<GoogleCloudAiplatformV1NasTrial>>,
-}
-
-/// `GoogleCloudAiplatformV1NfsMount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1NfsMount {
-    /// mountPoint property.
-    pub mount_point: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-    /// server property.
-    pub server: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1NasJobOutput` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1NasJobOutput {
-    /// multiTrialJobOutput property.
-    pub multi_trial_job_output: Option<GoogleCloudAiplatformV1NasJobOutputMultiTrialJobOutput>,
-}
-
-/// `GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpecMetricSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpecMetricSpec {
-    /// goal property.
-    pub goal: Option<String>,
-    /// metricId property.
-    pub metric_id: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ReservationAffinity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReservationAffinity {
-    /// key property.
-    pub key: Option<String>,
-    /// reservationAffinityType property.
-    pub reservation_affinity_type: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAiplatformV1DiskSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DiskSpec {
-    /// bootDiskSizeGb property.
-    pub boot_disk_size_gb: Option<i64>,
-    /// bootDiskType property.
-    pub boot_disk_type: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1NasJob` type.
@@ -314,6 +100,172 @@ pub struct GoogleCloudAiplatformV1NasJob {
     pub update_time: Option<String>,
 }
 
+/// `GoogleCloudAiplatformV1Scheduling` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1Scheduling {
+    /// disableRetries property.
+    pub disable_retries: Option<bool>,
+    /// maxWaitDuration property.
+    pub max_wait_duration: Option<String>,
+    /// restartJobOnWorkerRestart property.
+    pub restart_job_on_worker_restart: Option<bool>,
+    /// strategy property.
+    pub strategy: Option<String>,
+    /// timeout property.
+    pub timeout: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ListNasJobsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ListNasJobsResponse {
+    /// nasJobs property.
+    pub nas_jobs: Option<Vec<GoogleCloudAiplatformV1NasJob>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1DiskSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1DiskSpec {
+    /// bootDiskSizeGb property.
+    pub boot_disk_size_gb: Option<i64>,
+    /// bootDiskType property.
+    pub boot_disk_type: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1EnvVar` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1EnvVar {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1PscInterfaceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PscInterfaceConfig {
+    /// dnsPeeringConfigs property.
+    pub dns_peering_configs: Option<Vec<GoogleCloudAiplatformV1DnsPeeringConfig>>,
+    /// networkAttachment property.
+    pub network_attachment: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1CustomJobSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1CustomJobSpec {
+    /// baseOutputDirectory property.
+    pub base_output_directory: Option<GoogleCloudAiplatformV1GcsDestination>,
+    /// enableDashboardAccess property.
+    pub enable_dashboard_access: Option<bool>,
+    /// enableWebAccess property.
+    pub enable_web_access: Option<bool>,
+    /// experiment property.
+    pub experiment: Option<String>,
+    /// experimentRun property.
+    pub experiment_run: Option<String>,
+    /// models property.
+    pub models: Option<Vec<String>>,
+    /// network property.
+    pub network: Option<String>,
+    /// persistentResourceId property.
+    pub persistent_resource_id: Option<String>,
+    /// protectedArtifactLocationId property.
+    pub protected_artifact_location_id: Option<String>,
+    /// pscInterfaceConfig property.
+    pub psc_interface_config: Option<GoogleCloudAiplatformV1PscInterfaceConfig>,
+    /// reservedIpRanges property.
+    pub reserved_ip_ranges: Option<Vec<String>>,
+    /// scheduling property.
+    pub scheduling: Option<GoogleCloudAiplatformV1Scheduling>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// tensorboard property.
+    pub tensorboard: Option<String>,
+    /// workerPoolSpecs property.
+    pub worker_pool_specs: Option<Vec<GoogleCloudAiplatformV1WorkerPoolSpec>>,
+}
+
+/// `GoogleCloudAiplatformV1ReservationAffinity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ReservationAffinity {
+    /// key property.
+    pub key: Option<String>,
+    /// reservationAffinityType property.
+    pub reservation_affinity_type: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAiplatformV1DnsPeeringConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1DnsPeeringConfig {
+    /// domain property.
+    pub domain: Option<String>,
+    /// targetNetwork property.
+    pub target_network: Option<String>,
+    /// targetProject property.
+    pub target_project: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1MeasurementMetric` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1MeasurementMetric {
+    /// metricId property.
+    pub metric_id: Option<String>,
+    /// value property.
+    pub value: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1EncryptionSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1EncryptionSpec {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1PythonPackageSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PythonPackageSpec {
+    /// args property.
+    pub args: Option<Vec<String>>,
+    /// env property.
+    pub env: Option<Vec<GoogleCloudAiplatformV1EnvVar>>,
+    /// executorImageUri property.
+    pub executor_image_uri: Option<String>,
+    /// packageUris property.
+    pub package_uris: Option<Vec<String>>,
+    /// pythonModule property.
+    pub python_module: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpecTrainTrialSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpecTrainTrialSpec {
+    /// frequency property.
+    pub frequency: Option<i64>,
+    /// maxParallelTrialCount property.
+    pub max_parallel_trial_count: Option<i64>,
+    /// trainTrialJobSpec property.
+    pub train_trial_job_spec: Option<GoogleCloudAiplatformV1CustomJobSpec>,
+}
+
+/// `GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpecMetricSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpecMetricSpec {
+    /// goal property.
+    pub goal: Option<String>,
+    /// metricId property.
+    pub metric_id: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1GcsDestination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1GcsDestination {
+    /// outputUriPrefix property.
+    pub output_uri_prefix: Option<String>,
+}
+
 /// `GoogleCloudAiplatformV1WorkerPoolSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1WorkerPoolSpec {
@@ -331,38 +283,6 @@ pub struct GoogleCloudAiplatformV1WorkerPoolSpec {
     pub python_package_spec: Option<GoogleCloudAiplatformV1PythonPackageSpec>,
     /// replicaCount property.
     pub replica_count: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ContainerSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ContainerSpec {
-    /// args property.
-    pub args: Option<Vec<String>>,
-    /// command property.
-    pub command: Option<Vec<String>>,
-    /// env property.
-    pub env: Option<Vec<GoogleCloudAiplatformV1EnvVar>>,
-    /// imageUri property.
-    pub image_uri: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1EncryptionSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EncryptionSpec {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1NasJobSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1NasJobSpec {
-    /// multiTrialAlgorithmSpec property.
-    pub multi_trial_algorithm_spec:
-        Option<GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpec>,
-    /// resumeNasJobId property.
-    pub resume_nas_job_id: Option<String>,
-    /// searchSpaceSpec property.
-    pub search_space_spec: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpecSearchTrialSpec` type.
@@ -393,6 +313,87 @@ pub struct GoogleCloudAiplatformV1MachineSpec {
     pub reservation_affinity: Option<GoogleCloudAiplatformV1ReservationAffinity>,
     /// tpuTopology property.
     pub tpu_topology: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1NfsMount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1NfsMount {
+    /// mountPoint property.
+    pub mount_point: Option<String>,
+    /// path property.
+    pub path: Option<String>,
+    /// server property.
+    pub server: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1NasJobOutput` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1NasJobOutput {
+    /// multiTrialJobOutput property.
+    pub multi_trial_job_output: Option<GoogleCloudAiplatformV1NasJobOutputMultiTrialJobOutput>,
+}
+
+/// `GoogleCloudAiplatformV1NasTrial` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1NasTrial {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// finalMeasurement property.
+    pub final_measurement: Option<GoogleCloudAiplatformV1Measurement>,
+    /// id property.
+    pub id: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpec {
+    /// metric property.
+    pub metric: Option<GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpecMetricSpec>,
+    /// multiTrialAlgorithm property.
+    pub multi_trial_algorithm: Option<String>,
+    /// searchTrialSpec property.
+    pub search_trial_spec:
+        Option<GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpecSearchTrialSpec>,
+    /// trainTrialSpec property.
+    pub train_trial_spec:
+        Option<GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpecTrainTrialSpec>,
+}
+
+/// `GoogleCloudAiplatformV1Measurement` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1Measurement {
+    /// elapsedDuration property.
+    pub elapsed_duration: Option<String>,
+    /// metrics property.
+    pub metrics: Option<Vec<GoogleCloudAiplatformV1MeasurementMetric>>,
+    /// stepCount property.
+    pub step_count: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1LustreMount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1LustreMount {
+    /// filesystem property.
+    pub filesystem: Option<String>,
+    /// instanceIp property.
+    pub instance_ip: Option<String>,
+    /// mountPoint property.
+    pub mount_point: Option<String>,
+    /// volumeHandle property.
+    pub volume_handle: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1NasJobOutputMultiTrialJobOutput` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1NasJobOutputMultiTrialJobOutput {
+    /// searchTrials property.
+    pub search_trials: Option<Vec<GoogleCloudAiplatformV1NasTrial>>,
+    /// trainTrials property.
+    pub train_trials: Option<Vec<GoogleCloudAiplatformV1NasTrial>>,
 }
 
 // =============================================================================

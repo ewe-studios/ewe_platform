@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,11 +24,52 @@ use super::shared::GoogleIamV1Policy;
 use super::shared::GoogleIamV1TestIamPermissionsResponse;
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudAiplatformV1ReadFeatureValuesResponseFeatureDescriptor` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ReadFeatureValuesResponseFeatureDescriptor {
+    /// id property.
+    pub id: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ReadFeatureValuesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ReadFeatureValuesResponse {
+    /// entityView property.
+    pub entity_view: Option<GoogleCloudAiplatformV1ReadFeatureValuesResponseEntityView>,
+    /// header property.
+    pub header: Option<GoogleCloudAiplatformV1ReadFeatureValuesResponseHeader>,
+}
+
+/// `GoogleCloudAiplatformV1WriteFeatureValuesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1WriteFeatureValuesResponse {}
+
+/// `GoogleCloudAiplatformV1BoolArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1BoolArray {
+    /// values property.
+    pub values: Option<Vec<bool>>,
+}
+
+/// `GoogleCloudAiplatformV1FeatureValueMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FeatureValueMetadata {
+    /// generateTime property.
+    pub generate_time: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1StructValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1StructValue {
+    /// values property.
+    pub values: Option<Vec<Box<GoogleCloudAiplatformV1StructFieldValue>>>,
+}
 
 /// `GoogleCloudAiplatformV1FeaturestoreMonitoringConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -46,31 +88,24 @@ pub struct GoogleCloudAiplatformV1FeaturestoreMonitoringConfig {
         Option<GoogleCloudAiplatformV1FeaturestoreMonitoringConfigSnapshotAnalysis>,
 }
 
-/// `GoogleCloudAiplatformV1FeaturestoreMonitoringConfigThresholdConfig` type.
+/// `GoogleCloudAiplatformV1StructFieldValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeaturestoreMonitoringConfigThresholdConfig {
+pub struct GoogleCloudAiplatformV1StructFieldValue {
+    /// name property.
+    pub name: Option<String>,
     /// value property.
-    pub value: Option<f64>,
+    pub value: Option<Box<GoogleCloudAiplatformV1FeatureValue>>,
 }
 
-/// `GoogleCloudAiplatformV1FeaturestoreMonitoringConfigImportFeaturesAnalysis` type.
+/// `GoogleIamV1Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeaturestoreMonitoringConfigImportFeaturesAnalysis {
-    /// anomalyDetectionBaseline property.
-    pub anomaly_detection_baseline: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1FeaturestoreMonitoringConfigSnapshotAnalysis` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeaturestoreMonitoringConfigSnapshotAnalysis {
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// monitoringIntervalDays property.
-    pub monitoring_interval_days: Option<i64>,
-    /// stalenessDays property.
-    pub staleness_days: Option<i64>,
+pub struct GoogleIamV1Binding {
+    /// condition property.
+    pub condition: Option<GoogleTypeExpr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `GoogleRpcStatus` type.
@@ -84,63 +119,48 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1ListEntityTypesResponse` type.
+/// `GoogleCloudAiplatformV1ReadFeatureValuesResponseHeader` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListEntityTypesResponse {
-    /// entityTypes property.
-    pub entity_types: Option<Vec<GoogleCloudAiplatformV1EntityType>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct GoogleCloudAiplatformV1ReadFeatureValuesResponseHeader {
+    /// entityType property.
+    pub entity_type: Option<String>,
+    /// featureDescriptors property.
+    pub feature_descriptors:
+        Option<Vec<GoogleCloudAiplatformV1ReadFeatureValuesResponseFeatureDescriptor>>,
 }
 
-/// `GoogleCloudAiplatformV1FeatureValue` type.
+/// `GoogleTypeExpr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureValue {
-    /// boolArrayValue property.
-    pub bool_array_value: Option<GoogleCloudAiplatformV1BoolArray>,
-    /// boolValue property.
-    pub bool_value: Option<bool>,
-    /// bytesValue property.
-    pub bytes_value: Option<String>,
-    /// doubleArrayValue property.
-    pub double_array_value: Option<GoogleCloudAiplatformV1DoubleArray>,
-    /// doubleValue property.
-    pub double_value: Option<f64>,
-    /// int64ArrayValue property.
-    pub int64_array_value: Option<GoogleCloudAiplatformV1Int64Array>,
-    /// int64Value property.
-    pub int64_value: Option<String>,
-    /// metadata property.
-    pub metadata: Option<GoogleCloudAiplatformV1FeatureValueMetadata>,
-    /// stringArrayValue property.
-    pub string_array_value: Option<GoogleCloudAiplatformV1StringArray>,
-    /// stringValue property.
-    pub string_value: Option<String>,
-    /// structValue property.
-    pub struct_value: Option<GoogleCloudAiplatformV1StructValue>,
+pub struct GoogleTypeExpr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1ReadFeatureValuesResponseEntityViewData` type.
+/// `GoogleCloudAiplatformV1FeatureValueList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReadFeatureValuesResponseEntityViewData {
+pub struct GoogleCloudAiplatformV1FeatureValueList {
+    /// values property.
+    pub values: Option<Vec<Box<GoogleCloudAiplatformV1FeatureValue>>>,
+}
+
+/// `GoogleCloudAiplatformV1DoubleArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1DoubleArray {
+    /// values property.
+    pub values: Option<Vec<f64>>,
+}
+
+/// `GoogleCloudAiplatformV1FeaturestoreMonitoringConfigThresholdConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FeaturestoreMonitoringConfigThresholdConfig {
     /// value property.
-    pub value: Option<GoogleCloudAiplatformV1FeatureValue>,
-    /// values property.
-    pub values: Option<GoogleCloudAiplatformV1FeatureValueList>,
-}
-
-/// `GoogleCloudAiplatformV1StructValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StructValue {
-    /// values property.
-    pub values: Option<Vec<GoogleCloudAiplatformV1StructFieldValue>>,
-}
-
-/// `GoogleCloudAiplatformV1ReadFeatureValuesResponseFeatureDescriptor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReadFeatureValuesResponseFeatureDescriptor {
-    /// id property.
-    pub id: Option<String>,
+    pub value: Option<f64>,
 }
 
 /// `GoogleCloudAiplatformV1EntityType` type.
@@ -168,22 +188,42 @@ pub struct GoogleCloudAiplatformV1EntityType {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1WriteFeatureValuesResponse` type.
+/// `GoogleCloudAiplatformV1FeaturestoreMonitoringConfigSnapshotAnalysis` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1WriteFeatureValuesResponse {}
-
-/// `GoogleCloudAiplatformV1BoolArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1BoolArray {
-    /// values property.
-    pub values: Option<Vec<bool>>,
+pub struct GoogleCloudAiplatformV1FeaturestoreMonitoringConfigSnapshotAnalysis {
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// monitoringIntervalDays property.
+    pub monitoring_interval_days: Option<i64>,
+    /// stalenessDays property.
+    pub staleness_days: Option<i64>,
 }
 
-/// `GoogleCloudAiplatformV1StringArray` type.
+/// `GoogleCloudAiplatformV1FeatureValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StringArray {
-    /// values property.
-    pub values: Option<Vec<String>>,
+pub struct GoogleCloudAiplatformV1FeatureValue {
+    /// boolArrayValue property.
+    pub bool_array_value: Option<GoogleCloudAiplatformV1BoolArray>,
+    /// boolValue property.
+    pub bool_value: Option<bool>,
+    /// bytesValue property.
+    pub bytes_value: Option<String>,
+    /// doubleArrayValue property.
+    pub double_array_value: Option<GoogleCloudAiplatformV1DoubleArray>,
+    /// doubleValue property.
+    pub double_value: Option<f64>,
+    /// int64ArrayValue property.
+    pub int64_array_value: Option<GoogleCloudAiplatformV1Int64Array>,
+    /// int64Value property.
+    pub int64_value: Option<String>,
+    /// metadata property.
+    pub metadata: Option<GoogleCloudAiplatformV1FeatureValueMetadata>,
+    /// stringArrayValue property.
+    pub string_array_value: Option<GoogleCloudAiplatformV1StringArray>,
+    /// stringValue property.
+    pub string_value: Option<String>,
+    /// structValue property.
+    pub struct_value: Option<Box<GoogleCloudAiplatformV1StructValue>>,
 }
 
 /// `GoogleCloudAiplatformV1Int64Array` type.
@@ -193,11 +233,29 @@ pub struct GoogleCloudAiplatformV1Int64Array {
     pub values: Option<Vec<String>>,
 }
 
-/// `GoogleCloudAiplatformV1DoubleArray` type.
+/// `GoogleCloudAiplatformV1StringArray` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DoubleArray {
+pub struct GoogleCloudAiplatformV1StringArray {
     /// values property.
-    pub values: Option<Vec<f64>>,
+    pub values: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAiplatformV1ReadFeatureValuesResponseEntityViewData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ReadFeatureValuesResponseEntityViewData {
+    /// value property.
+    pub value: Option<Box<GoogleCloudAiplatformV1FeatureValue>>,
+    /// values property.
+    pub values: Option<GoogleCloudAiplatformV1FeatureValueList>,
+}
+
+/// `GoogleCloudAiplatformV1ListEntityTypesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ListEntityTypesResponse {
+    /// entityTypes property.
+    pub entity_types: Option<Vec<GoogleCloudAiplatformV1EntityType>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1ReadFeatureValuesResponseEntityView` type.
@@ -209,70 +267,13 @@ pub struct GoogleCloudAiplatformV1ReadFeatureValuesResponseEntityView {
     pub entity_id: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1FeatureValueMetadata` type.
+/// `GoogleCloudAiplatformV1FeaturestoreMonitoringConfigImportFeaturesAnalysis` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureValueMetadata {
-    /// generateTime property.
-    pub generate_time: Option<String>,
-}
-
-/// `GoogleIamV1Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Binding {
-    /// condition property.
-    pub condition: Option<GoogleTypeExpr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `GoogleTypeExpr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeExpr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1StructFieldValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StructFieldValue {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<GoogleCloudAiplatformV1FeatureValue>,
-}
-
-/// `GoogleCloudAiplatformV1ReadFeatureValuesResponseHeader` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReadFeatureValuesResponseHeader {
-    /// entityType property.
-    pub entity_type: Option<String>,
-    /// featureDescriptors property.
-    pub feature_descriptors:
-        Option<Vec<GoogleCloudAiplatformV1ReadFeatureValuesResponseFeatureDescriptor>>,
-}
-
-/// `GoogleCloudAiplatformV1FeatureValueList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureValueList {
-    /// values property.
-    pub values: Option<Vec<GoogleCloudAiplatformV1FeatureValue>>,
-}
-
-/// `GoogleCloudAiplatformV1ReadFeatureValuesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReadFeatureValuesResponse {
-    /// entityView property.
-    pub entity_view: Option<GoogleCloudAiplatformV1ReadFeatureValuesResponseEntityView>,
-    /// header property.
-    pub header: Option<GoogleCloudAiplatformV1ReadFeatureValuesResponseHeader>,
+pub struct GoogleCloudAiplatformV1FeaturestoreMonitoringConfigImportFeaturesAnalysis {
+    /// anomalyDetectionBaseline property.
+    pub anomaly_detection_baseline: Option<String>,
+    /// state property.
+    pub state: Option<String>,
 }
 
 // =============================================================================

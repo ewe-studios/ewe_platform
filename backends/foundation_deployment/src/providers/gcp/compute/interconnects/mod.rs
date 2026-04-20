@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,37 +22,45 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `InterconnectMacsecPreSharedKey` type.
+/// `InterconnectMacsec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectMacsecPreSharedKey {
-    /// name property.
-    pub name: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
+pub struct InterconnectMacsec {
+    /// failOpen property.
+    pub fail_open: Option<bool>,
+    /// preSharedKeys property.
+    pub pre_shared_keys: Option<Vec<InterconnectMacsecPreSharedKey>>,
 }
 
-/// `ErrorInfo` type.
+/// `QuotaExceededInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
+pub struct QuotaExceededInfo {
+    /// dimensions property.
+    pub dimensions: Option<serde_json::Value>,
+    /// futureLimit property.
+    pub future_limit: Option<f64>,
+    /// limit property.
+    pub limit: Option<f64>,
+    /// limitName property.
+    pub limit_name: Option<String>,
+    /// metricName property.
+    pub metric_name: Option<String>,
+    /// rolloutStatus property.
+    pub rollout_status: Option<String>,
 }
 
-/// `InstancesBulkInsertOperationMetadata` type.
+/// `SetCommonInstanceMetadataOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
+pub struct SetCommonInstanceMetadataOperationMetadata {
+    /// clientOperationId property.
+    pub client_operation_id: Option<String>,
+    /// perLocationOperations property.
+    pub per_location_operations: Option<serde_json::Value>,
 }
 
 /// `HelpLink` type.
@@ -63,77 +72,18 @@ pub struct HelpLink {
     pub url: Option<String>,
 }
 
-/// `InterconnectApplicationAwareInterconnect` type.
+/// `InterconnectApplicationAwareInterconnectBandwidthPercentage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectApplicationAwareInterconnect {
-    /// bandwidthPercentagePolicy property.
-    pub bandwidth_percentage_policy:
-        Option<InterconnectApplicationAwareInterconnectBandwidthPercentagePolicy>,
-    /// profileDescription property.
-    pub profile_description: Option<String>,
-    /// shapeAveragePercentages property.
-    pub shape_average_percentages:
-        Option<Vec<InterconnectApplicationAwareInterconnectBandwidthPercentage>>,
-    /// strictPriorityPolicy property.
-    pub strict_priority_policy:
-        Option<InterconnectApplicationAwareInterconnectStrictPriorityPolicy>,
-}
-
-/// `InterconnectCircuitInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectCircuitInfo {
-    /// customerDemarcId property.
-    pub customer_demarc_id: Option<String>,
-    /// googleCircuitId property.
-    pub google_circuit_id: Option<String>,
-    /// googleDemarcId property.
-    pub google_demarc_id: Option<String>,
-}
-
-/// `InterconnectList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<Interconnect>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+pub struct InterconnectApplicationAwareInterconnectBandwidthPercentage {
+    /// percentage property.
+    pub percentage: Option<i64>,
+    /// trafficClass property.
+    pub traffic_class: Option<String>,
 }
 
 /// `InterconnectApplicationAwareInterconnectStrictPriorityPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectApplicationAwareInterconnectStrictPriorityPolicy {}
-
-/// `Help` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
-}
-
-/// `InterconnectApplicationAwareInterconnectBandwidthPercentagePolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectApplicationAwareInterconnectBandwidthPercentagePolicy {
-    /// bandwidthPercentages property.
-    pub bandwidth_percentages:
-        Option<Vec<InterconnectApplicationAwareInterconnectBandwidthPercentage>>,
-}
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
 
 /// `Interconnect` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -212,48 +162,68 @@ pub struct Interconnect {
     pub wire_groups: Option<Vec<String>>,
 }
 
-/// `InterconnectMacsec` type.
+/// `ErrorInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectMacsec {
-    /// failOpen property.
-    pub fail_open: Option<bool>,
-    /// preSharedKeys property.
-    pub pre_shared_keys: Option<Vec<InterconnectMacsecPreSharedKey>>,
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
 }
 
-/// `GetVersionOperationMetadataSbomInfo` type.
+/// `InterconnectApplicationAwareInterconnect` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
+pub struct InterconnectApplicationAwareInterconnect {
+    /// bandwidthPercentagePolicy property.
+    pub bandwidth_percentage_policy:
+        Option<InterconnectApplicationAwareInterconnectBandwidthPercentagePolicy>,
+    /// profileDescription property.
+    pub profile_description: Option<String>,
+    /// shapeAveragePercentages property.
+    pub shape_average_percentages:
+        Option<Vec<InterconnectApplicationAwareInterconnectBandwidthPercentage>>,
+    /// strictPriorityPolicy property.
+    pub strict_priority_policy:
+        Option<InterconnectApplicationAwareInterconnectStrictPriorityPolicy>,
 }
 
-/// `SetCommonInstanceMetadataOperationMetadata` type.
+/// `LocalizedMessage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetCommonInstanceMetadataOperationMetadata {
-    /// clientOperationId property.
-    pub client_operation_id: Option<String>,
-    /// perLocationOperations property.
-    pub per_location_operations: Option<serde_json::Value>,
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
 }
 
-/// `QuotaExceededInfo` type.
+/// `InterconnectList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotaExceededInfo {
-    /// dimensions property.
-    pub dimensions: Option<serde_json::Value>,
-    /// futureLimit property.
-    pub future_limit: Option<f64>,
-    /// limit property.
-    pub limit: Option<f64>,
-    /// limitName property.
-    pub limit_name: Option<String>,
-    /// metricName property.
-    pub metric_name: Option<String>,
-    /// rolloutStatus property.
-    pub rollout_status: Option<String>,
+pub struct InterconnectList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<Interconnect>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `InterconnectCircuitInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectCircuitInfo {
+    /// customerDemarcId property.
+    pub customer_demarc_id: Option<String>,
+    /// googleCircuitId property.
+    pub google_circuit_id: Option<String>,
+    /// googleDemarcId property.
+    pub google_demarc_id: Option<String>,
 }
 
 /// `GetVersionOperationMetadata` type.
@@ -261,15 +231,6 @@ pub struct QuotaExceededInfo {
 pub struct GetVersionOperationMetadata {
     /// inlineSbomInfo property.
     pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
-}
-
-/// `InterconnectApplicationAwareInterconnectBandwidthPercentage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectApplicationAwareInterconnectBandwidthPercentage {
-    /// percentage property.
-    pub percentage: Option<i64>,
-    /// trafficClass property.
-    pub traffic_class: Option<String>,
 }
 
 /// `InterconnectOutageNotification` type.
@@ -293,11 +254,51 @@ pub struct InterconnectOutageNotification {
     pub state: Option<String>,
 }
 
+/// `InterconnectMacsecPreSharedKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectMacsecPreSharedKey {
+    /// name property.
+    pub name: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `Help` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
+}
+
+/// `GetVersionOperationMetadataSbomInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
+}
+
 /// `InterconnectParams` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectParams {
     /// resourceManagerTags property.
     pub resource_manager_tags: Option<serde_json::Value>,
+}
+
+/// `InterconnectApplicationAwareInterconnectBandwidthPercentagePolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectApplicationAwareInterconnectBandwidthPercentagePolicy {
+    /// bandwidthPercentages property.
+    pub bandwidth_percentages:
+        Option<Vec<InterconnectApplicationAwareInterconnectBandwidthPercentage>>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,20 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `SqlServerDatabaseDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerDatabaseDetails {
+    /// compatibilityLevel property.
+    pub compatibility_level: Option<i64>,
+    /// recoveryModel property.
+    pub recovery_model: Option<String>,
+}
 
 /// `AcquireSsrsLeaseContext` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,33 +50,15 @@ pub struct AcquireSsrsLeaseContext {
     pub setup_login: Option<String>,
 }
 
-/// `OperationError` type.
+/// `BackupContext` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperationError {
-    /// code property.
-    pub code: Option<String>,
+pub struct BackupContext {
+    /// backupId property.
+    pub backup_id: Option<String>,
     /// kind property.
     pub kind: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `SqlSubOperationType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlSubOperationType {
-    /// maintenanceType property.
-    pub maintenance_type: Option<String>,
-}
-
-/// `PreCheckResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreCheckResponse {
-    /// actionsRequired property.
-    pub actions_required: Option<Vec<String>>,
-    /// message property.
-    pub message: Option<String>,
-    /// messageType property.
-    pub message_type: Option<String>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 /// `DatabasesListResponse` type.
@@ -74,15 +66,6 @@ pub struct PreCheckResponse {
 pub struct DatabasesListResponse {
     /// items property.
     pub items: Option<Vec<Database>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `OperationErrors` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperationErrors {
-    /// errors property.
-    pub errors: Option<Vec<OperationError>>,
     /// kind property.
     pub kind: Option<String>,
 }
@@ -98,47 +81,15 @@ pub struct PreCheckMajorVersionUpgradeContext {
     pub target_database_version: Option<String>,
 }
 
-/// `Database` type.
+/// `OperationError` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Database {
-    /// charset property.
-    pub charset: Option<String>,
-    /// collation property.
-    pub collation: Option<String>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// instance property.
-    pub instance: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// project property.
-    pub project: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// sqlserverDatabaseDetails property.
-    pub sqlserver_database_details: Option<SqlServerDatabaseDetails>,
-}
-
-/// `SqlServerDatabaseDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerDatabaseDetails {
-    /// compatibilityLevel property.
-    pub compatibility_level: Option<i64>,
-    /// recoveryModel property.
-    pub recovery_model: Option<String>,
-}
-
-/// `ApiWarning` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApiWarning {
+pub struct OperationError {
     /// code property.
     pub code: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
     /// message property.
     pub message: Option<String>,
-    /// region property.
-    pub region: Option<String>,
 }
 
 /// `ImportContext` type.
@@ -164,15 +115,58 @@ pub struct ImportContext {
     pub uri: Option<String>,
 }
 
-/// `BackupContext` type.
+/// `PreCheckResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupContext {
-    /// backupId property.
-    pub backup_id: Option<String>,
+pub struct PreCheckResponse {
+    /// actionsRequired property.
+    pub actions_required: Option<Vec<String>>,
+    /// message property.
+    pub message: Option<String>,
+    /// messageType property.
+    pub message_type: Option<String>,
+}
+
+/// `ApiWarning` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiWarning {
+    /// code property.
+    pub code: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+}
+
+/// `OperationErrors` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OperationErrors {
+    /// errors property.
+    pub errors: Option<Vec<OperationError>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `Database` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Database {
+    /// charset property.
+    pub charset: Option<String>,
+    /// collation property.
+    pub collation: Option<String>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// instance property.
+    pub instance: Option<String>,
     /// kind property.
     pub kind: Option<String>,
     /// name property.
     pub name: Option<String>,
+    /// project property.
+    pub project: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// sqlserverDatabaseDetails property.
+    pub sqlserver_database_details: Option<SqlServerDatabaseDetails>,
 }
 
 /// `ExportContext` type.
@@ -196,6 +190,13 @@ pub struct ExportContext {
     pub tde_export_options: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// uri property.
     pub uri: Option<String>,
+}
+
+/// `SqlSubOperationType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlSubOperationType {
+    /// maintenanceType property.
+    pub maintenance_type: Option<String>,
 }
 
 // =============================================================================

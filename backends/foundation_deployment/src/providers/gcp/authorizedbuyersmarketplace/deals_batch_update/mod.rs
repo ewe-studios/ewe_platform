@@ -12,23 +12,42 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `InventoryTypeTargeting` type.
+/// `MobileApplicationTargeting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InventoryTypeTargeting {
-    /// inventoryTypes property.
-    pub inventory_types: Option<Vec<String>>,
+pub struct MobileApplicationTargeting {
+    /// firstPartyTargeting property.
+    pub first_party_targeting: Option<FirstPartyMobileApplicationTargeting>,
+}
+
+/// `PlacementTargeting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlacementTargeting {
+    /// mobileApplicationTargeting property.
+    pub mobile_application_targeting: Option<MobileApplicationTargeting>,
+    /// uriTargeting property.
+    pub uri_targeting: Option<UriTargeting>,
+}
+
+/// `PrivateAuctionTerms` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrivateAuctionTerms {
+    /// floorPrice property.
+    pub floor_price: Option<Price>,
+    /// openAuctionAllowed property.
+    pub open_auction_allowed: Option<bool>,
 }
 
 /// `MediaPlanner` type.
@@ -44,24 +63,38 @@ pub struct MediaPlanner {
     pub name: Option<String>,
 }
 
-/// `Money` type.
+/// `MarketplaceTargeting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Money {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// units property.
-    pub units: Option<String>,
+pub struct MarketplaceTargeting {
+    /// daypartTargeting property.
+    pub daypart_targeting: Option<DayPartTargeting>,
+    /// excludedSensitiveCategoryIds property.
+    pub excluded_sensitive_category_ids: Option<Vec<String>>,
+    /// geoTargeting property.
+    pub geo_targeting: Option<CriteriaTargeting>,
+    /// inventorySizeTargeting property.
+    pub inventory_size_targeting: Option<InventorySizeTargeting>,
+    /// inventoryTypeTargeting property.
+    pub inventory_type_targeting: Option<InventoryTypeTargeting>,
+    /// placementTargeting property.
+    pub placement_targeting: Option<PlacementTargeting>,
+    /// technologyTargeting property.
+    pub technology_targeting: Option<TechnologyTargeting>,
+    /// userListTargeting property.
+    pub user_list_targeting: Option<CriteriaTargeting>,
+    /// verticalTargeting property.
+    pub vertical_targeting: Option<CriteriaTargeting>,
+    /// videoTargeting property.
+    pub video_targeting: Option<VideoTargeting>,
 }
 
-/// `PlacementTargeting` type.
+/// `VideoTargeting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlacementTargeting {
-    /// mobileApplicationTargeting property.
-    pub mobile_application_targeting: Option<MobileApplicationTargeting>,
-    /// uriTargeting property.
-    pub uri_targeting: Option<UriTargeting>,
+pub struct VideoTargeting {
+    /// excludedPositionTypes property.
+    pub excluded_position_types: Option<Vec<String>>,
+    /// targetedPositionTypes property.
+    pub targeted_position_types: Option<Vec<String>>,
 }
 
 /// `AdSize` type.
@@ -86,6 +119,94 @@ pub struct DayPart {
     pub start_time: Option<TimeOfDay>,
 }
 
+/// `DeliveryControl` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeliveryControl {
+    /// companionDeliveryType property.
+    pub companion_delivery_type: Option<String>,
+    /// creativeRotationType property.
+    pub creative_rotation_type: Option<String>,
+    /// deliveryRateType property.
+    pub delivery_rate_type: Option<String>,
+    /// frequencyCap property.
+    pub frequency_cap: Option<Vec<FrequencyCap>>,
+    /// roadblockingType property.
+    pub roadblocking_type: Option<String>,
+}
+
+/// `CriteriaTargeting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CriteriaTargeting {
+    /// excludedCriteriaIds property.
+    pub excluded_criteria_ids: Option<Vec<String>>,
+    /// targetedCriteriaIds property.
+    pub targeted_criteria_ids: Option<Vec<String>>,
+}
+
+/// `TimeOfDay` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeOfDay {
+    /// hours property.
+    pub hours: Option<i64>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<i64>,
+}
+
+/// `ProgrammaticGuaranteedTerms` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProgrammaticGuaranteedTerms {
+    /// fixedPrice property.
+    pub fixed_price: Option<Price>,
+    /// guaranteedLooks property.
+    pub guaranteed_looks: Option<String>,
+    /// impressionCap property.
+    pub impression_cap: Option<String>,
+    /// minimumDailyLooks property.
+    pub minimum_daily_looks: Option<String>,
+    /// percentShareOfVoice property.
+    pub percent_share_of_voice: Option<String>,
+    /// reservationType property.
+    pub reservation_type: Option<String>,
+}
+
+/// `OperatingSystemTargeting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OperatingSystemTargeting {
+    /// operatingSystemCriteria property.
+    pub operating_system_criteria: Option<CriteriaTargeting>,
+    /// operatingSystemVersionCriteria property.
+    pub operating_system_version_criteria: Option<CriteriaTargeting>,
+}
+
+/// `PreferredDealTerms` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PreferredDealTerms {
+    /// fixedPrice property.
+    pub fixed_price: Option<Price>,
+}
+
+/// `TimeZone` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeZone {
+    /// id property.
+    pub id: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `InventorySizeTargeting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InventorySizeTargeting {
+    /// excludedInventorySizes property.
+    pub excluded_inventory_sizes: Option<Vec<AdSize>>,
+    /// targetedInventorySizes property.
+    pub targeted_inventory_sizes: Option<Vec<AdSize>>,
+}
+
 /// `UriTargeting` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UriTargeting {
@@ -95,11 +216,88 @@ pub struct UriTargeting {
     pub targeted_uris: Option<Vec<String>>,
 }
 
-/// `PreferredDealTerms` type.
+/// `Price` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreferredDealTerms {
-    /// fixedPrice property.
-    pub fixed_price: Option<Price>,
+pub struct Price {
+    /// amount property.
+    pub amount: Option<Money>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `FrequencyCap` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FrequencyCap {
+    /// maxImpressions property.
+    pub max_impressions: Option<i64>,
+    /// timeUnitType property.
+    pub time_unit_type: Option<String>,
+    /// timeUnitsCount property.
+    pub time_units_count: Option<i64>,
+}
+
+/// `DayPartTargeting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DayPartTargeting {
+    /// dayParts property.
+    pub day_parts: Option<Vec<DayPart>>,
+    /// timeZoneType property.
+    pub time_zone_type: Option<String>,
+}
+
+/// `InventoryTypeTargeting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InventoryTypeTargeting {
+    /// inventoryTypes property.
+    pub inventory_types: Option<Vec<String>>,
+}
+
+/// `CreativeRequirements` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreativeRequirements {
+    /// creativeFormat property.
+    pub creative_format: Option<String>,
+    /// creativePreApprovalPolicy property.
+    pub creative_pre_approval_policy: Option<String>,
+    /// creativeSafeFrameCompatibility property.
+    pub creative_safe_frame_compatibility: Option<String>,
+    /// maxAdDurationMs property.
+    pub max_ad_duration_ms: Option<String>,
+    /// programmaticCreativeSource property.
+    pub programmatic_creative_source: Option<String>,
+    /// skippableAdType property.
+    pub skippable_ad_type: Option<String>,
+}
+
+/// `TechnologyTargeting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TechnologyTargeting {
+    /// deviceCapabilityTargeting property.
+    pub device_capability_targeting: Option<CriteriaTargeting>,
+    /// deviceCategoryTargeting property.
+    pub device_category_targeting: Option<CriteriaTargeting>,
+    /// operatingSystemTargeting property.
+    pub operating_system_targeting: Option<OperatingSystemTargeting>,
+}
+
+/// `FirstPartyMobileApplicationTargeting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FirstPartyMobileApplicationTargeting {
+    /// excludedAppIds property.
+    pub excluded_app_ids: Option<Vec<String>>,
+    /// targetedAppIds property.
+    pub targeted_app_ids: Option<Vec<String>>,
+}
+
+/// `Money` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Money {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// units property.
+    pub units: Option<String>,
 }
 
 /// `Deal` type.
@@ -155,208 +353,11 @@ pub struct Deal {
     pub update_time: Option<String>,
 }
 
-/// `VideoTargeting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoTargeting {
-    /// excludedPositionTypes property.
-    pub excluded_position_types: Option<Vec<String>>,
-    /// targetedPositionTypes property.
-    pub targeted_position_types: Option<Vec<String>>,
-}
-
-/// `MarketplaceTargeting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MarketplaceTargeting {
-    /// daypartTargeting property.
-    pub daypart_targeting: Option<DayPartTargeting>,
-    /// excludedSensitiveCategoryIds property.
-    pub excluded_sensitive_category_ids: Option<Vec<String>>,
-    /// geoTargeting property.
-    pub geo_targeting: Option<CriteriaTargeting>,
-    /// inventorySizeTargeting property.
-    pub inventory_size_targeting: Option<InventorySizeTargeting>,
-    /// inventoryTypeTargeting property.
-    pub inventory_type_targeting: Option<InventoryTypeTargeting>,
-    /// placementTargeting property.
-    pub placement_targeting: Option<PlacementTargeting>,
-    /// technologyTargeting property.
-    pub technology_targeting: Option<TechnologyTargeting>,
-    /// userListTargeting property.
-    pub user_list_targeting: Option<CriteriaTargeting>,
-    /// verticalTargeting property.
-    pub vertical_targeting: Option<CriteriaTargeting>,
-    /// videoTargeting property.
-    pub video_targeting: Option<VideoTargeting>,
-}
-
-/// `MobileApplicationTargeting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MobileApplicationTargeting {
-    /// firstPartyTargeting property.
-    pub first_party_targeting: Option<FirstPartyMobileApplicationTargeting>,
-}
-
-/// `DeliveryControl` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeliveryControl {
-    /// companionDeliveryType property.
-    pub companion_delivery_type: Option<String>,
-    /// creativeRotationType property.
-    pub creative_rotation_type: Option<String>,
-    /// deliveryRateType property.
-    pub delivery_rate_type: Option<String>,
-    /// frequencyCap property.
-    pub frequency_cap: Option<Vec<FrequencyCap>>,
-    /// roadblockingType property.
-    pub roadblocking_type: Option<String>,
-}
-
-/// `CriteriaTargeting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CriteriaTargeting {
-    /// excludedCriteriaIds property.
-    pub excluded_criteria_ids: Option<Vec<String>>,
-    /// targetedCriteriaIds property.
-    pub targeted_criteria_ids: Option<Vec<String>>,
-}
-
-/// `CreativeRequirements` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreativeRequirements {
-    /// creativeFormat property.
-    pub creative_format: Option<String>,
-    /// creativePreApprovalPolicy property.
-    pub creative_pre_approval_policy: Option<String>,
-    /// creativeSafeFrameCompatibility property.
-    pub creative_safe_frame_compatibility: Option<String>,
-    /// maxAdDurationMs property.
-    pub max_ad_duration_ms: Option<String>,
-    /// programmaticCreativeSource property.
-    pub programmatic_creative_source: Option<String>,
-    /// skippableAdType property.
-    pub skippable_ad_type: Option<String>,
-}
-
 /// `BatchUpdateDealsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateDealsResponse {
     /// deals property.
     pub deals: Option<Vec<Deal>>,
-}
-
-/// `DayPartTargeting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DayPartTargeting {
-    /// dayParts property.
-    pub day_parts: Option<Vec<DayPart>>,
-    /// timeZoneType property.
-    pub time_zone_type: Option<String>,
-}
-
-/// `InventorySizeTargeting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InventorySizeTargeting {
-    /// excludedInventorySizes property.
-    pub excluded_inventory_sizes: Option<Vec<AdSize>>,
-    /// targetedInventorySizes property.
-    pub targeted_inventory_sizes: Option<Vec<AdSize>>,
-}
-
-/// `FirstPartyMobileApplicationTargeting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirstPartyMobileApplicationTargeting {
-    /// excludedAppIds property.
-    pub excluded_app_ids: Option<Vec<String>>,
-    /// targetedAppIds property.
-    pub targeted_app_ids: Option<Vec<String>>,
-}
-
-/// `ProgrammaticGuaranteedTerms` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProgrammaticGuaranteedTerms {
-    /// fixedPrice property.
-    pub fixed_price: Option<Price>,
-    /// guaranteedLooks property.
-    pub guaranteed_looks: Option<String>,
-    /// impressionCap property.
-    pub impression_cap: Option<String>,
-    /// minimumDailyLooks property.
-    pub minimum_daily_looks: Option<String>,
-    /// percentShareOfVoice property.
-    pub percent_share_of_voice: Option<String>,
-    /// reservationType property.
-    pub reservation_type: Option<String>,
-}
-
-/// `TimeZone` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeZone {
-    /// id property.
-    pub id: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `OperatingSystemTargeting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperatingSystemTargeting {
-    /// operatingSystemCriteria property.
-    pub operating_system_criteria: Option<CriteriaTargeting>,
-    /// operatingSystemVersionCriteria property.
-    pub operating_system_version_criteria: Option<CriteriaTargeting>,
-}
-
-/// `TimeOfDay` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeOfDay {
-    /// hours property.
-    pub hours: Option<i64>,
-    /// minutes property.
-    pub minutes: Option<i64>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<i64>,
-}
-
-/// `Price` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Price {
-    /// amount property.
-    pub amount: Option<Money>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `FrequencyCap` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FrequencyCap {
-    /// maxImpressions property.
-    pub max_impressions: Option<i64>,
-    /// timeUnitType property.
-    pub time_unit_type: Option<String>,
-    /// timeUnitsCount property.
-    pub time_units_count: Option<i64>,
-}
-
-/// `TechnologyTargeting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TechnologyTargeting {
-    /// deviceCapabilityTargeting property.
-    pub device_capability_targeting: Option<CriteriaTargeting>,
-    /// deviceCategoryTargeting property.
-    pub device_category_targeting: Option<CriteriaTargeting>,
-    /// operatingSystemTargeting property.
-    pub operating_system_targeting: Option<OperatingSystemTargeting>,
-}
-
-/// `PrivateAuctionTerms` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrivateAuctionTerms {
-    /// floorPrice property.
-    pub floor_price: Option<Price>,
-    /// openAuctionAllowed property.
-    pub open_auction_allowed: Option<bool>,
 }
 
 // =============================================================================

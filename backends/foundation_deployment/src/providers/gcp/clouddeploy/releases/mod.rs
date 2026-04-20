@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,291 +22,42 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Strategy` type.
+/// `SerialPipeline` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Strategy {
-    /// canary property.
-    pub canary: Option<Canary>,
-    /// standard property.
-    pub standard: Option<Standard>,
+pub struct SerialPipeline {
+    /// stages property.
+    pub stages: Option<Vec<Stage>>,
 }
 
-/// `ToolVersionSupportedCondition` type.
+/// `DeliveryPipeline` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ToolVersionSupportedCondition {
-    /// maintenanceModeTime property.
-    pub maintenance_mode_time: Option<String>,
-    /// status property.
-    pub status: Option<bool>,
-    /// supportExpirationTime property.
-    pub support_expiration_time: Option<String>,
-    /// toolVersionSupportState property.
-    pub tool_version_support_state: Option<String>,
-}
-
-/// `DeployParameters` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeployParameters {
-    /// matchTargetLabels property.
-    pub match_target_labels: Option<serde_json::Value>,
-    /// values property.
-    pub values: Option<serde_json::Value>,
-}
-
-/// `AbandonReleaseResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AbandonReleaseResponse {}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `ReleaseReadyCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReleaseReadyCondition {
-    /// status property.
-    pub status: Option<bool>,
-}
-
-/// `ListReleasesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListReleasesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// releases property.
-    pub releases: Option<Vec<Release>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `AlertPolicyCheck` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AlertPolicyCheck {
-    /// alertPolicies property.
-    pub alert_policies: Option<Vec<String>>,
-    /// id property.
-    pub id: Option<String>,
+pub struct DeliveryPipeline {
+    /// annotations property.
+    pub annotations: Option<serde_json::Value>,
+    /// condition property.
+    pub condition: Option<PipelineCondition>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// etag property.
+    pub etag: Option<String>,
     /// labels property.
     pub labels: Option<serde_json::Value>,
-}
-
-/// `DefaultPool` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DefaultPool {
-    /// artifactStorage property.
-    pub artifact_storage: Option<String>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-}
-
-/// `KubernetesConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KubernetesConfig {
-    /// gatewayServiceMesh property.
-    pub gateway_service_mesh: Option<GatewayServiceMesh>,
-    /// serviceNetworking property.
-    pub service_networking: Option<ServiceNetworking>,
-}
-
-/// `Analysis` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Analysis {
-    /// customChecks property.
-    pub custom_checks: Option<Vec<CustomCheck>>,
-    /// duration property.
-    pub duration: Option<String>,
-    /// googleCloud property.
-    pub google_cloud: Option<GoogleCloudAnalysis>,
-}
-
-/// `MultiTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MultiTarget {
-    /// targetIds property.
-    pub target_ids: Option<Vec<String>>,
-}
-
-/// `RouteDestinations` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouteDestinations {
-    /// destinationIds property.
-    pub destination_ids: Option<Vec<String>>,
-    /// propagateService property.
-    pub propagate_service: Option<bool>,
-}
-
-/// `CloudRunLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudRunLocation {
-    /// location property.
-    pub location: Option<String>,
-}
-
-/// `ReleaseCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReleaseCondition {
-    /// dockerVersionSupportedCondition property.
-    pub docker_version_supported_condition: Option<ToolVersionSupportedCondition>,
-    /// helmVersionSupportedCondition property.
-    pub helm_version_supported_condition: Option<ToolVersionSupportedCondition>,
-    /// kptVersionSupportedCondition property.
-    pub kpt_version_supported_condition: Option<ToolVersionSupportedCondition>,
-    /// kubectlVersionSupportedCondition property.
-    pub kubectl_version_supported_condition: Option<ToolVersionSupportedCondition>,
-    /// kustomizeVersionSupportedCondition property.
-    pub kustomize_version_supported_condition: Option<ToolVersionSupportedCondition>,
-    /// releaseReadyCondition property.
-    pub release_ready_condition: Option<ReleaseReadyCondition>,
-    /// skaffoldSupportedCondition property.
-    pub skaffold_supported_condition: Option<SkaffoldSupportedCondition>,
-    /// skaffoldVersionSupportedCondition property.
-    pub skaffold_version_supported_condition: Option<ToolVersionSupportedCondition>,
-}
-
-/// `Canary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Canary {
-    /// canaryDeployment property.
-    pub canary_deployment: Option<CanaryDeployment>,
-    /// customCanaryDeployment property.
-    pub custom_canary_deployment: Option<CustomCanaryDeployment>,
-    /// runtimeConfig property.
-    pub runtime_config: Option<RuntimeConfig>,
-}
-
-/// `GkeCluster` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GkeCluster {
-    /// cluster property.
-    pub cluster: Option<String>,
-    /// dnsEndpoint property.
-    pub dns_endpoint: Option<bool>,
-    /// internalIp property.
-    pub internal_ip: Option<bool>,
-    /// proxyUrl property.
-    pub proxy_url: Option<String>,
-}
-
-/// `ExecutionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExecutionConfig {
-    /// artifactStorage property.
-    pub artifact_storage: Option<String>,
-    /// defaultPool property.
-    pub default_pool: Option<DefaultPool>,
-    /// executionTimeout property.
-    pub execution_timeout: Option<String>,
-    /// privatePool property.
-    pub private_pool: Option<PrivatePool>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-    /// usages property.
-    pub usages: Option<Vec<String>>,
-    /// verbose property.
-    pub verbose: Option<bool>,
-    /// workerPool property.
-    pub worker_pool: Option<String>,
-}
-
-/// `Verify` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Verify {
-    /// tasks property.
-    pub tasks: Option<Vec<Task>>,
-}
-
-/// `RuntimeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RuntimeConfig {
-    /// cloudRun property.
-    pub cloud_run: Option<CloudRunConfig>,
-    /// kubernetes property.
-    pub kubernetes: Option<KubernetesConfig>,
-}
-
-/// `BuildArtifact` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BuildArtifact {
-    /// image property.
-    pub image: Option<String>,
-    /// tag property.
-    pub tag: Option<String>,
-}
-
-/// `Standard` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Standard {
-    /// analysis property.
-    pub analysis: Option<Analysis>,
-    /// postdeploy property.
-    pub postdeploy: Option<Postdeploy>,
-    /// predeploy property.
-    pub predeploy: Option<Predeploy>,
-    /// verify property.
-    pub verify: Option<bool>,
-    /// verifyConfig property.
-    pub verify_config: Option<Verify>,
-}
-
-/// `Predeploy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Predeploy {
-    /// actions property.
-    pub actions: Option<Vec<String>>,
-    /// tasks property.
-    pub tasks: Option<Vec<Task>>,
-}
-
-/// `CloudRunConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudRunConfig {
-    /// automaticTrafficControl property.
-    pub automatic_traffic_control: Option<bool>,
-    /// canaryRevisionTags property.
-    pub canary_revision_tags: Option<Vec<String>>,
-    /// priorRevisionTags property.
-    pub prior_revision_tags: Option<Vec<String>>,
-    /// stableRevisionTags property.
-    pub stable_revision_tags: Option<Vec<String>>,
-}
-
-/// `GatewayServiceMesh` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GatewayServiceMesh {
-    /// deployment property.
-    pub deployment: Option<String>,
-    /// httpRoute property.
-    pub http_route: Option<String>,
-    /// podSelectorLabel property.
-    pub pod_selector_label: Option<String>,
-    /// routeDestinations property.
-    pub route_destinations: Option<RouteDestinations>,
-    /// routeUpdateWaitTime property.
-    pub route_update_wait_time: Option<String>,
-    /// service property.
-    pub service: Option<String>,
-    /// stableCutbackDuration property.
-    pub stable_cutback_duration: Option<String>,
-}
-
-/// `PipelineReadyCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PipelineReadyCondition {
-    /// status property.
-    pub status: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+    /// serialPipeline property.
+    pub serial_pipeline: Option<SerialPipeline>,
+    /// suspended property.
+    pub suspended: Option<bool>,
+    /// uid property.
+    pub uid: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
 }
@@ -351,186 +103,6 @@ pub struct Target {
     pub update_time: Option<String>,
 }
 
-/// `TargetsTypeCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TargetsTypeCondition {
-    /// errorDetails property.
-    pub error_details: Option<String>,
-    /// status property.
-    pub status: Option<bool>,
-}
-
-/// `CustomTargetSkaffoldActions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomTargetSkaffoldActions {
-    /// deployAction property.
-    pub deploy_action: Option<String>,
-    /// includeSkaffoldModules property.
-    pub include_skaffold_modules: Option<Vec<SkaffoldModules>>,
-    /// renderAction property.
-    pub render_action: Option<String>,
-}
-
-/// `SkaffoldGitSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SkaffoldGitSource {
-    /// path property.
-    pub path: Option<String>,
-    /// ref property.
-    pub r#ref: Option<String>,
-    /// repo property.
-    pub repo: Option<String>,
-}
-
-/// `Stage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Stage {
-    /// deployParameters property.
-    pub deploy_parameters: Option<Vec<DeployParameters>>,
-    /// profiles property.
-    pub profiles: Option<Vec<String>>,
-    /// strategy property.
-    pub strategy: Option<Strategy>,
-    /// targetId property.
-    pub target_id: Option<String>,
-}
-
-/// `SkaffoldSupportedCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SkaffoldSupportedCondition {
-    /// maintenanceModeTime property.
-    pub maintenance_mode_time: Option<String>,
-    /// skaffoldSupportState property.
-    pub skaffold_support_state: Option<String>,
-    /// status property.
-    pub status: Option<bool>,
-    /// supportExpirationTime property.
-    pub support_expiration_time: Option<String>,
-}
-
-/// `PrivatePool` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrivatePool {
-    /// artifactStorage property.
-    pub artifact_storage: Option<String>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-    /// workerPool property.
-    pub worker_pool: Option<String>,
-}
-
-/// `CustomCanaryDeployment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomCanaryDeployment {
-    /// phaseConfigs property.
-    pub phase_configs: Option<Vec<PhaseConfig>>,
-}
-
-/// `AnthosCluster` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AnthosCluster {
-    /// membership property.
-    pub membership: Option<String>,
-}
-
-/// `ContainerTask` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContainerTask {
-    /// args property.
-    pub args: Option<Vec<String>>,
-    /// command property.
-    pub command: Option<Vec<String>>,
-    /// env property.
-    pub env: Option<serde_json::Value>,
-    /// image property.
-    pub image: Option<String>,
-}
-
-/// `GoogleCloudAnalysis` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAnalysis {
-    /// alertPolicyChecks property.
-    pub alert_policy_checks: Option<Vec<AlertPolicyCheck>>,
-}
-
-/// `PhaseConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PhaseConfig {
-    /// analysis property.
-    pub analysis: Option<Analysis>,
-    /// percentage property.
-    pub percentage: Option<i64>,
-    /// phaseId property.
-    pub phase_id: Option<String>,
-    /// postdeploy property.
-    pub postdeploy: Option<Postdeploy>,
-    /// predeploy property.
-    pub predeploy: Option<Predeploy>,
-    /// profiles property.
-    pub profiles: Option<Vec<String>>,
-    /// verify property.
-    pub verify: Option<bool>,
-    /// verifyConfig property.
-    pub verify_config: Option<Verify>,
-}
-
-/// `ServiceNetworking` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceNetworking {
-    /// deployment property.
-    pub deployment: Option<String>,
-    /// disablePodOverprovisioning property.
-    pub disable_pod_overprovisioning: Option<bool>,
-    /// podSelectorLabel property.
-    pub pod_selector_label: Option<String>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `CustomTargetType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomTargetType {
-    /// annotations property.
-    pub annotations: Option<serde_json::Value>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// customActions property.
-    pub custom_actions: Option<CustomTargetSkaffoldActions>,
-    /// customTargetTypeId property.
-    pub custom_target_type_id: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// tasks property.
-    pub tasks: Option<CustomTargetTasks>,
-    /// uid property.
-    pub uid: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `ToolVersions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ToolVersions {
-    /// docker property.
-    pub docker: Option<String>,
-    /// helm property.
-    pub helm: Option<String>,
-    /// kpt property.
-    pub kpt: Option<String>,
-    /// kubectl property.
-    pub kubectl: Option<String>,
-    /// kustomize property.
-    pub kustomize: Option<String>,
-    /// skaffold property.
-    pub skaffold: Option<String>,
-}
-
 /// `PipelineCondition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PipelineCondition {
@@ -542,54 +114,13 @@ pub struct PipelineCondition {
     pub targets_type_condition: Option<TargetsTypeCondition>,
 }
 
-/// `Postdeploy` type.
+/// `DeployParameters` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Postdeploy {
-    /// actions property.
-    pub actions: Option<Vec<String>>,
-    /// tasks property.
-    pub tasks: Option<Vec<Task>>,
-}
-
-/// `SkaffoldGCBRepoSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SkaffoldGCBRepoSource {
-    /// path property.
-    pub path: Option<String>,
-    /// ref property.
-    pub r#ref: Option<String>,
-    /// repository property.
-    pub repository: Option<String>,
-}
-
-/// `SkaffoldModules` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SkaffoldModules {
-    /// configs property.
-    pub configs: Option<Vec<String>>,
-    /// git property.
-    pub git: Option<SkaffoldGitSource>,
-    /// googleCloudBuildRepo property.
-    pub google_cloud_build_repo: Option<SkaffoldGCBRepoSource>,
-    /// googleCloudStorage property.
-    pub google_cloud_storage: Option<SkaffoldGCSSource>,
-}
-
-/// `CanaryDeployment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CanaryDeployment {
-    /// analysis property.
-    pub analysis: Option<Analysis>,
-    /// percentages property.
-    pub percentages: Option<Vec<i64>>,
-    /// postdeploy property.
-    pub postdeploy: Option<Postdeploy>,
-    /// predeploy property.
-    pub predeploy: Option<Predeploy>,
-    /// verify property.
-    pub verify: Option<bool>,
-    /// verifyConfig property.
-    pub verify_config: Option<Verify>,
+pub struct DeployParameters {
+    /// matchTargetLabels property.
+    pub match_target_labels: Option<serde_json::Value>,
+    /// values property.
+    pub values: Option<serde_json::Value>,
 }
 
 /// `Release` type.
@@ -643,47 +174,34 @@ pub struct Release {
     pub uid: Option<String>,
 }
 
-/// `DeliveryPipeline` type.
+/// `ToolVersions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeliveryPipeline {
-    /// annotations property.
-    pub annotations: Option<serde_json::Value>,
-    /// condition property.
-    pub condition: Option<PipelineCondition>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// serialPipeline property.
-    pub serial_pipeline: Option<SerialPipeline>,
-    /// suspended property.
-    pub suspended: Option<bool>,
-    /// uid property.
-    pub uid: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
+pub struct ToolVersions {
+    /// docker property.
+    pub docker: Option<String>,
+    /// helm property.
+    pub helm: Option<String>,
+    /// kpt property.
+    pub kpt: Option<String>,
+    /// kubectl property.
+    pub kubectl: Option<String>,
+    /// kustomize property.
+    pub kustomize: Option<String>,
+    /// skaffold property.
+    pub skaffold: Option<String>,
 }
 
-/// `SkaffoldGCSSource` type.
+/// `ContainerTask` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SkaffoldGCSSource {
-    /// path property.
-    pub path: Option<String>,
-    /// source property.
-    pub source: Option<String>,
-}
-
-/// `Task` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Task {
-    /// container property.
-    pub container: Option<ContainerTask>,
+pub struct ContainerTask {
+    /// args property.
+    pub args: Option<Vec<String>>,
+    /// command property.
+    pub command: Option<Vec<String>>,
+    /// env property.
+    pub env: Option<serde_json::Value>,
+    /// image property.
+    pub image: Option<String>,
 }
 
 /// `CustomCheck` type.
@@ -697,11 +215,11 @@ pub struct CustomCheck {
     pub task: Option<Task>,
 }
 
-/// `SerialPipeline` type.
+/// `CustomCanaryDeployment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SerialPipeline {
-    /// stages property.
-    pub stages: Option<Vec<Stage>>,
+pub struct CustomCanaryDeployment {
+    /// phaseConfigs property.
+    pub phase_configs: Option<Vec<PhaseConfig>>,
 }
 
 /// `CustomTarget` type.
@@ -709,6 +227,218 @@ pub struct SerialPipeline {
 pub struct CustomTarget {
     /// customTargetType property.
     pub custom_target_type: Option<String>,
+}
+
+/// `Predeploy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Predeploy {
+    /// actions property.
+    pub actions: Option<Vec<String>>,
+    /// tasks property.
+    pub tasks: Option<Vec<Task>>,
+}
+
+/// `Verify` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Verify {
+    /// tasks property.
+    pub tasks: Option<Vec<Task>>,
+}
+
+/// `GoogleCloudAnalysis` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAnalysis {
+    /// alertPolicyChecks property.
+    pub alert_policy_checks: Option<Vec<AlertPolicyCheck>>,
+}
+
+/// `SkaffoldModules` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SkaffoldModules {
+    /// configs property.
+    pub configs: Option<Vec<String>>,
+    /// git property.
+    pub git: Option<SkaffoldGitSource>,
+    /// googleCloudBuildRepo property.
+    pub google_cloud_build_repo: Option<SkaffoldGCBRepoSource>,
+    /// googleCloudStorage property.
+    pub google_cloud_storage: Option<SkaffoldGCSSource>,
+}
+
+/// `CloudRunLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudRunLocation {
+    /// location property.
+    pub location: Option<String>,
+}
+
+/// `RuntimeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RuntimeConfig {
+    /// cloudRun property.
+    pub cloud_run: Option<CloudRunConfig>,
+    /// kubernetes property.
+    pub kubernetes: Option<KubernetesConfig>,
+}
+
+/// `CloudRunConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudRunConfig {
+    /// automaticTrafficControl property.
+    pub automatic_traffic_control: Option<bool>,
+    /// canaryRevisionTags property.
+    pub canary_revision_tags: Option<Vec<String>>,
+    /// priorRevisionTags property.
+    pub prior_revision_tags: Option<Vec<String>>,
+    /// stableRevisionTags property.
+    pub stable_revision_tags: Option<Vec<String>>,
+}
+
+/// `SkaffoldGitSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SkaffoldGitSource {
+    /// path property.
+    pub path: Option<String>,
+    /// ref property.
+    pub r#ref: Option<String>,
+    /// repo property.
+    pub repo: Option<String>,
+}
+
+/// `CustomTargetType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomTargetType {
+    /// annotations property.
+    pub annotations: Option<serde_json::Value>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// customActions property.
+    pub custom_actions: Option<CustomTargetSkaffoldActions>,
+    /// customTargetTypeId property.
+    pub custom_target_type_id: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// tasks property.
+    pub tasks: Option<CustomTargetTasks>,
+    /// uid property.
+    pub uid: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `ServiceNetworking` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceNetworking {
+    /// deployment property.
+    pub deployment: Option<String>,
+    /// disablePodOverprovisioning property.
+    pub disable_pod_overprovisioning: Option<bool>,
+    /// podSelectorLabel property.
+    pub pod_selector_label: Option<String>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `AnthosCluster` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AnthosCluster {
+    /// membership property.
+    pub membership: Option<String>,
+}
+
+/// `Standard` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Standard {
+    /// analysis property.
+    pub analysis: Option<Analysis>,
+    /// postdeploy property.
+    pub postdeploy: Option<Postdeploy>,
+    /// predeploy property.
+    pub predeploy: Option<Predeploy>,
+    /// verify property.
+    pub verify: Option<bool>,
+    /// verifyConfig property.
+    pub verify_config: Option<Verify>,
+}
+
+/// `SkaffoldGCBRepoSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SkaffoldGCBRepoSource {
+    /// path property.
+    pub path: Option<String>,
+    /// ref property.
+    pub r#ref: Option<String>,
+    /// repository property.
+    pub repository: Option<String>,
+}
+
+/// `KubernetesConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KubernetesConfig {
+    /// gatewayServiceMesh property.
+    pub gateway_service_mesh: Option<GatewayServiceMesh>,
+    /// serviceNetworking property.
+    pub service_networking: Option<ServiceNetworking>,
+}
+
+/// `ToolVersionSupportedCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ToolVersionSupportedCondition {
+    /// maintenanceModeTime property.
+    pub maintenance_mode_time: Option<String>,
+    /// status property.
+    pub status: Option<bool>,
+    /// supportExpirationTime property.
+    pub support_expiration_time: Option<String>,
+    /// toolVersionSupportState property.
+    pub tool_version_support_state: Option<String>,
+}
+
+/// `PhaseConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PhaseConfig {
+    /// analysis property.
+    pub analysis: Option<Analysis>,
+    /// percentage property.
+    pub percentage: Option<i64>,
+    /// phaseId property.
+    pub phase_id: Option<String>,
+    /// postdeploy property.
+    pub postdeploy: Option<Postdeploy>,
+    /// predeploy property.
+    pub predeploy: Option<Predeploy>,
+    /// profiles property.
+    pub profiles: Option<Vec<String>>,
+    /// verify property.
+    pub verify: Option<bool>,
+    /// verifyConfig property.
+    pub verify_config: Option<Verify>,
+}
+
+/// `ReleaseReadyCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReleaseReadyCondition {
+    /// status property.
+    pub status: Option<bool>,
+}
+
+/// `SkaffoldSupportedCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SkaffoldSupportedCondition {
+    /// maintenanceModeTime property.
+    pub maintenance_mode_time: Option<String>,
+    /// skaffoldSupportState property.
+    pub skaffold_support_state: Option<String>,
+    /// status property.
+    pub status: Option<bool>,
+    /// supportExpirationTime property.
+    pub support_expiration_time: Option<String>,
 }
 
 /// `TargetsPresentCondition` type.
@@ -722,6 +452,219 @@ pub struct TargetsPresentCondition {
     pub update_time: Option<String>,
 }
 
+/// `DefaultPool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DefaultPool {
+    /// artifactStorage property.
+    pub artifact_storage: Option<String>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+}
+
+/// `Analysis` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Analysis {
+    /// customChecks property.
+    pub custom_checks: Option<Vec<CustomCheck>>,
+    /// duration property.
+    pub duration: Option<String>,
+    /// googleCloud property.
+    pub google_cloud: Option<GoogleCloudAnalysis>,
+}
+
+/// `PipelineReadyCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PipelineReadyCondition {
+    /// status property.
+    pub status: Option<bool>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `ReleaseCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReleaseCondition {
+    /// dockerVersionSupportedCondition property.
+    pub docker_version_supported_condition: Option<ToolVersionSupportedCondition>,
+    /// helmVersionSupportedCondition property.
+    pub helm_version_supported_condition: Option<ToolVersionSupportedCondition>,
+    /// kptVersionSupportedCondition property.
+    pub kpt_version_supported_condition: Option<ToolVersionSupportedCondition>,
+    /// kubectlVersionSupportedCondition property.
+    pub kubectl_version_supported_condition: Option<ToolVersionSupportedCondition>,
+    /// kustomizeVersionSupportedCondition property.
+    pub kustomize_version_supported_condition: Option<ToolVersionSupportedCondition>,
+    /// releaseReadyCondition property.
+    pub release_ready_condition: Option<ReleaseReadyCondition>,
+    /// skaffoldSupportedCondition property.
+    pub skaffold_supported_condition: Option<SkaffoldSupportedCondition>,
+    /// skaffoldVersionSupportedCondition property.
+    pub skaffold_version_supported_condition: Option<ToolVersionSupportedCondition>,
+}
+
+/// `MultiTarget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MultiTarget {
+    /// targetIds property.
+    pub target_ids: Option<Vec<String>>,
+}
+
+/// `GatewayServiceMesh` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GatewayServiceMesh {
+    /// deployment property.
+    pub deployment: Option<String>,
+    /// httpRoute property.
+    pub http_route: Option<String>,
+    /// podSelectorLabel property.
+    pub pod_selector_label: Option<String>,
+    /// routeDestinations property.
+    pub route_destinations: Option<RouteDestinations>,
+    /// routeUpdateWaitTime property.
+    pub route_update_wait_time: Option<String>,
+    /// service property.
+    pub service: Option<String>,
+    /// stableCutbackDuration property.
+    pub stable_cutback_duration: Option<String>,
+}
+
+/// `Postdeploy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Postdeploy {
+    /// actions property.
+    pub actions: Option<Vec<String>>,
+    /// tasks property.
+    pub tasks: Option<Vec<Task>>,
+}
+
+/// `AlertPolicyCheck` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AlertPolicyCheck {
+    /// alertPolicies property.
+    pub alert_policies: Option<Vec<String>>,
+    /// id property.
+    pub id: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `RouteDestinations` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouteDestinations {
+    /// destinationIds property.
+    pub destination_ids: Option<Vec<String>>,
+    /// propagateService property.
+    pub propagate_service: Option<bool>,
+}
+
+/// `PrivatePool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrivatePool {
+    /// artifactStorage property.
+    pub artifact_storage: Option<String>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// workerPool property.
+    pub worker_pool: Option<String>,
+}
+
+/// `Strategy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Strategy {
+    /// canary property.
+    pub canary: Option<Canary>,
+    /// standard property.
+    pub standard: Option<Standard>,
+}
+
+/// `SkaffoldGCSSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SkaffoldGCSSource {
+    /// path property.
+    pub path: Option<String>,
+    /// source property.
+    pub source: Option<String>,
+}
+
+/// `ListReleasesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListReleasesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// releases property.
+    pub releases: Option<Vec<Release>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `AbandonReleaseResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AbandonReleaseResponse {}
+
+/// `BuildArtifact` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BuildArtifact {
+    /// image property.
+    pub image: Option<String>,
+    /// tag property.
+    pub tag: Option<String>,
+}
+
+/// `Task` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Task {
+    /// container property.
+    pub container: Option<ContainerTask>,
+}
+
+/// `CanaryDeployment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CanaryDeployment {
+    /// analysis property.
+    pub analysis: Option<Analysis>,
+    /// percentages property.
+    pub percentages: Option<Vec<i64>>,
+    /// postdeploy property.
+    pub postdeploy: Option<Postdeploy>,
+    /// predeploy property.
+    pub predeploy: Option<Predeploy>,
+    /// verify property.
+    pub verify: Option<bool>,
+    /// verifyConfig property.
+    pub verify_config: Option<Verify>,
+}
+
+/// `TargetsTypeCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TargetsTypeCondition {
+    /// errorDetails property.
+    pub error_details: Option<String>,
+    /// status property.
+    pub status: Option<bool>,
+}
+
+/// `CustomTargetSkaffoldActions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomTargetSkaffoldActions {
+    /// deployAction property.
+    pub deploy_action: Option<String>,
+    /// includeSkaffoldModules property.
+    pub include_skaffold_modules: Option<Vec<SkaffoldModules>>,
+    /// renderAction property.
+    pub render_action: Option<String>,
+}
+
 /// `CustomTargetTasks` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomTargetTasks {
@@ -729,6 +672,64 @@ pub struct CustomTargetTasks {
     pub deploy: Option<Task>,
     /// render property.
     pub render: Option<Task>,
+}
+
+/// `ExecutionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExecutionConfig {
+    /// artifactStorage property.
+    pub artifact_storage: Option<String>,
+    /// defaultPool property.
+    pub default_pool: Option<DefaultPool>,
+    /// executionTimeout property.
+    pub execution_timeout: Option<String>,
+    /// privatePool property.
+    pub private_pool: Option<PrivatePool>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// usages property.
+    pub usages: Option<Vec<String>>,
+    /// verbose property.
+    pub verbose: Option<bool>,
+    /// workerPool property.
+    pub worker_pool: Option<String>,
+}
+
+/// `Stage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Stage {
+    /// deployParameters property.
+    pub deploy_parameters: Option<Vec<DeployParameters>>,
+    /// profiles property.
+    pub profiles: Option<Vec<String>>,
+    /// strategy property.
+    pub strategy: Option<Strategy>,
+    /// targetId property.
+    pub target_id: Option<String>,
+}
+
+/// `GkeCluster` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GkeCluster {
+    /// cluster property.
+    pub cluster: Option<String>,
+    /// dnsEndpoint property.
+    pub dns_endpoint: Option<bool>,
+    /// internalIp property.
+    pub internal_ip: Option<bool>,
+    /// proxyUrl property.
+    pub proxy_url: Option<String>,
+}
+
+/// `Canary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Canary {
+    /// canaryDeployment property.
+    pub canary_deployment: Option<CanaryDeployment>,
+    /// customCanaryDeployment property.
+    pub custom_canary_deployment: Option<CustomCanaryDeployment>,
+    /// runtimeConfig property.
+    pub runtime_config: Option<RuntimeConfig>,
 }
 
 // =============================================================================

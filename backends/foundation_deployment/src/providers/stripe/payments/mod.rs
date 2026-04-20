@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -32,25 +33,33 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `PaymentLink` response type.
+/// `InvoicePayment` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentLink {
+pub struct InvoicePayment {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `TerminalRefund` response type.
+/// `PaymentRecord` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TerminalRefund {
+pub struct PaymentRecord {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `PaymentMethodConfiguration` response type.
+/// `FeeRefund` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodConfiguration {
+pub struct FeeRefund {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `Refund` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Refund {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -64,9 +73,17 @@ pub struct PaymentAttemptRecord {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `PaymentMethodDomain` response type.
+/// `RadarPaymentEvaluation` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodDomain {
+pub struct RadarPaymentEvaluation {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TerminalRefund` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TerminalRefund {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -80,17 +97,33 @@ pub struct TreasuryOutboundPayment {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `InvoicePayment` response type.
+/// `PaymentLink` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InvoicePayment {
+pub struct PaymentLink {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `RadarPaymentEvaluation` response type.
+/// `PaymentIntent` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RadarPaymentEvaluation {
+pub struct PaymentIntent {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `PaymentMethodConfiguration` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodConfiguration {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `PaymentMethodDomain` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodDomain {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -107,38 +140,6 @@ pub struct Charge {
 /// `PaymentMethod` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethod {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `Refund` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Refund {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `PaymentIntent` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentIntent {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `FeeRefund` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FeeRefund {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `PaymentRecord` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentRecord {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

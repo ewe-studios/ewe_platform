@@ -12,30 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `LiveChatBanSnippet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LiveChatBanSnippet {
-    /// banDurationSeconds property.
-    pub ban_duration_seconds: Option<String>,
-    /// bannedUserDetails property.
-    pub banned_user_details: Option<ChannelProfileDetails>,
-    /// liveChatId property.
-    pub live_chat_id: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
 
 /// `ChannelProfileDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -48,6 +36,19 @@ pub struct ChannelProfileDetails {
     pub display_name: Option<String>,
     /// profileImageUrl property.
     pub profile_image_url: Option<String>,
+}
+
+/// `LiveChatBanSnippet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LiveChatBanSnippet {
+    /// banDurationSeconds property.
+    pub ban_duration_seconds: Option<String>,
+    /// bannedUserDetails property.
+    pub banned_user_details: Option<ChannelProfileDetails>,
+    /// liveChatId property.
+    pub live_chat_id: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `LiveChatBan` type.

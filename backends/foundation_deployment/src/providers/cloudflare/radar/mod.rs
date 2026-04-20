@@ -12,11 +12,12 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -2024,7 +2025,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2103,7 +2106,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2183,7 +2188,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2267,7 +2274,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2346,7 +2355,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2430,7 +2441,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2509,7 +2522,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2593,7 +2608,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2677,7 +2694,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2761,7 +2780,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2840,7 +2861,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2924,7 +2947,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3003,7 +3028,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3087,7 +3114,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3171,7 +3200,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3250,7 +3281,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3334,7 +3367,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3413,7 +3448,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3492,7 +3529,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3576,7 +3615,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3655,7 +3696,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3734,7 +3777,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3818,7 +3863,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3902,7 +3949,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3986,7 +4035,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4065,7 +4116,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4144,7 +4197,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4228,7 +4283,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4307,7 +4364,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4391,7 +4450,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4475,7 +4536,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4554,7 +4617,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4638,7 +4703,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4717,7 +4784,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4801,7 +4870,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4885,7 +4956,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4969,7 +5042,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5053,7 +5128,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5137,7 +5214,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5221,7 +5300,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5305,7 +5386,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5384,7 +5467,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5468,7 +5553,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5552,7 +5639,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5636,7 +5725,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5720,7 +5811,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5804,7 +5897,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5888,7 +5983,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5972,7 +6069,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6056,7 +6155,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6140,7 +6241,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6224,7 +6327,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6303,7 +6408,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6387,7 +6494,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6466,7 +6575,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6546,7 +6657,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6625,7 +6738,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6709,7 +6824,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6788,7 +6905,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6872,7 +6991,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6956,7 +7077,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7040,7 +7163,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7124,7 +7249,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7204,7 +7331,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7284,7 +7413,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7363,7 +7494,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7443,7 +7576,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7523,7 +7658,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7603,7 +7740,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7684,7 +7823,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7764,7 +7905,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7843,7 +7986,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7923,7 +8068,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -8004,7 +8151,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -8083,7 +8232,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -8163,7 +8314,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,

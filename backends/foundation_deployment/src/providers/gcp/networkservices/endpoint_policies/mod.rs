@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,21 +22,42 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListEndpointPoliciesResponse` type.
+/// `EndpointMatcherMetadataLabelMatcher` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListEndpointPoliciesResponse {
-    /// endpointPolicies property.
-    pub endpoint_policies: Option<Vec<EndpointPolicy>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct EndpointMatcherMetadataLabelMatcher {
+    /// metadataLabelMatchCriteria property.
+    pub metadata_label_match_criteria: Option<String>,
+    /// metadataLabels property.
+    pub metadata_labels: Option<Vec<EndpointMatcherMetadataLabelMatcherMetadataLabels>>,
+}
+
+/// `EndpointMatcherMetadataLabelMatcherMetadataLabels` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EndpointMatcherMetadataLabelMatcherMetadataLabels {
+    /// labelName property.
+    pub label_name: Option<String>,
+    /// labelValue property.
+    pub label_value: Option<String>,
+}
+
+/// `EndpointMatcher` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EndpointMatcher {
+    /// metadataLabelMatcher property.
+    pub metadata_label_matcher: Option<EndpointMatcherMetadataLabelMatcher>,
+}
+
+/// `TrafficPortSelector` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TrafficPortSelector {
+    /// ports property.
+    pub ports: Option<Vec<String>>,
 }
 
 /// `EndpointPolicy` type.
@@ -65,38 +87,6 @@ pub struct EndpointPolicy {
     pub update_time: Option<String>,
 }
 
-/// `EndpointMatcher` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndpointMatcher {
-    /// metadataLabelMatcher property.
-    pub metadata_label_matcher: Option<EndpointMatcherMetadataLabelMatcher>,
-}
-
-/// `EndpointMatcherMetadataLabelMatcherMetadataLabels` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndpointMatcherMetadataLabelMatcherMetadataLabels {
-    /// labelName property.
-    pub label_name: Option<String>,
-    /// labelValue property.
-    pub label_value: Option<String>,
-}
-
-/// `TrafficPortSelector` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TrafficPortSelector {
-    /// ports property.
-    pub ports: Option<Vec<String>>,
-}
-
-/// `EndpointMatcherMetadataLabelMatcher` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndpointMatcherMetadataLabelMatcher {
-    /// metadataLabelMatchCriteria property.
-    pub metadata_label_match_criteria: Option<String>,
-    /// metadataLabels property.
-    pub metadata_labels: Option<Vec<EndpointMatcherMetadataLabelMatcherMetadataLabels>>,
-}
-
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
@@ -106,6 +96,17 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
+}
+
+/// `ListEndpointPoliciesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListEndpointPoliciesResponse {
+    /// endpointPolicies property.
+    pub endpoint_policies: Option<Vec<EndpointPolicy>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 // =============================================================================

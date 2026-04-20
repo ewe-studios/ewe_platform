@@ -12,25 +12,33 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GooglePlayDeveloperReportingV1beta1StuckBackgroundWakelockRateMetricSet` type.
+/// `GooglePlayDeveloperReportingV1Beta1FreshnessInfo` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePlayDeveloperReportingV1beta1StuckBackgroundWakelockRateMetricSet {
-    /// freshnessInfo property.
-    pub freshness_info: Option<GooglePlayDeveloperReportingV1Beta1FreshnessInfo>,
-    /// name property.
-    pub name: Option<String>,
+pub struct GooglePlayDeveloperReportingV1Beta1FreshnessInfo {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GooglePlayDeveloperReportingV1Beta1FreshnessInfoFreshness` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePlayDeveloperReportingV1Beta1FreshnessInfoFreshness {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `GoogleTypeDateTime` type.
@@ -56,6 +64,15 @@ pub struct GoogleTypeDateTime {
     pub year: Option<i64>,
 }
 
+/// `GooglePlayDeveloperReportingV1beta1StuckBackgroundWakelockRateMetricSet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePlayDeveloperReportingV1beta1StuckBackgroundWakelockRateMetricSet {
+    /// freshnessInfo property.
+    pub freshness_info: Option<GooglePlayDeveloperReportingV1Beta1FreshnessInfo>,
+    /// name property.
+    pub name: Option<String>,
+}
+
 /// `GoogleTypeTimeZone` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeTimeZone {
@@ -63,22 +80,6 @@ pub struct GoogleTypeTimeZone {
     pub id: Option<String>,
     /// version property.
     pub version: Option<String>,
-}
-
-/// `GooglePlayDeveloperReportingV1Beta1FreshnessInfoFreshness` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePlayDeveloperReportingV1Beta1FreshnessInfoFreshness {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GooglePlayDeveloperReportingV1Beta1FreshnessInfo` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePlayDeveloperReportingV1Beta1FreshnessInfo {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,18 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `MapValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MapValue {
-    /// fields property.
-    pub fields: Option<serde_json::Value>,
-}
 
 /// `PlanSummary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -41,18 +35,13 @@ pub struct PlanSummary {
     pub indexes_used: Option<Vec<serde_json::Value>>,
 }
 
-/// `ArrayValue` type.
+/// `PartitionQueryResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArrayValue {
-    /// values property.
-    pub values: Option<Vec<Value>>,
-}
-
-/// `AggregationResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AggregationResult {
-    /// aggregateFields property.
-    pub aggregate_fields: Option<serde_json::Value>,
+pub struct PartitionQueryResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// partitions property.
+    pub partitions: Option<Vec<Cursor>>,
 }
 
 /// `Cursor` type.
@@ -61,7 +50,83 @@ pub struct Cursor {
     /// before property.
     pub before: Option<bool>,
     /// values property.
-    pub values: Option<Vec<Value>>,
+    pub values: Option<Vec<Box<Value>>>,
+}
+
+/// `ExplainMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExplainMetrics {
+    /// executionStats property.
+    pub execution_stats: Option<ExecutionStats>,
+    /// planSummary property.
+    pub plan_summary: Option<PlanSummary>,
+}
+
+/// `ArrayValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ArrayValue {
+    /// values property.
+    pub values: Option<Vec<Box<Value>>>,
+}
+
+/// `MapValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MapValue {
+    /// fields property.
+    pub fields: Option<serde_json::Value>,
+}
+
+/// `Pipeline` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Pipeline {
+    /// stages property.
+    pub stages: Option<Vec<Box<Stage>>>,
+}
+
+/// `RunQueryResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RunQueryResponse {
+    /// document property.
+    pub document: Option<Document>,
+    /// done property.
+    pub done: Option<bool>,
+    /// explainMetrics property.
+    pub explain_metrics: Option<ExplainMetrics>,
+    /// readTime property.
+    pub read_time: Option<String>,
+    /// skippedResults property.
+    pub skipped_results: Option<i64>,
+    /// transaction property.
+    pub transaction: Option<String>,
+}
+
+/// `ListCollectionIdsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListCollectionIdsResponse {
+    /// collectionIds property.
+    pub collection_ids: Option<Vec<String>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `Function` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Function {
+    /// args property.
+    pub args: Option<Vec<Box<Value>>>,
+    /// name property.
+    pub name: Option<String>,
+    /// options property.
+    pub options: Option<serde_json::Value>,
+}
+
+/// `LatLng` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LatLng {
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
 }
 
 /// `RunAggregationQueryResponse` type.
@@ -90,39 +155,55 @@ pub struct Document {
     pub update_time: Option<String>,
 }
 
-/// `RunQueryResponse` type.
+/// `ListDocumentsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RunQueryResponse {
-    /// document property.
-    pub document: Option<Document>,
-    /// done property.
-    pub done: Option<bool>,
-    /// explainMetrics property.
-    pub explain_metrics: Option<ExplainMetrics>,
-    /// readTime property.
-    pub read_time: Option<String>,
-    /// skippedResults property.
-    pub skipped_results: Option<i64>,
-    /// transaction property.
-    pub transaction: Option<String>,
-}
-
-/// `ExplainMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExplainMetrics {
-    /// executionStats property.
-    pub execution_stats: Option<ExecutionStats>,
-    /// planSummary property.
-    pub plan_summary: Option<PlanSummary>,
-}
-
-/// `PartitionQueryResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PartitionQueryResponse {
+pub struct ListDocumentsResponse {
+    /// documents property.
+    pub documents: Option<Vec<Document>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-    /// partitions property.
-    pub partitions: Option<Vec<Cursor>>,
+}
+
+/// `AggregationResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AggregationResult {
+    /// aggregateFields property.
+    pub aggregate_fields: Option<serde_json::Value>,
+}
+
+/// `Value` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Value {
+    /// arrayValue property.
+    pub array_value: Option<Box<ArrayValue>>,
+    /// booleanValue property.
+    pub boolean_value: Option<bool>,
+    /// bytesValue property.
+    pub bytes_value: Option<String>,
+    /// doubleValue property.
+    pub double_value: Option<f64>,
+    /// fieldReferenceValue property.
+    pub field_reference_value: Option<String>,
+    /// functionValue property.
+    pub function_value: Option<Box<Function>>,
+    /// geoPointValue property.
+    pub geo_point_value: Option<LatLng>,
+    /// integerValue property.
+    pub integer_value: Option<String>,
+    /// mapValue property.
+    pub map_value: Option<MapValue>,
+    /// nullValue property.
+    pub null_value: Option<String>,
+    /// pipelineValue property.
+    pub pipeline_value: Option<Box<Pipeline>>,
+    /// referenceValue property.
+    pub reference_value: Option<String>,
+    /// stringValue property.
+    pub string_value: Option<String>,
+    /// timestampValue property.
+    pub timestamp_value: Option<String>,
+    /// variableReferenceValue property.
+    pub variable_reference_value: Option<String>,
 }
 
 /// `ExecutionStats` type.
@@ -138,91 +219,11 @@ pub struct ExecutionStats {
     pub results_returned: Option<String>,
 }
 
-/// `ListCollectionIdsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCollectionIdsResponse {
-    /// collectionIds property.
-    pub collection_ids: Option<Vec<String>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `Value` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Value {
-    /// arrayValue property.
-    pub array_value: Option<ArrayValue>,
-    /// booleanValue property.
-    pub boolean_value: Option<bool>,
-    /// bytesValue property.
-    pub bytes_value: Option<String>,
-    /// doubleValue property.
-    pub double_value: Option<f64>,
-    /// fieldReferenceValue property.
-    pub field_reference_value: Option<String>,
-    /// functionValue property.
-    pub function_value: Option<Function>,
-    /// geoPointValue property.
-    pub geo_point_value: Option<LatLng>,
-    /// integerValue property.
-    pub integer_value: Option<String>,
-    /// mapValue property.
-    pub map_value: Option<MapValue>,
-    /// nullValue property.
-    pub null_value: Option<String>,
-    /// pipelineValue property.
-    pub pipeline_value: Option<Pipeline>,
-    /// referenceValue property.
-    pub reference_value: Option<String>,
-    /// stringValue property.
-    pub string_value: Option<String>,
-    /// timestampValue property.
-    pub timestamp_value: Option<String>,
-    /// variableReferenceValue property.
-    pub variable_reference_value: Option<String>,
-}
-
-/// `ListDocumentsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDocumentsResponse {
-    /// documents property.
-    pub documents: Option<Vec<Document>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `Function` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Function {
-    /// args property.
-    pub args: Option<Vec<Value>>,
-    /// name property.
-    pub name: Option<String>,
-    /// options property.
-    pub options: Option<serde_json::Value>,
-}
-
-/// `LatLng` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LatLng {
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
-}
-
-/// `Pipeline` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Pipeline {
-    /// stages property.
-    pub stages: Option<Vec<Stage>>,
-}
-
 /// `Stage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Stage {
     /// args property.
-    pub args: Option<Vec<Value>>,
+    pub args: Option<Vec<Box<Value>>>,
     /// name property.
     pub name: Option<String>,
     /// options property.

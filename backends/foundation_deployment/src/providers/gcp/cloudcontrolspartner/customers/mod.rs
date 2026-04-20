@@ -12,13 +12,17 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Empty;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -39,9 +43,12 @@ pub struct Customer {
     pub organization_domain: Option<String>,
 }
 
-/// `Empty` type.
+/// `CustomerOnboardingState` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct CustomerOnboardingState {
+    /// onboardingSteps property.
+    pub onboarding_steps: Option<Vec<CustomerOnboardingStep>>,
+}
 
 /// `ListCustomersResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -52,13 +59,6 @@ pub struct ListCustomersResponse {
     pub next_page_token: Option<String>,
     /// unreachable property.
     pub unreachable: Option<Vec<String>>,
-}
-
-/// `CustomerOnboardingState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerOnboardingState {
-    /// onboardingSteps property.
-    pub onboarding_steps: Option<Vec<CustomerOnboardingStep>>,
 }
 
 /// `CustomerOnboardingStep` type.

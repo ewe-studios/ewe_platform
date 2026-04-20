@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -24,7 +25,7 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -41,28 +42,6 @@ pub struct AuthorizedView {
     pub name: Option<String>,
     /// subsetView property.
     pub subset_view: Option<GoogleBigtableAdminV2AuthorizedViewSubsetView>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `ListAuthorizedViewsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAuthorizedViewsResponse {
-    /// authorizedViews property.
-    pub authorized_views: Option<Vec<AuthorizedView>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 /// `AuditLogConfig` type.
@@ -85,15 +64,13 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `Binding` type.
+/// `AuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
 }
 
 /// `GoogleBigtableAdminV2AuthorizedViewSubsetView` type.
@@ -105,13 +82,37 @@ pub struct GoogleBigtableAdminV2AuthorizedViewSubsetView {
     pub row_prefixes: Option<Vec<String>>,
 }
 
-/// `AuditConfig` type.
+/// `ListAuthorizedViewsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
+pub struct ListAuthorizedViewsResponse {
+    /// authorizedViews property.
+    pub authorized_views: Option<Vec<AuthorizedView>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 // =============================================================================

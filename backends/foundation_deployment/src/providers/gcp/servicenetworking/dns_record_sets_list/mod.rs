@@ -12,24 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListDnsRecordSetsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDnsRecordSetsResponse {
-    /// dnsRecordSets property.
-    pub dns_record_sets: Option<Vec<DnsRecordSet>>,
-}
 
 /// `DnsRecordSet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -42,6 +36,13 @@ pub struct DnsRecordSet {
     pub ttl: Option<String>,
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `ListDnsRecordSetsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDnsRecordSetsResponse {
+    /// dnsRecordSets property.
+    pub dns_record_sets: Option<Vec<DnsRecordSet>>,
 }
 
 // =============================================================================

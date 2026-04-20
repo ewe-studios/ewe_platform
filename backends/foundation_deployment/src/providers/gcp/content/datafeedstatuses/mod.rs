@@ -12,17 +12,42 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `DatafeedStatusError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatafeedStatusError {
+    /// code property.
+    pub code: Option<String>,
+    /// count property.
+    pub count: Option<String>,
+    /// examples property.
+    pub examples: Option<Vec<DatafeedStatusExample>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `DatafeedStatusExample` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatafeedStatusExample {
+    /// itemId property.
+    pub item_id: Option<String>,
+    /// lineNumber property.
+    pub line_number: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
 
 /// `DatafeedStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -51,17 +76,6 @@ pub struct DatafeedStatus {
     pub warnings: Option<Vec<DatafeedStatusError>>,
 }
 
-/// `DatafeedStatusExample` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatafeedStatusExample {
-    /// itemId property.
-    pub item_id: Option<String>,
-    /// lineNumber property.
-    pub line_number: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
 /// `DatafeedstatusesListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatafeedstatusesListResponse {
@@ -71,19 +85,6 @@ pub struct DatafeedstatusesListResponse {
     pub next_page_token: Option<String>,
     /// resources property.
     pub resources: Option<Vec<DatafeedStatus>>,
-}
-
-/// `DatafeedStatusError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatafeedStatusError {
-    /// code property.
-    pub code: Option<String>,
-    /// count property.
-    pub count: Option<String>,
-    /// examples property.
-    pub examples: Option<Vec<DatafeedStatusExample>>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 // =============================================================================

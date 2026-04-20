@@ -12,17 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GooglePlayDeveloperReportingV1Beta1App` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePlayDeveloperReportingV1Beta1App {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
 
 /// `GooglePlayDeveloperReportingV1beta1SearchAccessibleAppsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -31,14 +40,6 @@ pub struct GooglePlayDeveloperReportingV1beta1SearchAccessibleAppsResponse {
     pub apps: Option<Vec<GooglePlayDeveloperReportingV1Beta1App>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-}
-
-/// `GooglePlayDeveloperReportingV1Beta1App` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePlayDeveloperReportingV1Beta1App {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 // =============================================================================

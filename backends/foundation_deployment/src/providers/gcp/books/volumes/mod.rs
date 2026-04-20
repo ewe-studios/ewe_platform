@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,29 +22,23 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Volumes;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ReadingPosition` type.
+/// `Volumeseriesinfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReadingPosition {
-    /// epubCfiPosition property.
-    pub epub_cfi_position: Option<String>,
-    /// gbImagePosition property.
-    pub gb_image_position: Option<String>,
-    /// gbTextPosition property.
-    pub gb_text_position: Option<String>,
+pub struct Volumeseriesinfo {
+    /// bookDisplayNumber property.
+    pub book_display_number: Option<String>,
     /// kind property.
     pub kind: Option<String>,
-    /// pdfPosition property.
-    pub pdf_position: Option<String>,
-    /// updated property.
-    pub updated: Option<String>,
-    /// volumeId property.
-    pub volume_id: Option<String>,
+    /// shortSeriesBookTitle property.
+    pub short_series_book_title: Option<String>,
+    /// volumeSeries property.
+    pub volume_series: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
 }
 
 /// `DownloadAccessRestriction` type.
@@ -75,42 +70,23 @@ pub struct DownloadAccessRestriction {
     pub volume_id: Option<String>,
 }
 
-/// `Review` type.
+/// `ReadingPosition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Review {
-    /// author property.
-    pub author: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// content property.
-    pub content: Option<String>,
-    /// date property.
-    pub date: Option<String>,
-    /// fullTextUrl property.
-    pub full_text_url: Option<String>,
+pub struct ReadingPosition {
+    /// epubCfiPosition property.
+    pub epub_cfi_position: Option<String>,
+    /// gbImagePosition property.
+    pub gb_image_position: Option<String>,
+    /// gbTextPosition property.
+    pub gb_text_position: Option<String>,
     /// kind property.
     pub kind: Option<String>,
-    /// rating property.
-    pub rating: Option<String>,
-    /// source property.
-    pub source: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// title property.
-    pub title: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+    /// pdfPosition property.
+    pub pdf_position: Option<String>,
+    /// updated property.
+    pub updated: Option<String>,
     /// volumeId property.
     pub volume_id: Option<String>,
-}
-
-/// `Volumeseriesinfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Volumeseriesinfo {
-    /// bookDisplayNumber property.
-    pub book_display_number: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// shortSeriesBookTitle property.
-    pub short_series_book_title: Option<String>,
-    /// volumeSeries property.
-    pub volume_series: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
 }
 
 /// `Volume` type.
@@ -138,6 +114,31 @@ pub struct Volume {
     pub user_info: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// volumeInfo property.
     pub volume_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `Review` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Review {
+    /// author property.
+    pub author: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// content property.
+    pub content: Option<String>,
+    /// date property.
+    pub date: Option<String>,
+    /// fullTextUrl property.
+    pub full_text_url: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// rating property.
+    pub rating: Option<String>,
+    /// source property.
+    pub source: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// title property.
+    pub title: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// volumeId property.
+    pub volume_id: Option<String>,
 }
 
 // =============================================================================

@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -24,6 +25,13 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `RegionsAccelerateGetResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegionsAccelerateGetResponse {
+    /// data property.
+    pub data: Vec<RegionsAccelerate>,
+}
+
 /// `RegionsAccelerate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionsAccelerate {
@@ -33,13 +41,6 @@ pub struct RegionsAccelerate {
     pub name: String,
     /// type property.
     pub r#type: String,
-}
-
-/// `RegionsAccelerateGetResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegionsAccelerateGetResponse {
-    /// data property.
-    pub data: Vec<RegionsAccelerate>,
 }
 
 // =============================================================================

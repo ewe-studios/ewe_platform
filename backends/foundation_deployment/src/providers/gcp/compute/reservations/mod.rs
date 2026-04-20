@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,36 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Duration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Duration {
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<String>,
-}
-
-/// `AllocationAggregateReservationReservedResourceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AllocationAggregateReservationReservedResourceInfo {
-    /// accelerator property.
-    pub accelerator: Option<AllocationAggregateReservationReservedResourceInfoAccelerator>,
-}
-
-/// `AllocationAggregateReservationReservedResourceInfoAccelerator` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AllocationAggregateReservationReservedResourceInfoAccelerator {
-    /// acceleratorCount property.
-    pub accelerator_count: Option<i64>,
-    /// acceleratorType property.
-    pub accelerator_type: Option<String>,
-}
 
 /// `ReservationList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -69,6 +45,36 @@ pub struct ReservationList {
     pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
+/// `GroupMaintenanceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GroupMaintenanceInfo {
+    /// instanceMaintenanceOngoingCount property.
+    pub instance_maintenance_ongoing_count: Option<i64>,
+    /// instanceMaintenancePendingCount property.
+    pub instance_maintenance_pending_count: Option<i64>,
+    /// maintenanceOngoingCount property.
+    pub maintenance_ongoing_count: Option<i64>,
+    /// maintenancePendingCount property.
+    pub maintenance_pending_count: Option<i64>,
+    /// schedulingType property.
+    pub scheduling_type: Option<String>,
+    /// subblockInfraMaintenanceOngoingCount property.
+    pub subblock_infra_maintenance_ongoing_count: Option<i64>,
+    /// subblockInfraMaintenancePendingCount property.
+    pub subblock_infra_maintenance_pending_count: Option<i64>,
+    /// upcomingGroupMaintenance property.
+    pub upcoming_group_maintenance: Option<UpcomingMaintenance>,
+}
+
+/// `GetVersionOperationMetadataSbomInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
+}
+
 /// `AllocationSpecificSKUReservation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllocationSpecificSKUReservation {
@@ -84,11 +90,235 @@ pub struct AllocationSpecificSKUReservation {
     pub source_instance_template: Option<String>,
 }
 
+/// `UpcomingMaintenance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpcomingMaintenance {
+    /// canReschedule property.
+    pub can_reschedule: Option<bool>,
+    /// latestWindowStartTime property.
+    pub latest_window_start_time: Option<String>,
+    /// maintenanceOnShutdown property.
+    pub maintenance_on_shutdown: Option<bool>,
+    /// maintenanceReasons property.
+    pub maintenance_reasons: Option<Vec<String>>,
+    /// maintenanceStatus property.
+    pub maintenance_status: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// windowEndTime property.
+    pub window_end_time: Option<String>,
+    /// windowStartTime property.
+    pub window_start_time: Option<String>,
+}
+
+/// `GetVersionOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadata {
+    /// inlineSbomInfo property.
+    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+}
+
 /// `ReservationParams` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationParams {
     /// resourceManagerTags property.
     pub resource_manager_tags: Option<serde_json::Value>,
+}
+
+/// `ReservationAggregatedList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReservationAggregatedList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<serde_json::Value>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// unreachables property.
+    pub unreachables: Option<Vec<String>>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `AllocationAggregateReservationReservedResourceInfoAccelerator` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AllocationAggregateReservationReservedResourceInfoAccelerator {
+    /// acceleratorCount property.
+    pub accelerator_count: Option<i64>,
+    /// acceleratorType property.
+    pub accelerator_type: Option<String>,
+}
+
+/// `Duration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Duration {
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<String>,
+}
+
+/// `AcceleratorConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AcceleratorConfig {
+    /// acceleratorCount property.
+    pub accelerator_count: Option<i64>,
+    /// acceleratorType property.
+    pub accelerator_type: Option<String>,
+}
+
+/// `AllocationResourceStatusSpecificSKUAllocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AllocationResourceStatusSpecificSKUAllocation {
+    /// sourceInstanceTemplateId property.
+    pub source_instance_template_id: Option<String>,
+    /// utilizations property.
+    pub utilizations: Option<serde_json::Value>,
+}
+
+/// `AllocationReservationSharingPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AllocationReservationSharingPolicy {
+    /// serviceShareType property.
+    pub service_share_type: Option<String>,
+}
+
+/// `AllocationResourceStatusHealthInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AllocationResourceStatusHealthInfo {
+    /// degradedBlockCount property.
+    pub degraded_block_count: Option<i64>,
+    /// healthStatus property.
+    pub health_status: Option<String>,
+    /// healthyBlockCount property.
+    pub healthy_block_count: Option<i64>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `SetCommonInstanceMetadataOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetCommonInstanceMetadataOperationMetadata {
+    /// clientOperationId property.
+    pub client_operation_id: Option<String>,
+    /// perLocationOperations property.
+    pub per_location_operations: Option<serde_json::Value>,
+}
+
+/// `LocalizedMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `AllocationSpecificSKUAllocationReservedInstanceProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AllocationSpecificSKUAllocationReservedInstanceProperties {
+    /// guestAccelerators property.
+    pub guest_accelerators: Option<Vec<AcceleratorConfig>>,
+    /// localSsds property.
+    pub local_ssds:
+        Option<Vec<AllocationSpecificSKUAllocationAllocatedInstancePropertiesReservedDisk>>,
+    /// locationHint property.
+    pub location_hint: Option<String>,
+    /// machineType property.
+    pub machine_type: Option<String>,
+    /// minCpuPlatform property.
+    pub min_cpu_platform: Option<String>,
+}
+
+/// `ReservationAdvancedDeploymentControl` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReservationAdvancedDeploymentControl {
+    /// reservationOperationalMode property.
+    pub reservation_operational_mode: Option<String>,
+}
+
+/// `Help` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
+}
+
+/// `HelpLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `AllocationResourceStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AllocationResourceStatus {
+    /// healthInfo property.
+    pub health_info: Option<AllocationResourceStatusHealthInfo>,
+    /// reservationBlockCount property.
+    pub reservation_block_count: Option<i64>,
+    /// reservationMaintenance property.
+    pub reservation_maintenance: Option<GroupMaintenanceInfo>,
+    /// specificSkuAllocation property.
+    pub specific_sku_allocation: Option<AllocationResourceStatusSpecificSKUAllocation>,
+}
+
+/// `ErrorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `ShareSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShareSettings {
+    /// projectMap property.
+    pub project_map: Option<serde_json::Value>,
+    /// shareType property.
+    pub share_type: Option<String>,
+}
+
+/// `QuotaExceededInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuotaExceededInfo {
+    /// dimensions property.
+    pub dimensions: Option<serde_json::Value>,
+    /// futureLimit property.
+    pub future_limit: Option<f64>,
+    /// limit property.
+    pub limit: Option<f64>,
+    /// limitName property.
+    pub limit_name: Option<String>,
+    /// metricName property.
+    pub metric_name: Option<String>,
+    /// rolloutStatus property.
+    pub rollout_status: Option<String>,
+}
+
+/// `AllocationSpecificSKUAllocationAllocatedInstancePropertiesReservedDisk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AllocationSpecificSKUAllocationAllocatedInstancePropertiesReservedDisk {
+    /// diskSizeGb property.
+    pub disk_size_gb: Option<String>,
+    /// interface property.
+    pub interface: Option<String>,
 }
 
 /// `Reservation` type.
@@ -152,167 +382,11 @@ pub struct Reservation {
     pub zone: Option<String>,
 }
 
-/// `AllocationResourceStatus` type.
+/// `AllocationAggregateReservationReservedResourceInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AllocationResourceStatus {
-    /// healthInfo property.
-    pub health_info: Option<AllocationResourceStatusHealthInfo>,
-    /// reservationBlockCount property.
-    pub reservation_block_count: Option<i64>,
-    /// reservationMaintenance property.
-    pub reservation_maintenance: Option<GroupMaintenanceInfo>,
-    /// specificSkuAllocation property.
-    pub specific_sku_allocation: Option<AllocationResourceStatusSpecificSKUAllocation>,
-}
-
-/// `UpcomingMaintenance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpcomingMaintenance {
-    /// canReschedule property.
-    pub can_reschedule: Option<bool>,
-    /// latestWindowStartTime property.
-    pub latest_window_start_time: Option<String>,
-    /// maintenanceOnShutdown property.
-    pub maintenance_on_shutdown: Option<bool>,
-    /// maintenanceReasons property.
-    pub maintenance_reasons: Option<Vec<String>>,
-    /// maintenanceStatus property.
-    pub maintenance_status: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// windowEndTime property.
-    pub window_end_time: Option<String>,
-    /// windowStartTime property.
-    pub window_start_time: Option<String>,
-}
-
-/// `AllocationReservationSharingPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AllocationReservationSharingPolicy {
-    /// serviceShareType property.
-    pub service_share_type: Option<String>,
-}
-
-/// `AllocationSpecificSKUAllocationReservedInstanceProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AllocationSpecificSKUAllocationReservedInstanceProperties {
-    /// guestAccelerators property.
-    pub guest_accelerators: Option<Vec<AcceleratorConfig>>,
-    /// localSsds property.
-    pub local_ssds:
-        Option<Vec<AllocationSpecificSKUAllocationAllocatedInstancePropertiesReservedDisk>>,
-    /// locationHint property.
-    pub location_hint: Option<String>,
-    /// machineType property.
-    pub machine_type: Option<String>,
-    /// minCpuPlatform property.
-    pub min_cpu_platform: Option<String>,
-}
-
-/// `AcceleratorConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcceleratorConfig {
-    /// acceleratorCount property.
-    pub accelerator_count: Option<i64>,
-    /// acceleratorType property.
-    pub accelerator_type: Option<String>,
-}
-
-/// `ShareSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShareSettings {
-    /// projectMap property.
-    pub project_map: Option<serde_json::Value>,
-    /// shareType property.
-    pub share_type: Option<String>,
-}
-
-/// `SetCommonInstanceMetadataOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetCommonInstanceMetadataOperationMetadata {
-    /// clientOperationId property.
-    pub client_operation_id: Option<String>,
-    /// perLocationOperations property.
-    pub per_location_operations: Option<serde_json::Value>,
-}
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `InstancesBulkInsertOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
-}
-
-/// `GroupMaintenanceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GroupMaintenanceInfo {
-    /// instanceMaintenanceOngoingCount property.
-    pub instance_maintenance_ongoing_count: Option<i64>,
-    /// instanceMaintenancePendingCount property.
-    pub instance_maintenance_pending_count: Option<i64>,
-    /// maintenanceOngoingCount property.
-    pub maintenance_ongoing_count: Option<i64>,
-    /// maintenancePendingCount property.
-    pub maintenance_pending_count: Option<i64>,
-    /// schedulingType property.
-    pub scheduling_type: Option<String>,
-    /// subblockInfraMaintenanceOngoingCount property.
-    pub subblock_infra_maintenance_ongoing_count: Option<i64>,
-    /// subblockInfraMaintenancePendingCount property.
-    pub subblock_infra_maintenance_pending_count: Option<i64>,
-    /// upcomingGroupMaintenance property.
-    pub upcoming_group_maintenance: Option<UpcomingMaintenance>,
-}
-
-/// `GetVersionOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadata {
-    /// inlineSbomInfo property.
-    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
-}
-
-/// `AllocationResourceStatusHealthInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AllocationResourceStatusHealthInfo {
-    /// degradedBlockCount property.
-    pub degraded_block_count: Option<i64>,
-    /// healthStatus property.
-    pub health_status: Option<String>,
-    /// healthyBlockCount property.
-    pub healthy_block_count: Option<i64>,
-}
-
-/// `QuotaExceededInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotaExceededInfo {
-    /// dimensions property.
-    pub dimensions: Option<serde_json::Value>,
-    /// futureLimit property.
-    pub future_limit: Option<f64>,
-    /// limit property.
-    pub limit: Option<f64>,
-    /// limitName property.
-    pub limit_name: Option<String>,
-    /// metricName property.
-    pub metric_name: Option<String>,
-    /// rolloutStatus property.
-    pub rollout_status: Option<String>,
-}
-
-/// `ReservationAdvancedDeploymentControl` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReservationAdvancedDeploymentControl {
-    /// reservationOperationalMode property.
-    pub reservation_operational_mode: Option<String>,
+pub struct AllocationAggregateReservationReservedResourceInfo {
+    /// accelerator property.
+    pub accelerator: Option<AllocationAggregateReservationReservedResourceInfoAccelerator>,
 }
 
 /// `AllocationAggregateReservation` type.
@@ -326,79 +400,6 @@ pub struct AllocationAggregateReservation {
     pub vm_family: Option<String>,
     /// workloadType property.
     pub workload_type: Option<String>,
-}
-
-/// `AllocationResourceStatusSpecificSKUAllocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AllocationResourceStatusSpecificSKUAllocation {
-    /// sourceInstanceTemplateId property.
-    pub source_instance_template_id: Option<String>,
-    /// utilizations property.
-    pub utilizations: Option<serde_json::Value>,
-}
-
-/// `ErrorInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `GetVersionOperationMetadataSbomInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
-}
-
-/// `HelpLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `ReservationAggregatedList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReservationAggregatedList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<serde_json::Value>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// unreachables property.
-    pub unreachables: Option<Vec<String>>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `Help` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
-}
-
-/// `AllocationSpecificSKUAllocationAllocatedInstancePropertiesReservedDisk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AllocationSpecificSKUAllocationAllocatedInstancePropertiesReservedDisk {
-    /// diskSizeGb property.
-    pub disk_size_gb: Option<String>,
-    /// interface property.
-    pub interface: Option<String>,
 }
 
 // =============================================================================

@@ -12,37 +12,24 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `PricingSchedule` type.
+/// `LastModifiedInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PricingSchedule {
-    /// capCostOption property.
-    pub cap_cost_option: Option<String>,
-    /// endDate property.
-    pub end_date: Option<String>,
-    /// flighted property.
-    pub flighted: Option<bool>,
-    /// floodlightActivityId property.
-    pub floodlight_activity_id: Option<String>,
-    /// pricingPeriods property.
-    pub pricing_periods: Option<Vec<PricingSchedulePricingPeriod>>,
-    /// pricingType property.
-    pub pricing_type: Option<String>,
-    /// startDate property.
-    pub start_date: Option<String>,
-    /// testingStartDate property.
-    pub testing_start_date: Option<String>,
+pub struct LastModifiedInfo {
+    /// time property.
+    pub time: Option<String>,
 }
 
 /// `PricingSchedulePricingPeriod` type.
@@ -58,17 +45,6 @@ pub struct PricingSchedulePricingPeriod {
     pub start_date: Option<String>,
     /// units property.
     pub units: Option<String>,
-}
-
-/// `PlacementGroupsListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlacementGroupsListResponse {
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// placementGroups property.
-    pub placement_groups: Option<Vec<PlacementGroup>>,
 }
 
 /// `PlacementGroup` type.
@@ -128,6 +104,38 @@ pub struct PlacementGroup {
     pub subaccount_id: Option<String>,
 }
 
+/// `PricingSchedule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PricingSchedule {
+    /// capCostOption property.
+    pub cap_cost_option: Option<String>,
+    /// endDate property.
+    pub end_date: Option<String>,
+    /// flighted property.
+    pub flighted: Option<bool>,
+    /// floodlightActivityId property.
+    pub floodlight_activity_id: Option<String>,
+    /// pricingPeriods property.
+    pub pricing_periods: Option<Vec<PricingSchedulePricingPeriod>>,
+    /// pricingType property.
+    pub pricing_type: Option<String>,
+    /// startDate property.
+    pub start_date: Option<String>,
+    /// testingStartDate property.
+    pub testing_start_date: Option<String>,
+}
+
+/// `PlacementGroupsListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlacementGroupsListResponse {
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// placementGroups property.
+    pub placement_groups: Option<Vec<PlacementGroup>>,
+}
+
 /// `DimensionValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DimensionValue {
@@ -143,13 +151,6 @@ pub struct DimensionValue {
     pub match_type: Option<String>,
     /// value property.
     pub value: Option<String>,
-}
-
-/// `LastModifiedInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LastModifiedInfo {
-    /// time property.
-    pub time: Option<String>,
 }
 
 // =============================================================================

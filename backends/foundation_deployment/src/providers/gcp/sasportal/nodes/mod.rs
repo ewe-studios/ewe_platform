@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,21 +23,21 @@ use serde::{Deserialize, Serialize};
 use super::shared::SasPortalEmpty;
 use super::shared::SasPortalOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `SasPortalStatus` type.
+/// `SasPortalNode` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct SasPortalNode {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// sasUserIds property.
+    pub sas_user_ids: Option<Vec<String>>,
 }
 
 /// `SasPortalListNodesResponse` type.
@@ -48,15 +49,15 @@ pub struct SasPortalListNodesResponse {
     pub nodes: Option<Vec<SasPortalNode>>,
 }
 
-/// `SasPortalNode` type.
+/// `SasPortalStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalNode {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// sasUserIds property.
-    pub sas_user_ids: Option<Vec<String>>,
+pub struct SasPortalStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

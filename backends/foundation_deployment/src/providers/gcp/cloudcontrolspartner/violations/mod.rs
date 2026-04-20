@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -33,6 +34,48 @@ pub struct ListViolationsResponse {
     pub unreachable: Option<Vec<String>>,
     /// violations property.
     pub violations: Option<Vec<Violation>>,
+}
+
+/// `Remediation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Remediation {
+    /// compliantValues property.
+    pub compliant_values: Option<Vec<String>>,
+    /// instructions property.
+    pub instructions: Option<Instructions>,
+    /// remediationType property.
+    pub remediation_type: Option<String>,
+}
+
+/// `Instructions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Instructions {
+    /// consoleInstructions property.
+    pub console_instructions: Option<Console>,
+    /// gcloudInstructions property.
+    pub gcloud_instructions: Option<Gcloud>,
+}
+
+/// `Gcloud` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Gcloud {
+    /// additionalLinks property.
+    pub additional_links: Option<Vec<String>>,
+    /// gcloudCommands property.
+    pub gcloud_commands: Option<Vec<String>>,
+    /// steps property.
+    pub steps: Option<Vec<String>>,
+}
+
+/// `Console` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Console {
+    /// additionalLinks property.
+    pub additional_links: Option<Vec<String>>,
+    /// consoleUris property.
+    pub console_uris: Option<Vec<String>>,
+    /// steps property.
+    pub steps: Option<Vec<String>>,
 }
 
 /// `Violation` type.
@@ -58,48 +101,6 @@ pub struct Violation {
     pub state: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `Instructions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Instructions {
-    /// consoleInstructions property.
-    pub console_instructions: Option<Console>,
-    /// gcloudInstructions property.
-    pub gcloud_instructions: Option<Gcloud>,
-}
-
-/// `Gcloud` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Gcloud {
-    /// additionalLinks property.
-    pub additional_links: Option<Vec<String>>,
-    /// gcloudCommands property.
-    pub gcloud_commands: Option<Vec<String>>,
-    /// steps property.
-    pub steps: Option<Vec<String>>,
-}
-
-/// `Remediation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Remediation {
-    /// compliantValues property.
-    pub compliant_values: Option<Vec<String>>,
-    /// instructions property.
-    pub instructions: Option<Instructions>,
-    /// remediationType property.
-    pub remediation_type: Option<String>,
-}
-
-/// `Console` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Console {
-    /// additionalLinks property.
-    pub additional_links: Option<Vec<String>>,
-    /// consoleUris property.
-    pub console_uris: Option<Vec<String>>,
-    /// steps property.
-    pub steps: Option<Vec<String>>,
 }
 
 // =============================================================================

@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -31,13 +32,6 @@ pub struct ListRegionsResponse {
     pub next_page_token: Option<String>,
     /// regions property.
     pub regions: Option<Vec<Region>>,
-}
-
-/// `RegionGeoTargetArea` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegionGeoTargetArea {
-    /// geotargetCriteriaIds property.
-    pub geotarget_criteria_ids: Option<Vec<String>>,
 }
 
 /// `RegionPostalCodeArea` type.
@@ -66,6 +60,13 @@ pub struct Region {
     pub regional_inventory_eligible: Option<bool>,
     /// shippingEligible property.
     pub shipping_eligible: Option<bool>,
+}
+
+/// `RegionGeoTargetArea` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegionGeoTargetArea {
+    /// geotargetCriteriaIds property.
+    pub geotarget_criteria_ids: Option<Vec<String>>,
 }
 
 /// `RegionPostalCodeAreaPostalCodeRange` type.

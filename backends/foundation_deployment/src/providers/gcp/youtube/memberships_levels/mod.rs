@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -31,6 +32,13 @@ pub struct MembershipsLevelSnippet {
     pub creator_channel_id: Option<String>,
     /// levelDetails property.
     pub level_details: Option<LevelDetails>,
+}
+
+/// `LevelDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LevelDetails {
+    /// displayName property.
+    pub display_name: Option<String>,
 }
 
 /// `MembershipsLevelListResponse` type.
@@ -46,13 +54,6 @@ pub struct MembershipsLevelListResponse {
     pub kind: Option<String>,
     /// visitorId property.
     pub visitor_id: Option<String>,
-}
-
-/// `LevelDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LevelDetails {
-    /// displayName property.
-    pub display_name: Option<String>,
 }
 
 /// `MembershipsLevel` type.

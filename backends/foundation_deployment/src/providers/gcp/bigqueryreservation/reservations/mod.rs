@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,11 +24,60 @@ use super::shared::Empty;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `SchedulingPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SchedulingPolicy {
+    /// concurrency property.
+    pub concurrency: Option<String>,
+    /// maxSlots property.
+    pub max_slots: Option<String>,
+}
+
+/// `ListReservationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListReservationsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// reservations property.
+    pub reservations: Option<Vec<Reservation>>,
+}
+
+/// `Autoscale` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Autoscale {
+    /// currentSlots property.
+    pub current_slots: Option<String>,
+    /// maxSlots property.
+    pub max_slots: Option<String>,
+}
+
+/// `ReplicationStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReplicationStatus {
+    /// error property.
+    pub error: Option<Status>,
+    /// lastErrorTime property.
+    pub last_error_time: Option<String>,
+    /// lastReplicationTime property.
+    pub last_replication_time: Option<String>,
+    /// softFailoverStartTime property.
+    pub soft_failover_start_time: Option<String>,
+}
 
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -51,44 +101,6 @@ pub struct Expr {
     pub location: Option<String>,
     /// title property.
     pub title: Option<String>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `SchedulingPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SchedulingPolicy {
-    /// concurrency property.
-    pub concurrency: Option<String>,
-    /// maxSlots property.
-    pub max_slots: Option<String>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
 }
 
 /// `Reservation` type.
@@ -132,35 +144,24 @@ pub struct Reservation {
     pub update_time: Option<String>,
 }
 
-/// `Autoscale` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Autoscale {
-    /// currentSlots property.
-    pub current_slots: Option<String>,
-    /// maxSlots property.
-    pub max_slots: Option<String>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
-/// `ReplicationStatus` type.
+/// `AuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReplicationStatus {
-    /// error property.
-    pub error: Option<Status>,
-    /// lastErrorTime property.
-    pub last_error_time: Option<String>,
-    /// lastReplicationTime property.
-    pub last_replication_time: Option<String>,
-    /// softFailoverStartTime property.
-    pub soft_failover_start_time: Option<String>,
-}
-
-/// `ListReservationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListReservationsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// reservations property.
-    pub reservations: Option<Vec<Reservation>>,
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
 }
 
 // =============================================================================

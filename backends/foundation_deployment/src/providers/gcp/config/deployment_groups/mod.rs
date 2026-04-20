@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,44 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `DeploymentUnit` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeploymentUnit {
-    /// dependencies property.
-    pub dependencies: Option<Vec<String>>,
-    /// deployment property.
-    pub deployment: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-}
-
-/// `ListDeploymentGroupsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDeploymentGroupsResponse {
-    /// deploymentGroups property.
-    pub deployment_groups: Option<Vec<DeploymentGroup>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
 
 /// `DeploymentGroup` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -85,6 +53,39 @@ pub struct DeploymentGroup {
     pub state_description: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `DeploymentUnit` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeploymentUnit {
+    /// dependencies property.
+    pub dependencies: Option<Vec<String>>,
+    /// deployment property.
+    pub deployment: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ListDeploymentGroupsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDeploymentGroupsResponse {
+    /// deploymentGroups property.
+    pub deployment_groups: Option<Vec<DeploymentGroup>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 // =============================================================================

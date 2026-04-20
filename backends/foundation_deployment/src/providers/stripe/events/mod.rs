@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -32,17 +33,17 @@ pub struct BillingMeterEvent {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `Event` response type.
+/// `BillingMeterEventAdjustment` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Event {
+pub struct BillingMeterEventAdjustment {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `BillingMeterEventAdjustment` response type.
+/// `Event` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BillingMeterEventAdjustment {
+pub struct Event {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

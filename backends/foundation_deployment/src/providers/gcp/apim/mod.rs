@@ -6,6 +6,7 @@
 #![cfg(feature = "gcp_apim")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
 #![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(unused_imports)]
 
 pub mod shared;
 
@@ -23,5 +24,3 @@ pub mod locations;
 pub mod observation_jobs;
 #[cfg(feature = "gcp_apim_observation_sources")]
 pub mod observation_sources;
-#[cfg(feature = "gcp_apim_operations")]
-pub mod operations;

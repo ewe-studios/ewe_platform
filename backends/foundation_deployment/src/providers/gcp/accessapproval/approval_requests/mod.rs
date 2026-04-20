@@ -12,47 +12,50 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `AugmentedInfo` type.
+/// `ApproveDecision` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AugmentedInfo {
-    /// command property.
-    pub command: Option<String>,
+pub struct ApproveDecision {
+    /// approveTime property.
+    pub approve_time: Option<String>,
+    /// autoApproved property.
+    pub auto_approved: Option<bool>,
+    /// expireTime property.
+    pub expire_time: Option<String>,
+    /// invalidateTime property.
+    pub invalidate_time: Option<String>,
+    /// policyApproved property.
+    pub policy_approved: Option<bool>,
+    /// signatureInfo property.
+    pub signature_info: Option<SignatureInfo>,
 }
 
-/// `SignatureInfo` type.
+/// `ResourceProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SignatureInfo {
-    /// customerKmsKeyVersion property.
-    pub customer_kms_key_version: Option<String>,
-    /// googleKeyAlgorithm property.
-    pub google_key_algorithm: Option<String>,
-    /// googlePublicKeyPem property.
-    pub google_public_key_pem: Option<String>,
-    /// serializedApprovalRequest property.
-    pub serialized_approval_request: Option<String>,
-    /// signature property.
-    pub signature: Option<String>,
+pub struct ResourceProperties {
+    /// excludesDescendants property.
+    pub excludes_descendants: Option<bool>,
 }
 
-/// `AccessReason` type.
+/// `AccessLocations` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessReason {
-    /// detail property.
-    pub detail: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct AccessLocations {
+    /// principalOfficeCountry property.
+    pub principal_office_country: Option<String>,
+    /// principalPhysicalLocationCountry property.
+    pub principal_physical_location_country: Option<String>,
 }
 
 /// `ApprovalRequest` type.
@@ -82,21 +85,28 @@ pub struct ApprovalRequest {
     pub requested_resource_properties: Option<ResourceProperties>,
 }
 
-/// `ApproveDecision` type.
+/// `SignatureInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApproveDecision {
-    /// approveTime property.
-    pub approve_time: Option<String>,
-    /// autoApproved property.
-    pub auto_approved: Option<bool>,
-    /// expireTime property.
-    pub expire_time: Option<String>,
-    /// invalidateTime property.
-    pub invalidate_time: Option<String>,
-    /// policyApproved property.
-    pub policy_approved: Option<bool>,
-    /// signatureInfo property.
-    pub signature_info: Option<SignatureInfo>,
+pub struct SignatureInfo {
+    /// customerKmsKeyVersion property.
+    pub customer_kms_key_version: Option<String>,
+    /// googleKeyAlgorithm property.
+    pub google_key_algorithm: Option<String>,
+    /// googlePublicKeyPem property.
+    pub google_public_key_pem: Option<String>,
+    /// serializedApprovalRequest property.
+    pub serialized_approval_request: Option<String>,
+    /// signature property.
+    pub signature: Option<String>,
+}
+
+/// `AccessReason` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessReason {
+    /// detail property.
+    pub detail: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `ListApprovalRequestsResponse` type.
@@ -108,13 +118,11 @@ pub struct ListApprovalRequestsResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `AccessLocations` type.
+/// `AugmentedInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessLocations {
-    /// principalOfficeCountry property.
-    pub principal_office_country: Option<String>,
-    /// principalPhysicalLocationCountry property.
-    pub principal_physical_location_country: Option<String>,
+pub struct AugmentedInfo {
+    /// command property.
+    pub command: Option<String>,
 }
 
 /// `DismissDecision` type.
@@ -124,13 +132,6 @@ pub struct DismissDecision {
     pub dismiss_time: Option<String>,
     /// implicit property.
     pub implicit: Option<bool>,
-}
-
-/// `ResourceProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceProperties {
-    /// excludesDescendants property.
-    pub excludes_descendants: Option<bool>,
 }
 
 // =============================================================================

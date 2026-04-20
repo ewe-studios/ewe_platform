@@ -12,17 +12,65 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudDatacatalogLineageV1SearchLinksResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogLineageV1SearchLinksResponse {
+    /// links property.
+    pub links: Option<Vec<GoogleCloudDatacatalogLineageV1Link>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogLineageV1EntityReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogLineageV1EntityReference {
+    /// fullyQualifiedName property.
+    pub fully_qualified_name: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogLineageV1ProcessOpenLineageRunEventResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogLineageV1ProcessOpenLineageRunEventResponse {
+    /// lineageEvents property.
+    pub lineage_events: Option<Vec<String>>,
+    /// process property.
+    pub process: Option<String>,
+    /// run property.
+    pub run: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogLineageV1ProcessLinkInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogLineageV1ProcessLinkInfo {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// link property.
+    pub link: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// processLinks property.
+    pub process_links: Option<Vec<GoogleCloudDatacatalogLineageV1ProcessLinks>>,
+}
 
 /// `GoogleCloudDatacatalogLineageV1Link` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -39,35 +87,6 @@ pub struct GoogleCloudDatacatalogLineageV1Link {
     pub target: Option<GoogleCloudDatacatalogLineageV1EntityReference>,
 }
 
-/// `GoogleCloudDatacatalogLineageV1ProcessOpenLineageRunEventResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogLineageV1ProcessOpenLineageRunEventResponse {
-    /// lineageEvents property.
-    pub lineage_events: Option<Vec<String>>,
-    /// process property.
-    pub process: Option<String>,
-    /// run property.
-    pub run: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogLineageV1SearchLinksResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogLineageV1SearchLinksResponse {
-    /// links property.
-    pub links: Option<Vec<GoogleCloudDatacatalogLineageV1Link>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// processLinks property.
-    pub process_links: Option<Vec<GoogleCloudDatacatalogLineageV1ProcessLinks>>,
-}
-
 /// `GoogleCloudDatacatalogLineageV1ProcessLinks` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageV1ProcessLinks {
@@ -75,24 +94,6 @@ pub struct GoogleCloudDatacatalogLineageV1ProcessLinks {
     pub links: Option<Vec<GoogleCloudDatacatalogLineageV1ProcessLinkInfo>>,
     /// process property.
     pub process: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogLineageV1ProcessLinkInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogLineageV1ProcessLinkInfo {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// link property.
-    pub link: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogLineageV1EntityReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogLineageV1EntityReference {
-    /// fullyQualifiedName property.
-    pub fully_qualified_name: Option<String>,
 }
 
 // =============================================================================

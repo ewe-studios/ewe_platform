@@ -12,17 +12,33 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `InstanceQuota` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceQuota {
+    /// availableMachineCount property.
+    pub available_machine_count: Option<i64>,
+    /// gcpService property.
+    pub gcp_service: Option<String>,
+    /// instanceType property.
+    pub instance_type: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
 
 /// `ProvisioningQuota` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,21 +61,6 @@ pub struct ProvisioningQuota {
     pub server_count: Option<String>,
     /// storageGib property.
     pub storage_gib: Option<String>,
-}
-
-/// `InstanceQuota` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceQuota {
-    /// availableMachineCount property.
-    pub available_machine_count: Option<i64>,
-    /// gcpService property.
-    pub gcp_service: Option<String>,
-    /// instanceType property.
-    pub instance_type: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// name property.
-    pub name: Option<String>,
 }
 
 /// `ListProvisioningQuotasResponse` type.

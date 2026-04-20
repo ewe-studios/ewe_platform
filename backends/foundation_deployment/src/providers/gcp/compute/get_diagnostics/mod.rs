@@ -12,58 +12,24 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `InterconnectDiagnosticsLinkLACPStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectDiagnosticsLinkLACPStatus {
-    /// googleSystemId property.
-    pub google_system_id: Option<String>,
-    /// neighborSystemId property.
-    pub neighbor_system_id: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `InterconnectDiagnostics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectDiagnostics {
-    /// arpCaches property.
-    pub arp_caches: Option<Vec<InterconnectDiagnosticsARPEntry>>,
-    /// bundleAggregationType property.
-    pub bundle_aggregation_type: Option<String>,
-    /// bundleOperationalStatus property.
-    pub bundle_operational_status: Option<String>,
-    /// links property.
-    pub links: Option<Vec<InterconnectDiagnosticsLinkStatus>>,
-    /// macAddress property.
-    pub mac_address: Option<String>,
-}
 
 /// `InterconnectsGetDiagnosticsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectsGetDiagnosticsResponse {
     /// result property.
     pub result: Option<InterconnectDiagnostics>,
-}
-
-/// `InterconnectDiagnosticsARPEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectDiagnosticsARPEntry {
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// macAddress property.
-    pub mac_address: Option<String>,
 }
 
 /// `InterconnectDiagnosticsLinkStatus` type.
@@ -87,6 +53,35 @@ pub struct InterconnectDiagnosticsLinkStatus {
     pub transmitting_optical_power: Option<InterconnectDiagnosticsLinkOpticalPower>,
 }
 
+/// `InterconnectDiagnosticsMacsecStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectDiagnosticsMacsecStatus {
+    /// ckn property.
+    pub ckn: Option<String>,
+    /// operational property.
+    pub operational: Option<bool>,
+}
+
+/// `InterconnectDiagnosticsLinkLACPStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectDiagnosticsLinkLACPStatus {
+    /// googleSystemId property.
+    pub google_system_id: Option<String>,
+    /// neighborSystemId property.
+    pub neighbor_system_id: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `InterconnectDiagnosticsARPEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectDiagnosticsARPEntry {
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// macAddress property.
+    pub mac_address: Option<String>,
+}
+
 /// `InterconnectDiagnosticsLinkOpticalPower` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectDiagnosticsLinkOpticalPower {
@@ -96,13 +91,19 @@ pub struct InterconnectDiagnosticsLinkOpticalPower {
     pub value: Option<f64>,
 }
 
-/// `InterconnectDiagnosticsMacsecStatus` type.
+/// `InterconnectDiagnostics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectDiagnosticsMacsecStatus {
-    /// ckn property.
-    pub ckn: Option<String>,
-    /// operational property.
-    pub operational: Option<bool>,
+pub struct InterconnectDiagnostics {
+    /// arpCaches property.
+    pub arp_caches: Option<Vec<InterconnectDiagnosticsARPEntry>>,
+    /// bundleAggregationType property.
+    pub bundle_aggregation_type: Option<String>,
+    /// bundleOperationalStatus property.
+    pub bundle_operational_status: Option<String>,
+    /// links property.
+    pub links: Option<Vec<InterconnectDiagnosticsLinkStatus>>,
+    /// macAddress property.
+    pub mac_address: Option<String>,
 }
 
 // =============================================================================

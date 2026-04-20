@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,73 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Version` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Version {
-    /// availableFeatures property.
-    pub available_features: Option<Vec<String>>,
-    /// defaultVersion property.
-    pub default_version: Option<bool>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// versionNumber property.
-    pub version_number: Option<String>,
-}
-
-/// `CryptoKeyConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CryptoKeyConfig {
-    /// keyReference property.
-    pub key_reference: Option<String>,
-}
-
-/// `ListInstancesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListInstancesResponse {
-    /// instances property.
-    pub instances: Option<Vec<Instance>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `MaintenanceEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaintenanceEvent {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `MaintenancePolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaintenancePolicy {
-    /// maintenanceExclusionWindow property.
-    pub maintenance_exclusion_window: Option<TimeWindow>,
-    /// maintenanceWindow property.
-    pub maintenance_window: Option<MaintenanceWindow>,
-}
 
 /// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -102,13 +41,64 @@ pub struct Expr {
     pub title: Option<String>,
 }
 
-/// `TimeWindow` type.
+/// `Accelerator` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeWindow {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
+pub struct Accelerator {
+    /// acceleratorType property.
+    pub accelerator_type: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `NetworkConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkConfig {
+    /// connectionType property.
+    pub connection_type: Option<String>,
+    /// ipAllocation property.
+    pub ip_allocation: Option<String>,
+    /// network property.
+    pub network: Option<String>,
+    /// privateServiceConnectConfig property.
+    pub private_service_connect_config: Option<PrivateServiceConnectConfig>,
+}
+
+/// `Policy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Policy {
+    /// auditConfigs property.
+    pub audit_configs: Option<Vec<AuditConfig>>,
+    /// bindings property.
+    pub bindings: Option<Vec<Binding>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// version property.
+    pub version: Option<i64>,
+}
+
+/// `PrivateServiceConnectConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrivateServiceConnectConfig {
+    /// effectiveUnreachableCidrBlock property.
+    pub effective_unreachable_cidr_block: Option<String>,
+    /// networkAttachment property.
+    pub network_attachment: Option<String>,
+    /// unreachableCidrBlock property.
+    pub unreachable_cidr_block: Option<String>,
+}
+
+/// `CryptoKeyConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CryptoKeyConfig {
+    /// keyReference property.
+    pub key_reference: Option<String>,
+}
+
+/// `MonitoringConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MonitoringConfig {
+    /// enableInstanceV2Metrics property.
+    pub enable_instance_v2_metrics: Option<bool>,
 }
 
 /// `TestIamPermissionsResponse` type.
@@ -203,13 +193,13 @@ pub struct Instance {
     pub zone: Option<String>,
 }
 
-/// `AuditConfig` type.
+/// `RecurringTimeWindow` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
+pub struct RecurringTimeWindow {
+    /// recurrence property.
+    pub recurrence: Option<String>,
+    /// window property.
+    pub window: Option<TimeWindow>,
 }
 
 /// `LoggingConfig` type.
@@ -221,60 +211,33 @@ pub struct LoggingConfig {
     pub instance_cloud_logging_disabled: Option<bool>,
 }
 
-/// `PrivateServiceConnectConfig` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrivateServiceConnectConfig {
-    /// effectiveUnreachableCidrBlock property.
-    pub effective_unreachable_cidr_block: Option<String>,
-    /// networkAttachment property.
-    pub network_attachment: Option<String>,
-    /// unreachableCidrBlock property.
-    pub unreachable_cidr_block: Option<String>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
-/// `RecurringTimeWindow` type.
+/// `EventPublishConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RecurringTimeWindow {
-    /// recurrence property.
-    pub recurrence: Option<String>,
-    /// window property.
-    pub window: Option<TimeWindow>,
+pub struct EventPublishConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// topic property.
+    pub topic: Option<String>,
 }
 
-/// `MonitoringConfig` type.
+/// `MaintenanceEvent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MonitoringConfig {
-    /// enableInstanceV2Metrics property.
-    pub enable_instance_v2_metrics: Option<bool>,
-}
-
-/// `Policy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Policy {
-    /// auditConfigs property.
-    pub audit_configs: Option<Vec<AuditConfig>>,
-    /// bindings property.
-    pub bindings: Option<Vec<Binding>>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// version property.
-    pub version: Option<i64>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `Accelerator` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Accelerator {
-    /// acceleratorType property.
-    pub accelerator_type: Option<String>,
+pub struct MaintenanceEvent {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
     /// state property.
     pub state: Option<String>,
 }
@@ -290,26 +253,15 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `NetworkConfig` type.
+/// `ListInstancesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkConfig {
-    /// connectionType property.
-    pub connection_type: Option<String>,
-    /// ipAllocation property.
-    pub ip_allocation: Option<String>,
-    /// network property.
-    pub network: Option<String>,
-    /// privateServiceConnectConfig property.
-    pub private_service_connect_config: Option<PrivateServiceConnectConfig>,
-}
-
-/// `EventPublishConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventPublishConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// topic property.
-    pub topic: Option<String>,
+pub struct ListInstancesResponse {
+    /// instances property.
+    pub instances: Option<Vec<Instance>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `MaintenanceWindow` type.
@@ -317,6 +269,55 @@ pub struct EventPublishConfig {
 pub struct MaintenanceWindow {
     /// recurringTimeWindow property.
     pub recurring_time_window: Option<RecurringTimeWindow>,
+}
+
+/// `Version` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Version {
+    /// availableFeatures property.
+    pub available_features: Option<Vec<String>>,
+    /// defaultVersion property.
+    pub default_version: Option<bool>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// versionNumber property.
+    pub version_number: Option<String>,
+}
+
+/// `TimeWindow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeWindow {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `MaintenancePolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MaintenancePolicy {
+    /// maintenanceExclusionWindow property.
+    pub maintenance_exclusion_window: Option<TimeWindow>,
+    /// maintenanceWindow property.
+    pub maintenance_window: Option<MaintenanceWindow>,
+}
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
 // =============================================================================

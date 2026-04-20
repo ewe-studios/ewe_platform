@@ -12,32 +12,74 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudPolicytroubleshooterIamV3ExplainedAllowPolicy` type.
+/// `GoogleCloudPolicytroubleshooterIamV3AllowBindingExplanationAnnotatedAllowMembership` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicytroubleshooterIamV3ExplainedAllowPolicy {
-    /// allowAccessState property.
-    pub allow_access_state: Option<String>,
-    /// bindingExplanations property.
-    pub binding_explanations:
-        Option<Vec<GoogleCloudPolicytroubleshooterIamV3AllowBindingExplanation>>,
-    /// fullResourceName property.
-    pub full_resource_name: Option<String>,
-    /// policy property.
-    pub policy: Option<GoogleIamV1Policy>,
+pub struct GoogleCloudPolicytroubleshooterIamV3AllowBindingExplanationAnnotatedAllowMembership {
+    /// membership property.
+    pub membership: Option<String>,
     /// relevance property.
     pub relevance: Option<String>,
+}
+
+/// `GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse {
+    /// accessTuple property.
+    pub access_tuple: Option<GoogleCloudPolicytroubleshooterIamV3AccessTuple>,
+    /// allowPolicyExplanation property.
+    pub allow_policy_explanation:
+        Option<GoogleCloudPolicytroubleshooterIamV3AllowPolicyExplanation>,
+    /// denyPolicyExplanation property.
+    pub deny_policy_explanation: Option<GoogleCloudPolicytroubleshooterIamV3DenyPolicyExplanation>,
+    /// overallAccessState property.
+    pub overall_access_state: Option<String>,
+}
+
+/// `GoogleIamV2Policy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV2Policy {
+    /// annotations property.
+    pub annotations: Option<serde_json::Value>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// deleteTime property.
+    pub delete_time: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// rules property.
+    pub rules: Option<Vec<GoogleIamV2PolicyRule>>,
+    /// uid property.
+    pub uid: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `GoogleCloudPolicytroubleshooterIamV3ConditionContextPeer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextPeer {
+    /// ip property.
+    pub ip: Option<String>,
+    /// port property.
+    pub port: Option<String>,
 }
 
 /// `GoogleCloudPolicytroubleshooterIamV3ConditionContextEffectiveTag` type.
@@ -55,96 +97,6 @@ pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextEffectiveTag {
     pub tag_key_parent_name: Option<String>,
     /// tagValue property.
     pub tag_value: Option<String>,
-}
-
-/// `GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse {
-    /// accessTuple property.
-    pub access_tuple: Option<GoogleCloudPolicytroubleshooterIamV3AccessTuple>,
-    /// allowPolicyExplanation property.
-    pub allow_policy_explanation:
-        Option<GoogleCloudPolicytroubleshooterIamV3AllowPolicyExplanation>,
-    /// denyPolicyExplanation property.
-    pub deny_policy_explanation: Option<GoogleCloudPolicytroubleshooterIamV3DenyPolicyExplanation>,
-    /// overallAccessState property.
-    pub overall_access_state: Option<String>,
-}
-
-/// `GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanationAnnotatedDenyPrincipalMatching` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanationAnnotatedDenyPrincipalMatching {
-    /// membership property.
-    pub membership: Option<String>,
-    /// relevance property.
-    pub relevance: Option<String>,
-}
-
-/// `GoogleCloudPolicytroubleshooterIamV3ConditionExplanation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicytroubleshooterIamV3ConditionExplanation {
-    /// errors property.
-    pub errors: Option<Vec<GoogleRpcStatus>>,
-    /// evaluationStates property.
-    pub evaluation_states:
-        Option<Vec<GoogleCloudPolicytroubleshooterIamV3ConditionExplanationEvaluationState>>,
-    /// value property.
-    pub value: Option<serde_json::Value>,
-}
-
-/// `GoogleIamV1AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `GoogleCloudPolicytroubleshooterIamV3DenyPolicyExplanation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicytroubleshooterIamV3DenyPolicyExplanation {
-    /// denyAccessState property.
-    pub deny_access_state: Option<String>,
-    /// explainedResources property.
-    pub explained_resources: Option<Vec<GoogleCloudPolicytroubleshooterIamV3ExplainedDenyResource>>,
-    /// permissionDeniable property.
-    pub permission_deniable: Option<bool>,
-    /// relevance property.
-    pub relevance: Option<String>,
-}
-
-/// `GoogleCloudPolicytroubleshooterIamV3AllowBindingExplanationAnnotatedAllowMembership` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicytroubleshooterIamV3AllowBindingExplanationAnnotatedAllowMembership {
-    /// membership property.
-    pub membership: Option<String>,
-    /// relevance property.
-    pub relevance: Option<String>,
-}
-
-/// `GoogleTypeExpr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeExpr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleIamV1Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Binding {
-    /// condition property.
-    pub condition: Option<GoogleTypeExpr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
 }
 
 /// `GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanation` type.
@@ -182,40 +134,99 @@ pub struct GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanation {
     pub relevance: Option<String>,
 }
 
-/// `GoogleRpcStatus` type.
+/// `GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanationAnnotatedPermissionMatching` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanationAnnotatedPermissionMatching {
+    /// permissionMatchingState property.
+    pub permission_matching_state: Option<String>,
+    /// relevance property.
+    pub relevance: Option<String>,
 }
 
-/// `GoogleIamV2Policy` type.
+/// `GoogleCloudPolicytroubleshooterIamV3ConditionContextResource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV2Policy {
-    /// annotations property.
-    pub annotations: Option<serde_json::Value>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// deleteTime property.
-    pub delete_time: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
+pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextResource {
     /// name property.
     pub name: Option<String>,
-    /// rules property.
-    pub rules: Option<Vec<GoogleIamV2PolicyRule>>,
-    /// uid property.
-    pub uid: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
+    /// service property.
+    pub service: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleIamV2DenyRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV2DenyRule {
+    /// denialCondition property.
+    pub denial_condition: Option<GoogleTypeExpr>,
+    /// deniedPermissions property.
+    pub denied_permissions: Option<Vec<String>>,
+    /// deniedPrincipals property.
+    pub denied_principals: Option<Vec<String>>,
+    /// exceptionPermissions property.
+    pub exception_permissions: Option<Vec<String>>,
+    /// exceptionPrincipals property.
+    pub exception_principals: Option<Vec<String>>,
+}
+
+/// `GoogleCloudPolicytroubleshooterIamV3AccessTuple` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicytroubleshooterIamV3AccessTuple {
+    /// conditionContext property.
+    pub condition_context: Option<GoogleCloudPolicytroubleshooterIamV3ConditionContext>,
+    /// fullResourceName property.
+    pub full_resource_name: Option<String>,
+    /// permission property.
+    pub permission: Option<String>,
+    /// permissionFqdn property.
+    pub permission_fqdn: Option<String>,
+    /// principal property.
+    pub principal: Option<String>,
+}
+
+/// `GoogleIamV1Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1Binding {
+    /// condition property.
+    pub condition: Option<GoogleTypeExpr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `GoogleCloudPolicytroubleshooterIamV3ConditionExplanationEvaluationState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicytroubleshooterIamV3ConditionExplanationEvaluationState {
+    /// end property.
+    pub end: Option<i64>,
+    /// errors property.
+    pub errors: Option<Vec<GoogleRpcStatus>>,
+    /// start property.
+    pub start: Option<i64>,
+    /// value property.
+    pub value: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudPolicytroubleshooterIamV3ConditionContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContext {
+    /// destination property.
+    pub destination: Option<GoogleCloudPolicytroubleshooterIamV3ConditionContextPeer>,
+    /// effectiveTags property.
+    pub effective_tags:
+        Option<Vec<GoogleCloudPolicytroubleshooterIamV3ConditionContextEffectiveTag>>,
+    /// request property.
+    pub request: Option<GoogleCloudPolicytroubleshooterIamV3ConditionContextRequest>,
+    /// resource property.
+    pub resource: Option<GoogleCloudPolicytroubleshooterIamV3ConditionContextResource>,
+}
+
+/// `GoogleCloudPolicytroubleshooterIamV3ConditionContextRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextRequest {
+    /// receiveTime property.
+    pub receive_time: Option<String>,
 }
 
 /// `GoogleIamV2PolicyRule` type.
@@ -225,6 +236,63 @@ pub struct GoogleIamV2PolicyRule {
     pub deny_rule: Option<GoogleIamV2DenyRule>,
     /// description property.
     pub description: Option<String>,
+}
+
+/// `GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanationAnnotatedDenyPrincipalMatching` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanationAnnotatedDenyPrincipalMatching {
+    /// membership property.
+    pub membership: Option<String>,
+    /// relevance property.
+    pub relevance: Option<String>,
+}
+
+/// `GoogleCloudPolicytroubleshooterIamV3AllowPolicyExplanation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicytroubleshooterIamV3AllowPolicyExplanation {
+    /// allowAccessState property.
+    pub allow_access_state: Option<String>,
+    /// explainedPolicies property.
+    pub explained_policies: Option<Vec<GoogleCloudPolicytroubleshooterIamV3ExplainedAllowPolicy>>,
+    /// relevance property.
+    pub relevance: Option<String>,
+}
+
+/// `GoogleCloudPolicytroubleshooterIamV3ConditionExplanation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicytroubleshooterIamV3ConditionExplanation {
+    /// errors property.
+    pub errors: Option<Vec<GoogleRpcStatus>>,
+    /// evaluationStates property.
+    pub evaluation_states:
+        Option<Vec<GoogleCloudPolicytroubleshooterIamV3ConditionExplanationEvaluationState>>,
+    /// value property.
+    pub value: Option<serde_json::Value>,
+}
+
+/// `GoogleIamV1AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `GoogleCloudPolicytroubleshooterIamV3ExplainedAllowPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicytroubleshooterIamV3ExplainedAllowPolicy {
+    /// allowAccessState property.
+    pub allow_access_state: Option<String>,
+    /// bindingExplanations property.
+    pub binding_explanations:
+        Option<Vec<GoogleCloudPolicytroubleshooterIamV3AllowBindingExplanation>>,
+    /// fullResourceName property.
+    pub full_resource_name: Option<String>,
+    /// policy property.
+    pub policy: Option<GoogleIamV1Policy>,
+    /// relevance property.
+    pub relevance: Option<String>,
 }
 
 /// `GoogleCloudPolicytroubleshooterIamV3ExplainedDenyResource` type.
@@ -238,6 +306,30 @@ pub struct GoogleCloudPolicytroubleshooterIamV3ExplainedDenyResource {
     pub full_resource_name: Option<String>,
     /// relevance property.
     pub relevance: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudPolicytroubleshooterIamV3ExplainedDenyPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicytroubleshooterIamV3ExplainedDenyPolicy {
+    /// denyAccessState property.
+    pub deny_access_state: Option<String>,
+    /// policy property.
+    pub policy: Option<GoogleIamV2Policy>,
+    /// relevance property.
+    pub relevance: Option<String>,
+    /// ruleExplanations property.
+    pub rule_explanations: Option<Vec<GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanation>>,
 }
 
 /// `GoogleCloudPolicytroubleshooterIamV3AllowBindingExplanation` type.
@@ -264,61 +356,39 @@ pub struct GoogleCloudPolicytroubleshooterIamV3AllowBindingExplanation {
     pub role_permission_relevance: Option<String>,
 }
 
-/// `GoogleIamV2DenyRule` type.
+/// `GoogleTypeExpr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV2DenyRule {
-    /// denialCondition property.
-    pub denial_condition: Option<GoogleTypeExpr>,
-    /// deniedPermissions property.
-    pub denied_permissions: Option<Vec<String>>,
-    /// deniedPrincipals property.
-    pub denied_principals: Option<Vec<String>>,
-    /// exceptionPermissions property.
-    pub exception_permissions: Option<Vec<String>>,
-    /// exceptionPrincipals property.
-    pub exception_principals: Option<Vec<String>>,
+pub struct GoogleTypeExpr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
-/// `GoogleIamV1AuditLogConfig` type.
+/// `GoogleCloudPolicytroubleshooterIamV3DenyPolicyExplanation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `GoogleCloudPolicytroubleshooterIamV3AllowPolicyExplanation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicytroubleshooterIamV3AllowPolicyExplanation {
-    /// allowAccessState property.
-    pub allow_access_state: Option<String>,
-    /// explainedPolicies property.
-    pub explained_policies: Option<Vec<GoogleCloudPolicytroubleshooterIamV3ExplainedAllowPolicy>>,
+pub struct GoogleCloudPolicytroubleshooterIamV3DenyPolicyExplanation {
+    /// denyAccessState property.
+    pub deny_access_state: Option<String>,
+    /// explainedResources property.
+    pub explained_resources: Option<Vec<GoogleCloudPolicytroubleshooterIamV3ExplainedDenyResource>>,
+    /// permissionDeniable property.
+    pub permission_deniable: Option<bool>,
     /// relevance property.
     pub relevance: Option<String>,
 }
 
-/// `GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanationAnnotatedPermissionMatching` type.
+/// `GoogleIamV1AuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanationAnnotatedPermissionMatching {
-    /// permissionMatchingState property.
-    pub permission_matching_state: Option<String>,
-    /// relevance property.
-    pub relevance: Option<String>,
-}
-
-/// `GoogleCloudPolicytroubleshooterIamV3ConditionExplanationEvaluationState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicytroubleshooterIamV3ConditionExplanationEvaluationState {
-    /// end property.
-    pub end: Option<i64>,
-    /// errors property.
-    pub errors: Option<Vec<GoogleRpcStatus>>,
-    /// start property.
-    pub start: Option<i64>,
-    /// value property.
-    pub value: Option<serde_json::Value>,
+pub struct GoogleIamV1AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
 }
 
 /// `GoogleIamV1Policy` type.
@@ -332,75 +402,6 @@ pub struct GoogleIamV1Policy {
     pub etag: Option<String>,
     /// version property.
     pub version: Option<i64>,
-}
-
-/// `GoogleCloudPolicytroubleshooterIamV3ConditionContextPeer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextPeer {
-    /// ip property.
-    pub ip: Option<String>,
-    /// port property.
-    pub port: Option<String>,
-}
-
-/// `GoogleCloudPolicytroubleshooterIamV3ConditionContextRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextRequest {
-    /// receiveTime property.
-    pub receive_time: Option<String>,
-}
-
-/// `GoogleCloudPolicytroubleshooterIamV3ConditionContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContext {
-    /// destination property.
-    pub destination: Option<GoogleCloudPolicytroubleshooterIamV3ConditionContextPeer>,
-    /// effectiveTags property.
-    pub effective_tags:
-        Option<Vec<GoogleCloudPolicytroubleshooterIamV3ConditionContextEffectiveTag>>,
-    /// request property.
-    pub request: Option<GoogleCloudPolicytroubleshooterIamV3ConditionContextRequest>,
-    /// resource property.
-    pub resource: Option<GoogleCloudPolicytroubleshooterIamV3ConditionContextResource>,
-}
-
-/// `GoogleCloudPolicytroubleshooterIamV3ConditionContextResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextResource {
-    /// name property.
-    pub name: Option<String>,
-    /// service property.
-    pub service: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleCloudPolicytroubleshooterIamV3AccessTuple` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicytroubleshooterIamV3AccessTuple {
-    /// conditionContext property.
-    pub condition_context: Option<GoogleCloudPolicytroubleshooterIamV3ConditionContext>,
-    /// fullResourceName property.
-    pub full_resource_name: Option<String>,
-    /// permission property.
-    pub permission: Option<String>,
-    /// permissionFqdn property.
-    pub permission_fqdn: Option<String>,
-    /// principal property.
-    pub principal: Option<String>,
-}
-
-/// `GoogleCloudPolicytroubleshooterIamV3ExplainedDenyPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicytroubleshooterIamV3ExplainedDenyPolicy {
-    /// denyAccessState property.
-    pub deny_access_state: Option<String>,
-    /// policy property.
-    pub policy: Option<GoogleIamV2Policy>,
-    /// relevance property.
-    pub relevance: Option<String>,
-    /// ruleExplanations property.
-    pub rule_explanations: Option<Vec<GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanation>>,
 }
 
 // =============================================================================

@@ -12,103 +12,61 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DestinationStatus` type.
+/// `Price` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DestinationStatus {
-    /// approvedCountries property.
-    pub approved_countries: Option<Vec<String>>,
-    /// destination property.
-    pub destination: Option<String>,
-    /// disapprovedCountries property.
-    pub disapproved_countries: Option<Vec<String>>,
-    /// pendingCountries property.
-    pub pending_countries: Option<Vec<String>>,
+pub struct Price {
+    /// amountMicros property.
+    pub amount_micros: Option<String>,
+    /// currencyCode property.
+    pub currency_code: Option<String>,
 }
 
-/// `HeadlineOfferSubscriptionCost` type.
+/// `CssProductStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HeadlineOfferSubscriptionCost {
-    /// amount property.
-    pub amount: Option<Price>,
-    /// period property.
-    pub period: Option<String>,
-    /// periodLength property.
-    pub period_length: Option<String>,
+pub struct CssProductStatus {
+    /// creationDate property.
+    pub creation_date: Option<String>,
+    /// destinationStatuses property.
+    pub destination_statuses: Option<Vec<DestinationStatus>>,
+    /// googleExpirationDate property.
+    pub google_expiration_date: Option<String>,
+    /// itemLevelIssues property.
+    pub item_level_issues: Option<Vec<ItemLevelIssue>>,
+    /// lastUpdateDate property.
+    pub last_update_date: Option<String>,
 }
 
-/// `ItemLevelIssue` type.
+/// `ListCssProductsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ItemLevelIssue {
-    /// applicableCountries property.
-    pub applicable_countries: Option<Vec<String>>,
-    /// attribute property.
-    pub attribute: Option<String>,
-    /// code property.
-    pub code: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// destination property.
-    pub destination: Option<String>,
-    /// detail property.
-    pub detail: Option<String>,
-    /// documentation property.
-    pub documentation: Option<String>,
-    /// resolution property.
-    pub resolution: Option<String>,
-    /// servability property.
-    pub servability: Option<String>,
+pub struct ListCssProductsResponse {
+    /// cssProducts property.
+    pub css_products: Option<Vec<CssProduct>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
-/// `ProductDimension` type.
+/// `ProductDetail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductDimension {
-    /// unit property.
-    pub unit: Option<String>,
-    /// value property.
-    pub value: Option<f64>,
-}
-
-/// `ProductWeight` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductWeight {
-    /// unit property.
-    pub unit: Option<String>,
-    /// value property.
-    pub value: Option<f64>,
-}
-
-/// `Certification` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Certification {
-    /// authority property.
-    pub authority: Option<String>,
-    /// code property.
-    pub code: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `CustomAttribute` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomAttribute {
-    /// groupValues property.
-    pub group_values: Option<Vec<CustomAttribute>>,
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct ProductDetail {
+    /// attributeName property.
+    pub attribute_name: Option<String>,
+    /// attributeValue property.
+    pub attribute_value: Option<String>,
+    /// sectionName property.
+    pub section_name: Option<String>,
 }
 
 /// `Attributes` type.
@@ -224,23 +182,91 @@ pub struct Attributes {
     pub title: Option<String>,
 }
 
-/// `CssProduct` type.
+/// `ProductDimension` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CssProduct {
-    /// attributes property.
-    pub attributes: Option<Attributes>,
-    /// contentLanguage property.
-    pub content_language: Option<String>,
-    /// cssProductStatus property.
-    pub css_product_status: Option<CssProductStatus>,
-    /// customAttributes property.
-    pub custom_attributes: Option<Vec<CustomAttribute>>,
-    /// feedLabel property.
-    pub feed_label: Option<String>,
+pub struct ProductDimension {
+    /// unit property.
+    pub unit: Option<String>,
+    /// value property.
+    pub value: Option<f64>,
+}
+
+/// `ItemLevelIssue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ItemLevelIssue {
+    /// applicableCountries property.
+    pub applicable_countries: Option<Vec<String>>,
+    /// attribute property.
+    pub attribute: Option<String>,
+    /// code property.
+    pub code: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// destination property.
+    pub destination: Option<String>,
+    /// detail property.
+    pub detail: Option<String>,
+    /// documentation property.
+    pub documentation: Option<String>,
+    /// resolution property.
+    pub resolution: Option<String>,
+    /// servability property.
+    pub servability: Option<String>,
+}
+
+/// `Certification` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Certification {
+    /// authority property.
+    pub authority: Option<String>,
+    /// code property.
+    pub code: Option<String>,
     /// name property.
     pub name: Option<String>,
-    /// rawProvidedId property.
-    pub raw_provided_id: Option<String>,
+}
+
+/// `DestinationStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DestinationStatus {
+    /// approvedCountries property.
+    pub approved_countries: Option<Vec<String>>,
+    /// destination property.
+    pub destination: Option<String>,
+    /// disapprovedCountries property.
+    pub disapproved_countries: Option<Vec<String>>,
+    /// pendingCountries property.
+    pub pending_countries: Option<Vec<String>>,
+}
+
+/// `HeadlineOfferSubscriptionCost` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HeadlineOfferSubscriptionCost {
+    /// amount property.
+    pub amount: Option<Price>,
+    /// period property.
+    pub period: Option<String>,
+    /// periodLength property.
+    pub period_length: Option<String>,
+}
+
+/// `CustomAttribute` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomAttribute {
+    /// groupValues property.
+    pub group_values: Option<Vec<Box<CustomAttribute>>>,
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `ProductWeight` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductWeight {
+    /// unit property.
+    pub unit: Option<String>,
+    /// value property.
+    pub value: Option<f64>,
 }
 
 /// `HeadlineOfferInstallment` type.
@@ -254,48 +280,23 @@ pub struct HeadlineOfferInstallment {
     pub months: Option<String>,
 }
 
-/// `ProductDetail` type.
+/// `CssProduct` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductDetail {
-    /// attributeName property.
-    pub attribute_name: Option<String>,
-    /// attributeValue property.
-    pub attribute_value: Option<String>,
-    /// sectionName property.
-    pub section_name: Option<String>,
-}
-
-/// `ListCssProductsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCssProductsResponse {
-    /// cssProducts property.
-    pub css_products: Option<Vec<CssProduct>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `Price` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Price {
-    /// amountMicros property.
-    pub amount_micros: Option<String>,
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-}
-
-/// `CssProductStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CssProductStatus {
-    /// creationDate property.
-    pub creation_date: Option<String>,
-    /// destinationStatuses property.
-    pub destination_statuses: Option<Vec<DestinationStatus>>,
-    /// googleExpirationDate property.
-    pub google_expiration_date: Option<String>,
-    /// itemLevelIssues property.
-    pub item_level_issues: Option<Vec<ItemLevelIssue>>,
-    /// lastUpdateDate property.
-    pub last_update_date: Option<String>,
+pub struct CssProduct {
+    /// attributes property.
+    pub attributes: Option<Attributes>,
+    /// contentLanguage property.
+    pub content_language: Option<String>,
+    /// cssProductStatus property.
+    pub css_product_status: Option<CssProductStatus>,
+    /// customAttributes property.
+    pub custom_attributes: Option<Vec<Box<CustomAttribute>>>,
+    /// feedLabel property.
+    pub feed_label: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// rawProvidedId property.
+    pub raw_provided_id: Option<String>,
 }
 
 // =============================================================================

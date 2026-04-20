@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,98 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Money` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Money {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// units property.
+    pub units: Option<String>,
+}
+
+/// `ListReportsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListReportsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// reports property.
+    pub reports: Option<Vec<Report>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `ReportSummaryChartData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportSummaryChartData {
+    /// dataPoints property.
+    pub data_points: Option<Vec<ReportSummaryChartDataDataPoint>>,
+}
+
+/// `ReportSummaryGroupFinding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportSummaryGroupFinding {
+    /// assetAggregateStats property.
+    pub asset_aggregate_stats: Option<ReportSummaryAssetAggregateStats>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// overlappingAssetCount property.
+    pub overlapping_asset_count: Option<String>,
+    /// preferenceSetFindings property.
+    pub preference_set_findings: Option<Vec<ReportSummaryGroupPreferenceSetFinding>>,
+}
+
+/// `ReportSummaryHistogramChartDataBucket` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportSummaryHistogramChartDataBucket {
+    /// count property.
+    pub count: Option<String>,
+    /// lowerBound property.
+    pub lower_bound: Option<String>,
+    /// upperBound property.
+    pub upper_bound: Option<String>,
+}
+
+/// `Report` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Report {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// summary property.
+    pub summary: Option<ReportSummary>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `ReportSummarySoleTenantFinding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportSummarySoleTenantFinding {
+    /// allocatedAssetCount property.
+    pub allocated_asset_count: Option<String>,
+    /// allocatedRegions property.
+    pub allocated_regions: Option<Vec<String>>,
+    /// nodeAllocations property.
+    pub node_allocations: Option<Vec<ReportSummarySoleTenantNodeAllocation>>,
+}
 
 /// `ReportSummaryChartDataDataPoint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -47,6 +135,26 @@ pub struct ReportSummaryVmwareEngineFinding {
     pub node_allocations: Option<Vec<ReportSummaryVmwareNodeAllocation>>,
 }
 
+/// `ReportSummaryUtilizationChartData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportSummaryUtilizationChartData {
+    /// free property.
+    pub free: Option<String>,
+    /// used property.
+    pub used: Option<String>,
+}
+
+/// `ReportSummarySoleTenantNodeAllocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportSummarySoleTenantNodeAllocation {
+    /// allocatedAssetCount property.
+    pub allocated_asset_count: Option<String>,
+    /// node property.
+    pub node: Option<SoleTenantNodeType>,
+    /// nodeCount property.
+    pub node_count: Option<String>,
+}
+
 /// `ReportSummaryVmwareNodeAllocation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportSummaryVmwareNodeAllocation {
@@ -58,103 +166,24 @@ pub struct ReportSummaryVmwareNodeAllocation {
     pub vmware_node: Option<ReportSummaryVmwareNode>,
 }
 
-/// `ReportSummaryMachineSeriesAllocation` type.
+/// `SoleTenantNodeType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportSummaryMachineSeriesAllocation {
+pub struct SoleTenantNodeType {
+    /// nodeName property.
+    pub node_name: Option<String>,
+}
+
+/// `ReportSummaryComputeEngineFinding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportSummaryComputeEngineFinding {
     /// allocatedAssetCount property.
     pub allocated_asset_count: Option<String>,
-    /// machineSeries property.
-    pub machine_series: Option<MachineSeries>,
-}
-
-/// `Money` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Money {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// units property.
-    pub units: Option<String>,
-}
-
-/// `MachineSeries` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MachineSeries {
-    /// code property.
-    pub code: Option<String>,
-}
-
-/// `ReportSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportSummary {
-    /// allAssetsStats property.
-    pub all_assets_stats: Option<ReportSummaryAssetAggregateStats>,
-    /// groupFindings property.
-    pub group_findings: Option<Vec<ReportSummaryGroupFinding>>,
-}
-
-/// `ReportSummaryAssetAggregateStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportSummaryAssetAggregateStats {
-    /// coreCountHistogram property.
-    pub core_count_histogram: Option<ReportSummaryHistogramChartData>,
-    /// memoryBytesHistogram property.
-    pub memory_bytes_histogram: Option<ReportSummaryHistogramChartData>,
-    /// memoryUtilizationChart property.
-    pub memory_utilization_chart: Option<ReportSummaryUtilizationChartData>,
-    /// operatingSystem property.
-    pub operating_system: Option<ReportSummaryChartData>,
-    /// softwareInstances property.
-    pub software_instances: Option<ReportSummaryChartData>,
-    /// storageBytesHistogram property.
-    pub storage_bytes_histogram: Option<ReportSummaryHistogramChartData>,
-    /// storageUtilizationChart property.
-    pub storage_utilization_chart: Option<ReportSummaryUtilizationChartData>,
-    /// totalAssets property.
-    pub total_assets: Option<String>,
-    /// totalCores property.
-    pub total_cores: Option<String>,
-    /// totalMemoryBytes property.
-    pub total_memory_bytes: Option<String>,
-    /// totalStorageBytes property.
-    pub total_storage_bytes: Option<String>,
-}
-
-/// `ReportSummaryChartData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportSummaryChartData {
-    /// dataPoints property.
-    pub data_points: Option<Vec<ReportSummaryChartDataDataPoint>>,
-}
-
-/// `RegionPreferences` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegionPreferences {
-    /// preferredRegions property.
-    pub preferred_regions: Option<Vec<String>>,
-}
-
-/// `SoleTenancyPreferences` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SoleTenancyPreferences {
-    /// commitmentPlan property.
-    pub commitment_plan: Option<String>,
-    /// cpuOvercommitRatio property.
-    pub cpu_overcommit_ratio: Option<f64>,
-    /// hostMaintenancePolicy property.
-    pub host_maintenance_policy: Option<String>,
-    /// nodeTypes property.
-    pub node_types: Option<Vec<SoleTenantNodeType>>,
-}
-
-/// `ReportSummaryUtilizationChartData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportSummaryUtilizationChartData {
-    /// free property.
-    pub free: Option<String>,
-    /// used property.
-    pub used: Option<String>,
+    /// allocatedDiskTypes property.
+    pub allocated_disk_types: Option<Vec<String>>,
+    /// allocatedRegions property.
+    pub allocated_regions: Option<Vec<String>>,
+    /// machineSeriesAllocations property.
+    pub machine_series_allocations: Option<Vec<ReportSummaryMachineSeriesAllocation>>,
 }
 
 /// `VirtualMachinePreferences` type.
@@ -176,26 +205,54 @@ pub struct VirtualMachinePreferences {
     pub vmware_engine_preferences: Option<VmwareEnginePreferences>,
 }
 
-/// `ReportSummaryHistogramChartDataBucket` type.
+/// `ComputeEnginePreferences` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportSummaryHistogramChartDataBucket {
-    /// count property.
-    pub count: Option<String>,
-    /// lowerBound property.
-    pub lower_bound: Option<String>,
-    /// upperBound property.
-    pub upper_bound: Option<String>,
+pub struct ComputeEnginePreferences {
+    /// licenseType property.
+    pub license_type: Option<String>,
+    /// machinePreferences property.
+    pub machine_preferences: Option<MachinePreferences>,
+    /// persistentDiskType property.
+    pub persistent_disk_type: Option<String>,
 }
 
-/// `Status` type.
+/// `MachineSeries` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
+pub struct MachineSeries {
     /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+    pub code: Option<String>,
+}
+
+/// `ReportSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportSummary {
+    /// allAssetsStats property.
+    pub all_assets_stats: Option<ReportSummaryAssetAggregateStats>,
+    /// groupFindings property.
+    pub group_findings: Option<Vec<ReportSummaryGroupFinding>>,
+}
+
+/// `MachinePreferences` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MachinePreferences {
+    /// allowedMachineSeries property.
+    pub allowed_machine_series: Option<Vec<MachineSeries>>,
+}
+
+/// `ReportSummaryMachineSeriesAllocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportSummaryMachineSeriesAllocation {
+    /// allocatedAssetCount property.
+    pub allocated_asset_count: Option<String>,
+    /// machineSeries property.
+    pub machine_series: Option<MachineSeries>,
+}
+
+/// `ReportSummaryHistogramChartData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportSummaryHistogramChartData {
+    /// buckets property.
+    pub buckets: Option<Vec<ReportSummaryHistogramChartDataBucket>>,
 }
 
 /// `ReportSummaryGroupPreferenceSetFinding` type.
@@ -227,43 +284,69 @@ pub struct ReportSummaryGroupPreferenceSetFinding {
     pub vmware_engine_finding: Option<ReportSummaryVmwareEngineFinding>,
 }
 
-/// `Report` type.
+/// `ReportSummaryAssetAggregateStats` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Report {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// summary property.
-    pub summary: Option<ReportSummary>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
+pub struct ReportSummaryAssetAggregateStats {
+    /// coreCountHistogram property.
+    pub core_count_histogram: Option<ReportSummaryHistogramChartData>,
+    /// memoryBytesHistogram property.
+    pub memory_bytes_histogram: Option<ReportSummaryHistogramChartData>,
+    /// memoryUtilizationChart property.
+    pub memory_utilization_chart: Option<ReportSummaryUtilizationChartData>,
+    /// operatingSystem property.
+    pub operating_system: Option<ReportSummaryChartData>,
+    /// softwareInstances property.
+    pub software_instances: Option<ReportSummaryChartData>,
+    /// storageBytesHistogram property.
+    pub storage_bytes_histogram: Option<ReportSummaryHistogramChartData>,
+    /// storageUtilizationChart property.
+    pub storage_utilization_chart: Option<ReportSummaryUtilizationChartData>,
+    /// totalAssets property.
+    pub total_assets: Option<String>,
+    /// totalCores property.
+    pub total_cores: Option<String>,
+    /// totalMemoryBytes property.
+    pub total_memory_bytes: Option<String>,
+    /// totalStorageBytes property.
+    pub total_storage_bytes: Option<String>,
 }
 
-/// `SoleTenantNodeType` type.
+/// `SoleTenancyPreferences` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SoleTenantNodeType {
-    /// nodeName property.
-    pub node_name: Option<String>,
+pub struct SoleTenancyPreferences {
+    /// commitmentPlan property.
+    pub commitment_plan: Option<String>,
+    /// cpuOvercommitRatio property.
+    pub cpu_overcommit_ratio: Option<f64>,
+    /// hostMaintenancePolicy property.
+    pub host_maintenance_policy: Option<String>,
+    /// nodeTypes property.
+    pub node_types: Option<Vec<SoleTenantNodeType>>,
 }
 
-/// `ComputeEnginePreferences` type.
+/// `RegionPreferences` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeEnginePreferences {
-    /// licenseType property.
-    pub license_type: Option<String>,
-    /// machinePreferences property.
-    pub machine_preferences: Option<MachinePreferences>,
-    /// persistentDiskType property.
-    pub persistent_disk_type: Option<String>,
+pub struct RegionPreferences {
+    /// preferredRegions property.
+    pub preferred_regions: Option<Vec<String>>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ReportSummaryVmwareNode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportSummaryVmwareNode {
+    /// code property.
+    pub code: Option<String>,
 }
 
 /// `VmwareEnginePreferences` type.
@@ -277,88 +360,6 @@ pub struct VmwareEnginePreferences {
     pub memory_overcommit_ratio: Option<f64>,
     /// storageDeduplicationCompressionRatio property.
     pub storage_deduplication_compression_ratio: Option<f64>,
-}
-
-/// `ReportSummaryGroupFinding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportSummaryGroupFinding {
-    /// assetAggregateStats property.
-    pub asset_aggregate_stats: Option<ReportSummaryAssetAggregateStats>,
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// overlappingAssetCount property.
-    pub overlapping_asset_count: Option<String>,
-    /// preferenceSetFindings property.
-    pub preference_set_findings: Option<Vec<ReportSummaryGroupPreferenceSetFinding>>,
-}
-
-/// `ReportSummaryComputeEngineFinding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportSummaryComputeEngineFinding {
-    /// allocatedAssetCount property.
-    pub allocated_asset_count: Option<String>,
-    /// allocatedDiskTypes property.
-    pub allocated_disk_types: Option<Vec<String>>,
-    /// allocatedRegions property.
-    pub allocated_regions: Option<Vec<String>>,
-    /// machineSeriesAllocations property.
-    pub machine_series_allocations: Option<Vec<ReportSummaryMachineSeriesAllocation>>,
-}
-
-/// `ReportSummarySoleTenantFinding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportSummarySoleTenantFinding {
-    /// allocatedAssetCount property.
-    pub allocated_asset_count: Option<String>,
-    /// allocatedRegions property.
-    pub allocated_regions: Option<Vec<String>>,
-    /// nodeAllocations property.
-    pub node_allocations: Option<Vec<ReportSummarySoleTenantNodeAllocation>>,
-}
-
-/// `ReportSummaryVmwareNode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportSummaryVmwareNode {
-    /// code property.
-    pub code: Option<String>,
-}
-
-/// `ReportSummarySoleTenantNodeAllocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportSummarySoleTenantNodeAllocation {
-    /// allocatedAssetCount property.
-    pub allocated_asset_count: Option<String>,
-    /// node property.
-    pub node: Option<SoleTenantNodeType>,
-    /// nodeCount property.
-    pub node_count: Option<String>,
-}
-
-/// `ListReportsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListReportsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// reports property.
-    pub reports: Option<Vec<Report>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `MachinePreferences` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MachinePreferences {
-    /// allowedMachineSeries property.
-    pub allowed_machine_series: Option<Vec<MachineSeries>>,
-}
-
-/// `ReportSummaryHistogramChartData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportSummaryHistogramChartData {
-    /// buckets property.
-    pub buckets: Option<Vec<ReportSummaryHistogramChartDataBucket>>,
 }
 
 // =============================================================================

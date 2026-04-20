@@ -12,23 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Empty;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListLinkedAdUnitsResponse` type.
+/// `ListCustomChannelsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListLinkedAdUnitsResponse {
-    /// adUnits property.
-    pub ad_units: Option<Vec<AdUnit>>,
+pub struct ListCustomChannelsResponse {
+    /// customChannels property.
+    pub custom_channels: Option<Vec<CustomChannel>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
 }
@@ -57,19 +61,6 @@ pub struct ContentAdsSettings {
     pub r#type: Option<String>,
 }
 
-/// `Empty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
-
-/// `ListCustomChannelsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCustomChannelsResponse {
-    /// customChannels property.
-    pub custom_channels: Option<Vec<CustomChannel>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
 /// `CustomChannel` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomChannel {
@@ -81,6 +72,15 @@ pub struct CustomChannel {
     pub name: Option<String>,
     /// reportingDimensionId property.
     pub reporting_dimension_id: Option<String>,
+}
+
+/// `ListLinkedAdUnitsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListLinkedAdUnitsResponse {
+    /// adUnits property.
+    pub ad_units: Option<Vec<AdUnit>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

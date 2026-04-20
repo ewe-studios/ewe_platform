@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,24 +24,181 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `VerifyJob` type.
+/// `CustomMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VerifyJob {
+pub struct CustomMetadata {
+    /// values property.
+    pub values: Option<serde_json::Value>,
+}
+
+/// `DeployParameters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeployParameters {
+    /// matchTargetLabels property.
+    pub match_target_labels: Option<serde_json::Value>,
+    /// values property.
+    pub values: Option<serde_json::Value>,
+}
+
+/// `AlertPolicyCheck` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AlertPolicyCheck {
+    /// alertPolicies property.
+    pub alert_policies: Option<Vec<String>>,
+    /// id property.
+    pub id: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+}
+
+/// `ListDeliveryPipelinesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDeliveryPipelinesResponse {
+    /// deliveryPipelines property.
+    pub delivery_pipelines: Option<Vec<DeliveryPipeline>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `CanaryDeployment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CanaryDeployment {
+    /// analysis property.
+    pub analysis: Option<Analysis>,
+    /// percentages property.
+    pub percentages: Option<Vec<i64>>,
+    /// postdeploy property.
+    pub postdeploy: Option<Postdeploy>,
+    /// predeploy property.
+    pub predeploy: Option<Predeploy>,
+    /// verify property.
+    pub verify: Option<bool>,
+    /// verifyConfig property.
+    pub verify_config: Option<Verify>,
+}
+
+/// `CloudRunConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudRunConfig {
+    /// automaticTrafficControl property.
+    pub automatic_traffic_control: Option<bool>,
+    /// canaryRevisionTags property.
+    pub canary_revision_tags: Option<Vec<String>>,
+    /// priorRevisionTags property.
+    pub prior_revision_tags: Option<Vec<String>>,
+    /// stableRevisionTags property.
+    pub stable_revision_tags: Option<Vec<String>>,
+}
+
+/// `PipelineReadyCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PipelineReadyCondition {
+    /// status property.
+    pub status: Option<bool>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `Metadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Metadata {
+    /// automation property.
+    pub automation: Option<AutomationRolloutMetadata>,
+    /// cloudRun property.
+    pub cloud_run: Option<CloudRunMetadata>,
+    /// custom property.
+    pub custom: Option<CustomMetadata>,
+}
+
+/// `PredeployJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PredeployJob {
+    /// actions property.
+    pub actions: Option<Vec<String>>,
     /// tasks property.
     pub tasks: Option<Vec<Task>>,
 }
 
-/// `GoogleCloudAnalysis` type.
+/// `RollbackTargetResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAnalysis {
-    /// alertPolicyChecks property.
-    pub alert_policy_checks: Option<Vec<AlertPolicyCheck>>,
+pub struct RollbackTargetResponse {
+    /// rollbackConfig property.
+    pub rollback_config: Option<RollbackTargetConfig>,
+}
+
+/// `Verify` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Verify {
+    /// tasks property.
+    pub tasks: Option<Vec<Task>>,
+}
+
+/// `AnalysisJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AnalysisJob {
+    /// customChecks property.
+    pub custom_checks: Option<Vec<CustomCheck>>,
+    /// duration property.
+    pub duration: Option<String>,
+    /// googleCloud property.
+    pub google_cloud: Option<GoogleCloudAnalysis>,
+}
+
+/// `Job` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Job {
+    /// advanceChildRolloutJob property.
+    pub advance_child_rollout_job: Option<AdvanceChildRolloutJob>,
+    /// analysisJob property.
+    pub analysis_job: Option<AnalysisJob>,
+    /// createChildRolloutJob property.
+    pub create_child_rollout_job: Option<CreateChildRolloutJob>,
+    /// deployJob property.
+    pub deploy_job: Option<DeployJob>,
+    /// id property.
+    pub id: Option<String>,
+    /// jobRun property.
+    pub job_run: Option<String>,
+    /// postdeployJob property.
+    pub postdeploy_job: Option<PostdeployJob>,
+    /// predeployJob property.
+    pub predeploy_job: Option<PredeployJob>,
+    /// skipMessage property.
+    pub skip_message: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// verifyJob property.
+    pub verify_job: Option<VerifyJob>,
+}
+
+/// `TargetsPresentCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TargetsPresentCondition {
+    /// missingTargets property.
+    pub missing_targets: Option<Vec<String>>,
+    /// status property.
+    pub status: Option<bool>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `Rollout` type.
@@ -94,119 +252,22 @@ pub struct Rollout {
     pub uid: Option<String>,
 }
 
-/// `ChildRolloutJobs` type.
+/// `TargetsTypeCondition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChildRolloutJobs {
-    /// advanceRolloutJobs property.
-    pub advance_rollout_jobs: Option<Vec<Job>>,
-    /// createRolloutJobs property.
-    pub create_rollout_jobs: Option<Vec<Job>>,
+pub struct TargetsTypeCondition {
+    /// errorDetails property.
+    pub error_details: Option<String>,
+    /// status property.
+    pub status: Option<bool>,
 }
 
-/// `DeployJob` type.
+/// `RuntimeConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeployJob {}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `RollbackTargetConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RollbackTargetConfig {
-    /// rollout property.
-    pub rollout: Option<Rollout>,
-    /// startingPhaseId property.
-    pub starting_phase_id: Option<String>,
-}
-
-/// `KubernetesConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KubernetesConfig {
-    /// gatewayServiceMesh property.
-    pub gateway_service_mesh: Option<GatewayServiceMesh>,
-    /// serviceNetworking property.
-    pub service_networking: Option<ServiceNetworking>,
-}
-
-/// `PredeployJob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PredeployJob {
-    /// actions property.
-    pub actions: Option<Vec<String>>,
-    /// tasks property.
-    pub tasks: Option<Vec<Task>>,
-}
-
-/// `ContainerTask` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContainerTask {
-    /// args property.
-    pub args: Option<Vec<String>>,
-    /// command property.
-    pub command: Option<Vec<String>>,
-    /// env property.
-    pub env: Option<serde_json::Value>,
-    /// image property.
-    pub image: Option<String>,
-}
-
-/// `CloudRunConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudRunConfig {
-    /// automaticTrafficControl property.
-    pub automatic_traffic_control: Option<bool>,
-    /// canaryRevisionTags property.
-    pub canary_revision_tags: Option<Vec<String>>,
-    /// priorRevisionTags property.
-    pub prior_revision_tags: Option<Vec<String>>,
-    /// stableRevisionTags property.
-    pub stable_revision_tags: Option<Vec<String>>,
-}
-
-/// `CustomCheck` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomCheck {
-    /// frequency property.
-    pub frequency: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// task property.
-    pub task: Option<Task>,
-}
-
-/// `CustomMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomMetadata {
-    /// values property.
-    pub values: Option<serde_json::Value>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct RuntimeConfig {
+    /// cloudRun property.
+    pub cloud_run: Option<CloudRunConfig>,
+    /// kubernetes property.
+    pub kubernetes: Option<KubernetesConfig>,
 }
 
 /// `Postdeploy` type.
@@ -218,49 +279,20 @@ pub struct Postdeploy {
     pub tasks: Option<Vec<Task>>,
 }
 
-/// `RouteDestinations` type.
+/// `AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouteDestinations {
-    /// destinationIds property.
-    pub destination_ids: Option<Vec<String>>,
-    /// propagateService property.
-    pub propagate_service: Option<bool>,
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
-/// `PipelineCondition` type.
+/// `GoogleCloudAnalysis` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PipelineCondition {
-    /// pipelineReadyCondition property.
-    pub pipeline_ready_condition: Option<PipelineReadyCondition>,
-    /// targetsPresentCondition property.
-    pub targets_present_condition: Option<TargetsPresentCondition>,
-    /// targetsTypeCondition property.
-    pub targets_type_condition: Option<TargetsTypeCondition>,
-}
-
-/// `Verify` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Verify {
-    /// tasks property.
-    pub tasks: Option<Vec<Task>>,
-}
-
-/// `AlertPolicyCheck` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AlertPolicyCheck {
-    /// alertPolicies property.
-    pub alert_policies: Option<Vec<String>>,
-    /// id property.
-    pub id: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-}
-
-/// `SerialPipeline` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SerialPipeline {
-    /// stages property.
-    pub stages: Option<Vec<Stage>>,
+pub struct GoogleCloudAnalysis {
+    /// alertPolicyChecks property.
+    pub alert_policy_checks: Option<Vec<AlertPolicyCheck>>,
 }
 
 /// `DeploymentJobs` type.
@@ -295,189 +327,6 @@ pub struct CloudRunMetadata {
     pub worker_pool: Option<String>,
 }
 
-/// `RollbackTargetResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RollbackTargetResponse {
-    /// rollbackConfig property.
-    pub rollback_config: Option<RollbackTargetConfig>,
-}
-
-/// `CreateChildRolloutJob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateChildRolloutJob {}
-
-/// `TargetsPresentCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TargetsPresentCondition {
-    /// missingTargets property.
-    pub missing_targets: Option<Vec<String>>,
-    /// status property.
-    pub status: Option<bool>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `Standard` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Standard {
-    /// analysis property.
-    pub analysis: Option<Analysis>,
-    /// postdeploy property.
-    pub postdeploy: Option<Postdeploy>,
-    /// predeploy property.
-    pub predeploy: Option<Predeploy>,
-    /// verify property.
-    pub verify: Option<bool>,
-    /// verifyConfig property.
-    pub verify_config: Option<Verify>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `Predeploy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Predeploy {
-    /// actions property.
-    pub actions: Option<Vec<String>>,
-    /// tasks property.
-    pub tasks: Option<Vec<Task>>,
-}
-
-/// `AutomationRolloutMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutomationRolloutMetadata {
-    /// advanceAutomationRuns property.
-    pub advance_automation_runs: Option<Vec<String>>,
-    /// promoteAutomationRun property.
-    pub promote_automation_run: Option<String>,
-    /// repairAutomationRuns property.
-    pub repair_automation_runs: Option<Vec<String>>,
-}
-
-/// `GatewayServiceMesh` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GatewayServiceMesh {
-    /// deployment property.
-    pub deployment: Option<String>,
-    /// httpRoute property.
-    pub http_route: Option<String>,
-    /// podSelectorLabel property.
-    pub pod_selector_label: Option<String>,
-    /// routeDestinations property.
-    pub route_destinations: Option<RouteDestinations>,
-    /// routeUpdateWaitTime property.
-    pub route_update_wait_time: Option<String>,
-    /// service property.
-    pub service: Option<String>,
-    /// stableCutbackDuration property.
-    pub stable_cutback_duration: Option<String>,
-}
-
-/// `PhaseConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PhaseConfig {
-    /// analysis property.
-    pub analysis: Option<Analysis>,
-    /// percentage property.
-    pub percentage: Option<i64>,
-    /// phaseId property.
-    pub phase_id: Option<String>,
-    /// postdeploy property.
-    pub postdeploy: Option<Postdeploy>,
-    /// predeploy property.
-    pub predeploy: Option<Predeploy>,
-    /// profiles property.
-    pub profiles: Option<Vec<String>>,
-    /// verify property.
-    pub verify: Option<bool>,
-    /// verifyConfig property.
-    pub verify_config: Option<Verify>,
-}
-
-/// `Task` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Task {
-    /// container property.
-    pub container: Option<ContainerTask>,
-}
-
-/// `RuntimeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RuntimeConfig {
-    /// cloudRun property.
-    pub cloud_run: Option<CloudRunConfig>,
-    /// kubernetes property.
-    pub kubernetes: Option<KubernetesConfig>,
-}
-
-/// `AdvanceChildRolloutJob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdvanceChildRolloutJob {}
-
-/// `AnalysisJob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AnalysisJob {
-    /// customChecks property.
-    pub custom_checks: Option<Vec<CustomCheck>>,
-    /// duration property.
-    pub duration: Option<String>,
-    /// googleCloud property.
-    pub google_cloud: Option<GoogleCloudAnalysis>,
-}
-
-/// `Canary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Canary {
-    /// canaryDeployment property.
-    pub canary_deployment: Option<CanaryDeployment>,
-    /// customCanaryDeployment property.
-    pub custom_canary_deployment: Option<CustomCanaryDeployment>,
-    /// runtimeConfig property.
-    pub runtime_config: Option<RuntimeConfig>,
-}
-
-/// `TargetsTypeCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TargetsTypeCondition {
-    /// errorDetails property.
-    pub error_details: Option<String>,
-    /// status property.
-    pub status: Option<bool>,
-}
-
-/// `DeployParameters` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeployParameters {
-    /// matchTargetLabels property.
-    pub match_target_labels: Option<serde_json::Value>,
-    /// values property.
-    pub values: Option<serde_json::Value>,
-}
-
-/// `CanaryDeployment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CanaryDeployment {
-    /// analysis property.
-    pub analysis: Option<Analysis>,
-    /// percentages property.
-    pub percentages: Option<Vec<i64>>,
-    /// postdeploy property.
-    pub postdeploy: Option<Postdeploy>,
-    /// predeploy property.
-    pub predeploy: Option<Predeploy>,
-    /// verify property.
-    pub verify: Option<bool>,
-    /// verifyConfig property.
-    pub verify_config: Option<Verify>,
-}
-
 /// `DeliveryPipeline` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeliveryPipeline {
@@ -505,16 +354,33 @@ pub struct DeliveryPipeline {
     pub update_time: Option<String>,
 }
 
-/// `Analysis` type.
+/// `AdvanceChildRolloutJob` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Analysis {
-    /// customChecks property.
-    pub custom_checks: Option<Vec<CustomCheck>>,
-    /// duration property.
-    pub duration: Option<String>,
-    /// googleCloud property.
-    pub google_cloud: Option<GoogleCloudAnalysis>,
+pub struct AdvanceChildRolloutJob {}
+
+/// `PostdeployJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostdeployJob {
+    /// actions property.
+    pub actions: Option<Vec<String>>,
+    /// tasks property.
+    pub tasks: Option<Vec<Task>>,
 }
+
+/// `CustomCheck` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomCheck {
+    /// frequency property.
+    pub frequency: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// task property.
+    pub task: Option<Task>,
+}
+
+/// `CreateChildRolloutJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateChildRolloutJob {}
 
 /// `Stage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -529,17 +395,103 @@ pub struct Stage {
     pub target_id: Option<String>,
 }
 
-/// `ServiceNetworking` type.
+/// `Strategy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceNetworking {
+pub struct Strategy {
+    /// canary property.
+    pub canary: Option<Canary>,
+    /// standard property.
+    pub standard: Option<Standard>,
+}
+
+/// `Canary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Canary {
+    /// canaryDeployment property.
+    pub canary_deployment: Option<CanaryDeployment>,
+    /// customCanaryDeployment property.
+    pub custom_canary_deployment: Option<CustomCanaryDeployment>,
+    /// runtimeConfig property.
+    pub runtime_config: Option<RuntimeConfig>,
+}
+
+/// `ContainerTask` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContainerTask {
+    /// args property.
+    pub args: Option<Vec<String>>,
+    /// command property.
+    pub command: Option<Vec<String>>,
+    /// env property.
+    pub env: Option<serde_json::Value>,
+    /// image property.
+    pub image: Option<String>,
+}
+
+/// `Standard` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Standard {
+    /// analysis property.
+    pub analysis: Option<Analysis>,
+    /// postdeploy property.
+    pub postdeploy: Option<Postdeploy>,
+    /// predeploy property.
+    pub predeploy: Option<Predeploy>,
+    /// verify property.
+    pub verify: Option<bool>,
+    /// verifyConfig property.
+    pub verify_config: Option<Verify>,
+}
+
+/// `RollbackTargetConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RollbackTargetConfig {
+    /// rollout property.
+    pub rollout: Option<Rollout>,
+    /// startingPhaseId property.
+    pub starting_phase_id: Option<String>,
+}
+
+/// `SerialPipeline` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SerialPipeline {
+    /// stages property.
+    pub stages: Option<Vec<Stage>>,
+}
+
+/// `Predeploy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Predeploy {
+    /// actions property.
+    pub actions: Option<Vec<String>>,
+    /// tasks property.
+    pub tasks: Option<Vec<Task>>,
+}
+
+/// `CustomCanaryDeployment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomCanaryDeployment {
+    /// phaseConfigs property.
+    pub phase_configs: Option<Vec<PhaseConfig>>,
+}
+
+/// `GatewayServiceMesh` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GatewayServiceMesh {
     /// deployment property.
     pub deployment: Option<String>,
-    /// disablePodOverprovisioning property.
-    pub disable_pod_overprovisioning: Option<bool>,
+    /// httpRoute property.
+    pub http_route: Option<String>,
     /// podSelectorLabel property.
     pub pod_selector_label: Option<String>,
+    /// routeDestinations property.
+    pub route_destinations: Option<RouteDestinations>,
+    /// routeUpdateWaitTime property.
+    pub route_update_wait_time: Option<String>,
     /// service property.
     pub service: Option<String>,
+    /// stableCutbackDuration property.
+    pub stable_cutback_duration: Option<String>,
 }
 
 /// `Phase` type.
@@ -557,80 +509,64 @@ pub struct Phase {
     pub state: Option<String>,
 }
 
-/// `PostdeployJob` type.
+/// `ServiceNetworking` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostdeployJob {
-    /// actions property.
-    pub actions: Option<Vec<String>>,
+pub struct ServiceNetworking {
+    /// deployment property.
+    pub deployment: Option<String>,
+    /// disablePodOverprovisioning property.
+    pub disable_pod_overprovisioning: Option<bool>,
+    /// podSelectorLabel property.
+    pub pod_selector_label: Option<String>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `ChildRolloutJobs` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChildRolloutJobs {
+    /// advanceRolloutJobs property.
+    pub advance_rollout_jobs: Option<Vec<Job>>,
+    /// createRolloutJobs property.
+    pub create_rollout_jobs: Option<Vec<Job>>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `VerifyJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VerifyJob {
     /// tasks property.
     pub tasks: Option<Vec<Task>>,
 }
 
-/// `PipelineReadyCondition` type.
+/// `PipelineCondition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PipelineReadyCondition {
-    /// status property.
-    pub status: Option<bool>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `Strategy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Strategy {
-    /// canary property.
-    pub canary: Option<Canary>,
-    /// standard property.
-    pub standard: Option<Standard>,
-}
-
-/// `ListDeliveryPipelinesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDeliveryPipelinesResponse {
-    /// deliveryPipelines property.
-    pub delivery_pipelines: Option<Vec<DeliveryPipeline>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `Metadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Metadata {
-    /// automation property.
-    pub automation: Option<AutomationRolloutMetadata>,
-    /// cloudRun property.
-    pub cloud_run: Option<CloudRunMetadata>,
-    /// custom property.
-    pub custom: Option<CustomMetadata>,
-}
-
-/// `Job` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Job {
-    /// advanceChildRolloutJob property.
-    pub advance_child_rollout_job: Option<AdvanceChildRolloutJob>,
-    /// analysisJob property.
-    pub analysis_job: Option<AnalysisJob>,
-    /// createChildRolloutJob property.
-    pub create_child_rollout_job: Option<CreateChildRolloutJob>,
-    /// deployJob property.
-    pub deploy_job: Option<DeployJob>,
-    /// id property.
-    pub id: Option<String>,
-    /// jobRun property.
-    pub job_run: Option<String>,
-    /// postdeployJob property.
-    pub postdeploy_job: Option<PostdeployJob>,
-    /// predeployJob property.
-    pub predeploy_job: Option<PredeployJob>,
-    /// skipMessage property.
-    pub skip_message: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// verifyJob property.
-    pub verify_job: Option<VerifyJob>,
+pub struct PipelineCondition {
+    /// pipelineReadyCondition property.
+    pub pipeline_ready_condition: Option<PipelineReadyCondition>,
+    /// targetsPresentCondition property.
+    pub targets_present_condition: Option<TargetsPresentCondition>,
+    /// targetsTypeCondition property.
+    pub targets_type_condition: Option<TargetsTypeCondition>,
 }
 
 /// `Expr` type.
@@ -646,11 +582,76 @@ pub struct Expr {
     pub title: Option<String>,
 }
 
-/// `CustomCanaryDeployment` type.
+/// `Task` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomCanaryDeployment {
-    /// phaseConfigs property.
-    pub phase_configs: Option<Vec<PhaseConfig>>,
+pub struct Task {
+    /// container property.
+    pub container: Option<ContainerTask>,
+}
+
+/// `DeployJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeployJob {}
+
+/// `KubernetesConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KubernetesConfig {
+    /// gatewayServiceMesh property.
+    pub gateway_service_mesh: Option<GatewayServiceMesh>,
+    /// serviceNetworking property.
+    pub service_networking: Option<ServiceNetworking>,
+}
+
+/// `Analysis` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Analysis {
+    /// customChecks property.
+    pub custom_checks: Option<Vec<CustomCheck>>,
+    /// duration property.
+    pub duration: Option<String>,
+    /// googleCloud property.
+    pub google_cloud: Option<GoogleCloudAnalysis>,
+}
+
+/// `RouteDestinations` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouteDestinations {
+    /// destinationIds property.
+    pub destination_ids: Option<Vec<String>>,
+    /// propagateService property.
+    pub propagate_service: Option<bool>,
+}
+
+/// `PhaseConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PhaseConfig {
+    /// analysis property.
+    pub analysis: Option<Analysis>,
+    /// percentage property.
+    pub percentage: Option<i64>,
+    /// phaseId property.
+    pub phase_id: Option<String>,
+    /// postdeploy property.
+    pub postdeploy: Option<Postdeploy>,
+    /// predeploy property.
+    pub predeploy: Option<Predeploy>,
+    /// profiles property.
+    pub profiles: Option<Vec<String>>,
+    /// verify property.
+    pub verify: Option<bool>,
+    /// verifyConfig property.
+    pub verify_config: Option<Verify>,
+}
+
+/// `AutomationRolloutMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutomationRolloutMetadata {
+    /// advanceAutomationRuns property.
+    pub advance_automation_runs: Option<Vec<String>>,
+    /// promoteAutomationRun property.
+    pub promote_automation_run: Option<String>,
+    /// repairAutomationRuns property.
+    pub repair_automation_runs: Option<Vec<String>>,
 }
 
 // =============================================================================

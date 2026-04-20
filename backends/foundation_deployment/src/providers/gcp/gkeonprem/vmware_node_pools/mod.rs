@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,35 +24,43 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `VmwareNodeConfig` type.
+/// `VmwareVsphereConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareNodeConfig {
-    /// bootDiskSizeGb property.
-    pub boot_disk_size_gb: Option<String>,
-    /// cpus property.
-    pub cpus: Option<String>,
-    /// enableLoadBalancer property.
-    pub enable_load_balancer: Option<bool>,
-    /// image property.
-    pub image: Option<String>,
-    /// imageType property.
-    pub image_type: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// memoryMb property.
-    pub memory_mb: Option<String>,
-    /// replicas property.
-    pub replicas: Option<String>,
-    /// taints property.
-    pub taints: Option<Vec<NodeTaint>>,
-    /// vsphereConfig property.
-    pub vsphere_config: Option<VmwareVsphereConfig>,
+pub struct VmwareVsphereConfig {
+    /// datastore property.
+    pub datastore: Option<String>,
+    /// hostGroups property.
+    pub host_groups: Option<Vec<String>>,
+    /// tags property.
+    pub tags: Option<Vec<VmwareVsphereTag>>,
+}
+
+/// `NodeTaint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodeTaint {
+    /// effect property.
+    pub effect: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `Expr` type.
@@ -67,46 +76,11 @@ pub struct Expr {
     pub title: Option<String>,
 }
 
-/// `Binding` type.
+/// `Versions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `VmwareNodePoolAutoscalingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareNodePoolAutoscalingConfig {
-    /// maxReplicas property.
-    pub max_replicas: Option<i64>,
-    /// minReplicas property.
-    pub min_replicas: Option<i64>,
-}
-
-/// `VmwareVsphereConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareVsphereConfig {
-    /// datastore property.
-    pub datastore: Option<String>,
-    /// hostGroups property.
-    pub host_groups: Option<Vec<String>>,
-    /// tags property.
-    pub tags: Option<Vec<VmwareVsphereTag>>,
-}
-
-/// `ListVmwareNodePoolsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListVmwareNodePoolsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-    /// vmwareNodePools property.
-    pub vmware_node_pools: Option<Vec<VmwareNodePool>>,
+pub struct Versions {
+    /// versions property.
+    pub versions: Option<Vec<Version>>,
 }
 
 /// `Version` type.
@@ -118,21 +92,6 @@ pub struct Version {
     pub version: Option<String>,
 }
 
-/// `ResourceCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceCondition {
-    /// lastTransitionTime property.
-    pub last_transition_time: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
 /// `VmwareVsphereTag` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareVsphereTag {
@@ -142,24 +101,24 @@ pub struct VmwareVsphereTag {
     pub tag: Option<String>,
 }
 
-/// `ResourceStatus` type.
+/// `VmwareNodePoolAutoscalingConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceStatus {
-    /// conditions property.
-    pub conditions: Option<Vec<ResourceCondition>>,
-    /// errorMessage property.
-    pub error_message: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-    /// versions property.
-    pub versions: Option<Versions>,
+pub struct VmwareNodePoolAutoscalingConfig {
+    /// maxReplicas property.
+    pub max_replicas: Option<i64>,
+    /// minReplicas property.
+    pub min_replicas: Option<i64>,
 }
 
-/// `Versions` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Versions {
-    /// versions property.
-    pub versions: Option<Vec<Version>>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `VmwareNodePool` type.
@@ -195,26 +154,68 @@ pub struct VmwareNodePool {
     pub update_time: Option<String>,
 }
 
-/// `NodeTaint` type.
+/// `VmwareNodeConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeTaint {
-    /// effect property.
-    pub effect: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct VmwareNodeConfig {
+    /// bootDiskSizeGb property.
+    pub boot_disk_size_gb: Option<String>,
+    /// cpus property.
+    pub cpus: Option<String>,
+    /// enableLoadBalancer property.
+    pub enable_load_balancer: Option<bool>,
+    /// image property.
+    pub image: Option<String>,
+    /// imageType property.
+    pub image_type: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// memoryMb property.
+    pub memory_mb: Option<String>,
+    /// replicas property.
+    pub replicas: Option<String>,
+    /// taints property.
+    pub taints: Option<Vec<NodeTaint>>,
+    /// vsphereConfig property.
+    pub vsphere_config: Option<VmwareVsphereConfig>,
 }
 
-/// `Status` type.
+/// `ResourceCondition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
+pub struct ResourceCondition {
+    /// lastTransitionTime property.
+    pub last_transition_time: Option<String>,
     /// message property.
     pub message: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ResourceStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceStatus {
+    /// conditions property.
+    pub conditions: Option<Vec<ResourceCondition>>,
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+    /// versions property.
+    pub versions: Option<Versions>,
+}
+
+/// `ListVmwareNodePoolsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListVmwareNodePoolsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+    /// vmwareNodePools property.
+    pub vmware_node_pools: Option<Vec<VmwareNodePool>>,
 }
 
 // =============================================================================

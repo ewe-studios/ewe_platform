@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,20 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Report;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListReportsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListReportsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// reports property.
+    pub reports: Option<Vec<Report>>,
+}
 
 /// `Parameters` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,6 +50,13 @@ pub struct Parameters {
     pub options: Option<Options>,
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `Options` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Options {
+    /// includeOnlyTargetedUserLists property.
+    pub include_only_targeted_user_lists: Option<bool>,
 }
 
 /// `Date` type.
@@ -73,15 +90,6 @@ pub struct ReportKey {
     pub report_id: Option<String>,
 }
 
-/// `ListReportsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListReportsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// reports property.
-    pub reports: Option<Vec<Report>>,
-}
-
 /// `FilterPair` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilterPair {
@@ -89,13 +97,6 @@ pub struct FilterPair {
     pub r#type: Option<String>,
     /// value property.
     pub value: Option<String>,
-}
-
-/// `Options` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Options {
-    /// includeOnlyTargetedUserLists property.
-    pub include_only_targeted_user_lists: Option<bool>,
 }
 
 /// `ReportMetadata` type.

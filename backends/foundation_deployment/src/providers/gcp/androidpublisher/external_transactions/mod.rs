@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Price` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Price {
-    /// currency property.
-    pub currency: Option<String>,
-    /// priceMicros property.
-    pub price_micros: Option<String>,
-}
 
 /// `ExternalTransaction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -68,22 +60,6 @@ pub struct ExternalTransaction {
     pub user_tax_address: Option<ExternalTransactionAddress>,
 }
 
-/// `ExternalTransactionAddress` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExternalTransactionAddress {
-    /// administrativeArea property.
-    pub administrative_area: Option<String>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-}
-
-/// `ExternalSubscription` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExternalSubscription {
-    /// subscriptionType property.
-    pub subscription_type: Option<String>,
-}
-
 /// `ExternalOfferDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalOfferDetails {
@@ -97,9 +73,12 @@ pub struct ExternalOfferDetails {
     pub link_type: Option<String>,
 }
 
-/// `ExternalTransactionTestPurchase` type.
+/// `OneTimeExternalTransaction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExternalTransactionTestPurchase {}
+pub struct OneTimeExternalTransaction {
+    /// externalTransactionToken property.
+    pub external_transaction_token: Option<String>,
+}
 
 /// `RecurringExternalTransaction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -120,11 +99,33 @@ pub struct RecurringExternalTransaction {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OtherRecurringProduct {}
 
-/// `OneTimeExternalTransaction` type.
+/// `ExternalTransactionTestPurchase` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OneTimeExternalTransaction {
-    /// externalTransactionToken property.
-    pub external_transaction_token: Option<String>,
+pub struct ExternalTransactionTestPurchase {}
+
+/// `ExternalSubscription` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExternalSubscription {
+    /// subscriptionType property.
+    pub subscription_type: Option<String>,
+}
+
+/// `ExternalTransactionAddress` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExternalTransactionAddress {
+    /// administrativeArea property.
+    pub administrative_area: Option<String>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+}
+
+/// `Price` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Price {
+    /// currency property.
+    pub currency: Option<String>,
+    /// priceMicros property.
+    pub price_micros: Option<String>,
 }
 
 // =============================================================================

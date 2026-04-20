@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -29,13 +30,6 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 pub struct SecurityPoliciesListPreconfiguredExpressionSetsResponse {
     /// preconfiguredExpressionSets property.
     pub preconfigured_expression_sets: Option<SecurityPoliciesWafConfig>,
-}
-
-/// `PreconfiguredWafSet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreconfiguredWafSet {
-    /// expressionSets property.
-    pub expression_sets: Option<Vec<WafExpressionSet>>,
 }
 
 /// `WafExpressionSet` type.
@@ -49,13 +43,11 @@ pub struct WafExpressionSet {
     pub id: Option<String>,
 }
 
-/// `WafExpressionSetExpression` type.
+/// `PreconfiguredWafSet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WafExpressionSetExpression {
-    /// id property.
-    pub id: Option<String>,
-    /// sensitivity property.
-    pub sensitivity: Option<i64>,
+pub struct PreconfiguredWafSet {
+    /// expressionSets property.
+    pub expression_sets: Option<Vec<WafExpressionSet>>,
 }
 
 /// `SecurityPoliciesWafConfig` type.
@@ -63,6 +55,15 @@ pub struct WafExpressionSetExpression {
 pub struct SecurityPoliciesWafConfig {
     /// wafRules property.
     pub waf_rules: Option<PreconfiguredWafSet>,
+}
+
+/// `WafExpressionSetExpression` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WafExpressionSetExpression {
+    /// id property.
+    pub id: Option<String>,
+    /// sensitivity property.
+    pub sensitivity: Option<i64>,
 }
 
 // =============================================================================

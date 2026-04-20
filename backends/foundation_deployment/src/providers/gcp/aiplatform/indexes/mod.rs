@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,15 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudAiplatformV1UpsertDatapointsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1UpsertDatapointsResponse {}
 
 /// `GoogleCloudAiplatformV1EncryptionSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -37,21 +34,6 @@ pub struct GoogleCloudAiplatformV1EncryptionSpec {
     /// kmsKeyName property.
     pub kms_key_name: Option<String>,
 }
-
-/// `GoogleCloudAiplatformV1IndexStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1IndexStats {
-    /// shardsCount property.
-    pub shards_count: Option<i64>,
-    /// sparseVectorsCount property.
-    pub sparse_vectors_count: Option<String>,
-    /// vectorsCount property.
-    pub vectors_count: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1RemoveDatapointsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RemoveDatapointsResponse {}
 
 /// `GoogleCloudAiplatformV1Index` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -88,14 +70,31 @@ pub struct GoogleCloudAiplatformV1Index {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1ListIndexesResponse` type.
+/// `GoogleCloudAiplatformV1DeployedIndexRef` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListIndexesResponse {
-    /// indexes property.
-    pub indexes: Option<Vec<GoogleCloudAiplatformV1Index>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct GoogleCloudAiplatformV1DeployedIndexRef {
+    /// deployedIndexId property.
+    pub deployed_index_id: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// indexEndpoint property.
+    pub index_endpoint: Option<String>,
 }
+
+/// `GoogleCloudAiplatformV1IndexStats` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1IndexStats {
+    /// shardsCount property.
+    pub shards_count: Option<i64>,
+    /// sparseVectorsCount property.
+    pub sparse_vectors_count: Option<String>,
+    /// vectorsCount property.
+    pub vectors_count: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1UpsertDatapointsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1UpsertDatapointsResponse {}
 
 /// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -108,15 +107,17 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1DeployedIndexRef` type.
+/// `GoogleCloudAiplatformV1RemoveDatapointsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DeployedIndexRef {
-    /// deployedIndexId property.
-    pub deployed_index_id: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// indexEndpoint property.
-    pub index_endpoint: Option<String>,
+pub struct GoogleCloudAiplatformV1RemoveDatapointsResponse {}
+
+/// `GoogleCloudAiplatformV1ListIndexesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ListIndexesResponse {
+    /// indexes property.
+    pub indexes: Option<Vec<GoogleCloudAiplatformV1Index>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

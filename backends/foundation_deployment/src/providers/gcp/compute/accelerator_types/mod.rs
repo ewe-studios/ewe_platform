@@ -12,17 +12,33 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `DeprecationStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeprecationStatus {
+    /// deleted property.
+    pub deleted: Option<String>,
+    /// deprecated property.
+    pub deprecated: Option<String>,
+    /// obsolete property.
+    pub obsolete: Option<String>,
+    /// replacement property.
+    pub replacement: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
 
 /// `AcceleratorTypeList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -41,19 +57,23 @@ pub struct AcceleratorTypeList {
     pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `DeprecationStatus` type.
+/// `AcceleratorTypeAggregatedList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeprecationStatus {
-    /// deleted property.
-    pub deleted: Option<String>,
-    /// deprecated property.
-    pub deprecated: Option<String>,
-    /// obsolete property.
-    pub obsolete: Option<String>,
-    /// replacement property.
-    pub replacement: Option<String>,
-    /// state property.
-    pub state: Option<String>,
+pub struct AcceleratorTypeAggregatedList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<serde_json::Value>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// unreachables property.
+    pub unreachables: Option<Vec<String>>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `AcceleratorType` type.
@@ -77,25 +97,6 @@ pub struct AcceleratorType {
     pub self_link: Option<String>,
     /// zone property.
     pub zone: Option<String>,
-}
-
-/// `AcceleratorTypeAggregatedList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcceleratorTypeAggregatedList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<serde_json::Value>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// unreachables property.
-    pub unreachables: Option<Vec<String>>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 // =============================================================================

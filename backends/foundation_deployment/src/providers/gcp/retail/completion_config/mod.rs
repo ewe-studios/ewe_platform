@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -51,13 +52,6 @@ pub struct GoogleCloudRetailV2CompletionConfig {
     pub suggestions_input_config: Option<GoogleCloudRetailV2CompletionDataInputConfig>,
 }
 
-/// `GoogleCloudRetailV2CompletionDataInputConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2CompletionDataInputConfig {
-    /// bigQuerySource property.
-    pub big_query_source: Option<GoogleCloudRetailV2BigQuerySource>,
-}
-
 /// `GoogleTypeDate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDate {
@@ -67,6 +61,13 @@ pub struct GoogleTypeDate {
     pub month: Option<i64>,
     /// year property.
     pub year: Option<i64>,
+}
+
+/// `GoogleCloudRetailV2CompletionDataInputConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2CompletionDataInputConfig {
+    /// bigQuerySource property.
+    pub big_query_source: Option<GoogleCloudRetailV2BigQuerySource>,
 }
 
 /// `GoogleCloudRetailV2BigQuerySource` type.

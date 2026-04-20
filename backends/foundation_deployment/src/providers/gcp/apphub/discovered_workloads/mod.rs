@@ -12,60 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `DiscoveredWorkload` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiscoveredWorkload {
-    /// name property.
-    pub name: Option<String>,
-    /// workloadProperties property.
-    pub workload_properties: Option<WorkloadProperties>,
-    /// workloadReference property.
-    pub workload_reference: Option<WorkloadReference>,
-}
-
-/// `ListDiscoveredWorkloadsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDiscoveredWorkloadsResponse {
-    /// discoveredWorkloads property.
-    pub discovered_workloads: Option<Vec<DiscoveredWorkload>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `WorkloadReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkloadReference {
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `FunctionalType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FunctionalType {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `Identity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Identity {
-    /// principal property.
-    pub principal: Option<String>,
-}
 
 /// `WorkloadProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -82,6 +40,49 @@ pub struct WorkloadProperties {
     pub location: Option<String>,
     /// zone property.
     pub zone: Option<String>,
+}
+
+/// `DiscoveredWorkload` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiscoveredWorkload {
+    /// name property.
+    pub name: Option<String>,
+    /// workloadProperties property.
+    pub workload_properties: Option<WorkloadProperties>,
+    /// workloadReference property.
+    pub workload_reference: Option<WorkloadReference>,
+}
+
+/// `WorkloadReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkloadReference {
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `FunctionalType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FunctionalType {
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ListDiscoveredWorkloadsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDiscoveredWorkloadsResponse {
+    /// discoveredWorkloads property.
+    pub discovered_workloads: Option<Vec<DiscoveredWorkload>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `Identity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Identity {
+    /// principal property.
+    pub principal: Option<String>,
 }
 
 // =============================================================================

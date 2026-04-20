@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -32,9 +33,9 @@ pub struct A2AV1AgentInterface {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `A2AV1AgentCardSignature` response type.
+/// `A2AV1AgentSkill` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct A2AV1AgentCardSignature {
+pub struct A2AV1AgentSkill {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -43,6 +44,14 @@ pub struct A2AV1AgentCardSignature {
 /// `A2AV1AgentExtension` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2AV1AgentExtension {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `A2AV1AgentCapabilities` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct A2AV1AgentCapabilities {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -105,17 +114,9 @@ pub struct A2AV1Security {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `A2AV1AgentCapabilities` response type.
+/// `A2AV1AgentCardSignature` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct A2AV1AgentCapabilities {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `A2AV1AgentSkill` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct A2AV1AgentSkill {
+pub struct A2AV1AgentCardSignature {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

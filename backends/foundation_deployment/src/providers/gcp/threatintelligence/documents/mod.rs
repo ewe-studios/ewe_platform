@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `AlertDocumentTranslation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AlertDocumentTranslation {
+    /// translatedContent property.
+    pub translated_content: Option<String>,
+    /// translatedTitle property.
+    pub translated_title: Option<String>,
+}
 
 /// `AlertDocument` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -53,15 +63,6 @@ pub struct AlertDocument {
     pub title: Option<String>,
     /// translation property.
     pub translation: Option<AlertDocumentTranslation>,
-}
-
-/// `AlertDocumentTranslation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AlertDocumentTranslation {
-    /// translatedContent property.
-    pub translated_content: Option<String>,
-    /// translatedTitle property.
-    pub translated_title: Option<String>,
 }
 
 // =============================================================================

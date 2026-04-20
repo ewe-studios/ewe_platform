@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,21 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleRpcStatus` type.
+/// `GoogleCloudAiplatformV1ListDatasetVersionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct GoogleCloudAiplatformV1ListDatasetVersionsResponse {
+    /// datasetVersions property.
+    pub dataset_versions: Option<Vec<GoogleCloudAiplatformV1DatasetVersion>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1DatasetVersion` type.
@@ -63,13 +62,15 @@ pub struct GoogleCloudAiplatformV1DatasetVersion {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1ListDatasetVersionsResponse` type.
+/// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListDatasetVersionsResponse {
-    /// datasetVersions property.
-    pub dataset_versions: Option<Vec<GoogleCloudAiplatformV1DatasetVersion>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

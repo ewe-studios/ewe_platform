@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,11 +24,31 @@ use super::shared::Empty;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListApisResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListApisResponse {
+    /// apis property.
+    pub apis: Option<Vec<Api>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
 
 /// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,17 +61,6 @@ pub struct Expr {
     pub location: Option<String>,
     /// title property.
     pub title: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
 }
 
 /// `Api` type.
@@ -76,15 +86,6 @@ pub struct Api {
     pub recommended_version: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `ListApisResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListApisResponse {
-    /// apis property.
-    pub apis: Option<Vec<Api>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

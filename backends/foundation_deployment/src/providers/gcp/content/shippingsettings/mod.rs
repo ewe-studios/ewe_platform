@@ -12,121 +12,35 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `WarehouseBasedDeliveryTime` type.
+/// `TransitTableTransitTimeRow` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WarehouseBasedDeliveryTime {
-    /// carrier property.
-    pub carrier: Option<String>,
-    /// carrierService property.
-    pub carrier_service: Option<String>,
-    /// originAdministrativeArea property.
-    pub origin_administrative_area: Option<String>,
-    /// originCity property.
-    pub origin_city: Option<String>,
-    /// originCountry property.
-    pub origin_country: Option<String>,
-    /// originPostalCode property.
-    pub origin_postal_code: Option<String>,
-    /// originStreetAddress property.
-    pub origin_street_address: Option<String>,
-    /// warehouseName property.
-    pub warehouse_name: Option<String>,
+pub struct TransitTableTransitTimeRow {
+    /// values property.
+    pub values: Option<Vec<TransitTableTransitTimeRowTransitTimeValue>>,
 }
 
-/// `TransitTableTransitTimeRowTransitTimeValue` type.
+/// `ShippingsettingsListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransitTableTransitTimeRowTransitTimeValue {
-    /// maxTransitTimeInDays property.
-    pub max_transit_time_in_days: Option<i64>,
-    /// minTransitTimeInDays property.
-    pub min_transit_time_in_days: Option<i64>,
-}
-
-/// `ServiceStoreConfigCutoffConfigLocalCutoffTime` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceStoreConfigCutoffConfigLocalCutoffTime {
-    /// hour property.
-    pub hour: Option<String>,
-    /// minute property.
-    pub minute: Option<String>,
-}
-
-/// `PostalCodeGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostalCodeGroup {
-    /// country property.
-    pub country: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// postalCodeRanges property.
-    pub postal_code_ranges: Option<Vec<PostalCodeRange>>,
-}
-
-/// `Price` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Price {
-    /// currency property.
-    pub currency: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `PostalCodeRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostalCodeRange {
-    /// postalCodeRangeBegin property.
-    pub postal_code_range_begin: Option<String>,
-    /// postalCodeRangeEnd property.
-    pub postal_code_range_end: Option<String>,
-}
-
-/// `Value` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Value {
-    /// carrierRateName property.
-    pub carrier_rate_name: Option<String>,
-    /// flatRate property.
-    pub flat_rate: Option<Price>,
-    /// noShipping property.
-    pub no_shipping: Option<bool>,
-    /// pricePercentage property.
-    pub price_percentage: Option<String>,
-    /// subtableName property.
-    pub subtable_name: Option<String>,
-}
-
-/// `PickupCarrierService` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PickupCarrierService {
-    /// carrierName property.
-    pub carrier_name: Option<String>,
-    /// serviceName property.
-    pub service_name: Option<String>,
-}
-
-/// `Table` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Table {
-    /// columnHeaders property.
-    pub column_headers: Option<Headers>,
-    /// name property.
-    pub name: Option<String>,
-    /// rowHeaders property.
-    pub row_headers: Option<Headers>,
-    /// rows property.
-    pub rows: Option<Vec<Row>>,
+pub struct ShippingsettingsListResponse {
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// resources property.
+    pub resources: Option<Vec<ShippingSettings>>,
 }
 
 /// `WarehouseCutoffTime` type.
@@ -138,20 +52,17 @@ pub struct WarehouseCutoffTime {
     pub minute: Option<i64>,
 }
 
-/// `MinimumOrderValueTableStoreCodeSetWithMov` type.
+/// `ServiceStoreConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MinimumOrderValueTableStoreCodeSetWithMov {
+pub struct ServiceStoreConfig {
+    /// cutoffConfig property.
+    pub cutoff_config: Option<ServiceStoreConfigCutoffConfig>,
+    /// serviceRadius property.
+    pub service_radius: Option<Distance>,
     /// storeCodes property.
     pub store_codes: Option<Vec<String>>,
-    /// value property.
-    pub value: Option<Price>,
-}
-
-/// `BusinessDayConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BusinessDayConfig {
-    /// businessDays property.
-    pub business_days: Option<Vec<String>>,
+    /// storeServiceType property.
+    pub store_service_type: Option<String>,
 }
 
 /// `CarrierRate` type.
@@ -171,19 +82,124 @@ pub struct CarrierRate {
     pub percentage_adjustment: Option<String>,
 }
 
-/// `HolidayCutoff` type.
+/// `Price` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HolidayCutoff {
-    /// deadlineDate property.
-    pub deadline_date: Option<String>,
-    /// deadlineHour property.
-    pub deadline_hour: Option<i64>,
-    /// deadlineTimezone property.
-    pub deadline_timezone: Option<String>,
-    /// holidayId property.
-    pub holiday_id: Option<String>,
-    /// visibleFromDate property.
-    pub visible_from_date: Option<String>,
+pub struct Price {
+    /// currency property.
+    pub currency: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `PostalCodeGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostalCodeGroup {
+    /// country property.
+    pub country: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// postalCodeRanges property.
+    pub postal_code_ranges: Option<Vec<PostalCodeRange>>,
+}
+
+/// `Warehouse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Warehouse {
+    /// businessDayConfig property.
+    pub business_day_config: Option<BusinessDayConfig>,
+    /// cutoffTime property.
+    pub cutoff_time: Option<WarehouseCutoffTime>,
+    /// handlingDays property.
+    pub handling_days: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// shippingAddress property.
+    pub shipping_address: Option<Address>,
+}
+
+/// `MinimumOrderValueTable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MinimumOrderValueTable {
+    /// storeCodeSetWithMovs property.
+    pub store_code_set_with_movs: Option<Vec<MinimumOrderValueTableStoreCodeSetWithMov>>,
+}
+
+/// `Table` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Table {
+    /// columnHeaders property.
+    pub column_headers: Option<Headers>,
+    /// name property.
+    pub name: Option<String>,
+    /// rowHeaders property.
+    pub row_headers: Option<Headers>,
+    /// rows property.
+    pub rows: Option<Vec<Row>>,
+}
+
+/// `BusinessDayConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BusinessDayConfig {
+    /// businessDays property.
+    pub business_days: Option<Vec<String>>,
+}
+
+/// `TransitTable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TransitTable {
+    /// postalCodeGroupNames property.
+    pub postal_code_group_names: Option<Vec<String>>,
+    /// rows property.
+    pub rows: Option<Vec<TransitTableTransitTimeRow>>,
+    /// transitTimeLabels property.
+    pub transit_time_labels: Option<Vec<String>>,
+}
+
+/// `Weight` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Weight {
+    /// unit property.
+    pub unit: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `ServiceStoreConfigCutoffConfigLocalCutoffTime` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceStoreConfigCutoffConfigLocalCutoffTime {
+    /// hour property.
+    pub hour: Option<String>,
+    /// minute property.
+    pub minute: Option<String>,
+}
+
+/// `ServiceStoreConfigCutoffConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceStoreConfigCutoffConfig {
+    /// localCutoffTime property.
+    pub local_cutoff_time: Option<ServiceStoreConfigCutoffConfigLocalCutoffTime>,
+    /// noDeliveryPostCutoff property.
+    pub no_delivery_post_cutoff: Option<bool>,
+    /// storeCloseOffsetHours property.
+    pub store_close_offset_hours: Option<String>,
+}
+
+/// `PostalCodeRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostalCodeRange {
+    /// postalCodeRangeBegin property.
+    pub postal_code_range_begin: Option<String>,
+    /// postalCodeRangeEnd property.
+    pub postal_code_range_end: Option<String>,
+}
+
+/// `TransitTableTransitTimeRowTransitTimeValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TransitTableTransitTimeRowTransitTimeValue {
+    /// maxTransitTimeInDays property.
+    pub max_transit_time_in_days: Option<i64>,
+    /// minTransitTimeInDays property.
+    pub min_transit_time_in_days: Option<i64>,
 }
 
 /// `DeliveryTime` type.
@@ -211,6 +227,78 @@ pub struct DeliveryTime {
     pub warehouse_based_delivery_times: Option<Vec<WarehouseBasedDeliveryTime>>,
 }
 
+/// `ShippingSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShippingSettings {
+    /// accountId property.
+    pub account_id: Option<String>,
+    /// postalCodeGroups property.
+    pub postal_code_groups: Option<Vec<PostalCodeGroup>>,
+    /// services property.
+    pub services: Option<Vec<Service>>,
+    /// warehouses property.
+    pub warehouses: Option<Vec<Warehouse>>,
+}
+
+/// `Distance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Distance {
+    /// unit property.
+    pub unit: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `LocationIdSet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocationIdSet {
+    /// locationIds property.
+    pub location_ids: Option<Vec<String>>,
+}
+
+/// `Row` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Row {
+    /// cells property.
+    pub cells: Option<Vec<Value>>,
+}
+
+/// `Address` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Address {
+    /// administrativeArea property.
+    pub administrative_area: Option<String>,
+    /// city property.
+    pub city: Option<String>,
+    /// country property.
+    pub country: Option<String>,
+    /// postalCode property.
+    pub postal_code: Option<String>,
+    /// streetAddress property.
+    pub street_address: Option<String>,
+}
+
+/// `WarehouseBasedDeliveryTime` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WarehouseBasedDeliveryTime {
+    /// carrier property.
+    pub carrier: Option<String>,
+    /// carrierService property.
+    pub carrier_service: Option<String>,
+    /// originAdministrativeArea property.
+    pub origin_administrative_area: Option<String>,
+    /// originCity property.
+    pub origin_city: Option<String>,
+    /// originCountry property.
+    pub origin_country: Option<String>,
+    /// originPostalCode property.
+    pub origin_postal_code: Option<String>,
+    /// originStreetAddress property.
+    pub origin_street_address: Option<String>,
+    /// warehouseName property.
+    pub warehouse_name: Option<String>,
+}
+
 /// `Headers` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Headers {
@@ -226,22 +314,13 @@ pub struct Headers {
     pub weights: Option<Vec<Weight>>,
 }
 
-/// `ServiceStoreConfigCutoffConfig` type.
+/// `MinimumOrderValueTableStoreCodeSetWithMov` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceStoreConfigCutoffConfig {
-    /// localCutoffTime property.
-    pub local_cutoff_time: Option<ServiceStoreConfigCutoffConfigLocalCutoffTime>,
-    /// noDeliveryPostCutoff property.
-    pub no_delivery_post_cutoff: Option<bool>,
-    /// storeCloseOffsetHours property.
-    pub store_close_offset_hours: Option<String>,
-}
-
-/// `Row` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Row {
-    /// cells property.
-    pub cells: Option<Vec<Value>>,
+pub struct MinimumOrderValueTableStoreCodeSetWithMov {
+    /// storeCodes property.
+    pub store_codes: Option<Vec<String>>,
+    /// value property.
+    pub value: Option<Price>,
 }
 
 /// `CutoffTime` type.
@@ -253,6 +332,21 @@ pub struct CutoffTime {
     pub minute: Option<i64>,
     /// timezone property.
     pub timezone: Option<String>,
+}
+
+/// `Value` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Value {
+    /// carrierRateName property.
+    pub carrier_rate_name: Option<String>,
+    /// flatRate property.
+    pub flat_rate: Option<Price>,
+    /// noShipping property.
+    pub no_shipping: Option<bool>,
+    /// pricePercentage property.
+    pub price_percentage: Option<String>,
+    /// subtableName property.
+    pub subtable_name: Option<String>,
 }
 
 /// `Service` type.
@@ -284,48 +378,13 @@ pub struct Service {
     pub store_config: Option<ServiceStoreConfig>,
 }
 
-/// `TransitTableTransitTimeRow` type.
+/// `PickupCarrierService` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransitTableTransitTimeRow {
-    /// values property.
-    pub values: Option<Vec<TransitTableTransitTimeRowTransitTimeValue>>,
-}
-
-/// `ServiceStoreConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceStoreConfig {
-    /// cutoffConfig property.
-    pub cutoff_config: Option<ServiceStoreConfigCutoffConfig>,
-    /// serviceRadius property.
-    pub service_radius: Option<Distance>,
-    /// storeCodes property.
-    pub store_codes: Option<Vec<String>>,
-    /// storeServiceType property.
-    pub store_service_type: Option<String>,
-}
-
-/// `Distance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Distance {
-    /// unit property.
-    pub unit: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Address` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Address {
-    /// administrativeArea property.
-    pub administrative_area: Option<String>,
-    /// city property.
-    pub city: Option<String>,
-    /// country property.
-    pub country: Option<String>,
-    /// postalCode property.
-    pub postal_code: Option<String>,
-    /// streetAddress property.
-    pub street_address: Option<String>,
+pub struct PickupCarrierService {
+    /// carrierName property.
+    pub carrier_name: Option<String>,
+    /// serviceName property.
+    pub service_name: Option<String>,
 }
 
 /// `RateGroup` type.
@@ -345,77 +404,19 @@ pub struct RateGroup {
     pub subtables: Option<Vec<Table>>,
 }
 
-/// `ShippingSettings` type.
+/// `HolidayCutoff` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShippingSettings {
-    /// accountId property.
-    pub account_id: Option<String>,
-    /// postalCodeGroups property.
-    pub postal_code_groups: Option<Vec<PostalCodeGroup>>,
-    /// services property.
-    pub services: Option<Vec<Service>>,
-    /// warehouses property.
-    pub warehouses: Option<Vec<Warehouse>>,
-}
-
-/// `MinimumOrderValueTable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MinimumOrderValueTable {
-    /// storeCodeSetWithMovs property.
-    pub store_code_set_with_movs: Option<Vec<MinimumOrderValueTableStoreCodeSetWithMov>>,
-}
-
-/// `LocationIdSet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocationIdSet {
-    /// locationIds property.
-    pub location_ids: Option<Vec<String>>,
-}
-
-/// `ShippingsettingsListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShippingsettingsListResponse {
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// resources property.
-    pub resources: Option<Vec<ShippingSettings>>,
-}
-
-/// `Weight` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Weight {
-    /// unit property.
-    pub unit: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `TransitTable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransitTable {
-    /// postalCodeGroupNames property.
-    pub postal_code_group_names: Option<Vec<String>>,
-    /// rows property.
-    pub rows: Option<Vec<TransitTableTransitTimeRow>>,
-    /// transitTimeLabels property.
-    pub transit_time_labels: Option<Vec<String>>,
-}
-
-/// `Warehouse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Warehouse {
-    /// businessDayConfig property.
-    pub business_day_config: Option<BusinessDayConfig>,
-    /// cutoffTime property.
-    pub cutoff_time: Option<WarehouseCutoffTime>,
-    /// handlingDays property.
-    pub handling_days: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// shippingAddress property.
-    pub shipping_address: Option<Address>,
+pub struct HolidayCutoff {
+    /// deadlineDate property.
+    pub deadline_date: Option<String>,
+    /// deadlineHour property.
+    pub deadline_hour: Option<i64>,
+    /// deadlineTimezone property.
+    pub deadline_timezone: Option<String>,
+    /// holidayId property.
+    pub holiday_id: Option<String>,
+    /// visibleFromDate property.
+    pub visible_from_date: Option<String>,
 }
 
 // =============================================================================

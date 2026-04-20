@@ -12,17 +12,28 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionQueryPrediction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionQueryPrediction {
+    /// structuredFormat property.
+    pub structured_format:
+        Option<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStructuredFormat>,
+    /// text property.
+    pub text: Option<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText>,
+}
 
 /// `GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionPlacePrediction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -42,6 +53,15 @@ pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionPlacePrediction
     pub types: Option<Vec<String>>,
 }
 
+/// `GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText {
+    /// matches property.
+    pub matches: Option<Vec<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStringRange>>,
+    /// text property.
+    pub text: Option<String>,
+}
+
 /// `GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStringRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStringRange {
@@ -49,16 +69,6 @@ pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStringRange {
     pub end_offset: Option<i64>,
     /// startOffset property.
     pub start_offset: Option<i64>,
-}
-
-/// `GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionQueryPrediction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionQueryPrediction {
-    /// structuredFormat property.
-    pub structured_format:
-        Option<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStructuredFormat>,
-    /// text property.
-    pub text: Option<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText>,
 }
 
 /// `GoogleMapsPlacesV1AutocompletePlacesResponseSuggestion` type.
@@ -72,6 +82,13 @@ pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestion {
         Option<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionQueryPrediction>,
 }
 
+/// `GoogleMapsPlacesV1AutocompletePlacesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1AutocompletePlacesResponse {
+    /// suggestions property.
+    pub suggestions: Option<Vec<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestion>>,
+}
+
 /// `GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStructuredFormat` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStructuredFormat {
@@ -80,22 +97,6 @@ pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStructuredForma
     /// secondaryText property.
     pub secondary_text:
         Option<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText>,
-}
-
-/// `GoogleMapsPlacesV1AutocompletePlacesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1AutocompletePlacesResponse {
-    /// suggestions property.
-    pub suggestions: Option<Vec<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestion>>,
-}
-
-/// `GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText {
-    /// matches property.
-    pub matches: Option<Vec<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStringRange>>,
-    /// text property.
-    pub text: Option<String>,
 }
 
 // =============================================================================

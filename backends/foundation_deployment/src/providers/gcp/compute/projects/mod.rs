@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,22 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Project;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Metadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Metadata {
-    /// fingerprint property.
-    pub fingerprint: Option<String>,
-    /// items property.
-    pub items: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
 
 /// `UsageExportLocation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -58,6 +48,17 @@ pub struct Quota {
     pub owner: Option<String>,
     /// usage property.
     pub usage: Option<f64>,
+}
+
+/// `Metadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Metadata {
+    /// fingerprint property.
+    pub fingerprint: Option<String>,
+    /// items property.
+    pub items: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// kind property.
+    pub kind: Option<String>,
 }
 
 // =============================================================================

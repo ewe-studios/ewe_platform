@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -33,22 +34,15 @@ pub struct Interface {
     pub url: Option<String>,
 }
 
-/// `Card` type.
+/// `Protocol` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Card {
-    /// content property.
-    pub content: Option<serde_json::Value>,
+pub struct Protocol {
+    /// interfaces property.
+    pub interfaces: Option<Vec<Interface>>,
+    /// protocolVersion property.
+    pub protocol_version: Option<String>,
     /// type property.
     pub r#type: Option<String>,
-}
-
-/// `ListAgentsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAgentsResponse {
-    /// agents property.
-    pub agents: Option<Vec<Agent>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 /// `Agent` type.
@@ -82,17 +76,6 @@ pub struct Agent {
     pub version: Option<String>,
 }
 
-/// `Protocol` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Protocol {
-    /// interfaces property.
-    pub interfaces: Option<Vec<Interface>>,
-    /// protocolVersion property.
-    pub protocol_version: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
 /// `Skill` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Skill {
@@ -106,6 +89,24 @@ pub struct Skill {
     pub name: Option<String>,
     /// tags property.
     pub tags: Option<Vec<String>>,
+}
+
+/// `Card` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Card {
+    /// content property.
+    pub content: Option<serde_json::Value>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ListAgentsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAgentsResponse {
+    /// agents property.
+    pub agents: Option<Vec<Agent>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

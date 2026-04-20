@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,17 +22,88 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudAiplatformV1SlackSource` type.
+/// `GoogleCloudAiplatformV1SharePointSources` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SlackSource {
-    /// channels property.
-    pub channels: Option<Vec<GoogleCloudAiplatformV1SlackSourceSlackChannels>>,
+pub struct GoogleCloudAiplatformV1SharePointSources {
+    /// sharePointSources property.
+    pub share_point_sources: Option<Vec<GoogleCloudAiplatformV1SharePointSourcesSharePointSource>>,
+}
+
+/// `GoogleCloudAiplatformV1SharePointSourcesSharePointSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1SharePointSourcesSharePointSource {
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// clientSecret property.
+    pub client_secret: Option<GoogleCloudAiplatformV1ApiAuthApiKeyConfig>,
+    /// driveId property.
+    pub drive_id: Option<String>,
+    /// driveName property.
+    pub drive_name: Option<String>,
+    /// fileId property.
+    pub file_id: Option<String>,
+    /// sharepointFolderId property.
+    pub sharepoint_folder_id: Option<String>,
+    /// sharepointFolderPath property.
+    pub sharepoint_folder_path: Option<String>,
+    /// sharepointSiteName property.
+    pub sharepoint_site_name: Option<String>,
+    /// tenantId property.
+    pub tenant_id: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ApiAuthApiKeyConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ApiAuthApiKeyConfig {
+    /// apiKeySecretVersion property.
+    pub api_key_secret_version: Option<String>,
+    /// apiKeyString property.
+    pub api_key_string: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1DirectUploadSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1DirectUploadSource {}
+
+/// `GoogleCloudAiplatformV1SlackSourceSlackChannelsSlackChannel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1SlackSourceSlackChannelsSlackChannel {
+    /// channelId property.
+    pub channel_id: Option<String>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ListRagFilesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ListRagFilesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// ragFiles property.
+    pub rag_files: Option<Vec<GoogleCloudAiplatformV1RagFile>>,
+}
+
+/// `GoogleCloudAiplatformV1JiraSourceJiraQueries` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1JiraSourceJiraQueries {
+    /// apiKeyConfig property.
+    pub api_key_config: Option<GoogleCloudAiplatformV1ApiAuthApiKeyConfig>,
+    /// customQueries property.
+    pub custom_queries: Option<Vec<String>>,
+    /// email property.
+    pub email: Option<String>,
+    /// projects property.
+    pub projects: Option<Vec<String>>,
+    /// serverUri property.
+    pub server_uri: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1GoogleDriveSourceResourceId` type.
@@ -41,6 +113,20 @@ pub struct GoogleCloudAiplatformV1GoogleDriveSourceResourceId {
     pub resource_id: Option<String>,
     /// resourceType property.
     pub resource_type: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1GcsSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1GcsSource {
+    /// uris property.
+    pub uris: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAiplatformV1GoogleDriveSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1GoogleDriveSource {
+    /// resourceIds property.
+    pub resource_ids: Option<Vec<GoogleCloudAiplatformV1GoogleDriveSourceResourceId>>,
 }
 
 /// `GoogleCloudAiplatformV1RagFile` type.
@@ -74,31 +160,20 @@ pub struct GoogleCloudAiplatformV1RagFile {
     pub user_metadata: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1DirectUploadSource` type.
+/// `GoogleCloudAiplatformV1FileStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DirectUploadSource {}
+pub struct GoogleCloudAiplatformV1FileStatus {
+    /// errorStatus property.
+    pub error_status: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
 
-/// `GoogleCloudAiplatformV1SharePointSourcesSharePointSource` type.
+/// `GoogleCloudAiplatformV1SlackSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SharePointSourcesSharePointSource {
-    /// clientId property.
-    pub client_id: Option<String>,
-    /// clientSecret property.
-    pub client_secret: Option<GoogleCloudAiplatformV1ApiAuthApiKeyConfig>,
-    /// driveId property.
-    pub drive_id: Option<String>,
-    /// driveName property.
-    pub drive_name: Option<String>,
-    /// fileId property.
-    pub file_id: Option<String>,
-    /// sharepointFolderId property.
-    pub sharepoint_folder_id: Option<String>,
-    /// sharepointFolderPath property.
-    pub sharepoint_folder_path: Option<String>,
-    /// sharepointSiteName property.
-    pub sharepoint_site_name: Option<String>,
-    /// tenantId property.
-    pub tenant_id: Option<String>,
+pub struct GoogleCloudAiplatformV1SlackSource {
+    /// channels property.
+    pub channels: Option<Vec<GoogleCloudAiplatformV1SlackSourceSlackChannels>>,
 }
 
 /// `GoogleRpcStatus` type.
@@ -112,22 +187,6 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1FileStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FileStatus {
-    /// errorStatus property.
-    pub error_status: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1SharePointSources` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SharePointSources {
-    /// sharePointSources property.
-    pub share_point_sources: Option<Vec<GoogleCloudAiplatformV1SharePointSourcesSharePointSource>>,
-}
-
 /// `GoogleCloudAiplatformV1SlackSourceSlackChannels` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SlackSourceSlackChannels {
@@ -137,69 +196,11 @@ pub struct GoogleCloudAiplatformV1SlackSourceSlackChannels {
     pub channels: Option<Vec<GoogleCloudAiplatformV1SlackSourceSlackChannelsSlackChannel>>,
 }
 
-/// `GoogleCloudAiplatformV1ListRagFilesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListRagFilesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// ragFiles property.
-    pub rag_files: Option<Vec<GoogleCloudAiplatformV1RagFile>>,
-}
-
-/// `GoogleCloudAiplatformV1ApiAuthApiKeyConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ApiAuthApiKeyConfig {
-    /// apiKeySecretVersion property.
-    pub api_key_secret_version: Option<String>,
-    /// apiKeyString property.
-    pub api_key_string: Option<String>,
-}
-
 /// `GoogleCloudAiplatformV1JiraSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1JiraSource {
     /// jiraQueries property.
     pub jira_queries: Option<Vec<GoogleCloudAiplatformV1JiraSourceJiraQueries>>,
-}
-
-/// `GoogleCloudAiplatformV1SlackSourceSlackChannelsSlackChannel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SlackSourceSlackChannelsSlackChannel {
-    /// channelId property.
-    pub channel_id: Option<String>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1GoogleDriveSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GoogleDriveSource {
-    /// resourceIds property.
-    pub resource_ids: Option<Vec<GoogleCloudAiplatformV1GoogleDriveSourceResourceId>>,
-}
-
-/// `GoogleCloudAiplatformV1JiraSourceJiraQueries` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1JiraSourceJiraQueries {
-    /// apiKeyConfig property.
-    pub api_key_config: Option<GoogleCloudAiplatformV1ApiAuthApiKeyConfig>,
-    /// customQueries property.
-    pub custom_queries: Option<Vec<String>>,
-    /// email property.
-    pub email: Option<String>,
-    /// projects property.
-    pub projects: Option<Vec<String>>,
-    /// serverUri property.
-    pub server_uri: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1GcsSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GcsSource {
-    /// uris property.
-    pub uris: Option<Vec<String>>,
 }
 
 // =============================================================================

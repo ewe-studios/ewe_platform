@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,11 +24,22 @@ use super::shared::ApigatewayOperation;
 use super::shared::ApigatewayPolicy;
 use super::shared::ApigatewayTestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ApigatewayStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApigatewayStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
 
 /// `ApigatewayBinding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -53,6 +65,24 @@ pub struct ApigatewayExpr {
     pub title: Option<String>,
 }
 
+/// `ApigatewayAuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApigatewayAuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `ApigatewayAuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApigatewayAuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<ApigatewayAuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
 /// `ApigatewayGateway` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApigatewayGateway {
@@ -74,26 +104,6 @@ pub struct ApigatewayGateway {
     pub update_time: Option<String>,
 }
 
-/// `ApigatewayAuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApigatewayAuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `ApigatewayStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApigatewayStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
 /// `ApigatewayListGatewaysResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApigatewayListGatewaysResponse {
@@ -103,15 +113,6 @@ pub struct ApigatewayListGatewaysResponse {
     pub next_page_token: Option<String>,
     /// unreachableLocations property.
     pub unreachable_locations: Option<Vec<String>>,
-}
-
-/// `ApigatewayAuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApigatewayAuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<ApigatewayAuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
 }
 
 // =============================================================================

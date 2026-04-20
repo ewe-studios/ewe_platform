@@ -12,28 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `FloodlightActivitiesListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FloodlightActivitiesListResponse {
-    /// floodlightActivities property.
-    pub floodlight_activities: Option<Vec<FloodlightActivity>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `FloodlightActivityDynamicTag` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,23 +34,6 @@ pub struct FloodlightActivityDynamicTag {
     pub name: Option<String>,
     /// tag property.
     pub tag: Option<String>,
-}
-
-/// `FloodlightActivityPublisherDynamicTag` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FloodlightActivityPublisherDynamicTag {
-    /// clickThrough property.
-    pub click_through: Option<bool>,
-    /// directorySiteId property.
-    pub directory_site_id: Option<String>,
-    /// dynamicTag property.
-    pub dynamic_tag: Option<FloodlightActivityDynamicTag>,
-    /// siteId property.
-    pub site_id: Option<String>,
-    /// siteIdDimensionValue property.
-    pub site_id_dimension_value: Option<DimensionValue>,
-    /// viewThrough property.
-    pub view_through: Option<bool>,
 }
 
 /// `DimensionValue` type.
@@ -143,6 +116,34 @@ pub struct FloodlightActivity {
     pub tag_string: Option<String>,
     /// userDefinedVariableTypes property.
     pub user_defined_variable_types: Option<Vec<String>>,
+}
+
+/// `FloodlightActivitiesListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FloodlightActivitiesListResponse {
+    /// floodlightActivities property.
+    pub floodlight_activities: Option<Vec<FloodlightActivity>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `FloodlightActivityPublisherDynamicTag` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FloodlightActivityPublisherDynamicTag {
+    /// clickThrough property.
+    pub click_through: Option<bool>,
+    /// directorySiteId property.
+    pub directory_site_id: Option<String>,
+    /// dynamicTag property.
+    pub dynamic_tag: Option<FloodlightActivityDynamicTag>,
+    /// siteId property.
+    pub site_id: Option<String>,
+    /// siteIdDimensionValue property.
+    pub site_id_dimension_value: Option<DimensionValue>,
+    /// viewThrough property.
+    pub view_through: Option<bool>,
 }
 
 // =============================================================================

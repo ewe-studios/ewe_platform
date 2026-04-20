@@ -12,38 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `EntityMention` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EntityMention {
-    /// certaintyAssessment property.
-    pub certainty_assessment: Option<Feature>,
-    /// confidence property.
-    pub confidence: Option<f64>,
-    /// linkedEntities property.
-    pub linked_entities: Option<Vec<LinkedEntity>>,
-    /// mentionId property.
-    pub mention_id: Option<String>,
-    /// subject property.
-    pub subject: Option<Feature>,
-    /// temporalAssessment property.
-    pub temporal_assessment: Option<Feature>,
-    /// text property.
-    pub text: Option<TextSpan>,
-    /// type property.
-    pub r#type: Option<String>,
-}
 
 /// `Entity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -67,6 +47,27 @@ pub struct AnalyzeEntitiesResponse {
     pub fhir_bundle: Option<String>,
     /// relationships property.
     pub relationships: Option<Vec<EntityMentionRelationship>>,
+}
+
+/// `EntityMention` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EntityMention {
+    /// certaintyAssessment property.
+    pub certainty_assessment: Option<Feature>,
+    /// confidence property.
+    pub confidence: Option<f64>,
+    /// linkedEntities property.
+    pub linked_entities: Option<Vec<LinkedEntity>>,
+    /// mentionId property.
+    pub mention_id: Option<String>,
+    /// subject property.
+    pub subject: Option<Feature>,
+    /// temporalAssessment property.
+    pub temporal_assessment: Option<Feature>,
+    /// text property.
+    pub text: Option<TextSpan>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `EntityMentionRelationship` type.

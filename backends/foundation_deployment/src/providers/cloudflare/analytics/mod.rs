@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -32,9 +33,9 @@ pub struct RumCreateRuleRequest {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `RumCreateSiteRequest` response type.
+/// `RumSiteTagResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RumCreateSiteRequest {
+pub struct RumSiteTagResponseSingle {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -48,17 +49,17 @@ pub struct RumModifyRulesRequest {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `RumRuleIdResponseSingle` response type.
+/// `RumCreateSiteRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RumRuleIdResponseSingle {
+pub struct RumCreateSiteRequest {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `RumRuleResponseSingle` response type.
+/// `RumRuleIdResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RumRuleResponseSingle {
+pub struct RumRuleIdResponseSingle {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -80,14 +81,6 @@ pub struct RumSiteResponseSingle {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `RumSiteTagResponseSingle` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RumSiteTagResponseSingle {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `RumSitesResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RumSitesResponseCollection {
@@ -99,6 +92,14 @@ pub struct RumSitesResponseCollection {
 /// `RumUpdateSiteRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RumUpdateSiteRequest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RumRuleResponseSingle` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RumRuleResponseSingle {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -277,7 +278,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -295,8 +298,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: RumSiteResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: RumSiteResponseSingle =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -365,7 +370,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -383,8 +390,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: RumSitesResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: RumSitesResponseCollection =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -453,7 +462,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -471,8 +482,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: RumSiteResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: RumSiteResponseSingle =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -545,7 +558,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -563,8 +578,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: RumSiteResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: RumSiteResponseSingle =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -633,7 +650,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -651,8 +670,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: RumSiteTagResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: RumSiteTagResponseSingle =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -725,7 +746,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -743,8 +766,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: RumRuleResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: RumRuleResponseSingle =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -817,7 +842,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -835,8 +862,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: RumRuleResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: RumRuleResponseSingle =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -905,7 +934,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -923,8 +954,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: RumRuleIdResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: RumRuleIdResponseSingle =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -993,7 +1026,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1011,8 +1046,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: RumRulesResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: RumRulesResponseCollection =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -1085,7 +1122,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1103,8 +1142,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: RumRulesResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: RumRulesResponseCollection =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),

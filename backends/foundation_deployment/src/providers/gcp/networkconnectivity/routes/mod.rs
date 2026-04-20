@@ -12,55 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `NextHopVPNTunnel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NextHopVPNTunnel {
-    /// siteToSiteDataTransfer property.
-    pub site_to_site_data_transfer: Option<bool>,
-    /// uri property.
-    pub uri: Option<String>,
-    /// vpcNetwork property.
-    pub vpc_network: Option<String>,
-}
-
-/// `ListRoutesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListRoutesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// routes property.
-    pub routes: Option<Vec<Route>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `NextHopSpoke` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NextHopSpoke {
-    /// siteToSiteDataTransfer property.
-    pub site_to_site_data_transfer: Option<bool>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `NextHopVpcNetwork` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NextHopVpcNetwork {
-    /// uri property.
-    pub uri: Option<String>,
-}
 
 /// `NextHopRouterApplianceInstance` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -76,6 +39,26 @@ pub struct NextHopRouterApplianceInstance {
 /// `NextHopInterconnectAttachment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NextHopInterconnectAttachment {
+    /// siteToSiteDataTransfer property.
+    pub site_to_site_data_transfer: Option<bool>,
+    /// uri property.
+    pub uri: Option<String>,
+    /// vpcNetwork property.
+    pub vpc_network: Option<String>,
+}
+
+/// `NextHopSpoke` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NextHopSpoke {
+    /// siteToSiteDataTransfer property.
+    pub site_to_site_data_transfer: Option<bool>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `NextHopVPNTunnel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NextHopVPNTunnel {
     /// siteToSiteDataTransfer property.
     pub site_to_site_data_transfer: Option<bool>,
     /// uri property.
@@ -121,6 +104,24 @@ pub struct Route {
     pub uid: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `ListRoutesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListRoutesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// routes property.
+    pub routes: Option<Vec<Route>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `NextHopVpcNetwork` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NextHopVpcNetwork {
+    /// uri property.
+    pub uri: Option<String>,
 }
 
 // =============================================================================

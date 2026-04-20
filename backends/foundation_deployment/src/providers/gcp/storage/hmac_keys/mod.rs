@@ -12,39 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `HmacKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HmacKey {
-    /// kind property.
-    pub kind: Option<String>,
-    /// metadata property.
-    pub metadata: Option<HmacKeyMetadata>,
-    /// secret property.
-    pub secret: Option<String>,
-}
-
-/// `HmacKeysMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HmacKeysMetadata {
-    /// items property.
-    pub items: Option<Vec<HmacKeyMetadata>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `HmacKeyMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -69,6 +48,28 @@ pub struct HmacKeyMetadata {
     pub time_created: Option<String>,
     /// updated property.
     pub updated: Option<String>,
+}
+
+/// `HmacKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HmacKey {
+    /// kind property.
+    pub kind: Option<String>,
+    /// metadata property.
+    pub metadata: Option<HmacKeyMetadata>,
+    /// secret property.
+    pub secret: Option<String>,
+}
+
+/// `HmacKeysMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HmacKeysMetadata {
+    /// items property.
+    pub items: Option<Vec<HmacKeyMetadata>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

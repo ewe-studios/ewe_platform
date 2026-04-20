@@ -12,32 +12,64 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `RemoveUserIdDataStatus` type.
+/// `IngestEventsStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemoveUserIdDataStatus {
+pub struct IngestEventsStatus {
+    /// recordCount property.
+    pub record_count: Option<String>,
+}
+
+/// `RemoveUserDataStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RemoveUserDataStatus {
+    /// recordCount property.
+    pub record_count: Option<String>,
+    /// userIdentifierCount property.
+    pub user_identifier_count: Option<String>,
+}
+
+/// `IngestUserIdDataStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IngestUserIdDataStatus {
     /// recordCount property.
     pub record_count: Option<String>,
     /// userIdCount property.
     pub user_id_count: Option<String>,
 }
 
-/// `RemovePairDataStatus` type.
+/// `IngestAudienceMembersStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemovePairDataStatus {
-    /// pairIdCount property.
-    pub pair_id_count: Option<String>,
+pub struct IngestAudienceMembersStatus {
+    /// mobileDataIngestionStatus property.
+    pub mobile_data_ingestion_status: Option<IngestMobileDataStatus>,
+    /// pairDataIngestionStatus property.
+    pub pair_data_ingestion_status: Option<IngestPairDataStatus>,
+    /// ppidDataIngestionStatus property.
+    pub ppid_data_ingestion_status: Option<IngestPpidDataStatus>,
+    /// userDataIngestionStatus property.
+    pub user_data_ingestion_status: Option<IngestUserDataStatus>,
+    /// userIdDataIngestionStatus property.
+    pub user_id_data_ingestion_status: Option<IngestUserIdDataStatus>,
+}
+
+/// `RemoveMobileDataStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RemoveMobileDataStatus {
+    /// mobileIdCount property.
+    pub mobile_id_count: Option<String>,
     /// recordCount property.
     pub record_count: Option<String>,
 }
@@ -57,6 +89,15 @@ pub struct RemoveAudienceMembersStatus {
     pub user_id_data_removal_status: Option<RemoveUserIdDataStatus>,
 }
 
+/// `RemovePairDataStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RemovePairDataStatus {
+    /// pairIdCount property.
+    pub pair_id_count: Option<String>,
+    /// recordCount property.
+    pub record_count: Option<String>,
+}
+
 /// `ErrorCount` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorCount {
@@ -64,6 +105,92 @@ pub struct ErrorCount {
     pub reason: Option<String>,
     /// recordCount property.
     pub record_count: Option<String>,
+}
+
+/// `WarningInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WarningInfo {
+    /// warningCounts property.
+    pub warning_counts: Option<Vec<WarningCount>>,
+}
+
+/// `RemoveUserIdDataStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RemoveUserIdDataStatus {
+    /// recordCount property.
+    pub record_count: Option<String>,
+    /// userIdCount property.
+    pub user_id_count: Option<String>,
+}
+
+/// `IngestMobileDataStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IngestMobileDataStatus {
+    /// mobileIdCount property.
+    pub mobile_id_count: Option<String>,
+    /// recordCount property.
+    pub record_count: Option<String>,
+}
+
+/// `IngestPpidDataStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IngestPpidDataStatus {
+    /// ppidCount property.
+    pub ppid_count: Option<String>,
+    /// recordCount property.
+    pub record_count: Option<String>,
+}
+
+/// `IngestUserDataStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IngestUserDataStatus {
+    /// recordCount property.
+    pub record_count: Option<String>,
+    /// uploadMatchRateRange property.
+    pub upload_match_rate_range: Option<String>,
+    /// userIdentifierCount property.
+    pub user_identifier_count: Option<String>,
+}
+
+/// `RequestStatusPerDestination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RequestStatusPerDestination {
+    /// audienceMembersIngestionStatus property.
+    pub audience_members_ingestion_status: Option<IngestAudienceMembersStatus>,
+    /// audienceMembersRemovalStatus property.
+    pub audience_members_removal_status: Option<RemoveAudienceMembersStatus>,
+    /// destination property.
+    pub destination: Option<Destination>,
+    /// errorInfo property.
+    pub error_info: Option<ErrorInfo>,
+    /// eventsIngestionStatus property.
+    pub events_ingestion_status: Option<IngestEventsStatus>,
+    /// requestStatus property.
+    pub request_status: Option<String>,
+    /// warningInfo property.
+    pub warning_info: Option<WarningInfo>,
+}
+
+/// `Destination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Destination {
+    /// linkedAccount property.
+    pub linked_account: Option<ProductAccount>,
+    /// loginAccount property.
+    pub login_account: Option<ProductAccount>,
+    /// operatingAccount property.
+    pub operating_account: Option<ProductAccount>,
+    /// productDestinationId property.
+    pub product_destination_id: Option<String>,
+    /// reference property.
+    pub reference: Option<String>,
+}
+
+/// `RetrieveRequestStatusResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RetrieveRequestStatusResponse {
+    /// requestStatusPerDestination property.
+    pub request_status_per_destination: Option<Vec<RequestStatusPerDestination>>,
 }
 
 /// `IngestPairDataStatus` type.
@@ -82,80 +209,11 @@ pub struct ErrorInfo {
     pub error_counts: Option<Vec<ErrorCount>>,
 }
 
-/// `RemoveUserDataStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemoveUserDataStatus {
-    /// recordCount property.
-    pub record_count: Option<String>,
-    /// userIdentifierCount property.
-    pub user_identifier_count: Option<String>,
-}
-
 /// `RemovePpidDataStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemovePpidDataStatus {
     /// ppidCount property.
     pub ppid_count: Option<String>,
-    /// recordCount property.
-    pub record_count: Option<String>,
-}
-
-/// `RemoveMobileDataStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemoveMobileDataStatus {
-    /// mobileIdCount property.
-    pub mobile_id_count: Option<String>,
-    /// recordCount property.
-    pub record_count: Option<String>,
-}
-
-/// `IngestAudienceMembersStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IngestAudienceMembersStatus {
-    /// mobileDataIngestionStatus property.
-    pub mobile_data_ingestion_status: Option<IngestMobileDataStatus>,
-    /// pairDataIngestionStatus property.
-    pub pair_data_ingestion_status: Option<IngestPairDataStatus>,
-    /// ppidDataIngestionStatus property.
-    pub ppid_data_ingestion_status: Option<IngestPpidDataStatus>,
-    /// userDataIngestionStatus property.
-    pub user_data_ingestion_status: Option<IngestUserDataStatus>,
-    /// userIdDataIngestionStatus property.
-    pub user_id_data_ingestion_status: Option<IngestUserIdDataStatus>,
-}
-
-/// `IngestMobileDataStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IngestMobileDataStatus {
-    /// mobileIdCount property.
-    pub mobile_id_count: Option<String>,
-    /// recordCount property.
-    pub record_count: Option<String>,
-}
-
-/// `IngestUserDataStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IngestUserDataStatus {
-    /// recordCount property.
-    pub record_count: Option<String>,
-    /// uploadMatchRateRange property.
-    pub upload_match_rate_range: Option<String>,
-    /// userIdentifierCount property.
-    pub user_identifier_count: Option<String>,
-}
-
-/// `IngestUserIdDataStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IngestUserIdDataStatus {
-    /// recordCount property.
-    pub record_count: Option<String>,
-    /// userIdCount property.
-    pub user_id_count: Option<String>,
-}
-
-/// `IngestEventsStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IngestEventsStatus {
     /// recordCount property.
     pub record_count: Option<String>,
 }
@@ -178,63 +236,6 @@ pub struct ProductAccount {
     pub account_type: Option<String>,
     /// product property.
     pub product: Option<String>,
-}
-
-/// `IngestPpidDataStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IngestPpidDataStatus {
-    /// ppidCount property.
-    pub ppid_count: Option<String>,
-    /// recordCount property.
-    pub record_count: Option<String>,
-}
-
-/// `Destination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Destination {
-    /// linkedAccount property.
-    pub linked_account: Option<ProductAccount>,
-    /// loginAccount property.
-    pub login_account: Option<ProductAccount>,
-    /// operatingAccount property.
-    pub operating_account: Option<ProductAccount>,
-    /// productDestinationId property.
-    pub product_destination_id: Option<String>,
-    /// reference property.
-    pub reference: Option<String>,
-}
-
-/// `WarningInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WarningInfo {
-    /// warningCounts property.
-    pub warning_counts: Option<Vec<WarningCount>>,
-}
-
-/// `RetrieveRequestStatusResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RetrieveRequestStatusResponse {
-    /// requestStatusPerDestination property.
-    pub request_status_per_destination: Option<Vec<RequestStatusPerDestination>>,
-}
-
-/// `RequestStatusPerDestination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RequestStatusPerDestination {
-    /// audienceMembersIngestionStatus property.
-    pub audience_members_ingestion_status: Option<IngestAudienceMembersStatus>,
-    /// audienceMembersRemovalStatus property.
-    pub audience_members_removal_status: Option<RemoveAudienceMembersStatus>,
-    /// destination property.
-    pub destination: Option<Destination>,
-    /// errorInfo property.
-    pub error_info: Option<ErrorInfo>,
-    /// eventsIngestionStatus property.
-    pub events_ingestion_status: Option<IngestEventsStatus>,
-    /// requestStatus property.
-    pub request_status: Option<String>,
-    /// warningInfo property.
-    pub warning_info: Option<WarningInfo>,
 }
 
 // =============================================================================

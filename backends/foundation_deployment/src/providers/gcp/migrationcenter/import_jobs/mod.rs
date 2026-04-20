@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,46 +22,32 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ValidationReport` type.
+/// `FileValidationReport` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValidationReport {
-    /// fileValidations property.
-    pub file_validations: Option<Vec<FileValidationReport>>,
-    /// jobErrors property.
-    pub job_errors: Option<Vec<ImportError>>,
+pub struct FileValidationReport {
+    /// fileErrors property.
+    pub file_errors: Option<Vec<ImportError>>,
+    /// fileName property.
+    pub file_name: Option<String>,
+    /// partialReport property.
+    pub partial_report: Option<bool>,
+    /// rowErrors property.
+    pub row_errors: Option<Vec<ImportRowError>>,
 }
 
-/// `ListImportJobsResponse` type.
+/// `ImportRowErrorArchiveErrorDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListImportJobsResponse {
-    /// importJobs property.
-    pub import_jobs: Option<Vec<ImportJob>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `ImportRowErrorCsvErrorDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImportRowErrorCsvErrorDetails {
-    /// rowNumber property.
-    pub row_number: Option<i64>,
-}
-
-/// `ImportRowErrorXlsxErrorDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImportRowErrorXlsxErrorDetails {
-    /// rowNumber property.
-    pub row_number: Option<i64>,
-    /// sheet property.
-    pub sheet: Option<String>,
+pub struct ImportRowErrorArchiveErrorDetails {
+    /// csvError property.
+    pub csv_error: Option<ImportRowErrorCsvErrorDetails>,
+    /// filePath property.
+    pub file_path: Option<String>,
 }
 
 /// `ExecutionReport` type.
@@ -72,6 +59,15 @@ pub struct ExecutionReport {
     pub frames_reported: Option<i64>,
     /// totalRowsCount property.
     pub total_rows_count: Option<i64>,
+}
+
+/// `ImportError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImportError {
+    /// errorDetails property.
+    pub error_details: Option<String>,
+    /// severity property.
+    pub severity: Option<String>,
 }
 
 /// `ImportRowError` type.
@@ -95,17 +91,11 @@ pub struct ImportRowError {
     pub xlsx_error: Option<ImportRowErrorXlsxErrorDetails>,
 }
 
-/// `FileValidationReport` type.
+/// `ImportRowErrorCsvErrorDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FileValidationReport {
-    /// fileErrors property.
-    pub file_errors: Option<Vec<ImportError>>,
-    /// fileName property.
-    pub file_name: Option<String>,
-    /// partialReport property.
-    pub partial_report: Option<bool>,
-    /// rowErrors property.
-    pub row_errors: Option<Vec<ImportRowError>>,
+pub struct ImportRowErrorCsvErrorDetails {
+    /// rowNumber property.
+    pub row_number: Option<i64>,
 }
 
 /// `Status` type.
@@ -144,22 +134,33 @@ pub struct ImportJob {
     pub validation_report: Option<ValidationReport>,
 }
 
-/// `ImportError` type.
+/// `ImportRowErrorXlsxErrorDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImportError {
-    /// errorDetails property.
-    pub error_details: Option<String>,
-    /// severity property.
-    pub severity: Option<String>,
+pub struct ImportRowErrorXlsxErrorDetails {
+    /// rowNumber property.
+    pub row_number: Option<i64>,
+    /// sheet property.
+    pub sheet: Option<String>,
 }
 
-/// `ImportRowErrorArchiveErrorDetails` type.
+/// `ValidationReport` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImportRowErrorArchiveErrorDetails {
-    /// csvError property.
-    pub csv_error: Option<ImportRowErrorCsvErrorDetails>,
-    /// filePath property.
-    pub file_path: Option<String>,
+pub struct ValidationReport {
+    /// fileValidations property.
+    pub file_validations: Option<Vec<FileValidationReport>>,
+    /// jobErrors property.
+    pub job_errors: Option<Vec<ImportError>>,
+}
+
+/// `ListImportJobsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListImportJobsResponse {
+    /// importJobs property.
+    pub import_jobs: Option<Vec<ImportJob>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 // =============================================================================

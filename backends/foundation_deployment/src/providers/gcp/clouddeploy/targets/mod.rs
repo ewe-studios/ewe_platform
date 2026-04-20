@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,11 +24,50 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `AnthosCluster` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AnthosCluster {
+    /// membership property.
+    pub membership: Option<String>,
+}
+
+/// `ExecutionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExecutionConfig {
+    /// artifactStorage property.
+    pub artifact_storage: Option<String>,
+    /// defaultPool property.
+    pub default_pool: Option<DefaultPool>,
+    /// executionTimeout property.
+    pub execution_timeout: Option<String>,
+    /// privatePool property.
+    pub private_pool: Option<PrivatePool>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// usages property.
+    pub usages: Option<Vec<String>>,
+    /// verbose property.
+    pub verbose: Option<bool>,
+    /// workerPool property.
+    pub worker_pool: Option<String>,
+}
+
+/// `PrivatePool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrivatePool {
+    /// artifactStorage property.
+    pub artifact_storage: Option<String>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// workerPool property.
+    pub worker_pool: Option<String>,
+}
 
 /// `Target` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -70,11 +110,13 @@ pub struct Target {
     pub update_time: Option<String>,
 }
 
-/// `MultiTarget` type.
+/// `DefaultPool` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MultiTarget {
-    /// targetIds property.
-    pub target_ids: Option<Vec<String>>,
+pub struct DefaultPool {
+    /// artifactStorage property.
+    pub artifact_storage: Option<String>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
 }
 
 /// `CloudRunLocation` type.
@@ -82,56 +124,6 @@ pub struct MultiTarget {
 pub struct CloudRunLocation {
     /// location property.
     pub location: Option<String>,
-}
-
-/// `ExecutionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExecutionConfig {
-    /// artifactStorage property.
-    pub artifact_storage: Option<String>,
-    /// defaultPool property.
-    pub default_pool: Option<DefaultPool>,
-    /// executionTimeout property.
-    pub execution_timeout: Option<String>,
-    /// privatePool property.
-    pub private_pool: Option<PrivatePool>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-    /// usages property.
-    pub usages: Option<Vec<String>>,
-    /// verbose property.
-    pub verbose: Option<bool>,
-    /// workerPool property.
-    pub worker_pool: Option<String>,
-}
-
-/// `ListTargetsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListTargetsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// targets property.
-    pub targets: Option<Vec<Target>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `AnthosCluster` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AnthosCluster {
-    /// membership property.
-    pub membership: Option<String>,
 }
 
 /// `Expr` type.
@@ -145,50 +137,6 @@ pub struct Expr {
     pub location: Option<String>,
     /// title property.
     pub title: Option<String>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `PrivatePool` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrivatePool {
-    /// artifactStorage property.
-    pub artifact_storage: Option<String>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-    /// workerPool property.
-    pub worker_pool: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GkeCluster` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GkeCluster {
-    /// cluster property.
-    pub cluster: Option<String>,
-    /// dnsEndpoint property.
-    pub dns_endpoint: Option<bool>,
-    /// internalIp property.
-    pub internal_ip: Option<bool>,
-    /// proxyUrl property.
-    pub proxy_url: Option<String>,
 }
 
 /// `AuditLogConfig` type.
@@ -207,13 +155,66 @@ pub struct CustomTarget {
     pub custom_target_type: Option<String>,
 }
 
-/// `DefaultPool` type.
+/// `GkeCluster` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DefaultPool {
-    /// artifactStorage property.
-    pub artifact_storage: Option<String>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
+pub struct GkeCluster {
+    /// cluster property.
+    pub cluster: Option<String>,
+    /// dnsEndpoint property.
+    pub dns_endpoint: Option<bool>,
+    /// internalIp property.
+    pub internal_ip: Option<bool>,
+    /// proxyUrl property.
+    pub proxy_url: Option<String>,
+}
+
+/// `MultiTarget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MultiTarget {
+    /// targetIds property.
+    pub target_ids: Option<Vec<String>>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `ListTargetsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListTargetsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// targets property.
+    pub targets: Option<Vec<Target>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
 }
 
 // =============================================================================

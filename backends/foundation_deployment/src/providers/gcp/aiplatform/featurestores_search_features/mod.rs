@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -41,6 +42,24 @@ pub struct GoogleCloudAiplatformV1FeatureStatsAnomaly {
     pub start_time: Option<String>,
     /// statsUri property.
     pub stats_uri: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1FeatureMonitoringStatsAnomaly` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FeatureMonitoringStatsAnomaly {
+    /// featureStatsAnomaly property.
+    pub feature_stats_anomaly: Option<GoogleCloudAiplatformV1FeatureStatsAnomaly>,
+    /// objective property.
+    pub objective: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1SearchFeaturesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1SearchFeaturesResponse {
+    /// features property.
+    pub features: Option<Vec<GoogleCloudAiplatformV1Feature>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1Feature` type.
@@ -69,24 +88,6 @@ pub struct GoogleCloudAiplatformV1Feature {
     pub value_type: Option<String>,
     /// versionColumnName property.
     pub version_column_name: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1SearchFeaturesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SearchFeaturesResponse {
-    /// features property.
-    pub features: Option<Vec<GoogleCloudAiplatformV1Feature>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1FeatureMonitoringStatsAnomaly` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureMonitoringStatsAnomaly {
-    /// featureStatsAnomaly property.
-    pub feature_stats_anomaly: Option<GoogleCloudAiplatformV1FeatureStatsAnomaly>,
-    /// objective property.
-    pub objective: Option<String>,
 }
 
 // =============================================================================

@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudChannelV1ListChannelPartnerLinksResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1ListChannelPartnerLinksResponse {
+    /// channelPartnerLinks property.
+    pub channel_partner_links: Option<Vec<GoogleCloudChannelV1ChannelPartnerLink>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `GoogleCloudChannelV1CloudIdentityInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -43,17 +53,6 @@ pub struct GoogleCloudChannelV1CloudIdentityInfo {
     pub phone_number: Option<String>,
     /// primaryDomain property.
     pub primary_domain: Option<String>,
-}
-
-/// `GoogleCloudChannelV1EduData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1EduData {
-    /// instituteSize property.
-    pub institute_size: Option<String>,
-    /// instituteType property.
-    pub institute_type: Option<String>,
-    /// website property.
-    pub website: Option<String>,
 }
 
 /// `GoogleCloudChannelV1ChannelPartnerLink` type.
@@ -77,13 +76,15 @@ pub struct GoogleCloudChannelV1ChannelPartnerLink {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudChannelV1ListChannelPartnerLinksResponse` type.
+/// `GoogleCloudChannelV1EduData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1ListChannelPartnerLinksResponse {
-    /// channelPartnerLinks property.
-    pub channel_partner_links: Option<Vec<GoogleCloudChannelV1ChannelPartnerLink>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct GoogleCloudChannelV1EduData {
+    /// instituteSize property.
+    pub institute_size: Option<String>,
+    /// instituteType property.
+    pub institute_type: Option<String>,
+    /// website property.
+    pub website: Option<String>,
 }
 
 // =============================================================================

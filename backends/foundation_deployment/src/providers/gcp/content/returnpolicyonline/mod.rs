@@ -12,33 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `PriceAmount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PriceAmount {
-    /// currency property.
-    pub currency: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `ListReturnPolicyOnlineResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListReturnPolicyOnlineResponse {
-    /// returnPolicies property.
-    pub return_policies: Option<Vec<ReturnPolicyOnline>>,
-}
 
 /// `ReturnPolicyOnlineReturnReasonCategoryInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -69,6 +54,22 @@ pub struct ReturnPolicyOnlinePolicy {
     pub r#type: Option<String>,
 }
 
+/// `ReturnPolicyOnlineReturnShippingFee` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReturnPolicyOnlineReturnShippingFee {
+    /// fixedFee property.
+    pub fixed_fee: Option<PriceAmount>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ListReturnPolicyOnlineResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListReturnPolicyOnlineResponse {
+    /// returnPolicies property.
+    pub return_policies: Option<Vec<ReturnPolicyOnline>>,
+}
+
 /// `ReturnPolicyOnline` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReturnPolicyOnline {
@@ -94,13 +95,13 @@ pub struct ReturnPolicyOnline {
     pub return_reason_category_info: Option<Vec<ReturnPolicyOnlineReturnReasonCategoryInfo>>,
 }
 
-/// `ReturnPolicyOnlineReturnShippingFee` type.
+/// `PriceAmount` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReturnPolicyOnlineReturnShippingFee {
-    /// fixedFee property.
-    pub fixed_fee: Option<PriceAmount>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct PriceAmount {
+    /// currency property.
+    pub currency: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
 // =============================================================================

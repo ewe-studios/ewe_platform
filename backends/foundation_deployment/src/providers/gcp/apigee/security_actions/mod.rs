@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,45 +22,15 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudApigeeV1SecurityActionFlag` type.
+/// `GoogleCloudApigeeV1SecurityActionAllow` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1SecurityActionFlag {
-    /// headers property.
-    pub headers: Option<Vec<GoogleCloudApigeeV1SecurityActionHttpHeader>>,
-}
-
-/// `GoogleCloudApigeeV1SecurityActionConditionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1SecurityActionConditionConfig {
-    /// accessTokens property.
-    pub access_tokens: Option<Vec<String>>,
-    /// apiKeys property.
-    pub api_keys: Option<Vec<String>>,
-    /// apiProducts property.
-    pub api_products: Option<Vec<String>>,
-    /// asns property.
-    pub asns: Option<Vec<String>>,
-    /// botReasons property.
-    pub bot_reasons: Option<Vec<String>>,
-    /// developerApps property.
-    pub developer_apps: Option<Vec<String>>,
-    /// developers property.
-    pub developers: Option<Vec<String>>,
-    /// httpMethods property.
-    pub http_methods: Option<Vec<String>>,
-    /// ipAddressRanges property.
-    pub ip_address_ranges: Option<Vec<String>>,
-    /// regionCodes property.
-    pub region_codes: Option<Vec<String>>,
-    /// userAgents property.
-    pub user_agents: Option<Vec<String>>,
-}
+pub struct GoogleCloudApigeeV1SecurityActionAllow {}
 
 /// `GoogleCloudApigeeV1SecurityActionDeny` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -67,10 +38,6 @@ pub struct GoogleCloudApigeeV1SecurityActionDeny {
     /// responseCode property.
     pub response_code: Option<i64>,
 }
-
-/// `GoogleCloudApigeeV1SecurityActionAllow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1SecurityActionAllow {}
 
 /// `GoogleCloudApigeeV1ListSecurityActionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -110,6 +77,33 @@ pub struct GoogleCloudApigeeV1SecurityAction {
     pub update_time: Option<String>,
 }
 
+/// `GoogleCloudApigeeV1SecurityActionConditionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1SecurityActionConditionConfig {
+    /// accessTokens property.
+    pub access_tokens: Option<Vec<String>>,
+    /// apiKeys property.
+    pub api_keys: Option<Vec<String>>,
+    /// apiProducts property.
+    pub api_products: Option<Vec<String>>,
+    /// asns property.
+    pub asns: Option<Vec<String>>,
+    /// botReasons property.
+    pub bot_reasons: Option<Vec<String>>,
+    /// developerApps property.
+    pub developer_apps: Option<Vec<String>>,
+    /// developers property.
+    pub developers: Option<Vec<String>>,
+    /// httpMethods property.
+    pub http_methods: Option<Vec<String>>,
+    /// ipAddressRanges property.
+    pub ip_address_ranges: Option<Vec<String>>,
+    /// regionCodes property.
+    pub region_codes: Option<Vec<String>>,
+    /// userAgents property.
+    pub user_agents: Option<Vec<String>>,
+}
+
 /// `GoogleCloudApigeeV1SecurityActionHttpHeader` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityActionHttpHeader {
@@ -117,6 +111,13 @@ pub struct GoogleCloudApigeeV1SecurityActionHttpHeader {
     pub name: Option<String>,
     /// value property.
     pub value: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1SecurityActionFlag` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1SecurityActionFlag {
+    /// headers property.
+    pub headers: Option<Vec<GoogleCloudApigeeV1SecurityActionHttpHeader>>,
 }
 
 // =============================================================================

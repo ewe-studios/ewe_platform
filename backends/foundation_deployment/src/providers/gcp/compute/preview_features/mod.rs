@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,20 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `HelpLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
 
 /// `Help` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -34,11 +44,70 @@ pub struct Help {
     pub links: Option<Vec<HelpLink>>,
 }
 
-/// `PreviewFeatureRolloutOperation` type.
+/// `GetVersionOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreviewFeatureRolloutOperation {
-    /// rolloutInput property.
-    pub rollout_input: Option<PreviewFeatureRolloutOperationRolloutInput>,
+pub struct GetVersionOperationMetadata {
+    /// inlineSbomInfo property.
+    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+}
+
+/// `PreviewFeatureList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PreviewFeatureList {
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<PreviewFeature>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// unreachables property.
+    pub unreachables: Option<Vec<String>>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `GetVersionOperationMetadataSbomInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
+}
+
+/// `PreviewFeatureRolloutOperationRolloutInput` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PreviewFeatureRolloutOperationRolloutInput {
+    /// name property.
+    pub name: Option<String>,
+    /// predefinedRolloutPlan property.
+    pub predefined_rollout_plan: Option<String>,
+}
+
+/// `ErrorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `Date` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
 }
 
 /// `PreviewFeature` type.
@@ -64,13 +133,6 @@ pub struct PreviewFeature {
     pub status: Option<PreviewFeatureStatus>,
 }
 
-/// `GetVersionOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadata {
-    /// inlineSbomInfo property.
-    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
-}
-
 /// `SetCommonInstanceMetadataOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetCommonInstanceMetadataOperationMetadata {
@@ -78,25 +140,6 @@ pub struct SetCommonInstanceMetadataOperationMetadata {
     pub client_operation_id: Option<String>,
     /// perLocationOperations property.
     pub per_location_operations: Option<serde_json::Value>,
-}
-
-/// `PreviewFeatureList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreviewFeatureList {
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<PreviewFeature>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// unreachables property.
-    pub unreachables: Option<Vec<String>>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `LocalizedMessage` type.
@@ -108,24 +151,11 @@ pub struct LocalizedMessage {
     pub message: Option<String>,
 }
 
-/// `GetVersionOperationMetadataSbomInfo` type.
+/// `PreviewFeatureRolloutOperation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
-}
-
-/// `PreviewFeatureStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreviewFeatureStatus {
-    /// description property.
-    pub description: Option<String>,
-    /// helpLink property.
-    pub help_link: Option<String>,
-    /// releaseStatus property.
-    pub release_status: Option<PreviewFeatureStatusReleaseStatus>,
+pub struct PreviewFeatureRolloutOperation {
+    /// rolloutInput property.
+    pub rollout_input: Option<PreviewFeatureRolloutOperationRolloutInput>,
 }
 
 /// `QuotaExceededInfo` type.
@@ -145,44 +175,15 @@ pub struct QuotaExceededInfo {
     pub rollout_status: Option<String>,
 }
 
-/// `PreviewFeatureRolloutOperationRolloutInput` type.
+/// `PreviewFeatureStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreviewFeatureRolloutOperationRolloutInput {
-    /// name property.
-    pub name: Option<String>,
-    /// predefinedRolloutPlan property.
-    pub predefined_rollout_plan: Option<String>,
-}
-
-/// `HelpLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
+pub struct PreviewFeatureStatus {
     /// description property.
     pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `Date` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `ErrorInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
+    /// helpLink property.
+    pub help_link: Option<String>,
+    /// releaseStatus property.
+    pub release_status: Option<PreviewFeatureStatusReleaseStatus>,
 }
 
 /// `PreviewFeatureStatusReleaseStatus` type.

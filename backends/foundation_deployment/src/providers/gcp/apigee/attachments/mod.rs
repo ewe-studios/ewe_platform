@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -38,15 +39,6 @@ pub struct GoogleCloudApigeeV1InstanceAttachment {
     pub name: Option<String>,
 }
 
-/// `GoogleCloudApigeeV1ListEnvironmentGroupAttachmentsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ListEnvironmentGroupAttachmentsResponse {
-    /// environmentGroupAttachments property.
-    pub environment_group_attachments: Option<Vec<GoogleCloudApigeeV1EnvironmentGroupAttachment>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
 /// `GoogleCloudApigeeV1EnvironmentGroupAttachment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1EnvironmentGroupAttachment {
@@ -58,6 +50,15 @@ pub struct GoogleCloudApigeeV1EnvironmentGroupAttachment {
     pub environment_group_id: Option<String>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1ListEnvironmentGroupAttachmentsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ListEnvironmentGroupAttachmentsResponse {
+    /// environmentGroupAttachments property.
+    pub environment_group_attachments: Option<Vec<GoogleCloudApigeeV1EnvironmentGroupAttachment>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `GoogleCloudApigeeV1ListInstanceAttachmentsResponse` type.

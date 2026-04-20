@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,197 +23,11 @@ use serde::{Deserialize, Serialize};
 use super::shared::GoogleLongrunningOperation;
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudAiplatformV1ReservationAffinity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReservationAffinity {
-    /// key property.
-    pub key: Option<String>,
-    /// reservationAffinityType property.
-    pub reservation_affinity_type: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAiplatformV1StudySpecMetricSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudySpecMetricSpec {
-    /// goal property.
-    pub goal: Option<String>,
-    /// metricId property.
-    pub metric_id: Option<String>,
-    /// safetyConfig property.
-    pub safety_config: Option<GoogleCloudAiplatformV1StudySpecMetricSpecSafetyMetricConfig>,
-}
-
-/// `GoogleCloudAiplatformV1StudySpecStudyStoppingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudySpecStudyStoppingConfig {
-    /// maxDurationNoProgress property.
-    pub max_duration_no_progress: Option<String>,
-    /// maxNumTrials property.
-    pub max_num_trials: Option<i64>,
-    /// maxNumTrialsNoProgress property.
-    pub max_num_trials_no_progress: Option<i64>,
-    /// maximumRuntimeConstraint property.
-    pub maximum_runtime_constraint: Option<GoogleCloudAiplatformV1StudyTimeConstraint>,
-    /// minNumTrials property.
-    pub min_num_trials: Option<i64>,
-    /// minimumRuntimeConstraint property.
-    pub minimum_runtime_constraint: Option<GoogleCloudAiplatformV1StudyTimeConstraint>,
-    /// shouldStopAsap property.
-    pub should_stop_asap: Option<bool>,
-}
-
-/// `GoogleCloudAiplatformV1PscInterfaceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PscInterfaceConfig {
-    /// dnsPeeringConfigs property.
-    pub dns_peering_configs: Option<Vec<GoogleCloudAiplatformV1DnsPeeringConfig>>,
-    /// networkAttachment property.
-    pub network_attachment: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1StudyTimeConstraint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudyTimeConstraint {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// maxDuration property.
-    pub max_duration: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec {
-    /// parameterSpec property.
-    pub parameter_spec: Option<GoogleCloudAiplatformV1StudySpecParameterSpec>,
-    /// parentCategoricalValues property.
-    pub parent_categorical_values: Option<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecCategoricalValueCondition>,
-    /// parentDiscreteValues property.
-    pub parent_discrete_values: Option<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecDiscreteValueCondition>,
-    /// parentIntValues property.
-    pub parent_int_values: Option<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecIntValueCondition>,
-}
-
-/// `GoogleCloudAiplatformV1StudySpecParameterSpecCategoricalValueSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudySpecParameterSpecCategoricalValueSpec {
-    /// defaultValue property.
-    pub default_value: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAiplatformV1EnvVar` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EnvVar {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1GcsDestination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GcsDestination {
-    /// outputUriPrefix property.
-    pub output_uri_prefix: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1DnsPeeringConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DnsPeeringConfig {
-    /// domain property.
-    pub domain: Option<String>,
-    /// targetNetwork property.
-    pub target_network: Option<String>,
-    /// targetProject property.
-    pub target_project: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecIntValueCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecIntValueCondition {
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAiplatformV1PythonPackageSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PythonPackageSpec {
-    /// args property.
-    pub args: Option<Vec<String>>,
-    /// env property.
-    pub env: Option<Vec<GoogleCloudAiplatformV1EnvVar>>,
-    /// executorImageUri property.
-    pub executor_image_uri: Option<String>,
-    /// packageUris property.
-    pub package_uris: Option<Vec<String>>,
-    /// pythonModule property.
-    pub python_module: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1HyperparameterTuningJob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1HyperparameterTuningJob {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// encryptionSpec property.
-    pub encryption_spec: Option<GoogleCloudAiplatformV1EncryptionSpec>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// error property.
-    pub error: Option<GoogleRpcStatus>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// maxFailedTrialCount property.
-    pub max_failed_trial_count: Option<i64>,
-    /// maxTrialCount property.
-    pub max_trial_count: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-    /// parallelTrialCount property.
-    pub parallel_trial_count: Option<i64>,
-    /// satisfiesPzi property.
-    pub satisfies_pzi: Option<bool>,
-    /// satisfiesPzs property.
-    pub satisfies_pzs: Option<bool>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// studySpec property.
-    pub study_spec: Option<GoogleCloudAiplatformV1StudySpec>,
-    /// trialJobSpec property.
-    pub trial_job_spec: Option<GoogleCloudAiplatformV1CustomJobSpec>,
-    /// trials property.
-    pub trials: Option<Vec<GoogleCloudAiplatformV1Trial>>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecCategoricalValueCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecCategoricalValueCondition
-{
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAiplatformV1StudySpecMedianAutomatedStoppingSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudySpecMedianAutomatedStoppingSpec {
-    /// useElapsedDuration property.
-    pub use_elapsed_duration: Option<bool>,
-}
 
 /// `GoogleCloudAiplatformV1Trial` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -243,123 +58,54 @@ pub struct GoogleCloudAiplatformV1Trial {
     pub web_access_uris: Option<serde_json::Value>,
 }
 
-/// `GoogleCloudAiplatformV1DiskSpec` type.
+/// `GoogleCloudAiplatformV1StudySpecConvexAutomatedStoppingSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DiskSpec {
-    /// bootDiskSizeGb property.
-    pub boot_disk_size_gb: Option<i64>,
-    /// bootDiskType property.
-    pub boot_disk_type: Option<String>,
+pub struct GoogleCloudAiplatformV1StudySpecConvexAutomatedStoppingSpec {
+    /// learningRateParameterName property.
+    pub learning_rate_parameter_name: Option<String>,
+    /// maxStepCount property.
+    pub max_step_count: Option<String>,
+    /// minMeasurementCount property.
+    pub min_measurement_count: Option<String>,
+    /// minStepCount property.
+    pub min_step_count: Option<String>,
+    /// updateAllStoppedTrials property.
+    pub update_all_stopped_trials: Option<bool>,
+    /// useElapsedDuration property.
+    pub use_elapsed_duration: Option<bool>,
 }
 
-/// `GoogleCloudAiplatformV1MeasurementMetric` type.
+/// `GoogleCloudAiplatformV1StudySpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MeasurementMetric {
-    /// metricId property.
-    pub metric_id: Option<String>,
-    /// value property.
-    pub value: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1EncryptionSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EncryptionSpec {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1WorkerPoolSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1WorkerPoolSpec {
-    /// containerSpec property.
-    pub container_spec: Option<GoogleCloudAiplatformV1ContainerSpec>,
-    /// diskSpec property.
-    pub disk_spec: Option<GoogleCloudAiplatformV1DiskSpec>,
-    /// lustreMounts property.
-    pub lustre_mounts: Option<Vec<GoogleCloudAiplatformV1LustreMount>>,
-    /// machineSpec property.
-    pub machine_spec: Option<GoogleCloudAiplatformV1MachineSpec>,
-    /// nfsMounts property.
-    pub nfs_mounts: Option<Vec<GoogleCloudAiplatformV1NfsMount>>,
-    /// pythonPackageSpec property.
-    pub python_package_spec: Option<GoogleCloudAiplatformV1PythonPackageSpec>,
-    /// replicaCount property.
-    pub replica_count: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ContainerSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ContainerSpec {
-    /// args property.
-    pub args: Option<Vec<String>>,
-    /// command property.
-    pub command: Option<Vec<String>>,
-    /// env property.
-    pub env: Option<Vec<GoogleCloudAiplatformV1EnvVar>>,
-    /// imageUri property.
-    pub image_uri: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ListHyperparameterTuningJobsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListHyperparameterTuningJobsResponse {
-    /// hyperparameterTuningJobs property.
-    pub hyperparameter_tuning_jobs: Option<Vec<GoogleCloudAiplatformV1HyperparameterTuningJob>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1LustreMount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1LustreMount {
-    /// filesystem property.
-    pub filesystem: Option<String>,
-    /// instanceIp property.
-    pub instance_ip: Option<String>,
-    /// mountPoint property.
-    pub mount_point: Option<String>,
-    /// volumeHandle property.
-    pub volume_handle: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1StudySpecParameterSpecDiscreteValueSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudySpecParameterSpecDiscreteValueSpec {
-    /// defaultValue property.
-    pub default_value: Option<f64>,
-    /// values property.
-    pub values: Option<Vec<f64>>,
-}
-
-/// `GoogleCloudAiplatformV1Measurement` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Measurement {
-    /// elapsedDuration property.
-    pub elapsed_duration: Option<String>,
+pub struct GoogleCloudAiplatformV1StudySpec {
+    /// algorithm property.
+    pub algorithm: Option<String>,
+    /// convexAutomatedStoppingSpec property.
+    pub convex_automated_stopping_spec:
+        Option<GoogleCloudAiplatformV1StudySpecConvexAutomatedStoppingSpec>,
+    /// decayCurveStoppingSpec property.
+    pub decay_curve_stopping_spec:
+        Option<GoogleCloudAiplatformV1StudySpecDecayCurveAutomatedStoppingSpec>,
+    /// measurementSelectionType property.
+    pub measurement_selection_type: Option<String>,
+    /// medianAutomatedStoppingSpec property.
+    pub median_automated_stopping_spec:
+        Option<GoogleCloudAiplatformV1StudySpecMedianAutomatedStoppingSpec>,
     /// metrics property.
-    pub metrics: Option<Vec<GoogleCloudAiplatformV1MeasurementMetric>>,
-    /// stepCount property.
-    pub step_count: Option<String>,
+    pub metrics: Option<Vec<GoogleCloudAiplatformV1StudySpecMetricSpec>>,
+    /// observationNoise property.
+    pub observation_noise: Option<String>,
+    /// parameters property.
+    pub parameters: Option<Vec<Box<GoogleCloudAiplatformV1StudySpecParameterSpec>>>,
+    /// studyStoppingConfig property.
+    pub study_stopping_config: Option<GoogleCloudAiplatformV1StudySpecStudyStoppingConfig>,
 }
 
-/// `GoogleCloudAiplatformV1TrialParameter` type.
+/// `GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecIntValueCondition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1TrialParameter {
-    /// parameterId property.
-    pub parameter_id: Option<String>,
-    /// value property.
-    pub value: Option<serde_json::Value>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecIntValueCondition {
+    /// values property.
+    pub values: Option<Vec<String>>,
 }
 
 /// `GoogleCloudAiplatformV1MachineSpec` type.
@@ -379,26 +125,54 @@ pub struct GoogleCloudAiplatformV1MachineSpec {
     pub tpu_topology: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1StudySpecParameterSpecIntegerValueSpec` type.
+/// `GoogleCloudAiplatformV1MeasurementMetric` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudySpecParameterSpecIntegerValueSpec {
-    /// defaultValue property.
-    pub default_value: Option<String>,
-    /// maxValue property.
-    pub max_value: Option<String>,
-    /// minValue property.
-    pub min_value: Option<String>,
+pub struct GoogleCloudAiplatformV1MeasurementMetric {
+    /// metricId property.
+    pub metric_id: Option<String>,
+    /// value property.
+    pub value: Option<f64>,
 }
 
-/// `GoogleCloudAiplatformV1NfsMount` type.
+/// `GoogleCloudAiplatformV1ContainerSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1NfsMount {
-    /// mountPoint property.
-    pub mount_point: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-    /// server property.
-    pub server: Option<String>,
+pub struct GoogleCloudAiplatformV1ContainerSpec {
+    /// args property.
+    pub args: Option<Vec<String>>,
+    /// command property.
+    pub command: Option<Vec<String>>,
+    /// env property.
+    pub env: Option<Vec<GoogleCloudAiplatformV1EnvVar>>,
+    /// imageUri property.
+    pub image_uri: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1PythonPackageSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PythonPackageSpec {
+    /// args property.
+    pub args: Option<Vec<String>>,
+    /// env property.
+    pub env: Option<Vec<GoogleCloudAiplatformV1EnvVar>>,
+    /// executorImageUri property.
+    pub executor_image_uri: Option<String>,
+    /// packageUris property.
+    pub package_uris: Option<Vec<String>>,
+    /// pythonModule property.
+    pub python_module: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec {
+    /// parameterSpec property.
+    pub parameter_spec: Option<Box<GoogleCloudAiplatformV1StudySpecParameterSpec>>,
+    /// parentCategoricalValues property.
+    pub parent_categorical_values: Option<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecCategoricalValueCondition>,
+    /// parentDiscreteValues property.
+    pub parent_discrete_values: Option<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecDiscreteValueCondition>,
+    /// parentIntValues property.
+    pub parent_int_values: Option<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecIntValueCondition>,
 }
 
 /// `GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecDiscreteValueCondition` type.
@@ -409,24 +183,29 @@ pub struct GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec
     pub values: Option<Vec<f64>>,
 }
 
-/// `GoogleCloudAiplatformV1StudySpecMetricSpecSafetyMetricConfig` type.
+/// `GoogleCloudAiplatformV1EnvVar` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudySpecMetricSpecSafetyMetricConfig {
-    /// desiredMinSafeTrialsFraction property.
-    pub desired_min_safe_trials_fraction: Option<f64>,
-    /// safetyThreshold property.
-    pub safety_threshold: Option<f64>,
+pub struct GoogleCloudAiplatformV1EnvVar {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1StudySpecParameterSpecDoubleValueSpec` type.
+/// `GoogleCloudAiplatformV1DiskSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudySpecParameterSpecDoubleValueSpec {
-    /// defaultValue property.
-    pub default_value: Option<f64>,
-    /// maxValue property.
-    pub max_value: Option<f64>,
-    /// minValue property.
-    pub min_value: Option<f64>,
+pub struct GoogleCloudAiplatformV1DiskSpec {
+    /// bootDiskSizeGb property.
+    pub boot_disk_size_gb: Option<i64>,
+    /// bootDiskType property.
+    pub boot_disk_type: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1EncryptionSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1EncryptionSpec {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1CustomJobSpec` type.
@@ -479,21 +258,210 @@ pub struct GoogleCloudAiplatformV1Scheduling {
     pub timeout: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1StudySpecConvexAutomatedStoppingSpec` type.
+/// `GoogleCloudAiplatformV1WorkerPoolSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudySpecConvexAutomatedStoppingSpec {
-    /// learningRateParameterName property.
-    pub learning_rate_parameter_name: Option<String>,
-    /// maxStepCount property.
-    pub max_step_count: Option<String>,
-    /// minMeasurementCount property.
-    pub min_measurement_count: Option<String>,
-    /// minStepCount property.
-    pub min_step_count: Option<String>,
-    /// updateAllStoppedTrials property.
-    pub update_all_stopped_trials: Option<bool>,
+pub struct GoogleCloudAiplatformV1WorkerPoolSpec {
+    /// containerSpec property.
+    pub container_spec: Option<GoogleCloudAiplatformV1ContainerSpec>,
+    /// diskSpec property.
+    pub disk_spec: Option<GoogleCloudAiplatformV1DiskSpec>,
+    /// lustreMounts property.
+    pub lustre_mounts: Option<Vec<GoogleCloudAiplatformV1LustreMount>>,
+    /// machineSpec property.
+    pub machine_spec: Option<GoogleCloudAiplatformV1MachineSpec>,
+    /// nfsMounts property.
+    pub nfs_mounts: Option<Vec<GoogleCloudAiplatformV1NfsMount>>,
+    /// pythonPackageSpec property.
+    pub python_package_spec: Option<GoogleCloudAiplatformV1PythonPackageSpec>,
+    /// replicaCount property.
+    pub replica_count: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ReservationAffinity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ReservationAffinity {
+    /// key property.
+    pub key: Option<String>,
+    /// reservationAffinityType property.
+    pub reservation_affinity_type: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAiplatformV1StudySpecParameterSpecIntegerValueSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1StudySpecParameterSpecIntegerValueSpec {
+    /// defaultValue property.
+    pub default_value: Option<String>,
+    /// maxValue property.
+    pub max_value: Option<String>,
+    /// minValue property.
+    pub min_value: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1StudySpecParameterSpecDoubleValueSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1StudySpecParameterSpecDoubleValueSpec {
+    /// defaultValue property.
+    pub default_value: Option<f64>,
+    /// maxValue property.
+    pub max_value: Option<f64>,
+    /// minValue property.
+    pub min_value: Option<f64>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ListHyperparameterTuningJobsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ListHyperparameterTuningJobsResponse {
+    /// hyperparameterTuningJobs property.
+    pub hyperparameter_tuning_jobs: Option<Vec<GoogleCloudAiplatformV1HyperparameterTuningJob>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1StudySpecMetricSpecSafetyMetricConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1StudySpecMetricSpecSafetyMetricConfig {
+    /// desiredMinSafeTrialsFraction property.
+    pub desired_min_safe_trials_fraction: Option<f64>,
+    /// safetyThreshold property.
+    pub safety_threshold: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1StudySpecMetricSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1StudySpecMetricSpec {
+    /// goal property.
+    pub goal: Option<String>,
+    /// metricId property.
+    pub metric_id: Option<String>,
+    /// safetyConfig property.
+    pub safety_config: Option<GoogleCloudAiplatformV1StudySpecMetricSpecSafetyMetricConfig>,
+}
+
+/// `GoogleCloudAiplatformV1StudySpecMedianAutomatedStoppingSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1StudySpecMedianAutomatedStoppingSpec {
     /// useElapsedDuration property.
     pub use_elapsed_duration: Option<bool>,
+}
+
+/// `GoogleCloudAiplatformV1StudySpecParameterSpecCategoricalValueSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1StudySpecParameterSpecCategoricalValueSpec {
+    /// defaultValue property.
+    pub default_value: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAiplatformV1DnsPeeringConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1DnsPeeringConfig {
+    /// domain property.
+    pub domain: Option<String>,
+    /// targetNetwork property.
+    pub target_network: Option<String>,
+    /// targetProject property.
+    pub target_project: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1GcsDestination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1GcsDestination {
+    /// outputUriPrefix property.
+    pub output_uri_prefix: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1Measurement` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1Measurement {
+    /// elapsedDuration property.
+    pub elapsed_duration: Option<String>,
+    /// metrics property.
+    pub metrics: Option<Vec<GoogleCloudAiplatformV1MeasurementMetric>>,
+    /// stepCount property.
+    pub step_count: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecCategoricalValueCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecCategoricalValueCondition
+{
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAiplatformV1NfsMount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1NfsMount {
+    /// mountPoint property.
+    pub mount_point: Option<String>,
+    /// path property.
+    pub path: Option<String>,
+    /// server property.
+    pub server: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1LustreMount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1LustreMount {
+    /// filesystem property.
+    pub filesystem: Option<String>,
+    /// instanceIp property.
+    pub instance_ip: Option<String>,
+    /// mountPoint property.
+    pub mount_point: Option<String>,
+    /// volumeHandle property.
+    pub volume_handle: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1PscInterfaceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PscInterfaceConfig {
+    /// dnsPeeringConfigs property.
+    pub dns_peering_configs: Option<Vec<GoogleCloudAiplatformV1DnsPeeringConfig>>,
+    /// networkAttachment property.
+    pub network_attachment: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1StudySpecStudyStoppingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1StudySpecStudyStoppingConfig {
+    /// maxDurationNoProgress property.
+    pub max_duration_no_progress: Option<String>,
+    /// maxNumTrials property.
+    pub max_num_trials: Option<i64>,
+    /// maxNumTrialsNoProgress property.
+    pub max_num_trials_no_progress: Option<i64>,
+    /// maximumRuntimeConstraint property.
+    pub maximum_runtime_constraint: Option<GoogleCloudAiplatformV1StudyTimeConstraint>,
+    /// minNumTrials property.
+    pub min_num_trials: Option<i64>,
+    /// minimumRuntimeConstraint property.
+    pub minimum_runtime_constraint: Option<GoogleCloudAiplatformV1StudyTimeConstraint>,
+    /// shouldStopAsap property.
+    pub should_stop_asap: Option<bool>,
+}
+
+/// `GoogleCloudAiplatformV1TrialParameter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1TrialParameter {
+    /// parameterId property.
+    pub parameter_id: Option<String>,
+    /// value property.
+    pub value: Option<serde_json::Value>,
 }
 
 /// `GoogleCloudAiplatformV1StudySpecDecayCurveAutomatedStoppingSpec` type.
@@ -501,6 +469,47 @@ pub struct GoogleCloudAiplatformV1StudySpecConvexAutomatedStoppingSpec {
 pub struct GoogleCloudAiplatformV1StudySpecDecayCurveAutomatedStoppingSpec {
     /// useElapsedDuration property.
     pub use_elapsed_duration: Option<bool>,
+}
+
+/// `GoogleCloudAiplatformV1HyperparameterTuningJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1HyperparameterTuningJob {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// encryptionSpec property.
+    pub encryption_spec: Option<GoogleCloudAiplatformV1EncryptionSpec>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// error property.
+    pub error: Option<GoogleRpcStatus>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// maxFailedTrialCount property.
+    pub max_failed_trial_count: Option<i64>,
+    /// maxTrialCount property.
+    pub max_trial_count: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// parallelTrialCount property.
+    pub parallel_trial_count: Option<i64>,
+    /// satisfiesPzi property.
+    pub satisfies_pzi: Option<bool>,
+    /// satisfiesPzs property.
+    pub satisfies_pzs: Option<bool>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// studySpec property.
+    pub study_spec: Option<GoogleCloudAiplatformV1StudySpec>,
+    /// trialJobSpec property.
+    pub trial_job_spec: Option<GoogleCloudAiplatformV1CustomJobSpec>,
+    /// trials property.
+    pub trials: Option<Vec<GoogleCloudAiplatformV1Trial>>,
+    /// updateTime property.
+    pub update_time: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1StudySpecParameterSpec` type.
@@ -511,7 +520,7 @@ pub struct GoogleCloudAiplatformV1StudySpecParameterSpec {
         Option<GoogleCloudAiplatformV1StudySpecParameterSpecCategoricalValueSpec>,
     /// conditionalParameterSpecs property.
     pub conditional_parameter_specs:
-        Option<Vec<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec>>,
+        Option<Vec<Box<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec>>>,
     /// discreteValueSpec property.
     pub discrete_value_spec: Option<GoogleCloudAiplatformV1StudySpecParameterSpecDiscreteValueSpec>,
     /// doubleValueSpec property.
@@ -524,30 +533,22 @@ pub struct GoogleCloudAiplatformV1StudySpecParameterSpec {
     pub scale_type: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1StudySpec` type.
+/// `GoogleCloudAiplatformV1StudyTimeConstraint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StudySpec {
-    /// algorithm property.
-    pub algorithm: Option<String>,
-    /// convexAutomatedStoppingSpec property.
-    pub convex_automated_stopping_spec:
-        Option<GoogleCloudAiplatformV1StudySpecConvexAutomatedStoppingSpec>,
-    /// decayCurveStoppingSpec property.
-    pub decay_curve_stopping_spec:
-        Option<GoogleCloudAiplatformV1StudySpecDecayCurveAutomatedStoppingSpec>,
-    /// measurementSelectionType property.
-    pub measurement_selection_type: Option<String>,
-    /// medianAutomatedStoppingSpec property.
-    pub median_automated_stopping_spec:
-        Option<GoogleCloudAiplatformV1StudySpecMedianAutomatedStoppingSpec>,
-    /// metrics property.
-    pub metrics: Option<Vec<GoogleCloudAiplatformV1StudySpecMetricSpec>>,
-    /// observationNoise property.
-    pub observation_noise: Option<String>,
-    /// parameters property.
-    pub parameters: Option<Vec<GoogleCloudAiplatformV1StudySpecParameterSpec>>,
-    /// studyStoppingConfig property.
-    pub study_stopping_config: Option<GoogleCloudAiplatformV1StudySpecStudyStoppingConfig>,
+pub struct GoogleCloudAiplatformV1StudyTimeConstraint {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// maxDuration property.
+    pub max_duration: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1StudySpecParameterSpecDiscreteValueSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1StudySpecParameterSpecDiscreteValueSpec {
+    /// defaultValue property.
+    pub default_value: Option<f64>,
+    /// values property.
+    pub values: Option<Vec<f64>>,
 }
 
 // =============================================================================

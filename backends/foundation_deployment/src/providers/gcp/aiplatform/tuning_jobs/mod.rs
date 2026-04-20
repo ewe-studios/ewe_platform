@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,194 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudAiplatformV1ImageConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ImageConfig {
+    /// aspectRatio property.
+    pub aspect_ratio: Option<String>,
+    /// imageOutputOptions property.
+    pub image_output_options: Option<GoogleCloudAiplatformV1ImageConfigImageOutputOptions>,
+    /// imageSize property.
+    pub image_size: Option<String>,
+    /// personGeneration property.
+    pub person_generation: Option<String>,
+    /// prominentPeople property.
+    pub prominent_people: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1Blob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1Blob {
+    /// data property.
+    pub data: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1PredefinedMetricSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PredefinedMetricSpec {
+    /// metricSpecName property.
+    pub metric_spec_name: Option<String>,
+    /// metricSpecParameters property.
+    pub metric_spec_parameters: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudAiplatformV1DatasetDistribution` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1DatasetDistribution {
+    /// buckets property.
+    pub buckets: Option<Vec<GoogleCloudAiplatformV1DatasetDistributionDistributionBucket>>,
+    /// max property.
+    pub max: Option<f64>,
+    /// mean property.
+    pub mean: Option<f64>,
+    /// median property.
+    pub median: Option<f64>,
+    /// min property.
+    pub min: Option<f64>,
+    /// p5 property.
+    pub p5: Option<f64>,
+    /// p95 property.
+    pub p95: Option<f64>,
+    /// sum property.
+    pub sum: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1BleuMetricValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1BleuMetricValue {
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1PreferenceOptimizationDataStats` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PreferenceOptimizationDataStats {
+    /// droppedExampleIndices property.
+    pub dropped_example_indices: Option<Vec<String>>,
+    /// droppedExampleReasons property.
+    pub dropped_example_reasons: Option<Vec<String>>,
+    /// scoreVariancePerExampleDistribution property.
+    pub score_variance_per_example_distribution: Option<GoogleCloudAiplatformV1DatasetDistribution>,
+    /// scoresDistribution property.
+    pub scores_distribution: Option<GoogleCloudAiplatformV1DatasetDistribution>,
+    /// totalBillableTokenCount property.
+    pub total_billable_token_count: Option<String>,
+    /// tuningDatasetExampleCount property.
+    pub tuning_dataset_example_count: Option<String>,
+    /// tuningStepCount property.
+    pub tuning_step_count: Option<String>,
+    /// userDatasetExamples property.
+    pub user_dataset_examples: Option<Vec<GoogleCloudAiplatformV1GeminiPreferenceExample>>,
+    /// userInputTokenDistribution property.
+    pub user_input_token_distribution: Option<GoogleCloudAiplatformV1DatasetDistribution>,
+    /// userOutputTokenDistribution property.
+    pub user_output_token_distribution: Option<GoogleCloudAiplatformV1DatasetDistribution>,
+}
+
+/// `GoogleCloudAiplatformV1VideoMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1VideoMetadata {
+    /// endOffset property.
+    pub end_offset: Option<String>,
+    /// fps property.
+    pub fps: Option<f64>,
+    /// startOffset property.
+    pub start_offset: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1BigQuerySource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1BigQuerySource {
+    /// inputUri property.
+    pub input_uri: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1CodeExecutionResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1CodeExecutionResult {
+    /// outcome property.
+    pub outcome: Option<String>,
+    /// output property.
+    pub output: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1CustomOutputFormatConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1CustomOutputFormatConfig {
+    /// returnRawOutput property.
+    pub return_raw_output: Option<bool>,
+}
+
+/// `GoogleCloudAiplatformV1GenerationConfigThinkingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1GenerationConfigThinkingConfig {
+    /// includeThoughts property.
+    pub include_thoughts: Option<bool>,
+    /// thinkingBudget property.
+    pub thinking_budget: Option<i64>,
+    /// thinkingLevel property.
+    pub thinking_level: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1SpeakerVoiceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1SpeakerVoiceConfig {
+    /// speaker property.
+    pub speaker: Option<String>,
+    /// voiceConfig property.
+    pub voice_config: Option<GoogleCloudAiplatformV1VoiceConfig>,
+}
+
+/// `GoogleCloudAiplatformV1GenerationConfigRoutingConfigManualRoutingMode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1GenerationConfigRoutingConfigManualRoutingMode {
+    /// modelName property.
+    pub model_name: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1GenerationConfigRoutingConfigAutoRoutingMode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1GenerationConfigRoutingConfigAutoRoutingMode {
+    /// modelRoutingPreference property.
+    pub model_routing_preference: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1GeminiPreferenceExample` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1GeminiPreferenceExample {
+    /// completions property.
+    pub completions: Option<Vec<GoogleCloudAiplatformV1GeminiPreferenceExampleCompletion>>,
+    /// contents property.
+    pub contents: Option<Vec<GoogleCloudAiplatformV1Content>>,
+}
+
+/// `GoogleCloudAiplatformV1SupervisedTuningDatasetDistributionDatasetBucket` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1SupervisedTuningDatasetDistributionDatasetBucket {
+    /// count property.
+    pub count: Option<f64>,
+    /// left property.
+    pub left: Option<f64>,
+    /// right property.
+    pub right: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1OutputInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1OutputInfo {
+    /// gcsOutputDirectory property.
+    pub gcs_output_directory: Option<String>,
+}
 
 /// `GoogleCloudAiplatformV1Part` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -54,26 +238,191 @@ pub struct GoogleCloudAiplatformV1Part {
     pub video_metadata: Option<GoogleCloudAiplatformV1VideoMetadata>,
 }
 
-/// `GoogleCloudAiplatformV1FunctionResponse` type.
+/// `GoogleCloudAiplatformV1MetricMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FunctionResponse {
-    /// name property.
-    pub name: Option<String>,
-    /// parts property.
-    pub parts: Option<Vec<GoogleCloudAiplatformV1FunctionResponsePart>>,
-    /// response property.
-    pub response: Option<serde_json::Value>,
-    /// scheduling property.
-    pub scheduling: Option<String>,
+pub struct GoogleCloudAiplatformV1MetricMetadata {
+    /// otherMetadata property.
+    pub other_metadata: Option<serde_json::Value>,
+    /// scoreRange property.
+    pub score_range: Option<GoogleCloudAiplatformV1MetricMetadataScoreRange>,
+    /// title property.
+    pub title: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1FunctionResponsePart` type.
+/// `GoogleCloudAiplatformV1SupervisedTuningDataStats` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FunctionResponsePart {
-    /// fileData property.
-    pub file_data: Option<GoogleCloudAiplatformV1FunctionResponseFileData>,
-    /// inlineData property.
-    pub inline_data: Option<GoogleCloudAiplatformV1FunctionResponseBlob>,
+pub struct GoogleCloudAiplatformV1SupervisedTuningDataStats {
+    /// droppedExampleReasons property.
+    pub dropped_example_reasons: Option<Vec<String>>,
+    /// totalBillableCharacterCount property.
+    pub total_billable_character_count: Option<String>,
+    /// totalBillableTokenCount property.
+    pub total_billable_token_count: Option<String>,
+    /// totalTruncatedExampleCount property.
+    pub total_truncated_example_count: Option<String>,
+    /// totalTuningCharacterCount property.
+    pub total_tuning_character_count: Option<String>,
+    /// truncatedExampleIndices property.
+    pub truncated_example_indices: Option<Vec<String>>,
+    /// tuningDatasetExampleCount property.
+    pub tuning_dataset_example_count: Option<String>,
+    /// tuningStepCount property.
+    pub tuning_step_count: Option<String>,
+    /// userDatasetExamples property.
+    pub user_dataset_examples: Option<Vec<GoogleCloudAiplatformV1Content>>,
+    /// userInputTokenDistribution property.
+    pub user_input_token_distribution:
+        Option<GoogleCloudAiplatformV1SupervisedTuningDatasetDistribution>,
+    /// userMessagePerExampleDistribution property.
+    pub user_message_per_example_distribution:
+        Option<GoogleCloudAiplatformV1SupervisedTuningDatasetDistribution>,
+    /// userOutputTokenDistribution property.
+    pub user_output_token_distribution:
+        Option<GoogleCloudAiplatformV1SupervisedTuningDatasetDistribution>,
+}
+
+/// `GoogleCloudAiplatformV1ComputationBasedMetricSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ComputationBasedMetricSpec {
+    /// parameters property.
+    pub parameters: Option<serde_json::Value>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1MetricMetadataScoreRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1MetricMetadataScoreRange {
+    /// description property.
+    pub description: Option<String>,
+    /// max property.
+    pub max: Option<f64>,
+    /// min property.
+    pub min: Option<f64>,
+    /// step property.
+    pub step: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1PointwiseMetricResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PointwiseMetricResult {
+    /// customOutput property.
+    pub custom_output: Option<GoogleCloudAiplatformV1CustomOutput>,
+    /// explanation property.
+    pub explanation: Option<String>,
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1GeminiPreferenceExampleCompletion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1GeminiPreferenceExampleCompletion {
+    /// completion property.
+    pub completion: Option<GoogleCloudAiplatformV1Content>,
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1FunctionResponseBlob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FunctionResponseBlob {
+    /// data property.
+    pub data: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1Content` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1Content {
+    /// parts property.
+    pub parts: Option<Vec<GoogleCloudAiplatformV1Part>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1OutputConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1OutputConfig {
+    /// gcsDestination property.
+    pub gcs_destination: Option<GoogleCloudAiplatformV1GcsDestination>,
+}
+
+/// `GoogleCloudAiplatformV1RawOutput` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RawOutput {
+    /// rawOutput property.
+    pub raw_output: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAiplatformV1SupervisedHyperParameters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1SupervisedHyperParameters {
+    /// adapterSize property.
+    pub adapter_size: Option<String>,
+    /// epochCount property.
+    pub epoch_count: Option<String>,
+    /// learningRateMultiplier property.
+    pub learning_rate_multiplier: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1AggregationResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1AggregationResult {
+    /// aggregationMetric property.
+    pub aggregation_metric: Option<String>,
+    /// bleuMetricValue property.
+    pub bleu_metric_value: Option<GoogleCloudAiplatformV1BleuMetricValue>,
+    /// customCodeExecutionResult property.
+    pub custom_code_execution_result: Option<GoogleCloudAiplatformV1CustomCodeExecutionResult>,
+    /// exactMatchMetricValue property.
+    pub exact_match_metric_value: Option<GoogleCloudAiplatformV1ExactMatchMetricValue>,
+    /// pairwiseMetricResult property.
+    pub pairwise_metric_result: Option<GoogleCloudAiplatformV1PairwiseMetricResult>,
+    /// pointwiseMetricResult property.
+    pub pointwise_metric_result: Option<GoogleCloudAiplatformV1PointwiseMetricResult>,
+    /// rougeMetricValue property.
+    pub rouge_metric_value: Option<GoogleCloudAiplatformV1RougeMetricValue>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1DatasetDistributionDistributionBucket` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1DatasetDistributionDistributionBucket {
+    /// count property.
+    pub count: Option<String>,
+    /// left property.
+    pub left: Option<f64>,
+    /// right property.
+    pub right: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1AggregationOutput` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1AggregationOutput {
+    /// aggregationResults property.
+    pub aggregation_results: Option<Vec<GoogleCloudAiplatformV1AggregationResult>>,
+    /// dataset property.
+    pub dataset: Option<GoogleCloudAiplatformV1EvaluationDataset>,
+}
+
+/// `GoogleCloudAiplatformV1GcsSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1GcsSource {
+    /// uris property.
+    pub uris: Option<Vec<String>>,
 }
 
 /// `GoogleCloudAiplatformV1TunedModelCheckpoint` type.
@@ -89,275 +438,52 @@ pub struct GoogleCloudAiplatformV1TunedModelCheckpoint {
     pub step: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1EvaluateDatasetResponse` type.
+/// `GoogleCloudAiplatformV1PreTunedModel` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EvaluateDatasetResponse {
-    /// aggregationOutput property.
-    pub aggregation_output: Option<GoogleCloudAiplatformV1AggregationOutput>,
-    /// outputInfo property.
-    pub output_info: Option<GoogleCloudAiplatformV1OutputInfo>,
+pub struct GoogleCloudAiplatformV1PreTunedModel {
+    /// baseModel property.
+    pub base_model: Option<String>,
+    /// checkpointId property.
+    pub checkpoint_id: Option<String>,
+    /// tunedModelName property.
+    pub tuned_model_name: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1ExactMatchSpec` type.
+/// `GoogleCloudAiplatformV1FunctionResponsePart` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ExactMatchSpec {}
-
-/// `GoogleCloudAiplatformV1AggregationOutput` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1AggregationOutput {
-    /// aggregationResults property.
-    pub aggregation_results: Option<Vec<GoogleCloudAiplatformV1AggregationResult>>,
-    /// dataset property.
-    pub dataset: Option<GoogleCloudAiplatformV1EvaluationDataset>,
+pub struct GoogleCloudAiplatformV1FunctionResponsePart {
+    /// fileData property.
+    pub file_data: Option<GoogleCloudAiplatformV1FunctionResponseFileData>,
+    /// inlineData property.
+    pub inline_data: Option<GoogleCloudAiplatformV1FunctionResponseBlob>,
 }
 
-/// `GoogleCloudAiplatformV1FileData` type.
+/// `GoogleCloudAiplatformV1FunctionCall` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FileData {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// fileUri property.
-    pub file_uri: Option<String>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1RawOutput` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RawOutput {
-    /// rawOutput property.
-    pub raw_output: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAiplatformV1Metric` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Metric {
-    /// aggregationMetrics property.
-    pub aggregation_metrics: Option<Vec<String>>,
-    /// bleuSpec property.
-    pub bleu_spec: Option<GoogleCloudAiplatformV1BleuSpec>,
-    /// computationBasedMetricSpec property.
-    pub computation_based_metric_spec: Option<GoogleCloudAiplatformV1ComputationBasedMetricSpec>,
-    /// customCodeExecutionSpec property.
-    pub custom_code_execution_spec: Option<GoogleCloudAiplatformV1CustomCodeExecutionSpec>,
-    /// exactMatchSpec property.
-    pub exact_match_spec: Option<GoogleCloudAiplatformV1ExactMatchSpec>,
-    /// llmBasedMetricSpec property.
-    pub llm_based_metric_spec: Option<GoogleCloudAiplatformV1LLMBasedMetricSpec>,
-    /// metadata property.
-    pub metadata: Option<GoogleCloudAiplatformV1MetricMetadata>,
-    /// pairwiseMetricSpec property.
-    pub pairwise_metric_spec: Option<GoogleCloudAiplatformV1PairwiseMetricSpec>,
-    /// pointwiseMetricSpec property.
-    pub pointwise_metric_spec: Option<GoogleCloudAiplatformV1PointwiseMetricSpec>,
-    /// predefinedMetricSpec property.
-    pub predefined_metric_spec: Option<GoogleCloudAiplatformV1PredefinedMetricSpec>,
-    /// rougeSpec property.
-    pub rouge_spec: Option<GoogleCloudAiplatformV1RougeSpec>,
-}
-
-/// `GoogleCloudAiplatformV1GenerationConfigRoutingConfigManualRoutingMode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GenerationConfigRoutingConfigManualRoutingMode {
-    /// modelName property.
-    pub model_name: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ReplicatedVoiceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReplicatedVoiceConfig {
-    /// mimeType property.
-    pub mime_type: Option<String>,
-    /// voiceSampleAudio property.
-    pub voice_sample_audio: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1OutputConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1OutputConfig {
-    /// gcsDestination property.
-    pub gcs_destination: Option<GoogleCloudAiplatformV1GcsDestination>,
-}
-
-/// `GoogleCloudAiplatformV1BleuSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1BleuSpec {
-    /// useEffectiveOrder property.
-    pub use_effective_order: Option<bool>,
-}
-
-/// `GoogleCloudAiplatformV1SupervisedTuningDatasetDistribution` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SupervisedTuningDatasetDistribution {
-    /// billableSum property.
-    pub billable_sum: Option<String>,
-    /// buckets property.
-    pub buckets:
-        Option<Vec<GoogleCloudAiplatformV1SupervisedTuningDatasetDistributionDatasetBucket>>,
-    /// max property.
-    pub max: Option<f64>,
-    /// mean property.
-    pub mean: Option<f64>,
-    /// median property.
-    pub median: Option<f64>,
-    /// min property.
-    pub min: Option<f64>,
-    /// p5 property.
-    pub p5: Option<f64>,
-    /// p95 property.
-    pub p95: Option<f64>,
-    /// sum property.
-    pub sum: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1EncryptionSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EncryptionSpec {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1PartialArg` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PartialArg {
-    /// boolValue property.
-    pub bool_value: Option<bool>,
-    /// jsonPath property.
-    pub json_path: Option<String>,
-    /// nullValue property.
-    pub null_value: Option<String>,
-    /// numberValue property.
-    pub number_value: Option<f64>,
-    /// stringValue property.
-    pub string_value: Option<String>,
+pub struct GoogleCloudAiplatformV1FunctionCall {
+    /// args property.
+    pub args: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// partialArgs property.
+    pub partial_args: Option<Vec<GoogleCloudAiplatformV1PartialArg>>,
     /// willContinue property.
     pub will_continue: Option<bool>,
 }
 
-/// `GoogleCloudAiplatformV1RougeSpec` type.
+/// `GoogleCloudAiplatformV1PairwiseMetricSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RougeSpec {
-    /// rougeType property.
-    pub rouge_type: Option<String>,
-    /// splitSummaries property.
-    pub split_summaries: Option<bool>,
-    /// useStemmer property.
-    pub use_stemmer: Option<bool>,
-}
-
-/// `GoogleCloudAiplatformV1RubricGenerationSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RubricGenerationSpec {
-    /// modelConfig property.
-    pub model_config: Option<GoogleCloudAiplatformV1AutoraterConfig>,
-    /// promptTemplate property.
-    pub prompt_template: Option<String>,
-    /// rubricContentType property.
-    pub rubric_content_type: Option<String>,
-    /// rubricTypeOntology property.
-    pub rubric_type_ontology: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAiplatformV1AutoraterConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1AutoraterConfig {
-    /// autoraterModel property.
-    pub autorater_model: Option<String>,
-    /// flipEnabled property.
-    pub flip_enabled: Option<bool>,
-    /// generationConfig property.
-    pub generation_config: Option<GoogleCloudAiplatformV1GenerationConfig>,
-    /// samplingCount property.
-    pub sampling_count: Option<i64>,
-}
-
-/// `GoogleCloudAiplatformV1MetricMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MetricMetadata {
-    /// otherMetadata property.
-    pub other_metadata: Option<serde_json::Value>,
-    /// scoreRange property.
-    pub score_range: Option<GoogleCloudAiplatformV1MetricMetadataScoreRange>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1Blob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Blob {
-    /// data property.
-    pub data: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1SupervisedTuningSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SupervisedTuningSpec {
-    /// evaluationConfig property.
-    pub evaluation_config: Option<GoogleCloudAiplatformV1EvaluationConfig>,
-    /// exportLastCheckpointOnly property.
-    pub export_last_checkpoint_only: Option<bool>,
-    /// hyperParameters property.
-    pub hyper_parameters: Option<GoogleCloudAiplatformV1SupervisedHyperParameters>,
-    /// trainingDatasetUri property.
-    pub training_dataset_uri: Option<String>,
-    /// validationDatasetUri property.
-    pub validation_dataset_uri: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1DatasetDistribution` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DatasetDistribution {
-    /// buckets property.
-    pub buckets: Option<Vec<GoogleCloudAiplatformV1DatasetDistributionDistributionBucket>>,
-    /// max property.
-    pub max: Option<f64>,
-    /// mean property.
-    pub mean: Option<f64>,
-    /// median property.
-    pub median: Option<f64>,
-    /// min property.
-    pub min: Option<f64>,
-    /// p5 property.
-    pub p5: Option<f64>,
-    /// p95 property.
-    pub p95: Option<f64>,
-    /// sum property.
-    pub sum: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1ComputationBasedMetricSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ComputationBasedMetricSpec {
-    /// parameters property.
-    pub parameters: Option<serde_json::Value>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1TunedModel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1TunedModel {
-    /// checkpoints property.
-    pub checkpoints: Option<Vec<GoogleCloudAiplatformV1TunedModelCheckpoint>>,
-    /// endpoint property.
-    pub endpoint: Option<String>,
-    /// model property.
-    pub model: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1SpeechConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SpeechConfig {
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// multiSpeakerVoiceConfig property.
-    pub multi_speaker_voice_config: Option<GoogleCloudAiplatformV1MultiSpeakerVoiceConfig>,
-    /// voiceConfig property.
-    pub voice_config: Option<GoogleCloudAiplatformV1VoiceConfig>,
+pub struct GoogleCloudAiplatformV1PairwiseMetricSpec {
+    /// baselineResponseFieldName property.
+    pub baseline_response_field_name: Option<String>,
+    /// candidateResponseFieldName property.
+    pub candidate_response_field_name: Option<String>,
+    /// customOutputFormatConfig property.
+    pub custom_output_format_config: Option<GoogleCloudAiplatformV1CustomOutputFormatConfig>,
+    /// metricPromptTemplate property.
+    pub metric_prompt_template: Option<String>,
+    /// systemInstruction property.
+    pub system_instruction: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1Schema` type.
@@ -366,7 +492,7 @@ pub struct GoogleCloudAiplatformV1Schema {
     /// additionalProperties property.
     pub additional_properties: Option<serde_json::Value>,
     /// anyOf property.
-    pub any_of: Option<Vec<GoogleCloudAiplatformV1Schema>>,
+    pub any_of: Option<Vec<Box<GoogleCloudAiplatformV1Schema>>>,
     /// default property.
     pub default: Option<serde_json::Value>,
     /// defs property.
@@ -380,7 +506,7 @@ pub struct GoogleCloudAiplatformV1Schema {
     /// format property.
     pub format: Option<String>,
     /// items property.
-    pub items: Option<GoogleCloudAiplatformV1Schema>,
+    pub items: Option<Box<GoogleCloudAiplatformV1Schema>>,
     /// maxItems property.
     pub max_items: Option<String>,
     /// maxLength property.
@@ -415,64 +541,19 @@ pub struct GoogleCloudAiplatformV1Schema {
     pub r#type: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1PreferenceOptimizationHyperParameters` type.
+/// `GoogleCloudAiplatformV1EvaluationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PreferenceOptimizationHyperParameters {
-    /// adapterSize property.
-    pub adapter_size: Option<String>,
-    /// beta property.
-    pub beta: Option<f64>,
-    /// epochCount property.
-    pub epoch_count: Option<String>,
-    /// learningRateMultiplier property.
-    pub learning_rate_multiplier: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1GcsDestination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GcsDestination {
-    /// outputUriPrefix property.
-    pub output_uri_prefix: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1GcsSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GcsSource {
-    /// uris property.
-    pub uris: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAiplatformV1CustomCodeExecutionResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1CustomCodeExecutionResult {
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1PairwiseMetricSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PairwiseMetricSpec {
-    /// baselineResponseFieldName property.
-    pub baseline_response_field_name: Option<String>,
-    /// candidateResponseFieldName property.
-    pub candidate_response_field_name: Option<String>,
-    /// customOutputFormatConfig property.
-    pub custom_output_format_config: Option<GoogleCloudAiplatformV1CustomOutputFormatConfig>,
-    /// metricPromptTemplate property.
-    pub metric_prompt_template: Option<String>,
-    /// systemInstruction property.
-    pub system_instruction: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1DatasetDistributionDistributionBucket` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DatasetDistributionDistributionBucket {
-    /// count property.
-    pub count: Option<String>,
-    /// left property.
-    pub left: Option<f64>,
-    /// right property.
-    pub right: Option<f64>,
+pub struct GoogleCloudAiplatformV1EvaluationConfig {
+    /// autoraterConfig property.
+    pub autorater_config: Option<GoogleCloudAiplatformV1AutoraterConfig>,
+    /// datasetCustomMetrics property.
+    pub dataset_custom_metrics: Option<Vec<GoogleCloudAiplatformV1DatasetCustomMetric>>,
+    /// inferenceGenerationConfig property.
+    pub inference_generation_config: Option<GoogleCloudAiplatformV1GenerationConfig>,
+    /// metrics property.
+    pub metrics: Option<Vec<GoogleCloudAiplatformV1Metric>>,
+    /// outputConfig property.
+    pub output_config: Option<GoogleCloudAiplatformV1OutputConfig>,
 }
 
 /// `GoogleCloudAiplatformV1CustomCodeExecutionSpec` type.
@@ -480,257 +561,6 @@ pub struct GoogleCloudAiplatformV1DatasetDistributionDistributionBucket {
 pub struct GoogleCloudAiplatformV1CustomCodeExecutionSpec {
     /// evaluationFunction property.
     pub evaluation_function: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1PairwiseMetricResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PairwiseMetricResult {
-    /// customOutput property.
-    pub custom_output: Option<GoogleCloudAiplatformV1CustomOutput>,
-    /// explanation property.
-    pub explanation: Option<String>,
-    /// pairwiseChoice property.
-    pub pairwise_choice: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1PreferenceOptimizationSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PreferenceOptimizationSpec {
-    /// exportLastCheckpointOnly property.
-    pub export_last_checkpoint_only: Option<bool>,
-    /// hyperParameters property.
-    pub hyper_parameters: Option<GoogleCloudAiplatformV1PreferenceOptimizationHyperParameters>,
-    /// trainingDatasetUri property.
-    pub training_dataset_uri: Option<String>,
-    /// validationDatasetUri property.
-    pub validation_dataset_uri: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1SupervisedHyperParameters` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SupervisedHyperParameters {
-    /// adapterSize property.
-    pub adapter_size: Option<String>,
-    /// epochCount property.
-    pub epoch_count: Option<String>,
-    /// learningRateMultiplier property.
-    pub learning_rate_multiplier: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1PrebuiltVoiceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PrebuiltVoiceConfig {
-    /// voiceName property.
-    pub voice_name: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1RougeMetricValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RougeMetricValue {
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1GeminiPreferenceExample` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GeminiPreferenceExample {
-    /// completions property.
-    pub completions: Option<Vec<GoogleCloudAiplatformV1GeminiPreferenceExampleCompletion>>,
-    /// contents property.
-    pub contents: Option<Vec<GoogleCloudAiplatformV1Content>>,
-}
-
-/// `GoogleCloudAiplatformV1FunctionCall` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FunctionCall {
-    /// args property.
-    pub args: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// partialArgs property.
-    pub partial_args: Option<Vec<GoogleCloudAiplatformV1PartialArg>>,
-    /// willContinue property.
-    pub will_continue: Option<bool>,
-}
-
-/// `GoogleCloudAiplatformV1SupervisedTuningDatasetDistributionDatasetBucket` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SupervisedTuningDatasetDistributionDatasetBucket {
-    /// count property.
-    pub count: Option<f64>,
-    /// left property.
-    pub left: Option<f64>,
-    /// right property.
-    pub right: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1PredefinedMetricSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PredefinedMetricSpec {
-    /// metricSpecName property.
-    pub metric_spec_name: Option<String>,
-    /// metricSpecParameters property.
-    pub metric_spec_parameters: Option<serde_json::Value>,
-}
-
-/// `GoogleCloudAiplatformV1EvaluateDatasetRun` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EvaluateDatasetRun {
-    /// checkpointId property.
-    pub checkpoint_id: Option<String>,
-    /// error property.
-    pub error: Option<GoogleRpcStatus>,
-    /// evaluateDatasetResponse property.
-    pub evaluate_dataset_response: Option<GoogleCloudAiplatformV1EvaluateDatasetResponse>,
-    /// evaluationRun property.
-    pub evaluation_run: Option<String>,
-    /// operationName property.
-    pub operation_name: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1CustomOutput` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1CustomOutput {
-    /// rawOutputs property.
-    pub raw_outputs: Option<GoogleCloudAiplatformV1RawOutput>,
-}
-
-/// `GoogleCloudAiplatformV1LLMBasedMetricSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1LLMBasedMetricSpec {
-    /// additionalConfig property.
-    pub additional_config: Option<serde_json::Value>,
-    /// judgeAutoraterConfig property.
-    pub judge_autorater_config: Option<GoogleCloudAiplatformV1AutoraterConfig>,
-    /// metricPromptTemplate property.
-    pub metric_prompt_template: Option<String>,
-    /// predefinedRubricGenerationSpec property.
-    pub predefined_rubric_generation_spec: Option<GoogleCloudAiplatformV1PredefinedMetricSpec>,
-    /// rubricGenerationSpec property.
-    pub rubric_generation_spec: Option<GoogleCloudAiplatformV1RubricGenerationSpec>,
-    /// rubricGroupKey property.
-    pub rubric_group_key: Option<String>,
-    /// systemInstruction property.
-    pub system_instruction: Option<String>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1EvaluationDataset` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EvaluationDataset {
-    /// bigquerySource property.
-    pub bigquery_source: Option<GoogleCloudAiplatformV1BigQuerySource>,
-    /// gcsSource property.
-    pub gcs_source: Option<GoogleCloudAiplatformV1GcsSource>,
-}
-
-/// `GoogleCloudAiplatformV1VoiceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1VoiceConfig {
-    /// prebuiltVoiceConfig property.
-    pub prebuilt_voice_config: Option<GoogleCloudAiplatformV1PrebuiltVoiceConfig>,
-    /// replicatedVoiceConfig property.
-    pub replicated_voice_config: Option<GoogleCloudAiplatformV1ReplicatedVoiceConfig>,
-}
-
-/// `GoogleCloudAiplatformV1ListTuningJobsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListTuningJobsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// tuningJobs property.
-    pub tuning_jobs: Option<Vec<GoogleCloudAiplatformV1TuningJob>>,
-}
-
-/// `GoogleCloudAiplatformV1CustomOutputFormatConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1CustomOutputFormatConfig {
-    /// returnRawOutput property.
-    pub return_raw_output: Option<bool>,
-}
-
-/// `GoogleCloudAiplatformV1GenerationConfigRoutingConfigAutoRoutingMode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GenerationConfigRoutingConfigAutoRoutingMode {
-    /// modelRoutingPreference property.
-    pub model_routing_preference: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1PreTunedModel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PreTunedModel {
-    /// baseModel property.
-    pub base_model: Option<String>,
-    /// checkpointId property.
-    pub checkpoint_id: Option<String>,
-    /// tunedModelName property.
-    pub tuned_model_name: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1TuningDataStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1TuningDataStats {
-    /// preferenceOptimizationDataStats property.
-    pub preference_optimization_data_stats:
-        Option<GoogleCloudAiplatformV1PreferenceOptimizationDataStats>,
-    /// supervisedTuningDataStats property.
-    pub supervised_tuning_data_stats: Option<GoogleCloudAiplatformV1SupervisedTuningDataStats>,
-}
-
-/// `GoogleCloudAiplatformV1GenerationConfigThinkingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GenerationConfigThinkingConfig {
-    /// includeThoughts property.
-    pub include_thoughts: Option<bool>,
-    /// thinkingBudget property.
-    pub thinking_budget: Option<i64>,
-    /// thinkingLevel property.
-    pub thinking_level: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1GeminiPreferenceExampleCompletion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GeminiPreferenceExampleCompletion {
-    /// completion property.
-    pub completion: Option<GoogleCloudAiplatformV1Content>,
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1PointwiseMetricResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PointwiseMetricResult {
-    /// customOutput property.
-    pub custom_output: Option<GoogleCloudAiplatformV1CustomOutput>,
-    /// explanation property.
-    pub explanation: Option<String>,
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1ImageConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ImageConfig {
-    /// aspectRatio property.
-    pub aspect_ratio: Option<String>,
-    /// imageOutputOptions property.
-    pub image_output_options: Option<GoogleCloudAiplatformV1ImageConfigImageOutputOptions>,
-    /// imageSize property.
-    pub image_size: Option<String>,
-    /// personGeneration property.
-    pub person_generation: Option<String>,
-    /// prominentPeople property.
-    pub prominent_people: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1TuningJob` type.
@@ -778,85 +608,29 @@ pub struct GoogleCloudAiplatformV1TuningJob {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1FunctionResponseBlob` type.
+/// `GoogleCloudAiplatformV1ImageConfigImageOutputOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FunctionResponseBlob {
-    /// data property.
-    pub data: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
+pub struct GoogleCloudAiplatformV1ImageConfigImageOutputOptions {
+    /// compressionQuality property.
+    pub compression_quality: Option<i64>,
     /// mimeType property.
     pub mime_type: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1ExecutableCode` type.
+/// `GoogleCloudAiplatformV1SpeechConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ExecutableCode {
-    /// code property.
-    pub code: Option<String>,
-    /// language property.
-    pub language: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1EvaluationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EvaluationConfig {
-    /// autoraterConfig property.
-    pub autorater_config: Option<GoogleCloudAiplatformV1AutoraterConfig>,
-    /// datasetCustomMetrics property.
-    pub dataset_custom_metrics: Option<Vec<GoogleCloudAiplatformV1DatasetCustomMetric>>,
-    /// inferenceGenerationConfig property.
-    pub inference_generation_config: Option<GoogleCloudAiplatformV1GenerationConfig>,
-    /// metrics property.
-    pub metrics: Option<Vec<GoogleCloudAiplatformV1Metric>>,
-    /// outputConfig property.
-    pub output_config: Option<GoogleCloudAiplatformV1OutputConfig>,
-}
-
-/// `GoogleCloudAiplatformV1SpeakerVoiceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SpeakerVoiceConfig {
-    /// speaker property.
-    pub speaker: Option<String>,
+pub struct GoogleCloudAiplatformV1SpeechConfig {
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// multiSpeakerVoiceConfig property.
+    pub multi_speaker_voice_config: Option<GoogleCloudAiplatformV1MultiSpeakerVoiceConfig>,
     /// voiceConfig property.
     pub voice_config: Option<GoogleCloudAiplatformV1VoiceConfig>,
 }
 
-/// `GoogleCloudAiplatformV1SupervisedTuningDataStats` type.
+/// `GoogleCloudAiplatformV1FileData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SupervisedTuningDataStats {
-    /// droppedExampleReasons property.
-    pub dropped_example_reasons: Option<Vec<String>>,
-    /// totalBillableCharacterCount property.
-    pub total_billable_character_count: Option<String>,
-    /// totalBillableTokenCount property.
-    pub total_billable_token_count: Option<String>,
-    /// totalTruncatedExampleCount property.
-    pub total_truncated_example_count: Option<String>,
-    /// totalTuningCharacterCount property.
-    pub total_tuning_character_count: Option<String>,
-    /// truncatedExampleIndices property.
-    pub truncated_example_indices: Option<Vec<String>>,
-    /// tuningDatasetExampleCount property.
-    pub tuning_dataset_example_count: Option<String>,
-    /// tuningStepCount property.
-    pub tuning_step_count: Option<String>,
-    /// userDatasetExamples property.
-    pub user_dataset_examples: Option<Vec<GoogleCloudAiplatformV1Content>>,
-    /// userInputTokenDistribution property.
-    pub user_input_token_distribution:
-        Option<GoogleCloudAiplatformV1SupervisedTuningDatasetDistribution>,
-    /// userMessagePerExampleDistribution property.
-    pub user_message_per_example_distribution:
-        Option<GoogleCloudAiplatformV1SupervisedTuningDatasetDistribution>,
-    /// userOutputTokenDistribution property.
-    pub user_output_token_distribution:
-        Option<GoogleCloudAiplatformV1SupervisedTuningDatasetDistribution>,
-}
-
-/// `GoogleCloudAiplatformV1FunctionResponseFileData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FunctionResponseFileData {
+pub struct GoogleCloudAiplatformV1FileData {
     /// displayName property.
     pub display_name: Option<String>,
     /// fileUri property.
@@ -870,34 +644,6 @@ pub struct GoogleCloudAiplatformV1FunctionResponseFileData {
 pub struct GoogleCloudAiplatformV1PartMediaResolution {
     /// level property.
     pub level: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1OutputInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1OutputInfo {
-    /// gcsOutputDirectory property.
-    pub gcs_output_directory: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1MultiSpeakerVoiceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MultiSpeakerVoiceConfig {
-    /// speakerVoiceConfigs property.
-    pub speaker_voice_configs: Option<Vec<GoogleCloudAiplatformV1SpeakerVoiceConfig>>,
-}
-
-/// `GoogleCloudAiplatformV1ExactMatchMetricValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ExactMatchMetricValue {
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1BleuMetricValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1BleuMetricValue {
-    /// score property.
-    pub score: Option<f64>,
 }
 
 /// `GoogleCloudAiplatformV1GenerationConfig` type.
@@ -930,7 +676,7 @@ pub struct GoogleCloudAiplatformV1GenerationConfig {
     /// responseModalities property.
     pub response_modalities: Option<Vec<String>>,
     /// responseSchema property.
-    pub response_schema: Option<GoogleCloudAiplatformV1Schema>,
+    pub response_schema: Option<Box<GoogleCloudAiplatformV1Schema>>,
     /// routingConfig property.
     pub routing_config: Option<GoogleCloudAiplatformV1GenerationConfigRoutingConfig>,
     /// seed property.
@@ -949,45 +695,35 @@ pub struct GoogleCloudAiplatformV1GenerationConfig {
     pub top_p: Option<f64>,
 }
 
-/// `GoogleCloudAiplatformV1Content` type.
+/// `GoogleCloudAiplatformV1BleuSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Content {
-    /// parts property.
-    pub parts: Option<Vec<GoogleCloudAiplatformV1Part>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct GoogleCloudAiplatformV1BleuSpec {
+    /// useEffectiveOrder property.
+    pub use_effective_order: Option<bool>,
 }
 
-/// `GoogleCloudAiplatformV1AggregationResult` type.
+/// `GoogleCloudAiplatformV1SupervisedTuningDatasetDistribution` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1AggregationResult {
-    /// aggregationMetric property.
-    pub aggregation_metric: Option<String>,
-    /// bleuMetricValue property.
-    pub bleu_metric_value: Option<GoogleCloudAiplatformV1BleuMetricValue>,
-    /// customCodeExecutionResult property.
-    pub custom_code_execution_result: Option<GoogleCloudAiplatformV1CustomCodeExecutionResult>,
-    /// exactMatchMetricValue property.
-    pub exact_match_metric_value: Option<GoogleCloudAiplatformV1ExactMatchMetricValue>,
-    /// pairwiseMetricResult property.
-    pub pairwise_metric_result: Option<GoogleCloudAiplatformV1PairwiseMetricResult>,
-    /// pointwiseMetricResult property.
-    pub pointwise_metric_result: Option<GoogleCloudAiplatformV1PointwiseMetricResult>,
-    /// rougeMetricValue property.
-    pub rouge_metric_value: Option<GoogleCloudAiplatformV1RougeMetricValue>,
-}
-
-/// `GoogleCloudAiplatformV1MetricMetadataScoreRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MetricMetadataScoreRange {
-    /// description property.
-    pub description: Option<String>,
+pub struct GoogleCloudAiplatformV1SupervisedTuningDatasetDistribution {
+    /// billableSum property.
+    pub billable_sum: Option<String>,
+    /// buckets property.
+    pub buckets:
+        Option<Vec<GoogleCloudAiplatformV1SupervisedTuningDatasetDistributionDatasetBucket>>,
     /// max property.
     pub max: Option<f64>,
+    /// mean property.
+    pub mean: Option<f64>,
+    /// median property.
+    pub median: Option<f64>,
     /// min property.
     pub min: Option<f64>,
-    /// step property.
-    pub step: Option<f64>,
+    /// p5 property.
+    pub p5: Option<f64>,
+    /// p95 property.
+    pub p95: Option<f64>,
+    /// sum property.
+    pub sum: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1PointwiseMetricSpec` type.
@@ -1001,13 +737,11 @@ pub struct GoogleCloudAiplatformV1PointwiseMetricSpec {
     pub system_instruction: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1CodeExecutionResult` type.
+/// `GoogleCloudAiplatformV1MultiSpeakerVoiceConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1CodeExecutionResult {
-    /// outcome property.
-    pub outcome: Option<String>,
-    /// output property.
-    pub output: Option<String>,
+pub struct GoogleCloudAiplatformV1MultiSpeakerVoiceConfig {
+    /// speakerVoiceConfigs property.
+    pub speaker_voice_configs: Option<Vec<GoogleCloudAiplatformV1SpeakerVoiceConfig>>,
 }
 
 /// `GoogleCloudAiplatformV1DatasetCustomMetric` type.
@@ -1019,29 +753,195 @@ pub struct GoogleCloudAiplatformV1DatasetCustomMetric {
     pub display_name: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1PreferenceOptimizationDataStats` type.
+/// `GoogleCloudAiplatformV1Metric` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PreferenceOptimizationDataStats {
-    /// droppedExampleIndices property.
-    pub dropped_example_indices: Option<Vec<String>>,
-    /// droppedExampleReasons property.
-    pub dropped_example_reasons: Option<Vec<String>>,
-    /// scoreVariancePerExampleDistribution property.
-    pub score_variance_per_example_distribution: Option<GoogleCloudAiplatformV1DatasetDistribution>,
-    /// scoresDistribution property.
-    pub scores_distribution: Option<GoogleCloudAiplatformV1DatasetDistribution>,
-    /// totalBillableTokenCount property.
-    pub total_billable_token_count: Option<String>,
-    /// tuningDatasetExampleCount property.
-    pub tuning_dataset_example_count: Option<String>,
-    /// tuningStepCount property.
-    pub tuning_step_count: Option<String>,
-    /// userDatasetExamples property.
-    pub user_dataset_examples: Option<Vec<GoogleCloudAiplatformV1GeminiPreferenceExample>>,
-    /// userInputTokenDistribution property.
-    pub user_input_token_distribution: Option<GoogleCloudAiplatformV1DatasetDistribution>,
-    /// userOutputTokenDistribution property.
-    pub user_output_token_distribution: Option<GoogleCloudAiplatformV1DatasetDistribution>,
+pub struct GoogleCloudAiplatformV1Metric {
+    /// aggregationMetrics property.
+    pub aggregation_metrics: Option<Vec<String>>,
+    /// bleuSpec property.
+    pub bleu_spec: Option<GoogleCloudAiplatformV1BleuSpec>,
+    /// computationBasedMetricSpec property.
+    pub computation_based_metric_spec: Option<GoogleCloudAiplatformV1ComputationBasedMetricSpec>,
+    /// customCodeExecutionSpec property.
+    pub custom_code_execution_spec: Option<GoogleCloudAiplatformV1CustomCodeExecutionSpec>,
+    /// exactMatchSpec property.
+    pub exact_match_spec: Option<GoogleCloudAiplatformV1ExactMatchSpec>,
+    /// llmBasedMetricSpec property.
+    pub llm_based_metric_spec: Option<GoogleCloudAiplatformV1LLMBasedMetricSpec>,
+    /// metadata property.
+    pub metadata: Option<GoogleCloudAiplatformV1MetricMetadata>,
+    /// pairwiseMetricSpec property.
+    pub pairwise_metric_spec: Option<GoogleCloudAiplatformV1PairwiseMetricSpec>,
+    /// pointwiseMetricSpec property.
+    pub pointwise_metric_spec: Option<GoogleCloudAiplatformV1PointwiseMetricSpec>,
+    /// predefinedMetricSpec property.
+    pub predefined_metric_spec: Option<GoogleCloudAiplatformV1PredefinedMetricSpec>,
+    /// rougeSpec property.
+    pub rouge_spec: Option<GoogleCloudAiplatformV1RougeSpec>,
+}
+
+/// `GoogleCloudAiplatformV1FunctionResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FunctionResponse {
+    /// name property.
+    pub name: Option<String>,
+    /// parts property.
+    pub parts: Option<Vec<GoogleCloudAiplatformV1FunctionResponsePart>>,
+    /// response property.
+    pub response: Option<serde_json::Value>,
+    /// scheduling property.
+    pub scheduling: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ExecutableCode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ExecutableCode {
+    /// code property.
+    pub code: Option<String>,
+    /// language property.
+    pub language: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ListTuningJobsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ListTuningJobsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// tuningJobs property.
+    pub tuning_jobs: Option<Vec<GoogleCloudAiplatformV1TuningJob>>,
+}
+
+/// `GoogleCloudAiplatformV1TuningDataStats` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1TuningDataStats {
+    /// preferenceOptimizationDataStats property.
+    pub preference_optimization_data_stats:
+        Option<GoogleCloudAiplatformV1PreferenceOptimizationDataStats>,
+    /// supervisedTuningDataStats property.
+    pub supervised_tuning_data_stats: Option<GoogleCloudAiplatformV1SupervisedTuningDataStats>,
+}
+
+/// `GoogleCloudAiplatformV1LLMBasedMetricSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1LLMBasedMetricSpec {
+    /// additionalConfig property.
+    pub additional_config: Option<serde_json::Value>,
+    /// judgeAutoraterConfig property.
+    pub judge_autorater_config: Option<GoogleCloudAiplatformV1AutoraterConfig>,
+    /// metricPromptTemplate property.
+    pub metric_prompt_template: Option<String>,
+    /// predefinedRubricGenerationSpec property.
+    pub predefined_rubric_generation_spec: Option<GoogleCloudAiplatformV1PredefinedMetricSpec>,
+    /// rubricGenerationSpec property.
+    pub rubric_generation_spec: Option<GoogleCloudAiplatformV1RubricGenerationSpec>,
+    /// rubricGroupKey property.
+    pub rubric_group_key: Option<String>,
+    /// systemInstruction property.
+    pub system_instruction: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1EncryptionSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1EncryptionSpec {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1SupervisedTuningSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1SupervisedTuningSpec {
+    /// evaluationConfig property.
+    pub evaluation_config: Option<GoogleCloudAiplatformV1EvaluationConfig>,
+    /// exportLastCheckpointOnly property.
+    pub export_last_checkpoint_only: Option<bool>,
+    /// hyperParameters property.
+    pub hyper_parameters: Option<GoogleCloudAiplatformV1SupervisedHyperParameters>,
+    /// trainingDatasetUri property.
+    pub training_dataset_uri: Option<String>,
+    /// validationDatasetUri property.
+    pub validation_dataset_uri: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1CustomCodeExecutionResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1CustomCodeExecutionResult {
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1RubricGenerationSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RubricGenerationSpec {
+    /// modelConfig property.
+    pub model_config: Option<GoogleCloudAiplatformV1AutoraterConfig>,
+    /// promptTemplate property.
+    pub prompt_template: Option<String>,
+    /// rubricContentType property.
+    pub rubric_content_type: Option<String>,
+    /// rubricTypeOntology property.
+    pub rubric_type_ontology: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAiplatformV1FunctionResponseFileData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FunctionResponseFileData {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// fileUri property.
+    pub file_uri: Option<String>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ExactMatchSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ExactMatchSpec {}
+
+/// `GoogleCloudAiplatformV1ReplicatedVoiceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ReplicatedVoiceConfig {
+    /// mimeType property.
+    pub mime_type: Option<String>,
+    /// voiceSampleAudio property.
+    pub voice_sample_audio: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1PreferenceOptimizationSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PreferenceOptimizationSpec {
+    /// exportLastCheckpointOnly property.
+    pub export_last_checkpoint_only: Option<bool>,
+    /// hyperParameters property.
+    pub hyper_parameters: Option<GoogleCloudAiplatformV1PreferenceOptimizationHyperParameters>,
+    /// trainingDatasetUri property.
+    pub training_dataset_uri: Option<String>,
+    /// validationDatasetUri property.
+    pub validation_dataset_uri: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ExactMatchMetricValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ExactMatchMetricValue {
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1TunedModel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1TunedModel {
+    /// checkpoints property.
+    pub checkpoints: Option<Vec<GoogleCloudAiplatformV1TunedModelCheckpoint>>,
+    /// endpoint property.
+    pub endpoint: Option<String>,
+    /// model property.
+    pub model: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1PrebuiltVoiceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PrebuiltVoiceConfig {
+    /// voiceName property.
+    pub voice_name: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1GenerationConfigRoutingConfig` type.
@@ -1053,31 +953,132 @@ pub struct GoogleCloudAiplatformV1GenerationConfigRoutingConfig {
     pub manual_mode: Option<GoogleCloudAiplatformV1GenerationConfigRoutingConfigManualRoutingMode>,
 }
 
-/// `GoogleCloudAiplatformV1BigQuerySource` type.
+/// `GoogleCloudAiplatformV1AutoraterConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1BigQuerySource {
-    /// inputUri property.
-    pub input_uri: Option<String>,
+pub struct GoogleCloudAiplatformV1AutoraterConfig {
+    /// autoraterModel property.
+    pub autorater_model: Option<String>,
+    /// flipEnabled property.
+    pub flip_enabled: Option<bool>,
+    /// generationConfig property.
+    pub generation_config: Option<GoogleCloudAiplatformV1GenerationConfig>,
+    /// samplingCount property.
+    pub sampling_count: Option<i64>,
 }
 
-/// `GoogleCloudAiplatformV1ImageConfigImageOutputOptions` type.
+/// `GoogleCloudAiplatformV1EvaluationDataset` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ImageConfigImageOutputOptions {
-    /// compressionQuality property.
-    pub compression_quality: Option<i64>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
+pub struct GoogleCloudAiplatformV1EvaluationDataset {
+    /// bigquerySource property.
+    pub bigquery_source: Option<GoogleCloudAiplatformV1BigQuerySource>,
+    /// gcsSource property.
+    pub gcs_source: Option<GoogleCloudAiplatformV1GcsSource>,
 }
 
-/// `GoogleCloudAiplatformV1VideoMetadata` type.
+/// `GoogleCloudAiplatformV1RougeMetricValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1VideoMetadata {
-    /// endOffset property.
-    pub end_offset: Option<String>,
-    /// fps property.
-    pub fps: Option<f64>,
-    /// startOffset property.
-    pub start_offset: Option<String>,
+pub struct GoogleCloudAiplatformV1RougeMetricValue {
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1CustomOutput` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1CustomOutput {
+    /// rawOutputs property.
+    pub raw_outputs: Option<GoogleCloudAiplatformV1RawOutput>,
+}
+
+/// `GoogleCloudAiplatformV1PreferenceOptimizationHyperParameters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PreferenceOptimizationHyperParameters {
+    /// adapterSize property.
+    pub adapter_size: Option<String>,
+    /// beta property.
+    pub beta: Option<f64>,
+    /// epochCount property.
+    pub epoch_count: Option<String>,
+    /// learningRateMultiplier property.
+    pub learning_rate_multiplier: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1VoiceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1VoiceConfig {
+    /// prebuiltVoiceConfig property.
+    pub prebuilt_voice_config: Option<GoogleCloudAiplatformV1PrebuiltVoiceConfig>,
+    /// replicatedVoiceConfig property.
+    pub replicated_voice_config: Option<GoogleCloudAiplatformV1ReplicatedVoiceConfig>,
+}
+
+/// `GoogleCloudAiplatformV1PairwiseMetricResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PairwiseMetricResult {
+    /// customOutput property.
+    pub custom_output: Option<GoogleCloudAiplatformV1CustomOutput>,
+    /// explanation property.
+    pub explanation: Option<String>,
+    /// pairwiseChoice property.
+    pub pairwise_choice: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1RougeSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RougeSpec {
+    /// rougeType property.
+    pub rouge_type: Option<String>,
+    /// splitSummaries property.
+    pub split_summaries: Option<bool>,
+    /// useStemmer property.
+    pub use_stemmer: Option<bool>,
+}
+
+/// `GoogleCloudAiplatformV1GcsDestination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1GcsDestination {
+    /// outputUriPrefix property.
+    pub output_uri_prefix: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1PartialArg` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PartialArg {
+    /// boolValue property.
+    pub bool_value: Option<bool>,
+    /// jsonPath property.
+    pub json_path: Option<String>,
+    /// nullValue property.
+    pub null_value: Option<String>,
+    /// numberValue property.
+    pub number_value: Option<f64>,
+    /// stringValue property.
+    pub string_value: Option<String>,
+    /// willContinue property.
+    pub will_continue: Option<bool>,
+}
+
+/// `GoogleCloudAiplatformV1EvaluateDatasetResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1EvaluateDatasetResponse {
+    /// aggregationOutput property.
+    pub aggregation_output: Option<GoogleCloudAiplatformV1AggregationOutput>,
+    /// outputInfo property.
+    pub output_info: Option<GoogleCloudAiplatformV1OutputInfo>,
+}
+
+/// `GoogleCloudAiplatformV1EvaluateDatasetRun` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1EvaluateDatasetRun {
+    /// checkpointId property.
+    pub checkpoint_id: Option<String>,
+    /// error property.
+    pub error: Option<GoogleRpcStatus>,
+    /// evaluateDatasetResponse property.
+    pub evaluate_dataset_response: Option<GoogleCloudAiplatformV1EvaluateDatasetResponse>,
+    /// evaluationRun property.
+    pub evaluation_run: Option<String>,
+    /// operationName property.
+    pub operation_name: Option<String>,
 }
 
 // =============================================================================

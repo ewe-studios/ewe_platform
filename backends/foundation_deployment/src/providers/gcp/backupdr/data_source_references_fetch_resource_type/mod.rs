@@ -12,47 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `DataSourceReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSourceReference {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// dataSource property.
-    pub data_source: Option<String>,
-    /// dataSourceBackupConfigInfo property.
-    pub data_source_backup_config_info: Option<DataSourceBackupConfigInfo>,
-    /// dataSourceBackupConfigState property.
-    pub data_source_backup_config_state: Option<String>,
-    /// dataSourceBackupCount property.
-    pub data_source_backup_count: Option<String>,
-    /// dataSourceGcpResourceInfo property.
-    pub data_source_gcp_resource_info: Option<DataSourceGcpResourceInfo>,
-    /// name property.
-    pub name: Option<String>,
-    /// totalStoredBytes property.
-    pub total_stored_bytes: Option<String>,
-}
-
-/// `DataSourceBackupConfigInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSourceBackupConfigInfo {
-    /// lastBackupState property.
-    pub last_backup_state: Option<String>,
-    /// lastSuccessfulBackupConsistencyTime property.
-    pub last_successful_backup_consistency_time: Option<String>,
-}
 
 /// `CloudSqlInstanceDataSourceReferenceProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -65,23 +36,6 @@ pub struct CloudSqlInstanceDataSourceReferenceProperties {
     pub instance_tier: Option<String>,
     /// name property.
     pub name: Option<String>,
-}
-
-/// `DataSourceGcpResourceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSourceGcpResourceInfo {
-    /// alloyDbClusterProperties property.
-    pub alloy_db_cluster_properties: Option<AlloyDBClusterDataSourceReferenceProperties>,
-    /// cloudSqlInstanceProperties property.
-    pub cloud_sql_instance_properties: Option<CloudSqlInstanceDataSourceReferenceProperties>,
-    /// filestoreInstanceProperties property.
-    pub filestore_instance_properties: Option<FilestoreInstanceDataSourceReferenceProperties>,
-    /// gcpResourcename property.
-    pub gcp_resourcename: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
 }
 
 /// `FilestoreInstanceDataSourceReferenceProperties` type.
@@ -102,11 +56,58 @@ pub struct FetchDataSourceReferencesForResourceTypeResponse {
     pub next_page_token: Option<String>,
 }
 
+/// `DataSourceBackupConfigInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceBackupConfigInfo {
+    /// lastBackupState property.
+    pub last_backup_state: Option<String>,
+    /// lastSuccessfulBackupConsistencyTime property.
+    pub last_successful_backup_consistency_time: Option<String>,
+}
+
+/// `DataSourceGcpResourceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceGcpResourceInfo {
+    /// alloyDbClusterProperties property.
+    pub alloy_db_cluster_properties: Option<AlloyDBClusterDataSourceReferenceProperties>,
+    /// cloudSqlInstanceProperties property.
+    pub cloud_sql_instance_properties: Option<CloudSqlInstanceDataSourceReferenceProperties>,
+    /// filestoreInstanceProperties property.
+    pub filestore_instance_properties: Option<FilestoreInstanceDataSourceReferenceProperties>,
+    /// gcpResourcename property.
+    pub gcp_resourcename: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
 /// `AlloyDBClusterDataSourceReferenceProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlloyDBClusterDataSourceReferenceProperties {
     /// name property.
     pub name: Option<String>,
+}
+
+/// `DataSourceReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceReference {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// dataSource property.
+    pub data_source: Option<String>,
+    /// dataSourceBackupConfigInfo property.
+    pub data_source_backup_config_info: Option<DataSourceBackupConfigInfo>,
+    /// dataSourceBackupConfigState property.
+    pub data_source_backup_config_state: Option<String>,
+    /// dataSourceBackupCount property.
+    pub data_source_backup_count: Option<String>,
+    /// dataSourceGcpResourceInfo property.
+    pub data_source_gcp_resource_info: Option<DataSourceGcpResourceInfo>,
+    /// name property.
+    pub name: Option<String>,
+    /// totalStoredBytes property.
+    pub total_stored_bytes: Option<String>,
 }
 
 // =============================================================================

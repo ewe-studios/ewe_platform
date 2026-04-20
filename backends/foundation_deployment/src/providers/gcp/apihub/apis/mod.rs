@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,18 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudApihubV1Documentation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1Documentation {
-    /// externalUri property.
-    pub external_uri: Option<String>,
-}
 
 /// `GoogleCloudApihubV1ListApisResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -41,35 +35,6 @@ pub struct GoogleCloudApihubV1ListApisResponse {
     pub apis: Option<Vec<GoogleCloudApihubV1Api>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudApihubV1AllowedValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1AllowedValue {
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// immutable property.
-    pub immutable: Option<bool>,
-}
-
-/// `GoogleCloudApihubV1StringAttributeValues` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1StringAttributeValues {
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `GoogleCloudApihubV1PluginInstanceActionSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1PluginInstanceActionSource {
-    /// actionId property.
-    pub action_id: Option<String>,
-    /// pluginInstance property.
-    pub plugin_instance: Option<String>,
 }
 
 /// `GoogleCloudApihubV1Api` type.
@@ -117,21 +82,6 @@ pub struct GoogleCloudApihubV1Api {
     pub versions: Option<Vec<String>>,
 }
 
-/// `GoogleCloudApihubV1SourceMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1SourceMetadata {
-    /// originalResourceCreateTime property.
-    pub original_resource_create_time: Option<String>,
-    /// originalResourceId property.
-    pub original_resource_id: Option<String>,
-    /// originalResourceUpdateTime property.
-    pub original_resource_update_time: Option<String>,
-    /// pluginInstanceActionSource property.
-    pub plugin_instance_action_source: Option<GoogleCloudApihubV1PluginInstanceActionSource>,
-    /// sourceType property.
-    pub source_type: Option<String>,
-}
-
 /// `GoogleCloudApihubV1AttributeValues` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1AttributeValues {
@@ -147,13 +97,6 @@ pub struct GoogleCloudApihubV1AttributeValues {
     pub uri_values: Option<GoogleCloudApihubV1StringAttributeValues>,
 }
 
-/// `GoogleCloudApihubV1EnumAttributeValues` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1EnumAttributeValues {
-    /// values property.
-    pub values: Option<Vec<GoogleCloudApihubV1AllowedValue>>,
-}
-
 /// `GoogleCloudApihubV1Owner` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Owner {
@@ -161,6 +104,64 @@ pub struct GoogleCloudApihubV1Owner {
     pub display_name: Option<String>,
     /// email property.
     pub email: Option<String>,
+}
+
+/// `GoogleCloudApihubV1SourceMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1SourceMetadata {
+    /// originalResourceCreateTime property.
+    pub original_resource_create_time: Option<String>,
+    /// originalResourceId property.
+    pub original_resource_id: Option<String>,
+    /// originalResourceUpdateTime property.
+    pub original_resource_update_time: Option<String>,
+    /// pluginInstanceActionSource property.
+    pub plugin_instance_action_source: Option<GoogleCloudApihubV1PluginInstanceActionSource>,
+    /// sourceType property.
+    pub source_type: Option<String>,
+}
+
+/// `GoogleCloudApihubV1PluginInstanceActionSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1PluginInstanceActionSource {
+    /// actionId property.
+    pub action_id: Option<String>,
+    /// pluginInstance property.
+    pub plugin_instance: Option<String>,
+}
+
+/// `GoogleCloudApihubV1AllowedValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1AllowedValue {
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// immutable property.
+    pub immutable: Option<bool>,
+}
+
+/// `GoogleCloudApihubV1StringAttributeValues` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1StringAttributeValues {
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `GoogleCloudApihubV1Documentation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1Documentation {
+    /// externalUri property.
+    pub external_uri: Option<String>,
+}
+
+/// `GoogleCloudApihubV1EnumAttributeValues` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1EnumAttributeValues {
+    /// values property.
+    pub values: Option<Vec<GoogleCloudApihubV1AllowedValue>>,
 }
 
 // =============================================================================

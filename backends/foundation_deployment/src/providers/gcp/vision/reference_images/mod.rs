@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,22 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ReferenceImage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReferenceImage {
+    /// boundingPolys property.
+    pub bounding_polys: Option<Vec<BoundingPoly>>,
+    /// name property.
+    pub name: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
 
 /// `Vertex` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -34,6 +46,15 @@ pub struct Vertex {
     pub x: Option<i64>,
     /// y property.
     pub y: Option<i64>,
+}
+
+/// `BoundingPoly` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BoundingPoly {
+    /// normalizedVertices property.
+    pub normalized_vertices: Option<Vec<NormalizedVertex>>,
+    /// vertices property.
+    pub vertices: Option<Vec<Vertex>>,
 }
 
 /// `ListReferenceImagesResponse` type.
@@ -47,15 +68,6 @@ pub struct ListReferenceImagesResponse {
     pub reference_images: Option<Vec<ReferenceImage>>,
 }
 
-/// `BoundingPoly` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BoundingPoly {
-    /// normalizedVertices property.
-    pub normalized_vertices: Option<Vec<NormalizedVertex>>,
-    /// vertices property.
-    pub vertices: Option<Vec<Vertex>>,
-}
-
 /// `NormalizedVertex` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NormalizedVertex {
@@ -63,17 +75,6 @@ pub struct NormalizedVertex {
     pub x: Option<f64>,
     /// y property.
     pub y: Option<f64>,
-}
-
-/// `ReferenceImage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReferenceImage {
-    /// boundingPolys property.
-    pub bounding_polys: Option<Vec<BoundingPoly>>,
-    /// name property.
-    pub name: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
 }
 
 // =============================================================================

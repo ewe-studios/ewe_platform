@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -37,13 +38,11 @@ pub struct Config {
     pub supported_values: Option<SupportedValues>,
 }
 
-/// `ImageRelease` type.
+/// `DefaultValues` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImageRelease {
-    /// imageName property.
-    pub image_name: Option<String>,
-    /// releaseName property.
-    pub release_name: Option<String>,
+pub struct DefaultValues {
+    /// machineType property.
+    pub machine_type: Option<String>,
 }
 
 /// `SupportedValues` type.
@@ -55,11 +54,13 @@ pub struct SupportedValues {
     pub machine_types: Option<Vec<String>>,
 }
 
-/// `DefaultValues` type.
+/// `ImageRelease` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DefaultValues {
-    /// machineType property.
-    pub machine_type: Option<String>,
+pub struct ImageRelease {
+    /// imageName property.
+    pub image_name: Option<String>,
+    /// releaseName property.
+    pub release_name: Option<String>,
 }
 
 // =============================================================================

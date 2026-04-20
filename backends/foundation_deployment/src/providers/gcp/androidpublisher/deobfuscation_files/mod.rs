@@ -12,30 +12,31 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `DeobfuscationFilesUploadResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeobfuscationFilesUploadResponse {
-    /// deobfuscationFile property.
-    pub deobfuscation_file: Option<DeobfuscationFile>,
-}
 
 /// `DeobfuscationFile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeobfuscationFile {
     /// symbolType property.
     pub symbol_type: Option<String>,
+}
+
+/// `DeobfuscationFilesUploadResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeobfuscationFilesUploadResponse {
+    /// deobfuscationFile property.
+    pub deobfuscation_file: Option<DeobfuscationFile>,
 }
 
 // =============================================================================

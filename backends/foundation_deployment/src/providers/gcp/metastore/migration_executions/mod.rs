@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,32 +22,29 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Status` type.
+/// `CdcConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `ListMigrationExecutionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListMigrationExecutionsResponse {
-    /// migrationExecutions property.
-    pub migration_executions: Option<Vec<MigrationExecution>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct CdcConfig {
+    /// bucket property.
+    pub bucket: Option<String>,
+    /// password property.
+    pub password: Option<String>,
+    /// reverseProxySubnet property.
+    pub reverse_proxy_subnet: Option<String>,
+    /// rootPath property.
+    pub root_path: Option<String>,
+    /// subnetIpRange property.
+    pub subnet_ip_range: Option<String>,
+    /// username property.
+    pub username: Option<String>,
+    /// vpcNetwork property.
+    pub vpc_network: Option<String>,
 }
 
 /// `CloudSQLConnectionConfig` type.
@@ -70,15 +68,6 @@ pub struct CloudSQLConnectionConfig {
     pub username: Option<String>,
 }
 
-/// `CloudSQLMigrationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudSQLMigrationConfig {
-    /// cdcConfig property.
-    pub cdc_config: Option<CdcConfig>,
-    /// cloudSqlConnectionConfig property.
-    pub cloud_sql_connection_config: Option<CloudSQLConnectionConfig>,
-}
-
 /// `MigrationExecution` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MigrationExecution {
@@ -98,23 +87,35 @@ pub struct MigrationExecution {
     pub state_message: Option<String>,
 }
 
-/// `CdcConfig` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CdcConfig {
-    /// bucket property.
-    pub bucket: Option<String>,
-    /// password property.
-    pub password: Option<String>,
-    /// reverseProxySubnet property.
-    pub reverse_proxy_subnet: Option<String>,
-    /// rootPath property.
-    pub root_path: Option<String>,
-    /// subnetIpRange property.
-    pub subnet_ip_range: Option<String>,
-    /// username property.
-    pub username: Option<String>,
-    /// vpcNetwork property.
-    pub vpc_network: Option<String>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `CloudSQLMigrationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudSQLMigrationConfig {
+    /// cdcConfig property.
+    pub cdc_config: Option<CdcConfig>,
+    /// cloudSqlConnectionConfig property.
+    pub cloud_sql_connection_config: Option<CloudSQLConnectionConfig>,
+}
+
+/// `ListMigrationExecutionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListMigrationExecutionsResponse {
+    /// migrationExecutions property.
+    pub migration_executions: Option<Vec<MigrationExecution>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 // =============================================================================

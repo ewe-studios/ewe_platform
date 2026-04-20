@@ -12,33 +12,58 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `AggregateBucket` type.
+/// `MapValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AggregateBucket {
-    /// activity property.
-    pub activity: Option<i64>,
-    /// dataset property.
-    pub dataset: Option<Vec<Dataset>>,
-    /// endTimeMillis property.
-    pub end_time_millis: Option<String>,
-    /// session property.
-    pub session: Option<Session>,
-    /// startTimeMillis property.
-    pub start_time_millis: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct MapValue {
+    /// fpVal property.
+    pub fp_val: Option<f64>,
+}
+
+/// `Application` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Application {
+    /// detailsUrl property.
+    pub details_url: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// packageName property.
+    pub package_name: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `DataPoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataPoint {
+    /// computationTimeMillis property.
+    pub computation_time_millis: Option<String>,
+    /// dataTypeName property.
+    pub data_type_name: Option<String>,
+    /// endTimeNanos property.
+    pub end_time_nanos: Option<String>,
+    /// modifiedTimeMillis property.
+    pub modified_time_millis: Option<String>,
+    /// originDataSourceId property.
+    pub origin_data_source_id: Option<String>,
+    /// rawTimestampNanos property.
+    pub raw_timestamp_nanos: Option<String>,
+    /// startTimeNanos property.
+    pub start_time_nanos: Option<String>,
+    /// value property.
+    pub value: Option<Vec<Value>>,
 }
 
 /// `Session` type.
@@ -92,6 +117,23 @@ pub struct Value {
     pub string_val: Option<String>,
 }
 
+/// `AggregateBucket` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AggregateBucket {
+    /// activity property.
+    pub activity: Option<i64>,
+    /// dataset property.
+    pub dataset: Option<Vec<Dataset>>,
+    /// endTimeMillis property.
+    pub end_time_millis: Option<String>,
+    /// session property.
+    pub session: Option<Session>,
+    /// startTimeMillis property.
+    pub start_time_millis: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
 /// `ValueMapValEntry` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValueMapValEntry {
@@ -99,47 +141,6 @@ pub struct ValueMapValEntry {
     pub key: Option<String>,
     /// value property.
     pub value: Option<MapValue>,
-}
-
-/// `MapValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MapValue {
-    /// fpVal property.
-    pub fp_val: Option<f64>,
-}
-
-/// `Application` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Application {
-    /// detailsUrl property.
-    pub details_url: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// packageName property.
-    pub package_name: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `DataPoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataPoint {
-    /// computationTimeMillis property.
-    pub computation_time_millis: Option<String>,
-    /// dataTypeName property.
-    pub data_type_name: Option<String>,
-    /// endTimeNanos property.
-    pub end_time_nanos: Option<String>,
-    /// modifiedTimeMillis property.
-    pub modified_time_millis: Option<String>,
-    /// originDataSourceId property.
-    pub origin_data_source_id: Option<String>,
-    /// rawTimestampNanos property.
-    pub raw_timestamp_nanos: Option<String>,
-    /// startTimeNanos property.
-    pub start_time_nanos: Option<String>,
-    /// value property.
-    pub value: Option<Vec<Value>>,
 }
 
 /// `AggregateResponse` type.

@@ -12,33 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `CrowdStrikeAgent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CrowdStrikeAgent {
-    /// agentId property.
-    pub agent_id: Option<String>,
-    /// customerId property.
-    pub customer_id: Option<String>,
-}
-
-/// `Antivirus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Antivirus {
-    /// state property.
-    pub state: Option<String>,
-}
 
 /// `DeviceSignals` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -140,6 +125,22 @@ pub struct VerifyChallengeResponseResult {
     pub virtual_device_id: Option<String>,
     /// virtualProfileId property.
     pub virtual_profile_id: Option<String>,
+}
+
+/// `Antivirus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Antivirus {
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `CrowdStrikeAgent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CrowdStrikeAgent {
+    /// agentId property.
+    pub agent_id: Option<String>,
+    /// customerId property.
+    pub customer_id: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,102 +23,19 @@ use serde::{Deserialize, Serialize};
 use super::shared::GoogleLongrunningOperation;
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudAiplatformV1GcsDestination` type.
+/// `GoogleCloudAiplatformV1SearchModelDeploymentMonitoringStatsAnomaliesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GcsDestination {
-    /// outputUriPrefix property.
-    pub output_uri_prefix: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ListModelDeploymentMonitoringJobsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListModelDeploymentMonitoringJobsResponse {
-    /// modelDeploymentMonitoringJobs property.
-    pub model_deployment_monitoring_jobs:
-        Option<Vec<GoogleCloudAiplatformV1ModelDeploymentMonitoringJob>>,
+pub struct GoogleCloudAiplatformV1SearchModelDeploymentMonitoringStatsAnomaliesResponse {
+    /// monitoringStats property.
+    pub monitoring_stats: Option<Vec<GoogleCloudAiplatformV1ModelMonitoringStatsAnomalies>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ThresholdConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ThresholdConfig {
-    /// value property.
-    pub value: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1ModelMonitoringAlertConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ModelMonitoringAlertConfig {
-    /// emailAlertConfig property.
-    pub email_alert_config:
-        Option<GoogleCloudAiplatformV1ModelMonitoringAlertConfigEmailAlertConfig>,
-    /// enableLogging property.
-    pub enable_logging: Option<bool>,
-    /// notificationChannels property.
-    pub notification_channels: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAiplatformV1ModelMonitoringStatsAnomaliesFeatureHistoricStatsAnomalies` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ModelMonitoringStatsAnomaliesFeatureHistoricStatsAnomalies {
-    /// featureDisplayName property.
-    pub feature_display_name: Option<String>,
-    /// predictionStats property.
-    pub prediction_stats: Option<Vec<GoogleCloudAiplatformV1FeatureStatsAnomaly>>,
-    /// threshold property.
-    pub threshold: Option<GoogleCloudAiplatformV1ThresholdConfig>,
-    /// trainingStats property.
-    pub training_stats: Option<GoogleCloudAiplatformV1FeatureStatsAnomaly>,
-}
-
-/// `GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigExplanationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigExplanationConfig {
-    /// enableFeatureAttributes property.
-    pub enable_feature_attributes: Option<bool>,
-    /// explanationBaseline property.
-    pub explanation_baseline: Option<
-        GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigExplanationConfigExplanationBaseline,
-    >,
-}
-
-/// `GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigPredictionDriftDetectionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigPredictionDriftDetectionConfig {
-    /// attributionScoreDriftThresholds property.
-    pub attribution_score_drift_thresholds: Option<serde_json::Value>,
-    /// defaultDriftThreshold property.
-    pub default_drift_threshold: Option<GoogleCloudAiplatformV1ThresholdConfig>,
-    /// driftThresholds property.
-    pub drift_thresholds: Option<serde_json::Value>,
-}
-
-/// `GoogleCloudAiplatformV1ModelMonitoringAlertConfigEmailAlertConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ModelMonitoringAlertConfigEmailAlertConfig {
-    /// userEmails property.
-    pub user_emails: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAiplatformV1GcsSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GcsSource {
-    /// uris property.
-    pub uris: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAiplatformV1SamplingStrategyRandomSampleConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SamplingStrategyRandomSampleConfig {
-    /// sampleRate property.
-    pub sample_rate: Option<f64>,
 }
 
 /// `GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigExplanationConfigExplanationBaseline` type.
@@ -132,135 +50,11 @@ pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigExplanationConfi
     pub prediction_format: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1BigQueryDestination` type.
+/// `GoogleCloudAiplatformV1ThresholdConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1BigQueryDestination {
-    /// outputUri property.
-    pub output_uri: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ModelDeploymentMonitoringScheduleConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ModelDeploymentMonitoringScheduleConfig {
-    /// monitorInterval property.
-    pub monitor_interval: Option<String>,
-    /// monitorWindow property.
-    pub monitor_window: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ModelDeploymentMonitoringBigQueryTable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ModelDeploymentMonitoringBigQueryTable {
-    /// bigqueryTablePath property.
-    pub bigquery_table_path: Option<String>,
-    /// logSource property.
-    pub log_source: Option<String>,
-    /// logType property.
-    pub log_type: Option<String>,
-    /// requestResponseLoggingSchemaVersion property.
-    pub request_response_logging_schema_version: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1EncryptionSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EncryptionSpec {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ModelDeploymentMonitoringJobLatestMonitoringPipelineMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ModelDeploymentMonitoringJobLatestMonitoringPipelineMetadata {
-    /// runTime property.
-    pub run_time: Option<String>,
-    /// status property.
-    pub status: Option<GoogleRpcStatus>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigTrainingDataset` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigTrainingDataset {
-    /// bigquerySource property.
-    pub bigquery_source: Option<GoogleCloudAiplatformV1BigQuerySource>,
-    /// dataFormat property.
-    pub data_format: Option<String>,
-    /// dataset property.
-    pub dataset: Option<String>,
-    /// gcsSource property.
-    pub gcs_source: Option<GoogleCloudAiplatformV1GcsSource>,
-    /// loggingSamplingStrategy property.
-    pub logging_sampling_strategy: Option<GoogleCloudAiplatformV1SamplingStrategy>,
-    /// targetField property.
-    pub target_field: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ModelMonitoringStatsAnomalies` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ModelMonitoringStatsAnomalies {
-    /// anomalyCount property.
-    pub anomaly_count: Option<i64>,
-    /// deployedModelId property.
-    pub deployed_model_id: Option<String>,
-    /// featureStats property.
-    pub feature_stats: Option<
-        Vec<GoogleCloudAiplatformV1ModelMonitoringStatsAnomaliesFeatureHistoricStatsAnomalies>,
-    >,
-    /// objective property.
-    pub objective: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ModelDeploymentMonitoringObjectiveConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ModelDeploymentMonitoringObjectiveConfig {
-    /// deployedModelId property.
-    pub deployed_model_id: Option<String>,
-    /// objectiveConfig property.
-    pub objective_config: Option<GoogleCloudAiplatformV1ModelMonitoringObjectiveConfig>,
-}
-
-/// `GoogleCloudAiplatformV1SamplingStrategy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SamplingStrategy {
-    /// randomSampleConfig property.
-    pub random_sample_config: Option<GoogleCloudAiplatformV1SamplingStrategyRandomSampleConfig>,
-}
-
-/// `GoogleCloudAiplatformV1SearchModelDeploymentMonitoringStatsAnomaliesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SearchModelDeploymentMonitoringStatsAnomaliesResponse {
-    /// monitoringStats property.
-    pub monitoring_stats: Option<Vec<GoogleCloudAiplatformV1ModelMonitoringStatsAnomalies>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ModelMonitoringObjectiveConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfig {
-    /// explanationConfig property.
-    pub explanation_config:
-        Option<GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigExplanationConfig>,
-    /// predictionDriftDetectionConfig property.
-    pub prediction_drift_detection_config:
-        Option<GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigPredictionDriftDetectionConfig>,
-    /// trainingDataset property.
-    pub training_dataset:
-        Option<GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigTrainingDataset>,
-    /// trainingPredictionSkewDetectionConfig property.
-    pub training_prediction_skew_detection_config: Option<
-        GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigTrainingPredictionSkewDetectionConfig,
-    >,
+pub struct GoogleCloudAiplatformV1ThresholdConfig {
+    /// value property.
+    pub value: Option<f64>,
 }
 
 /// `GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigTrainingPredictionSkewDetectionConfig` type.
@@ -275,30 +69,13 @@ pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigTrainingPredicti
     pub skew_thresholds: Option<serde_json::Value>,
 }
 
-/// `GoogleCloudAiplatformV1BigQuerySource` type.
+/// `GoogleCloudAiplatformV1ModelDeploymentMonitoringObjectiveConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1BigQuerySource {
-    /// inputUri property.
-    pub input_uri: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1FeatureStatsAnomaly` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureStatsAnomaly {
-    /// anomalyDetectionThreshold property.
-    pub anomaly_detection_threshold: Option<f64>,
-    /// anomalyUri property.
-    pub anomaly_uri: Option<String>,
-    /// distributionDeviation property.
-    pub distribution_deviation: Option<f64>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// score property.
-    pub score: Option<f64>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// statsUri property.
-    pub stats_uri: Option<String>,
+pub struct GoogleCloudAiplatformV1ModelDeploymentMonitoringObjectiveConfig {
+    /// deployedModelId property.
+    pub deployed_model_id: Option<String>,
+    /// objectiveConfig property.
+    pub objective_config: Option<GoogleCloudAiplatformV1ModelMonitoringObjectiveConfig>,
 }
 
 /// `GoogleCloudAiplatformV1ModelDeploymentMonitoringJob` type.
@@ -357,6 +134,230 @@ pub struct GoogleCloudAiplatformV1ModelDeploymentMonitoringJob {
     pub stats_anomalies_base_directory: Option<GoogleCloudAiplatformV1GcsDestination>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ModelDeploymentMonitoringJobLatestMonitoringPipelineMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ModelDeploymentMonitoringJobLatestMonitoringPipelineMetadata {
+    /// runTime property.
+    pub run_time: Option<String>,
+    /// status property.
+    pub status: Option<GoogleRpcStatus>,
+}
+
+/// `GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigTrainingDataset` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigTrainingDataset {
+    /// bigquerySource property.
+    pub bigquery_source: Option<GoogleCloudAiplatformV1BigQuerySource>,
+    /// dataFormat property.
+    pub data_format: Option<String>,
+    /// dataset property.
+    pub dataset: Option<String>,
+    /// gcsSource property.
+    pub gcs_source: Option<GoogleCloudAiplatformV1GcsSource>,
+    /// loggingSamplingStrategy property.
+    pub logging_sampling_strategy: Option<GoogleCloudAiplatformV1SamplingStrategy>,
+    /// targetField property.
+    pub target_field: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1GcsDestination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1GcsDestination {
+    /// outputUriPrefix property.
+    pub output_uri_prefix: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1FeatureStatsAnomaly` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FeatureStatsAnomaly {
+    /// anomalyDetectionThreshold property.
+    pub anomaly_detection_threshold: Option<f64>,
+    /// anomalyUri property.
+    pub anomaly_uri: Option<String>,
+    /// distributionDeviation property.
+    pub distribution_deviation: Option<f64>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// score property.
+    pub score: Option<f64>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// statsUri property.
+    pub stats_uri: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigExplanationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigExplanationConfig {
+    /// enableFeatureAttributes property.
+    pub enable_feature_attributes: Option<bool>,
+    /// explanationBaseline property.
+    pub explanation_baseline: Option<
+        GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigExplanationConfigExplanationBaseline,
+    >,
+}
+
+/// `GoogleCloudAiplatformV1ListModelDeploymentMonitoringJobsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ListModelDeploymentMonitoringJobsResponse {
+    /// modelDeploymentMonitoringJobs property.
+    pub model_deployment_monitoring_jobs:
+        Option<Vec<GoogleCloudAiplatformV1ModelDeploymentMonitoringJob>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1EncryptionSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1EncryptionSpec {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1SamplingStrategy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1SamplingStrategy {
+    /// randomSampleConfig property.
+    pub random_sample_config: Option<GoogleCloudAiplatformV1SamplingStrategyRandomSampleConfig>,
+}
+
+/// `GoogleCloudAiplatformV1ModelMonitoringAlertConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ModelMonitoringAlertConfig {
+    /// emailAlertConfig property.
+    pub email_alert_config:
+        Option<GoogleCloudAiplatformV1ModelMonitoringAlertConfigEmailAlertConfig>,
+    /// enableLogging property.
+    pub enable_logging: Option<bool>,
+    /// notificationChannels property.
+    pub notification_channels: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAiplatformV1BigQuerySource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1BigQuerySource {
+    /// inputUri property.
+    pub input_uri: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ModelMonitoringStatsAnomalies` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ModelMonitoringStatsAnomalies {
+    /// anomalyCount property.
+    pub anomaly_count: Option<i64>,
+    /// deployedModelId property.
+    pub deployed_model_id: Option<String>,
+    /// featureStats property.
+    pub feature_stats: Option<
+        Vec<GoogleCloudAiplatformV1ModelMonitoringStatsAnomaliesFeatureHistoricStatsAnomalies>,
+    >,
+    /// objective property.
+    pub objective: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1BigQueryDestination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1BigQueryDestination {
+    /// outputUri property.
+    pub output_uri: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1SamplingStrategyRandomSampleConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1SamplingStrategyRandomSampleConfig {
+    /// sampleRate property.
+    pub sample_rate: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1ModelDeploymentMonitoringBigQueryTable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ModelDeploymentMonitoringBigQueryTable {
+    /// bigqueryTablePath property.
+    pub bigquery_table_path: Option<String>,
+    /// logSource property.
+    pub log_source: Option<String>,
+    /// logType property.
+    pub log_type: Option<String>,
+    /// requestResponseLoggingSchemaVersion property.
+    pub request_response_logging_schema_version: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ModelDeploymentMonitoringScheduleConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ModelDeploymentMonitoringScheduleConfig {
+    /// monitorInterval property.
+    pub monitor_interval: Option<String>,
+    /// monitorWindow property.
+    pub monitor_window: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ModelMonitoringStatsAnomaliesFeatureHistoricStatsAnomalies` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ModelMonitoringStatsAnomaliesFeatureHistoricStatsAnomalies {
+    /// featureDisplayName property.
+    pub feature_display_name: Option<String>,
+    /// predictionStats property.
+    pub prediction_stats: Option<Vec<GoogleCloudAiplatformV1FeatureStatsAnomaly>>,
+    /// threshold property.
+    pub threshold: Option<GoogleCloudAiplatformV1ThresholdConfig>,
+    /// trainingStats property.
+    pub training_stats: Option<GoogleCloudAiplatformV1FeatureStatsAnomaly>,
+}
+
+/// `GoogleCloudAiplatformV1ModelMonitoringAlertConfigEmailAlertConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ModelMonitoringAlertConfigEmailAlertConfig {
+    /// userEmails property.
+    pub user_emails: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigPredictionDriftDetectionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigPredictionDriftDetectionConfig {
+    /// attributionScoreDriftThresholds property.
+    pub attribution_score_drift_thresholds: Option<serde_json::Value>,
+    /// defaultDriftThreshold property.
+    pub default_drift_threshold: Option<GoogleCloudAiplatformV1ThresholdConfig>,
+    /// driftThresholds property.
+    pub drift_thresholds: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudAiplatformV1GcsSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1GcsSource {
+    /// uris property.
+    pub uris: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAiplatformV1ModelMonitoringObjectiveConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfig {
+    /// explanationConfig property.
+    pub explanation_config:
+        Option<GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigExplanationConfig>,
+    /// predictionDriftDetectionConfig property.
+    pub prediction_drift_detection_config:
+        Option<GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigPredictionDriftDetectionConfig>,
+    /// trainingDataset property.
+    pub training_dataset:
+        Option<GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigTrainingDataset>,
+    /// trainingPredictionSkewDetectionConfig property.
+    pub training_prediction_skew_detection_config: Option<
+        GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigTrainingPredictionSkewDetectionConfig,
+    >,
 }
 
 // =============================================================================

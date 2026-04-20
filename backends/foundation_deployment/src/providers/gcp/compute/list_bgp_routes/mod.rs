@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -45,6 +46,15 @@ pub struct RoutersListBgpRoutes {
     pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
+/// `BgpRouteNetworkLayerReachabilityInformation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BgpRouteNetworkLayerReachabilityInformation {
+    /// pathId property.
+    pub path_id: Option<i64>,
+    /// prefix property.
+    pub prefix: Option<String>,
+}
+
 /// `BgpRoute` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BgpRoute {
@@ -58,15 +68,6 @@ pub struct BgpRoute {
     pub med: Option<i64>,
     /// origin property.
     pub origin: Option<String>,
-}
-
-/// `BgpRouteNetworkLayerReachabilityInformation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BgpRouteNetworkLayerReachabilityInformation {
-    /// pathId property.
-    pub path_id: Option<i64>,
-    /// prefix property.
-    pub prefix: Option<String>,
 }
 
 /// `BgpRouteAsPath` type.

@@ -12,25 +12,30 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListSnoozesResponse` type.
+/// `Snooze` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSnoozesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// snoozes property.
-    pub snoozes: Option<Vec<Snooze>>,
+pub struct Snooze {
+    /// criteria property.
+    pub criteria: Option<Criteria>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// interval property.
+    pub interval: Option<TimeInterval>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 /// `Criteria` type.
@@ -51,17 +56,13 @@ pub struct TimeInterval {
     pub start_time: Option<String>,
 }
 
-/// `Snooze` type.
+/// `ListSnoozesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Snooze {
-    /// criteria property.
-    pub criteria: Option<Criteria>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// interval property.
-    pub interval: Option<TimeInterval>,
-    /// name property.
-    pub name: Option<String>,
+pub struct ListSnoozesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// snoozes property.
+    pub snoozes: Option<Vec<Snooze>>,
 }
 
 // =============================================================================

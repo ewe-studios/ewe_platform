@@ -12,17 +12,29 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListRetiredResourcesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListRetiredResourcesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// retiredResources property.
+    pub retired_resources: Option<Vec<RetiredResource>>,
+    /// totalSize property.
+    pub total_size: Option<String>,
+}
 
 /// `RetiredResource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -35,17 +47,6 @@ pub struct RetiredResource {
     pub original_resource: Option<String>,
     /// resourceType property.
     pub resource_type: Option<String>,
-}
-
-/// `ListRetiredResourcesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListRetiredResourcesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// retiredResources property.
-    pub retired_resources: Option<Vec<RetiredResource>>,
-    /// totalSize property.
-    pub total_size: Option<String>,
 }
 
 // =============================================================================

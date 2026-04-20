@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,36 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Volumes;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Review` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Review {
-    /// author property.
-    pub author: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// content property.
-    pub content: Option<String>,
-    /// date property.
-    pub date: Option<String>,
-    /// fullTextUrl property.
-    pub full_text_url: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// rating property.
-    pub rating: Option<String>,
-    /// source property.
-    pub source: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// title property.
-    pub title: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// volumeId property.
-    pub volume_id: Option<String>,
-}
 
 /// `Volumeseriesinfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -84,6 +60,33 @@ pub struct ReadingPosition {
     pub volume_id: Option<String>,
 }
 
+/// `Volume` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Volume {
+    /// accessInfo property.
+    pub access_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// layerInfo property.
+    pub layer_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// recommendedInfo property.
+    pub recommended_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// saleInfo property.
+    pub sale_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// searchInfo property.
+    pub search_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// userInfo property.
+    pub user_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// volumeInfo property.
+    pub volume_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
 /// `DownloadAccessRestriction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DownloadAccessRestriction {
@@ -113,31 +116,29 @@ pub struct DownloadAccessRestriction {
     pub volume_id: Option<String>,
 }
 
-/// `Volume` type.
+/// `Review` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Volume {
-    /// accessInfo property.
-    pub access_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
+pub struct Review {
+    /// author property.
+    pub author: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// content property.
+    pub content: Option<String>,
+    /// date property.
+    pub date: Option<String>,
+    /// fullTextUrl property.
+    pub full_text_url: Option<String>,
     /// kind property.
     pub kind: Option<String>,
-    /// layerInfo property.
-    pub layer_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// recommendedInfo property.
-    pub recommended_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// saleInfo property.
-    pub sale_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// searchInfo property.
-    pub search_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// userInfo property.
-    pub user_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// volumeInfo property.
-    pub volume_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// rating property.
+    pub rating: Option<String>,
+    /// source property.
+    pub source: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// title property.
+    pub title: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// volumeId property.
+    pub volume_id: Option<String>,
 }
 
 // =============================================================================

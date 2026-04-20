@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,26 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `HeldAccount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HeldAccount {
+    /// accountId property.
+    pub account_id: Option<String>,
+    /// email property.
+    pub email: Option<String>,
+    /// firstName property.
+    pub first_name: Option<String>,
+    /// holdTime property.
+    pub hold_time: Option<String>,
+    /// lastName property.
+    pub last_name: Option<String>,
+}
 
 /// `CorpusQuery` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,30 +60,18 @@ pub struct CorpusQuery {
     pub voice_query: Option<HeldVoiceQuery>,
 }
 
-/// `Hold` type.
+/// `RemoveHeldAccountsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Hold {
-    /// accounts property.
-    pub accounts: Option<Vec<HeldAccount>>,
-    /// corpus property.
-    pub corpus: Option<String>,
-    /// holdId property.
-    pub hold_id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// orgUnit property.
-    pub org_unit: Option<HeldOrgUnit>,
-    /// query property.
-    pub query: Option<CorpusQuery>,
-    /// updateTime property.
-    pub update_time: Option<String>,
+pub struct RemoveHeldAccountsResponse {
+    /// statuses property.
+    pub statuses: Option<Vec<Status>>,
 }
 
-/// `AddHeldAccountsResponse` type.
+/// `HeldHangoutsChatQuery` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AddHeldAccountsResponse {
-    /// responses property.
-    pub responses: Option<Vec<AddHeldAccountResult>>,
+pub struct HeldHangoutsChatQuery {
+    /// includeRooms property.
+    pub include_rooms: Option<bool>,
 }
 
 /// `HeldOrgUnit` type.
@@ -79,28 +83,6 @@ pub struct HeldOrgUnit {
     pub org_unit_id: Option<String>,
 }
 
-/// `HeldHangoutsChatQuery` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HeldHangoutsChatQuery {
-    /// includeRooms property.
-    pub include_rooms: Option<bool>,
-}
-
-/// `HeldAccount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HeldAccount {
-    /// accountId property.
-    pub account_id: Option<String>,
-    /// email property.
-    pub email: Option<String>,
-    /// firstName property.
-    pub first_name: Option<String>,
-    /// holdTime property.
-    pub hold_time: Option<String>,
-    /// lastName property.
-    pub last_name: Option<String>,
-}
-
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
@@ -110,33 +92,6 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
-}
-
-/// `HeldMailQuery` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HeldMailQuery {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// terms property.
-    pub terms: Option<String>,
-}
-
-/// `ListHoldsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListHoldsResponse {
-    /// holds property.
-    pub holds: Option<Vec<Hold>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `RemoveHeldAccountsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemoveHeldAccountsResponse {
-    /// statuses property.
-    pub statuses: Option<Vec<Status>>,
 }
 
 /// `AddHeldAccountResult` type.
@@ -159,6 +114,36 @@ pub struct HeldVoiceQuery {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HeldCalendarQuery {}
 
+/// `HeldMailQuery` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HeldMailQuery {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// terms property.
+    pub terms: Option<String>,
+}
+
+/// `Hold` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Hold {
+    /// accounts property.
+    pub accounts: Option<Vec<HeldAccount>>,
+    /// corpus property.
+    pub corpus: Option<String>,
+    /// holdId property.
+    pub hold_id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// orgUnit property.
+    pub org_unit: Option<HeldOrgUnit>,
+    /// query property.
+    pub query: Option<CorpusQuery>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
 /// `HeldGroupsQuery` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HeldGroupsQuery {
@@ -168,6 +153,22 @@ pub struct HeldGroupsQuery {
     pub start_time: Option<String>,
     /// terms property.
     pub terms: Option<String>,
+}
+
+/// `AddHeldAccountsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AddHeldAccountsResponse {
+    /// responses property.
+    pub responses: Option<Vec<AddHeldAccountResult>>,
+}
+
+/// `ListHoldsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListHoldsResponse {
+    /// holds property.
+    pub holds: Option<Vec<Hold>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `HeldDriveQuery` type.

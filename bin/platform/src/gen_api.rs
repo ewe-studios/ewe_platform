@@ -8,6 +8,7 @@ use foundation_openapi::{
     UnifiedGenerator,
     unified::{analyze_spec, AnalysisOptions},
 };
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
@@ -16,20 +17,118 @@ type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 // Feature flag fix-up for hierarchical providers
 // ---------------------------------------------------------------------------
 
-/// Fix up feature flags for hierarchical providers (e.g., gcp with gcp_admin, gcp_cloudkms, etc.).
+/// Generate the parent provider's `mod.rs` that declares all sub-provider modules.
 ///
-/// After generating all sub-providers, this function:
-/// 1. Scans the output directory for all generated sub-provider directories
-/// 2. Updates the parent feature (e.g., "gcp") to include ALL sub-providers
-///
-/// This is needed because the generator updates Cargo.toml per-spec, but at that time
-/// it doesn't know about other sub-providers that will be generated later.
-fn fix_hierarchical_features(provider: &str, output_dir: &Path) -> Result<(), BoxedError> {
-    use std::collections::BTreeSet;
+/// BUG FIX: The generator writes each sub-provider's mod.rs (e.g. gcp/admin/mod.rs)
+/// but never writes the top-level gcp/mod.rs with `pub mod admin; pub mod run;` etc.
+/// Without this, the sub-providers can't be imported even though their code exists.
+fn generate_parent_mod_rs(provider: &str, output_dir: &Path) -> Result<(), BoxedError> {
+    use std::fmt::Write as FmtWrite;
 
     let provider_dir = output_dir.join(provider);
     if !provider_dir.exists() {
-        return Ok(()); // Nothing to fix
+        return Ok(());
+    }
+
+    // Collect all sub-provider directories
+    let mut sub_providers: Vec<(String, String)> = Vec::new(); // (display_name, safe_name)
+    let mut seen = std::collections::HashSet::new();
+
+    if let Ok(entries) = std::fs::read_dir(&provider_dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() && path.join("mod.rs").exists() {
+                if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+                    if name != "shared" && name != "clients" && name != "resources" && seen.insert(name.to_string()) {
+                        let safe = camel_to_snake(name);
+                        sub_providers.push((name.to_string(), safe));
+                    }
+                }
+            }
+        }
+    }
+
+    if sub_providers.is_empty() {
+        return Ok(());
+    }
+
+    sub_providers.sort_by(|a, b| a.1.cmp(&b.1));
+
+    let feature_name = provider.replace('-', "_").replace('/', "_");
+
+    let mut out = String::new();
+    writeln!(out, "//! Google Cloud Platform provider.").unwrap();
+    writeln!(out, "//!").unwrap();
+    writeln!(out, "//! Generated sub-providers for each GCP API.").unwrap();
+    writeln!(out, "//! DO NOT EDIT MANUALLY - regeneration will overwrite this file.").unwrap();
+    writeln!(out).unwrap();
+    writeln!(out, "#![cfg(feature = \"{}\")]", feature_name).unwrap();
+    writeln!(out).unwrap();
+    writeln!(out, "// Shared module - re-exports common API types").unwrap();
+    writeln!(out, "pub mod shared;").unwrap();
+    writeln!(out).unwrap();
+    writeln!(out, "// Sub-providers are auto-generated and conditionally compiled.").unwrap();
+    writeln!(out, "// Each sub-provider has its own feature flag (e.g., gcp_admin, gcp_cloudkms).").unwrap();
+    writeln!(out).unwrap();
+
+    for (display, safe) in &sub_providers {
+        // Rename directory if it uses camelCase
+        if display != safe {
+            let old = provider_dir.join(display);
+            let new = provider_dir.join(safe);
+            if old.exists() && !new.exists() {
+                let _ = std::fs::rename(&old, &new);
+            }
+        }
+        let sub_feature = format!("{}_{}", feature_name, safe);
+        writeln!(out, "#[cfg(feature = \"{}\")]", sub_feature).unwrap();
+        writeln!(out, "pub mod {};", safe).unwrap();
+    }
+
+    std::fs::write(provider_dir.join("mod.rs"), out + "\n")
+        .map_err(|e| format!("Failed to write {}: {}", provider_dir.join("mod.rs").display(), e))?;
+
+    println!("Generated {}/mod.rs with {} sub-provider(s)", provider, sub_providers.len());
+
+    Ok(())
+}
+
+/// Convert camelCase to snake_case.
+fn camel_to_snake(name: &str) -> String {
+    let mut result = String::new();
+    let mut prev_was_upper_or_digit = false;
+    for (i, c) in name.chars().enumerate() {
+        if c.is_uppercase() {
+            if i > 0 && !prev_was_upper_or_digit {
+                result.push('_');
+            }
+            result.push(c.to_ascii_lowercase());
+            prev_was_upper_or_digit = true;
+        } else if c.is_numeric() {
+            result.push(c);
+            prev_was_upper_or_digit = true;
+        } else {
+            result.push(c);
+            prev_was_upper_or_digit = false;
+        }
+    }
+    result
+}
+
+/// Fix up feature flags for all providers so they have the standard pattern:
+///   - `provider = []` — enables the module but no specific APIs
+///   - `provider_<api>` — individual API feature
+///   - `provider_all = ["provider_<api>", ...]` — enables all APIs
+///
+/// For hierarchical providers like gcp, also creates group-level features:
+///   - `gcp_all_<group> = ["gcp_<group>_<api>", ...]`
+///   - `gcp_all = ["gcp_all_<group>", ...]`
+///
+/// IMPORTANT: This is additive only — it never removes existing features.
+fn fix_hierarchical_features(provider: &str, output_dir: &Path) -> Result<(), BoxedError> {
+    let provider_dir = output_dir.join(provider);
+    if !provider_dir.exists() {
+        return Ok(());
     }
 
     // Collect all sub-provider directories (ones that contain mod.rs)
@@ -39,10 +138,8 @@ fn fix_hierarchical_features(provider: &str, output_dir: &Path) -> Result<(), Bo
         for entry in entries.flatten() {
             let path = entry.path();
             if path.is_dir() {
-                // Check if this is a sub-provider (has mod.rs or is a generated group)
                 let mod_rs = path.join("mod.rs");
                 if mod_rs.exists() {
-                    // Skip "shared" directory - it's not a sub-provider
                     if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
                         if name != "shared" && name != "clients" && name != "resources" {
                             sub_providers.insert(name.to_string());
@@ -54,13 +151,12 @@ fn fix_hierarchical_features(provider: &str, output_dir: &Path) -> Result<(), Bo
     }
 
     if sub_providers.is_empty() {
-        return Ok(()); // Nothing to fix
+        return Ok(());
     }
 
-    println!("\n=== Fixing hierarchical feature flags ===");
-    println!("Found {} sub-providers for '{}': {:?}", sub_providers.len(), provider, sub_providers);
+    println!("\n=== Fixing feature flags for '{}' ===", provider);
+    println!("Found {} sub-provider(s): {:?}", sub_providers.len(), sub_providers);
 
-    // Update Cargo.toml
     let cargo_toml_path = output_dir
         .ancestors()
         .nth(2)
@@ -82,59 +178,137 @@ fn fix_hierarchical_features(provider: &str, output_dir: &Path) -> Result<(), Bo
         .and_then(|v| v.as_table_mut())
         .ok_or_else(|| "Missing [features] section in Cargo.toml")?;
 
-    // The parent feature name (e.g., "gcp")
-    let parent_feature = provider.replace('-', "_");
+    let provider_snake = provider.replace('-', "_");
+    let all_feature = format!("{}_all", provider_snake);
 
-    // First, remove stale sub-provider feature definitions
-    // (features that exist in Cargo.toml but no longer have a directory)
-    let keys_to_remove: Vec<String> = features
-        .keys()
-        .filter(|k| k.starts_with(&format!("{}_", parent_feature)))
-        .filter(|k| {
-            // Check if this is a sub-provider feature (exactly 2 parts: provider_subprovider)
-            let parts: Vec<&str> = k.split('_').collect();
-            if parts.len() == 2 {
-                // This is a sub-provider feature - check if directory exists
-                !sub_providers.contains(&parts[1].to_string())
-            } else {
-                // This is a group-level feature (e.g., gcp_admin_applications) - also remove
-                // if the parent sub-provider doesn't exist
-                parts.len() > 2 && !sub_providers.contains(&parts[1].to_string())
-            }
-        })
-        .cloned()
-        .collect();
-
-    for key in &keys_to_remove {
-        features.remove(key);
+    // 1. Ensure base provider feature is empty (e.g., cloudflare = [])
+    //    This enables the provider module without any specific API.
+    match features.get(&provider_snake) {
+        Some(v) if v.as_array().map_or(false, |a| a.is_empty()) => {}
+        _ => {
+            features.insert(provider_snake.clone(), toml::Value::Array(vec![]));
+            println!("Set '{} = []' (empty base feature)", provider_snake);
+        }
     }
 
-    if !keys_to_remove.is_empty() {
-        println!("Removed {} stale feature(s): {:?}", keys_to_remove.len(), keys_to_remove);
+    // 2. Detect if this is a hierarchical provider (nested sub-providers).
+    //    Check if any sub-provider directory itself contains mod.rs files
+    //    that declare further sub-modules.
+    let is_hierarchical = sub_providers.iter().any(|sub| {
+        let sub_dir = provider_dir.join(sub);
+        if let Ok(entries) = std::fs::read_dir(sub_dir) {
+            entries.flatten().any(|e| {
+                let p = e.path();
+                p.is_dir() && p.join("mod.rs").exists()
+            })
+        } else {
+            false
+        }
+    });
+
+    if is_hierarchical {
+        // Hierarchical: gcp_all = ["gcp_all_admin", ...], gcp_all_admin = ["gcp_admin_applications", ...]
+        fix_hierarchical_features_recursive(&provider_snake, &all_feature, &sub_providers, features);
+    } else {
+        // Flat: cloudflare_all = ["cloudflare_access", "cloudflare_workers", ...]
+        fix_flat_features(&provider_snake, &all_feature, &sub_providers, features);
     }
 
-    // Build the array of sub-provider features
-    let sub_provider_features: Vec<String> = sub_providers
-        .iter()
-        .map(|name| format!("{}_{}", parent_feature, name))
-        .collect();
-
-    // Update or create the parent feature
-    let parent_feature_array: toml::Value = toml::Value::Array(
-        sub_provider_features.iter().map(|f| toml::Value::String(f.clone())).collect()
-    );
-    features.insert(parent_feature.clone(), parent_feature_array);
-
-    // Serialize back to TOML
     let output = toml::to_string_pretty(&doc)
         .map_err(|e| format!("Failed to serialize Cargo.toml: {}", e))?;
 
     std::fs::write(&cargo_toml_path, output + "\n")
         .map_err(|e| format!("Failed to write Cargo.toml: {}", e))?;
 
-    println!("Updated '{}' feature to include {} sub-providers", parent_feature, sub_provider_features.len());
-
     Ok(())
+}
+
+/// Fix features for hierarchical providers (e.g., gcp with nested groups).
+fn fix_hierarchical_features_recursive(
+    provider_snake: &str,
+    all_feature: &str,
+    sub_providers: &BTreeSet<String>,
+    features: &mut toml::value::Table,
+) {
+    // Add group-level features: gcp_all_admin, gcp_all_cloudkms, etc.
+    for sub in sub_providers {
+        let group_feature = format!("{}_{}", all_feature, sub);
+        if !features.contains_key(&group_feature) {
+            // Find all API features belonging to this group
+            let group_apis: Vec<String> = features.keys()
+                .filter(|k| k.starts_with(&format!("{}_", provider_snake)) && !k.contains("_all_"))
+                .filter(|k| {
+                    let api_part = k.strip_prefix(&format!("{}_", provider_snake)).unwrap_or("");
+                    api_part.starts_with(&format!("{}/", sub)) || api_part.starts_with(&format!("{}_", sub))
+                })
+                .map(|k| k.clone())
+                .collect();
+
+            if group_apis.is_empty() {
+                features.insert(group_feature.clone(), toml::Value::Array(vec![]));
+            } else {
+                features.insert(group_feature.clone(), toml::Value::Array(
+                    group_apis.iter().map(|f| toml::Value::String(f.clone())).collect()
+                ));
+            }
+        }
+    }
+
+    // Ensure *_all feature includes all group-level features
+    let existing_all = features
+        .get(all_feature)
+        .and_then(|v| v.as_array())
+        .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect::<BTreeSet<_>>())
+        .unwrap_or_default();
+
+    let group_features: BTreeSet<String> = sub_providers
+        .iter()
+        .map(|name| format!("{}_{}", all_feature, name))
+        .collect();
+
+    let merged: Vec<String> = existing_all.union(&group_features).cloned().collect();
+    features.insert(all_feature.to_string(), toml::Value::Array(
+        merged.iter().map(|f| toml::Value::String(f.clone())).collect()
+    ));
+
+    println!("Updated '{}_all' feature to include {} group(s)", provider_snake, merged.len());
+}
+
+/// Fix features for flat providers (e.g., cloudflare, stripe, supabase).
+fn fix_flat_features(
+    provider_snake: &str,
+    all_feature: &str,
+    sub_providers: &BTreeSet<String>,
+    features: &mut toml::value::Table,
+) {
+    // Ensure individual API features exist
+    for sub in sub_providers {
+        let feature_name = format!("{}_{}", provider_snake, sub);
+        if !features.contains_key(&feature_name) {
+            features.insert(feature_name.clone(), toml::Value::Array(vec![]));
+        }
+    }
+
+    // Collect all individual API features for this provider
+    let prefix = format!("{}_", provider_snake);
+    let all_api_features: BTreeSet<String> = features.keys()
+        .filter(|k| k.starts_with(&prefix) && !k.contains("_all"))
+        .map(|k| k.clone())
+        .collect();
+
+    // Merge into *_all
+    let existing_all = features
+        .get(all_feature)
+        .and_then(|v| v.as_array())
+        .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect::<BTreeSet<_>>())
+        .unwrap_or_default();
+
+    let merged: Vec<String> = existing_all.union(&all_api_features).cloned().collect();
+    features.insert(all_feature.to_string(), toml::Value::Array(
+        merged.iter().map(|f| toml::Value::String(f.clone())).collect()
+    ));
+
+    println!("Updated '{}_all' feature to include {} API(s)", provider_snake, merged.len());
 }
 
 // ---------------------------------------------------------------------------
@@ -366,6 +540,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             }
 
             // Apply spec filter if provided
+            let is_multi_spec_provider = specs.len() > 1;
             if let Some(spec_filter) = spec_filter {
                 let original_count = specs.len();
                 specs.retain(|(api_name, _)| {
@@ -399,9 +574,12 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                     continue;
                 }
 
-                // Use full provider path for sub-providers (e.g., "gcp/admin")
-                let gen_provider = if specs.len() > 1 {
-                    format!("{}/{}", provider, api_name)
+                // Use full provider path for sub-providers (e.g., "gcp/admin").
+                // Check is_multi_spec_provider (before filtering), NOT specs.len(),
+                // so that filtering to one spec doesn't cause it to overwrite the parent.
+                let safe_api_name = camel_to_snake(api_name);
+                let gen_provider = if is_multi_spec_provider {
+                    format!("{}/{}", provider, safe_api_name)
                 } else {
                     provider.clone()
                 };
@@ -416,14 +594,13 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                 return Ok(());
             }
 
-            // Post-step: Fix up feature flags for multi-spec providers ONLY
-            // When generating gcp/admin, gcp/cloudkms, etc., the parent "gcp" feature
-            // should include ALL sub-providers (gcp_admin, gcp_cloudkms, etc.)
-            // This scans the output directory for all existing sub-providers.
-            // Only run this for multi-spec providers (specs.len() > 1).
-            if specs.len() > 1 {
-                fix_hierarchical_features(&provider, &output_dir)?;
+            // Post-step: Fix up feature flags for all providers with sub-groups.
+            // This ensures *_all features exist for both multi-spec (gcp) and
+            // single-spec multi-group (cloudflare, stripe, etc.) providers.
+            if is_multi_spec_provider {
+                generate_parent_mod_rs(&provider, &output_dir)?;
             }
+            fix_hierarchical_features(&provider, &output_dir)?;
 
             println!("\n=== Generation Complete ===");
             println!("Output directory: {}", output_dir.display());

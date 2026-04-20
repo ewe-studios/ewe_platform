@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,137 +24,11 @@ use super::shared::GoogleIamV1Policy;
 use super::shared::GoogleIamV1TestIamPermissionsResponse;
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudDataplexV1AssetResourceStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1AssetResourceStatus {
-    /// managedAccessIdentity property.
-    pub managed_access_identity: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `GoogleIamV1Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Binding {
-    /// condition property.
-    pub condition: Option<GoogleTypeExpr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `GoogleTypeExpr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeExpr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1AssetDiscoverySpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1AssetDiscoverySpec {
-    /// csvOptions property.
-    pub csv_options: Option<GoogleCloudDataplexV1AssetDiscoverySpecCsvOptions>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// excludePatterns property.
-    pub exclude_patterns: Option<Vec<String>>,
-    /// includePatterns property.
-    pub include_patterns: Option<Vec<String>>,
-    /// jsonOptions property.
-    pub json_options: Option<GoogleCloudDataplexV1AssetDiscoverySpecJsonOptions>,
-    /// schedule property.
-    pub schedule: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1AssetDiscoveryStatusStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1AssetDiscoveryStatusStats {
-    /// dataItems property.
-    pub data_items: Option<String>,
-    /// dataSize property.
-    pub data_size: Option<String>,
-    /// filesets property.
-    pub filesets: Option<String>,
-    /// tables property.
-    pub tables: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1ListAssetsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1ListAssetsResponse {
-    /// assets property.
-    pub assets: Option<Vec<GoogleCloudDataplexV1Asset>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1AssetDiscoverySpecCsvOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1AssetDiscoverySpecCsvOptions {
-    /// delimiter property.
-    pub delimiter: Option<String>,
-    /// disableTypeInference property.
-    pub disable_type_inference: Option<bool>,
-    /// encoding property.
-    pub encoding: Option<String>,
-    /// headerRows property.
-    pub header_rows: Option<i64>,
-}
-
-/// `GoogleCloudDataplexV1AssetDiscoveryStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1AssetDiscoveryStatus {
-    /// lastRunDuration property.
-    pub last_run_duration: Option<String>,
-    /// lastRunTime property.
-    pub last_run_time: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// stats property.
-    pub stats: Option<GoogleCloudDataplexV1AssetDiscoveryStatusStats>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `GoogleIamV1AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
 
 /// `GoogleCloudDataplexV1Asset` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -186,6 +61,35 @@ pub struct GoogleCloudDataplexV1Asset {
     pub update_time: Option<String>,
 }
 
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleIamV1AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1ListAssetsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1ListAssetsResponse {
+    /// assets property.
+    pub assets: Option<Vec<GoogleCloudDataplexV1Asset>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
 /// `GoogleCloudDataplexV1AssetResourceSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1AssetResourceSpec {
@@ -197,13 +101,75 @@ pub struct GoogleCloudDataplexV1AssetResourceSpec {
     pub r#type: Option<String>,
 }
 
-/// `GoogleCloudDataplexV1AssetDiscoverySpecJsonOptions` type.
+/// `GoogleCloudDataplexV1AssetDiscoveryStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1AssetDiscoverySpecJsonOptions {
+pub struct GoogleCloudDataplexV1AssetDiscoveryStatus {
+    /// lastRunDuration property.
+    pub last_run_duration: Option<String>,
+    /// lastRunTime property.
+    pub last_run_time: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// stats property.
+    pub stats: Option<GoogleCloudDataplexV1AssetDiscoveryStatusStats>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `GoogleTypeExpr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeExpr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1AssetSecurityStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1AssetSecurityStatus {
+    /// message property.
+    pub message: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1AssetDiscoverySpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1AssetDiscoverySpec {
+    /// csvOptions property.
+    pub csv_options: Option<GoogleCloudDataplexV1AssetDiscoverySpecCsvOptions>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// excludePatterns property.
+    pub exclude_patterns: Option<Vec<String>>,
+    /// includePatterns property.
+    pub include_patterns: Option<Vec<String>>,
+    /// jsonOptions property.
+    pub json_options: Option<GoogleCloudDataplexV1AssetDiscoverySpecJsonOptions>,
+    /// schedule property.
+    pub schedule: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1AssetDiscoverySpecCsvOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1AssetDiscoverySpecCsvOptions {
+    /// delimiter property.
+    pub delimiter: Option<String>,
     /// disableTypeInference property.
     pub disable_type_inference: Option<bool>,
     /// encoding property.
     pub encoding: Option<String>,
+    /// headerRows property.
+    pub header_rows: Option<i64>,
 }
 
 /// `GoogleIamV1AuditLogConfig` type.
@@ -215,9 +181,44 @@ pub struct GoogleIamV1AuditLogConfig {
     pub log_type: Option<String>,
 }
 
-/// `GoogleCloudDataplexV1AssetSecurityStatus` type.
+/// `GoogleCloudDataplexV1AssetDiscoverySpecJsonOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1AssetSecurityStatus {
+pub struct GoogleCloudDataplexV1AssetDiscoverySpecJsonOptions {
+    /// disableTypeInference property.
+    pub disable_type_inference: Option<bool>,
+    /// encoding property.
+    pub encoding: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1AssetDiscoveryStatusStats` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1AssetDiscoveryStatusStats {
+    /// dataItems property.
+    pub data_items: Option<String>,
+    /// dataSize property.
+    pub data_size: Option<String>,
+    /// filesets property.
+    pub filesets: Option<String>,
+    /// tables property.
+    pub tables: Option<String>,
+}
+
+/// `GoogleIamV1Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1Binding {
+    /// condition property.
+    pub condition: Option<GoogleTypeExpr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1AssetResourceStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1AssetResourceStatus {
+    /// managedAccessIdentity property.
+    pub managed_access_identity: Option<String>,
     /// message property.
     pub message: Option<String>,
     /// state property.

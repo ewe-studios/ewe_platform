@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,119 +24,11 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `BareMetalNodePoolConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalNodePoolConfig {
-    /// kubeletConfig property.
-    pub kubelet_config: Option<BareMetalKubeletConfig>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// nodeConfigs property.
-    pub node_configs: Option<Vec<BareMetalNodeConfig>>,
-    /// operatingSystem property.
-    pub operating_system: Option<String>,
-    /// taints property.
-    pub taints: Option<Vec<NodeTaint>>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `BareMetalNodeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalNodeConfig {
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// nodeIp property.
-    pub node_ip: Option<String>,
-}
-
-/// `BareMetalKubeletConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalKubeletConfig {
-    /// registryBurst property.
-    pub registry_burst: Option<i64>,
-    /// registryPullQps property.
-    pub registry_pull_qps: Option<i64>,
-    /// serializeImagePullsDisabled property.
-    pub serialize_image_pulls_disabled: Option<bool>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `NodeTaint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeTaint {
-    /// effect property.
-    pub effect: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `ResourceStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceStatus {
-    /// conditions property.
-    pub conditions: Option<Vec<ResourceCondition>>,
-    /// errorMessage property.
-    pub error_message: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-    /// versions property.
-    pub versions: Option<Versions>,
-}
-
-/// `BareMetalParallelUpgradeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalParallelUpgradeConfig {
-    /// concurrentNodes property.
-    pub concurrent_nodes: Option<i64>,
-    /// minimumAvailableNodes property.
-    pub minimum_available_nodes: Option<i64>,
-}
-
-/// `Version` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Version {
-    /// count property.
-    pub count: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `BareMetalNodePoolUpgradePolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BareMetalNodePoolUpgradePolicy {
-    /// parallelUpgradeConfig property.
-    pub parallel_upgrade_config: Option<BareMetalParallelUpgradeConfig>,
-}
 
 /// `BareMetalNodePool` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -175,6 +68,68 @@ pub struct Versions {
     pub versions: Option<Vec<Version>>,
 }
 
+/// `BareMetalNodePoolUpgradePolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalNodePoolUpgradePolicy {
+    /// parallelUpgradeConfig property.
+    pub parallel_upgrade_config: Option<BareMetalParallelUpgradeConfig>,
+}
+
+/// `Version` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Version {
+    /// count property.
+    pub count: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `ResourceStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceStatus {
+    /// conditions property.
+    pub conditions: Option<Vec<ResourceCondition>>,
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+    /// versions property.
+    pub versions: Option<Versions>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `BareMetalParallelUpgradeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalParallelUpgradeConfig {
+    /// concurrentNodes property.
+    pub concurrent_nodes: Option<i64>,
+    /// minimumAvailableNodes property.
+    pub minimum_available_nodes: Option<i64>,
+}
+
 /// `ResourceCondition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceCondition {
@@ -190,6 +145,15 @@ pub struct ResourceCondition {
     pub r#type: Option<String>,
 }
 
+/// `BareMetalNodeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalNodeConfig {
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// nodeIp property.
+    pub node_ip: Option<String>,
+}
+
 /// `ListBareMetalNodePoolsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBareMetalNodePoolsResponse {
@@ -201,15 +165,52 @@ pub struct ListBareMetalNodePoolsResponse {
     pub unreachable: Option<Vec<String>>,
 }
 
-/// `Status` type.
+/// `NodeTaint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct NodeTaint {
+    /// effect property.
+    pub effect: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `BareMetalKubeletConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalKubeletConfig {
+    /// registryBurst property.
+    pub registry_burst: Option<i64>,
+    /// registryPullQps property.
+    pub registry_pull_qps: Option<i64>,
+    /// serializeImagePullsDisabled property.
+    pub serialize_image_pulls_disabled: Option<bool>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `BareMetalNodePoolConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BareMetalNodePoolConfig {
+    /// kubeletConfig property.
+    pub kubelet_config: Option<BareMetalKubeletConfig>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// nodeConfigs property.
+    pub node_configs: Option<Vec<BareMetalNodeConfig>>,
+    /// operatingSystem property.
+    pub operating_system: Option<String>,
+    /// taints property.
+    pub taints: Option<Vec<NodeTaint>>,
 }
 
 // =============================================================================

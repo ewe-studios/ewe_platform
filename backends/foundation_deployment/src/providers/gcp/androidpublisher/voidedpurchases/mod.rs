@@ -12,38 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `VoidedPurchasesListResponse` type.
+/// `TokenPagination` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VoidedPurchasesListResponse {
-    /// pageInfo property.
-    pub page_info: Option<PageInfo>,
-    /// tokenPagination property.
-    pub token_pagination: Option<TokenPagination>,
-    /// voidedPurchases property.
-    pub voided_purchases: Option<Vec<VoidedPurchase>>,
-}
-
-/// `PageInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PageInfo {
-    /// resultPerPage property.
-    pub result_per_page: Option<i64>,
-    /// startIndex property.
-    pub start_index: Option<i64>,
-    /// totalResults property.
-    pub total_results: Option<i64>,
+pub struct TokenPagination {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// previousPageToken property.
+    pub previous_page_token: Option<String>,
 }
 
 /// `VoidedPurchase` type.
@@ -67,13 +55,26 @@ pub struct VoidedPurchase {
     pub voided_time_millis: Option<String>,
 }
 
-/// `TokenPagination` type.
+/// `PageInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TokenPagination {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// previousPageToken property.
-    pub previous_page_token: Option<String>,
+pub struct PageInfo {
+    /// resultPerPage property.
+    pub result_per_page: Option<i64>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+    /// totalResults property.
+    pub total_results: Option<i64>,
+}
+
+/// `VoidedPurchasesListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VoidedPurchasesListResponse {
+    /// pageInfo property.
+    pub page_info: Option<PageInfo>,
+    /// tokenPagination property.
+    pub token_pagination: Option<TokenPagination>,
+    /// voidedPurchases property.
+    pub voided_purchases: Option<Vec<VoidedPurchase>>,
 }
 
 // =============================================================================

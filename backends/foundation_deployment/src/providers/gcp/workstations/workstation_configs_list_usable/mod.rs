@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -44,50 +45,74 @@ pub struct PersistentDirectory {
     pub mount_path: Option<String>,
 }
 
+/// `GceRegionalPersistentDisk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GceRegionalPersistentDisk {
+    /// diskType property.
+    pub disk_type: Option<String>,
+    /// fsType property.
+    pub fs_type: Option<String>,
+    /// reclaimPolicy property.
+    pub reclaim_policy: Option<String>,
+    /// sizeGb property.
+    pub size_gb: Option<i64>,
+    /// sourceSnapshot property.
+    pub source_snapshot: Option<String>,
+}
+
+/// `GceInstance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GceInstance {
+    /// accelerators property.
+    pub accelerators: Option<Vec<Accelerator>>,
+    /// boostConfigs property.
+    pub boost_configs: Option<Vec<BoostConfig>>,
+    /// bootDiskSizeGb property.
+    pub boot_disk_size_gb: Option<i64>,
+    /// confidentialInstanceConfig property.
+    pub confidential_instance_config: Option<GceConfidentialInstanceConfig>,
+    /// disablePublicIpAddresses property.
+    pub disable_public_ip_addresses: Option<bool>,
+    /// disableSsh property.
+    pub disable_ssh: Option<bool>,
+    /// enableNestedVirtualization property.
+    pub enable_nested_virtualization: Option<bool>,
+    /// instanceMetadata property.
+    pub instance_metadata: Option<serde_json::Value>,
+    /// machineType property.
+    pub machine_type: Option<String>,
+    /// poolSize property.
+    pub pool_size: Option<i64>,
+    /// pooledInstances property.
+    pub pooled_instances: Option<i64>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// serviceAccountScopes property.
+    pub service_account_scopes: Option<Vec<String>>,
+    /// shieldedInstanceConfig property.
+    pub shielded_instance_config: Option<GceShieldedInstanceConfig>,
+    /// startupScriptUri property.
+    pub startup_script_uri: Option<String>,
+    /// tags property.
+    pub tags: Option<Vec<String>>,
+    /// vmTags property.
+    pub vm_tags: Option<serde_json::Value>,
+}
+
+/// `EphemeralDirectory` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EphemeralDirectory {
+    /// gcePd property.
+    pub gce_pd: Option<GcePersistentDisk>,
+    /// mountPath property.
+    pub mount_path: Option<String>,
+}
+
 /// `GceConfidentialInstanceConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GceConfidentialInstanceConfig {
     /// enableConfidentialCompute property.
     pub enable_confidential_compute: Option<bool>,
-}
-
-/// `Container` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Container {
-    /// args property.
-    pub args: Option<Vec<String>>,
-    /// command property.
-    pub command: Option<Vec<String>>,
-    /// env property.
-    pub env: Option<serde_json::Value>,
-    /// image property.
-    pub image: Option<String>,
-    /// runAsUser property.
-    pub run_as_user: Option<i64>,
-    /// workingDir property.
-    pub working_dir: Option<String>,
-}
-
-/// `PortRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PortRange {
-    /// first property.
-    pub first: Option<i64>,
-    /// last property.
-    pub last: Option<i64>,
-}
-
-/// `GcePersistentDisk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GcePersistentDisk {
-    /// diskType property.
-    pub disk_type: Option<String>,
-    /// readOnly property.
-    pub read_only: Option<bool>,
-    /// sourceImage property.
-    pub source_image: Option<String>,
-    /// sourceSnapshot property.
-    pub source_snapshot: Option<String>,
 }
 
 /// `Status` type.
@@ -101,33 +126,22 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `Host` type.
+/// `PortRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Host {
-    /// gceInstance property.
-    pub gce_instance: Option<GceInstance>,
+pub struct PortRange {
+    /// first property.
+    pub first: Option<i64>,
+    /// last property.
+    pub last: Option<i64>,
 }
 
-/// `ListUsableWorkstationConfigsResponse` type.
+/// `Accelerator` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListUsableWorkstationConfigsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-    /// workstationConfigs property.
-    pub workstation_configs: Option<Vec<WorkstationConfig>>,
-}
-
-/// `GceShieldedInstanceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GceShieldedInstanceConfig {
-    /// enableIntegrityMonitoring property.
-    pub enable_integrity_monitoring: Option<bool>,
-    /// enableSecureBoot property.
-    pub enable_secure_boot: Option<bool>,
-    /// enableVtpm property.
-    pub enable_vtpm: Option<bool>,
+pub struct Accelerator {
+    /// count property.
+    pub count: Option<i64>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `WorkstationConfig` type.
@@ -187,52 +201,30 @@ pub struct WorkstationConfig {
     pub update_time: Option<String>,
 }
 
-/// `GceInstance` type.
+/// `GceHyperdiskBalancedHighAvailability` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GceInstance {
-    /// accelerators property.
-    pub accelerators: Option<Vec<Accelerator>>,
-    /// boostConfigs property.
-    pub boost_configs: Option<Vec<BoostConfig>>,
-    /// bootDiskSizeGb property.
-    pub boot_disk_size_gb: Option<i64>,
-    /// confidentialInstanceConfig property.
-    pub confidential_instance_config: Option<GceConfidentialInstanceConfig>,
-    /// disablePublicIpAddresses property.
-    pub disable_public_ip_addresses: Option<bool>,
-    /// disableSsh property.
-    pub disable_ssh: Option<bool>,
-    /// enableNestedVirtualization property.
-    pub enable_nested_virtualization: Option<bool>,
-    /// instanceMetadata property.
-    pub instance_metadata: Option<serde_json::Value>,
-    /// machineType property.
-    pub machine_type: Option<String>,
-    /// poolSize property.
-    pub pool_size: Option<i64>,
-    /// pooledInstances property.
-    pub pooled_instances: Option<i64>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-    /// serviceAccountScopes property.
-    pub service_account_scopes: Option<Vec<String>>,
-    /// shieldedInstanceConfig property.
-    pub shielded_instance_config: Option<GceShieldedInstanceConfig>,
-    /// startupScriptUri property.
-    pub startup_script_uri: Option<String>,
-    /// tags property.
-    pub tags: Option<Vec<String>>,
-    /// vmTags property.
-    pub vm_tags: Option<serde_json::Value>,
+pub struct GceHyperdiskBalancedHighAvailability {
+    /// archiveTimeout property.
+    pub archive_timeout: Option<String>,
+    /// reclaimPolicy property.
+    pub reclaim_policy: Option<String>,
+    /// sizeGb property.
+    pub size_gb: Option<i64>,
+    /// sourceSnapshot property.
+    pub source_snapshot: Option<String>,
 }
 
-/// `Accelerator` type.
+/// `GcePersistentDisk` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Accelerator {
-    /// count property.
-    pub count: Option<i64>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct GcePersistentDisk {
+    /// diskType property.
+    pub disk_type: Option<String>,
+    /// readOnly property.
+    pub read_only: Option<bool>,
+    /// sourceImage property.
+    pub source_image: Option<String>,
+    /// sourceSnapshot property.
+    pub source_snapshot: Option<String>,
 }
 
 /// `BoostConfig` type.
@@ -252,32 +244,50 @@ pub struct BoostConfig {
     pub pool_size: Option<i64>,
 }
 
-/// `GceHyperdiskBalancedHighAvailability` type.
+/// `Container` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GceHyperdiskBalancedHighAvailability {
-    /// archiveTimeout property.
-    pub archive_timeout: Option<String>,
-    /// reclaimPolicy property.
-    pub reclaim_policy: Option<String>,
-    /// sizeGb property.
-    pub size_gb: Option<i64>,
-    /// sourceSnapshot property.
-    pub source_snapshot: Option<String>,
+pub struct Container {
+    /// args property.
+    pub args: Option<Vec<String>>,
+    /// command property.
+    pub command: Option<Vec<String>>,
+    /// env property.
+    pub env: Option<serde_json::Value>,
+    /// image property.
+    pub image: Option<String>,
+    /// runAsUser property.
+    pub run_as_user: Option<i64>,
+    /// workingDir property.
+    pub working_dir: Option<String>,
 }
 
-/// `GceRegionalPersistentDisk` type.
+/// `ListUsableWorkstationConfigsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GceRegionalPersistentDisk {
-    /// diskType property.
-    pub disk_type: Option<String>,
-    /// fsType property.
-    pub fs_type: Option<String>,
-    /// reclaimPolicy property.
-    pub reclaim_policy: Option<String>,
-    /// sizeGb property.
-    pub size_gb: Option<i64>,
-    /// sourceSnapshot property.
-    pub source_snapshot: Option<String>,
+pub struct ListUsableWorkstationConfigsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+    /// workstationConfigs property.
+    pub workstation_configs: Option<Vec<WorkstationConfig>>,
+}
+
+/// `Host` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Host {
+    /// gceInstance property.
+    pub gce_instance: Option<GceInstance>,
+}
+
+/// `GceShieldedInstanceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GceShieldedInstanceConfig {
+    /// enableIntegrityMonitoring property.
+    pub enable_integrity_monitoring: Option<bool>,
+    /// enableSecureBoot property.
+    pub enable_secure_boot: Option<bool>,
+    /// enableVtpm property.
+    pub enable_vtpm: Option<bool>,
 }
 
 /// `ReadinessCheck` type.
@@ -287,15 +297,6 @@ pub struct ReadinessCheck {
     pub path: Option<String>,
     /// port property.
     pub port: Option<i64>,
-}
-
-/// `EphemeralDirectory` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EphemeralDirectory {
-    /// gcePd property.
-    pub gce_pd: Option<GcePersistentDisk>,
-    /// mountPath property.
-    pub mount_path: Option<String>,
 }
 
 // =============================================================================

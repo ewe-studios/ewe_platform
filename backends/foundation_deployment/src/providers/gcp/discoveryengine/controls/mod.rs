@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -34,106 +35,6 @@ pub struct GoogleCloudDiscoveryengineV1ControlBoostActionInterpolationBoostSpecC
     pub attribute_value: Option<String>,
     /// boostAmount property.
     pub boost_amount: Option<f64>,
-}
-
-/// `GoogleCloudDiscoveryengineV1ControlBoostActionInterpolationBoostSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ControlBoostActionInterpolationBoostSpec {
-    /// attributeType property.
-    pub attribute_type: Option<String>,
-    /// controlPoints property.
-    pub control_points: Option<
-        Vec<GoogleCloudDiscoveryengineV1ControlBoostActionInterpolationBoostSpecControlPoint>,
-    >,
-    /// fieldName property.
-    pub field_name: Option<String>,
-    /// interpolationType property.
-    pub interpolation_type: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1ConditionQueryTerm` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ConditionQueryTerm {
-    /// fullMatch property.
-    pub full_match: Option<bool>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1ControlSynonymsAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ControlSynonymsAction {
-    /// synonyms property.
-    pub synonyms: Option<Vec<String>>,
-}
-
-/// `GoogleCloudDiscoveryengineV1ControlPromoteAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ControlPromoteAction {
-    /// dataStore property.
-    pub data_store: Option<String>,
-    /// searchLinkPromotion property.
-    pub search_link_promotion: Option<GoogleCloudDiscoveryengineV1SearchLinkPromotion>,
-}
-
-/// `GoogleCloudDiscoveryengineV1ControlBoostAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ControlBoostAction {
-    /// boost property.
-    pub boost: Option<f64>,
-    /// dataStore property.
-    pub data_store: Option<String>,
-    /// filter property.
-    pub filter: Option<String>,
-    /// fixedBoost property.
-    pub fixed_boost: Option<f64>,
-    /// interpolationBoostSpec property.
-    pub interpolation_boost_spec:
-        Option<GoogleCloudDiscoveryengineV1ControlBoostActionInterpolationBoostSpec>,
-}
-
-/// `GoogleCloudDiscoveryengineV1ConditionTimeRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ConditionTimeRange {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1SearchLinkPromotion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SearchLinkPromotion {
-    /// description property.
-    pub description: Option<String>,
-    /// document property.
-    pub document: Option<String>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// imageUri property.
-    pub image_uri: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1ControlFilterAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ControlFilterAction {
-    /// dataStore property.
-    pub data_store: Option<String>,
-    /// filter property.
-    pub filter: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1ListControlsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ListControlsResponse {
-    /// controls property.
-    pub controls: Option<Vec<GoogleCloudDiscoveryengineV1Control>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 /// `GoogleCloudDiscoveryengineV1Control` type.
@@ -163,6 +64,66 @@ pub struct GoogleCloudDiscoveryengineV1Control {
     pub use_cases: Option<Vec<String>>,
 }
 
+/// `GoogleCloudDiscoveryengineV1ControlFilterAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1ControlFilterAction {
+    /// dataStore property.
+    pub data_store: Option<String>,
+    /// filter property.
+    pub filter: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1ControlPromoteAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1ControlPromoteAction {
+    /// dataStore property.
+    pub data_store: Option<String>,
+    /// searchLinkPromotion property.
+    pub search_link_promotion: Option<GoogleCloudDiscoveryengineV1SearchLinkPromotion>,
+}
+
+/// `GoogleCloudDiscoveryengineV1ControlRedirectAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1ControlRedirectAction {
+    /// redirectUri property.
+    pub redirect_uri: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1SearchLinkPromotion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1SearchLinkPromotion {
+    /// description property.
+    pub description: Option<String>,
+    /// document property.
+    pub document: Option<String>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// imageUri property.
+    pub image_uri: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1ConditionQueryTerm` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1ConditionQueryTerm {
+    /// fullMatch property.
+    pub full_match: Option<bool>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1ListControlsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1ListControlsResponse {
+    /// controls property.
+    pub controls: Option<Vec<GoogleCloudDiscoveryengineV1Control>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
 /// `GoogleCloudDiscoveryengineV1Condition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1Condition {
@@ -174,11 +135,51 @@ pub struct GoogleCloudDiscoveryengineV1Condition {
     pub query_terms: Option<Vec<GoogleCloudDiscoveryengineV1ConditionQueryTerm>>,
 }
 
-/// `GoogleCloudDiscoveryengineV1ControlRedirectAction` type.
+/// `GoogleCloudDiscoveryengineV1ConditionTimeRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ControlRedirectAction {
-    /// redirectUri property.
-    pub redirect_uri: Option<String>,
+pub struct GoogleCloudDiscoveryengineV1ConditionTimeRange {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1ControlBoostActionInterpolationBoostSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1ControlBoostActionInterpolationBoostSpec {
+    /// attributeType property.
+    pub attribute_type: Option<String>,
+    /// controlPoints property.
+    pub control_points: Option<
+        Vec<GoogleCloudDiscoveryengineV1ControlBoostActionInterpolationBoostSpecControlPoint>,
+    >,
+    /// fieldName property.
+    pub field_name: Option<String>,
+    /// interpolationType property.
+    pub interpolation_type: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1ControlSynonymsAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1ControlSynonymsAction {
+    /// synonyms property.
+    pub synonyms: Option<Vec<String>>,
+}
+
+/// `GoogleCloudDiscoveryengineV1ControlBoostAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1ControlBoostAction {
+    /// boost property.
+    pub boost: Option<f64>,
+    /// dataStore property.
+    pub data_store: Option<String>,
+    /// filter property.
+    pub filter: Option<String>,
+    /// fixedBoost property.
+    pub fixed_boost: Option<f64>,
+    /// interpolationBoostSpec property.
+    pub interpolation_boost_spec:
+        Option<GoogleCloudDiscoveryengineV1ControlBoostActionInterpolationBoostSpec>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -24,91 +25,11 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `CommitLogEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CommitLogEntry {
-    /// author property.
-    pub author: Option<CommitAuthor>,
-    /// commitMessage property.
-    pub commit_message: Option<String>,
-    /// commitSha property.
-    pub commit_sha: Option<String>,
-    /// commitTime property.
-    pub commit_time: Option<String>,
-}
-
-/// `WorkspaceCompilationOverrides` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkspaceCompilationOverrides {
-    /// defaultDatabase property.
-    pub default_database: Option<String>,
-    /// schemaSuffix property.
-    pub schema_suffix: Option<String>,
-    /// tablePrefix property.
-    pub table_prefix: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `CommitRepositoryChangesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CommitRepositoryChangesResponse {
-    /// commitSha property.
-    pub commit_sha: Option<String>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `ListRepositoriesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListRepositoriesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// repositories property.
-    pub repositories: Option<Vec<Repository>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `ComputeRepositoryAccessTokenStatusResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeRepositoryAccessTokenStatusResponse {
-    /// tokenStatus property.
-    pub token_status: Option<String>,
-}
-
-/// `FetchRemoteBranchesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FetchRemoteBranchesResponse {
-    /// branches property.
-    pub branches: Option<Vec<String>>,
-}
 
 /// `GitRemoteSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -125,33 +46,27 @@ pub struct GitRemoteSettings {
     pub url: Option<String>,
 }
 
-/// `CommitAuthor` type.
+/// `ComputeRepositoryAccessTokenStatusResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CommitAuthor {
-    /// emailAddress property.
-    pub email_address: Option<String>,
-    /// name property.
-    pub name: Option<String>,
+pub struct ComputeRepositoryAccessTokenStatusResponse {
+    /// tokenStatus property.
+    pub token_status: Option<String>,
 }
 
-/// `QueryRepositoryDirectoryContentsResponse` type.
+/// `ReadRepositoryFileResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryRepositoryDirectoryContentsResponse {
-    /// directoryEntries property.
-    pub directory_entries: Option<Vec<DirectoryEntry>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct ReadRepositoryFileResponse {
+    /// contents property.
+    pub contents: Option<String>,
 }
 
-/// `Binding` type.
+/// `SshAuthenticationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct SshAuthenticationConfig {
+    /// hostPublicKey property.
+    pub host_public_key: Option<String>,
+    /// userPrivateKeySecretVersion property.
+    pub user_private_key_secret_version: Option<String>,
 }
 
 /// `DirectoryEntry` type.
@@ -165,13 +80,82 @@ pub struct DirectoryEntry {
     pub metadata: Option<FilesystemEntryMetadata>,
 }
 
-/// `SshAuthenticationConfig` type.
+/// `CommitAuthor` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SshAuthenticationConfig {
-    /// hostPublicKey property.
-    pub host_public_key: Option<String>,
-    /// userPrivateKeySecretVersion property.
-    pub user_private_key_secret_version: Option<String>,
+pub struct CommitAuthor {
+    /// emailAddress property.
+    pub email_address: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `DataEncryptionState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataEncryptionState {
+    /// kmsKeyVersionName property.
+    pub kms_key_version_name: Option<String>,
+}
+
+/// `FetchRemoteBranchesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FetchRemoteBranchesResponse {
+    /// branches property.
+    pub branches: Option<Vec<String>>,
+}
+
+/// `ListRepositoriesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListRepositoriesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// repositories property.
+    pub repositories: Option<Vec<Repository>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `CommitLogEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CommitLogEntry {
+    /// author property.
+    pub author: Option<CommitAuthor>,
+    /// commitMessage property.
+    pub commit_message: Option<String>,
+    /// commitSha property.
+    pub commit_sha: Option<String>,
+    /// commitTime property.
+    pub commit_time: Option<String>,
+}
+
+/// `FilesystemEntryMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FilesystemEntryMetadata {
+    /// sizeBytes property.
+    pub size_bytes: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `WorkspaceCompilationOverrides` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkspaceCompilationOverrides {
+    /// defaultDatabase property.
+    pub default_database: Option<String>,
+    /// schemaSuffix property.
+    pub schema_suffix: Option<String>,
+    /// tablePrefix property.
+    pub table_prefix: Option<String>,
 }
 
 /// `FetchRepositoryHistoryResponse` type.
@@ -181,13 +165,6 @@ pub struct FetchRepositoryHistoryResponse {
     pub commits: Option<Vec<CommitLogEntry>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-}
-
-/// `ReadRepositoryFileResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReadRepositoryFileResponse {
-    /// contents property.
-    pub contents: Option<String>,
 }
 
 /// `Repository` type.
@@ -223,20 +200,44 @@ pub struct Repository {
     pub workspace_compilation_overrides: Option<WorkspaceCompilationOverrides>,
 }
 
-/// `FilesystemEntryMetadata` type.
+/// `CommitRepositoryChangesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FilesystemEntryMetadata {
-    /// sizeBytes property.
-    pub size_bytes: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
+pub struct CommitRepositoryChangesResponse {
+    /// commitSha property.
+    pub commit_sha: Option<String>,
 }
 
-/// `DataEncryptionState` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataEncryptionState {
-    /// kmsKeyVersionName property.
-    pub kms_key_version_name: Option<String>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `QueryRepositoryDirectoryContentsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueryRepositoryDirectoryContentsResponse {
+    /// directoryEntries property.
+    pub directory_entries: Option<Vec<DirectoryEntry>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

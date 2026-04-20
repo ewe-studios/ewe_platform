@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -33,11 +34,21 @@ pub struct OrganizationInviteCreateRequest {
     pub role: MemberRole,
 }
 
-/// `OrganizationInvitesCreateRequest` type.
+/// `Invitation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OrganizationInvitesCreateRequest {
-    /// invitations property.
-    pub invitations: Vec<OrganizationInviteCreateRequest>,
+pub struct Invitation {
+    /// email property.
+    pub email: String,
+    /// id property.
+    pub id: String,
+    /// invited_at property.
+    pub invited_at: String,
+    /// invited_by property.
+    pub invited_by: String,
+    /// org_id property.
+    pub org_id: String,
+    /// role property.
+    pub role: MemberRole,
 }
 
 /// `MemberRole` type.
@@ -54,21 +65,11 @@ pub struct OrganizationInvitationsResponse {
     pub invitations: Vec<Invitation>,
 }
 
-/// `Invitation` type.
+/// `OrganizationInvitesCreateRequest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Invitation {
-    /// email property.
-    pub email: String,
-    /// id property.
-    pub id: String,
-    /// invited_at property.
-    pub invited_at: String,
-    /// invited_by property.
-    pub invited_by: String,
-    /// org_id property.
-    pub org_id: String,
-    /// role property.
-    pub role: MemberRole,
+pub struct OrganizationInvitesCreateRequest {
+    /// invitations property.
+    pub invitations: Vec<OrganizationInviteCreateRequest>,
 }
 
 // =============================================================================

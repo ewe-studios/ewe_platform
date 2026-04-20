@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,51 +22,40 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::DynamicFeed;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ContentSource` type.
+/// `FieldError` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContentSource {
-    /// contentSourceName property.
-    pub content_source_name: Option<String>,
-    /// createInfo property.
-    pub create_info: Option<LastModifiedInfo>,
-    /// lastModifiedInfo property.
-    pub last_modified_info: Option<LastModifiedInfo>,
-    /// metaData property.
-    pub meta_data: Option<ContentSourceMetaData>,
-    /// resourceLink property.
-    pub resource_link: Option<String>,
-    /// resourceType property.
-    pub resource_type: Option<String>,
+pub struct FieldError {
+    /// fieldId property.
+    pub field_id: Option<i64>,
+    /// fieldName property.
+    pub field_name: Option<String>,
+    /// fieldValues property.
+    pub field_values: Option<Vec<String>>,
+    /// ingestionError property.
+    pub ingestion_error: Option<String>,
+    /// isError property.
+    pub is_error: Option<bool>,
 }
 
-/// `ContentSourceMetaData` type.
+/// `IngestionStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContentSourceMetaData {
-    /// charset property.
-    pub charset: Option<String>,
-    /// fieldNames property.
-    pub field_names: Option<Vec<String>>,
-    /// rowNumber property.
-    pub row_number: Option<i64>,
-    /// separator property.
-    pub separator: Option<String>,
-}
-
-/// `FeedIngestionStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FeedIngestionStatus {
-    /// ingestionErrorRecords property.
-    pub ingestion_error_records: Option<Vec<IngestionErrorRecord>>,
-    /// ingestionStatus property.
-    pub ingestion_status: Option<IngestionStatus>,
-    /// state property.
-    pub state: Option<String>,
+pub struct IngestionStatus {
+    /// numActiveRows property.
+    pub num_active_rows: Option<String>,
+    /// numRowsProcessed property.
+    pub num_rows_processed: Option<String>,
+    /// numRowsTotal property.
+    pub num_rows_total: Option<String>,
+    /// numRowsWithErrors property.
+    pub num_rows_with_errors: Option<String>,
+    /// numWarningsTotal property.
+    pub num_warnings_total: Option<String>,
 }
 
 /// `FeedField` type.
@@ -85,6 +75,65 @@ pub struct FeedField {
     pub required: Option<bool>,
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `LastModifiedInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LastModifiedInfo {
+    /// time property.
+    pub time: Option<String>,
+}
+
+/// `FeedSchedule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FeedSchedule {
+    /// repeatValue property.
+    pub repeat_value: Option<String>,
+    /// scheduleEnabled property.
+    pub schedule_enabled: Option<bool>,
+    /// startHour property.
+    pub start_hour: Option<String>,
+    /// startMinute property.
+    pub start_minute: Option<String>,
+    /// timeZone property.
+    pub time_zone: Option<String>,
+}
+
+/// `ContentSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContentSource {
+    /// contentSourceName property.
+    pub content_source_name: Option<String>,
+    /// createInfo property.
+    pub create_info: Option<LastModifiedInfo>,
+    /// lastModifiedInfo property.
+    pub last_modified_info: Option<LastModifiedInfo>,
+    /// metaData property.
+    pub meta_data: Option<ContentSourceMetaData>,
+    /// resourceLink property.
+    pub resource_link: Option<String>,
+    /// resourceType property.
+    pub resource_type: Option<String>,
+}
+
+/// `FeedIngestionStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FeedIngestionStatus {
+    /// ingestionErrorRecords property.
+    pub ingestion_error_records: Option<Vec<IngestionErrorRecord>>,
+    /// ingestionStatus property.
+    pub ingestion_status: Option<IngestionStatus>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `IngestionErrorRecord` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IngestionErrorRecord {
+    /// errors property.
+    pub errors: Option<Vec<FieldError>>,
+    /// recordId property.
+    pub record_id: Option<String>,
 }
 
 /// `Element` type.
@@ -116,65 +165,17 @@ pub struct Element {
     pub start_timestamp_field_id: Option<i64>,
 }
 
-/// `LastModifiedInfo` type.
+/// `ContentSourceMetaData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LastModifiedInfo {
-    /// time property.
-    pub time: Option<String>,
-}
-
-/// `IngestionErrorRecord` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IngestionErrorRecord {
-    /// errors property.
-    pub errors: Option<Vec<FieldError>>,
-    /// recordId property.
-    pub record_id: Option<String>,
-}
-
-/// `FeedSchedule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FeedSchedule {
-    /// repeatValue property.
-    pub repeat_value: Option<String>,
-    /// scheduleEnabled property.
-    pub schedule_enabled: Option<bool>,
-    /// startHour property.
-    pub start_hour: Option<String>,
-    /// startMinute property.
-    pub start_minute: Option<String>,
-    /// timeZone property.
-    pub time_zone: Option<String>,
-}
-
-/// `FieldError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FieldError {
-    /// fieldId property.
-    pub field_id: Option<i64>,
-    /// fieldName property.
-    pub field_name: Option<String>,
-    /// fieldValues property.
-    pub field_values: Option<Vec<String>>,
-    /// ingestionError property.
-    pub ingestion_error: Option<String>,
-    /// isError property.
-    pub is_error: Option<bool>,
-}
-
-/// `IngestionStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IngestionStatus {
-    /// numActiveRows property.
-    pub num_active_rows: Option<String>,
-    /// numRowsProcessed property.
-    pub num_rows_processed: Option<String>,
-    /// numRowsTotal property.
-    pub num_rows_total: Option<String>,
-    /// numRowsWithErrors property.
-    pub num_rows_with_errors: Option<String>,
-    /// numWarningsTotal property.
-    pub num_warnings_total: Option<String>,
+pub struct ContentSourceMetaData {
+    /// charset property.
+    pub charset: Option<String>,
+    /// fieldNames property.
+    pub field_names: Option<Vec<String>>,
+    /// rowNumber property.
+    pub row_number: Option<i64>,
+    /// separator property.
+    pub separator: Option<String>,
 }
 
 // =============================================================================

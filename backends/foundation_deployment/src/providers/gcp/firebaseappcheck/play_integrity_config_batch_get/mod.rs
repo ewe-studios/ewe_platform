@@ -12,17 +12,25 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleFirebaseAppcheckV1PlayIntegrityConfigDeviceIntegrity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfigDeviceIntegrity {
+    /// minDeviceRecognitionLevel property.
+    pub min_device_recognition_level: Option<String>,
+}
 
 /// `GoogleFirebaseAppcheckV1PlayIntegrityConfigAccountDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -31,11 +39,18 @@ pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfigAccountDetails {
     pub require_licensed: Option<bool>,
 }
 
-/// `GoogleFirebaseAppcheckV1PlayIntegrityConfigDeviceIntegrity` type.
+/// `GoogleFirebaseAppcheckV1PlayIntegrityConfigAppIntegrity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfigDeviceIntegrity {
-    /// minDeviceRecognitionLevel property.
-    pub min_device_recognition_level: Option<String>,
+pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfigAppIntegrity {
+    /// allowUnrecognizedVersion property.
+    pub allow_unrecognized_version: Option<bool>,
+}
+
+/// `GoogleFirebaseAppcheckV1BatchGetPlayIntegrityConfigsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirebaseAppcheckV1BatchGetPlayIntegrityConfigsResponse {
+    /// configs property.
+    pub configs: Option<Vec<GoogleFirebaseAppcheckV1PlayIntegrityConfig>>,
 }
 
 /// `GoogleFirebaseAppcheckV1PlayIntegrityConfig` type.
@@ -51,20 +66,6 @@ pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfig {
     pub name: Option<String>,
     /// tokenTtl property.
     pub token_ttl: Option<String>,
-}
-
-/// `GoogleFirebaseAppcheckV1BatchGetPlayIntegrityConfigsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirebaseAppcheckV1BatchGetPlayIntegrityConfigsResponse {
-    /// configs property.
-    pub configs: Option<Vec<GoogleFirebaseAppcheckV1PlayIntegrityConfig>>,
-}
-
-/// `GoogleFirebaseAppcheckV1PlayIntegrityConfigAppIntegrity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfigAppIntegrity {
-    /// allowUnrecognizedVersion property.
-    pub allow_unrecognized_version: Option<bool>,
 }
 
 // =============================================================================

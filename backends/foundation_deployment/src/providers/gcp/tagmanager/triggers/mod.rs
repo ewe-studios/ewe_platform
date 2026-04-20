@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Condition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Condition {
+    /// parameter property.
+    pub parameter: Option<Vec<Box<Parameter>>>,
+    /// type property.
+    pub r#type: Option<String>,
+}
 
 /// `Parameter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -32,20 +42,13 @@ pub struct Parameter {
     /// key property.
     pub key: Option<String>,
     /// list property.
-    pub list: Option<Vec<Parameter>>,
+    pub list: Option<Vec<Box<Parameter>>>,
     /// map property.
-    pub map: Option<Vec<Parameter>>,
+    pub map: Option<Vec<Box<Parameter>>>,
     /// type property.
     pub r#type: Option<String>,
     /// value property.
     pub value: Option<String>,
-}
-
-/// `RevertTriggerResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RevertTriggerResponse {
-    /// trigger property.
-    pub trigger: Option<Trigger>,
 }
 
 /// `ListTriggersResponse` type.
@@ -57,15 +60,6 @@ pub struct ListTriggersResponse {
     pub trigger: Option<Vec<Trigger>>,
 }
 
-/// `Condition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Condition {
-    /// parameter property.
-    pub parameter: Option<Vec<Parameter>>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
 /// `Trigger` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Trigger {
@@ -74,65 +68,72 @@ pub struct Trigger {
     /// autoEventFilter property.
     pub auto_event_filter: Option<Vec<Condition>>,
     /// checkValidation property.
-    pub check_validation: Option<Parameter>,
+    pub check_validation: Option<Box<Parameter>>,
     /// containerId property.
     pub container_id: Option<String>,
     /// continuousTimeMinMilliseconds property.
-    pub continuous_time_min_milliseconds: Option<Parameter>,
+    pub continuous_time_min_milliseconds: Option<Box<Parameter>>,
     /// customEventFilter property.
     pub custom_event_filter: Option<Vec<Condition>>,
     /// eventName property.
-    pub event_name: Option<Parameter>,
+    pub event_name: Option<Box<Parameter>>,
     /// filter property.
     pub filter: Option<Vec<Condition>>,
     /// fingerprint property.
     pub fingerprint: Option<String>,
     /// horizontalScrollPercentageList property.
-    pub horizontal_scroll_percentage_list: Option<Parameter>,
+    pub horizontal_scroll_percentage_list: Option<Box<Parameter>>,
     /// interval property.
-    pub interval: Option<Parameter>,
+    pub interval: Option<Box<Parameter>>,
     /// intervalSeconds property.
-    pub interval_seconds: Option<Parameter>,
+    pub interval_seconds: Option<Box<Parameter>>,
     /// limit property.
-    pub limit: Option<Parameter>,
+    pub limit: Option<Box<Parameter>>,
     /// maxTimerLengthSeconds property.
-    pub max_timer_length_seconds: Option<Parameter>,
+    pub max_timer_length_seconds: Option<Box<Parameter>>,
     /// name property.
     pub name: Option<String>,
     /// notes property.
     pub notes: Option<String>,
     /// parameter property.
-    pub parameter: Option<Vec<Parameter>>,
+    pub parameter: Option<Vec<Box<Parameter>>>,
     /// parentFolderId property.
     pub parent_folder_id: Option<String>,
     /// path property.
     pub path: Option<String>,
     /// selector property.
-    pub selector: Option<Parameter>,
+    pub selector: Option<Box<Parameter>>,
     /// tagManagerUrl property.
     pub tag_manager_url: Option<String>,
     /// totalTimeMinMilliseconds property.
-    pub total_time_min_milliseconds: Option<Parameter>,
+    pub total_time_min_milliseconds: Option<Box<Parameter>>,
     /// triggerId property.
     pub trigger_id: Option<String>,
     /// type property.
     pub r#type: Option<String>,
     /// uniqueTriggerId property.
-    pub unique_trigger_id: Option<Parameter>,
+    pub unique_trigger_id: Option<Box<Parameter>>,
     /// verticalScrollPercentageList property.
-    pub vertical_scroll_percentage_list: Option<Parameter>,
+    pub vertical_scroll_percentage_list: Option<Box<Parameter>>,
     /// visibilitySelector property.
-    pub visibility_selector: Option<Parameter>,
+    pub visibility_selector: Option<Box<Parameter>>,
     /// visiblePercentageMax property.
-    pub visible_percentage_max: Option<Parameter>,
+    pub visible_percentage_max: Option<Box<Parameter>>,
     /// visiblePercentageMin property.
-    pub visible_percentage_min: Option<Parameter>,
+    pub visible_percentage_min: Option<Box<Parameter>>,
     /// waitForTags property.
-    pub wait_for_tags: Option<Parameter>,
+    pub wait_for_tags: Option<Box<Parameter>>,
     /// waitForTagsTimeout property.
-    pub wait_for_tags_timeout: Option<Parameter>,
+    pub wait_for_tags_timeout: Option<Box<Parameter>>,
     /// workspaceId property.
     pub workspace_id: Option<String>,
+}
+
+/// `RevertTriggerResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RevertTriggerResponse {
+    /// trigger property.
+    pub trigger: Option<Trigger>,
 }
 
 // =============================================================================

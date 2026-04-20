@@ -12,83 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleMapsPlacesV1Review` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1Review {
-    /// authorAttribution property.
-    pub author_attribution: Option<GoogleMapsPlacesV1AuthorAttribution>,
-    /// flagContentUri property.
-    pub flag_content_uri: Option<String>,
-    /// googleMapsUri property.
-    pub google_maps_uri: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// originalText property.
-    pub original_text: Option<GoogleTypeLocalizedText>,
-    /// publishTime property.
-    pub publish_time: Option<String>,
-    /// rating property.
-    pub rating: Option<f64>,
-    /// relativePublishTimeDescription property.
-    pub relative_publish_time_description: Option<String>,
-    /// text property.
-    pub text: Option<GoogleTypeLocalizedText>,
-    /// visitDate property.
-    pub visit_date: Option<GoogleTypeDate>,
-}
-
-/// `GoogleMapsPlacesV1PlaceOpeningHours` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceOpeningHours {
-    /// nextCloseTime property.
-    pub next_close_time: Option<String>,
-    /// nextOpenTime property.
-    pub next_open_time: Option<String>,
-    /// openNow property.
-    pub open_now: Option<bool>,
-    /// periods property.
-    pub periods: Option<Vec<GoogleMapsPlacesV1PlaceOpeningHoursPeriod>>,
-    /// secondaryHoursType property.
-    pub secondary_hours_type: Option<String>,
-    /// specialDays property.
-    pub special_days: Option<Vec<GoogleMapsPlacesV1PlaceOpeningHoursSpecialDay>>,
-    /// weekdayDescriptions property.
-    pub weekday_descriptions: Option<Vec<String>>,
-}
-
-/// `GoogleMapsPlacesV1PlaceReviewSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceReviewSummary {
-    /// disclosureText property.
-    pub disclosure_text: Option<GoogleTypeLocalizedText>,
-    /// flagContentUri property.
-    pub flag_content_uri: Option<String>,
-    /// reviewsUri property.
-    pub reviews_uri: Option<String>,
-    /// text property.
-    pub text: Option<GoogleTypeLocalizedText>,
-}
-
-/// `GoogleMapsPlacesV1PlaceSubDestination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceSubDestination {
-    /// id property.
-    pub id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
 
 /// `GoogleMapsPlacesV1AuthorAttribution` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -101,155 +36,20 @@ pub struct GoogleMapsPlacesV1AuthorAttribution {
     pub uri: Option<String>,
 }
 
-/// `GoogleGeoTypeViewport` type.
+/// `GoogleMapsPlacesV1FuelOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleGeoTypeViewport {
-    /// high property.
-    pub high: Option<GoogleTypeLatLng>,
-    /// low property.
-    pub low: Option<GoogleTypeLatLng>,
+pub struct GoogleMapsPlacesV1FuelOptions {
+    /// fuelPrices property.
+    pub fuel_prices: Option<Vec<GoogleMapsPlacesV1FuelOptionsFuelPrice>>,
 }
 
-/// `GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint` type.
+/// `GoogleTypeLocalizedText` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint {
-    /// date property.
-    pub date: Option<GoogleTypeDate>,
-    /// day property.
-    pub day: Option<i64>,
-    /// hour property.
-    pub hour: Option<i64>,
-    /// minute property.
-    pub minute: Option<i64>,
-    /// truncated property.
-    pub truncated: Option<bool>,
-}
-
-/// `GoogleMapsPlacesV1PlaceConsumerAlertDetailsLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceConsumerAlertDetailsLink {
-    /// title property.
-    pub title: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `GoogleMapsPlacesV1PlaceEvChargeAmenitySummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceEvChargeAmenitySummary {
-    /// coffee property.
-    pub coffee: Option<GoogleMapsPlacesV1ContentBlock>,
-    /// disclosureText property.
-    pub disclosure_text: Option<GoogleTypeLocalizedText>,
-    /// flagContentUri property.
-    pub flag_content_uri: Option<String>,
-    /// overview property.
-    pub overview: Option<GoogleMapsPlacesV1ContentBlock>,
-    /// restaurant property.
-    pub restaurant: Option<GoogleMapsPlacesV1ContentBlock>,
-    /// store property.
-    pub store: Option<GoogleMapsPlacesV1ContentBlock>,
-}
-
-/// `GoogleMapsPlacesV1Photo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1Photo {
-    /// authorAttributions property.
-    pub author_attributions: Option<Vec<GoogleMapsPlacesV1AuthorAttribution>>,
-    /// flagContentUri property.
-    pub flag_content_uri: Option<String>,
-    /// googleMapsUri property.
-    pub google_maps_uri: Option<String>,
-    /// heightPx property.
-    pub height_px: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-    /// widthPx property.
-    pub width_px: Option<i64>,
-}
-
-/// `GoogleTypeDate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeDate {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `GoogleMapsPlacesV1PlacePlusCode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlacePlusCode {
-    /// compoundCode property.
-    pub compound_code: Option<String>,
-    /// globalCode property.
-    pub global_code: Option<String>,
-}
-
-/// `GoogleTypeTimeZone` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeTimeZone {
-    /// id property.
-    pub id: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `GoogleTypeMoney` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeMoney {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// units property.
-    pub units: Option<String>,
-}
-
-/// `GoogleMapsPlacesV1PlaceOpeningHoursPeriod` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceOpeningHoursPeriod {
-    /// close property.
-    pub close: Option<GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint>,
-    /// open property.
-    pub open: Option<GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint>,
-}
-
-/// `GoogleTypeLatLng` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeLatLng {
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
-}
-
-/// `GoogleMapsPlacesV1PlacePaymentOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlacePaymentOptions {
-    /// acceptsCashOnly property.
-    pub accepts_cash_only: Option<bool>,
-    /// acceptsCreditCards property.
-    pub accepts_credit_cards: Option<bool>,
-    /// acceptsDebitCards property.
-    pub accepts_debit_cards: Option<bool>,
-    /// acceptsNfc property.
-    pub accepts_nfc: Option<bool>,
-}
-
-/// `GoogleMapsPlacesV1AddressDescriptorArea` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1AddressDescriptorArea {
-    /// containment property.
-    pub containment: Option<String>,
-    /// displayName property.
-    pub display_name: Option<GoogleTypeLocalizedText>,
-    /// name property.
-    pub name: Option<String>,
-    /// placeId property.
-    pub place_id: Option<String>,
+pub struct GoogleTypeLocalizedText {
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// text property.
+    pub text: Option<String>,
 }
 
 /// `GoogleTypePostalAddress` type.
@@ -279,26 +79,38 @@ pub struct GoogleTypePostalAddress {
     pub sublocality: Option<String>,
 }
 
-/// `GoogleMapsPlacesV1AddressDescriptor` type.
+/// `GoogleMapsPlacesV1PlaceSubDestination` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1AddressDescriptor {
-    /// areas property.
-    pub areas: Option<Vec<GoogleMapsPlacesV1AddressDescriptorArea>>,
-    /// landmarks property.
-    pub landmarks: Option<Vec<GoogleMapsPlacesV1AddressDescriptorLandmark>>,
+pub struct GoogleMapsPlacesV1PlaceSubDestination {
+    /// id property.
+    pub id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
 }
 
-/// `GoogleMapsPlacesV1PlaceAddressComponent` type.
+/// `GoogleMapsPlacesV1PlaceOpeningHoursSpecialDay` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceAddressComponent {
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// longText property.
-    pub long_text: Option<String>,
-    /// shortText property.
-    pub short_text: Option<String>,
-    /// types property.
-    pub types: Option<Vec<String>>,
+pub struct GoogleMapsPlacesV1PlaceOpeningHoursSpecialDay {
+    /// date property.
+    pub date: Option<GoogleTypeDate>,
+}
+
+/// `GoogleTypeTimeZone` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeTimeZone {
+    /// id property.
+    pub id: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `GoogleGeoTypeViewport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleGeoTypeViewport {
+    /// high property.
+    pub high: Option<GoogleTypeLatLng>,
+    /// low property.
+    pub low: Option<GoogleTypeLatLng>,
 }
 
 /// `GoogleMapsPlacesV1PlaceNeighborhoodSummary` type.
@@ -312,6 +124,106 @@ pub struct GoogleMapsPlacesV1PlaceNeighborhoodSummary {
     pub flag_content_uri: Option<String>,
     /// overview property.
     pub overview: Option<GoogleMapsPlacesV1ContentBlock>,
+}
+
+/// `GoogleMapsPlacesV1AddressDescriptorLandmark` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1AddressDescriptorLandmark {
+    /// displayName property.
+    pub display_name: Option<GoogleTypeLocalizedText>,
+    /// name property.
+    pub name: Option<String>,
+    /// placeId property.
+    pub place_id: Option<String>,
+    /// spatialRelationship property.
+    pub spatial_relationship: Option<String>,
+    /// straightLineDistanceMeters property.
+    pub straight_line_distance_meters: Option<f64>,
+    /// travelDistanceMeters property.
+    pub travel_distance_meters: Option<f64>,
+    /// types property.
+    pub types: Option<Vec<String>>,
+}
+
+/// `GoogleMapsPlacesV1PlaceGoogleMapsLinks` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceGoogleMapsLinks {
+    /// directionsUri property.
+    pub directions_uri: Option<String>,
+    /// photosUri property.
+    pub photos_uri: Option<String>,
+    /// placeUri property.
+    pub place_uri: Option<String>,
+    /// reviewsUri property.
+    pub reviews_uri: Option<String>,
+    /// writeAReviewUri property.
+    pub write_a_review_uri: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1PlaceConsumerAlertDetailsLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceConsumerAlertDetailsLink {
+    /// title property.
+    pub title: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1PlaceConsumerAlertDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceConsumerAlertDetails {
+    /// aboutLink property.
+    pub about_link: Option<GoogleMapsPlacesV1PlaceConsumerAlertDetailsLink>,
+    /// description property.
+    pub description: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1AddressDescriptor` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1AddressDescriptor {
+    /// areas property.
+    pub areas: Option<Vec<GoogleMapsPlacesV1AddressDescriptorArea>>,
+    /// landmarks property.
+    pub landmarks: Option<Vec<GoogleMapsPlacesV1AddressDescriptorLandmark>>,
+}
+
+/// `GoogleMapsPlacesV1PlaceParkingOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceParkingOptions {
+    /// freeGarageParking property.
+    pub free_garage_parking: Option<bool>,
+    /// freeParkingLot property.
+    pub free_parking_lot: Option<bool>,
+    /// freeStreetParking property.
+    pub free_street_parking: Option<bool>,
+    /// paidGarageParking property.
+    pub paid_garage_parking: Option<bool>,
+    /// paidParkingLot property.
+    pub paid_parking_lot: Option<bool>,
+    /// paidStreetParking property.
+    pub paid_street_parking: Option<bool>,
+    /// valetParking property.
+    pub valet_parking: Option<bool>,
+}
+
+/// `GoogleTypeLatLng` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeLatLng {
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
+}
+
+/// `GoogleMapsPlacesV1PlaceAttribution` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceAttribution {
+    /// provider property.
+    pub provider: Option<String>,
+    /// providerUri property.
+    pub provider_uri: Option<String>,
 }
 
 /// `GoogleMapsPlacesV1Place` type.
@@ -473,46 +385,32 @@ pub struct GoogleMapsPlacesV1Place {
     pub website_uri: Option<String>,
 }
 
-/// `GoogleMapsPlacesV1PlaceAttribution` type.
+/// `GoogleMapsPlacesV1PlaceEvChargeAmenitySummary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceAttribution {
-    /// provider property.
-    pub provider: Option<String>,
-    /// providerUri property.
-    pub provider_uri: Option<String>,
-}
-
-/// `GoogleMapsPlacesV1PlaceGoogleMapsLinks` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceGoogleMapsLinks {
-    /// directionsUri property.
-    pub directions_uri: Option<String>,
-    /// photosUri property.
-    pub photos_uri: Option<String>,
-    /// placeUri property.
-    pub place_uri: Option<String>,
-    /// reviewsUri property.
-    pub reviews_uri: Option<String>,
-    /// writeAReviewUri property.
-    pub write_a_review_uri: Option<String>,
-}
-
-/// `GoogleMapsPlacesV1PlaceConsumerAlert` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceConsumerAlert {
-    /// details property.
-    pub details: Option<GoogleMapsPlacesV1PlaceConsumerAlertDetails>,
-    /// languageCode property.
-    pub language_code: Option<String>,
+pub struct GoogleMapsPlacesV1PlaceEvChargeAmenitySummary {
+    /// coffee property.
+    pub coffee: Option<GoogleMapsPlacesV1ContentBlock>,
+    /// disclosureText property.
+    pub disclosure_text: Option<GoogleTypeLocalizedText>,
+    /// flagContentUri property.
+    pub flag_content_uri: Option<String>,
     /// overview property.
-    pub overview: Option<String>,
+    pub overview: Option<GoogleMapsPlacesV1ContentBlock>,
+    /// restaurant property.
+    pub restaurant: Option<GoogleMapsPlacesV1ContentBlock>,
+    /// store property.
+    pub store: Option<GoogleMapsPlacesV1ContentBlock>,
 }
 
-/// `GoogleMapsPlacesV1FuelOptions` type.
+/// `GoogleTypeDate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1FuelOptions {
-    /// fuelPrices property.
-    pub fuel_prices: Option<Vec<GoogleMapsPlacesV1FuelOptionsFuelPrice>>,
+pub struct GoogleTypeDate {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
 }
 
 /// `GoogleMapsPlacesV1PlaceAccessibilityOptions` type.
@@ -526,6 +424,31 @@ pub struct GoogleMapsPlacesV1PlaceAccessibilityOptions {
     pub wheelchair_accessible_restroom: Option<bool>,
     /// wheelchairAccessibleSeating property.
     pub wheelchair_accessible_seating: Option<bool>,
+}
+
+/// `GoogleMapsPlacesV1Review` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1Review {
+    /// authorAttribution property.
+    pub author_attribution: Option<GoogleMapsPlacesV1AuthorAttribution>,
+    /// flagContentUri property.
+    pub flag_content_uri: Option<String>,
+    /// googleMapsUri property.
+    pub google_maps_uri: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// originalText property.
+    pub original_text: Option<GoogleTypeLocalizedText>,
+    /// publishTime property.
+    pub publish_time: Option<String>,
+    /// rating property.
+    pub rating: Option<f64>,
+    /// relativePublishTimeDescription property.
+    pub relative_publish_time_description: Option<String>,
+    /// text property.
+    pub text: Option<GoogleTypeLocalizedText>,
+    /// visitDate property.
+    pub visit_date: Option<GoogleTypeDate>,
 }
 
 /// `GoogleMapsPlacesV1FuelOptionsFuelPrice` type.
@@ -556,96 +479,28 @@ pub struct GoogleMapsPlacesV1EVChargeOptionsConnectorAggregation {
     pub r#type: Option<String>,
 }
 
-/// `GoogleMapsPlacesV1ContentBlock` type.
+/// `GoogleMapsPlacesV1PlaceOpeningHoursPeriod` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1ContentBlock {
-    /// content property.
-    pub content: Option<GoogleTypeLocalizedText>,
-    /// referencedPlaces property.
-    pub referenced_places: Option<Vec<String>>,
+pub struct GoogleMapsPlacesV1PlaceOpeningHoursPeriod {
+    /// close property.
+    pub close: Option<GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint>,
+    /// open property.
+    pub open: Option<GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint>,
 }
 
-/// `GoogleMapsPlacesV1PlaceContainingPlace` type.
+/// `GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceContainingPlace {
-    /// id property.
-    pub id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GoogleMapsPlacesV1PlaceConsumerAlertDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceConsumerAlertDetails {
-    /// aboutLink property.
-    pub about_link: Option<GoogleMapsPlacesV1PlaceConsumerAlertDetailsLink>,
-    /// description property.
-    pub description: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleMapsPlacesV1PlaceParkingOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceParkingOptions {
-    /// freeGarageParking property.
-    pub free_garage_parking: Option<bool>,
-    /// freeParkingLot property.
-    pub free_parking_lot: Option<bool>,
-    /// freeStreetParking property.
-    pub free_street_parking: Option<bool>,
-    /// paidGarageParking property.
-    pub paid_garage_parking: Option<bool>,
-    /// paidParkingLot property.
-    pub paid_parking_lot: Option<bool>,
-    /// paidStreetParking property.
-    pub paid_street_parking: Option<bool>,
-    /// valetParking property.
-    pub valet_parking: Option<bool>,
-}
-
-/// `GoogleMapsPlacesV1AddressDescriptorLandmark` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1AddressDescriptorLandmark {
-    /// displayName property.
-    pub display_name: Option<GoogleTypeLocalizedText>,
-    /// name property.
-    pub name: Option<String>,
-    /// placeId property.
-    pub place_id: Option<String>,
-    /// spatialRelationship property.
-    pub spatial_relationship: Option<String>,
-    /// straightLineDistanceMeters property.
-    pub straight_line_distance_meters: Option<f64>,
-    /// travelDistanceMeters property.
-    pub travel_distance_meters: Option<f64>,
-    /// types property.
-    pub types: Option<Vec<String>>,
-}
-
-/// `GoogleMapsPlacesV1EVChargeOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1EVChargeOptions {
-    /// connectorAggregation property.
-    pub connector_aggregation: Option<Vec<GoogleMapsPlacesV1EVChargeOptionsConnectorAggregation>>,
-    /// connectorCount property.
-    pub connector_count: Option<i64>,
-}
-
-/// `GoogleMapsPlacesV1PlaceOpeningHoursSpecialDay` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PlaceOpeningHoursSpecialDay {
+pub struct GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint {
     /// date property.
     pub date: Option<GoogleTypeDate>,
-}
-
-/// `GoogleMapsPlacesV1PriceRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsPlacesV1PriceRange {
-    /// endPrice property.
-    pub end_price: Option<GoogleTypeMoney>,
-    /// startPrice property.
-    pub start_price: Option<GoogleTypeMoney>,
+    /// day property.
+    pub day: Option<i64>,
+    /// hour property.
+    pub hour: Option<i64>,
+    /// minute property.
+    pub minute: Option<i64>,
+    /// truncated property.
+    pub truncated: Option<bool>,
 }
 
 /// `GoogleMapsPlacesV1PlaceGenerativeSummary` type.
@@ -659,13 +514,159 @@ pub struct GoogleMapsPlacesV1PlaceGenerativeSummary {
     pub overview_flag_content_uri: Option<String>,
 }
 
-/// `GoogleTypeLocalizedText` type.
+/// `GoogleMapsPlacesV1PlacePaymentOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeLocalizedText {
+pub struct GoogleMapsPlacesV1PlacePaymentOptions {
+    /// acceptsCashOnly property.
+    pub accepts_cash_only: Option<bool>,
+    /// acceptsCreditCards property.
+    pub accepts_credit_cards: Option<bool>,
+    /// acceptsDebitCards property.
+    pub accepts_debit_cards: Option<bool>,
+    /// acceptsNfc property.
+    pub accepts_nfc: Option<bool>,
+}
+
+/// `GoogleMapsPlacesV1PlacePlusCode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlacePlusCode {
+    /// compoundCode property.
+    pub compound_code: Option<String>,
+    /// globalCode property.
+    pub global_code: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1ContentBlock` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1ContentBlock {
+    /// content property.
+    pub content: Option<GoogleTypeLocalizedText>,
+    /// referencedPlaces property.
+    pub referenced_places: Option<Vec<String>>,
+}
+
+/// `GoogleMapsPlacesV1AddressDescriptorArea` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1AddressDescriptorArea {
+    /// containment property.
+    pub containment: Option<String>,
+    /// displayName property.
+    pub display_name: Option<GoogleTypeLocalizedText>,
+    /// name property.
+    pub name: Option<String>,
+    /// placeId property.
+    pub place_id: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1PlaceConsumerAlert` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceConsumerAlert {
+    /// details property.
+    pub details: Option<GoogleMapsPlacesV1PlaceConsumerAlertDetails>,
     /// languageCode property.
     pub language_code: Option<String>,
+    /// overview property.
+    pub overview: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1PriceRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PriceRange {
+    /// endPrice property.
+    pub end_price: Option<GoogleTypeMoney>,
+    /// startPrice property.
+    pub start_price: Option<GoogleTypeMoney>,
+}
+
+/// `GoogleMapsPlacesV1PlaceOpeningHours` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceOpeningHours {
+    /// nextCloseTime property.
+    pub next_close_time: Option<String>,
+    /// nextOpenTime property.
+    pub next_open_time: Option<String>,
+    /// openNow property.
+    pub open_now: Option<bool>,
+    /// periods property.
+    pub periods: Option<Vec<GoogleMapsPlacesV1PlaceOpeningHoursPeriod>>,
+    /// secondaryHoursType property.
+    pub secondary_hours_type: Option<String>,
+    /// specialDays property.
+    pub special_days: Option<Vec<GoogleMapsPlacesV1PlaceOpeningHoursSpecialDay>>,
+    /// weekdayDescriptions property.
+    pub weekday_descriptions: Option<Vec<String>>,
+}
+
+/// `GoogleMapsPlacesV1EVChargeOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1EVChargeOptions {
+    /// connectorAggregation property.
+    pub connector_aggregation: Option<Vec<GoogleMapsPlacesV1EVChargeOptionsConnectorAggregation>>,
+    /// connectorCount property.
+    pub connector_count: Option<i64>,
+}
+
+/// `GoogleTypeMoney` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeMoney {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// units property.
+    pub units: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1PlaceContainingPlace` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceContainingPlace {
+    /// id property.
+    pub id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GoogleMapsPlacesV1PlaceAddressComponent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceAddressComponent {
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// longText property.
+    pub long_text: Option<String>,
+    /// shortText property.
+    pub short_text: Option<String>,
+    /// types property.
+    pub types: Option<Vec<String>>,
+}
+
+/// `GoogleMapsPlacesV1Photo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1Photo {
+    /// authorAttributions property.
+    pub author_attributions: Option<Vec<GoogleMapsPlacesV1AuthorAttribution>>,
+    /// flagContentUri property.
+    pub flag_content_uri: Option<String>,
+    /// googleMapsUri property.
+    pub google_maps_uri: Option<String>,
+    /// heightPx property.
+    pub height_px: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// widthPx property.
+    pub width_px: Option<i64>,
+}
+
+/// `GoogleMapsPlacesV1PlaceReviewSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsPlacesV1PlaceReviewSummary {
+    /// disclosureText property.
+    pub disclosure_text: Option<GoogleTypeLocalizedText>,
+    /// flagContentUri property.
+    pub flag_content_uri: Option<String>,
+    /// reviewsUri property.
+    pub reviews_uri: Option<String>,
     /// text property.
-    pub text: Option<String>,
+    pub text: Option<GoogleTypeLocalizedText>,
 }
 
 // =============================================================================

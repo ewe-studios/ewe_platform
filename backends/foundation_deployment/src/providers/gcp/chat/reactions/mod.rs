@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,46 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Emoji` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Emoji {
-    /// customEmoji property.
-    pub custom_emoji: Option<CustomEmoji>,
-    /// unicode property.
-    pub unicode: Option<String>,
-}
-
-/// `User` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct User {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// domainId property.
-    pub domain_id: Option<String>,
-    /// isAnonymous property.
-    pub is_anonymous: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `Reaction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Reaction {
-    /// emoji property.
-    pub emoji: Option<Emoji>,
-    /// name property.
-    pub name: Option<String>,
-    /// user property.
-    pub user: Option<User>,
-}
 
 /// `CustomEmoji` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -75,6 +41,26 @@ pub struct CustomEmoji {
     pub temporary_image_uri: Option<String>,
     /// uid property.
     pub uid: Option<String>,
+}
+
+/// `Emoji` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Emoji {
+    /// customEmoji property.
+    pub custom_emoji: Option<CustomEmoji>,
+    /// unicode property.
+    pub unicode: Option<String>,
+}
+
+/// `Reaction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Reaction {
+    /// emoji property.
+    pub emoji: Option<Emoji>,
+    /// name property.
+    pub name: Option<String>,
+    /// user property.
+    pub user: Option<User>,
 }
 
 /// `CustomEmojiPayload` type.
@@ -93,6 +79,21 @@ pub struct ListReactionsResponse {
     pub next_page_token: Option<String>,
     /// reactions property.
     pub reactions: Option<Vec<Reaction>>,
+}
+
+/// `User` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct User {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// domainId property.
+    pub domain_id: Option<String>,
+    /// isAnonymous property.
+    pub is_anonymous: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 // =============================================================================

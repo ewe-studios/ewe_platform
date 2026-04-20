@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -29,17 +30,6 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 pub struct BatchGetContactGroupsResponse {
     /// responses property.
     pub responses: Option<Vec<ContactGroupResponse>>,
-}
-
-/// `ContactGroupResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContactGroupResponse {
-    /// contactGroup property.
-    pub contact_group: Option<ContactGroup>,
-    /// requestedResourceName property.
-    pub requested_resource_name: Option<String>,
-    /// status property.
-    pub status: Option<Status>,
 }
 
 /// `ContactGroup` type.
@@ -65,15 +55,15 @@ pub struct ContactGroup {
     pub resource_name: Option<String>,
 }
 
-/// `Status` type.
+/// `ContactGroupResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct ContactGroupResponse {
+    /// contactGroup property.
+    pub contact_group: Option<ContactGroup>,
+    /// requestedResourceName property.
+    pub requested_resource_name: Option<String>,
+    /// status property.
+    pub status: Option<Status>,
 }
 
 /// `GroupClientData` type.
@@ -92,6 +82,17 @@ pub struct ContactGroupMetadata {
     pub deleted: Option<bool>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

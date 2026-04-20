@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -51,36 +52,6 @@ pub struct GoogleCloudDocumentaiV1EvaluationMetrics {
     pub true_positives_count: Option<i64>,
 }
 
-/// `GoogleCloudDocumentaiV1EvaluationMultiConfidenceMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1EvaluationMultiConfidenceMetrics {
-    /// auprc property.
-    pub auprc: Option<f64>,
-    /// auprcExact property.
-    pub auprc_exact: Option<f64>,
-    /// confidenceLevelMetrics property.
-    pub confidence_level_metrics:
-        Option<Vec<GoogleCloudDocumentaiV1EvaluationConfidenceLevelMetrics>>,
-    /// confidenceLevelMetricsExact property.
-    pub confidence_level_metrics_exact:
-        Option<Vec<GoogleCloudDocumentaiV1EvaluationConfidenceLevelMetrics>>,
-    /// estimatedCalibrationError property.
-    pub estimated_calibration_error: Option<f64>,
-    /// estimatedCalibrationErrorExact property.
-    pub estimated_calibration_error_exact: Option<f64>,
-    /// metricsType property.
-    pub metrics_type: Option<String>,
-}
-
-/// `GoogleCloudDocumentaiV1EvaluationConfidenceLevelMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1EvaluationConfidenceLevelMetrics {
-    /// confidenceLevel property.
-    pub confidence_level: Option<f64>,
-    /// metrics property.
-    pub metrics: Option<GoogleCloudDocumentaiV1EvaluationMetrics>,
-}
-
 /// `GoogleCloudDocumentaiV1EvaluationEvaluationRevision` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1EvaluationEvaluationRevision {
@@ -92,6 +63,19 @@ pub struct GoogleCloudDocumentaiV1EvaluationEvaluationRevision {
     pub entity_metrics: Option<serde_json::Value>,
     /// revisionId property.
     pub revision_id: Option<String>,
+}
+
+/// `GoogleCloudDocumentaiV1EvaluationCounters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1EvaluationCounters {
+    /// evaluatedDocumentsCount property.
+    pub evaluated_documents_count: Option<i64>,
+    /// failedDocumentsCount property.
+    pub failed_documents_count: Option<i64>,
+    /// inputDocumentsCount property.
+    pub input_documents_count: Option<i64>,
+    /// invalidDocumentsCount property.
+    pub invalid_documents_count: Option<i64>,
 }
 
 /// `GoogleCloudDocumentaiV1Evaluation` type.
@@ -115,6 +99,27 @@ pub struct GoogleCloudDocumentaiV1Evaluation {
     pub revisions: Option<Vec<GoogleCloudDocumentaiV1EvaluationEvaluationRevision>>,
 }
 
+/// `GoogleCloudDocumentaiV1EvaluationMultiConfidenceMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1EvaluationMultiConfidenceMetrics {
+    /// auprc property.
+    pub auprc: Option<f64>,
+    /// auprcExact property.
+    pub auprc_exact: Option<f64>,
+    /// confidenceLevelMetrics property.
+    pub confidence_level_metrics:
+        Option<Vec<GoogleCloudDocumentaiV1EvaluationConfidenceLevelMetrics>>,
+    /// confidenceLevelMetricsExact property.
+    pub confidence_level_metrics_exact:
+        Option<Vec<GoogleCloudDocumentaiV1EvaluationConfidenceLevelMetrics>>,
+    /// estimatedCalibrationError property.
+    pub estimated_calibration_error: Option<f64>,
+    /// estimatedCalibrationErrorExact property.
+    pub estimated_calibration_error_exact: Option<f64>,
+    /// metricsType property.
+    pub metrics_type: Option<String>,
+}
+
 /// `GoogleCloudDocumentaiV1ListEvaluationsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ListEvaluationsResponse {
@@ -124,17 +129,13 @@ pub struct GoogleCloudDocumentaiV1ListEvaluationsResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `GoogleCloudDocumentaiV1EvaluationCounters` type.
+/// `GoogleCloudDocumentaiV1EvaluationConfidenceLevelMetrics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1EvaluationCounters {
-    /// evaluatedDocumentsCount property.
-    pub evaluated_documents_count: Option<i64>,
-    /// failedDocumentsCount property.
-    pub failed_documents_count: Option<i64>,
-    /// inputDocumentsCount property.
-    pub input_documents_count: Option<i64>,
-    /// invalidDocumentsCount property.
-    pub invalid_documents_count: Option<i64>,
+pub struct GoogleCloudDocumentaiV1EvaluationConfidenceLevelMetrics {
+    /// confidenceLevel property.
+    pub confidence_level: Option<f64>,
+    /// metrics property.
+    pub metrics: Option<GoogleCloudDocumentaiV1EvaluationMetrics>,
 }
 
 // =============================================================================

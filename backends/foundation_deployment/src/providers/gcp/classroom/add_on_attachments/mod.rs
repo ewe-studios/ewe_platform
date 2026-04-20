@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,51 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `TimeOfDay` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeOfDay {
+    /// hours property.
+    pub hours: Option<i64>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<i64>,
+}
+
+/// `Date` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `ListAddOnAttachmentsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAddOnAttachmentsResponse {
+    /// addOnAttachments property.
+    pub add_on_attachments: Option<Vec<AddOnAttachment>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `EmbedUri` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EmbedUri {
+    /// uri property.
+    pub uri: Option<String>,
+}
 
 /// `CopyHistory` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -67,46 +108,6 @@ pub struct AddOnAttachment {
     pub teacher_view_uri: Option<EmbedUri>,
     /// title property.
     pub title: Option<String>,
-}
-
-/// `TimeOfDay` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeOfDay {
-    /// hours property.
-    pub hours: Option<i64>,
-    /// minutes property.
-    pub minutes: Option<i64>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<i64>,
-}
-
-/// `ListAddOnAttachmentsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAddOnAttachmentsResponse {
-    /// addOnAttachments property.
-    pub add_on_attachments: Option<Vec<AddOnAttachment>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `Date` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `EmbedUri` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EmbedUri {
-    /// uri property.
-    pub uri: Option<String>,
 }
 
 // =============================================================================

@@ -12,34 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Proto2OneofDescriptorProto` type.
+/// `GoogleChromePolicyVersionsV1AdditionalTargetKeyName` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Proto2OneofDescriptorProto {
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `Proto2EnumDescriptorProto` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Proto2EnumDescriptorProto {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<Vec<Proto2EnumValueDescriptorProto>>,
-    /// visibility property.
-    pub visibility: Option<String>,
+pub struct GoogleChromePolicyVersionsV1AdditionalTargetKeyName {
+    /// key property.
+    pub key: Option<String>,
+    /// keyDescription property.
+    pub key_description: Option<String>,
 }
 
 /// `GoogleChromePolicyVersionsV1PolicySchemaFieldKnownValueDescription` type.
@@ -53,13 +45,28 @@ pub struct GoogleChromePolicyVersionsV1PolicySchemaFieldKnownValueDescription {
     pub value: Option<String>,
 }
 
-/// `Proto2EnumValueDescriptorProto` type.
+/// `GoogleChromePolicyVersionsV1PolicyApiLifecycle` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Proto2EnumValueDescriptorProto {
-    /// name property.
-    pub name: Option<String>,
-    /// number property.
-    pub number: Option<i64>,
+pub struct GoogleChromePolicyVersionsV1PolicyApiLifecycle {
+    /// deprecatedInFavorOf property.
+    pub deprecated_in_favor_of: Option<Vec<String>>,
+    /// description property.
+    pub description: Option<String>,
+    /// endSupport property.
+    pub end_support: Option<GoogleTypeDate>,
+    /// policyApiLifecycleStage property.
+    pub policy_api_lifecycle_stage: Option<String>,
+    /// scheduledToDeprecatePolicies property.
+    pub scheduled_to_deprecate_policies: Option<Vec<String>>,
+}
+
+/// `GoogleChromePolicyVersionsV1PolicySchemaRequiredItems` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromePolicyVersionsV1PolicySchemaRequiredItems {
+    /// fieldConditions property.
+    pub field_conditions: Option<Vec<String>>,
+    /// requiredFields property.
+    pub required_fields: Option<Vec<String>>,
 }
 
 /// `GoogleTypeDate` type.
@@ -73,6 +80,15 @@ pub struct GoogleTypeDate {
     pub year: Option<i64>,
 }
 
+/// `GoogleChromePolicyVersionsV1NumericRangeConstraint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromePolicyVersionsV1NumericRangeConstraint {
+    /// maximum property.
+    pub maximum: Option<String>,
+    /// minimum property.
+    pub minimum: Option<String>,
+}
+
 /// `GoogleChromePolicyVersionsV1UploadedFileConstraints` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1UploadedFileConstraints {
@@ -82,45 +98,24 @@ pub struct GoogleChromePolicyVersionsV1UploadedFileConstraints {
     pub supported_content_types: Option<Vec<String>>,
 }
 
-/// `GoogleChromePolicyVersionsV1PolicySchema` type.
+/// `GoogleChromePolicyVersionsV1PolicySchemaNoticeDescription` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromePolicyVersionsV1PolicySchema {
-    /// accessRestrictions property.
-    pub access_restrictions: Option<Vec<String>>,
-    /// additionalTargetKeyNames property.
-    pub additional_target_key_names:
-        Option<Vec<GoogleChromePolicyVersionsV1AdditionalTargetKeyName>>,
-    /// categoryTitle property.
-    pub category_title: Option<String>,
-    /// definition property.
-    pub definition: Option<Proto2FileDescriptorProto>,
-    /// fieldDescriptions property.
-    pub field_descriptions: Option<Vec<GoogleChromePolicyVersionsV1PolicySchemaFieldDescription>>,
-    /// name property.
-    pub name: Option<String>,
-    /// notices property.
-    pub notices: Option<Vec<GoogleChromePolicyVersionsV1PolicySchemaNoticeDescription>>,
-    /// policyApiLifecycle property.
-    pub policy_api_lifecycle: Option<GoogleChromePolicyVersionsV1PolicyApiLifecycle>,
-    /// policyDescription property.
-    pub policy_description: Option<String>,
-    /// schemaName property.
-    pub schema_name: Option<String>,
-    /// supportUri property.
-    pub support_uri: Option<String>,
-    /// supportedPlatforms property.
-    pub supported_platforms: Option<Vec<String>>,
-    /// validTargetResources property.
-    pub valid_target_resources: Option<Vec<String>>,
+pub struct GoogleChromePolicyVersionsV1PolicySchemaNoticeDescription {
+    /// acknowledgementRequired property.
+    pub acknowledgement_required: Option<bool>,
+    /// field property.
+    pub field: Option<String>,
+    /// noticeMessage property.
+    pub notice_message: Option<String>,
+    /// noticeValue property.
+    pub notice_value: Option<String>,
 }
 
-/// `GoogleChromePolicyVersionsV1AdditionalTargetKeyName` type.
+/// `Proto2OneofDescriptorProto` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromePolicyVersionsV1AdditionalTargetKeyName {
-    /// key property.
-    pub key: Option<String>,
-    /// keyDescription property.
-    pub key_description: Option<String>,
+pub struct Proto2OneofDescriptorProto {
+    /// name property.
+    pub name: Option<String>,
 }
 
 /// `GoogleChromePolicyVersionsV1PolicySchemaFieldDescription` type.
@@ -147,100 +142,9 @@ pub struct GoogleChromePolicyVersionsV1PolicySchemaFieldDescription {
     pub name: Option<String>,
     /// nestedFieldDescriptions property.
     pub nested_field_descriptions:
-        Option<Vec<GoogleChromePolicyVersionsV1PolicySchemaFieldDescription>>,
+        Option<Vec<Box<GoogleChromePolicyVersionsV1PolicySchemaFieldDescription>>>,
     /// requiredItems property.
     pub required_items: Option<Vec<GoogleChromePolicyVersionsV1PolicySchemaRequiredItems>>,
-}
-
-/// `GoogleChromePolicyVersionsV1PolicyApiLifecycle` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromePolicyVersionsV1PolicyApiLifecycle {
-    /// deprecatedInFavorOf property.
-    pub deprecated_in_favor_of: Option<Vec<String>>,
-    /// description property.
-    pub description: Option<String>,
-    /// endSupport property.
-    pub end_support: Option<GoogleTypeDate>,
-    /// policyApiLifecycleStage property.
-    pub policy_api_lifecycle_stage: Option<String>,
-    /// scheduledToDeprecatePolicies property.
-    pub scheduled_to_deprecate_policies: Option<Vec<String>>,
-}
-
-/// `GoogleChromePolicyVersionsV1NumericRangeConstraint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromePolicyVersionsV1NumericRangeConstraint {
-    /// maximum property.
-    pub maximum: Option<String>,
-    /// minimum property.
-    pub minimum: Option<String>,
-}
-
-/// `Proto2FileDescriptorProto` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Proto2FileDescriptorProto {
-    /// editionDeprecated property.
-    pub edition_deprecated: Option<String>,
-    /// enumType property.
-    pub enum_type: Option<Vec<Proto2EnumDescriptorProto>>,
-    /// messageType property.
-    pub message_type: Option<Vec<Proto2DescriptorProto>>,
-    /// name property.
-    pub name: Option<String>,
-    /// optionDependency property.
-    pub option_dependency: Option<Vec<String>>,
-    /// package property.
-    pub package: Option<String>,
-    /// syntax property.
-    pub syntax: Option<String>,
-}
-
-/// `GoogleChromePolicyVersionsV1PolicySchemaNoticeDescription` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromePolicyVersionsV1PolicySchemaNoticeDescription {
-    /// acknowledgementRequired property.
-    pub acknowledgement_required: Option<bool>,
-    /// field property.
-    pub field: Option<String>,
-    /// noticeMessage property.
-    pub notice_message: Option<String>,
-    /// noticeValue property.
-    pub notice_value: Option<String>,
-}
-
-/// `GoogleChromePolicyVersionsV1ListPolicySchemasResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromePolicyVersionsV1ListPolicySchemasResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// policySchemas property.
-    pub policy_schemas: Option<Vec<GoogleChromePolicyVersionsV1PolicySchema>>,
-}
-
-/// `GoogleChromePolicyVersionsV1PolicySchemaRequiredItems` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromePolicyVersionsV1PolicySchemaRequiredItems {
-    /// fieldConditions property.
-    pub field_conditions: Option<Vec<String>>,
-    /// requiredFields property.
-    pub required_fields: Option<Vec<String>>,
-}
-
-/// `Proto2DescriptorProto` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Proto2DescriptorProto {
-    /// enumType property.
-    pub enum_type: Option<Vec<Proto2EnumDescriptorProto>>,
-    /// field property.
-    pub field: Option<Vec<Proto2FieldDescriptorProto>>,
-    /// name property.
-    pub name: Option<String>,
-    /// nestedType property.
-    pub nested_type: Option<Vec<Proto2DescriptorProto>>,
-    /// oneofDecl property.
-    pub oneof_decl: Option<Vec<Proto2OneofDescriptorProto>>,
-    /// visibility property.
-    pub visibility: Option<String>,
 }
 
 /// `Proto2FieldDescriptorProto` type.
@@ -266,13 +170,15 @@ pub struct Proto2FieldDescriptorProto {
     pub type_name: Option<String>,
 }
 
-/// `GoogleChromePolicyVersionsV1PolicySchemaFieldDependencies` type.
+/// `Proto2EnumDescriptorProto` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromePolicyVersionsV1PolicySchemaFieldDependencies {
-    /// sourceField property.
-    pub source_field: Option<String>,
-    /// sourceFieldValue property.
-    pub source_field_value: Option<String>,
+pub struct Proto2EnumDescriptorProto {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<Vec<Proto2EnumValueDescriptorProto>>,
+    /// visibility property.
+    pub visibility: Option<String>,
 }
 
 /// `GoogleChromePolicyVersionsV1FieldConstraints` type.
@@ -282,6 +188,102 @@ pub struct GoogleChromePolicyVersionsV1FieldConstraints {
     pub numeric_range_constraint: Option<GoogleChromePolicyVersionsV1NumericRangeConstraint>,
     /// uploadedFileConstraints property.
     pub uploaded_file_constraints: Option<GoogleChromePolicyVersionsV1UploadedFileConstraints>,
+}
+
+/// `GoogleChromePolicyVersionsV1ListPolicySchemasResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromePolicyVersionsV1ListPolicySchemasResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// policySchemas property.
+    pub policy_schemas: Option<Vec<GoogleChromePolicyVersionsV1PolicySchema>>,
+}
+
+/// `Proto2DescriptorProto` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Proto2DescriptorProto {
+    /// enumType property.
+    pub enum_type: Option<Vec<Proto2EnumDescriptorProto>>,
+    /// field property.
+    pub field: Option<Vec<Proto2FieldDescriptorProto>>,
+    /// name property.
+    pub name: Option<String>,
+    /// nestedType property.
+    pub nested_type: Option<Vec<Box<Proto2DescriptorProto>>>,
+    /// oneofDecl property.
+    pub oneof_decl: Option<Vec<Proto2OneofDescriptorProto>>,
+    /// visibility property.
+    pub visibility: Option<String>,
+}
+
+/// `Proto2FileDescriptorProto` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Proto2FileDescriptorProto {
+    /// editionDeprecated property.
+    pub edition_deprecated: Option<String>,
+    /// enumType property.
+    pub enum_type: Option<Vec<Proto2EnumDescriptorProto>>,
+    /// messageType property.
+    pub message_type: Option<Vec<Box<Proto2DescriptorProto>>>,
+    /// name property.
+    pub name: Option<String>,
+    /// optionDependency property.
+    pub option_dependency: Option<Vec<String>>,
+    /// package property.
+    pub package: Option<String>,
+    /// syntax property.
+    pub syntax: Option<String>,
+}
+
+/// `GoogleChromePolicyVersionsV1PolicySchemaFieldDependencies` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromePolicyVersionsV1PolicySchemaFieldDependencies {
+    /// sourceField property.
+    pub source_field: Option<String>,
+    /// sourceFieldValue property.
+    pub source_field_value: Option<String>,
+}
+
+/// `GoogleChromePolicyVersionsV1PolicySchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromePolicyVersionsV1PolicySchema {
+    /// accessRestrictions property.
+    pub access_restrictions: Option<Vec<String>>,
+    /// additionalTargetKeyNames property.
+    pub additional_target_key_names:
+        Option<Vec<GoogleChromePolicyVersionsV1AdditionalTargetKeyName>>,
+    /// categoryTitle property.
+    pub category_title: Option<String>,
+    /// definition property.
+    pub definition: Option<Proto2FileDescriptorProto>,
+    /// fieldDescriptions property.
+    pub field_descriptions:
+        Option<Vec<Box<GoogleChromePolicyVersionsV1PolicySchemaFieldDescription>>>,
+    /// name property.
+    pub name: Option<String>,
+    /// notices property.
+    pub notices: Option<Vec<GoogleChromePolicyVersionsV1PolicySchemaNoticeDescription>>,
+    /// policyApiLifecycle property.
+    pub policy_api_lifecycle: Option<GoogleChromePolicyVersionsV1PolicyApiLifecycle>,
+    /// policyDescription property.
+    pub policy_description: Option<String>,
+    /// schemaName property.
+    pub schema_name: Option<String>,
+    /// supportUri property.
+    pub support_uri: Option<String>,
+    /// supportedPlatforms property.
+    pub supported_platforms: Option<Vec<String>>,
+    /// validTargetResources property.
+    pub valid_target_resources: Option<Vec<String>>,
+}
+
+/// `Proto2EnumValueDescriptorProto` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Proto2EnumValueDescriptorProto {
+    /// name property.
+    pub name: Option<String>,
+    /// number property.
+    pub number: Option<i64>,
 }
 
 // =============================================================================

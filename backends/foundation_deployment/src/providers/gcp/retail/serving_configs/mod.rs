@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -24,11 +25,81 @@ use super::shared::GoogleCloudRetailV2PredictResponse;
 use super::shared::GoogleCloudRetailV2SearchResponse;
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudRetailV2ConversationalSearchResponseRefinedSearch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2ConversationalSearchResponseRefinedSearch {
+    /// query property.
+    pub query: Option<String>,
+}
+
+/// `GoogleCloudRetailV2SearchResponseQueryExpansionInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2SearchResponseQueryExpansionInfo {
+    /// expandedQuery property.
+    pub expanded_query: Option<bool>,
+    /// pinnedResultCount property.
+    pub pinned_result_count: Option<String>,
+}
+
+/// `GoogleCloudRetailV2PriceInfoPriceRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2PriceInfoPriceRange {
+    /// originalPrice property.
+    pub original_price: Option<GoogleCloudRetailV2Interval>,
+    /// price property.
+    pub price: Option<GoogleCloudRetailV2Interval>,
+}
+
+/// `GoogleCloudRetailV2ProductAttributeValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2ProductAttributeValue {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GoogleCloudRetailV2ColorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2ColorInfo {
+    /// colorFamilies property.
+    pub color_families: Option<Vec<String>>,
+    /// colors property.
+    pub colors: Option<Vec<String>>,
+}
+
+/// `GoogleCloudRetailV2ExperimentInfoServingConfigExperiment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2ExperimentInfoServingConfigExperiment {
+    /// experimentServingConfig property.
+    pub experiment_serving_config: Option<String>,
+    /// originalServingConfig property.
+    pub original_serving_config: Option<String>,
+}
+
+/// `GoogleCloudRetailV2ProductAttributeInterval` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2ProductAttributeInterval {
+    /// interval property.
+    pub interval: Option<GoogleCloudRetailV2Interval>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GoogleCloudRetailV2ExperimentInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2ExperimentInfo {
+    /// experiment property.
+    pub experiment: Option<String>,
+    /// servingConfigExperiment property.
+    pub serving_config_experiment: Option<GoogleCloudRetailV2ExperimentInfoServingConfigExperiment>,
+}
 
 /// `GoogleCloudRetailV2SearchResponseFacet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -39,41 +110,6 @@ pub struct GoogleCloudRetailV2SearchResponseFacet {
     pub key: Option<String>,
     /// values property.
     pub values: Option<Vec<GoogleCloudRetailV2SearchResponseFacetFacetValue>>,
-}
-
-/// `GoogleCloudRetailV2PriceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2PriceInfo {
-    /// cost property.
-    pub cost: Option<f64>,
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// originalPrice property.
-    pub original_price: Option<f64>,
-    /// price property.
-    pub price: Option<f64>,
-    /// priceEffectiveTime property.
-    pub price_effective_time: Option<String>,
-    /// priceExpireTime property.
-    pub price_expire_time: Option<String>,
-    /// priceRange property.
-    pub price_range: Option<GoogleCloudRetailV2PriceInfoPriceRange>,
-}
-
-/// `GoogleCloudRetailV2SearchResponseConversationalSearchResultSuggestedAnswer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2SearchResponseConversationalSearchResultSuggestedAnswer {
-    /// productAttributeValue property.
-    pub product_attribute_value: Option<GoogleCloudRetailV2ProductAttributeValue>,
-}
-
-/// `GoogleCloudRetailV2ListServingConfigsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2ListServingConfigsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// servingConfigs property.
-    pub serving_configs: Option<Vec<GoogleCloudRetailV2ServingConfig>>,
 }
 
 /// `GoogleCloudRetailV2Interval` type.
@@ -87,208 +123,6 @@ pub struct GoogleCloudRetailV2Interval {
     pub maximum: Option<f64>,
     /// minimum property.
     pub minimum: Option<f64>,
-}
-
-/// `GoogleCloudRetailV2PredictResponsePredictionResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2PredictResponsePredictionResult {
-    /// id property.
-    pub id: Option<String>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-}
-
-/// `GoogleCloudRetailV2ServingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2ServingConfig {
-    /// boostControlIds property.
-    pub boost_control_ids: Option<Vec<String>>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// diversityLevel property.
-    pub diversity_level: Option<String>,
-    /// diversityType property.
-    pub diversity_type: Option<String>,
-    /// doNotAssociateControlIds property.
-    pub do_not_associate_control_ids: Option<Vec<String>>,
-    /// dynamicFacetSpec property.
-    pub dynamic_facet_spec: Option<GoogleCloudRetailV2SearchRequestDynamicFacetSpec>,
-    /// enableCategoryFilterLevel property.
-    pub enable_category_filter_level: Option<String>,
-    /// facetControlIds property.
-    pub facet_control_ids: Option<Vec<String>>,
-    /// filterControlIds property.
-    pub filter_control_ids: Option<Vec<String>>,
-    /// ignoreControlIds property.
-    pub ignore_control_ids: Option<Vec<String>>,
-    /// ignoreRecsDenylist property.
-    pub ignore_recs_denylist: Option<bool>,
-    /// modelId property.
-    pub model_id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// onewaySynonymsControlIds property.
-    pub oneway_synonyms_control_ids: Option<Vec<String>>,
-    /// personalizationSpec property.
-    pub personalization_spec: Option<GoogleCloudRetailV2SearchRequestPersonalizationSpec>,
-    /// priceRerankingLevel property.
-    pub price_reranking_level: Option<String>,
-    /// redirectControlIds property.
-    pub redirect_control_ids: Option<Vec<String>>,
-    /// replacementControlIds property.
-    pub replacement_control_ids: Option<Vec<String>>,
-    /// solutionTypes property.
-    pub solution_types: Option<Vec<String>>,
-    /// twowaySynonymsControlIds property.
-    pub twoway_synonyms_control_ids: Option<Vec<String>>,
-}
-
-/// `GoogleCloudRetailV2Image` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2Image {
-    /// height property.
-    pub height: Option<i64>,
-    /// uri property.
-    pub uri: Option<String>,
-    /// width property.
-    pub width: Option<i64>,
-}
-
-/// `GoogleCloudRetailV2ConversationalSearchResponseConversationalFilteringResultAdditionalFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2ConversationalSearchResponseConversationalFilteringResultAdditionalFilter
-{
-    /// productAttributeValue property.
-    pub product_attribute_value: Option<GoogleCloudRetailV2ProductAttributeValue>,
-}
-
-/// `GoogleCloudRetailV2SearchResponseConversationalSearchResultAdditionalFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2SearchResponseConversationalSearchResultAdditionalFilter {
-    /// productAttributeValue property.
-    pub product_attribute_value: Option<GoogleCloudRetailV2ProductAttributeValue>,
-}
-
-/// `GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestionSuggestedAnswer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestionSuggestedAnswer {
-    /// productAttributeValue property.
-    pub product_attribute_value: Option<GoogleCloudRetailV2ProductAttributeValue>,
-}
-
-/// `GoogleCloudRetailV2ExperimentInfoServingConfigExperiment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2ExperimentInfoServingConfigExperiment {
-    /// experimentServingConfig property.
-    pub experiment_serving_config: Option<String>,
-    /// originalServingConfig property.
-    pub original_serving_config: Option<String>,
-}
-
-/// `GoogleCloudRetailV2PriceInfoPriceRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2PriceInfoPriceRange {
-    /// originalPrice property.
-    pub original_price: Option<GoogleCloudRetailV2Interval>,
-    /// price property.
-    pub price: Option<GoogleCloudRetailV2Interval>,
-}
-
-/// `GoogleCloudRetailV2FulfillmentInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2FulfillmentInfo {
-    /// placeIds property.
-    pub place_ids: Option<Vec<String>>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleCloudRetailV2Promotion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2Promotion {
-    /// promotionId property.
-    pub promotion_id: Option<String>,
-}
-
-/// `GoogleCloudRetailV2ProductAttributeValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2ProductAttributeValue {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `GoogleCloudRetailV2Audience` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2Audience {
-    /// ageGroups property.
-    pub age_groups: Option<Vec<String>>,
-    /// genders property.
-    pub genders: Option<Vec<String>>,
-}
-
-/// `GoogleCloudRetailV2ConversationalSearchResponseConversationalFilteringResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2ConversationalSearchResponseConversationalFilteringResult {
-    /// additionalFilter property.
-    pub additional_filter: Option<GoogleCloudRetailV2ConversationalSearchResponseConversationalFilteringResultAdditionalFilter>,
-    /// followupQuestion property.
-    pub followup_question: Option<GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestion>,
-}
-
-/// `GoogleCloudRetailV2SearchResponseTileNavigationResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2SearchResponseTileNavigationResult {
-    /// tiles property.
-    pub tiles: Option<Vec<GoogleCloudRetailV2Tile>>,
-}
-
-/// `GoogleCloudRetailV2ConversationalSearchResponseRefinedSearch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2ConversationalSearchResponseRefinedSearch {
-    /// query property.
-    pub query: Option<String>,
-}
-
-/// `GoogleCloudRetailV2SearchRequestBoostSpecConditionBoostSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2SearchRequestBoostSpecConditionBoostSpec {
-    /// boost property.
-    pub boost: Option<f64>,
-    /// condition property.
-    pub condition: Option<String>,
-}
-
-/// `GoogleCloudRetailV2ProductAttributeInterval` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2ProductAttributeInterval {
-    /// interval property.
-    pub interval: Option<GoogleCloudRetailV2Interval>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GoogleCloudRetailV2Rating` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2Rating {
-    /// averageRating property.
-    pub average_rating: Option<f64>,
-    /// ratingCount property.
-    pub rating_count: Option<i64>,
-    /// ratingHistogram property.
-    pub rating_histogram: Option<Vec<i64>>,
-}
-
-/// `GoogleCloudRetailV2Tile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2Tile {
-    /// productAttributeInterval property.
-    pub product_attribute_interval: Option<GoogleCloudRetailV2ProductAttributeInterval>,
-    /// productAttributeValue property.
-    pub product_attribute_value: Option<GoogleCloudRetailV2ProductAttributeValue>,
-    /// representativeProductId property.
-    pub representative_product_id: Option<String>,
 }
 
 /// `GoogleCloudRetailV2Product` type.
@@ -361,25 +195,60 @@ pub struct GoogleCloudRetailV2Product {
     /// uri property.
     pub uri: Option<String>,
     /// variants property.
-    pub variants: Option<Vec<GoogleCloudRetailV2Product>>,
+    pub variants: Option<Vec<Box<GoogleCloudRetailV2Product>>>,
 }
 
-/// `GoogleCloudRetailV2ColorInfo` type.
+/// `GoogleCloudRetailV2FulfillmentInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2ColorInfo {
-    /// colorFamilies property.
-    pub color_families: Option<Vec<String>>,
-    /// colors property.
-    pub colors: Option<Vec<String>>,
+pub struct GoogleCloudRetailV2FulfillmentInfo {
+    /// placeIds property.
+    pub place_ids: Option<Vec<String>>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
-/// `GoogleCloudRetailV2ExperimentInfo` type.
+/// `GoogleCloudRetailV2SearchResponseTileNavigationResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2ExperimentInfo {
-    /// experiment property.
-    pub experiment: Option<String>,
-    /// servingConfigExperiment property.
-    pub serving_config_experiment: Option<GoogleCloudRetailV2ExperimentInfoServingConfigExperiment>,
+pub struct GoogleCloudRetailV2SearchResponseTileNavigationResult {
+    /// tiles property.
+    pub tiles: Option<Vec<GoogleCloudRetailV2Tile>>,
+}
+
+/// `GoogleCloudRetailV2SearchResponseFacetFacetValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2SearchResponseFacetFacetValue {
+    /// count property.
+    pub count: Option<String>,
+    /// interval property.
+    pub interval: Option<GoogleCloudRetailV2Interval>,
+    /// maxValue property.
+    pub max_value: Option<f64>,
+    /// minValue property.
+    pub min_value: Option<f64>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GoogleCloudRetailV2SearchResponseConversationalSearchResultAdditionalFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2SearchResponseConversationalSearchResultAdditionalFilter {
+    /// productAttributeValue property.
+    pub product_attribute_value: Option<GoogleCloudRetailV2ProductAttributeValue>,
+}
+
+/// `GoogleCloudRetailV2ConversationalSearchResponseConversationalFilteringResultAdditionalFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2ConversationalSearchResponseConversationalFilteringResultAdditionalFilter
+{
+    /// productAttributeValue property.
+    pub product_attribute_value: Option<GoogleCloudRetailV2ProductAttributeValue>,
+}
+
+/// `GoogleCloudRetailV2SearchRequestDynamicFacetSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2SearchRequestDynamicFacetSpec {
+    /// mode property.
+    pub mode: Option<String>,
 }
 
 /// `GoogleCloudRetailV2SearchResponseSearchResult` type.
@@ -396,16 +265,104 @@ pub struct GoogleCloudRetailV2SearchResponseSearchResult {
     /// personalLabels property.
     pub personal_labels: Option<Vec<String>>,
     /// product property.
-    pub product: Option<GoogleCloudRetailV2Product>,
+    pub product: Option<Box<GoogleCloudRetailV2Product>>,
     /// variantRollupValues property.
     pub variant_rollup_values: Option<serde_json::Value>,
 }
 
-/// `GoogleCloudRetailV2SearchRequestPersonalizationSpec` type.
+/// `GoogleCloudRetailV2SearchResponseConversationalSearchResultSuggestedAnswer` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2SearchRequestPersonalizationSpec {
-    /// mode property.
-    pub mode: Option<String>,
+pub struct GoogleCloudRetailV2SearchResponseConversationalSearchResultSuggestedAnswer {
+    /// productAttributeValue property.
+    pub product_attribute_value: Option<GoogleCloudRetailV2ProductAttributeValue>,
+}
+
+/// `GoogleCloudRetailV2ConversationalSearchResponseConversationalFilteringResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2ConversationalSearchResponseConversationalFilteringResult {
+    /// additionalFilter property.
+    pub additional_filter: Option<GoogleCloudRetailV2ConversationalSearchResponseConversationalFilteringResultAdditionalFilter>,
+    /// followupQuestion property.
+    pub followup_question: Option<GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestion>,
+}
+
+/// `GoogleCloudRetailV2PredictResponsePredictionResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2PredictResponsePredictionResult {
+    /// id property.
+    pub id: Option<String>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudRetailV2Promotion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2Promotion {
+    /// promotionId property.
+    pub promotion_id: Option<String>,
+}
+
+/// `GoogleCloudRetailV2Image` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2Image {
+    /// height property.
+    pub height: Option<i64>,
+    /// uri property.
+    pub uri: Option<String>,
+    /// width property.
+    pub width: Option<i64>,
+}
+
+/// `GoogleCloudRetailV2ServingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2ServingConfig {
+    /// boostControlIds property.
+    pub boost_control_ids: Option<Vec<String>>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// diversityLevel property.
+    pub diversity_level: Option<String>,
+    /// diversityType property.
+    pub diversity_type: Option<String>,
+    /// doNotAssociateControlIds property.
+    pub do_not_associate_control_ids: Option<Vec<String>>,
+    /// dynamicFacetSpec property.
+    pub dynamic_facet_spec: Option<GoogleCloudRetailV2SearchRequestDynamicFacetSpec>,
+    /// enableCategoryFilterLevel property.
+    pub enable_category_filter_level: Option<String>,
+    /// facetControlIds property.
+    pub facet_control_ids: Option<Vec<String>>,
+    /// filterControlIds property.
+    pub filter_control_ids: Option<Vec<String>>,
+    /// ignoreControlIds property.
+    pub ignore_control_ids: Option<Vec<String>>,
+    /// ignoreRecsDenylist property.
+    pub ignore_recs_denylist: Option<bool>,
+    /// modelId property.
+    pub model_id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// onewaySynonymsControlIds property.
+    pub oneway_synonyms_control_ids: Option<Vec<String>>,
+    /// personalizationSpec property.
+    pub personalization_spec: Option<GoogleCloudRetailV2SearchRequestPersonalizationSpec>,
+    /// priceRerankingLevel property.
+    pub price_reranking_level: Option<String>,
+    /// redirectControlIds property.
+    pub redirect_control_ids: Option<Vec<String>>,
+    /// replacementControlIds property.
+    pub replacement_control_ids: Option<Vec<String>>,
+    /// solutionTypes property.
+    pub solution_types: Option<Vec<String>>,
+    /// twowaySynonymsControlIds property.
+    pub twoway_synonyms_control_ids: Option<Vec<String>>,
+}
+
+/// `GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestionSuggestedAnswer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestionSuggestedAnswer {
+    /// productAttributeValue property.
+    pub product_attribute_value: Option<GoogleCloudRetailV2ProductAttributeValue>,
 }
 
 /// `GoogleCloudRetailV2PinControlMetadata` type.
@@ -417,42 +374,20 @@ pub struct GoogleCloudRetailV2PinControlMetadata {
     pub dropped_pins: Option<serde_json::Value>,
 }
 
-/// `GoogleCloudRetailV2LocalInventory` type.
+/// `GoogleCloudRetailV2SearchRequestPersonalizationSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2LocalInventory {
-    /// attributes property.
-    pub attributes: Option<serde_json::Value>,
-    /// fulfillmentTypes property.
-    pub fulfillment_types: Option<Vec<String>>,
-    /// placeId property.
-    pub place_id: Option<String>,
-    /// priceInfo property.
-    pub price_info: Option<GoogleCloudRetailV2PriceInfo>,
+pub struct GoogleCloudRetailV2SearchRequestPersonalizationSpec {
+    /// mode property.
+    pub mode: Option<String>,
 }
 
-/// `GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestion` type.
+/// `GoogleCloudRetailV2ListServingConfigsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestion {
-    /// followupQuestion property.
-    pub followup_question: Option<String>,
-    /// suggestedAnswers property.
-    pub suggested_answers:
-        Option<Vec<GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestionSuggestedAnswer>>,
-}
-
-/// `GoogleCloudRetailV2SearchResponseFacetFacetValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2SearchResponseFacetFacetValue {
-    /// count property.
-    pub count: Option<String>,
-    /// interval property.
-    pub interval: Option<GoogleCloudRetailV2Interval>,
-    /// maxValue property.
-    pub max_value: Option<f64>,
-    /// minValue property.
-    pub min_value: Option<f64>,
-    /// value property.
-    pub value: Option<String>,
+pub struct GoogleCloudRetailV2ListServingConfigsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// servingConfigs property.
+    pub serving_configs: Option<Vec<GoogleCloudRetailV2ServingConfig>>,
 }
 
 /// `GoogleCloudRetailV2SearchResponseConversationalSearchResult` type.
@@ -475,20 +410,86 @@ pub struct GoogleCloudRetailV2SearchResponseConversationalSearchResult {
         Option<Vec<GoogleCloudRetailV2SearchResponseConversationalSearchResultSuggestedAnswer>>,
 }
 
-/// `GoogleCloudRetailV2SearchRequestDynamicFacetSpec` type.
+/// `GoogleCloudRetailV2LocalInventory` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2SearchRequestDynamicFacetSpec {
-    /// mode property.
-    pub mode: Option<String>,
+pub struct GoogleCloudRetailV2LocalInventory {
+    /// attributes property.
+    pub attributes: Option<serde_json::Value>,
+    /// fulfillmentTypes property.
+    pub fulfillment_types: Option<Vec<String>>,
+    /// placeId property.
+    pub place_id: Option<String>,
+    /// priceInfo property.
+    pub price_info: Option<GoogleCloudRetailV2PriceInfo>,
 }
 
-/// `GoogleCloudRetailV2SearchResponseQueryExpansionInfo` type.
+/// `GoogleCloudRetailV2Rating` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2SearchResponseQueryExpansionInfo {
-    /// expandedQuery property.
-    pub expanded_query: Option<bool>,
-    /// pinnedResultCount property.
-    pub pinned_result_count: Option<String>,
+pub struct GoogleCloudRetailV2Rating {
+    /// averageRating property.
+    pub average_rating: Option<f64>,
+    /// ratingCount property.
+    pub rating_count: Option<i64>,
+    /// ratingHistogram property.
+    pub rating_histogram: Option<Vec<i64>>,
+}
+
+/// `GoogleCloudRetailV2PriceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2PriceInfo {
+    /// cost property.
+    pub cost: Option<f64>,
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// originalPrice property.
+    pub original_price: Option<f64>,
+    /// price property.
+    pub price: Option<f64>,
+    /// priceEffectiveTime property.
+    pub price_effective_time: Option<String>,
+    /// priceExpireTime property.
+    pub price_expire_time: Option<String>,
+    /// priceRange property.
+    pub price_range: Option<GoogleCloudRetailV2PriceInfoPriceRange>,
+}
+
+/// `GoogleCloudRetailV2SearchRequestBoostSpecConditionBoostSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2SearchRequestBoostSpecConditionBoostSpec {
+    /// boost property.
+    pub boost: Option<f64>,
+    /// condition property.
+    pub condition: Option<String>,
+}
+
+/// `GoogleCloudRetailV2Tile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2Tile {
+    /// productAttributeInterval property.
+    pub product_attribute_interval: Option<GoogleCloudRetailV2ProductAttributeInterval>,
+    /// productAttributeValue property.
+    pub product_attribute_value: Option<GoogleCloudRetailV2ProductAttributeValue>,
+    /// representativeProductId property.
+    pub representative_product_id: Option<String>,
+}
+
+/// `GoogleCloudRetailV2Audience` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2Audience {
+    /// ageGroups property.
+    pub age_groups: Option<Vec<String>>,
+    /// genders property.
+    pub genders: Option<Vec<String>>,
+}
+
+/// `GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestion {
+    /// followupQuestion property.
+    pub followup_question: Option<String>,
+    /// suggestedAnswers property.
+    pub suggested_answers:
+        Option<Vec<GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestionSuggestedAnswer>>,
 }
 
 // =============================================================================

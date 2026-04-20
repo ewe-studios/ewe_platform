@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,26 +22,28 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ComputeHeadCursorResponse` type.
+/// `Cursor` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeHeadCursorResponse {
-    /// headCursor property.
-    pub head_cursor: Option<Cursor>,
+pub struct Cursor {
+    /// offset property.
+    pub offset: Option<String>,
 }
 
-/// `ListTopicsResponse` type.
+/// `PartitionConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListTopicsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// topics property.
-    pub topics: Option<Vec<Topic>>,
+pub struct PartitionConfig {
+    /// capacity property.
+    pub capacity: Option<Capacity>,
+    /// count property.
+    pub count: Option<String>,
+    /// scale property.
+    pub scale: Option<i64>,
 }
 
 /// `Topic` type.
@@ -56,24 +59,6 @@ pub struct Topic {
     pub retention_config: Option<RetentionConfig>,
 }
 
-/// `PartitionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PartitionConfig {
-    /// capacity property.
-    pub capacity: Option<Capacity>,
-    /// count property.
-    pub count: Option<String>,
-    /// scale property.
-    pub scale: Option<i64>,
-}
-
-/// `ReservationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReservationConfig {
-    /// throughputReservation property.
-    pub throughput_reservation: Option<String>,
-}
-
 /// `RetentionConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetentionConfig {
@@ -81,6 +66,15 @@ pub struct RetentionConfig {
     pub per_partition_bytes: Option<String>,
     /// period property.
     pub period: Option<String>,
+}
+
+/// `ListTopicsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListTopicsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// topics property.
+    pub topics: Option<Vec<Topic>>,
 }
 
 /// `Capacity` type.
@@ -92,6 +86,27 @@ pub struct Capacity {
     pub subscribe_mib_per_sec: Option<i64>,
 }
 
+/// `ComputeTimeCursorResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeTimeCursorResponse {
+    /// cursor property.
+    pub cursor: Option<Cursor>,
+}
+
+/// `ComputeHeadCursorResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeHeadCursorResponse {
+    /// headCursor property.
+    pub head_cursor: Option<Cursor>,
+}
+
+/// `ReservationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReservationConfig {
+    /// throughputReservation property.
+    pub throughput_reservation: Option<String>,
+}
+
 /// `ListReservationTopicsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListReservationTopicsResponse {
@@ -99,13 +114,6 @@ pub struct ListReservationTopicsResponse {
     pub next_page_token: Option<String>,
     /// topics property.
     pub topics: Option<Vec<String>>,
-}
-
-/// `ComputeTimeCursorResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeTimeCursorResponse {
-    /// cursor property.
-    pub cursor: Option<Cursor>,
 }
 
 /// `ComputeMessageStatsResponse` type.
@@ -119,13 +127,6 @@ pub struct ComputeMessageStatsResponse {
     pub minimum_event_time: Option<String>,
     /// minimumPublishTime property.
     pub minimum_publish_time: Option<String>,
-}
-
-/// `Cursor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Cursor {
-    /// offset property.
-    pub offset: Option<String>,
 }
 
 // =============================================================================

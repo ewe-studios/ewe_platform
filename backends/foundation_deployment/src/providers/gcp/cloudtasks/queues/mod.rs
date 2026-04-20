@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,24 +22,81 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `StackdriverLoggingConfig` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StackdriverLoggingConfig {
-    /// samplingRatio property.
-    pub sampling_ratio: Option<f64>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
-/// `HeaderOverride` type.
+/// `TestIamPermissionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HeaderOverride {
-    /// header property.
-    pub header: Option<Header>,
+pub struct TestIamPermissionsResponse {
+    /// permissions property.
+    pub permissions: Option<Vec<String>>,
+}
+
+/// `ListQueuesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListQueuesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// queues property.
+    pub queues: Option<Vec<Queue>>,
+}
+
+/// `Policy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Policy {
+    /// bindings property.
+    pub bindings: Option<Vec<Binding>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// version property.
+    pub version: Option<i64>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `AppEngineRouting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppEngineRouting {
+    /// host property.
+    pub host: Option<String>,
+    /// instance property.
+    pub instance: Option<String>,
+    /// service property.
+    pub service: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `QueryOverride` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueryOverride {
+    /// queryParams property.
+    pub query_params: Option<String>,
 }
 
 /// `RetryConfig` type.
@@ -56,33 +114,19 @@ pub struct RetryConfig {
     pub min_backoff: Option<String>,
 }
 
-/// `PathOverride` type.
+/// `HttpTarget` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PathOverride {
-    /// path property.
-    pub path: Option<String>,
-}
-
-/// `OidcToken` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OidcToken {
-    /// audience property.
-    pub audience: Option<String>,
-    /// serviceAccountEmail property.
-    pub service_account_email: Option<String>,
-}
-
-/// `AppEngineRouting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppEngineRouting {
-    /// host property.
-    pub host: Option<String>,
-    /// instance property.
-    pub instance: Option<String>,
-    /// service property.
-    pub service: Option<String>,
-    /// version property.
-    pub version: Option<String>,
+pub struct HttpTarget {
+    /// headerOverrides property.
+    pub header_overrides: Option<Vec<HeaderOverride>>,
+    /// httpMethod property.
+    pub http_method: Option<String>,
+    /// oauthToken property.
+    pub oauth_token: Option<OAuthToken>,
+    /// oidcToken property.
+    pub oidc_token: Option<OidcToken>,
+    /// uriOverride property.
+    pub uri_override: Option<UriOverride>,
 }
 
 /// `Queue` type.
@@ -106,64 +150,24 @@ pub struct Queue {
     pub state: Option<String>,
 }
 
-/// `QueryOverride` type.
+/// `RateLimits` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryOverride {
-    /// queryParams property.
-    pub query_params: Option<String>,
+pub struct RateLimits {
+    /// maxBurstSize property.
+    pub max_burst_size: Option<i64>,
+    /// maxConcurrentDispatches property.
+    pub max_concurrent_dispatches: Option<i64>,
+    /// maxDispatchesPerSecond property.
+    pub max_dispatches_per_second: Option<f64>,
 }
 
-/// `TestIamPermissionsResponse` type.
+/// `OAuthToken` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestIamPermissionsResponse {
-    /// permissions property.
-    pub permissions: Option<Vec<String>>,
-}
-
-/// `Policy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Policy {
-    /// bindings property.
-    pub bindings: Option<Vec<Binding>>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// version property.
-    pub version: Option<i64>,
-}
-
-/// `HttpTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpTarget {
-    /// headerOverrides property.
-    pub header_overrides: Option<Vec<HeaderOverride>>,
-    /// httpMethod property.
-    pub http_method: Option<String>,
-    /// oauthToken property.
-    pub oauth_token: Option<OAuthToken>,
-    /// oidcToken property.
-    pub oidc_token: Option<OidcToken>,
-    /// uriOverride property.
-    pub uri_override: Option<UriOverride>,
-}
-
-/// `Header` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Header {
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct OAuthToken {
+    /// scope property.
+    pub scope: Option<String>,
+    /// serviceAccountEmail property.
+    pub service_account_email: Option<String>,
 }
 
 /// `UriOverride` type.
@@ -183,44 +187,41 @@ pub struct UriOverride {
     pub uri_override_enforce_mode: Option<String>,
 }
 
-/// `RateLimits` type.
+/// `Header` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RateLimits {
-    /// maxBurstSize property.
-    pub max_burst_size: Option<i64>,
-    /// maxConcurrentDispatches property.
-    pub max_concurrent_dispatches: Option<i64>,
-    /// maxDispatchesPerSecond property.
-    pub max_dispatches_per_second: Option<f64>,
+pub struct Header {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
-/// `ListQueuesResponse` type.
+/// `StackdriverLoggingConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListQueuesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// queues property.
-    pub queues: Option<Vec<Queue>>,
+pub struct StackdriverLoggingConfig {
+    /// samplingRatio property.
+    pub sampling_ratio: Option<f64>,
 }
 
-/// `Expr` type.
+/// `HeaderOverride` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct HeaderOverride {
+    /// header property.
+    pub header: Option<Header>,
 }
 
-/// `OAuthToken` type.
+/// `PathOverride` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OAuthToken {
-    /// scope property.
-    pub scope: Option<String>,
+pub struct PathOverride {
+    /// path property.
+    pub path: Option<String>,
+}
+
+/// `OidcToken` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OidcToken {
+    /// audience property.
+    pub audience: Option<String>,
     /// serviceAccountEmail property.
     pub service_account_email: Option<String>,
 }

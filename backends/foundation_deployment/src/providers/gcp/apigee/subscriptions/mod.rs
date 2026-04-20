@@ -12,43 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudApigeeV1ListAppGroupSubscriptionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ListAppGroupSubscriptionsResponse {
-    /// appGroupSubscriptions property.
-    pub app_group_subscriptions: Option<Vec<GoogleCloudApigeeV1AppGroupSubscription>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1AppGroupSubscription` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1AppGroupSubscription {
-    /// apiproduct property.
-    pub apiproduct: Option<String>,
-    /// createdAt property.
-    pub created_at: Option<String>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// lastModifiedAt property.
-    pub last_modified_at: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
 
 /// `GoogleCloudApigeeV1DeveloperSubscription` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -74,6 +49,32 @@ pub struct GoogleCloudApigeeV1ListDeveloperSubscriptionsResponse {
     pub developer_subscriptions: Option<Vec<GoogleCloudApigeeV1DeveloperSubscription>>,
     /// nextStartKey property.
     pub next_start_key: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1AppGroupSubscription` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1AppGroupSubscription {
+    /// apiproduct property.
+    pub apiproduct: Option<String>,
+    /// createdAt property.
+    pub created_at: Option<String>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// lastModifiedAt property.
+    pub last_modified_at: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1ListAppGroupSubscriptionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ListAppGroupSubscriptionsResponse {
+    /// appGroupSubscriptions property.
+    pub app_group_subscriptions: Option<Vec<GoogleCloudApigeeV1AppGroupSubscription>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

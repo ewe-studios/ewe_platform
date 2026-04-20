@@ -12,31 +12,28 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `RoutePolicy` type.
+/// `RoutePolicyPolicyTerm` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RoutePolicy {
-    /// description property.
-    pub description: Option<String>,
-    /// fingerprint property.
-    pub fingerprint: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// terms property.
-    pub terms: Option<Vec<RoutePolicyPolicyTerm>>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct RoutePolicyPolicyTerm {
+    /// actions property.
+    pub actions: Option<Vec<Expr>>,
+    /// match property.
+    pub r#match: Option<Expr>,
+    /// priority property.
+    pub priority: Option<i64>,
 }
 
 /// `Expr` type.
@@ -59,15 +56,19 @@ pub struct RoutersGetRoutePolicyResponse {
     pub resource: Option<RoutePolicy>,
 }
 
-/// `RoutePolicyPolicyTerm` type.
+/// `RoutePolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RoutePolicyPolicyTerm {
-    /// actions property.
-    pub actions: Option<Vec<Expr>>,
-    /// match property.
-    pub r#match: Option<Expr>,
-    /// priority property.
-    pub priority: Option<i64>,
+pub struct RoutePolicy {
+    /// description property.
+    pub description: Option<String>,
+    /// fingerprint property.
+    pub fingerprint: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// terms property.
+    pub terms: Option<Vec<RoutePolicyPolicyTerm>>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 // =============================================================================

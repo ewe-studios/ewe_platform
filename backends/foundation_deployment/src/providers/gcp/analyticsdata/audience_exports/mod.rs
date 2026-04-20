@@ -12,17 +12,54 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Operation;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `V1BetaAudienceDimension` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct V1BetaAudienceDimension {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `V1BetaAudienceRow` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct V1BetaAudienceRow {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ListAudienceExportsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAudienceExportsResponse {
+    /// audienceExports property.
+    pub audience_exports: Option<Vec<AudienceExport>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `V1BetaAudienceDimensionValue` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct V1BetaAudienceDimensionValue {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
 
 /// `AudienceExport` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,15 +86,6 @@ pub struct AudienceExport {
     pub state: Option<String>,
 }
 
-/// `ListAudienceExportsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAudienceExportsResponse {
-    /// audienceExports property.
-    pub audience_exports: Option<Vec<AudienceExport>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
 /// `QueryAudienceExportResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryAudienceExportResponse {
@@ -69,14 +97,6 @@ pub struct QueryAudienceExportResponse {
     pub row_count: Option<i64>,
 }
 
-/// `V1BetaAudienceRow` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1BetaAudienceRow {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
@@ -86,37 +106,6 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
-}
-
-/// `V1BetaAudienceDimension` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1BetaAudienceDimension {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `Operation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Operation {
-    /// done property.
-    pub done: Option<bool>,
-    /// error property.
-    pub error: Option<Status>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// response property.
-    pub response: Option<serde_json::Value>,
-}
-
-/// `V1BetaAudienceDimensionValue` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1BetaAudienceDimensionValue {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 // =============================================================================

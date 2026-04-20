@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -66,15 +67,6 @@ pub struct GoogleCloudApihubV1ListDiscoveredApiObservationsResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `GoogleCloudApihubV1PluginInstanceActionSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1PluginInstanceActionSource {
-    /// actionId property.
-    pub action_id: Option<String>,
-    /// pluginInstance property.
-    pub plugin_instance: Option<String>,
-}
-
 /// `GoogleCloudApihubV1SourceMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1SourceMetadata {
@@ -88,6 +80,15 @@ pub struct GoogleCloudApihubV1SourceMetadata {
     pub plugin_instance_action_source: Option<GoogleCloudApihubV1PluginInstanceActionSource>,
     /// sourceType property.
     pub source_type: Option<String>,
+}
+
+/// `GoogleCloudApihubV1PluginInstanceActionSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1PluginInstanceActionSource {
+    /// actionId property.
+    pub action_id: Option<String>,
+    /// pluginInstance property.
+    pub plugin_instance: Option<String>,
 }
 
 // =============================================================================

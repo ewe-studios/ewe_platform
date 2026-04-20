@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,42 +22,70 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ComputeEngineDisk` type.
+/// `CopyingSourceDiskSnapshotStep` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeEngineDisk {
-    /// diskId property.
-    pub disk_id: Option<String>,
-    /// diskType property.
-    pub disk_type: Option<String>,
-    /// replicaZones property.
-    pub replica_zones: Option<Vec<String>>,
-    /// zone property.
-    pub zone: Option<String>,
-}
+pub struct CopyingSourceDiskSnapshotStep {}
 
 /// `CreatingSourceDiskSnapshotStep` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreatingSourceDiskSnapshotStep {}
 
-/// `ProvisioningTargetDiskStep` type.
+/// `ListDiskMigrationJobsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProvisioningTargetDiskStep {}
+pub struct ListDiskMigrationJobsResponse {
+    /// diskMigrationJobs property.
+    pub disk_migration_jobs: Option<Vec<DiskMigrationJob>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
 
-/// `Status` type.
+/// `AwsSourceDiskDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct AwsSourceDiskDetails {
+    /// diskType property.
+    pub disk_type: Option<String>,
+    /// sizeGib property.
+    pub size_gib: Option<String>,
+    /// tags property.
+    pub tags: Option<serde_json::Value>,
+    /// volumeId property.
+    pub volume_id: Option<String>,
+}
+
+/// `DiskMigrationStep` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskMigrationStep {
+    /// copyingSourceDiskSnapshot property.
+    pub copying_source_disk_snapshot: Option<CopyingSourceDiskSnapshotStep>,
+    /// creatingSourceDiskSnapshot property.
+    pub creating_source_disk_snapshot: Option<CreatingSourceDiskSnapshotStep>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// provisioningTargetDisk property.
+    pub provisioning_target_disk: Option<ProvisioningTargetDiskStep>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `DiskMigrationJobTargetDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskMigrationJobTargetDetails {
+    /// encryption property.
+    pub encryption: Option<Encryption>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// targetDisk property.
+    pub target_disk: Option<ComputeEngineDisk>,
+    /// targetProject property.
+    pub target_project: Option<String>,
 }
 
 /// `DiskMigrationJob` type.
@@ -80,34 +109,6 @@ pub struct DiskMigrationJob {
     pub update_time: Option<String>,
 }
 
-/// `DiskMigrationJobTargetDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskMigrationJobTargetDetails {
-    /// encryption property.
-    pub encryption: Option<Encryption>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// targetDisk property.
-    pub target_disk: Option<ComputeEngineDisk>,
-    /// targetProject property.
-    pub target_project: Option<String>,
-}
-
-/// `CopyingSourceDiskSnapshotStep` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CopyingSourceDiskSnapshotStep {}
-
-/// `ListDiskMigrationJobsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDiskMigrationJobsResponse {
-    /// diskMigrationJobs property.
-    pub disk_migration_jobs: Option<Vec<DiskMigrationJob>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
 /// `Encryption` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Encryption {
@@ -115,32 +116,32 @@ pub struct Encryption {
     pub kms_key: Option<String>,
 }
 
-/// `DiskMigrationStep` type.
+/// `ComputeEngineDisk` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskMigrationStep {
-    /// copyingSourceDiskSnapshot property.
-    pub copying_source_disk_snapshot: Option<CopyingSourceDiskSnapshotStep>,
-    /// creatingSourceDiskSnapshot property.
-    pub creating_source_disk_snapshot: Option<CreatingSourceDiskSnapshotStep>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// provisioningTargetDisk property.
-    pub provisioning_target_disk: Option<ProvisioningTargetDiskStep>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `AwsSourceDiskDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AwsSourceDiskDetails {
+pub struct ComputeEngineDisk {
+    /// diskId property.
+    pub disk_id: Option<String>,
     /// diskType property.
     pub disk_type: Option<String>,
-    /// sizeGib property.
-    pub size_gib: Option<String>,
-    /// tags property.
-    pub tags: Option<serde_json::Value>,
-    /// volumeId property.
-    pub volume_id: Option<String>,
+    /// replicaZones property.
+    pub replica_zones: Option<Vec<String>>,
+    /// zone property.
+    pub zone: Option<String>,
+}
+
+/// `ProvisioningTargetDiskStep` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProvisioningTargetDiskStep {}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

@@ -12,31 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GridRange` type.
+/// `MatchedDeveloperMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GridRange {
-    /// endColumnIndex property.
-    pub end_column_index: Option<i64>,
-    /// endRowIndex property.
-    pub end_row_index: Option<i64>,
-    /// sheetId property.
-    pub sheet_id: Option<i64>,
-    /// startColumnIndex property.
-    pub start_column_index: Option<i64>,
-    /// startRowIndex property.
-    pub start_row_index: Option<i64>,
+pub struct MatchedDeveloperMetadata {
+    /// dataFilters property.
+    pub data_filters: Option<Vec<DataFilter>>,
+    /// developerMetadata property.
+    pub developer_metadata: Option<DeveloperMetadata>,
 }
 
 /// `DimensionRange` type.
@@ -52,20 +47,15 @@ pub struct DimensionRange {
     pub start_index: Option<i64>,
 }
 
-/// `MatchedDeveloperMetadata` type.
+/// `DataFilter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MatchedDeveloperMetadata {
-    /// dataFilters property.
-    pub data_filters: Option<Vec<DataFilter>>,
-    /// developerMetadata property.
-    pub developer_metadata: Option<DeveloperMetadata>,
-}
-
-/// `SearchDeveloperMetadataResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchDeveloperMetadataResponse {
-    /// matchedDeveloperMetadata property.
-    pub matched_developer_metadata: Option<Vec<MatchedDeveloperMetadata>>,
+pub struct DataFilter {
+    /// a1Range property.
+    pub a1_range: Option<String>,
+    /// developerMetadataLookup property.
+    pub developer_metadata_lookup: Option<DeveloperMetadataLookup>,
+    /// gridRange property.
+    pub grid_range: Option<GridRange>,
 }
 
 /// `DeveloperMetadata` type.
@@ -102,15 +92,26 @@ pub struct DeveloperMetadataLookup {
     pub visibility: Option<String>,
 }
 
-/// `DataFilter` type.
+/// `GridRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataFilter {
-    /// a1Range property.
-    pub a1_range: Option<String>,
-    /// developerMetadataLookup property.
-    pub developer_metadata_lookup: Option<DeveloperMetadataLookup>,
-    /// gridRange property.
-    pub grid_range: Option<GridRange>,
+pub struct GridRange {
+    /// endColumnIndex property.
+    pub end_column_index: Option<i64>,
+    /// endRowIndex property.
+    pub end_row_index: Option<i64>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+    /// startColumnIndex property.
+    pub start_column_index: Option<i64>,
+    /// startRowIndex property.
+    pub start_row_index: Option<i64>,
+}
+
+/// `SearchDeveloperMetadataResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchDeveloperMetadataResponse {
+    /// matchedDeveloperMetadata property.
+    pub matched_developer_metadata: Option<Vec<MatchedDeveloperMetadata>>,
 }
 
 /// `DeveloperMetadataLocation` type.

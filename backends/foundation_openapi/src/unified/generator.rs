@@ -18,6 +18,38 @@ use toml::Value;
 
 use super::analyzer::ApiGroup;
 
+/// Scan a shared module's content and extract all struct/enum type names it defines.
+fn regex_shared_type_names(content: &str) -> Vec<String> {
+    let mut names = Vec::new();
+    for line in content.lines() {
+        let trimmed = line.trim();
+        // Match "pub struct TypeName" or "pub enum TypeName"
+        if let Some(rest) = trimmed.strip_prefix("pub struct ").or_else(|| trimmed.strip_prefix("pub enum ")) {
+            if let Some(name) = rest.split_whitespace().next() {
+                let clean = name.trim_end_matches('{').trim_end();
+                if !clean.is_empty() && clean.chars().next().map(|c| c.is_uppercase() || c == '_').unwrap_or(false) {
+                    names.push(clean.to_string());
+                }
+            }
+        }
+        // Also match "pub use crate::providers::common::{..., Empty, Operation, ...};"
+        if trimmed.starts_with("pub use crate::providers::common::") {
+            if let Some(start) = trimmed.find('{') {
+                if let Some(end) = trimmed.find('}') {
+                    let between = &trimmed[start + 1..end];
+                    for item in between.split(',') {
+                        let item = item.trim();
+                        if !item.is_empty() && !item.starts_with('_') {
+                            names.push(item.to_string());
+                        }
+                    }
+                }
+            }
+        }
+    }
+    names
+}
+
 /// Rust keywords that must be escaped when used as identifiers.
 const RUST_KEYWORDS: &[&str] = &[
     "as", "async", "await", "break", "const", "continue", "dyn", "else", "enum",
@@ -29,11 +61,34 @@ const RUST_KEYWORDS: &[&str] = &[
 ];
 
 /// Escape a Rust keyword by prefixing with `r#`.
+/// NOTE: This does NOT work for field names — use `escape_field_keyword` instead.
 fn escape_rust_keyword(ident: &str) -> String {
     if RUST_KEYWORDS.contains(&ident) {
         format!("r#{}", ident)
     } else {
         ident.to_string()
+    }
+}
+
+/// Escape a Rust keyword for use in a struct field name.
+/// `r#self` and `r#Self` are NOT valid field names in Rust, so we rename instead.
+fn escape_field_keyword(ident: &str) -> String {
+    if ident == "self" {
+        "_self".to_string()
+    } else if RUST_KEYWORDS.contains(&ident) {
+        format!("r#{}", ident)
+    } else {
+        ident.to_string()
+    }
+}
+
+/// Sanitize a module name so it can be used in `pub mod NAME;`.
+/// `r#move` is invalid syntax, so we rename problematic keywords with a `_` suffix.
+fn sanitize_module_name(name: &str) -> String {
+    if RUST_KEYWORDS.contains(&name) {
+        format!("{}_mod", name)
+    } else {
+        name.to_string()
     }
 }
 
@@ -156,6 +211,137 @@ fn collect_referenced_type_names(
             }
         }
     }
+}
+
+/// Build a map of which types reference which other types (dependency graph).
+/// Returns: Map<type_name, Set<types it references>>
+fn build_type_dependencies(
+    schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
+) -> std::collections::HashMap<String, std::collections::HashSet<String>> {
+    let mut deps: std::collections::HashMap<String, std::collections::HashSet<String>> = std::collections::HashMap::new();
+
+    for (name, schema) in schemas {
+        let safe_name = rename_std_type_conflict(&crate::to_pascal_case(name));
+        let mut refs_set = std::collections::HashSet::new();
+        collect_refs_from_schema(schema, &mut refs_set, schemas);
+        deps.insert(safe_name, refs_set);
+    }
+
+    deps
+}
+
+fn collect_refs_from_schema(
+    schema: &crate::spec::Schema,
+    refs: &mut std::collections::HashSet<String>,
+    schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
+) {
+    // Check for direct $ref
+    if let Some(ref_path) = &schema.ref_path {
+        let ref_name = ref_path
+            .trim_start_matches("#/components/schemas/")
+            .trim_start_matches("#/schemas/");
+        let safe_name = rename_std_type_conflict(&crate::to_pascal_case(ref_name));
+        refs.insert(safe_name);
+        return;
+    }
+
+    // Recursively collect from allOf/oneOf/anyOf
+    for member in schema.all_of.iter().flatten().chain(schema.one_of.iter().flatten()).chain(schema.any_of.iter().flatten()) {
+        collect_refs_from_schema(member, refs, schemas);
+    }
+
+    // Collect from properties
+    if let Some(properties) = &schema.properties {
+        for (_k, prop) in properties {
+            if let Some(ref_path) = &prop.ref_path {
+                let ref_name = ref_path
+                    .trim_start_matches("#/components/schemas/")
+                    .trim_start_matches("#/schemas/");
+                let safe_name = rename_std_type_conflict(&crate::to_pascal_case(ref_name));
+                refs.insert(safe_name);
+            } else if prop.schema_type.as_deref() == Some("array") {
+                if let Some(items) = &prop.items {
+                    if let Some(ref_path) = &items.ref_path {
+                        let ref_name = ref_path
+                            .trim_start_matches("#/components/schemas/")
+                            .trim_start_matches("#/schemas/");
+                        let safe_name = rename_std_type_conflict(&crate::to_pascal_case(ref_name));
+                        refs.insert(safe_name);
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Find all types that are part of a recursive cycle (self or mutual recursion).
+fn find_recursive_types(
+    deps: &std::collections::HashMap<String, std::collections::HashSet<String>>,
+) -> std::collections::HashSet<String> {
+    let mut recursive = std::collections::HashSet::new();
+
+    for type_name in deps.keys() {
+        // DFS from this type to see if it can reach itself
+        let mut visited = std::collections::HashSet::new();
+        let mut stack: Vec<String> = vec![type_name.clone()];
+        let mut found_cycle = false;
+
+        while let Some(current) = stack.pop() {
+            if visited.contains(&current) {
+                continue;
+            }
+            visited.insert(current.clone());
+
+            if let Some(references) = deps.get(&current) {
+                for referenced in references {
+                    if referenced == type_name {
+                        found_cycle = true;
+                        break;
+                    }
+                    if !visited.contains(referenced) {
+                        stack.push(referenced.clone());
+                    }
+                }
+            }
+            if found_cycle {
+                break;
+            }
+        }
+
+        if found_cycle {
+            recursive.insert(type_name.clone());
+        }
+    }
+
+    recursive
+}
+
+/// Given a field type name, wrap it in Box<> if it's recursive.
+fn maybe_box_type(field_type: &str, recursive_types: &std::collections::HashSet<String>) -> String {
+    // Handle Option<T> -> Option<Box<T>> if T is recursive
+    if let Some(inner) = field_type.strip_prefix("Option<").and_then(|s| s.strip_suffix(">")) {
+        if recursive_types.contains(inner) {
+            return format!("Option<Box<{}>>", inner);
+        }
+    }
+    // Handle Vec<T> -> Vec<Box<T>> if T is recursive
+    if let Some(inner) = field_type.strip_prefix("Vec<").and_then(|s| s.strip_suffix(">")) {
+        if recursive_types.contains(inner) {
+            return format!("Vec<Box<{}>>", inner);
+        }
+    }
+    // Handle Option<Vec<T>> -> Option<Vec<Box<T>>> if T is recursive
+    if let Some(inner) = field_type.strip_prefix("Option<Vec<").and_then(|s| s.strip_suffix(">>")) {
+        if recursive_types.contains(inner) {
+            return format!("Option<Vec<Box<{}>>>", inner);
+        }
+    }
+    // Direct type reference that is recursive
+    if recursive_types.contains(field_type) {
+        return format!("Box<{}>", field_type);
+    }
+
+    field_type.to_string()
 }
 
 /// Transform an OpenAPI path into a Rust format! string.
@@ -336,6 +522,7 @@ fn update_cargo_toml(provider: &str, groups: &[ApiGroup], cargo_toml_path: &Path
     // Add group-level features
     for group in groups {
         let safe_name = sanitize_group_name(&group.name);
+        let safe_name = sanitize_module_name(&safe_name);
         let feature_name = format!("{}_{}", provider_feature, safe_name);
         features.insert(feature_name.clone(), Value::Array(vec![]));
         group_features.push(feature_name);
@@ -485,6 +672,7 @@ impl UnifiedGenerator {
     ) -> Result<(), GenError> {
         // Sanitize group name for use as directory/file name
         let safe_name = sanitize_group_name(&group.name);
+        let safe_name = sanitize_module_name(&safe_name);
         let group_dir = output_dir.join(&safe_name);
         fs::create_dir_all(&group_dir)?;
 
@@ -502,16 +690,17 @@ impl UnifiedGenerator {
         writeln!(out, "#![cfg(feature = \"{}_{}\")]", provider_safe, safe_name)?;
         writeln!(out, "#![allow(clippy::too_many_arguments, clippy::type_complexity)]")?;
         writeln!(out, "#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]")?;
+        writeln!(out, "#![allow(unused_imports)]")?;
         writeln!(out)?;
 
-        // Common imports
-        writeln!(out, "use foundation_core::valtron::{{execute, StreamIterator, TaskIterator, TaskIteratorExt}};")?;
+        // Common imports — only what's actually used in the generated code
+        writeln!(out, "use foundation_core::valtron::{{TaskIterator, TaskIteratorExt}};")?;
         writeln!(out, "use foundation_core::wire::simple_http::client::{{ClientRequestBuilder, SimpleHttpClient}};")?;
         writeln!(out, "use serde::{{Deserialize, Serialize}};")?;
         writeln!(out, "use foundation_macros::JsonHash;")?;
         writeln!(out)?;
 
-        // Collect shared types actually used by this group's endpoints
+        // Collect shared types actually used by this group's endpoints.
         let mut used_shared_types: Vec<(String, String)> = Vec::new(); // (original_name, renamed_name)
         for type_name in shared_resources {
             // Skip generic types and paths
@@ -524,7 +713,7 @@ impl UnifiedGenerator {
             if ["Vec", "Option", "HashMap", "BTreeMap", "Box", "Rc", "Arc", "Cow"].contains(&type_name.as_str()) {
                 continue;
             }
-            // Check if any endpoint in this group uses this type
+            // Check if any endpoint in this group uses this type directly
             let is_used = group.endpoints.iter().any(|ep| {
                 ep.response_type.as_ref().map(|rt| rt.as_rust_type() == type_name).unwrap_or(false)
                     || ep.request_type.as_ref().map(|rt| rt == type_name).unwrap_or(false)
@@ -535,24 +724,7 @@ impl UnifiedGenerator {
             }
         }
 
-        // Import only the shared types that are actually used
-        if !used_shared_types.is_empty() {
-            writeln!(out, "// Import shared types used by this module")?;
-            for (original, renamed) in &used_shared_types {
-                if original == renamed {
-                    writeln!(out, "use super::shared::{};", renamed)?;
-                } else {
-                    writeln!(out, "use super::shared::{} as {};", original, renamed)?;
-                }
-            }
-            writeln!(out)?;
-        }
-
-        // Always import core error/response types if there are endpoints
-        if !group.endpoints.is_empty() {
-            writeln!(out, "use super::shared::{{ApiResponse, ApiError, ApiPending}};")?;
-            writeln!(out)?;
-        }
+        // Shared type imports are written after transitive type collection below
 
         // Track types we've already generated (for shared types)
         let mut generated_types: HashSet<String> = HashSet::new();
@@ -584,20 +756,78 @@ impl UnifiedGenerator {
             }
         }
 
+        // Scan the actual shared module file to get all types it defines.
+        // This is more reliable than relying on the analyzer's shared_resources list.
+        let shared_mod_path = output_dir.join("shared").join("mod.rs");
+        let mut actual_shared_types: std::collections::HashSet<String> = std::collections::HashSet::new();
+        if let Ok(shared_content) = std::fs::read_to_string(&shared_mod_path) {
+            // Match "pub struct TypeName" and "pub enum TypeName" patterns
+            for cap in regex_shared_type_names(&shared_content) {
+                actual_shared_types.insert(cap);
+            }
+        }
+
+        // Add shared types found during transitive collection that weren't caught by direct endpoint check
+        for type_name in &all_types {
+            if (shared_resources.contains(type_name) || actual_shared_types.contains(type_name))
+                && !used_shared_types.iter().any(|(orig, _)| orig == type_name)
+            {
+                let renamed = rename_std_type_conflict(type_name);
+                used_shared_types.push((type_name.clone(), renamed));
+            }
+        }
+
+        // Ensure Empty and Operation are imported when used anywhere (endpoint responses, struct fields, etc.).
+        // These are always provided by crate::providers::common via super::shared, but may
+        // not appear in the group's own shared/mod.rs (they're re-exported from common).
+        for special_type in &["Empty", "Operation"] {
+            if all_types.contains(*special_type)
+                && !used_shared_types.iter().any(|(orig, _)| orig == special_type)
+            {
+                used_shared_types.push((special_type.to_string(), special_type.to_string()));
+            }
+        }
+
+        // Emit imports for shared types (both direct and transitively referenced)
+        if !used_shared_types.is_empty() {
+            writeln!(out, "// Import shared types used by this module")?;
+            for (original, renamed) in &used_shared_types {
+                if original == renamed {
+                    writeln!(out, "use super::shared::{};", renamed)?;
+                } else {
+                    writeln!(out, "use super::shared::{} as {};", original, renamed)?;
+                }
+            }
+            writeln!(out)?;
+        }
+
+        // ApiResponse is always used by the generated _request functions
+        if !group.endpoints.is_empty() {
+            writeln!(out, "use super::shared::ApiResponse;")?;
+            writeln!(out)?;
+        }
+
         // Generate type stubs for forward references
-        // (Types will be fully generated per-endpoint, but we need declarations first)
         writeln!(out, "// =============================================================================")?;
         writeln!(out, "// TYPE DECLARATIONS")?;
         writeln!(out, "// =============================================================================")?;
         writeln!(out)?;
 
-        // Generate types from schemas - skip types that are already in shared_resources
+        // Build dependency graph to detect recursive types (types that reference themselves)
+        let type_deps = build_type_dependencies(schemas);
+        let recursive_types = find_recursive_types(&type_deps);
+
+        // Generate types from schemas - skip types that are already in shared module
         for type_name in &all_types {
             if generated_types.contains(type_name) {
                 continue;
             }
             // Skip types that are defined in shared module
-            if shared_resources.contains(type_name) {
+            if shared_resources.contains(type_name) || actual_shared_types.contains(type_name) {
+                continue;
+            }
+            // Skip Empty and Operation — always provided by crate::providers::common via super::shared
+            if type_name == "Empty" || type_name == "Operation" {
                 continue;
             }
 
@@ -606,8 +836,8 @@ impl UnifiedGenerator {
 
             // Try to find the schema for this type
             if let Some(schema) = schemas.get(type_name) {
-                // Generate proper struct from schema
-                self.generate_type_from_schema(&mut out, &safe_type_name, schema, schemas)?;
+                // Generate proper struct from schema, wrapping recursive refs in Box<>
+                self.generate_type_from_schema(&mut out, &safe_type_name, schema, schemas, &recursive_types)?;
             } else {
                 // No schema found - generate placeholder struct
                 writeln!(out, "/// `{}` response type.", safe_type_name)?;
@@ -689,6 +919,7 @@ impl UnifiedGenerator {
         type_name: &str,
         schema: &crate::spec::Schema,
         schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
+        recursive_types: &std::collections::HashSet<String>,
     ) -> Result<(), GenError> {
         use crate::spec::Schema as SpecSchema;
         use std::collections::BTreeMap;
@@ -706,7 +937,7 @@ impl UnifiedGenerator {
                 if let Some(props) = &member.properties {
                     for (k, v) in props {
                         // Deduplicate by snake_case field name to avoid duplicates like "Version" and "version"
-                        let field_name = escape_rust_keyword(&to_snake_case(k));
+                        let field_name = escape_field_keyword(&to_snake_case(k));
                         all_properties.insert(field_name, (k.clone(), v.clone()));
                     }
                 }
@@ -718,6 +949,7 @@ impl UnifiedGenerator {
             // Generate fields from merged properties
             for (field_name, (prop_name, prop_schema)) in &all_properties {
                 let rust_type = self.schema_to_rust_type(prop_schema, schemas);
+                let rust_type = maybe_box_type(&rust_type, recursive_types);
                 let is_required = required.contains(prop_name);
 
                 writeln!(out, "    /// `{}` property.", prop_name)?;
@@ -734,7 +966,7 @@ impl UnifiedGenerator {
             let mut generated_fields: BTreeMap<String, (String, &SpecSchema)> = BTreeMap::new();
 
             for (prop_name, prop_schema) in properties {
-                let field_name = escape_rust_keyword(&to_snake_case(prop_name));
+                let field_name = escape_field_keyword(&to_snake_case(prop_name));
                 // Skip if we already generated this field (handles "Version" vs "version" duplicates)
                 if generated_fields.contains_key(&field_name) {
                     continue;
@@ -742,6 +974,7 @@ impl UnifiedGenerator {
                 generated_fields.insert(field_name.clone(), (prop_name.clone(), prop_schema));
 
                 let rust_type = self.schema_to_rust_type(prop_schema, schemas);
+                let rust_type = maybe_box_type(&rust_type, recursive_types);
                 let is_required = required.contains(prop_name);
 
                 writeln!(out, "    /// {} property.", prop_name)?;
@@ -950,7 +1183,7 @@ impl UnifiedGenerator {
         writeln!(out, "//! DO NOT EDIT MANUALLY.")?;
         writeln!(out)?;
         writeln!(out, "// Re-export common API types from foundation_deployment")?;
-        writeln!(out, "pub use crate::providers::common::{{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, RequestIntro}};")?;
+        writeln!(out, "pub use crate::providers::common::{{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation, RequestIntro}};")?;
         writeln!(out)?;
         writeln!(out, "// Imports for shared resource types")?;
         writeln!(out, "use foundation_macros::JsonHash;")?;
@@ -963,7 +1196,6 @@ impl UnifiedGenerator {
 
         for type_name in &analysis.shared_resources {
             // Skip types that aren't valid identifiers (generics like Vec<...>, paths with ::, etc.)
-            // Check for generic type patterns - anything with < > or :: is not a simple identifier
             if type_name.contains('<') || type_name.contains('>') || type_name.contains("::") {
                 continue;
             }
@@ -973,6 +1205,10 @@ impl UnifiedGenerator {
             }
             // Skip array-like types (Vec, Option, etc. used as raw type names without generics)
             if ["Vec", "Option", "HashMap", "BTreeMap", "Box", "Rc", "Arc", "Cow"].contains(&type_name.as_str()) {
+                continue;
+            }
+            // Skip Empty and Operation — provided by crate::providers::common
+            if type_name == "Empty" || type_name == "Operation" {
                 continue;
             }
 
@@ -1010,15 +1246,21 @@ impl UnifiedGenerator {
         writeln!(out, "#![cfg(feature = \"{}\")]", feature_name)?;
         writeln!(out, "#![allow(clippy::too_many_arguments, clippy::type_complexity)]")?;
         writeln!(out, "#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]")?;
+        writeln!(out, "#![allow(unused_imports)]")?;
         writeln!(out)?;
 
         // Shared module - always generated (contains ApiError, ApiResponse, etc.)
         writeln!(out, "pub mod shared;")?;
         writeln!(out)?;
 
-        // Group modules (use sanitized names)
+        // Group modules (use sanitized names, deduplicated)
+        let mut seen_modules = std::collections::HashSet::new();
         for group in groups {
             let safe_name = sanitize_group_name(&group.name);
+            let safe_name = sanitize_module_name(&safe_name);
+            if !seen_modules.insert(safe_name.clone()) {
+                continue; // duplicate module name — skip
+            }
             writeln!(out, "#[cfg(feature = \"{}_{}\")]", feature_name, safe_name)?;
             writeln!(out, "pub mod {};", safe_name)?;
         }

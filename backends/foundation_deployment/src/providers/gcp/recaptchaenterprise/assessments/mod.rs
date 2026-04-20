@@ -12,28 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentBehavioralTrustVerdict` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentBehavioralTrustVerdict {
-    /// trust property.
-    pub trust: Option<f64>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentResponse {}
 
 /// `GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,33 +35,25 @@ pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessment {
     pub labels: Option<Vec<String>>,
 }
 
-/// `GoogleCloudRecaptchaenterpriseV1FirewallPolicyAssessment` type.
+/// `GoogleCloudRecaptchaenterpriseV1FirewallActionIncludeRecaptchaScriptAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FirewallPolicyAssessment {
-    /// error property.
-    pub error: Option<GoogleRpcStatus>,
-    /// firewallPolicy property.
-    pub firewall_policy: Option<GoogleCloudRecaptchaenterpriseV1FirewallPolicy>,
-}
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionIncludeRecaptchaScriptAction {}
 
-/// `GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentStolenInstrumentVerdict` type.
+/// `GoogleCloudRecaptchaenterpriseV1TransactionDataAddress` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentStolenInstrumentVerdict {
-    /// risk property.
-    pub risk: Option<f64>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1TransactionDataGatewayInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataGatewayInfo {
-    /// avsResponseCode property.
-    pub avs_response_code: Option<String>,
-    /// cvvResponseCode property.
-    pub cvv_response_code: Option<String>,
-    /// gatewayResponseCode property.
-    pub gateway_response_code: Option<String>,
-    /// name property.
-    pub name: Option<String>,
+pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataAddress {
+    /// address property.
+    pub address: Option<Vec<String>>,
+    /// administrativeArea property.
+    pub administrative_area: Option<String>,
+    /// locality property.
+    pub locality: Option<String>,
+    /// postalCode property.
+    pub postal_code: Option<String>,
+    /// recipient property.
+    pub recipient: Option<String>,
+    /// regionCode property.
+    pub region_code: Option<String>,
 }
 
 /// `GoogleCloudRecaptchaenterpriseV1AccountVerificationInfo` type.
@@ -87,16 +69,160 @@ pub struct GoogleCloudRecaptchaenterpriseV1AccountVerificationInfo {
     pub username: Option<String>,
 }
 
-/// `GoogleCloudRecaptchaenterpriseV1FirewallActionSubstituteAction` type.
+/// `GoogleCloudRecaptchaenterpriseV1TokenProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionSubstituteAction {
-    /// path property.
-    pub path: Option<String>,
+pub struct GoogleCloudRecaptchaenterpriseV1TokenProperties {
+    /// action property.
+    pub action: Option<String>,
+    /// androidPackageName property.
+    pub android_package_name: Option<String>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// hostname property.
+    pub hostname: Option<String>,
+    /// invalidReason property.
+    pub invalid_reason: Option<String>,
+    /// iosBundleId property.
+    pub ios_bundle_id: Option<String>,
+    /// valid property.
+    pub valid: Option<bool>,
 }
 
 /// `GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountTrustReason` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountTrustReason {
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessment {
+    /// behavioralTrustVerdict property.
+    pub behavioral_trust_verdict:
+        Option<GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentBehavioralTrustVerdict>,
+    /// cardTestingVerdict property.
+    pub card_testing_verdict:
+        Option<GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentCardTestingVerdict>,
+    /// riskReasons property.
+    pub risk_reasons:
+        Option<Vec<GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentRiskReason>>,
+    /// stolenInstrumentVerdict property.
+    pub stolen_instrument_verdict:
+        Option<GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentStolenInstrumentVerdict>,
+    /// transactionRisk property.
+    pub transaction_risk: Option<f64>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1FirewallPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallPolicy {
+    /// actions property.
+    pub actions: Option<Vec<GoogleCloudRecaptchaenterpriseV1FirewallAction>>,
+    /// condition property.
+    pub condition: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// path property.
+    pub path: Option<String>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1FirewallPolicyAssessment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallPolicyAssessment {
+    /// error property.
+    pub error: Option<GoogleRpcStatus>,
+    /// firewallPolicy property.
+    pub firewall_policy: Option<GoogleCloudRecaptchaenterpriseV1FirewallPolicy>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1Bot` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1Bot {
+    /// botType property.
+    pub bot_type: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentResponse {}
+
+/// `GoogleCloudRecaptchaenterpriseV1PhoneFraudAssessment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1PhoneFraudAssessment {
+    /// smsTollFraudVerdict property.
+    pub sms_toll_fraud_verdict: Option<GoogleCloudRecaptchaenterpriseV1SmsTollFraudVerdict>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentBehavioralTrustVerdict` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentBehavioralTrustVerdict {
+    /// trust property.
+    pub trust: Option<f64>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1FirewallAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallAction {
+    /// allow property.
+    pub allow: Option<GoogleCloudRecaptchaenterpriseV1FirewallActionAllowAction>,
+    /// block property.
+    pub block: Option<GoogleCloudRecaptchaenterpriseV1FirewallActionBlockAction>,
+    /// includeRecaptchaScript property.
+    pub include_recaptcha_script:
+        Option<GoogleCloudRecaptchaenterpriseV1FirewallActionIncludeRecaptchaScriptAction>,
+    /// redirect property.
+    pub redirect: Option<GoogleCloudRecaptchaenterpriseV1FirewallActionRedirectAction>,
+    /// setHeader property.
+    pub set_header: Option<GoogleCloudRecaptchaenterpriseV1FirewallActionSetHeaderAction>,
+    /// substitute property.
+    pub substitute: Option<GoogleCloudRecaptchaenterpriseV1FirewallActionSubstituteAction>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1SmsTollFraudVerdict` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1SmsTollFraudVerdict {
+    /// reasons property.
+    pub reasons: Option<Vec<String>>,
+    /// risk property.
+    pub risk: Option<f64>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1FirewallActionAllowAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionAllowAction {}
+
+/// `GoogleCloudRecaptchaenterpriseV1TransactionDataGatewayInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataGatewayInfo {
+    /// avsResponseCode property.
+    pub avs_response_code: Option<String>,
+    /// cvvResponseCode property.
+    pub cvv_response_code: Option<String>,
+    /// gatewayResponseCode property.
+    pub gateway_response_code: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentRiskReason` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentRiskReason {
     /// reason property.
     pub reason: Option<String>,
 }
@@ -110,15 +236,141 @@ pub struct GoogleCloudRecaptchaenterpriseV1FraudSignalsUserSignals {
     pub synthetic_risk: Option<f64>,
 }
 
-/// `GoogleRpcStatus` type.
+/// `GoogleCloudRecaptchaenterpriseV1FirewallActionSetHeaderAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionSetHeaderAction {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountTakeoverVerdict` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountTakeoverVerdict {
+    /// risk property.
+    pub risk: Option<f64>,
+    /// riskReasons property.
+    pub risk_reasons:
+        Option<Vec<GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountRiskReason>>,
+    /// trustReasons property.
+    pub trust_reasons:
+        Option<Vec<GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountTrustReason>>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1FirewallActionRedirectAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionRedirectAction {}
+
+/// `GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentCardTestingVerdict` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentCardTestingVerdict {
+    /// risk property.
+    pub risk: Option<f64>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1RiskAnalysis` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1RiskAnalysis {
+    /// challenge property.
+    pub challenge: Option<String>,
+    /// extendedVerdictReasons property.
+    pub extended_verdict_reasons: Option<Vec<String>>,
+    /// reasons property.
+    pub reasons: Option<Vec<String>>,
+    /// score property.
+    pub score: Option<f64>,
+    /// verifiedBots property.
+    pub verified_bots: Option<Vec<GoogleCloudRecaptchaenterpriseV1Bot>>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1AssessmentEnvironment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1AssessmentEnvironment {
+    /// client property.
+    pub client: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1FirewallActionSubstituteAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionSubstituteAction {
+    /// path property.
+    pub path: Option<String>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1EndpointVerificationInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1EndpointVerificationInfo {
+    /// emailAddress property.
+    pub email_address: Option<String>,
+    /// lastVerificationTime property.
+    pub last_verification_time: Option<String>,
+    /// phoneNumber property.
+    pub phone_number: Option<String>,
+    /// requestToken property.
+    pub request_token: Option<String>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1Assessment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1Assessment {
+    /// accountDefenderAssessment property.
+    pub account_defender_assessment:
+        Option<GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessment>,
+    /// accountVerification property.
+    pub account_verification: Option<GoogleCloudRecaptchaenterpriseV1AccountVerificationInfo>,
+    /// assessmentEnvironment property.
+    pub assessment_environment: Option<GoogleCloudRecaptchaenterpriseV1AssessmentEnvironment>,
+    /// event property.
+    pub event: Option<GoogleCloudRecaptchaenterpriseV1Event>,
+    /// firewallPolicyAssessment property.
+    pub firewall_policy_assessment:
+        Option<GoogleCloudRecaptchaenterpriseV1FirewallPolicyAssessment>,
+    /// fraudPreventionAssessment property.
+    pub fraud_prevention_assessment:
+        Option<GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessment>,
+    /// fraudSignals property.
+    pub fraud_signals: Option<GoogleCloudRecaptchaenterpriseV1FraudSignals>,
+    /// name property.
+    pub name: Option<String>,
+    /// phoneFraudAssessment property.
+    pub phone_fraud_assessment: Option<GoogleCloudRecaptchaenterpriseV1PhoneFraudAssessment>,
+    /// privatePasswordLeakVerification property.
+    pub private_password_leak_verification:
+        Option<GoogleCloudRecaptchaenterpriseV1PrivatePasswordLeakVerification>,
+    /// riskAnalysis property.
+    pub risk_analysis: Option<GoogleCloudRecaptchaenterpriseV1RiskAnalysis>,
+    /// tokenProperties property.
+    pub token_properties: Option<GoogleCloudRecaptchaenterpriseV1TokenProperties>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1FraudSignalsCardSignals` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FraudSignalsCardSignals {
+    /// cardLabels property.
+    pub card_labels: Option<Vec<String>>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentStolenInstrumentVerdict` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentStolenInstrumentVerdict {
+    /// risk property.
+    pub risk: Option<f64>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1TransactionDataItem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataItem {
+    /// merchantAccountId property.
+    pub merchant_account_id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// quantity property.
+    pub quantity: Option<String>,
+    /// value property.
+    pub value: Option<f64>,
 }
 
 /// `GoogleCloudRecaptchaenterpriseV1Event` type.
@@ -158,47 +410,68 @@ pub struct GoogleCloudRecaptchaenterpriseV1Event {
     pub waf_token_assessment: Option<bool>,
 }
 
-/// `GoogleCloudRecaptchaenterpriseV1TokenProperties` type.
+/// `GoogleCloudRecaptchaenterpriseV1TransactionData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1TokenProperties {
-    /// action property.
-    pub action: Option<String>,
-    /// androidPackageName property.
-    pub android_package_name: Option<String>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// hostname property.
-    pub hostname: Option<String>,
-    /// invalidReason property.
-    pub invalid_reason: Option<String>,
-    /// iosBundleId property.
-    pub ios_bundle_id: Option<String>,
-    /// valid property.
-    pub valid: Option<bool>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1RiskAnalysis` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1RiskAnalysis {
-    /// challenge property.
-    pub challenge: Option<String>,
-    /// extendedVerdictReasons property.
-    pub extended_verdict_reasons: Option<Vec<String>>,
-    /// reasons property.
-    pub reasons: Option<Vec<String>>,
-    /// score property.
-    pub score: Option<f64>,
-    /// verifiedBots property.
-    pub verified_bots: Option<Vec<GoogleCloudRecaptchaenterpriseV1Bot>>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1FirewallActionSetHeaderAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionSetHeaderAction {
-    /// key property.
-    pub key: Option<String>,
+pub struct GoogleCloudRecaptchaenterpriseV1TransactionData {
+    /// billingAddress property.
+    pub billing_address: Option<GoogleCloudRecaptchaenterpriseV1TransactionDataAddress>,
+    /// cardBin property.
+    pub card_bin: Option<String>,
+    /// cardLastFour property.
+    pub card_last_four: Option<String>,
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// gatewayInfo property.
+    pub gateway_info: Option<GoogleCloudRecaptchaenterpriseV1TransactionDataGatewayInfo>,
+    /// items property.
+    pub items: Option<Vec<GoogleCloudRecaptchaenterpriseV1TransactionDataItem>>,
+    /// merchants property.
+    pub merchants: Option<Vec<GoogleCloudRecaptchaenterpriseV1TransactionDataUser>>,
+    /// paymentMethod property.
+    pub payment_method: Option<String>,
+    /// shippingAddress property.
+    pub shipping_address: Option<GoogleCloudRecaptchaenterpriseV1TransactionDataAddress>,
+    /// shippingValue property.
+    pub shipping_value: Option<f64>,
+    /// transactionId property.
+    pub transaction_id: Option<String>,
+    /// user property.
+    pub user: Option<GoogleCloudRecaptchaenterpriseV1TransactionDataUser>,
     /// value property.
-    pub value: Option<String>,
+    pub value: Option<f64>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1UserInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1UserInfo {
+    /// accountId property.
+    pub account_id: Option<String>,
+    /// createAccountTime property.
+    pub create_account_time: Option<String>,
+    /// userIds property.
+    pub user_ids: Option<Vec<GoogleCloudRecaptchaenterpriseV1UserId>>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountRiskReason` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountRiskReason {
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1FirewallActionBlockAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionBlockAction {}
+
+/// `GoogleCloudRecaptchaenterpriseV1UserId` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1UserId {
+    /// email property.
+    pub email: Option<String>,
+    /// phoneNumber property.
+    pub phone_number: Option<String>,
+    /// username property.
+    pub username: Option<String>,
 }
 
 /// `GoogleCloudRecaptchaenterpriseV1PrivatePasswordLeakVerification` type.
@@ -231,26 +504,6 @@ pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataUser {
     pub phone_verified: Option<bool>,
 }
 
-/// `GoogleCloudRecaptchaenterpriseV1EndpointVerificationInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1EndpointVerificationInfo {
-    /// emailAddress property.
-    pub email_address: Option<String>,
-    /// lastVerificationTime property.
-    pub last_verification_time: Option<String>,
-    /// phoneNumber property.
-    pub phone_number: Option<String>,
-    /// requestToken property.
-    pub request_token: Option<String>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1PhoneFraudAssessment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1PhoneFraudAssessment {
-    /// smsTollFraudVerdict property.
-    pub sms_toll_fraud_verdict: Option<GoogleCloudRecaptchaenterpriseV1SmsTollFraudVerdict>,
-}
-
 /// `GoogleCloudRecaptchaenterpriseV1FraudSignals` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1FraudSignals {
@@ -258,258 +511,6 @@ pub struct GoogleCloudRecaptchaenterpriseV1FraudSignals {
     pub card_signals: Option<GoogleCloudRecaptchaenterpriseV1FraudSignalsCardSignals>,
     /// userSignals property.
     pub user_signals: Option<GoogleCloudRecaptchaenterpriseV1FraudSignalsUserSignals>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1TransactionDataAddress` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataAddress {
-    /// address property.
-    pub address: Option<Vec<String>>,
-    /// administrativeArea property.
-    pub administrative_area: Option<String>,
-    /// locality property.
-    pub locality: Option<String>,
-    /// postalCode property.
-    pub postal_code: Option<String>,
-    /// recipient property.
-    pub recipient: Option<String>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentCardTestingVerdict` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentCardTestingVerdict {
-    /// risk property.
-    pub risk: Option<f64>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1AssessmentEnvironment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1AssessmentEnvironment {
-    /// client property.
-    pub client: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1FirewallActionBlockAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionBlockAction {}
-
-/// `GoogleCloudRecaptchaenterpriseV1FirewallActionIncludeRecaptchaScriptAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionIncludeRecaptchaScriptAction {}
-
-/// `GoogleCloudRecaptchaenterpriseV1TransactionData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1TransactionData {
-    /// billingAddress property.
-    pub billing_address: Option<GoogleCloudRecaptchaenterpriseV1TransactionDataAddress>,
-    /// cardBin property.
-    pub card_bin: Option<String>,
-    /// cardLastFour property.
-    pub card_last_four: Option<String>,
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// gatewayInfo property.
-    pub gateway_info: Option<GoogleCloudRecaptchaenterpriseV1TransactionDataGatewayInfo>,
-    /// items property.
-    pub items: Option<Vec<GoogleCloudRecaptchaenterpriseV1TransactionDataItem>>,
-    /// merchants property.
-    pub merchants: Option<Vec<GoogleCloudRecaptchaenterpriseV1TransactionDataUser>>,
-    /// paymentMethod property.
-    pub payment_method: Option<String>,
-    /// shippingAddress property.
-    pub shipping_address: Option<GoogleCloudRecaptchaenterpriseV1TransactionDataAddress>,
-    /// shippingValue property.
-    pub shipping_value: Option<f64>,
-    /// transactionId property.
-    pub transaction_id: Option<String>,
-    /// user property.
-    pub user: Option<GoogleCloudRecaptchaenterpriseV1TransactionDataUser>,
-    /// value property.
-    pub value: Option<f64>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1TransactionDataItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataItem {
-    /// merchantAccountId property.
-    pub merchant_account_id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// quantity property.
-    pub quantity: Option<String>,
-    /// value property.
-    pub value: Option<f64>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentRiskReason` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentRiskReason {
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountTakeoverVerdict` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountTakeoverVerdict {
-    /// risk property.
-    pub risk: Option<f64>,
-    /// riskReasons property.
-    pub risk_reasons:
-        Option<Vec<GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountRiskReason>>,
-    /// trustReasons property.
-    pub trust_reasons:
-        Option<Vec<GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountTrustReason>>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1Bot` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1Bot {
-    /// botType property.
-    pub bot_type: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1FirewallPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FirewallPolicy {
-    /// actions property.
-    pub actions: Option<Vec<GoogleCloudRecaptchaenterpriseV1FirewallAction>>,
-    /// condition property.
-    pub condition: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1FraudSignalsCardSignals` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FraudSignalsCardSignals {
-    /// cardLabels property.
-    pub card_labels: Option<Vec<String>>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1FirewallActionRedirectAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionRedirectAction {}
-
-/// `GoogleCloudRecaptchaenterpriseV1Assessment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1Assessment {
-    /// accountDefenderAssessment property.
-    pub account_defender_assessment:
-        Option<GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessment>,
-    /// accountVerification property.
-    pub account_verification: Option<GoogleCloudRecaptchaenterpriseV1AccountVerificationInfo>,
-    /// assessmentEnvironment property.
-    pub assessment_environment: Option<GoogleCloudRecaptchaenterpriseV1AssessmentEnvironment>,
-    /// event property.
-    pub event: Option<GoogleCloudRecaptchaenterpriseV1Event>,
-    /// firewallPolicyAssessment property.
-    pub firewall_policy_assessment:
-        Option<GoogleCloudRecaptchaenterpriseV1FirewallPolicyAssessment>,
-    /// fraudPreventionAssessment property.
-    pub fraud_prevention_assessment:
-        Option<GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessment>,
-    /// fraudSignals property.
-    pub fraud_signals: Option<GoogleCloudRecaptchaenterpriseV1FraudSignals>,
-    /// name property.
-    pub name: Option<String>,
-    /// phoneFraudAssessment property.
-    pub phone_fraud_assessment: Option<GoogleCloudRecaptchaenterpriseV1PhoneFraudAssessment>,
-    /// privatePasswordLeakVerification property.
-    pub private_password_leak_verification:
-        Option<GoogleCloudRecaptchaenterpriseV1PrivatePasswordLeakVerification>,
-    /// riskAnalysis property.
-    pub risk_analysis: Option<GoogleCloudRecaptchaenterpriseV1RiskAnalysis>,
-    /// tokenProperties property.
-    pub token_properties: Option<GoogleCloudRecaptchaenterpriseV1TokenProperties>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessment {
-    /// behavioralTrustVerdict property.
-    pub behavioral_trust_verdict:
-        Option<GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentBehavioralTrustVerdict>,
-    /// cardTestingVerdict property.
-    pub card_testing_verdict:
-        Option<GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentCardTestingVerdict>,
-    /// riskReasons property.
-    pub risk_reasons:
-        Option<Vec<GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentRiskReason>>,
-    /// stolenInstrumentVerdict property.
-    pub stolen_instrument_verdict:
-        Option<GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentStolenInstrumentVerdict>,
-    /// transactionRisk property.
-    pub transaction_risk: Option<f64>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1FirewallAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FirewallAction {
-    /// allow property.
-    pub allow: Option<GoogleCloudRecaptchaenterpriseV1FirewallActionAllowAction>,
-    /// block property.
-    pub block: Option<GoogleCloudRecaptchaenterpriseV1FirewallActionBlockAction>,
-    /// includeRecaptchaScript property.
-    pub include_recaptcha_script:
-        Option<GoogleCloudRecaptchaenterpriseV1FirewallActionIncludeRecaptchaScriptAction>,
-    /// redirect property.
-    pub redirect: Option<GoogleCloudRecaptchaenterpriseV1FirewallActionRedirectAction>,
-    /// setHeader property.
-    pub set_header: Option<GoogleCloudRecaptchaenterpriseV1FirewallActionSetHeaderAction>,
-    /// substitute property.
-    pub substitute: Option<GoogleCloudRecaptchaenterpriseV1FirewallActionSubstituteAction>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1UserInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1UserInfo {
-    /// accountId property.
-    pub account_id: Option<String>,
-    /// createAccountTime property.
-    pub create_account_time: Option<String>,
-    /// userIds property.
-    pub user_ids: Option<Vec<GoogleCloudRecaptchaenterpriseV1UserId>>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1UserId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1UserId {
-    /// email property.
-    pub email: Option<String>,
-    /// phoneNumber property.
-    pub phone_number: Option<String>,
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1FirewallActionAllowAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionAllowAction {}
-
-/// `GoogleCloudRecaptchaenterpriseV1SmsTollFraudVerdict` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1SmsTollFraudVerdict {
-    /// reasons property.
-    pub reasons: Option<Vec<String>>,
-    /// risk property.
-    pub risk: Option<f64>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountRiskReason` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountRiskReason {
-    /// reason property.
-    pub reason: Option<String>,
 }
 
 // =============================================================================

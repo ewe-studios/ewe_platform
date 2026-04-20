@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -24,9 +25,9 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `CheckoutSession` response type.
+/// `BillingPortalSession` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CheckoutSession {
+pub struct BillingPortalSession {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -40,9 +41,9 @@ pub struct IdentityVerificationSession {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `BillingPortalSession` response type.
+/// `FinancialConnectionsSession` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BillingPortalSession {
+pub struct FinancialConnectionsSession {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -56,9 +57,9 @@ pub struct AccountSession {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `FinancialConnectionsSession` response type.
+/// `CheckoutSession` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FinancialConnectionsSession {
+pub struct CheckoutSession {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

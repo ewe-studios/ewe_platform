@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,11 +23,75 @@ use serde::{Deserialize, Serialize};
 use super::shared::Empty;
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `AutoscalingConfigOverrides` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutoscalingConfigOverrides {
+    /// autoscalingLimits property.
+    pub autoscaling_limits: Option<AutoscalingLimits>,
+    /// autoscalingTargetHighPriorityCpuUtilizationPercent property.
+    pub autoscaling_target_high_priority_cpu_utilization_percent: Option<i64>,
+    /// autoscalingTargetTotalCpuUtilizationPercent property.
+    pub autoscaling_target_total_cpu_utilization_percent: Option<i64>,
+    /// disableHighPriorityCpuAutoscaling property.
+    pub disable_high_priority_cpu_autoscaling: Option<bool>,
+    /// disableTotalCpuAutoscaling property.
+    pub disable_total_cpu_autoscaling: Option<bool>,
+}
+
+/// `ListInstancePartitionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListInstancePartitionsResponse {
+    /// instancePartitions property.
+    pub instance_partitions: Option<Vec<InstancePartition>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `AutoscalingTargets` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutoscalingTargets {
+    /// highPriorityCpuUtilizationPercent property.
+    pub high_priority_cpu_utilization_percent: Option<i64>,
+    /// storageUtilizationPercent property.
+    pub storage_utilization_percent: Option<i64>,
+    /// totalCpuUtilizationPercent property.
+    pub total_cpu_utilization_percent: Option<i64>,
+}
+
+/// `InstanceReplicaSelection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceReplicaSelection {
+    /// location property.
+    pub location: Option<String>,
+}
+
+/// `AsymmetricAutoscalingOption` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AsymmetricAutoscalingOption {
+    /// overrides property.
+    pub overrides: Option<AutoscalingConfigOverrides>,
+    /// replicaSelection property.
+    pub replica_selection: Option<InstanceReplicaSelection>,
+}
 
 /// `AutoscalingLimits` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -39,13 +104,6 @@ pub struct AutoscalingLimits {
     pub min_nodes: Option<i64>,
     /// minProcessingUnits property.
     pub min_processing_units: Option<i64>,
-}
-
-/// `InstanceReplicaSelection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceReplicaSelection {
-    /// location property.
-    pub location: Option<String>,
 }
 
 /// `InstancePartition` type.
@@ -77,39 +135,6 @@ pub struct InstancePartition {
     pub update_time: Option<String>,
 }
 
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `ListInstancePartitionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListInstancePartitionsResponse {
-    /// instancePartitions property.
-    pub instance_partitions: Option<Vec<InstancePartition>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `AutoscalingTargets` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoscalingTargets {
-    /// highPriorityCpuUtilizationPercent property.
-    pub high_priority_cpu_utilization_percent: Option<i64>,
-    /// storageUtilizationPercent property.
-    pub storage_utilization_percent: Option<i64>,
-    /// totalCpuUtilizationPercent property.
-    pub total_cpu_utilization_percent: Option<i64>,
-}
-
 /// `AutoscalingConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalingConfig {
@@ -119,30 +144,6 @@ pub struct AutoscalingConfig {
     pub autoscaling_limits: Option<AutoscalingLimits>,
     /// autoscalingTargets property.
     pub autoscaling_targets: Option<AutoscalingTargets>,
-}
-
-/// `AsymmetricAutoscalingOption` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AsymmetricAutoscalingOption {
-    /// overrides property.
-    pub overrides: Option<AutoscalingConfigOverrides>,
-    /// replicaSelection property.
-    pub replica_selection: Option<InstanceReplicaSelection>,
-}
-
-/// `AutoscalingConfigOverrides` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoscalingConfigOverrides {
-    /// autoscalingLimits property.
-    pub autoscaling_limits: Option<AutoscalingLimits>,
-    /// autoscalingTargetHighPriorityCpuUtilizationPercent property.
-    pub autoscaling_target_high_priority_cpu_utilization_percent: Option<i64>,
-    /// autoscalingTargetTotalCpuUtilizationPercent property.
-    pub autoscaling_target_total_cpu_utilization_percent: Option<i64>,
-    /// disableHighPriorityCpuAutoscaling property.
-    pub disable_high_priority_cpu_autoscaling: Option<bool>,
-    /// disableTotalCpuAutoscaling property.
-    pub disable_total_cpu_autoscaling: Option<bool>,
 }
 
 // =============================================================================

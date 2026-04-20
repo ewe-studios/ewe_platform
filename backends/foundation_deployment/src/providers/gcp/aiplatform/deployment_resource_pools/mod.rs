@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,27 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudAiplatformV1ExplanationSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ExplanationSpec {
+    /// metadata property.
+    pub metadata: Option<GoogleCloudAiplatformV1ExplanationMetadata>,
+    /// parameters property.
+    pub parameters: Option<GoogleCloudAiplatformV1ExplanationParameters>,
+}
+
+/// `GoogleCloudAiplatformV1SpeculativeDecodingSpecDraftModelSpeculation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1SpeculativeDecodingSpecDraftModelSpeculation {
+    /// draftModel property.
+    pub draft_model: Option<String>,
+}
 
 /// `GoogleCloudAiplatformV1PrivateEndpoints` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,31 +57,26 @@ pub struct GoogleCloudAiplatformV1PrivateEndpoints {
     pub service_attachment: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1ExplanationSpec` type.
+/// `GoogleCloudAiplatformV1IntegratedGradientsAttribution` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ExplanationSpec {
-    /// metadata property.
-    pub metadata: Option<GoogleCloudAiplatformV1ExplanationMetadata>,
-    /// parameters property.
-    pub parameters: Option<GoogleCloudAiplatformV1ExplanationParameters>,
+pub struct GoogleCloudAiplatformV1IntegratedGradientsAttribution {
+    /// blurBaselineConfig property.
+    pub blur_baseline_config: Option<GoogleCloudAiplatformV1BlurBaselineConfig>,
+    /// smoothGradConfig property.
+    pub smooth_grad_config: Option<GoogleCloudAiplatformV1SmoothGradConfig>,
+    /// stepCount property.
+    pub step_count: Option<i64>,
 }
 
-/// `GoogleCloudAiplatformV1DeployedModelStatus` type.
+/// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DeployedModelStatus {
-    /// availableReplicaCount property.
-    pub available_replica_count: Option<i64>,
-    /// lastUpdateTime property.
-    pub last_update_time: Option<String>,
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1SpeculativeDecodingSpecDraftModelSpeculation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SpeculativeDecodingSpecDraftModelSpeculation {
-    /// draftModel property.
-    pub draft_model: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1DedicatedResources` type.
@@ -84,24 +96,52 @@ pub struct GoogleCloudAiplatformV1DedicatedResources {
     pub spot: Option<bool>,
 }
 
-/// `GoogleCloudAiplatformV1ExplanationMetadata` type.
+/// `GoogleCloudAiplatformV1DeployedModelStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ExplanationMetadata {
-    /// featureAttributionsSchemaUri property.
-    pub feature_attributions_schema_uri: Option<String>,
-    /// inputs property.
-    pub inputs: Option<serde_json::Value>,
-    /// latentSpaceSource property.
-    pub latent_space_source: Option<String>,
-    /// outputs property.
-    pub outputs: Option<serde_json::Value>,
+pub struct GoogleCloudAiplatformV1DeployedModelStatus {
+    /// availableReplicaCount property.
+    pub available_replica_count: Option<i64>,
+    /// lastUpdateTime property.
+    pub last_update_time: Option<String>,
+    /// message property.
+    pub message: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1SampledShapleyAttribution` type.
+/// `GoogleCloudAiplatformV1SpeculativeDecodingSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SampledShapleyAttribution {
-    /// pathCount property.
-    pub path_count: Option<i64>,
+pub struct GoogleCloudAiplatformV1SpeculativeDecodingSpec {
+    /// draftModelSpeculation property.
+    pub draft_model_speculation:
+        Option<GoogleCloudAiplatformV1SpeculativeDecodingSpecDraftModelSpeculation>,
+    /// ngramSpeculation property.
+    pub ngram_speculation: Option<GoogleCloudAiplatformV1SpeculativeDecodingSpecNgramSpeculation>,
+    /// speculativeTokenCount property.
+    pub speculative_token_count: Option<i64>,
+}
+
+/// `GoogleCloudAiplatformV1Presets` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1Presets {
+    /// modality property.
+    pub modality: Option<String>,
+    /// query property.
+    pub query: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1GcsSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1GcsSource {
+    /// uris property.
+    pub uris: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAiplatformV1AutomaticResources` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1AutomaticResources {
+    /// maxReplicaCount property.
+    pub max_replica_count: Option<i64>,
+    /// minReplicaCount property.
+    pub min_replica_count: Option<i64>,
 }
 
 /// `GoogleCloudAiplatformV1Examples` type.
@@ -117,42 +157,11 @@ pub struct GoogleCloudAiplatformV1Examples {
     pub presets: Option<GoogleCloudAiplatformV1Presets>,
 }
 
-/// `GoogleCloudAiplatformV1AutoscalingMetricSpec` type.
+/// `GoogleCloudAiplatformV1SampledShapleyAttribution` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1AutoscalingMetricSpec {
-    /// metricName property.
-    pub metric_name: Option<String>,
-    /// target property.
-    pub target: Option<i64>,
-}
-
-/// `GoogleCloudAiplatformV1ListDeploymentResourcePoolsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListDeploymentResourcePoolsResponse {
-    /// deploymentResourcePools property.
-    pub deployment_resource_pools: Option<Vec<GoogleCloudAiplatformV1DeploymentResourcePool>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ExamplesExampleGcsSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ExamplesExampleGcsSource {
-    /// dataFormat property.
-    pub data_format: Option<String>,
-    /// gcsSource property.
-    pub gcs_source: Option<GoogleCloudAiplatformV1GcsSource>,
-}
-
-/// `GoogleCloudAiplatformV1ReservationAffinity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReservationAffinity {
-    /// key property.
-    pub key: Option<String>,
-    /// reservationAffinityType property.
-    pub reservation_affinity_type: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
+pub struct GoogleCloudAiplatformV1SampledShapleyAttribution {
+    /// pathCount property.
+    pub path_count: Option<i64>,
 }
 
 /// `GoogleCloudAiplatformV1DeployedModel` type.
@@ -200,11 +209,138 @@ pub struct GoogleCloudAiplatformV1DeployedModel {
     pub system_labels: Option<serde_json::Value>,
 }
 
+/// `GoogleCloudAiplatformV1MachineSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1MachineSpec {
+    /// acceleratorCount property.
+    pub accelerator_count: Option<i64>,
+    /// acceleratorType property.
+    pub accelerator_type: Option<String>,
+    /// gpuPartitionSize property.
+    pub gpu_partition_size: Option<String>,
+    /// machineType property.
+    pub machine_type: Option<String>,
+    /// reservationAffinity property.
+    pub reservation_affinity: Option<GoogleCloudAiplatformV1ReservationAffinity>,
+    /// tpuTopology property.
+    pub tpu_topology: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ListDeploymentResourcePoolsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ListDeploymentResourcePoolsResponse {
+    /// deploymentResourcePools property.
+    pub deployment_resource_pools: Option<Vec<GoogleCloudAiplatformV1DeploymentResourcePool>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1SpeculativeDecodingSpecNgramSpeculation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1SpeculativeDecodingSpecNgramSpeculation {
+    /// ngramSize property.
+    pub ngram_size: Option<i64>,
+}
+
+/// `GoogleCloudAiplatformV1XraiAttribution` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1XraiAttribution {
+    /// blurBaselineConfig property.
+    pub blur_baseline_config: Option<GoogleCloudAiplatformV1BlurBaselineConfig>,
+    /// smoothGradConfig property.
+    pub smooth_grad_config: Option<GoogleCloudAiplatformV1SmoothGradConfig>,
+    /// stepCount property.
+    pub step_count: Option<i64>,
+}
+
 /// `GoogleCloudAiplatformV1BlurBaselineConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BlurBaselineConfig {
     /// maxBlurSigma property.
     pub max_blur_sigma: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1QueryDeployedModelsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1QueryDeployedModelsResponse {
+    /// deployedModelRefs property.
+    pub deployed_model_refs: Option<Vec<GoogleCloudAiplatformV1DeployedModelRef>>,
+    /// deployedModels property.
+    pub deployed_models: Option<Vec<GoogleCloudAiplatformV1DeployedModel>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// totalDeployedModelCount property.
+    pub total_deployed_model_count: Option<i64>,
+    /// totalEndpointCount property.
+    pub total_endpoint_count: Option<i64>,
+}
+
+/// `GoogleCloudAiplatformV1FeatureNoiseSigma` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FeatureNoiseSigma {
+    /// noiseSigma property.
+    pub noise_sigma: Option<Vec<GoogleCloudAiplatformV1FeatureNoiseSigmaNoiseSigmaForFeature>>,
+}
+
+/// `GoogleCloudAiplatformV1AutoscalingMetricSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1AutoscalingMetricSpec {
+    /// metricName property.
+    pub metric_name: Option<String>,
+    /// target property.
+    pub target: Option<i64>,
+}
+
+/// `GoogleCloudAiplatformV1ExplanationParameters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ExplanationParameters {
+    /// examples property.
+    pub examples: Option<GoogleCloudAiplatformV1Examples>,
+    /// integratedGradientsAttribution property.
+    pub integrated_gradients_attribution:
+        Option<GoogleCloudAiplatformV1IntegratedGradientsAttribution>,
+    /// outputIndices property.
+    pub output_indices: Option<Vec<serde_json::Value>>,
+    /// sampledShapleyAttribution property.
+    pub sampled_shapley_attribution: Option<GoogleCloudAiplatformV1SampledShapleyAttribution>,
+    /// topK property.
+    pub top_k: Option<i64>,
+    /// xraiAttribution property.
+    pub xrai_attribution: Option<GoogleCloudAiplatformV1XraiAttribution>,
+}
+
+/// `GoogleCloudAiplatformV1DeployedModelRef` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1DeployedModelRef {
+    /// checkpointId property.
+    pub checkpoint_id: Option<String>,
+    /// deployedModelId property.
+    pub deployed_model_id: Option<String>,
+    /// endpoint property.
+    pub endpoint: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1FeatureNoiseSigmaNoiseSigmaForFeature` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FeatureNoiseSigmaNoiseSigmaForFeature {
+    /// name property.
+    pub name: Option<String>,
+    /// sigma property.
+    pub sigma: Option<f64>,
+}
+
+/// `GoogleCloudAiplatformV1FasterDeploymentConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FasterDeploymentConfig {
+    /// fastTryoutEnabled property.
+    pub fast_tryout_enabled: Option<bool>,
+}
+
+/// `GoogleCloudAiplatformV1EncryptionSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1EncryptionSpec {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1DeploymentResourcePool` type.
@@ -228,128 +364,24 @@ pub struct GoogleCloudAiplatformV1DeploymentResourcePool {
     pub service_account: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1QueryDeployedModelsResponse` type.
+/// `GoogleCloudAiplatformV1ReservationAffinity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1QueryDeployedModelsResponse {
-    /// deployedModelRefs property.
-    pub deployed_model_refs: Option<Vec<GoogleCloudAiplatformV1DeployedModelRef>>,
-    /// deployedModels property.
-    pub deployed_models: Option<Vec<GoogleCloudAiplatformV1DeployedModel>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// totalDeployedModelCount property.
-    pub total_deployed_model_count: Option<i64>,
-    /// totalEndpointCount property.
-    pub total_endpoint_count: Option<i64>,
+pub struct GoogleCloudAiplatformV1ReservationAffinity {
+    /// key property.
+    pub key: Option<String>,
+    /// reservationAffinityType property.
+    pub reservation_affinity_type: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
 }
 
-/// `GoogleCloudAiplatformV1EncryptionSpec` type.
+/// `GoogleCloudAiplatformV1ExamplesExampleGcsSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EncryptionSpec {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1AutomaticResources` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1AutomaticResources {
-    /// maxReplicaCount property.
-    pub max_replica_count: Option<i64>,
-    /// minReplicaCount property.
-    pub min_replica_count: Option<i64>,
-}
-
-/// `GoogleCloudAiplatformV1IntegratedGradientsAttribution` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1IntegratedGradientsAttribution {
-    /// blurBaselineConfig property.
-    pub blur_baseline_config: Option<GoogleCloudAiplatformV1BlurBaselineConfig>,
-    /// smoothGradConfig property.
-    pub smooth_grad_config: Option<GoogleCloudAiplatformV1SmoothGradConfig>,
-    /// stepCount property.
-    pub step_count: Option<i64>,
-}
-
-/// `GoogleCloudAiplatformV1XraiAttribution` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1XraiAttribution {
-    /// blurBaselineConfig property.
-    pub blur_baseline_config: Option<GoogleCloudAiplatformV1BlurBaselineConfig>,
-    /// smoothGradConfig property.
-    pub smooth_grad_config: Option<GoogleCloudAiplatformV1SmoothGradConfig>,
-    /// stepCount property.
-    pub step_count: Option<i64>,
-}
-
-/// `GoogleCloudAiplatformV1SpeculativeDecodingSpecNgramSpeculation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SpeculativeDecodingSpecNgramSpeculation {
-    /// ngramSize property.
-    pub ngram_size: Option<i64>,
-}
-
-/// `GoogleCloudAiplatformV1GcsSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GcsSource {
-    /// uris property.
-    pub uris: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAiplatformV1DeployedModelRef` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DeployedModelRef {
-    /// checkpointId property.
-    pub checkpoint_id: Option<String>,
-    /// deployedModelId property.
-    pub deployed_model_id: Option<String>,
-    /// endpoint property.
-    pub endpoint: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1SpeculativeDecodingSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SpeculativeDecodingSpec {
-    /// draftModelSpeculation property.
-    pub draft_model_speculation:
-        Option<GoogleCloudAiplatformV1SpeculativeDecodingSpecDraftModelSpeculation>,
-    /// ngramSpeculation property.
-    pub ngram_speculation: Option<GoogleCloudAiplatformV1SpeculativeDecodingSpecNgramSpeculation>,
-    /// speculativeTokenCount property.
-    pub speculative_token_count: Option<i64>,
-}
-
-/// `GoogleCloudAiplatformV1ExplanationParameters` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ExplanationParameters {
-    /// examples property.
-    pub examples: Option<GoogleCloudAiplatformV1Examples>,
-    /// integratedGradientsAttribution property.
-    pub integrated_gradients_attribution:
-        Option<GoogleCloudAiplatformV1IntegratedGradientsAttribution>,
-    /// outputIndices property.
-    pub output_indices: Option<Vec<serde_json::Value>>,
-    /// sampledShapleyAttribution property.
-    pub sampled_shapley_attribution: Option<GoogleCloudAiplatformV1SampledShapleyAttribution>,
-    /// topK property.
-    pub top_k: Option<i64>,
-    /// xraiAttribution property.
-    pub xrai_attribution: Option<GoogleCloudAiplatformV1XraiAttribution>,
-}
-
-/// `GoogleCloudAiplatformV1Presets` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Presets {
-    /// modality property.
-    pub modality: Option<String>,
-    /// query property.
-    pub query: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1FasterDeploymentConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FasterDeploymentConfig {
-    /// fastTryoutEnabled property.
-    pub fast_tryout_enabled: Option<bool>,
+pub struct GoogleCloudAiplatformV1ExamplesExampleGcsSource {
+    /// dataFormat property.
+    pub data_format: Option<String>,
+    /// gcsSource property.
+    pub gcs_source: Option<GoogleCloudAiplatformV1GcsSource>,
 }
 
 /// `GoogleCloudAiplatformV1SmoothGradConfig` type.
@@ -363,48 +395,17 @@ pub struct GoogleCloudAiplatformV1SmoothGradConfig {
     pub noisy_sample_count: Option<i64>,
 }
 
-/// `GoogleRpcStatus` type.
+/// `GoogleCloudAiplatformV1ExplanationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1FeatureNoiseSigma` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureNoiseSigma {
-    /// noiseSigma property.
-    pub noise_sigma: Option<Vec<GoogleCloudAiplatformV1FeatureNoiseSigmaNoiseSigmaForFeature>>,
-}
-
-/// `GoogleCloudAiplatformV1FeatureNoiseSigmaNoiseSigmaForFeature` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureNoiseSigmaNoiseSigmaForFeature {
-    /// name property.
-    pub name: Option<String>,
-    /// sigma property.
-    pub sigma: Option<f64>,
-}
-
-/// `GoogleCloudAiplatformV1MachineSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MachineSpec {
-    /// acceleratorCount property.
-    pub accelerator_count: Option<i64>,
-    /// acceleratorType property.
-    pub accelerator_type: Option<String>,
-    /// gpuPartitionSize property.
-    pub gpu_partition_size: Option<String>,
-    /// machineType property.
-    pub machine_type: Option<String>,
-    /// reservationAffinity property.
-    pub reservation_affinity: Option<GoogleCloudAiplatformV1ReservationAffinity>,
-    /// tpuTopology property.
-    pub tpu_topology: Option<String>,
+pub struct GoogleCloudAiplatformV1ExplanationMetadata {
+    /// featureAttributionsSchemaUri property.
+    pub feature_attributions_schema_uri: Option<String>,
+    /// inputs property.
+    pub inputs: Option<serde_json::Value>,
+    /// latentSpaceSource property.
+    pub latent_space_source: Option<String>,
+    /// outputs property.
+    pub outputs: Option<serde_json::Value>,
 }
 
 // =============================================================================

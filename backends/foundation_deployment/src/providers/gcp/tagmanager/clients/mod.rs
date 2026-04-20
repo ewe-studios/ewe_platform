@@ -12,24 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `RevertClientResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RevertClientResponse {
-    /// client property.
-    pub client: Option<Client>,
-}
 
 /// `Client` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -47,7 +41,7 @@ pub struct Client {
     /// notes property.
     pub notes: Option<String>,
     /// parameter property.
-    pub parameter: Option<Vec<Parameter>>,
+    pub parameter: Option<Vec<Box<Parameter>>>,
     /// parentFolderId property.
     pub parent_folder_id: Option<String>,
     /// path property.
@@ -62,6 +56,15 @@ pub struct Client {
     pub workspace_id: Option<String>,
 }
 
+/// `ListClientsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListClientsResponse {
+    /// client property.
+    pub client: Option<Vec<Client>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
 /// `Parameter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Parameter {
@@ -70,22 +73,20 @@ pub struct Parameter {
     /// key property.
     pub key: Option<String>,
     /// list property.
-    pub list: Option<Vec<Parameter>>,
+    pub list: Option<Vec<Box<Parameter>>>,
     /// map property.
-    pub map: Option<Vec<Parameter>>,
+    pub map: Option<Vec<Box<Parameter>>>,
     /// type property.
     pub r#type: Option<String>,
     /// value property.
     pub value: Option<String>,
 }
 
-/// `ListClientsResponse` type.
+/// `RevertClientResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListClientsResponse {
+pub struct RevertClientResponse {
     /// client property.
-    pub client: Option<Vec<Client>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+    pub client: Option<Client>,
 }
 
 // =============================================================================

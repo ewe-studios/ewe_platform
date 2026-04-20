@@ -12,17 +12,25 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleAdsHomeservicesLocalservicesV1AggregatorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAdsHomeservicesLocalservicesV1AggregatorInfo {
+    /// aggregatorProviderId property.
+    pub aggregator_provider_id: Option<String>,
+}
 
 /// `GoogleAdsHomeservicesLocalservicesV1PhoneLead` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -33,59 +41,6 @@ pub struct GoogleAdsHomeservicesLocalservicesV1PhoneLead {
     pub charged_connected_call_duration_seconds: Option<String>,
     /// consumerPhoneNumber property.
     pub consumer_phone_number: Option<String>,
-}
-
-/// `GoogleAdsHomeservicesLocalservicesV1SearchDetailedLeadReportsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAdsHomeservicesLocalservicesV1SearchDetailedLeadReportsResponse {
-    /// detailedLeadReports property.
-    pub detailed_lead_reports: Option<Vec<GoogleAdsHomeservicesLocalservicesV1DetailedLeadReport>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleAdsHomeservicesLocalservicesV1AggregatorInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAdsHomeservicesLocalservicesV1AggregatorInfo {
-    /// aggregatorProviderId property.
-    pub aggregator_provider_id: Option<String>,
-}
-
-/// `GoogleAdsHomeservicesLocalservicesV1MessageLead` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAdsHomeservicesLocalservicesV1MessageLead {
-    /// consumerPhoneNumber property.
-    pub consumer_phone_number: Option<String>,
-    /// customerName property.
-    pub customer_name: Option<String>,
-    /// jobType property.
-    pub job_type: Option<String>,
-    /// postalCode property.
-    pub postal_code: Option<String>,
-}
-
-/// `GoogleAdsHomeservicesLocalservicesV1BookingLead` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAdsHomeservicesLocalservicesV1BookingLead {
-    /// bookingAppointmentTimestamp property.
-    pub booking_appointment_timestamp: Option<String>,
-    /// consumerEmail property.
-    pub consumer_email: Option<String>,
-    /// consumerPhoneNumber property.
-    pub consumer_phone_number: Option<String>,
-    /// customerName property.
-    pub customer_name: Option<String>,
-    /// jobType property.
-    pub job_type: Option<String>,
-}
-
-/// `GoogleTypeTimeZone` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeTimeZone {
-    /// id property.
-    pub id: Option<String>,
-    /// version property.
-    pub version: Option<String>,
 }
 
 /// `GoogleAdsHomeservicesLocalservicesV1DetailedLeadReport` type.
@@ -125,6 +80,52 @@ pub struct GoogleAdsHomeservicesLocalservicesV1DetailedLeadReport {
     pub phone_lead: Option<GoogleAdsHomeservicesLocalservicesV1PhoneLead>,
     /// timezone property.
     pub timezone: Option<GoogleTypeTimeZone>,
+}
+
+/// `GoogleAdsHomeservicesLocalservicesV1SearchDetailedLeadReportsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAdsHomeservicesLocalservicesV1SearchDetailedLeadReportsResponse {
+    /// detailedLeadReports property.
+    pub detailed_lead_reports: Option<Vec<GoogleAdsHomeservicesLocalservicesV1DetailedLeadReport>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleAdsHomeservicesLocalservicesV1BookingLead` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAdsHomeservicesLocalservicesV1BookingLead {
+    /// bookingAppointmentTimestamp property.
+    pub booking_appointment_timestamp: Option<String>,
+    /// consumerEmail property.
+    pub consumer_email: Option<String>,
+    /// consumerPhoneNumber property.
+    pub consumer_phone_number: Option<String>,
+    /// customerName property.
+    pub customer_name: Option<String>,
+    /// jobType property.
+    pub job_type: Option<String>,
+}
+
+/// `GoogleAdsHomeservicesLocalservicesV1MessageLead` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAdsHomeservicesLocalservicesV1MessageLead {
+    /// consumerPhoneNumber property.
+    pub consumer_phone_number: Option<String>,
+    /// customerName property.
+    pub customer_name: Option<String>,
+    /// jobType property.
+    pub job_type: Option<String>,
+    /// postalCode property.
+    pub postal_code: Option<String>,
+}
+
+/// `GoogleTypeTimeZone` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeTimeZone {
+    /// id property.
+    pub id: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
 // =============================================================================

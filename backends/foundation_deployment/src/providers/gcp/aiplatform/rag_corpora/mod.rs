@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,35 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudAiplatformV1RagVectorDbConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RagVectorDbConfig {
+    /// apiAuth property.
+    pub api_auth: Option<GoogleCloudAiplatformV1ApiAuth>,
+    /// pinecone property.
+    pub pinecone: Option<GoogleCloudAiplatformV1RagVectorDbConfigPinecone>,
+    /// ragEmbeddingModelConfig property.
+    pub rag_embedding_model_config: Option<GoogleCloudAiplatformV1RagEmbeddingModelConfig>,
+    /// ragManagedDb property.
+    pub rag_managed_db: Option<GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDb>,
+    /// vertexVectorSearch property.
+    pub vertex_vector_search: Option<GoogleCloudAiplatformV1RagVectorDbConfigVertexVectorSearch>,
+}
+
+/// `GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDb` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDb {
+    /// ann property.
+    pub ann: Option<GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbANN>,
+    /// knn property.
+    pub knn: Option<GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbKNN>,
+}
 
 /// `GoogleCloudAiplatformV1ListRagCorporaResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -36,35 +61,35 @@ pub struct GoogleCloudAiplatformV1ListRagCorporaResponse {
     pub rag_corpora: Option<Vec<GoogleCloudAiplatformV1RagCorpus>>,
 }
 
-/// `GoogleCloudAiplatformV1RagEmbeddingModelConfig` type.
+/// `GoogleCloudAiplatformV1RagEmbeddingModelConfigVertexPredictionEndpoint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RagEmbeddingModelConfig {
-    /// vertexPredictionEndpoint property.
-    pub vertex_prediction_endpoint:
-        Option<GoogleCloudAiplatformV1RagEmbeddingModelConfigVertexPredictionEndpoint>,
+pub struct GoogleCloudAiplatformV1RagEmbeddingModelConfigVertexPredictionEndpoint {
+    /// endpoint property.
+    pub endpoint: Option<String>,
+    /// model property.
+    pub model: Option<String>,
+    /// modelVersionId property.
+    pub model_version_id: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbANN` type.
+/// `GoogleCloudAiplatformV1ApiAuthApiKeyConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbANN {
-    /// leafCount property.
-    pub leaf_count: Option<i64>,
-    /// treeDepth property.
-    pub tree_depth: Option<i64>,
+pub struct GoogleCloudAiplatformV1ApiAuthApiKeyConfig {
+    /// apiKeySecretVersion property.
+    pub api_key_secret_version: Option<String>,
+    /// apiKeyString property.
+    pub api_key_string: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1VertexAiSearchConfig` type.
+/// `GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbKNN` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1VertexAiSearchConfig {
-    /// servingConfig property.
-    pub serving_config: Option<String>,
-}
+pub struct GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbKNN {}
 
-/// `GoogleCloudAiplatformV1RagVectorDbConfigPinecone` type.
+/// `GoogleCloudAiplatformV1ApiAuth` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RagVectorDbConfigPinecone {
-    /// indexName property.
-    pub index_name: Option<String>,
+pub struct GoogleCloudAiplatformV1ApiAuth {
+    /// apiKeyConfig property.
+    pub api_key_config: Option<GoogleCloudAiplatformV1ApiAuthApiKeyConfig>,
 }
 
 /// `GoogleCloudAiplatformV1RagCorpus` type.
@@ -94,24 +119,51 @@ pub struct GoogleCloudAiplatformV1RagCorpus {
     pub vertex_ai_search_config: Option<GoogleCloudAiplatformV1VertexAiSearchConfig>,
 }
 
-/// `GoogleCloudAiplatformV1ApiAuthApiKeyConfig` type.
+/// `GoogleCloudAiplatformV1CorpusStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ApiAuthApiKeyConfig {
-    /// apiKeySecretVersion property.
-    pub api_key_secret_version: Option<String>,
-    /// apiKeyString property.
-    pub api_key_string: Option<String>,
+pub struct GoogleCloudAiplatformV1CorpusStatus {
+    /// errorStatus property.
+    pub error_status: Option<String>,
+    /// state property.
+    pub state: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbKNN` type.
+/// `GoogleCloudAiplatformV1VertexAiSearchConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbKNN {}
+pub struct GoogleCloudAiplatformV1VertexAiSearchConfig {
+    /// servingConfig property.
+    pub serving_config: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1RagVectorDbConfigPinecone` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RagVectorDbConfigPinecone {
+    /// indexName property.
+    pub index_name: Option<String>,
+}
 
 /// `GoogleCloudAiplatformV1EncryptionSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EncryptionSpec {
     /// kmsKeyName property.
     pub kms_key_name: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1RagEmbeddingModelConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RagEmbeddingModelConfig {
+    /// vertexPredictionEndpoint property.
+    pub vertex_prediction_endpoint:
+        Option<GoogleCloudAiplatformV1RagEmbeddingModelConfigVertexPredictionEndpoint>,
+}
+
+/// `GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbANN` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbANN {
+    /// leafCount property.
+    pub leaf_count: Option<i64>,
+    /// treeDepth property.
+    pub tree_depth: Option<i64>,
 }
 
 /// `GoogleRpcStatus` type.
@@ -125,30 +177,6 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1RagVectorDbConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RagVectorDbConfig {
-    /// apiAuth property.
-    pub api_auth: Option<GoogleCloudAiplatformV1ApiAuth>,
-    /// pinecone property.
-    pub pinecone: Option<GoogleCloudAiplatformV1RagVectorDbConfigPinecone>,
-    /// ragEmbeddingModelConfig property.
-    pub rag_embedding_model_config: Option<GoogleCloudAiplatformV1RagEmbeddingModelConfig>,
-    /// ragManagedDb property.
-    pub rag_managed_db: Option<GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDb>,
-    /// vertexVectorSearch property.
-    pub vertex_vector_search: Option<GoogleCloudAiplatformV1RagVectorDbConfigVertexVectorSearch>,
-}
-
-/// `GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDb` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDb {
-    /// ann property.
-    pub ann: Option<GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbANN>,
-    /// knn property.
-    pub knn: Option<GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbKNN>,
-}
-
 /// `GoogleCloudAiplatformV1RagVectorDbConfigVertexVectorSearch` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagVectorDbConfigVertexVectorSearch {
@@ -156,33 +184,6 @@ pub struct GoogleCloudAiplatformV1RagVectorDbConfigVertexVectorSearch {
     pub index: Option<String>,
     /// indexEndpoint property.
     pub index_endpoint: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1CorpusStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1CorpusStatus {
-    /// errorStatus property.
-    pub error_status: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ApiAuth` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ApiAuth {
-    /// apiKeyConfig property.
-    pub api_key_config: Option<GoogleCloudAiplatformV1ApiAuthApiKeyConfig>,
-}
-
-/// `GoogleCloudAiplatformV1RagEmbeddingModelConfigVertexPredictionEndpoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RagEmbeddingModelConfigVertexPredictionEndpoint {
-    /// endpoint property.
-    pub endpoint: Option<String>,
-    /// model property.
-    pub model: Option<String>,
-    /// modelVersionId property.
-    pub model_version_id: Option<String>,
 }
 
 // =============================================================================

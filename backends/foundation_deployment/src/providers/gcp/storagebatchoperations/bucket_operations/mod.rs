@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -29,61 +30,6 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 pub struct Manifest {
     /// manifestLocation property.
     pub manifest_location: Option<String>,
-}
-
-/// `ListBucketOperationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListBucketOperationsResponse {
-    /// bucketOperations property.
-    pub bucket_operations: Option<Vec<BucketOperation>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `RewriteObject` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RewriteObject {
-    /// kmsKey property.
-    pub kms_key: Option<String>,
-}
-
-/// `PrefixList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrefixList {
-    /// includedObjectPrefixes property.
-    pub included_object_prefixes: Option<Vec<String>>,
-}
-
-/// `CustomContextUpdates` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomContextUpdates {
-    /// keysToClear property.
-    pub keys_to_clear: Option<Vec<String>>,
-    /// updates property.
-    pub updates: Option<serde_json::Value>,
-}
-
-/// `PutMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PutMetadata {
-    /// cacheControl property.
-    pub cache_control: Option<String>,
-    /// contentDisposition property.
-    pub content_disposition: Option<String>,
-    /// contentEncoding property.
-    pub content_encoding: Option<String>,
-    /// contentLanguage property.
-    pub content_language: Option<String>,
-    /// contentType property.
-    pub content_type: Option<String>,
-    /// customMetadata property.
-    pub custom_metadata: Option<serde_json::Value>,
-    /// customTime property.
-    pub custom_time: Option<String>,
-    /// objectRetention property.
-    pub object_retention: Option<ObjectRetention>,
 }
 
 /// `Counters` type.
@@ -105,29 +51,13 @@ pub struct Counters {
     pub total_object_count: Option<String>,
 }
 
-/// `DeleteObject` type.
+/// `ErrorLogEntry` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteObject {
-    /// permanentObjectDeletionEnabled property.
-    pub permanent_object_deletion_enabled: Option<bool>,
-}
-
-/// `PutObjectHold` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PutObjectHold {
-    /// eventBasedHold property.
-    pub event_based_hold: Option<String>,
-    /// temporaryHold property.
-    pub temporary_hold: Option<String>,
-}
-
-/// `ObjectRetention` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObjectRetention {
-    /// retainUntilTime property.
-    pub retain_until_time: Option<String>,
-    /// retentionMode property.
-    pub retention_mode: Option<String>,
+pub struct ErrorLogEntry {
+    /// errorDetails property.
+    pub error_details: Option<Vec<String>>,
+    /// objectUri property.
+    pub object_uri: Option<String>,
 }
 
 /// `BucketOperation` type.
@@ -165,6 +95,36 @@ pub struct BucketOperation {
     pub update_object_custom_context: Option<UpdateObjectCustomContext>,
 }
 
+/// `PrefixList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrefixList {
+    /// includedObjectPrefixes property.
+    pub included_object_prefixes: Option<Vec<String>>,
+}
+
+/// `UpdateObjectCustomContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateObjectCustomContext {
+    /// clearAll property.
+    pub clear_all: Option<bool>,
+    /// customContextUpdates property.
+    pub custom_context_updates: Option<CustomContextUpdates>,
+}
+
+/// `RewriteObject` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RewriteObject {
+    /// kmsKey property.
+    pub kms_key: Option<String>,
+}
+
+/// `DeleteObject` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeleteObject {
+    /// permanentObjectDeletionEnabled property.
+    pub permanent_object_deletion_enabled: Option<bool>,
+}
+
 /// `ErrorSummary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorSummary {
@@ -176,22 +136,63 @@ pub struct ErrorSummary {
     pub error_log_entries: Option<Vec<ErrorLogEntry>>,
 }
 
-/// `ErrorLogEntry` type.
+/// `PutMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorLogEntry {
-    /// errorDetails property.
-    pub error_details: Option<Vec<String>>,
-    /// objectUri property.
-    pub object_uri: Option<String>,
+pub struct PutMetadata {
+    /// cacheControl property.
+    pub cache_control: Option<String>,
+    /// contentDisposition property.
+    pub content_disposition: Option<String>,
+    /// contentEncoding property.
+    pub content_encoding: Option<String>,
+    /// contentLanguage property.
+    pub content_language: Option<String>,
+    /// contentType property.
+    pub content_type: Option<String>,
+    /// customMetadata property.
+    pub custom_metadata: Option<serde_json::Value>,
+    /// customTime property.
+    pub custom_time: Option<String>,
+    /// objectRetention property.
+    pub object_retention: Option<ObjectRetention>,
 }
 
-/// `UpdateObjectCustomContext` type.
+/// `PutObjectHold` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateObjectCustomContext {
-    /// clearAll property.
-    pub clear_all: Option<bool>,
-    /// customContextUpdates property.
-    pub custom_context_updates: Option<CustomContextUpdates>,
+pub struct PutObjectHold {
+    /// eventBasedHold property.
+    pub event_based_hold: Option<String>,
+    /// temporaryHold property.
+    pub temporary_hold: Option<String>,
+}
+
+/// `ObjectRetention` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ObjectRetention {
+    /// retainUntilTime property.
+    pub retain_until_time: Option<String>,
+    /// retentionMode property.
+    pub retention_mode: Option<String>,
+}
+
+/// `ListBucketOperationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListBucketOperationsResponse {
+    /// bucketOperations property.
+    pub bucket_operations: Option<Vec<BucketOperation>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `CustomContextUpdates` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomContextUpdates {
+    /// keysToClear property.
+    pub keys_to_clear: Option<Vec<String>>,
+    /// updates property.
+    pub updates: Option<serde_json::Value>,
 }
 
 // =============================================================================

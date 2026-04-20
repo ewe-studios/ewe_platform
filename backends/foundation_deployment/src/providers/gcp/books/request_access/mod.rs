@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -51,6 +52,17 @@ pub struct ConcurrentAccessRestriction {
     pub volume_id: Option<String>,
 }
 
+/// `RequestAccessData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RequestAccessData {
+    /// concurrentAccess property.
+    pub concurrent_access: Option<ConcurrentAccessRestriction>,
+    /// downloadAccess property.
+    pub download_access: Option<DownloadAccessRestriction>,
+    /// kind property.
+    pub kind: Option<String>,
+}
+
 /// `DownloadAccessRestriction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DownloadAccessRestriction {
@@ -78,17 +90,6 @@ pub struct DownloadAccessRestriction {
     pub source: Option<String>,
     /// volumeId property.
     pub volume_id: Option<String>,
-}
-
-/// `RequestAccessData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RequestAccessData {
-    /// concurrentAccess property.
-    pub concurrent_access: Option<ConcurrentAccessRestriction>,
-    /// downloadAccess property.
-    pub download_access: Option<DownloadAccessRestriction>,
-    /// kind property.
-    pub kind: Option<String>,
 }
 
 // =============================================================================

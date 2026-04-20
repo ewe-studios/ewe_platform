@@ -12,165 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ContentOutstreamPositionTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContentOutstreamPositionTargetingOptionDetails {
-    /// contentOutstreamPosition property.
-    pub content_outstream_position: Option<String>,
-}
-
-/// `DeviceMakeModelTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceMakeModelTargetingOptionDetails {
-    /// displayName property.
-    pub display_name: Option<String>,
-}
-
-/// `PoiTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PoiTargetingOptionDetails {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
-}
-
-/// `CarrierAndIspTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CarrierAndIspTargetingOptionDetails {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `ContentThemeTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContentThemeTargetingOptionDetails {
-    /// contentTheme property.
-    pub content_theme: Option<String>,
-}
-
-/// `GeoRegionTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeoRegionTargetingOptionDetails {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// geoRegionType property.
-    pub geo_region_type: Option<String>,
-}
-
-/// `HouseholdIncomeTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HouseholdIncomeTargetingOptionDetails {
-    /// householdIncome property.
-    pub household_income: Option<String>,
-}
-
-/// `ContentInstreamPositionTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContentInstreamPositionTargetingOptionDetails {
-    /// contentInstreamPosition property.
-    pub content_instream_position: Option<String>,
-}
-
-/// `BrowserTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BrowserTargetingOptionDetails {
-    /// displayName property.
-    pub display_name: Option<String>,
-}
-
-/// `EnvironmentTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnvironmentTargetingOptionDetails {
-    /// environment property.
-    pub environment: Option<String>,
-}
-
-/// `AppCategoryTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppCategoryTargetingOptionDetails {
-    /// displayName property.
-    pub display_name: Option<String>,
-}
-
-/// `SubExchangeTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubExchangeTargetingOptionDetails {
-    /// displayName property.
-    pub display_name: Option<String>,
-}
-
-/// `ContentStreamTypeTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContentStreamTypeTargetingOptionDetails {
-    /// contentStreamType property.
-    pub content_stream_type: Option<String>,
-}
-
-/// `CategoryTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CategoryTargetingOptionDetails {
-    /// displayName property.
-    pub display_name: Option<String>,
-}
-
-/// `DigitalContentLabelTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DigitalContentLabelTargetingOptionDetails {
-    /// contentRatingTier property.
-    pub content_rating_tier: Option<String>,
-}
-
-/// `DeviceTypeTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceTypeTargetingOptionDetails {
-    /// deviceType property.
-    pub device_type: Option<String>,
-}
-
-/// `GenderTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GenderTargetingOptionDetails {
-    /// gender property.
-    pub gender: Option<String>,
-}
-
-/// `OnScreenPositionTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OnScreenPositionTargetingOptionDetails {
-    /// onScreenPosition property.
-    pub on_screen_position: Option<String>,
-}
-
-/// `AuthorizedSellerStatusTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthorizedSellerStatusTargetingOptionDetails {
-    /// authorizedSellerStatus property.
-    pub authorized_seller_status: Option<String>,
-}
-
-/// `AgeRangeTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AgeRangeTargetingOptionDetails {
-    /// ageRange property.
-    pub age_range: Option<String>,
-}
 
 /// `TargetingOption` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -251,11 +104,48 @@ pub struct TargetingOption {
     pub viewability_details: Option<ViewabilityTargetingOptionDetails>,
 }
 
-/// `OperatingSystemTargetingOptionDetails` type.
+/// `AuthorizedSellerStatusTargetingOptionDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperatingSystemTargetingOptionDetails {
+pub struct AuthorizedSellerStatusTargetingOptionDetails {
+    /// authorizedSellerStatus property.
+    pub authorized_seller_status: Option<String>,
+}
+
+/// `GenderTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GenderTargetingOptionDetails {
+    /// gender property.
+    pub gender: Option<String>,
+}
+
+/// `ContentThemeTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContentThemeTargetingOptionDetails {
+    /// contentTheme property.
+    pub content_theme: Option<String>,
+}
+
+/// `ParentalStatusTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ParentalStatusTargetingOptionDetails {
+    /// parentalStatus property.
+    pub parental_status: Option<String>,
+}
+
+/// `GeoRegionTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GeoRegionTargetingOptionDetails {
     /// displayName property.
     pub display_name: Option<String>,
+    /// geoRegionType property.
+    pub geo_region_type: Option<String>,
+}
+
+/// `OmidTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OmidTargetingOptionDetails {
+    /// omid property.
+    pub omid: Option<String>,
 }
 
 /// `SensitiveCategoryTargetingOptionDetails` type.
@@ -265,62 +155,20 @@ pub struct SensitiveCategoryTargetingOptionDetails {
     pub sensitive_category: Option<String>,
 }
 
-/// `ExchangeTargetingOptionDetails` type.
+/// `AppCategoryTargetingOptionDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExchangeTargetingOptionDetails {
-    /// exchange property.
-    pub exchange: Option<String>,
+pub struct AppCategoryTargetingOptionDetails {
+    /// displayName property.
+    pub display_name: Option<String>,
 }
 
-/// `ViewabilityTargetingOptionDetails` type.
+/// `CarrierAndIspTargetingOptionDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ViewabilityTargetingOptionDetails {
-    /// viewability property.
-    pub viewability: Option<String>,
-}
-
-/// `UserRewardedContentTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserRewardedContentTargetingOptionDetails {
-    /// userRewardedContent property.
-    pub user_rewarded_content: Option<String>,
-}
-
-/// `VideoPlayerSizeTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoPlayerSizeTargetingOptionDetails {
-    /// videoPlayerSize property.
-    pub video_player_size: Option<String>,
-}
-
-/// `SearchTargetingOptionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchTargetingOptionsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// targetingOptions property.
-    pub targeting_options: Option<Vec<TargetingOption>>,
-}
-
-/// `NativeContentPositionTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NativeContentPositionTargetingOptionDetails {
-    /// contentPosition property.
-    pub content_position: Option<String>,
-}
-
-/// `ContentDurationTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContentDurationTargetingOptionDetails {
-    /// contentDuration property.
-    pub content_duration: Option<String>,
-}
-
-/// `OmidTargetingOptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OmidTargetingOptionDetails {
-    /// omid property.
-    pub omid: Option<String>,
+pub struct CarrierAndIspTargetingOptionDetails {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `BusinessChainTargetingOptionDetails` type.
@@ -334,11 +182,143 @@ pub struct BusinessChainTargetingOptionDetails {
     pub geo_region_type: Option<String>,
 }
 
+/// `OperatingSystemTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OperatingSystemTargetingOptionDetails {
+    /// displayName property.
+    pub display_name: Option<String>,
+}
+
+/// `EnvironmentTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnvironmentTargetingOptionDetails {
+    /// environment property.
+    pub environment: Option<String>,
+}
+
+/// `UserRewardedContentTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UserRewardedContentTargetingOptionDetails {
+    /// userRewardedContent property.
+    pub user_rewarded_content: Option<String>,
+}
+
+/// `ContentDurationTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContentDurationTargetingOptionDetails {
+    /// contentDuration property.
+    pub content_duration: Option<String>,
+}
+
+/// `CategoryTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CategoryTargetingOptionDetails {
+    /// displayName property.
+    pub display_name: Option<String>,
+}
+
+/// `AgeRangeTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AgeRangeTargetingOptionDetails {
+    /// ageRange property.
+    pub age_range: Option<String>,
+}
+
 /// `ContentGenreTargetingOptionDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentGenreTargetingOptionDetails {
     /// displayName property.
     pub display_name: Option<String>,
+}
+
+/// `NativeContentPositionTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NativeContentPositionTargetingOptionDetails {
+    /// contentPosition property.
+    pub content_position: Option<String>,
+}
+
+/// `ContentStreamTypeTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContentStreamTypeTargetingOptionDetails {
+    /// contentStreamType property.
+    pub content_stream_type: Option<String>,
+}
+
+/// `BrowserTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BrowserTargetingOptionDetails {
+    /// displayName property.
+    pub display_name: Option<String>,
+}
+
+/// `OnScreenPositionTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OnScreenPositionTargetingOptionDetails {
+    /// onScreenPosition property.
+    pub on_screen_position: Option<String>,
+}
+
+/// `DeviceTypeTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceTypeTargetingOptionDetails {
+    /// deviceType property.
+    pub device_type: Option<String>,
+}
+
+/// `ContentInstreamPositionTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContentInstreamPositionTargetingOptionDetails {
+    /// contentInstreamPosition property.
+    pub content_instream_position: Option<String>,
+}
+
+/// `HouseholdIncomeTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HouseholdIncomeTargetingOptionDetails {
+    /// householdIncome property.
+    pub household_income: Option<String>,
+}
+
+/// `PoiTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PoiTargetingOptionDetails {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
+}
+
+/// `DigitalContentLabelTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DigitalContentLabelTargetingOptionDetails {
+    /// contentRatingTier property.
+    pub content_rating_tier: Option<String>,
+}
+
+/// `ViewabilityTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ViewabilityTargetingOptionDetails {
+    /// viewability property.
+    pub viewability: Option<String>,
+}
+
+/// `DeviceMakeModelTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceMakeModelTargetingOptionDetails {
+    /// displayName property.
+    pub display_name: Option<String>,
+}
+
+/// `SearchTargetingOptionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchTargetingOptionsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// targetingOptions property.
+    pub targeting_options: Option<Vec<TargetingOption>>,
 }
 
 /// `AudioContentTypeTargetingOptionDetails` type.
@@ -348,6 +328,20 @@ pub struct AudioContentTypeTargetingOptionDetails {
     pub audio_content_type: Option<String>,
 }
 
+/// `ContentOutstreamPositionTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContentOutstreamPositionTargetingOptionDetails {
+    /// contentOutstreamPosition property.
+    pub content_outstream_position: Option<String>,
+}
+
+/// `VideoPlayerSizeTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoPlayerSizeTargetingOptionDetails {
+    /// videoPlayerSize property.
+    pub video_player_size: Option<String>,
+}
+
 /// `LanguageTargetingOptionDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LanguageTargetingOptionDetails {
@@ -355,11 +349,18 @@ pub struct LanguageTargetingOptionDetails {
     pub display_name: Option<String>,
 }
 
-/// `ParentalStatusTargetingOptionDetails` type.
+/// `ExchangeTargetingOptionDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ParentalStatusTargetingOptionDetails {
-    /// parentalStatus property.
-    pub parental_status: Option<String>,
+pub struct ExchangeTargetingOptionDetails {
+    /// exchange property.
+    pub exchange: Option<String>,
+}
+
+/// `SubExchangeTargetingOptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SubExchangeTargetingOptionDetails {
+    /// displayName property.
+    pub display_name: Option<String>,
 }
 
 // =============================================================================

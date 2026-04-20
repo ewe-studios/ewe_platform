@@ -12,39 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `UserListLicensePricing` type.
+/// `ListUserListDirectLicensesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserListLicensePricing {
-    /// buyerApprovalState property.
-    pub buyer_approval_state: Option<String>,
-    /// costMicros property.
-    pub cost_micros: Option<String>,
-    /// costType property.
-    pub cost_type: Option<String>,
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// maxCostMicros property.
-    pub max_cost_micros: Option<String>,
-    /// pricingActive property.
-    pub pricing_active: Option<bool>,
-    /// pricingId property.
-    pub pricing_id: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
+pub struct ListUserListDirectLicensesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// userListDirectLicenses property.
+    pub user_list_direct_licenses: Option<Vec<UserListDirectLicense>>,
 }
 
 /// `UserListDirectLicense` type.
@@ -87,13 +74,27 @@ pub struct UserListLicenseMetrics {
     pub start_date: Option<String>,
 }
 
-/// `ListUserListDirectLicensesResponse` type.
+/// `UserListLicensePricing` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListUserListDirectLicensesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// userListDirectLicenses property.
-    pub user_list_direct_licenses: Option<Vec<UserListDirectLicense>>,
+pub struct UserListLicensePricing {
+    /// buyerApprovalState property.
+    pub buyer_approval_state: Option<String>,
+    /// costMicros property.
+    pub cost_micros: Option<String>,
+    /// costType property.
+    pub cost_type: Option<String>,
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// maxCostMicros property.
+    pub max_cost_micros: Option<String>,
+    /// pricingActive property.
+    pub pricing_active: Option<bool>,
+    /// pricingId property.
+    pub pricing_id: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
 }
 
 // =============================================================================

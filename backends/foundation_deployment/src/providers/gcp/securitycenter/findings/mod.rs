@@ -12,407 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Network` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Network {
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `MemoryHashSignature` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MemoryHashSignature {
-    /// binaryFamily property.
-    pub binary_family: Option<String>,
-    /// detections property.
-    pub detections: Option<Vec<Detection>>,
-}
-
-/// `GoogleCloudSecuritycenterV1ResourceApplicationAttributesCriticality` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributesCriticality {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `AccessReview` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessReview {
-    /// group property.
-    pub group: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// ns property.
-    pub ns: Option<String>,
-    /// resource property.
-    pub resource: Option<String>,
-    /// subresource property.
-    pub subresource: Option<String>,
-    /// verb property.
-    pub verb: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `InfoType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InfoType {
-    /// name property.
-    pub name: Option<String>,
-    /// sensitivityScore property.
-    pub sensitivity_score: Option<SensitivityScore>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `AiModel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AiModel {
-    /// deploymentPlatform property.
-    pub deployment_platform: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// domain property.
-    pub domain: Option<String>,
-    /// library property.
-    pub library: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// publisher property.
-    pub publisher: Option<String>,
-    /// usageCategory property.
-    pub usage_category: Option<String>,
-}
-
-/// `Requests` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Requests {
-    /// longTermAllowed property.
-    pub long_term_allowed: Option<i64>,
-    /// longTermDenied property.
-    pub long_term_denied: Option<i64>,
-    /// ratio property.
-    pub ratio: Option<f64>,
-    /// shortTermAllowed property.
-    pub short_term_allowed: Option<i64>,
-}
-
-/// `AzureSubscription` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AzureSubscription {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-}
-
-/// `GoogleCloudSecuritycenterV1ResourceApplicationAttributes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributes {
-    /// businessOwners property.
-    pub business_owners:
-        Option<Vec<GoogleCloudSecuritycenterV1ResourceApplicationAttributesContactInfo>>,
-    /// criticality property.
-    pub criticality: Option<GoogleCloudSecuritycenterV1ResourceApplicationAttributesCriticality>,
-    /// developerOwners property.
-    pub developer_owners:
-        Option<Vec<GoogleCloudSecuritycenterV1ResourceApplicationAttributesContactInfo>>,
-    /// environment property.
-    pub environment: Option<GoogleCloudSecuritycenterV1ResourceApplicationAttributesEnvironment>,
-    /// operatorOwners property.
-    pub operator_owners:
-        Option<Vec<GoogleCloudSecuritycenterV1ResourceApplicationAttributesContactInfo>>,
-}
-
-/// `OrgPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OrgPolicy {
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `Connection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Connection {
-    /// destinationIp property.
-    pub destination_ip: Option<String>,
-    /// destinationPort property.
-    pub destination_port: Option<i64>,
-    /// protocol property.
-    pub protocol: Option<String>,
-    /// sourceIp property.
-    pub source_ip: Option<String>,
-    /// sourcePort property.
-    pub source_port: Option<i64>,
-}
-
-/// `File` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct File {
-    /// contents property.
-    pub contents: Option<String>,
-    /// diskPath property.
-    pub disk_path: Option<DiskPath>,
-    /// fileLoadState property.
-    pub file_load_state: Option<String>,
-    /// hashedSize property.
-    pub hashed_size: Option<String>,
-    /// operations property.
-    pub operations: Option<Vec<FileOperation>>,
-    /// partiallyHashed property.
-    pub partially_hashed: Option<bool>,
-    /// path property.
-    pub path: Option<String>,
-    /// sha256 property.
-    pub sha256: Option<String>,
-    /// size property.
-    pub size: Option<String>,
-}
-
-/// `Framework` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Framework {
-    /// category property.
-    pub category: Option<Vec<String>>,
-    /// controls property.
-    pub controls: Option<Vec<Control>>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `DiscoveredWorkload` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiscoveredWorkload {
-    /// confidence property.
-    pub confidence: Option<String>,
-    /// detectedRelevantHardware property.
-    pub detected_relevant_hardware: Option<bool>,
-    /// detectedRelevantKeywords property.
-    pub detected_relevant_keywords: Option<bool>,
-    /// detectedRelevantPackages property.
-    pub detected_relevant_packages: Option<bool>,
-    /// workloadType property.
-    pub workload_type: Option<String>,
-}
-
-/// `DiskPath` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskPath {
-    /// partitionUuid property.
-    pub partition_uuid: Option<String>,
-    /// relativePath property.
-    pub relative_path: Option<String>,
-}
-
-/// `Control` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Control {
-    /// controlName property.
-    pub control_name: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-}
-
-/// `Disk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Disk {
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `DataAccessEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataAccessEvent {
-    /// eventId property.
-    pub event_id: Option<String>,
-    /// eventTime property.
-    pub event_time: Option<String>,
-    /// operation property.
-    pub operation: Option<String>,
-    /// principalEmail property.
-    pub principal_email: Option<String>,
-}
-
-/// `FileOperation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FileOperation {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `AttackExposure` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AttackExposure {
-    /// attackExposureResult property.
-    pub attack_exposure_result: Option<String>,
-    /// exposedHighValueResourcesCount property.
-    pub exposed_high_value_resources_count: Option<i64>,
-    /// exposedLowValueResourcesCount property.
-    pub exposed_low_value_resources_count: Option<i64>,
-    /// exposedMediumValueResourcesCount property.
-    pub exposed_medium_value_resources_count: Option<i64>,
-    /// latestCalculationTime property.
-    pub latest_calculation_time: Option<String>,
-    /// score property.
-    pub score: Option<f64>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `ResourcePath` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourcePath {
-    /// nodes property.
-    pub nodes: Option<Vec<ResourcePathNode>>,
-}
-
-/// `ResourcePathNode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourcePathNode {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// nodeType property.
-    pub node_type: Option<String>,
-}
-
-/// `BackupDisasterRecovery` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupDisasterRecovery {
-    /// appliance property.
-    pub appliance: Option<String>,
-    /// applications property.
-    pub applications: Option<Vec<String>>,
-    /// backupCreateTime property.
-    pub backup_create_time: Option<String>,
-    /// backupTemplate property.
-    pub backup_template: Option<String>,
-    /// backupType property.
-    pub backup_type: Option<String>,
-    /// host property.
-    pub host: Option<String>,
-    /// policies property.
-    pub policies: Option<Vec<String>>,
-    /// policyOptions property.
-    pub policy_options: Option<Vec<String>>,
-    /// profile property.
-    pub profile: Option<String>,
-    /// storagePool property.
-    pub storage_pool: Option<String>,
-}
-
-/// `CloudLoggingEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudLoggingEntry {
-    /// insertId property.
-    pub insert_id: Option<String>,
-    /// logId property.
-    pub log_id: Option<String>,
-    /// resourceContainer property.
-    pub resource_container: Option<String>,
-    /// timestamp property.
-    pub timestamp: Option<String>,
-}
-
-/// `Node` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Node {
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `ListFindingsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListFindingsResponse {
-    /// listFindingsResults property.
-    pub list_findings_results: Option<Vec<ListFindingsResult>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// readTime property.
-    pub read_time: Option<String>,
-    /// totalSize property.
-    pub total_size: Option<i64>,
-}
-
-/// `ServiceAccountDelegationInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceAccountDelegationInfo {
-    /// principalEmail property.
-    pub principal_email: Option<String>,
-    /// principalSubject property.
-    pub principal_subject: Option<String>,
-}
-
-/// `AdcApplicationTemplateRevision` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdcApplicationTemplateRevision {
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `LoadBalancer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancer {
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `Denied` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Denied {
-    /// ipRules property.
-    pub ip_rules: Option<Vec<IpRule>>,
-}
-
-/// `LogEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LogEntry {
-    /// cloudLoggingEntry property.
-    pub cloud_logging_entry: Option<CloudLoggingEntry>,
-}
-
-/// `DynamicMuteRecord` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DynamicMuteRecord {
-    /// matchTime property.
-    pub match_time: Option<String>,
-    /// muteConfig property.
-    pub mute_config: Option<String>,
-}
-
-/// `Attack` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Attack {
-    /// classification property.
-    pub classification: Option<String>,
-    /// volumeBps property.
-    pub volume_bps: Option<i64>,
-    /// volumeBpsLong property.
-    pub volume_bps_long: Option<String>,
-    /// volumePps property.
-    pub volume_pps: Option<i64>,
-    /// volumePpsLong property.
-    pub volume_pps_long: Option<String>,
-}
 
 /// `Process` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -441,60 +52,11 @@ pub struct Process {
     pub user_id: Option<String>,
 }
 
-/// `Compliance` type.
+/// `Disk` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Compliance {
-    /// ids property.
-    pub ids: Option<Vec<String>>,
-    /// standard property.
-    pub standard: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `Resource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Resource {
-    /// adcApplication property.
-    pub adc_application: Option<AdcApplication>,
-    /// adcApplicationTemplate property.
-    pub adc_application_template: Option<AdcApplicationTemplateRevision>,
-    /// adcSharedTemplate property.
-    pub adc_shared_template: Option<AdcSharedTemplateRevision>,
-    /// application property.
-    pub application: Option<GoogleCloudSecuritycenterV1ResourceApplication>,
-    /// awsMetadata property.
-    pub aws_metadata: Option<AwsMetadata>,
-    /// azureMetadata property.
-    pub azure_metadata: Option<AzureMetadata>,
-    /// cloudProvider property.
-    pub cloud_provider: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// folders property.
-    pub folders: Option<Vec<Folder>>,
-    /// location property.
-    pub location: Option<String>,
+pub struct Disk {
     /// name property.
     pub name: Option<String>,
-    /// organization property.
-    pub organization: Option<String>,
-    /// parentDisplayName property.
-    pub parent_display_name: Option<String>,
-    /// parentName property.
-    pub parent_name: Option<String>,
-    /// projectDisplayName property.
-    pub project_display_name: Option<String>,
-    /// projectName property.
-    pub project_name: Option<String>,
-    /// resourcePath property.
-    pub resource_path: Option<ResourcePath>,
-    /// resourcePathString property.
-    pub resource_path_string: Option<String>,
-    /// service property.
-    pub service: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
 }
 
 /// `Package` type.
@@ -510,53 +72,208 @@ pub struct Package {
     pub package_version: Option<String>,
 }
 
-/// `SecretStatus` type.
+/// `GoogleCloudSecuritycenterV1ResourceApplicationAttributesEnvironment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecretStatus {
-    /// lastUpdatedTime property.
-    pub last_updated_time: Option<String>,
-    /// validity property.
-    pub validity: Option<String>,
+pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributesEnvironment {
+    /// type property.
+    pub r#type: Option<String>,
 }
 
-/// `DataFlowEvent` type.
+/// `BackupDisasterRecovery` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataFlowEvent {
-    /// eventId property.
-    pub event_id: Option<String>,
-    /// eventTime property.
-    pub event_time: Option<String>,
-    /// operation property.
-    pub operation: Option<String>,
-    /// principalEmail property.
-    pub principal_email: Option<String>,
-    /// violatedLocation property.
-    pub violated_location: Option<String>,
+pub struct BackupDisasterRecovery {
+    /// appliance property.
+    pub appliance: Option<String>,
+    /// applications property.
+    pub applications: Option<Vec<String>>,
+    /// backupCreateTime property.
+    pub backup_create_time: Option<String>,
+    /// backupTemplate property.
+    pub backup_template: Option<String>,
+    /// backupType property.
+    pub backup_type: Option<String>,
+    /// host property.
+    pub host: Option<String>,
+    /// policies property.
+    pub policies: Option<Vec<String>>,
+    /// policyOptions property.
+    pub policy_options: Option<Vec<String>>,
+    /// profile property.
+    pub profile: Option<String>,
+    /// storagePool property.
+    pub storage_pool: Option<String>,
 }
 
-/// `GoogleCloudSecuritycenterV1ResourceApplication` type.
+/// `InfoType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudSecuritycenterV1ResourceApplication {
-    /// attributes property.
-    pub attributes: Option<GoogleCloudSecuritycenterV1ResourceApplicationAttributes>,
+pub struct InfoType {
     /// name property.
     pub name: Option<String>,
+    /// sensitivityScore property.
+    pub sensitivity_score: Option<SensitivityScore>,
+    /// version property.
+    pub version: Option<String>,
 }
 
-/// `Pipeline` type.
+/// `Folder` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Pipeline {
+pub struct Folder {
+    /// resourceFolder property.
+    pub resource_folder: Option<String>,
+    /// resourceFolderDisplayName property.
+    pub resource_folder_display_name: Option<String>,
+}
+
+/// `AzureSubscription` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AzureSubscription {
     /// displayName property.
     pub display_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
+    /// id property.
+    pub id: Option<String>,
 }
 
-/// `AdcSharedTemplateRevision` type.
+/// `ArtifactGuardPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdcSharedTemplateRevision {
+pub struct ArtifactGuardPolicy {
+    /// failureReason property.
+    pub failure_reason: Option<String>,
+    /// policyId property.
+    pub policy_id: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `EnvironmentVariable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnvironmentVariable {
     /// name property.
     pub name: Option<String>,
+    /// val property.
+    pub val: Option<String>,
+}
+
+/// `DynamicMuteRecord` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DynamicMuteRecord {
+    /// matchTime property.
+    pub match_time: Option<String>,
+    /// muteConfig property.
+    pub mute_config: Option<String>,
+}
+
+/// `Kubernetes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Kubernetes {
+    /// accessReviews property.
+    pub access_reviews: Option<Vec<AccessReview>>,
+    /// bindings property.
+    pub bindings: Option<Vec<GoogleCloudSecuritycenterV1Binding>>,
+    /// nodePools property.
+    pub node_pools: Option<Vec<NodePool>>,
+    /// nodes property.
+    pub nodes: Option<Vec<Node>>,
+    /// objects property.
+    pub objects: Option<Vec<Object>>,
+    /// pods property.
+    pub pods: Option<Vec<Pod>>,
+    /// roles property.
+    pub roles: Option<Vec<Role>>,
+}
+
+/// `ArtifactGuardPolicies` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ArtifactGuardPolicies {
+    /// failingPolicies property.
+    pub failing_policies: Option<Vec<ArtifactGuardPolicy>>,
+    /// resourceId property.
+    pub resource_id: Option<String>,
+}
+
+/// `Compliance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Compliance {
+    /// ids property.
+    pub ids: Option<Vec<String>>,
+    /// standard property.
+    pub standard: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `VertexAi` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VertexAi {
+    /// datasets property.
+    pub datasets: Option<Vec<Dataset>>,
+    /// pipelines property.
+    pub pipelines: Option<Vec<Pipeline>>,
+}
+
+/// `GoogleCloudSecuritycenterV1ResourceApplicationAttributesContactInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributesContactInfo {
+    /// email property.
+    pub email: Option<String>,
+}
+
+/// `Indicator` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Indicator {
+    /// domains property.
+    pub domains: Option<Vec<String>>,
+    /// ipAddresses property.
+    pub ip_addresses: Option<Vec<String>>,
+    /// signatures property.
+    pub signatures: Option<Vec<ProcessSignature>>,
+    /// uris property.
+    pub uris: Option<Vec<String>>,
+}
+
+/// `PolicyDriftDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PolicyDriftDetails {
+    /// detectedValue property.
+    pub detected_value: Option<String>,
+    /// expectedValue property.
+    pub expected_value: Option<String>,
+    /// field property.
+    pub field: Option<String>,
+}
+
+/// `Vulnerability` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Vulnerability {
+    /// cve property.
+    pub cve: Option<Cve>,
+    /// cwes property.
+    pub cwes: Option<Vec<Cwe>>,
+    /// fixedPackage property.
+    pub fixed_package: Option<Package>,
+    /// offendingPackage property.
+    pub offending_package: Option<Package>,
+    /// providerRiskScore property.
+    pub provider_risk_score: Option<String>,
+    /// reachable property.
+    pub reachable: Option<bool>,
+    /// securityBulletin property.
+    pub security_bulletin: Option<SecurityBulletin>,
+}
+
+/// `MuteInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MuteInfo {
+    /// dynamicMuteRecords property.
+    pub dynamic_mute_records: Option<Vec<DynamicMuteRecord>>,
+    /// staticMute property.
+    pub static_mute: Option<StaticMute>,
+}
+
+/// `Allowed` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Allowed {
+    /// ipRules property.
+    pub ip_rules: Option<Vec<IpRule>>,
 }
 
 /// `GoogleCloudSecuritycenterV1Binding` type.
@@ -572,13 +289,40 @@ pub struct GoogleCloudSecuritycenterV1Binding {
     pub subjects: Option<Vec<Subject>>,
 }
 
-/// `Label` type.
+/// `IpRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Label {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct IpRule {
+    /// portRanges property.
+    pub port_ranges: Option<Vec<PortRange>>,
+    /// protocol property.
+    pub protocol: Option<String>,
+}
+
+/// `AwsMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AwsMetadata {
+    /// account property.
+    pub account: Option<AwsAccount>,
+    /// organization property.
+    pub organization: Option<AwsOrganization>,
+    /// organizationalUnits property.
+    pub organizational_units: Option<Vec<AwsOrganizationalUnit>>,
+}
+
+/// `GroupMembership` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GroupMembership {
+    /// groupId property.
+    pub group_id: Option<String>,
+    /// groupType property.
+    pub group_type: Option<String>,
+}
+
+/// `Chokepoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Chokepoint {
+    /// relatedFindings property.
+    pub related_findings: Option<Vec<String>>,
 }
 
 /// `AwsAccount` type.
@@ -590,52 +334,66 @@ pub struct AwsAccount {
     pub name: Option<String>,
 }
 
-/// `NodePool` type.
+/// `LogEntry` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodePool {
-    /// name property.
-    pub name: Option<String>,
-    /// nodes property.
-    pub nodes: Option<Vec<Node>>,
+pub struct LogEntry {
+    /// cloudLoggingEntry property.
+    pub cloud_logging_entry: Option<CloudLoggingEntry>,
 }
 
-/// `PortRange` type.
+/// `OrgPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PortRange {
-    /// max property.
-    pub max: Option<String>,
-    /// min property.
-    pub min: Option<String>,
-}
-
-/// `Job` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Job {
-    /// errorCode property.
-    pub error_code: Option<i64>,
-    /// location property.
-    pub location: Option<String>,
+pub struct OrgPolicy {
     /// name property.
     pub name: Option<String>,
-    /// state property.
-    pub state: Option<String>,
 }
 
-/// `Database` type.
+/// `Subject` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Database {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// grantees property.
-    pub grantees: Option<Vec<String>>,
+pub struct Subject {
+    /// kind property.
+    pub kind: Option<String>,
     /// name property.
     pub name: Option<String>,
-    /// query property.
-    pub query: Option<String>,
-    /// userName property.
-    pub user_name: Option<String>,
-    /// version property.
-    pub version: Option<String>,
+    /// ns property.
+    pub ns: Option<String>,
+}
+
+/// `Notebook` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Notebook {
+    /// lastAuthor property.
+    pub last_author: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// notebookUpdateTime property.
+    pub notebook_update_time: Option<String>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `CloudLoggingEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudLoggingEntry {
+    /// insertId property.
+    pub insert_id: Option<String>,
+    /// logId property.
+    pub log_id: Option<String>,
+    /// resourceContainer property.
+    pub resource_container: Option<String>,
+    /// timestamp property.
+    pub timestamp: Option<String>,
+}
+
+/// `IamBinding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IamBinding {
+    /// action property.
+    pub action: Option<String>,
+    /// member property.
+    pub member: Option<String>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `KernelRootkit` type.
@@ -661,75 +419,24 @@ pub struct KernelRootkit {
     pub unexpected_system_call_handler: Option<bool>,
 }
 
-/// `SecurityPosture` type.
+/// `Dataset` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPosture {
-    /// changedPolicy property.
-    pub changed_policy: Option<String>,
+pub struct Dataset {
+    /// displayName property.
+    pub display_name: Option<String>,
     /// name property.
     pub name: Option<String>,
-    /// policy property.
-    pub policy: Option<String>,
-    /// policyDriftDetails property.
-    pub policy_drift_details: Option<Vec<PolicyDriftDetails>>,
-    /// policySet property.
-    pub policy_set: Option<String>,
-    /// postureDeployment property.
-    pub posture_deployment: Option<String>,
-    /// postureDeploymentResource property.
-    pub posture_deployment_resource: Option<String>,
-    /// revisionId property.
-    pub revision_id: Option<String>,
+    /// source property.
+    pub source: Option<String>,
 }
 
-/// `SecretFilePath` type.
+/// `Pipeline` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecretFilePath {
-    /// path property.
-    pub path: Option<String>,
-}
-
-/// `Role` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Role {
-    /// kind property.
-    pub kind: Option<String>,
+pub struct Pipeline {
+    /// displayName property.
+    pub display_name: Option<String>,
     /// name property.
     pub name: Option<String>,
-    /// ns property.
-    pub ns: Option<String>,
-}
-
-/// `Geolocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Geolocation {
-    /// regionCode property.
-    pub region_code: Option<String>,
-}
-
-/// `AdcApplication` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdcApplication {
-    /// attributes property.
-    pub attributes: Option<GoogleCloudSecuritycenterV1ResourceApplicationAttributes>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `Folder` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Folder {
-    /// resourceFolder property.
-    pub resource_folder: Option<String>,
-    /// resourceFolderDisplayName property.
-    pub resource_folder_display_name: Option<String>,
-}
-
-/// `AwsOrganization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AwsOrganization {
-    /// id property.
-    pub id: Option<String>,
 }
 
 /// `Pod` type.
@@ -745,286 +452,22 @@ pub struct Pod {
     pub ns: Option<String>,
 }
 
-/// `VertexAi` type.
+/// `GoogleCloudSecuritycenterV1ResourceApplication` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VertexAi {
-    /// datasets property.
-    pub datasets: Option<Vec<Dataset>>,
-    /// pipelines property.
-    pub pipelines: Option<Vec<Pipeline>>,
+pub struct GoogleCloudSecuritycenterV1ResourceApplication {
+    /// attributes property.
+    pub attributes: Option<GoogleCloudSecuritycenterV1ResourceApplicationAttributes>,
+    /// name property.
+    pub name: Option<String>,
 }
 
-/// `AwsOrganizationalUnit` type.
+/// `AzureResourceGroup` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AwsOrganizationalUnit {
+pub struct AzureResourceGroup {
     /// id property.
     pub id: Option<String>,
     /// name property.
     pub name: Option<String>,
-}
-
-/// `AzureManagementGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AzureManagementGroup {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-}
-
-/// `Dataset` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Dataset {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// source property.
-    pub source: Option<String>,
-}
-
-/// `AdaptiveProtection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdaptiveProtection {
-    /// confidence property.
-    pub confidence: Option<f64>,
-}
-
-/// `ListFindingsResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListFindingsResult {
-    /// finding property.
-    pub finding: Option<Finding>,
-    /// resource property.
-    pub resource: Option<Resource>,
-    /// stateChange property.
-    pub state_change: Option<String>,
-}
-
-/// `PolicyViolationSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PolicyViolationSummary {
-    /// conformantResourcesCount property.
-    pub conformant_resources_count: Option<String>,
-    /// evaluationErrorsCount property.
-    pub evaluation_errors_count: Option<String>,
-    /// outOfScopeResourcesCount property.
-    pub out_of_scope_resources_count: Option<String>,
-    /// policyViolationsCount property.
-    pub policy_violations_count: Option<String>,
-}
-
-/// `ExternalExposure` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExternalExposure {
-    /// backendService property.
-    pub backend_service: Option<String>,
-    /// exposedEndpoint property.
-    pub exposed_endpoint: Option<String>,
-    /// exposedService property.
-    pub exposed_service: Option<String>,
-    /// forwardingRule property.
-    pub forwarding_rule: Option<String>,
-    /// instanceGroup property.
-    pub instance_group: Option<String>,
-    /// loadBalancerFirewallPolicy property.
-    pub load_balancer_firewall_policy: Option<String>,
-    /// networkEndpointGroup property.
-    pub network_endpoint_group: Option<String>,
-    /// privateIpAddress property.
-    pub private_ip_address: Option<String>,
-    /// privatePort property.
-    pub private_port: Option<String>,
-    /// publicIpAddress property.
-    pub public_ip_address: Option<String>,
-    /// publicPort property.
-    pub public_port: Option<String>,
-    /// serviceFirewallPolicy property.
-    pub service_firewall_policy: Option<String>,
-}
-
-/// `CloudDlpInspection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudDlpInspection {
-    /// fullScan property.
-    pub full_scan: Option<bool>,
-    /// infoType property.
-    pub info_type: Option<String>,
-    /// infoTypeCount property.
-    pub info_type_count: Option<String>,
-    /// inspectJob property.
-    pub inspect_job: Option<String>,
-}
-
-/// `Reference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Reference {
-    /// source property.
-    pub source: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `DataRetentionDeletionEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataRetentionDeletionEvent {
-    /// dataObjectCount property.
-    pub data_object_count: Option<String>,
-    /// eventDetectionTime property.
-    pub event_detection_time: Option<String>,
-    /// eventType property.
-    pub event_type: Option<String>,
-    /// maxRetentionAllowed property.
-    pub max_retention_allowed: Option<String>,
-    /// minRetentionAllowed property.
-    pub min_retention_allowed: Option<String>,
-}
-
-/// `GoogleCloudSecuritycenterV1ResourceApplicationAttributesEnvironment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributesEnvironment {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `AzureTenant` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AzureTenant {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-}
-
-/// `SecurityPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPolicy {
-    /// name property.
-    pub name: Option<String>,
-    /// preview property.
-    pub preview: Option<bool>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `ArtifactGuardPolicies` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArtifactGuardPolicies {
-    /// failingPolicies property.
-    pub failing_policies: Option<Vec<ArtifactGuardPolicy>>,
-    /// resourceId property.
-    pub resource_id: Option<String>,
-}
-
-/// `Notebook` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Notebook {
-    /// lastAuthor property.
-    pub last_author: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// notebookUpdateTime property.
-    pub notebook_update_time: Option<String>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `Cwe` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Cwe {
-    /// id property.
-    pub id: Option<String>,
-    /// references property.
-    pub references: Option<Vec<Reference>>,
-}
-
-/// `Cve` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Cve {
-    /// cvssv3 property.
-    pub cvssv3: Option<Cvssv3>,
-    /// exploitReleaseDate property.
-    pub exploit_release_date: Option<String>,
-    /// exploitationActivity property.
-    pub exploitation_activity: Option<String>,
-    /// firstExploitationDate property.
-    pub first_exploitation_date: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// impact property.
-    pub impact: Option<String>,
-    /// observedInTheWild property.
-    pub observed_in_the_wild: Option<bool>,
-    /// references property.
-    pub references: Option<Vec<Reference>>,
-    /// upstreamFixAvailable property.
-    pub upstream_fix_available: Option<bool>,
-    /// zeroDay property.
-    pub zero_day: Option<bool>,
-}
-
-/// `Application` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Application {
-    /// baseUri property.
-    pub base_uri: Option<String>,
-    /// fullUri property.
-    pub full_uri: Option<String>,
-}
-
-/// `Subject` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Subject {
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// ns property.
-    pub ns: Option<String>,
-}
-
-/// `ExfilResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExfilResource {
-    /// components property.
-    pub components: Option<Vec<String>>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `AzureMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AzureMetadata {
-    /// managementGroups property.
-    pub management_groups: Option<Vec<AzureManagementGroup>>,
-    /// resourceGroup property.
-    pub resource_group: Option<AzureResourceGroup>,
-    /// subscription property.
-    pub subscription: Option<AzureSubscription>,
-    /// tenant property.
-    pub tenant: Option<AzureTenant>,
-}
-
-/// `CloudDlpDataProfile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudDlpDataProfile {
-    /// dataProfile property.
-    pub data_profile: Option<String>,
-    /// infoTypes property.
-    pub info_types: Option<Vec<InfoType>>,
-    /// parentType property.
-    pub parent_type: Option<String>,
-}
-
-/// `IamBinding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IamBinding {
-    /// action property.
-    pub action: Option<String>,
-    /// member property.
-    pub member: Option<String>,
-    /// role property.
-    pub role: Option<String>,
 }
 
 /// `Finding` type.
@@ -1168,6 +611,17 @@ pub struct Finding {
     pub vulnerability: Option<Vulnerability>,
 }
 
+/// `ProcessSignature` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProcessSignature {
+    /// memoryHashSignature property.
+    pub memory_hash_signature: Option<MemoryHashSignature>,
+    /// signatureType property.
+    pub signature_type: Option<String>,
+    /// yaraRuleSignature property.
+    pub yara_rule_signature: Option<YaraRuleSignature>,
+}
+
 /// `Container` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Container {
@@ -1183,70 +637,33 @@ pub struct Container {
     pub uri: Option<String>,
 }
 
-/// `Vulnerability` type.
+/// `SecretStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Vulnerability {
-    /// cve property.
-    pub cve: Option<Cve>,
-    /// cwes property.
-    pub cwes: Option<Vec<Cwe>>,
-    /// fixedPackage property.
-    pub fixed_package: Option<Package>,
-    /// offendingPackage property.
-    pub offending_package: Option<Package>,
-    /// providerRiskScore property.
-    pub provider_risk_score: Option<String>,
-    /// reachable property.
-    pub reachable: Option<bool>,
-    /// securityBulletin property.
-    pub security_bulletin: Option<SecurityBulletin>,
+pub struct SecretStatus {
+    /// lastUpdatedTime property.
+    pub last_updated_time: Option<String>,
+    /// validity property.
+    pub validity: Option<String>,
 }
 
-/// `MuteInfo` type.
+/// `Attack` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MuteInfo {
-    /// dynamicMuteRecords property.
-    pub dynamic_mute_records: Option<Vec<DynamicMuteRecord>>,
-    /// staticMute property.
-    pub static_mute: Option<StaticMute>,
+pub struct Attack {
+    /// classification property.
+    pub classification: Option<String>,
+    /// volumeBps property.
+    pub volume_bps: Option<i64>,
+    /// volumeBpsLong property.
+    pub volume_bps_long: Option<String>,
+    /// volumePps property.
+    pub volume_pps: Option<i64>,
+    /// volumePpsLong property.
+    pub volume_pps_long: Option<String>,
 }
 
-/// `PolicyDriftDetails` type.
+/// `Denied` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PolicyDriftDetails {
-    /// detectedValue property.
-    pub detected_value: Option<String>,
-    /// expectedValue property.
-    pub expected_value: Option<String>,
-    /// field property.
-    pub field: Option<String>,
-}
-
-/// `ProcessSignature` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProcessSignature {
-    /// memoryHashSignature property.
-    pub memory_hash_signature: Option<MemoryHashSignature>,
-    /// signatureType property.
-    pub signature_type: Option<String>,
-    /// yaraRuleSignature property.
-    pub yara_rule_signature: Option<YaraRuleSignature>,
-}
-
-/// `SecurityBulletin` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityBulletin {
-    /// bulletinId property.
-    pub bulletin_id: Option<String>,
-    /// submissionTime property.
-    pub submission_time: Option<String>,
-    /// suggestedUpgradeVersion property.
-    pub suggested_upgrade_version: Option<String>,
-}
-
-/// `Allowed` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Allowed {
+pub struct Denied {
     /// ipRules property.
     pub ip_rules: Option<Vec<IpRule>>,
 }
@@ -1264,53 +681,103 @@ pub struct CloudControl {
     pub version: Option<i64>,
 }
 
-/// `SensitivityScore` type.
+/// `CloudArmor` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SensitivityScore {
-    /// score property.
-    pub score: Option<String>,
+pub struct CloudArmor {
+    /// adaptiveProtection property.
+    pub adaptive_protection: Option<AdaptiveProtection>,
+    /// attack property.
+    pub attack: Option<Attack>,
+    /// duration property.
+    pub duration: Option<String>,
+    /// requests property.
+    pub requests: Option<Requests>,
+    /// securityPolicy property.
+    pub security_policy: Option<SecurityPolicy>,
+    /// threatVector property.
+    pub threat_vector: Option<String>,
 }
 
-/// `ArtifactGuardPolicy` type.
+/// `Database` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArtifactGuardPolicy {
-    /// failureReason property.
-    pub failure_reason: Option<String>,
-    /// policyId property.
-    pub policy_id: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct Database {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// grantees property.
+    pub grantees: Option<Vec<String>>,
+    /// name property.
+    pub name: Option<String>,
+    /// query property.
+    pub query: Option<String>,
+    /// userName property.
+    pub user_name: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
-/// `AwsMetadata` type.
+/// `AffectedResources` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AwsMetadata {
-    /// account property.
-    pub account: Option<AwsAccount>,
-    /// organization property.
-    pub organization: Option<AwsOrganization>,
-    /// organizationalUnits property.
-    pub organizational_units: Option<Vec<AwsOrganizationalUnit>>,
+pub struct AffectedResources {
+    /// count property.
+    pub count: Option<String>,
 }
 
-/// `Secret` type.
+/// `AdcSharedTemplateRevision` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Secret {
-    /// environmentVariable property.
-    pub environment_variable: Option<SecretEnvironmentVariable>,
-    /// filePath property.
-    pub file_path: Option<SecretFilePath>,
-    /// status property.
-    pub status: Option<SecretStatus>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct AdcSharedTemplateRevision {
+    /// name property.
+    pub name: Option<String>,
 }
 
-/// `Chokepoint` type.
+/// `AzureTenant` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Chokepoint {
-    /// relatedFindings property.
-    pub related_findings: Option<Vec<String>>,
+pub struct AzureTenant {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+}
+
+/// `ServiceAccountDelegationInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceAccountDelegationInfo {
+    /// principalEmail property.
+    pub principal_email: Option<String>,
+    /// principalSubject property.
+    pub principal_subject: Option<String>,
+}
+
+/// `Reference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Reference {
+    /// source property.
+    pub source: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `Label` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Label {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Object` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Object {
+    /// containers property.
+    pub containers: Option<Vec<Container>>,
+    /// group property.
+    pub group: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// ns property.
+    pub ns: Option<String>,
 }
 
 /// `Access` type.
@@ -1340,32 +807,6 @@ pub struct Access {
     pub user_name: Option<String>,
 }
 
-/// `Exfiltration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Exfiltration {
-    /// sources property.
-    pub sources: Option<Vec<ExfilResource>>,
-    /// targets property.
-    pub targets: Option<Vec<ExfilResource>>,
-    /// totalExfiltratedBytes property.
-    pub total_exfiltrated_bytes: Option<String>,
-}
-
-/// `MitreAttack` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MitreAttack {
-    /// additionalTactics property.
-    pub additional_tactics: Option<Vec<String>>,
-    /// additionalTechniques property.
-    pub additional_techniques: Option<Vec<String>>,
-    /// primaryTactic property.
-    pub primary_tactic: Option<String>,
-    /// primaryTechniques property.
-    pub primary_techniques: Option<Vec<String>>,
-    /// version property.
-    pub version: Option<String>,
-}
-
 /// `ToxicCombination` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToxicCombination {
@@ -1373,6 +814,57 @@ pub struct ToxicCombination {
     pub attack_exposure_score: Option<f64>,
     /// relatedFindings property.
     pub related_findings: Option<Vec<String>>,
+}
+
+/// `AdaptiveProtection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdaptiveProtection {
+    /// confidence property.
+    pub confidence: Option<f64>,
+}
+
+/// `Job` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Job {
+    /// errorCode property.
+    pub error_code: Option<i64>,
+    /// location property.
+    pub location: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `Cwe` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Cwe {
+    /// id property.
+    pub id: Option<String>,
+    /// references property.
+    pub references: Option<Vec<Reference>>,
+}
+
+/// `ListFindingsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListFindingsResponse {
+    /// listFindingsResults property.
+    pub list_findings_results: Option<Vec<ListFindingsResult>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// readTime property.
+    pub read_time: Option<String>,
+    /// totalSize property.
+    pub total_size: Option<i64>,
+}
+
+/// `AdcApplication` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdcApplication {
+    /// attributes property.
+    pub attributes: Option<GoogleCloudSecuritycenterV1ResourceApplicationAttributes>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 /// `Detection` type.
@@ -1384,37 +876,398 @@ pub struct Detection {
     pub percent_pages_matched: Option<f64>,
 }
 
-/// `CloudArmor` type.
+/// `Network` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudArmor {
-    /// adaptiveProtection property.
-    pub adaptive_protection: Option<AdaptiveProtection>,
-    /// attack property.
-    pub attack: Option<Attack>,
-    /// duration property.
-    pub duration: Option<String>,
-    /// requests property.
-    pub requests: Option<Requests>,
-    /// securityPolicy property.
-    pub security_policy: Option<SecurityPolicy>,
-    /// threatVector property.
-    pub threat_vector: Option<String>,
+pub struct Network {
+    /// name property.
+    pub name: Option<String>,
 }
 
-/// `AffectedResources` type.
+/// `DataFlowEvent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AffectedResources {
-    /// count property.
-    pub count: Option<String>,
+pub struct DataFlowEvent {
+    /// eventId property.
+    pub event_id: Option<String>,
+    /// eventTime property.
+    pub event_time: Option<String>,
+    /// operation property.
+    pub operation: Option<String>,
+    /// principalEmail property.
+    pub principal_email: Option<String>,
+    /// violatedLocation property.
+    pub violated_location: Option<String>,
 }
 
-/// `IpRule` type.
+/// `AccessReview` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IpRule {
-    /// portRanges property.
-    pub port_ranges: Option<Vec<PortRange>>,
+pub struct AccessReview {
+    /// group property.
+    pub group: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// ns property.
+    pub ns: Option<String>,
+    /// resource property.
+    pub resource: Option<String>,
+    /// subresource property.
+    pub subresource: Option<String>,
+    /// verb property.
+    pub verb: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `MemoryHashSignature` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MemoryHashSignature {
+    /// binaryFamily property.
+    pub binary_family: Option<String>,
+    /// detections property.
+    pub detections: Option<Vec<Detection>>,
+}
+
+/// `Control` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Control {
+    /// controlName property.
+    pub control_name: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+}
+
+/// `DiscoveredWorkload` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiscoveredWorkload {
+    /// confidence property.
+    pub confidence: Option<String>,
+    /// detectedRelevantHardware property.
+    pub detected_relevant_hardware: Option<bool>,
+    /// detectedRelevantKeywords property.
+    pub detected_relevant_keywords: Option<bool>,
+    /// detectedRelevantPackages property.
+    pub detected_relevant_packages: Option<bool>,
+    /// workloadType property.
+    pub workload_type: Option<String>,
+}
+
+/// `Application` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Application {
+    /// baseUri property.
+    pub base_uri: Option<String>,
+    /// fullUri property.
+    pub full_uri: Option<String>,
+}
+
+/// `ResourcePath` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourcePath {
+    /// nodes property.
+    pub nodes: Option<Vec<ResourcePathNode>>,
+}
+
+/// `CloudDlpDataProfile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudDlpDataProfile {
+    /// dataProfile property.
+    pub data_profile: Option<String>,
+    /// infoTypes property.
+    pub info_types: Option<Vec<InfoType>>,
+    /// parentType property.
+    pub parent_type: Option<String>,
+}
+
+/// `CloudDlpInspection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudDlpInspection {
+    /// fullScan property.
+    pub full_scan: Option<bool>,
+    /// infoType property.
+    pub info_type: Option<String>,
+    /// infoTypeCount property.
+    pub info_type_count: Option<String>,
+    /// inspectJob property.
+    pub inspect_job: Option<String>,
+}
+
+/// `NodePool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodePool {
+    /// name property.
+    pub name: Option<String>,
+    /// nodes property.
+    pub nodes: Option<Vec<Node>>,
+}
+
+/// `Node` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Node {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `DataRetentionDeletionEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataRetentionDeletionEvent {
+    /// dataObjectCount property.
+    pub data_object_count: Option<String>,
+    /// eventDetectionTime property.
+    pub event_detection_time: Option<String>,
+    /// eventType property.
+    pub event_type: Option<String>,
+    /// maxRetentionAllowed property.
+    pub max_retention_allowed: Option<String>,
+    /// minRetentionAllowed property.
+    pub min_retention_allowed: Option<String>,
+}
+
+/// `ExfilResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExfilResource {
+    /// components property.
+    pub components: Option<Vec<String>>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `AwsOrganizationalUnit` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AwsOrganizationalUnit {
+    /// id property.
+    pub id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `Secret` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Secret {
+    /// environmentVariable property.
+    pub environment_variable: Option<SecretEnvironmentVariable>,
+    /// filePath property.
+    pub file_path: Option<SecretFilePath>,
+    /// status property.
+    pub status: Option<SecretStatus>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `Cve` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Cve {
+    /// cvssv3 property.
+    pub cvssv3: Option<Cvssv3>,
+    /// exploitReleaseDate property.
+    pub exploit_release_date: Option<String>,
+    /// exploitationActivity property.
+    pub exploitation_activity: Option<String>,
+    /// firstExploitationDate property.
+    pub first_exploitation_date: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// impact property.
+    pub impact: Option<String>,
+    /// observedInTheWild property.
+    pub observed_in_the_wild: Option<bool>,
+    /// references property.
+    pub references: Option<Vec<Reference>>,
+    /// upstreamFixAvailable property.
+    pub upstream_fix_available: Option<bool>,
+    /// zeroDay property.
+    pub zero_day: Option<bool>,
+}
+
+/// `IpRules` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IpRules {
+    /// allowed property.
+    pub allowed: Option<Allowed>,
+    /// denied property.
+    pub denied: Option<Denied>,
+    /// destinationIpRanges property.
+    pub destination_ip_ranges: Option<Vec<String>>,
+    /// direction property.
+    pub direction: Option<String>,
+    /// exposedServices property.
+    pub exposed_services: Option<Vec<String>>,
+    /// sourceIpRanges property.
+    pub source_ip_ranges: Option<Vec<String>>,
+}
+
+/// `SecurityBulletin` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityBulletin {
+    /// bulletinId property.
+    pub bulletin_id: Option<String>,
+    /// submissionTime property.
+    pub submission_time: Option<String>,
+    /// suggestedUpgradeVersion property.
+    pub suggested_upgrade_version: Option<String>,
+}
+
+/// `GoogleCloudSecuritycenterV1ResourceApplicationAttributes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributes {
+    /// businessOwners property.
+    pub business_owners:
+        Option<Vec<GoogleCloudSecuritycenterV1ResourceApplicationAttributesContactInfo>>,
+    /// criticality property.
+    pub criticality: Option<GoogleCloudSecuritycenterV1ResourceApplicationAttributesCriticality>,
+    /// developerOwners property.
+    pub developer_owners:
+        Option<Vec<GoogleCloudSecuritycenterV1ResourceApplicationAttributesContactInfo>>,
+    /// environment property.
+    pub environment: Option<GoogleCloudSecuritycenterV1ResourceApplicationAttributesEnvironment>,
+    /// operatorOwners property.
+    pub operator_owners:
+        Option<Vec<GoogleCloudSecuritycenterV1ResourceApplicationAttributesContactInfo>>,
+}
+
+/// `Connection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Connection {
+    /// destinationIp property.
+    pub destination_ip: Option<String>,
+    /// destinationPort property.
+    pub destination_port: Option<i64>,
     /// protocol property.
     pub protocol: Option<String>,
+    /// sourceIp property.
+    pub source_ip: Option<String>,
+    /// sourcePort property.
+    pub source_port: Option<i64>,
+}
+
+/// `File` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct File {
+    /// contents property.
+    pub contents: Option<String>,
+    /// diskPath property.
+    pub disk_path: Option<DiskPath>,
+    /// fileLoadState property.
+    pub file_load_state: Option<String>,
+    /// hashedSize property.
+    pub hashed_size: Option<String>,
+    /// operations property.
+    pub operations: Option<Vec<FileOperation>>,
+    /// partiallyHashed property.
+    pub partially_hashed: Option<bool>,
+    /// path property.
+    pub path: Option<String>,
+    /// sha256 property.
+    pub sha256: Option<String>,
+    /// size property.
+    pub size: Option<String>,
+}
+
+/// `Requests` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Requests {
+    /// longTermAllowed property.
+    pub long_term_allowed: Option<i64>,
+    /// longTermDenied property.
+    pub long_term_denied: Option<i64>,
+    /// ratio property.
+    pub ratio: Option<f64>,
+    /// shortTermAllowed property.
+    pub short_term_allowed: Option<i64>,
+}
+
+/// `Geolocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Geolocation {
+    /// regionCode property.
+    pub region_code: Option<String>,
+}
+
+/// `ComplianceDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComplianceDetails {
+    /// cloudControl property.
+    pub cloud_control: Option<CloudControl>,
+    /// cloudControlDeploymentNames property.
+    pub cloud_control_deployment_names: Option<Vec<String>>,
+    /// frameworks property.
+    pub frameworks: Option<Vec<Framework>>,
+}
+
+/// `AwsOrganization` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AwsOrganization {
+    /// id property.
+    pub id: Option<String>,
+}
+
+/// `ResourcePathNode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourcePathNode {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// nodeType property.
+    pub node_type: Option<String>,
+}
+
+/// `ListFindingsResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListFindingsResult {
+    /// finding property.
+    pub finding: Option<Finding>,
+    /// resource property.
+    pub resource: Option<Resource>,
+    /// stateChange property.
+    pub state_change: Option<String>,
+}
+
+/// `DiskPath` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskPath {
+    /// partitionUuid property.
+    pub partition_uuid: Option<String>,
+    /// relativePath property.
+    pub relative_path: Option<String>,
+}
+
+/// `AttackExposure` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AttackExposure {
+    /// attackExposureResult property.
+    pub attack_exposure_result: Option<String>,
+    /// exposedHighValueResourcesCount property.
+    pub exposed_high_value_resources_count: Option<i64>,
+    /// exposedLowValueResourcesCount property.
+    pub exposed_low_value_resources_count: Option<i64>,
+    /// exposedMediumValueResourcesCount property.
+    pub exposed_medium_value_resources_count: Option<i64>,
+    /// latestCalculationTime property.
+    pub latest_calculation_time: Option<String>,
+    /// score property.
+    pub score: Option<f64>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `SecurityPosture` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPosture {
+    /// changedPolicy property.
+    pub changed_policy: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// policy property.
+    pub policy: Option<String>,
+    /// policyDriftDetails property.
+    pub policy_drift_details: Option<Vec<PolicyDriftDetails>>,
+    /// policySet property.
+    pub policy_set: Option<String>,
+    /// postureDeployment property.
+    pub posture_deployment: Option<String>,
+    /// postureDeploymentResource property.
+    pub posture_deployment_resource: Option<String>,
+    /// revisionId property.
+    pub revision_id: Option<String>,
 }
 
 /// `Cvssv3` type.
@@ -1440,103 +1293,138 @@ pub struct Cvssv3 {
     pub user_interaction: Option<String>,
 }
 
-/// `GoogleCloudSecuritycenterV1ResourceApplicationAttributesContactInfo` type.
+/// `GoogleCloudSecuritycenterV1ResourceApplicationAttributesCriticality` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributesContactInfo {
-    /// email property.
-    pub email: Option<String>,
+pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributesCriticality {
+    /// type property.
+    pub r#type: Option<String>,
 }
 
-/// `GroupMembership` type.
+/// `MitreAttack` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GroupMembership {
-    /// groupId property.
-    pub group_id: Option<String>,
-    /// groupType property.
-    pub group_type: Option<String>,
+pub struct MitreAttack {
+    /// additionalTactics property.
+    pub additional_tactics: Option<Vec<String>>,
+    /// additionalTechniques property.
+    pub additional_techniques: Option<Vec<String>>,
+    /// primaryTactic property.
+    pub primary_tactic: Option<String>,
+    /// primaryTechniques property.
+    pub primary_techniques: Option<Vec<String>>,
+    /// version property.
+    pub version: Option<String>,
 }
 
-/// `EnvironmentVariable` type.
+/// `AzureManagementGroup` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnvironmentVariable {
+pub struct AzureManagementGroup {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+}
+
+/// `SecurityMarks` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityMarks {
+    /// canonicalName property.
+    pub canonical_name: Option<String>,
+    /// marks property.
+    pub marks: Option<serde_json::Value>,
     /// name property.
     pub name: Option<String>,
-    /// val property.
-    pub val: Option<String>,
 }
 
-/// `IpRules` type.
+/// `Role` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IpRules {
-    /// allowed property.
-    pub allowed: Option<Allowed>,
-    /// denied property.
-    pub denied: Option<Denied>,
-    /// destinationIpRanges property.
-    pub destination_ip_ranges: Option<Vec<String>>,
-    /// direction property.
-    pub direction: Option<String>,
-    /// exposedServices property.
-    pub exposed_services: Option<Vec<String>>,
-    /// sourceIpRanges property.
-    pub source_ip_ranges: Option<Vec<String>>,
+pub struct Role {
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// ns property.
+    pub ns: Option<String>,
 }
 
-/// `YaraRuleSignature` type.
+/// `AdcApplicationTemplateRevision` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct YaraRuleSignature {
-    /// yaraRule property.
-    pub yara_rule: Option<String>,
+pub struct AdcApplicationTemplateRevision {
+    /// name property.
+    pub name: Option<String>,
 }
 
-/// `Indicator` type.
+/// `LoadBalancer` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Indicator {
-    /// domains property.
-    pub domains: Option<Vec<String>>,
-    /// ipAddresses property.
-    pub ip_addresses: Option<Vec<String>>,
-    /// signatures property.
-    pub signatures: Option<Vec<ProcessSignature>>,
-    /// uris property.
-    pub uris: Option<Vec<String>>,
+pub struct LoadBalancer {
+    /// name property.
+    pub name: Option<String>,
 }
 
-/// `SecretEnvironmentVariable` type.
+/// `DataAccessEvent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecretEnvironmentVariable {
-    /// key property.
-    pub key: Option<String>,
+pub struct DataAccessEvent {
+    /// eventId property.
+    pub event_id: Option<String>,
+    /// eventTime property.
+    pub event_time: Option<String>,
+    /// operation property.
+    pub operation: Option<String>,
+    /// principalEmail property.
+    pub principal_email: Option<String>,
 }
 
-/// `ComplianceDetails` type.
+/// `PortRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComplianceDetails {
-    /// cloudControl property.
-    pub cloud_control: Option<CloudControl>,
-    /// cloudControlDeploymentNames property.
-    pub cloud_control_deployment_names: Option<Vec<String>>,
-    /// frameworks property.
-    pub frameworks: Option<Vec<Framework>>,
+pub struct PortRange {
+    /// max property.
+    pub max: Option<String>,
+    /// min property.
+    pub min: Option<String>,
 }
 
-/// `Kubernetes` type.
+/// `Resource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Kubernetes {
-    /// accessReviews property.
-    pub access_reviews: Option<Vec<AccessReview>>,
-    /// bindings property.
-    pub bindings: Option<Vec<GoogleCloudSecuritycenterV1Binding>>,
-    /// nodePools property.
-    pub node_pools: Option<Vec<NodePool>>,
-    /// nodes property.
-    pub nodes: Option<Vec<Node>>,
-    /// objects property.
-    pub objects: Option<Vec<Object>>,
-    /// pods property.
-    pub pods: Option<Vec<Pod>>,
-    /// roles property.
-    pub roles: Option<Vec<Role>>,
+pub struct Resource {
+    /// adcApplication property.
+    pub adc_application: Option<AdcApplication>,
+    /// adcApplicationTemplate property.
+    pub adc_application_template: Option<AdcApplicationTemplateRevision>,
+    /// adcSharedTemplate property.
+    pub adc_shared_template: Option<AdcSharedTemplateRevision>,
+    /// application property.
+    pub application: Option<GoogleCloudSecuritycenterV1ResourceApplication>,
+    /// awsMetadata property.
+    pub aws_metadata: Option<AwsMetadata>,
+    /// azureMetadata property.
+    pub azure_metadata: Option<AzureMetadata>,
+    /// cloudProvider property.
+    pub cloud_provider: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// folders property.
+    pub folders: Option<Vec<Folder>>,
+    /// location property.
+    pub location: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// organization property.
+    pub organization: Option<String>,
+    /// parentDisplayName property.
+    pub parent_display_name: Option<String>,
+    /// parentName property.
+    pub parent_name: Option<String>,
+    /// projectDisplayName property.
+    pub project_display_name: Option<String>,
+    /// projectName property.
+    pub project_name: Option<String>,
+    /// resourcePath property.
+    pub resource_path: Option<ResourcePath>,
+    /// resourcePathString property.
+    pub resource_path_string: Option<String>,
+    /// service property.
+    pub service: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `AgentDataAccessEvent` type.
@@ -1561,39 +1449,152 @@ pub struct StaticMute {
     pub state: Option<String>,
 }
 
-/// `AzureResourceGroup` type.
+/// `FileOperation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AzureResourceGroup {
-    /// id property.
-    pub id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
+pub struct FileOperation {
+    /// type property.
+    pub r#type: Option<String>,
 }
 
-/// `Object` type.
+/// `SecretEnvironmentVariable` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Object {
-    /// containers property.
-    pub containers: Option<Vec<Container>>,
-    /// group property.
-    pub group: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// ns property.
-    pub ns: Option<String>,
+pub struct SecretEnvironmentVariable {
+    /// key property.
+    pub key: Option<String>,
 }
 
-/// `SecurityMarks` type.
+/// `SecurityPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityMarks {
-    /// canonicalName property.
-    pub canonical_name: Option<String>,
-    /// marks property.
-    pub marks: Option<serde_json::Value>,
+pub struct SecurityPolicy {
     /// name property.
     pub name: Option<String>,
+    /// preview property.
+    pub preview: Option<bool>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `PolicyViolationSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PolicyViolationSummary {
+    /// conformantResourcesCount property.
+    pub conformant_resources_count: Option<String>,
+    /// evaluationErrorsCount property.
+    pub evaluation_errors_count: Option<String>,
+    /// outOfScopeResourcesCount property.
+    pub out_of_scope_resources_count: Option<String>,
+    /// policyViolationsCount property.
+    pub policy_violations_count: Option<String>,
+}
+
+/// `SensitivityScore` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SensitivityScore {
+    /// score property.
+    pub score: Option<String>,
+}
+
+/// `YaraRuleSignature` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct YaraRuleSignature {
+    /// yaraRule property.
+    pub yara_rule: Option<String>,
+}
+
+/// `Framework` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Framework {
+    /// category property.
+    pub category: Option<Vec<String>>,
+    /// controls property.
+    pub controls: Option<Vec<Control>>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `AzureMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AzureMetadata {
+    /// managementGroups property.
+    pub management_groups: Option<Vec<AzureManagementGroup>>,
+    /// resourceGroup property.
+    pub resource_group: Option<AzureResourceGroup>,
+    /// subscription property.
+    pub subscription: Option<AzureSubscription>,
+    /// tenant property.
+    pub tenant: Option<AzureTenant>,
+}
+
+/// `ExternalExposure` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExternalExposure {
+    /// backendService property.
+    pub backend_service: Option<String>,
+    /// exposedEndpoint property.
+    pub exposed_endpoint: Option<String>,
+    /// exposedService property.
+    pub exposed_service: Option<String>,
+    /// forwardingRule property.
+    pub forwarding_rule: Option<String>,
+    /// instanceGroup property.
+    pub instance_group: Option<String>,
+    /// loadBalancerFirewallPolicy property.
+    pub load_balancer_firewall_policy: Option<String>,
+    /// networkEndpointGroup property.
+    pub network_endpoint_group: Option<String>,
+    /// privateIpAddress property.
+    pub private_ip_address: Option<String>,
+    /// privatePort property.
+    pub private_port: Option<String>,
+    /// publicIpAddress property.
+    pub public_ip_address: Option<String>,
+    /// publicPort property.
+    pub public_port: Option<String>,
+    /// serviceFirewallPolicy property.
+    pub service_firewall_policy: Option<String>,
+}
+
+/// `SecretFilePath` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecretFilePath {
+    /// path property.
+    pub path: Option<String>,
+}
+
+/// `AiModel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AiModel {
+    /// deploymentPlatform property.
+    pub deployment_platform: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// domain property.
+    pub domain: Option<String>,
+    /// library property.
+    pub library: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// publisher property.
+    pub publisher: Option<String>,
+    /// usageCategory property.
+    pub usage_category: Option<String>,
+}
+
+/// `Exfiltration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Exfiltration {
+    /// sources property.
+    pub sources: Option<Vec<ExfilResource>>,
+    /// targets property.
+    pub targets: Option<Vec<ExfilResource>>,
+    /// totalExfiltratedBytes property.
+    pub total_exfiltrated_bytes: Option<String>,
 }
 
 // =============================================================================

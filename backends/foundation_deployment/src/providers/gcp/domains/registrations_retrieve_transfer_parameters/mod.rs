@@ -12,17 +12,36 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Money` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Money {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// units property.
+    pub units: Option<String>,
+}
+
+/// `RetrieveTransferParametersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RetrieveTransferParametersResponse {
+    /// transferParameters property.
+    pub transfer_parameters: Option<TransferParameters>,
+}
 
 /// `TransferParameters` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -41,24 +60,6 @@ pub struct TransferParameters {
     pub transfer_lock_state: Option<String>,
     /// yearlyPrice property.
     pub yearly_price: Option<Money>,
-}
-
-/// `RetrieveTransferParametersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RetrieveTransferParametersResponse {
-    /// transferParameters property.
-    pub transfer_parameters: Option<TransferParameters>,
-}
-
-/// `Money` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Money {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// units property.
-    pub units: Option<String>,
 }
 
 // =============================================================================

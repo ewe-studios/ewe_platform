@@ -12,17 +12,25 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudRun` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRun {
+    /// serviceUri property.
+    pub service_uri: Option<String>,
+}
 
 /// `ArtifactDeployment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -50,33 +58,6 @@ pub struct ListDeploymentEventsResponse {
     pub deployment_events: Option<Vec<DeploymentEvent>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-}
-
-/// `AppHubWorkload` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppHubWorkload {
-    /// criticality property.
-    pub criticality: Option<String>,
-    /// environment property.
-    pub environment: Option<String>,
-    /// workload property.
-    pub workload: Option<String>,
-}
-
-/// `GoogleCloudRun` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRun {
-    /// serviceUri property.
-    pub service_uri: Option<String>,
-}
-
-/// `GKEWorkload` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GKEWorkload {
-    /// cluster property.
-    pub cluster: Option<String>,
-    /// deployment property.
-    pub deployment: Option<String>,
 }
 
 /// `AppHubService` type.
@@ -111,6 +92,26 @@ pub struct DeploymentEvent {
     pub undeploy_time: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `AppHubWorkload` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppHubWorkload {
+    /// criticality property.
+    pub criticality: Option<String>,
+    /// environment property.
+    pub environment: Option<String>,
+    /// workload property.
+    pub workload: Option<String>,
+}
+
+/// `GKEWorkload` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GKEWorkload {
+    /// cluster property.
+    pub cluster: Option<String>,
+    /// deployment property.
+    pub deployment: Option<String>,
 }
 
 /// `RuntimeConfig` type.

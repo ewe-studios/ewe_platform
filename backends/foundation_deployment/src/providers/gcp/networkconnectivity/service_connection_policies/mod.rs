@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,40 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ServiceConnectionPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceConnectionPolicy {
-    /// autoCreatedSubnetInfo property.
-    pub auto_created_subnet_info: Option<AutoCreatedSubnetworkInfo>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// infrastructure property.
-    pub infrastructure: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// network property.
-    pub network: Option<String>,
-    /// pscConfig property.
-    pub psc_config: Option<PscConfig>,
-    /// pscConnections property.
-    pub psc_connections: Option<Vec<PscConnection>>,
-    /// serviceClass property.
-    pub service_class: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
 
 /// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -67,17 +39,15 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `PscConfig` type.
+/// `ListServiceConnectionPoliciesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PscConfig {
-    /// allowedGoogleProducersResourceHierarchyLevel property.
-    pub allowed_google_producers_resource_hierarchy_level: Option<Vec<String>>,
-    /// limit property.
-    pub limit: Option<String>,
-    /// producerInstanceLocation property.
-    pub producer_instance_location: Option<String>,
-    /// subnetworks property.
-    pub subnetworks: Option<Vec<String>>,
+pub struct ListServiceConnectionPoliciesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// serviceConnectionPolicies property.
+    pub service_connection_policies: Option<Vec<ServiceConnectionPolicy>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `AutoCreatedSubnetworkInfo` type.
@@ -93,6 +63,17 @@ pub struct AutoCreatedSubnetworkInfo {
     pub subnetwork: Option<String>,
     /// subnetworkRef property.
     pub subnetwork_ref: Option<String>,
+}
+
+/// `GoogleRpcErrorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
 }
 
 /// `PscConnection` type.
@@ -128,26 +109,46 @@ pub struct PscConnection {
     pub state: Option<String>,
 }
 
-/// `ListServiceConnectionPoliciesResponse` type.
+/// `PscConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListServiceConnectionPoliciesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// serviceConnectionPolicies property.
-    pub service_connection_policies: Option<Vec<ServiceConnectionPolicy>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct PscConfig {
+    /// allowedGoogleProducersResourceHierarchyLevel property.
+    pub allowed_google_producers_resource_hierarchy_level: Option<Vec<String>>,
+    /// limit property.
+    pub limit: Option<String>,
+    /// producerInstanceLocation property.
+    pub producer_instance_location: Option<String>,
+    /// subnetworks property.
+    pub subnetworks: Option<Vec<String>>,
 }
 
-/// `GoogleRpcErrorInfo` type.
+/// `ServiceConnectionPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
+pub struct ServiceConnectionPolicy {
+    /// autoCreatedSubnetInfo property.
+    pub auto_created_subnet_info: Option<AutoCreatedSubnetworkInfo>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// infrastructure property.
+    pub infrastructure: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// network property.
+    pub network: Option<String>,
+    /// pscConfig property.
+    pub psc_config: Option<PscConfig>,
+    /// pscConnections property.
+    pub psc_connections: Option<Vec<PscConnection>>,
+    /// serviceClass property.
+    pub service_class: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
 }
 
 // =============================================================================

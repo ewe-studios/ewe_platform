@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,18 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GlossaryTermsSet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GlossaryTermsSet {
-    /// terms property.
-    pub terms: Option<Vec<GlossaryTerm>>,
-}
 
 /// `GlossaryEntry` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,15 +39,6 @@ pub struct GlossaryEntry {
     pub terms_pair: Option<GlossaryTermsPair>,
     /// termsSet property.
     pub terms_set: Option<GlossaryTermsSet>,
-}
-
-/// `ListGlossaryEntriesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListGlossaryEntriesResponse {
-    /// glossaryEntries property.
-    pub glossary_entries: Option<Vec<GlossaryEntry>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 /// `GlossaryTerm` type.
@@ -72,6 +57,22 @@ pub struct GlossaryTermsPair {
     pub source_term: Option<GlossaryTerm>,
     /// targetTerm property.
     pub target_term: Option<GlossaryTerm>,
+}
+
+/// `GlossaryTermsSet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GlossaryTermsSet {
+    /// terms property.
+    pub terms: Option<Vec<GlossaryTerm>>,
+}
+
+/// `ListGlossaryEntriesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListGlossaryEntriesResponse {
+    /// glossaryEntries property.
+    pub glossary_entries: Option<Vec<GlossaryEntry>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

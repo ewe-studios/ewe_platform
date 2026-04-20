@@ -12,24 +12,31 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
+use super::shared::Empty;
 use super::shared::ScanRun;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Empty` type.
+/// `ScanConfigError` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct ScanConfigError {
+    /// code property.
+    pub code: Option<String>,
+    /// fieldName property.
+    pub field_name: Option<String>,
+}
 
 /// `IapCredential` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -47,6 +54,42 @@ pub struct Authentication {
     pub google_account: Option<GoogleAccount>,
     /// iapCredential property.
     pub iap_credential: Option<IapCredential>,
+}
+
+/// `ListScanConfigsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListScanConfigsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// scanConfigs property.
+    pub scan_configs: Option<Vec<ScanConfig>>,
+}
+
+/// `ScanRunWarningTrace` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ScanRunWarningTrace {
+    /// code property.
+    pub code: Option<String>,
+}
+
+/// `CustomAccount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomAccount {
+    /// loginUrl property.
+    pub login_url: Option<String>,
+    /// password property.
+    pub password: Option<String>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `GoogleAccount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAccount {
+    /// password property.
+    pub password: Option<String>,
+    /// username property.
+    pub username: Option<String>,
 }
 
 /// `IapTestServiceAccountInfo` type.
@@ -91,44 +134,6 @@ pub struct ScanConfig {
     pub user_agent: Option<String>,
 }
 
-/// `ListScanConfigsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListScanConfigsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// scanConfigs property.
-    pub scan_configs: Option<Vec<ScanConfig>>,
-}
-
-/// `Schedule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Schedule {
-    /// intervalDurationDays property.
-    pub interval_duration_days: Option<i64>,
-    /// scheduleTime property.
-    pub schedule_time: Option<String>,
-}
-
-/// `CustomAccount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomAccount {
-    /// loginUrl property.
-    pub login_url: Option<String>,
-    /// password property.
-    pub password: Option<String>,
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `ScanConfigError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScanConfigError {
-    /// code property.
-    pub code: Option<String>,
-    /// fieldName property.
-    pub field_name: Option<String>,
-}
-
 /// `ScanRunErrorTrace` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScanRunErrorTrace {
@@ -140,20 +145,13 @@ pub struct ScanRunErrorTrace {
     pub scan_config_error: Option<ScanConfigError>,
 }
 
-/// `ScanRunWarningTrace` type.
+/// `Schedule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScanRunWarningTrace {
-    /// code property.
-    pub code: Option<String>,
-}
-
-/// `GoogleAccount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAccount {
-    /// password property.
-    pub password: Option<String>,
-    /// username property.
-    pub username: Option<String>,
+pub struct Schedule {
+    /// intervalDurationDays property.
+    pub interval_duration_days: Option<i64>,
+    /// scheduleTime property.
+    pub schedule_time: Option<String>,
 }
 
 // =============================================================================

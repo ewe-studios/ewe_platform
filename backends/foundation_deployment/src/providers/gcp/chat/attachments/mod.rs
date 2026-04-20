@@ -12,17 +12,25 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `DriveDataRef` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DriveDataRef {
+    /// driveFileId property.
+    pub drive_file_id: Option<String>,
+}
 
 /// `AttachmentDataRef` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -31,13 +39,6 @@ pub struct AttachmentDataRef {
     pub attachment_upload_token: Option<String>,
     /// resourceName property.
     pub resource_name: Option<String>,
-}
-
-/// `DriveDataRef` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DriveDataRef {
-    /// driveFileId property.
-    pub drive_file_id: Option<String>,
 }
 
 /// `Attachment` type.

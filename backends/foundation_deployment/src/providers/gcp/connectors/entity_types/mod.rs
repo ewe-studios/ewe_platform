@@ -12,29 +12,57 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListEntityTypesResponse` type.
+/// `EntityType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListEntityTypesResponse {
+pub struct EntityType {
+    /// defaultSortBy property.
+    pub default_sort_by: Option<String>,
+    /// fields property.
+    pub fields: Option<Vec<Field>>,
+    /// jsonSchema property.
+    pub json_schema: Option<Box<JsonSchema>>,
     /// metadata property.
     pub metadata: Option<serde_json::Value>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// types property.
-    pub types: Option<Vec<EntityType>>,
-    /// unsupportedTypeNames property.
-    pub unsupported_type_names: Option<Vec<String>>,
+    /// name property.
+    pub name: Option<String>,
+    /// operations property.
+    pub operations: Option<Vec<String>>,
+}
+
+/// `Field` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Field {
+    /// additionalDetails property.
+    pub additional_details: Option<serde_json::Value>,
+    /// dataType property.
+    pub data_type: Option<String>,
+    /// defaultValue property.
+    pub default_value: Option<serde_json::Value>,
+    /// description property.
+    pub description: Option<String>,
+    /// jsonSchema property.
+    pub json_schema: Option<Box<JsonSchema>>,
+    /// key property.
+    pub key: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+    /// nullable property.
+    pub nullable: Option<bool>,
+    /// reference property.
+    pub reference: Option<Reference>,
 }
 
 /// `JsonSchema` type.
@@ -55,7 +83,7 @@ pub struct JsonSchema {
     /// format property.
     pub format: Option<String>,
     /// items property.
-    pub items: Option<JsonSchema>,
+    pub items: Option<Box<JsonSchema>>,
     /// jdbcType property.
     pub jdbc_type: Option<String>,
     /// maxItems property.
@@ -82,6 +110,19 @@ pub struct JsonSchema {
     pub unique_items: Option<bool>,
 }
 
+/// `ListEntityTypesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListEntityTypesResponse {
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// types property.
+    pub types: Option<Vec<EntityType>>,
+    /// unsupportedTypeNames property.
+    pub unsupported_type_names: Option<Vec<String>>,
+}
+
 /// `Reference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Reference {
@@ -89,46 +130,6 @@ pub struct Reference {
     pub name: Option<String>,
     /// type property.
     pub r#type: Option<String>,
-}
-
-/// `EntityType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EntityType {
-    /// defaultSortBy property.
-    pub default_sort_by: Option<String>,
-    /// fields property.
-    pub fields: Option<Vec<Field>>,
-    /// jsonSchema property.
-    pub json_schema: Option<JsonSchema>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// operations property.
-    pub operations: Option<Vec<String>>,
-}
-
-/// `Field` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Field {
-    /// additionalDetails property.
-    pub additional_details: Option<serde_json::Value>,
-    /// dataType property.
-    pub data_type: Option<String>,
-    /// defaultValue property.
-    pub default_value: Option<serde_json::Value>,
-    /// description property.
-    pub description: Option<String>,
-    /// jsonSchema property.
-    pub json_schema: Option<JsonSchema>,
-    /// key property.
-    pub key: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-    /// nullable property.
-    pub nullable: Option<bool>,
-    /// reference property.
-    pub reference: Option<Reference>,
 }
 
 // =============================================================================

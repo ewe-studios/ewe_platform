@@ -12,52 +12,130 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::GoogleCloudContentwarehouseV1Document;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableRow` type.
+/// `GoogleCloudDocumentaiV1DocumentPageFormField` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableRow {
-    /// cells property.
-    pub cells: Option<
-        Vec<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableCell>,
+pub struct GoogleCloudDocumentaiV1DocumentPageFormField {
+    /// correctedKeyText property.
+    pub corrected_key_text: Option<String>,
+    /// correctedValueText property.
+    pub corrected_value_text: Option<String>,
+    /// fieldName property.
+    pub field_name: Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// fieldValue property.
+    pub field_value: Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// nameDetectedLanguages property.
+    pub name_detected_languages: Option<Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>>,
+    /// provenance property.
+    pub provenance: Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+    /// valueDetectedLanguages property.
+    pub value_detected_languages: Option<Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>>,
+    /// valueType property.
+    pub value_type: Option<String>,
+}
+
+/// `GoogleCloudDocumentaiV1NormalizedVertex` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1NormalizedVertex {
+    /// x property.
+    pub x: Option<f64>,
+    /// y property.
+    pub y: Option<f64>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentProvenance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentProvenance {
+    /// id property.
+    pub id: Option<i64>,
+    /// parents property.
+    pub parents: Option<Vec<GoogleCloudDocumentaiV1DocumentProvenanceParent>>,
+    /// revision property.
+    pub revision: Option<i64>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock {
+    /// blockId property.
+    pub block_id: Option<String>,
+    /// listBlock property.
+    pub list_block: Option<
+        Box<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListBlock>,
+    >,
+    /// pageSpan property.
+    pub page_span:
+        Option<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutPageSpan>,
+    /// tableBlock property.
+    pub table_block: Option<
+        Box<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableBlock>,
+    >,
+    /// textBlock property.
+    pub text_block: Option<
+        Box<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTextBlock>,
     >,
 }
 
-/// `GoogleTypePostalAddress` type.
+/// `GoogleCloudContentwarehouseV1TimestampArray` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypePostalAddress {
-    /// addressLines property.
-    pub address_lines: Option<Vec<String>>,
-    /// administrativeArea property.
-    pub administrative_area: Option<String>,
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// locality property.
-    pub locality: Option<String>,
-    /// organization property.
-    pub organization: Option<String>,
-    /// postalCode property.
-    pub postal_code: Option<String>,
-    /// recipients property.
-    pub recipients: Option<Vec<String>>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-    /// revision property.
-    pub revision: Option<i64>,
-    /// sortingCode property.
-    pub sorting_code: Option<String>,
-    /// sublocality property.
-    pub sublocality: Option<String>,
+pub struct GoogleCloudContentwarehouseV1TimestampArray {
+    /// values property.
+    pub values: Option<Vec<GoogleCloudContentwarehouseV1TimestampValue>>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentPageAnchor` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentPageAnchor {
+    /// pageRefs property.
+    pub page_refs: Option<Vec<GoogleCloudDocumentaiV1DocumentPageAnchorPageRef>>,
+}
+
+/// `GoogleCloudContentwarehouseV1TextArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1TextArray {
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentPageToken` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentPageToken {
+    /// detectedBreak property.
+    pub detected_break: Option<GoogleCloudDocumentaiV1DocumentPageTokenDetectedBreak>,
+    /// detectedLanguages property.
+    pub detected_languages: Option<Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>>,
+    /// layout property.
+    pub layout: Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// provenance property.
+    pub provenance: Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+    /// styleInfo property.
+    pub style_info: Option<GoogleCloudDocumentaiV1DocumentPageTokenStyleInfo>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageHeader` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageHeader {
+    /// pageSpan property.
+    pub page_span: Option<GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan>,
+    /// text property.
+    pub text: Option<String>,
 }
 
 /// `GoogleCloudDocumentaiV1DocumentPageTableTableCell` type.
@@ -73,20 +151,11 @@ pub struct GoogleCloudDocumentaiV1DocumentPageTableTableCell {
     pub row_span: Option<i64>,
 }
 
-/// `GoogleCloudDocumentaiV1DocumentPageDetectedLanguage` type.
+/// `GoogleCloudContentwarehouseV1IntegerArray` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentPageDetectedLanguage {
-    /// confidence property.
-    pub confidence: Option<f64>,
-    /// languageCode property.
-    pub language_code: Option<String>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentPageAnchor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentPageAnchor {
-    /// pageRefs property.
-    pub page_refs: Option<Vec<GoogleCloudDocumentaiV1DocumentPageAnchorPageRef>>,
+pub struct GoogleCloudContentwarehouseV1IntegerArray {
+    /// values property.
+    pub values: Option<Vec<i64>>,
 }
 
 /// `GoogleCloudContentwarehouseV1QAResultHighlight` type.
@@ -98,13 +167,47 @@ pub struct GoogleCloudContentwarehouseV1QAResultHighlight {
     pub start_index: Option<i64>,
 }
 
-/// `GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan` type.
+/// `GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTextBlock` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan {
-    /// pageEnd property.
-    pub page_end: Option<i64>,
-    /// pageStart property.
-    pub page_start: Option<i64>,
+pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTextBlock {
+    /// blocks property.
+    pub blocks: Option<Vec<Box<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>>>,
+    /// text property.
+    pub text: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudContentwarehouseV1QAResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1QAResult {
+    /// confidenceScore property.
+    pub confidence_score: Option<f64>,
+    /// highlights property.
+    pub highlights: Option<Vec<GoogleCloudContentwarehouseV1QAResultHighlight>>,
+}
+
+/// `GoogleCloudContentwarehouseV1EnumArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1EnumArray {
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `GoogleCloudContentwarehouseV1DateTimeArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1DateTimeArray {
+    /// values property.
+    pub values: Option<Vec<GoogleTypeDateTime>>,
+}
+
+/// `GoogleTypeTimeZone` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeTimeZone {
+    /// id property.
+    pub id: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
 /// `GoogleCloudContentwarehouseV1HistogramQueryResult` type.
@@ -116,6 +219,19 @@ pub struct GoogleCloudContentwarehouseV1HistogramQueryResult {
     pub histogram_query: Option<String>,
 }
 
+/// `GoogleTypeColor` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeColor {
+    /// alpha property.
+    pub alpha: Option<f64>,
+    /// blue property.
+    pub blue: Option<f64>,
+    /// green property.
+    pub green: Option<f64>,
+    /// red property.
+    pub red: Option<f64>,
+}
+
 /// `GoogleCloudDocumentaiV1DocumentStyleFontSize` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentStyleFontSize {
@@ -125,77 +241,169 @@ pub struct GoogleCloudDocumentaiV1DocumentStyleFontSize {
     pub unit: Option<String>,
 }
 
-/// `GoogleCloudDocumentaiV1DocumentTextAnchorTextSegment` type.
+/// `GoogleCloudDocumentaiV1DocumentPageDetectedBarcode` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentTextAnchorTextSegment {
-    /// endIndex property.
-    pub end_index: Option<String>,
-    /// startIndex property.
-    pub start_index: Option<String>,
+pub struct GoogleCloudDocumentaiV1DocumentPageDetectedBarcode {
+    /// barcode property.
+    pub barcode: Option<GoogleCloudDocumentaiV1Barcode>,
+    /// layout property.
+    pub layout: Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
 }
 
-/// `GoogleCloudContentwarehouseV1IntegerArray` type.
+/// `GoogleCloudContentwarehouseV1PropertyArray` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1IntegerArray {
-    /// values property.
-    pub values: Option<Vec<i64>>,
+pub struct GoogleCloudContentwarehouseV1PropertyArray {
+    /// properties property.
+    pub properties: Option<Vec<Box<GoogleCloudContentwarehouseV1Property>>>,
 }
 
-/// `GoogleRpcStatus` type.
+/// `GoogleCloudDocumentaiV1DocumentPageDimension` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct GoogleCloudDocumentaiV1DocumentPageDimension {
+    /// height property.
+    pub height: Option<f64>,
+    /// unit property.
+    pub unit: Option<String>,
+    /// width property.
+    pub width: Option<f64>,
 }
 
-/// `GoogleTypeMoney` type.
+/// `GoogleCloudDocumentaiV1Barcode` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeMoney {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// units property.
-    pub units: Option<String>,
+pub struct GoogleCloudDocumentaiV1Barcode {
+    /// format property.
+    pub format: Option<String>,
+    /// rawValue property.
+    pub raw_value: Option<String>,
+    /// valueFormat property.
+    pub value_format: Option<String>,
 }
 
-/// `GoogleCloudContentwarehouseV1TextArray` type.
+/// `GoogleCloudDocumentaiV1DocumentRevisionHumanReview` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1TextArray {
-    /// values property.
-    pub values: Option<Vec<String>>,
+pub struct GoogleCloudDocumentaiV1DocumentRevisionHumanReview {
+    /// state property.
+    pub state: Option<String>,
+    /// stateMessage property.
+    pub state_message: Option<String>,
 }
 
-/// `GoogleCloudDocumentaiV1DocumentPageTableTableRow` type.
+/// `GoogleCloudContentwarehouseV1SearchDocumentsResponseMatchingDocument` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentPageTableTableRow {
-    /// cells property.
-    pub cells: Option<Vec<GoogleCloudDocumentaiV1DocumentPageTableTableCell>>,
+pub struct GoogleCloudContentwarehouseV1SearchDocumentsResponseMatchingDocument {
+    /// document property.
+    pub document: Option<GoogleCloudContentwarehouseV1Document>,
+    /// matchedTokenPageIndices property.
+    pub matched_token_page_indices: Option<Vec<String>>,
+    /// qaResult property.
+    pub qa_result: Option<GoogleCloudContentwarehouseV1QAResult>,
+    /// searchTextSnippet property.
+    pub search_text_snippet: Option<String>,
 }
 
-/// `GoogleCloudDocumentaiV1DocumentStyle` type.
+/// `GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageFooter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentStyle {
-    /// backgroundColor property.
-    pub background_color: Option<GoogleTypeColor>,
-    /// color property.
-    pub color: Option<GoogleTypeColor>,
-    /// fontFamily property.
-    pub font_family: Option<String>,
-    /// fontSize property.
-    pub font_size: Option<GoogleCloudDocumentaiV1DocumentStyleFontSize>,
-    /// fontWeight property.
-    pub font_weight: Option<String>,
-    /// textAnchor property.
-    pub text_anchor: Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
-    /// textDecoration property.
-    pub text_decoration: Option<String>,
-    /// textStyle property.
-    pub text_style: Option<String>,
+pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageFooter {
+    /// pageSpan property.
+    pub page_span: Option<GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan>,
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentPageVisualElement` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentPageVisualElement {
+    /// detectedLanguages property.
+    pub detected_languages: Option<Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>>,
+    /// layout property.
+    pub layout: Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListEntry {
+    /// blocks property.
+    pub blocks: Option<Vec<Box<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>>>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentPageLine` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentPageLine {
+    /// detectedLanguages property.
+    pub detected_languages: Option<Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>>,
+    /// layout property.
+    pub layout: Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// provenance property.
+    pub provenance: Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+}
+
+/// `GoogleCloudContentwarehouseV1Property` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1Property {
+    /// dateTimeValues property.
+    pub date_time_values: Option<GoogleCloudContentwarehouseV1DateTimeArray>,
+    /// enumValues property.
+    pub enum_values: Option<GoogleCloudContentwarehouseV1EnumArray>,
+    /// floatValues property.
+    pub float_values: Option<GoogleCloudContentwarehouseV1FloatArray>,
+    /// integerValues property.
+    pub integer_values: Option<GoogleCloudContentwarehouseV1IntegerArray>,
+    /// mapProperty property.
+    pub map_property: Option<GoogleCloudContentwarehouseV1MapProperty>,
+    /// name property.
+    pub name: Option<String>,
+    /// propertyValues property.
+    pub property_values: Option<Box<GoogleCloudContentwarehouseV1PropertyArray>>,
+    /// textValues property.
+    pub text_values: Option<GoogleCloudContentwarehouseV1TextArray>,
+    /// timestampValues property.
+    pub timestamp_values: Option<GoogleCloudContentwarehouseV1TimestampArray>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentPageSymbol` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentPageSymbol {
+    /// detectedLanguages property.
+    pub detected_languages: Option<Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>>,
+    /// layout property.
+    pub layout: Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+}
+
+/// `GoogleTypeDate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeDate {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentPageAnchorPageRef` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentPageAnchorPageRef {
+    /// boundingPoly property.
+    pub bounding_poly: Option<GoogleCloudDocumentaiV1BoundingPoly>,
+    /// confidence property.
+    pub confidence: Option<f64>,
+    /// layoutId property.
+    pub layout_id: Option<String>,
+    /// layoutType property.
+    pub layout_type: Option<String>,
+    /// page property.
+    pub page: Option<String>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentPageDetectedLanguage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentPageDetectedLanguage {
+    /// confidence property.
+    pub confidence: Option<f64>,
+    /// languageCode property.
+    pub language_code: Option<String>,
 }
 
 /// `GoogleCloudDocumentaiV1DocumentProvenanceParent` type.
@@ -237,147 +445,20 @@ pub struct GoogleCloudDocumentaiV1DocumentPageImageQualityScoresDetectedDefect {
     pub r#type: Option<String>,
 }
 
-/// `GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageFooter` type.
+/// `GoogleCloudContentwarehouseV1MapProperty` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageFooter {
-    /// pageSpan property.
-    pub page_span: Option<GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan>,
-    /// text property.
-    pub text: Option<String>,
+pub struct GoogleCloudContentwarehouseV1MapProperty {
+    /// fields property.
+    pub fields: Option<serde_json::Value>,
 }
 
-/// `GoogleCloudDocumentaiV1DocumentPageTable` type.
+/// `GoogleCloudContentwarehouseV1TimestampValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentPageTable {
-    /// bodyRows property.
-    pub body_rows: Option<Vec<GoogleCloudDocumentaiV1DocumentPageTableTableRow>>,
-    /// detectedLanguages property.
-    pub detected_languages: Option<Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>>,
-    /// headerRows property.
-    pub header_rows: Option<Vec<GoogleCloudDocumentaiV1DocumentPageTableTableRow>>,
-    /// layout property.
-    pub layout: Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// provenance property.
-    pub provenance: Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-}
-
-/// `GoogleCloudDocumentaiV1BoundingPoly` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1BoundingPoly {
-    /// normalizedVertices property.
-    pub normalized_vertices: Option<Vec<GoogleCloudDocumentaiV1NormalizedVertex>>,
-    /// vertices property.
-    pub vertices: Option<Vec<GoogleCloudDocumentaiV1Vertex>>,
-}
-
-/// `GoogleCloudContentwarehouseV1SearchDocumentsResponseMatchingDocument` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1SearchDocumentsResponseMatchingDocument {
-    /// document property.
-    pub document: Option<GoogleCloudContentwarehouseV1Document>,
-    /// matchedTokenPageIndices property.
-    pub matched_token_page_indices: Option<Vec<String>>,
-    /// qaResult property.
-    pub qa_result: Option<GoogleCloudContentwarehouseV1QAResult>,
-    /// searchTextSnippet property.
-    pub search_text_snippet: Option<String>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentRevisionHumanReview` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentRevisionHumanReview {
-    /// state property.
-    pub state: Option<String>,
-    /// stateMessage property.
-    pub state_message: Option<String>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentPageFormField` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentPageFormField {
-    /// correctedKeyText property.
-    pub corrected_key_text: Option<String>,
-    /// correctedValueText property.
-    pub corrected_value_text: Option<String>,
-    /// fieldName property.
-    pub field_name: Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// fieldValue property.
-    pub field_value: Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// nameDetectedLanguages property.
-    pub name_detected_languages: Option<Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>>,
-    /// provenance property.
-    pub provenance: Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-    /// valueDetectedLanguages property.
-    pub value_detected_languages: Option<Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>>,
-    /// valueType property.
-    pub value_type: Option<String>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentPageLayout` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentPageLayout {
-    /// boundingPoly property.
-    pub bounding_poly: Option<GoogleCloudDocumentaiV1BoundingPoly>,
-    /// confidence property.
-    pub confidence: Option<f64>,
-    /// orientation property.
-    pub orientation: Option<String>,
-    /// textAnchor property.
-    pub text_anchor: Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentPageVisualElement` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentPageVisualElement {
-    /// detectedLanguages property.
-    pub detected_languages: Option<Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>>,
-    /// layout property.
-    pub layout: Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleCloudContentwarehouseV1PropertyArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1PropertyArray {
-    /// properties property.
-    pub properties: Option<Vec<GoogleCloudContentwarehouseV1Property>>,
-}
-
-/// `GoogleCloudContentwarehouseV1EnumArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1EnumArray {
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `GoogleCloudDocumentaiV1NormalizedVertex` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1NormalizedVertex {
-    /// x property.
-    pub x: Option<f64>,
-    /// y property.
-    pub y: Option<f64>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentPageLine` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentPageLine {
-    /// detectedLanguages property.
-    pub detected_languages: Option<Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>>,
-    /// layout property.
-    pub layout: Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// provenance property.
-    pub provenance: Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-}
-
-/// `GoogleCloudDocumentaiV1Vertex` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1Vertex {
-    /// x property.
-    pub x: Option<i64>,
-    /// y property.
-    pub y: Option<i64>,
+pub struct GoogleCloudContentwarehouseV1TimestampValue {
+    /// textValue property.
+    pub text_value: Option<String>,
+    /// timestampValue property.
+    pub timestamp_value: Option<String>,
 }
 
 /// `GoogleCloudDocumentaiV1DocumentEntityNormalizedValue` type.
@@ -401,91 +482,133 @@ pub struct GoogleCloudDocumentaiV1DocumentEntityNormalizedValue {
     pub text: Option<String>,
 }
 
-/// `GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTextBlock` type.
+/// `GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableBlock` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTextBlock {
-    /// blocks property.
-    pub blocks: Option<Vec<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>>,
-    /// text property.
-    pub text: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableBlock {
+    /// bodyRows property.
+    pub body_rows: Option<
+        Vec<Box<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableRow>>,
+    >,
+    /// caption property.
+    pub caption: Option<String>,
+    /// headerRows property.
+    pub header_rows: Option<
+        Vec<Box<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableRow>>,
+    >,
 }
 
-/// `GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableCell` type.
+/// `GoogleCloudDocumentaiV1DocumentRevision` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableCell {
-    /// blocks property.
-    pub blocks: Option<Vec<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>>,
-    /// colSpan property.
-    pub col_span: Option<i64>,
-    /// rowSpan property.
-    pub row_span: Option<i64>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentShardInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentShardInfo {
-    /// shardCount property.
-    pub shard_count: Option<String>,
-    /// shardIndex property.
-    pub shard_index: Option<String>,
-    /// textOffset property.
-    pub text_offset: Option<String>,
-}
-
-/// `GoogleCloudContentwarehouseV1DateTimeArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1DateTimeArray {
-    /// values property.
-    pub values: Option<Vec<GoogleTypeDateTime>>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentPageDetectedBarcode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentPageDetectedBarcode {
-    /// barcode property.
-    pub barcode: Option<GoogleCloudDocumentaiV1Barcode>,
-    /// layout property.
-    pub layout: Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentEntity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentEntity {
-    /// confidence property.
-    pub confidence: Option<f64>,
+pub struct GoogleCloudDocumentaiV1DocumentRevision {
+    /// agent property.
+    pub agent: Option<String>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// humanReview property.
+    pub human_review: Option<GoogleCloudDocumentaiV1DocumentRevisionHumanReview>,
     /// id property.
     pub id: Option<String>,
-    /// mentionId property.
-    pub mention_id: Option<String>,
-    /// mentionText property.
-    pub mention_text: Option<String>,
-    /// normalizedValue property.
-    pub normalized_value: Option<GoogleCloudDocumentaiV1DocumentEntityNormalizedValue>,
-    /// pageAnchor property.
-    pub page_anchor: Option<GoogleCloudDocumentaiV1DocumentPageAnchor>,
-    /// properties property.
-    pub properties: Option<Vec<GoogleCloudDocumentaiV1DocumentEntity>>,
-    /// provenance property.
-    pub provenance: Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-    /// redacted property.
-    pub redacted: Option<bool>,
-    /// textAnchor property.
-    pub text_anchor: Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
+    /// parent property.
+    pub parent: Option<Vec<i64>>,
+    /// parentIds property.
+    pub parent_ids: Option<Vec<String>>,
+    /// processor property.
+    pub processor: Option<String>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentPageTokenDetectedBreak` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentPageTokenDetectedBreak {
     /// type property.
     pub r#type: Option<String>,
 }
 
-/// `GoogleTypeDate` type.
+/// `GoogleCloudDocumentaiV1DocumentPageTokenStyleInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeDate {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
+pub struct GoogleCloudDocumentaiV1DocumentPageTokenStyleInfo {
+    /// backgroundColor property.
+    pub background_color: Option<GoogleTypeColor>,
+    /// bold property.
+    pub bold: Option<bool>,
+    /// fontSize property.
+    pub font_size: Option<i64>,
+    /// fontType property.
+    pub font_type: Option<String>,
+    /// fontWeight property.
+    pub font_weight: Option<i64>,
+    /// handwritten property.
+    pub handwritten: Option<bool>,
+    /// italic property.
+    pub italic: Option<bool>,
+    /// letterSpacing property.
+    pub letter_spacing: Option<f64>,
+    /// pixelFontSize property.
+    pub pixel_font_size: Option<f64>,
+    /// smallcaps property.
+    pub smallcaps: Option<bool>,
+    /// strikeout property.
+    pub strikeout: Option<bool>,
+    /// subscript property.
+    pub subscript: Option<bool>,
+    /// superscript property.
+    pub superscript: Option<bool>,
+    /// textColor property.
+    pub text_color: Option<GoogleTypeColor>,
+    /// underlined property.
+    pub underlined: Option<bool>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentPageImage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentPageImage {
+    /// content property.
+    pub content: Option<String>,
+    /// height property.
+    pub height: Option<i64>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+    /// width property.
+    pub width: Option<i64>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentTextAnchorTextSegment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentTextAnchorTextSegment {
+    /// endIndex property.
+    pub end_index: Option<String>,
+    /// startIndex property.
+    pub start_index: Option<String>,
+}
+
+/// `GoogleCloudDocumentaiV1Vertex` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1Vertex {
+    /// x property.
+    pub x: Option<i64>,
+    /// y property.
+    pub y: Option<i64>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentPageMatrix` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentPageMatrix {
+    /// cols property.
+    pub cols: Option<i64>,
+    /// data property.
+    pub data: Option<String>,
+    /// rows property.
+    pub rows: Option<i64>,
+    /// type property.
+    pub r#type: Option<i64>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutPageSpan` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutPageSpan {
+    /// pageEnd property.
+    pub page_end: Option<i64>,
+    /// pageStart property.
+    pub page_start: Option<i64>,
 }
 
 /// `GoogleCloudDocumentaiV1DocumentPage` type.
@@ -527,83 +650,253 @@ pub struct GoogleCloudDocumentaiV1DocumentPage {
     pub visual_elements: Option<Vec<GoogleCloudDocumentaiV1DocumentPageVisualElement>>,
 }
 
-/// `GoogleCloudContentwarehouseV1TimestampArray` type.
+/// `GoogleCloudDocumentaiV1DocumentPageLayout` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1TimestampArray {
-    /// values property.
-    pub values: Option<Vec<GoogleCloudContentwarehouseV1TimestampValue>>,
+pub struct GoogleCloudDocumentaiV1DocumentPageLayout {
+    /// boundingPoly property.
+    pub bounding_poly: Option<GoogleCloudDocumentaiV1BoundingPoly>,
+    /// confidence property.
+    pub confidence: Option<f64>,
+    /// orientation property.
+    pub orientation: Option<String>,
+    /// textAnchor property.
+    pub text_anchor: Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
 }
 
-/// `GoogleCloudContentwarehouseV1TimestampValue` type.
+/// `GoogleCloudContentwarehouseV1SearchDocumentsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1TimestampValue {
-    /// textValue property.
-    pub text_value: Option<String>,
-    /// timestampValue property.
-    pub timestamp_value: Option<String>,
+pub struct GoogleCloudContentwarehouseV1SearchDocumentsResponse {
+    /// histogramQueryResults property.
+    pub histogram_query_results: Option<Vec<GoogleCloudContentwarehouseV1HistogramQueryResult>>,
+    /// matchingDocuments property.
+    pub matching_documents:
+        Option<Vec<GoogleCloudContentwarehouseV1SearchDocumentsResponseMatchingDocument>>,
+    /// metadata property.
+    pub metadata: Option<GoogleCloudContentwarehouseV1ResponseMetadata>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// questionAnswer property.
+    pub question_answer: Option<String>,
+    /// totalSize property.
+    pub total_size: Option<i64>,
 }
 
-/// `GoogleCloudDocumentaiV1DocumentPageMatrix` type.
+/// `GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableCell` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentPageMatrix {
-    /// cols property.
-    pub cols: Option<i64>,
-    /// data property.
-    pub data: Option<String>,
-    /// rows property.
-    pub rows: Option<i64>,
-    /// type property.
-    pub r#type: Option<i64>,
+pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableCell {
+    /// blocks property.
+    pub blocks: Option<Vec<Box<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>>>,
+    /// colSpan property.
+    pub col_span: Option<i64>,
+    /// rowSpan property.
+    pub row_span: Option<i64>,
 }
 
-/// `GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListBlock` type.
+/// `GoogleCloudContentwarehouseV1ResponseMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListBlock {
-    /// listEntries property.
-    pub list_entries: Option<
-        Vec<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListEntry>,
-    >,
+pub struct GoogleCloudContentwarehouseV1ResponseMetadata {
+    /// requestId property.
+    pub request_id: Option<String>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentPageParagraph` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentPageParagraph {
+    /// detectedLanguages property.
+    pub detected_languages: Option<Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>>,
+    /// layout property.
+    pub layout: Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// provenance property.
+    pub provenance: Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+}
+
+/// `GoogleTypePostalAddress` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypePostalAddress {
+    /// addressLines property.
+    pub address_lines: Option<Vec<String>>,
+    /// administrativeArea property.
+    pub administrative_area: Option<String>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// locality property.
+    pub locality: Option<String>,
+    /// organization property.
+    pub organization: Option<String>,
+    /// postalCode property.
+    pub postal_code: Option<String>,
+    /// recipients property.
+    pub recipients: Option<Vec<String>>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+    /// revision property.
+    pub revision: Option<i64>,
+    /// sortingCode property.
+    pub sorting_code: Option<String>,
+    /// sublocality property.
+    pub sublocality: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentEntity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentEntity {
+    /// confidence property.
+    pub confidence: Option<f64>,
+    /// id property.
+    pub id: Option<String>,
+    /// mentionId property.
+    pub mention_id: Option<String>,
+    /// mentionText property.
+    pub mention_text: Option<String>,
+    /// normalizedValue property.
+    pub normalized_value: Option<GoogleCloudDocumentaiV1DocumentEntityNormalizedValue>,
+    /// pageAnchor property.
+    pub page_anchor: Option<GoogleCloudDocumentaiV1DocumentPageAnchor>,
+    /// properties property.
+    pub properties: Option<Vec<Box<GoogleCloudDocumentaiV1DocumentEntity>>>,
+    /// provenance property.
+    pub provenance: Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+    /// redacted property.
+    pub redacted: Option<bool>,
+    /// textAnchor property.
+    pub text_anchor: Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
     /// type property.
     pub r#type: Option<String>,
 }
 
-/// `GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableBlock` type.
+/// `GoogleCloudContentwarehouseV1FloatArray` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableBlock {
+pub struct GoogleCloudContentwarehouseV1FloatArray {
+    /// values property.
+    pub values: Option<Vec<f64>>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentPageTable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentPageTable {
     /// bodyRows property.
-    pub body_rows:
-        Option<Vec<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableRow>>,
-    /// caption property.
-    pub caption: Option<String>,
+    pub body_rows: Option<Vec<GoogleCloudDocumentaiV1DocumentPageTableTableRow>>,
+    /// detectedLanguages property.
+    pub detected_languages: Option<Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>>,
     /// headerRows property.
-    pub header_rows:
-        Option<Vec<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableRow>>,
+    pub header_rows: Option<Vec<GoogleCloudDocumentaiV1DocumentPageTableTableRow>>,
+    /// layout property.
+    pub layout: Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// provenance property.
+    pub provenance: Option<GoogleCloudDocumentaiV1DocumentProvenance>,
 }
 
-/// `GoogleCloudDocumentaiV1DocumentRevision` type.
+/// `GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableRow` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentRevision {
-    /// agent property.
-    pub agent: Option<String>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// humanReview property.
-    pub human_review: Option<GoogleCloudDocumentaiV1DocumentRevisionHumanReview>,
-    /// id property.
-    pub id: Option<String>,
-    /// parent property.
-    pub parent: Option<Vec<i64>>,
-    /// parentIds property.
-    pub parent_ids: Option<Vec<String>>,
-    /// processor property.
-    pub processor: Option<String>,
+pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableRow {
+    /// cells property.
+    pub cells: Option<
+        Vec<Box<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableCell>>,
+    >,
 }
 
-/// `GoogleCloudDocumentaiV1DocumentDocumentLayout` type.
+/// `GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentDocumentLayout {
-    /// blocks property.
-    pub blocks: Option<Vec<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>>,
+pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan {
+    /// pageEnd property.
+    pub page_end: Option<i64>,
+    /// pageStart property.
+    pub page_start: Option<i64>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentEntityRelation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentEntityRelation {
+    /// objectId property.
+    pub object_id: Option<String>,
+    /// relation property.
+    pub relation: Option<String>,
+    /// subjectId property.
+    pub subject_id: Option<String>,
+}
+
+/// `GoogleCloudDocumentaiV1Document` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1Document {
+    /// chunkedDocument property.
+    pub chunked_document: Option<GoogleCloudDocumentaiV1DocumentChunkedDocument>,
+    /// content property.
+    pub content: Option<String>,
+    /// documentLayout property.
+    pub document_layout: Option<GoogleCloudDocumentaiV1DocumentDocumentLayout>,
+    /// entities property.
+    pub entities: Option<Vec<Box<GoogleCloudDocumentaiV1DocumentEntity>>>,
+    /// entityRelations property.
+    pub entity_relations: Option<Vec<GoogleCloudDocumentaiV1DocumentEntityRelation>>,
+    /// error property.
+    pub error: Option<GoogleRpcStatus>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+    /// pages property.
+    pub pages: Option<Vec<GoogleCloudDocumentaiV1DocumentPage>>,
+    /// revisions property.
+    pub revisions: Option<Vec<GoogleCloudDocumentaiV1DocumentRevision>>,
+    /// shardInfo property.
+    pub shard_info: Option<GoogleCloudDocumentaiV1DocumentShardInfo>,
+    /// text property.
+    pub text: Option<String>,
+    /// textChanges property.
+    pub text_changes: Option<Vec<GoogleCloudDocumentaiV1DocumentTextChange>>,
+    /// textStyles property.
+    pub text_styles: Option<Vec<GoogleCloudDocumentaiV1DocumentStyle>>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentStyle` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentStyle {
+    /// backgroundColor property.
+    pub background_color: Option<GoogleTypeColor>,
+    /// color property.
+    pub color: Option<GoogleTypeColor>,
+    /// fontFamily property.
+    pub font_family: Option<String>,
+    /// fontSize property.
+    pub font_size: Option<GoogleCloudDocumentaiV1DocumentStyleFontSize>,
+    /// fontWeight property.
+    pub font_weight: Option<String>,
+    /// textAnchor property.
+    pub text_anchor: Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
+    /// textDecoration property.
+    pub text_decoration: Option<String>,
+    /// textStyle property.
+    pub text_style: Option<String>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentPageImageQualityScores` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentPageImageQualityScores {
+    /// detectedDefects property.
+    pub detected_defects:
+        Option<Vec<GoogleCloudDocumentaiV1DocumentPageImageQualityScoresDetectedDefect>>,
+    /// qualityScore property.
+    pub quality_score: Option<f64>,
+}
+
+/// `GoogleCloudDocumentaiV1BoundingPoly` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1BoundingPoly {
+    /// normalizedVertices property.
+    pub normalized_vertices: Option<Vec<GoogleCloudDocumentaiV1NormalizedVertex>>,
+    /// vertices property.
+    pub vertices: Option<Vec<GoogleCloudDocumentaiV1Vertex>>,
 }
 
 /// `GoogleTypeDateTime` type.
@@ -629,82 +922,11 @@ pub struct GoogleTypeDateTime {
     pub year: Option<i64>,
 }
 
-/// `GoogleCloudDocumentaiV1DocumentPageTokenStyleInfo` type.
+/// `GoogleCloudDocumentaiV1DocumentDocumentLayout` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentPageTokenStyleInfo {
-    /// backgroundColor property.
-    pub background_color: Option<GoogleTypeColor>,
-    /// bold property.
-    pub bold: Option<bool>,
-    /// fontSize property.
-    pub font_size: Option<i64>,
-    /// fontType property.
-    pub font_type: Option<String>,
-    /// fontWeight property.
-    pub font_weight: Option<i64>,
-    /// handwritten property.
-    pub handwritten: Option<bool>,
-    /// italic property.
-    pub italic: Option<bool>,
-    /// letterSpacing property.
-    pub letter_spacing: Option<f64>,
-    /// pixelFontSize property.
-    pub pixel_font_size: Option<f64>,
-    /// smallcaps property.
-    pub smallcaps: Option<bool>,
-    /// strikeout property.
-    pub strikeout: Option<bool>,
-    /// subscript property.
-    pub subscript: Option<bool>,
-    /// superscript property.
-    pub superscript: Option<bool>,
-    /// textColor property.
-    pub text_color: Option<GoogleTypeColor>,
-    /// underlined property.
-    pub underlined: Option<bool>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentPageAnchorPageRef` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentPageAnchorPageRef {
-    /// boundingPoly property.
-    pub bounding_poly: Option<GoogleCloudDocumentaiV1BoundingPoly>,
-    /// confidence property.
-    pub confidence: Option<f64>,
-    /// layoutId property.
-    pub layout_id: Option<String>,
-    /// layoutType property.
-    pub layout_type: Option<String>,
-    /// page property.
-    pub page: Option<String>,
-}
-
-/// `GoogleTypeTimeZone` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeTimeZone {
-    /// id property.
-    pub id: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock {
-    /// blockId property.
-    pub block_id: Option<String>,
-    /// listBlock property.
-    pub list_block:
-        Option<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListBlock>,
-    /// pageSpan property.
-    pub page_span:
-        Option<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutPageSpan>,
-    /// tableBlock property.
-    pub table_block:
-        Option<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableBlock>,
-    /// textBlock property.
-    pub text_block:
-        Option<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTextBlock>,
+pub struct GoogleCloudDocumentaiV1DocumentDocumentLayout {
+    /// blocks property.
+    pub blocks: Option<Vec<Box<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>>>,
 }
 
 /// `GoogleCloudDocumentaiV1DocumentTextChange` type.
@@ -718,6 +940,42 @@ pub struct GoogleCloudDocumentaiV1DocumentTextChange {
     pub text_anchor: Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
 }
 
+/// `GoogleCloudDocumentaiV1DocumentChunkedDocument` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentChunkedDocument {
+    /// chunks property.
+    pub chunks: Option<Vec<GoogleCloudDocumentaiV1DocumentChunkedDocumentChunk>>,
+}
+
+/// `GoogleTypeMoney` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeMoney {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// units property.
+    pub units: Option<String>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentShardInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentShardInfo {
+    /// shardCount property.
+    pub shard_count: Option<String>,
+    /// shardIndex property.
+    pub shard_index: Option<String>,
+    /// textOffset property.
+    pub text_offset: Option<String>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentPageTableTableRow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentPageTableTableRow {
+    /// cells property.
+    pub cells: Option<Vec<GoogleCloudDocumentaiV1DocumentPageTableTableCell>>,
+}
+
 /// `GoogleCloudDocumentaiV1DocumentPageBlock` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageBlock {
@@ -729,91 +987,6 @@ pub struct GoogleCloudDocumentaiV1DocumentPageBlock {
     pub provenance: Option<GoogleCloudDocumentaiV1DocumentProvenance>,
 }
 
-/// `GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListEntry {
-    /// blocks property.
-    pub blocks: Option<Vec<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>>,
-}
-
-/// `GoogleTypeColor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeColor {
-    /// alpha property.
-    pub alpha: Option<f64>,
-    /// blue property.
-    pub blue: Option<f64>,
-    /// green property.
-    pub green: Option<f64>,
-    /// red property.
-    pub red: Option<f64>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageHeader` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageHeader {
-    /// pageSpan property.
-    pub page_span: Option<GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan>,
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentChunkedDocument` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentChunkedDocument {
-    /// chunks property.
-    pub chunks: Option<Vec<GoogleCloudDocumentaiV1DocumentChunkedDocumentChunk>>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentEntityRelation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentEntityRelation {
-    /// objectId property.
-    pub object_id: Option<String>,
-    /// relation property.
-    pub relation: Option<String>,
-    /// subjectId property.
-    pub subject_id: Option<String>,
-}
-
-/// `GoogleCloudContentwarehouseV1QAResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1QAResult {
-    /// confidenceScore property.
-    pub confidence_score: Option<f64>,
-    /// highlights property.
-    pub highlights: Option<Vec<GoogleCloudContentwarehouseV1QAResultHighlight>>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentPageSymbol` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentPageSymbol {
-    /// detectedLanguages property.
-    pub detected_languages: Option<Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>>,
-    /// layout property.
-    pub layout: Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-}
-
-/// `GoogleCloudContentwarehouseV1ResponseMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1ResponseMetadata {
-    /// requestId property.
-    pub request_id: Option<String>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentProvenance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentProvenance {
-    /// id property.
-    pub id: Option<i64>,
-    /// parents property.
-    pub parents: Option<Vec<GoogleCloudDocumentaiV1DocumentProvenanceParent>>,
-    /// revision property.
-    pub revision: Option<i64>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
 /// `GoogleCloudDocumentaiV1DocumentTextAnchor` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentTextAnchor {
@@ -823,179 +996,15 @@ pub struct GoogleCloudDocumentaiV1DocumentTextAnchor {
     pub text_segments: Option<Vec<GoogleCloudDocumentaiV1DocumentTextAnchorTextSegment>>,
 }
 
-/// `GoogleCloudContentwarehouseV1SearchDocumentsResponse` type.
+/// `GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListBlock` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1SearchDocumentsResponse {
-    /// histogramQueryResults property.
-    pub histogram_query_results: Option<Vec<GoogleCloudContentwarehouseV1HistogramQueryResult>>,
-    /// matchingDocuments property.
-    pub matching_documents:
-        Option<Vec<GoogleCloudContentwarehouseV1SearchDocumentsResponseMatchingDocument>>,
-    /// metadata property.
-    pub metadata: Option<GoogleCloudContentwarehouseV1ResponseMetadata>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// questionAnswer property.
-    pub question_answer: Option<String>,
-    /// totalSize property.
-    pub total_size: Option<i64>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentPageDimension` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentPageDimension {
-    /// height property.
-    pub height: Option<f64>,
-    /// unit property.
-    pub unit: Option<String>,
-    /// width property.
-    pub width: Option<f64>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutPageSpan` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutPageSpan {
-    /// pageEnd property.
-    pub page_end: Option<i64>,
-    /// pageStart property.
-    pub page_start: Option<i64>,
-}
-
-/// `GoogleCloudDocumentaiV1Document` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1Document {
-    /// chunkedDocument property.
-    pub chunked_document: Option<GoogleCloudDocumentaiV1DocumentChunkedDocument>,
-    /// content property.
-    pub content: Option<String>,
-    /// documentLayout property.
-    pub document_layout: Option<GoogleCloudDocumentaiV1DocumentDocumentLayout>,
-    /// entities property.
-    pub entities: Option<Vec<GoogleCloudDocumentaiV1DocumentEntity>>,
-    /// entityRelations property.
-    pub entity_relations: Option<Vec<GoogleCloudDocumentaiV1DocumentEntityRelation>>,
-    /// error property.
-    pub error: Option<GoogleRpcStatus>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-    /// pages property.
-    pub pages: Option<Vec<GoogleCloudDocumentaiV1DocumentPage>>,
-    /// revisions property.
-    pub revisions: Option<Vec<GoogleCloudDocumentaiV1DocumentRevision>>,
-    /// shardInfo property.
-    pub shard_info: Option<GoogleCloudDocumentaiV1DocumentShardInfo>,
-    /// text property.
-    pub text: Option<String>,
-    /// textChanges property.
-    pub text_changes: Option<Vec<GoogleCloudDocumentaiV1DocumentTextChange>>,
-    /// textStyles property.
-    pub text_styles: Option<Vec<GoogleCloudDocumentaiV1DocumentStyle>>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentPageParagraph` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentPageParagraph {
-    /// detectedLanguages property.
-    pub detected_languages: Option<Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>>,
-    /// layout property.
-    pub layout: Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// provenance property.
-    pub provenance: Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentPageTokenDetectedBreak` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentPageTokenDetectedBreak {
+pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListBlock {
+    /// listEntries property.
+    pub list_entries: Option<
+        Vec<Box<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListEntry>>,
+    >,
     /// type property.
     pub r#type: Option<String>,
-}
-
-/// `GoogleCloudContentwarehouseV1FloatArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1FloatArray {
-    /// values property.
-    pub values: Option<Vec<f64>>,
-}
-
-/// `GoogleCloudContentwarehouseV1MapProperty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1MapProperty {
-    /// fields property.
-    pub fields: Option<serde_json::Value>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentPageImage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentPageImage {
-    /// content property.
-    pub content: Option<String>,
-    /// height property.
-    pub height: Option<i64>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-    /// width property.
-    pub width: Option<i64>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentPageImageQualityScores` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentPageImageQualityScores {
-    /// detectedDefects property.
-    pub detected_defects:
-        Option<Vec<GoogleCloudDocumentaiV1DocumentPageImageQualityScoresDetectedDefect>>,
-    /// qualityScore property.
-    pub quality_score: Option<f64>,
-}
-
-/// `GoogleCloudContentwarehouseV1Property` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1Property {
-    /// dateTimeValues property.
-    pub date_time_values: Option<GoogleCloudContentwarehouseV1DateTimeArray>,
-    /// enumValues property.
-    pub enum_values: Option<GoogleCloudContentwarehouseV1EnumArray>,
-    /// floatValues property.
-    pub float_values: Option<GoogleCloudContentwarehouseV1FloatArray>,
-    /// integerValues property.
-    pub integer_values: Option<GoogleCloudContentwarehouseV1IntegerArray>,
-    /// mapProperty property.
-    pub map_property: Option<GoogleCloudContentwarehouseV1MapProperty>,
-    /// name property.
-    pub name: Option<String>,
-    /// propertyValues property.
-    pub property_values: Option<GoogleCloudContentwarehouseV1PropertyArray>,
-    /// textValues property.
-    pub text_values: Option<GoogleCloudContentwarehouseV1TextArray>,
-    /// timestampValues property.
-    pub timestamp_values: Option<GoogleCloudContentwarehouseV1TimestampArray>,
-}
-
-/// `GoogleCloudDocumentaiV1Barcode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1Barcode {
-    /// format property.
-    pub format: Option<String>,
-    /// rawValue property.
-    pub raw_value: Option<String>,
-    /// valueFormat property.
-    pub value_format: Option<String>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentPageToken` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentPageToken {
-    /// detectedBreak property.
-    pub detected_break: Option<GoogleCloudDocumentaiV1DocumentPageTokenDetectedBreak>,
-    /// detectedLanguages property.
-    pub detected_languages: Option<Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>>,
-    /// layout property.
-    pub layout: Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// provenance property.
-    pub provenance: Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-    /// styleInfo property.
-    pub style_info: Option<GoogleCloudDocumentaiV1DocumentPageTokenStyleInfo>,
 }
 
 // =============================================================================

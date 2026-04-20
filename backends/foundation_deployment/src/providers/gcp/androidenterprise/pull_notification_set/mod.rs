@@ -12,17 +12,71 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ProductAvailabilityChangeEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductAvailabilityChangeEvent {
+    /// availabilityStatus property.
+    pub availability_status: Option<String>,
+    /// productId property.
+    pub product_id: Option<String>,
+}
+
+/// `KeyedAppState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KeyedAppState {
+    /// data property.
+    pub data: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// severity property.
+    pub severity: Option<String>,
+    /// stateTimestampMillis property.
+    pub state_timestamp_millis: Option<String>,
+}
+
+/// `DeviceReport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceReport {
+    /// appState property.
+    pub app_state: Option<Vec<AppState>>,
+    /// lastUpdatedTimestampMillis property.
+    pub last_updated_timestamp_millis: Option<String>,
+}
+
+/// `NewPermissionsEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NewPermissionsEvent {
+    /// approvedPermissions property.
+    pub approved_permissions: Option<Vec<String>>,
+    /// productId property.
+    pub product_id: Option<String>,
+    /// requestedPermissions property.
+    pub requested_permissions: Option<Vec<String>>,
+}
+
+/// `ProductApprovalEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductApprovalEvent {
+    /// approved property.
+    pub approved: Option<String>,
+    /// productId property.
+    pub product_id: Option<String>,
+}
 
 /// `Notification` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -60,13 +114,51 @@ pub struct EnterpriseUpgradeEvent {
     pub upgrade_state: Option<String>,
 }
 
-/// `ProductAvailabilityChangeEvent` type.
+/// `NotificationSet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductAvailabilityChangeEvent {
-    /// availabilityStatus property.
-    pub availability_status: Option<String>,
+pub struct NotificationSet {
+    /// notification property.
+    pub notification: Option<Vec<Notification>>,
+    /// notificationSetId property.
+    pub notification_set_id: Option<String>,
+}
+
+/// `AppUpdateEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppUpdateEvent {
     /// productId property.
     pub product_id: Option<String>,
+}
+
+/// `NewDeviceEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NewDeviceEvent {
+    /// deviceId property.
+    pub device_id: Option<String>,
+    /// dpcPackageName property.
+    pub dpc_package_name: Option<String>,
+    /// managementType property.
+    pub management_type: Option<String>,
+    /// userId property.
+    pub user_id: Option<String>,
+}
+
+/// `AppRestrictionsSchemaChangeEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppRestrictionsSchemaChangeEvent {
+    /// productId property.
+    pub product_id: Option<String>,
+}
+
+/// `DeviceReportUpdateEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceReportUpdateEvent {
+    /// deviceId property.
+    pub device_id: Option<String>,
+    /// report property.
+    pub report: Option<DeviceReport>,
+    /// userId property.
+    pub user_id: Option<String>,
 }
 
 /// `InstallFailureEvent` type.
@@ -84,53 +176,6 @@ pub struct InstallFailureEvent {
     pub user_id: Option<String>,
 }
 
-/// `NewDeviceEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NewDeviceEvent {
-    /// deviceId property.
-    pub device_id: Option<String>,
-    /// dpcPackageName property.
-    pub dpc_package_name: Option<String>,
-    /// managementType property.
-    pub management_type: Option<String>,
-    /// userId property.
-    pub user_id: Option<String>,
-}
-
-/// `NotificationSet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NotificationSet {
-    /// notification property.
-    pub notification: Option<Vec<Notification>>,
-    /// notificationSetId property.
-    pub notification_set_id: Option<String>,
-}
-
-/// `DeviceReportUpdateEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceReportUpdateEvent {
-    /// deviceId property.
-    pub device_id: Option<String>,
-    /// report property.
-    pub report: Option<DeviceReport>,
-    /// userId property.
-    pub user_id: Option<String>,
-}
-
-/// `AppRestrictionsSchemaChangeEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppRestrictionsSchemaChangeEvent {
-    /// productId property.
-    pub product_id: Option<String>,
-}
-
-/// `AppUpdateEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppUpdateEvent {
-    /// productId property.
-    pub product_id: Option<String>,
-}
-
 /// `AppState` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppState {
@@ -138,50 +183,6 @@ pub struct AppState {
     pub keyed_app_state: Option<Vec<KeyedAppState>>,
     /// packageName property.
     pub package_name: Option<String>,
-}
-
-/// `KeyedAppState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KeyedAppState {
-    /// data property.
-    pub data: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// severity property.
-    pub severity: Option<String>,
-    /// stateTimestampMillis property.
-    pub state_timestamp_millis: Option<String>,
-}
-
-/// `NewPermissionsEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NewPermissionsEvent {
-    /// approvedPermissions property.
-    pub approved_permissions: Option<Vec<String>>,
-    /// productId property.
-    pub product_id: Option<String>,
-    /// requestedPermissions property.
-    pub requested_permissions: Option<Vec<String>>,
-}
-
-/// `ProductApprovalEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductApprovalEvent {
-    /// approved property.
-    pub approved: Option<String>,
-    /// productId property.
-    pub product_id: Option<String>,
-}
-
-/// `DeviceReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceReport {
-    /// appState property.
-    pub app_state: Option<Vec<AppState>>,
-    /// lastUpdatedTimestampMillis property.
-    pub last_updated_timestamp_millis: Option<String>,
 }
 
 // =============================================================================

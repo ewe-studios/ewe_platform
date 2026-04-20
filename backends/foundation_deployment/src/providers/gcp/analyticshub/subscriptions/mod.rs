@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,52 +23,19 @@ use serde::{Deserialize, Serialize};
 use super::shared::Operation;
 use super::shared::Policy;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Status` type.
+/// `DestinationDatasetReference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
+pub struct DestinationDatasetReference {
+    /// datasetId property.
+    pub dataset_id: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
 }
 
 /// `DestinationDataset` type.
@@ -85,6 +53,17 @@ pub struct DestinationDataset {
     pub location: Option<String>,
     /// replicaLocations property.
     pub replica_locations: Option<Vec<String>>,
+}
+
+/// `LinkedResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LinkedResource {
+    /// linkedDataset property.
+    pub linked_dataset: Option<String>,
+    /// linkedPubsubSubscription property.
+    pub linked_pubsub_subscription: Option<String>,
+    /// listing property.
+    pub listing: Option<String>,
 }
 
 /// `Subscription` type.
@@ -122,24 +101,26 @@ pub struct Subscription {
     pub subscriber_contact: Option<String>,
 }
 
-/// `GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfo` type.
+/// `RevokeSubscriptionResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfo {
-    /// cloudMarketplace property.
-    pub cloud_marketplace: Option<
-        GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfoGoogleCloudMarketplaceInfo,
-    >,
+pub struct RevokeSubscriptionResponse {}
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
-/// `LinkedResource` type.
+/// `ListSubscriptionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LinkedResource {
-    /// linkedDataset property.
-    pub linked_dataset: Option<String>,
-    /// linkedPubsubSubscription property.
-    pub linked_pubsub_subscription: Option<String>,
-    /// listing property.
-    pub listing: Option<String>,
+pub struct ListSubscriptionsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// subscriptions property.
+    pub subscriptions: Option<Vec<Subscription>>,
 }
 
 /// `Binding` type.
@@ -153,17 +134,46 @@ pub struct Binding {
     pub role: Option<String>,
 }
 
-/// `RevokeSubscriptionResponse` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RevokeSubscriptionResponse {}
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
 
-/// `ListSubscriptionsResponse` type.
+/// `GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSubscriptionsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// subscriptions property.
-    pub subscriptions: Option<Vec<Subscription>>,
+pub struct GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfo {
+    /// cloudMarketplace property.
+    pub cloud_marketplace: Option<
+        GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfoGoogleCloudMarketplaceInfo,
+    >,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 /// `GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfoGoogleCloudMarketplaceInfo` type.
@@ -171,15 +181,6 @@ pub struct ListSubscriptionsResponse {
 pub struct GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfoGoogleCloudMarketplaceInfo {
     /// order property.
     pub order: Option<String>,
-}
-
-/// `DestinationDatasetReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DestinationDatasetReference {
-    /// datasetId property.
-    pub dataset_id: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,37 +22,17 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListTeachersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListTeachersResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// teachers property.
-    pub teachers: Option<Vec<Teacher>>,
-}
 
 /// `GlobalPermission` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GlobalPermission {
     /// permission property.
     pub permission: Option<String>,
-}
-
-/// `Teacher` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Teacher {
-    /// courseId property.
-    pub course_id: Option<String>,
-    /// profile property.
-    pub profile: Option<UserProfile>,
-    /// userId property.
-    pub user_id: Option<String>,
 }
 
 /// `Name` type.
@@ -63,6 +44,15 @@ pub struct Name {
     pub full_name: Option<String>,
     /// givenName property.
     pub given_name: Option<String>,
+}
+
+/// `ListTeachersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListTeachersResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// teachers property.
+    pub teachers: Option<Vec<Teacher>>,
 }
 
 /// `UserProfile` type.
@@ -80,6 +70,17 @@ pub struct UserProfile {
     pub photo_url: Option<String>,
     /// verifiedTeacher property.
     pub verified_teacher: Option<bool>,
+}
+
+/// `Teacher` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Teacher {
+    /// courseId property.
+    pub course_id: Option<String>,
+    /// profile property.
+    pub profile: Option<UserProfile>,
+    /// userId property.
+    pub user_id: Option<String>,
 }
 
 // =============================================================================

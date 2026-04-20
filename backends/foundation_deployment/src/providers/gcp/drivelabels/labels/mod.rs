@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,98 +22,57 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleAppsDriveLabelsV2LabelProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2LabelProperties {
-    /// description property.
-    pub description: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseEnableFieldResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseEnableFieldResponse {}
-
-/// `GoogleAppsDriveLabelsV2LifecycleDisabledPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2LifecycleDisabledPolicy {
-    /// hideInSearch property.
-    pub hide_in_search: Option<bool>,
-    /// showInApply property.
-    pub show_in_apply: Option<bool>,
-}
-
 /// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDisableSelectionChoiceResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDisableSelectionChoiceResponse {}
 
-/// `GoogleAppsDriveLabelsV2FieldDisplayHints` type.
+/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDeleteFieldResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2FieldDisplayHints {
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// hiddenInSearch property.
-    pub hidden_in_search: Option<bool>,
-    /// required property.
-    pub required: Option<bool>,
-    /// shownInApply property.
-    pub shown_in_apply: Option<bool>,
-}
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDeleteFieldResponse {}
 
-/// `GoogleAppsDriveLabelsV2BadgeConfig` type.
+/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseCreateFieldResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2BadgeConfig {
-    /// color property.
-    pub color: Option<GoogleTypeColor>,
-    /// priorityOverride property.
-    pub priority_override: Option<String>,
-}
-
-/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateFieldPropertiesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateFieldPropertiesResponse {
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseCreateFieldResponse {
+    /// id property.
+    pub id: Option<String>,
     /// priority property.
     pub priority: Option<i64>,
 }
 
-/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseEnableSelectionChoiceResponse` type.
+/// `GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceDisplayHints` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseEnableSelectionChoiceResponse {}
-
-/// `GoogleAppsDriveLabelsV2LabelAppliedCapabilities` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2LabelAppliedCapabilities {
-    /// canApply property.
-    pub can_apply: Option<bool>,
-    /// canRead property.
-    pub can_read: Option<bool>,
-    /// canRemove property.
-    pub can_remove: Option<bool>,
+pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceDisplayHints {
+    /// badgeColors property.
+    pub badge_colors: Option<GoogleAppsDriveLabelsV2BadgeColors>,
+    /// badgePriority property.
+    pub badge_priority: Option<String>,
+    /// darkBadgeColors property.
+    pub dark_badge_colors: Option<GoogleAppsDriveLabelsV2BadgeColors>,
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// hiddenInSearch property.
+    pub hidden_in_search: Option<bool>,
+    /// shownInApply property.
+    pub shown_in_apply: Option<bool>,
 }
 
-/// `GoogleAppsDriveLabelsV2FieldProperties` type.
+/// `GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2FieldProperties {
+pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceProperties {
+    /// badgeConfig property.
+    pub badge_config: Option<GoogleAppsDriveLabelsV2BadgeConfig>,
+    /// description property.
+    pub description: Option<String>,
     /// displayName property.
     pub display_name: Option<String>,
-    /// insertBeforeField property.
-    pub insert_before_field: Option<String>,
-    /// required property.
-    pub required: Option<bool>,
-}
-
-/// `GoogleAppsDriveLabelsV2FieldUserOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2FieldUserOptions {
-    /// listOptions property.
-    pub list_options: Option<GoogleAppsDriveLabelsV2FieldListOptions>,
+    /// insertBeforeChoice property.
+    pub insert_before_choice: Option<String>,
 }
 
 /// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseResponse` type.
@@ -153,16 +113,52 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseResponse {
     >,
 }
 
-/// `GoogleAppsDriveLabelsV2LockStatus` type.
+/// `GoogleAppsDriveLabelsV2LabelAppliedLabelPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2LockStatus {
-    /// locked property.
-    pub locked: Option<bool>,
+pub struct GoogleAppsDriveLabelsV2LabelAppliedLabelPolicy {
+    /// copyMode property.
+    pub copy_mode: Option<String>,
 }
 
-/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDisableFieldResponse` type.
+/// `GoogleAppsDriveLabelsV2BadgeConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDisableFieldResponse {}
+pub struct GoogleAppsDriveLabelsV2BadgeConfig {
+    /// color property.
+    pub color: Option<GoogleTypeColor>,
+    /// priorityOverride property.
+    pub priority_override: Option<String>,
+}
+
+/// `GoogleTypeDate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeDate {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `GoogleAppsDriveLabelsV2FieldIntegerOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2FieldIntegerOptions {
+    /// maxValue property.
+    pub max_value: Option<String>,
+    /// minValue property.
+    pub min_value: Option<String>,
+}
+
+/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseEnableSelectionChoiceResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseEnableSelectionChoiceResponse {}
+
+/// `GoogleAppsDriveLabelsV2LabelEnabledAppSettingsEnabledApp` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2LabelEnabledAppSettingsEnabledApp {
+    /// app property.
+    pub app: Option<String>,
+}
 
 /// `GoogleAppsDriveLabelsV2LabelSchemaCapabilities` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -177,17 +173,137 @@ pub struct GoogleAppsDriveLabelsV2LabelSchemaCapabilities {
     pub can_update: Option<bool>,
 }
 
-/// `GoogleTypeColor` type.
+/// `GoogleAppsDriveLabelsV2LifecycleDisabledPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeColor {
-    /// alpha property.
-    pub alpha: Option<f64>,
-    /// blue property.
-    pub blue: Option<f64>,
-    /// green property.
-    pub green: Option<f64>,
-    /// red property.
-    pub red: Option<f64>,
+pub struct GoogleAppsDriveLabelsV2LifecycleDisabledPolicy {
+    /// hideInSearch property.
+    pub hide_in_search: Option<bool>,
+    /// showInApply property.
+    pub show_in_apply: Option<bool>,
+}
+
+/// `GoogleAppsDriveLabelsV2FieldSchemaCapabilities` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2FieldSchemaCapabilities {
+    /// canDelete property.
+    pub can_delete: Option<bool>,
+    /// canDisable property.
+    pub can_disable: Option<bool>,
+    /// canEnable property.
+    pub can_enable: Option<bool>,
+    /// canUpdate property.
+    pub can_update: Option<bool>,
+}
+
+/// `GoogleAppsDriveLabelsV2FieldDisplayHints` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2FieldDisplayHints {
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// hiddenInSearch property.
+    pub hidden_in_search: Option<bool>,
+    /// required property.
+    pub required: Option<bool>,
+    /// shownInApply property.
+    pub shown_in_apply: Option<bool>,
+}
+
+/// `GoogleAppsDriveLabelsV2FieldProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2FieldProperties {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// insertBeforeField property.
+    pub insert_before_field: Option<String>,
+    /// required property.
+    pub required: Option<bool>,
+}
+
+/// `GoogleAppsDriveLabelsV2LabelAppliedCapabilities` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2LabelAppliedCapabilities {
+    /// canApply property.
+    pub can_apply: Option<bool>,
+    /// canRead property.
+    pub can_read: Option<bool>,
+    /// canRemove property.
+    pub can_remove: Option<bool>,
+}
+
+/// `GoogleAppsDriveLabelsV2LockStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2LockStatus {
+    /// locked property.
+    pub locked: Option<bool>,
+}
+
+/// `GoogleAppsDriveLabelsV2FieldUserOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2FieldUserOptions {
+    /// listOptions property.
+    pub list_options: Option<GoogleAppsDriveLabelsV2FieldListOptions>,
+}
+
+/// `GoogleAppsDriveLabelsV2FieldListOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2FieldListOptions {
+    /// maxEntries property.
+    pub max_entries: Option<i64>,
+}
+
+/// `GoogleAppsDriveLabelsV2FieldSelectionOptionsChoice` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoice {
+    /// appliedCapabilities property.
+    pub applied_capabilities:
+        Option<GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceAppliedCapabilities>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// creator property.
+    pub creator: Option<GoogleAppsDriveLabelsV2UserInfo>,
+    /// disableTime property.
+    pub disable_time: Option<String>,
+    /// disabler property.
+    pub disabler: Option<GoogleAppsDriveLabelsV2UserInfo>,
+    /// displayHints property.
+    pub display_hints: Option<GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceDisplayHints>,
+    /// id property.
+    pub id: Option<String>,
+    /// lifecycle property.
+    pub lifecycle: Option<GoogleAppsDriveLabelsV2Lifecycle>,
+    /// lockStatus property.
+    pub lock_status: Option<GoogleAppsDriveLabelsV2LockStatus>,
+    /// properties property.
+    pub properties: Option<GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceProperties>,
+    /// publishTime property.
+    pub publish_time: Option<String>,
+    /// publisher property.
+    pub publisher: Option<GoogleAppsDriveLabelsV2UserInfo>,
+    /// schemaCapabilities property.
+    pub schema_capabilities:
+        Option<GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceSchemaCapabilities>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+    /// updater property.
+    pub updater: Option<GoogleAppsDriveLabelsV2UserInfo>,
+}
+
+/// `GoogleAppsDriveLabelsV2LabelProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2LabelProperties {
+    /// description property.
+    pub description: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleAppsDriveLabelsV2FieldTextOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2FieldTextOptions {
+    /// maxLength property.
+    pub max_length: Option<i64>,
+    /// minLength property.
+    pub min_length: Option<i64>,
 }
 
 /// `GoogleAppsDriveLabelsV2FieldDateOptions` type.
@@ -201,26 +317,6 @@ pub struct GoogleAppsDriveLabelsV2FieldDateOptions {
     pub max_value: Option<GoogleTypeDate>,
     /// minValue property.
     pub min_value: Option<GoogleTypeDate>,
-}
-
-/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDeleteFieldResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDeleteFieldResponse {}
-
-/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseCreateFieldResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseCreateFieldResponse {
-    /// id property.
-    pub id: Option<String>,
-    /// priority property.
-    pub priority: Option<i64>,
-}
-
-/// `GoogleAppsDriveLabelsV2FieldListOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2FieldListOptions {
-    /// maxEntries property.
-    pub max_entries: Option<i64>,
 }
 
 /// `GoogleAppsDriveLabelsV2Label` type.
@@ -274,200 +370,15 @@ pub struct GoogleAppsDriveLabelsV2Label {
     pub schema_capabilities: Option<GoogleAppsDriveLabelsV2LabelSchemaCapabilities>,
 }
 
-/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDeleteSelectionChoiceResponse` type.
+/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDisableFieldResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDeleteSelectionChoiceResponse {}
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDisableFieldResponse {}
 
-/// `GoogleAppsDriveLabelsV2LabelEnabledAppSettings` type.
+/// `GoogleAppsDriveLabelsV2UserInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2LabelEnabledAppSettings {
-    /// enabledApps property.
-    pub enabled_apps: Option<Vec<GoogleAppsDriveLabelsV2LabelEnabledAppSettingsEnabledApp>>,
-}
-
-/// `GoogleAppsDriveLabelsV2LabelAppliedLabelPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2LabelAppliedLabelPolicy {
-    /// copyMode property.
-    pub copy_mode: Option<String>,
-}
-
-/// `GoogleAppsDriveLabelsV2FieldSelectionOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2FieldSelectionOptions {
-    /// choices property.
-    pub choices: Option<Vec<GoogleAppsDriveLabelsV2FieldSelectionOptionsChoice>>,
-    /// listOptions property.
-    pub list_options: Option<GoogleAppsDriveLabelsV2FieldListOptions>,
-}
-
-/// `GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceDisplayHints` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceDisplayHints {
-    /// badgeColors property.
-    pub badge_colors: Option<GoogleAppsDriveLabelsV2BadgeColors>,
-    /// badgePriority property.
-    pub badge_priority: Option<String>,
-    /// darkBadgeColors property.
-    pub dark_badge_colors: Option<GoogleAppsDriveLabelsV2BadgeColors>,
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// hiddenInSearch property.
-    pub hidden_in_search: Option<bool>,
-    /// shownInApply property.
-    pub shown_in_apply: Option<bool>,
-}
-
-/// `GoogleAppsDriveLabelsV2FieldSelectionOptionsChoice` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoice {
-    /// appliedCapabilities property.
-    pub applied_capabilities:
-        Option<GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceAppliedCapabilities>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// creator property.
-    pub creator: Option<GoogleAppsDriveLabelsV2UserInfo>,
-    /// disableTime property.
-    pub disable_time: Option<String>,
-    /// disabler property.
-    pub disabler: Option<GoogleAppsDriveLabelsV2UserInfo>,
-    /// displayHints property.
-    pub display_hints: Option<GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceDisplayHints>,
-    /// id property.
-    pub id: Option<String>,
-    /// lifecycle property.
-    pub lifecycle: Option<GoogleAppsDriveLabelsV2Lifecycle>,
-    /// lockStatus property.
-    pub lock_status: Option<GoogleAppsDriveLabelsV2LockStatus>,
-    /// properties property.
-    pub properties: Option<GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceProperties>,
-    /// publishTime property.
-    pub publish_time: Option<String>,
-    /// publisher property.
-    pub publisher: Option<GoogleAppsDriveLabelsV2UserInfo>,
-    /// schemaCapabilities property.
-    pub schema_capabilities:
-        Option<GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceSchemaCapabilities>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-    /// updater property.
-    pub updater: Option<GoogleAppsDriveLabelsV2UserInfo>,
-}
-
-/// `GoogleAppsDriveLabelsV2FieldIntegerOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2FieldIntegerOptions {
-    /// maxValue property.
-    pub max_value: Option<String>,
-    /// minValue property.
-    pub min_value: Option<String>,
-}
-
-/// `GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceAppliedCapabilities` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceAppliedCapabilities {
-    /// canRead property.
-    pub can_read: Option<bool>,
-    /// canSearch property.
-    pub can_search: Option<bool>,
-    /// canSelect property.
-    pub can_select: Option<bool>,
-}
-
-/// `GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceProperties {
-    /// badgeConfig property.
-    pub badge_config: Option<GoogleAppsDriveLabelsV2BadgeConfig>,
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// insertBeforeChoice property.
-    pub insert_before_choice: Option<String>,
-}
-
-/// `GoogleAppsDriveLabelsV2FieldTextOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2FieldTextOptions {
-    /// maxLength property.
-    pub max_length: Option<i64>,
-    /// minLength property.
-    pub min_length: Option<i64>,
-}
-
-/// `GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceSchemaCapabilities` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceSchemaCapabilities {
-    /// canDelete property.
-    pub can_delete: Option<bool>,
-    /// canDisable property.
-    pub can_disable: Option<bool>,
-    /// canEnable property.
-    pub can_enable: Option<bool>,
-    /// canUpdate property.
-    pub can_update: Option<bool>,
-}
-
-/// `GoogleAppsDriveLabelsV2BadgeColors` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2BadgeColors {
-    /// backgroundColor property.
-    pub background_color: Option<GoogleTypeColor>,
-    /// foregroundColor property.
-    pub foreground_color: Option<GoogleTypeColor>,
-    /// soloColor property.
-    pub solo_color: Option<GoogleTypeColor>,
-}
-
-/// `GoogleAppsDriveLabelsV2FieldAppliedCapabilities` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2FieldAppliedCapabilities {
-    /// canRead property.
-    pub can_read: Option<bool>,
-    /// canSearch property.
-    pub can_search: Option<bool>,
-    /// canWrite property.
-    pub can_write: Option<bool>,
-}
-
-/// `GoogleAppsDriveLabelsV2LabelEnabledAppSettingsEnabledApp` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2LabelEnabledAppSettingsEnabledApp {
-    /// app property.
-    pub app: Option<String>,
-}
-
-/// `GoogleAppsDriveLabelsV2ListLabelsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2ListLabelsResponse {
-    /// labels property.
-    pub labels: Option<Vec<GoogleAppsDriveLabelsV2Label>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseCreateSelectionChoiceResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseCreateSelectionChoiceResponse {
-    /// fieldId property.
-    pub field_id: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-}
-
-/// `GoogleAppsDriveLabelsV2LabelDisplayHints` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2LabelDisplayHints {
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// hiddenInSearch property.
-    pub hidden_in_search: Option<bool>,
-    /// priority property.
-    pub priority: Option<String>,
-    /// shownInApply property.
-    pub shown_in_apply: Option<bool>,
+pub struct GoogleAppsDriveLabelsV2UserInfo {
+    /// person property.
+    pub person: Option<String>,
 }
 
 /// `GoogleAppsDriveLabelsV2Field` type.
@@ -515,9 +426,33 @@ pub struct GoogleAppsDriveLabelsV2Field {
     pub user_options: Option<GoogleAppsDriveLabelsV2FieldUserOptions>,
 }
 
-/// `GoogleAppsDriveLabelsV2FieldSchemaCapabilities` type.
+/// `GoogleAppsDriveLabelsV2FieldAppliedCapabilities` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2FieldSchemaCapabilities {
+pub struct GoogleAppsDriveLabelsV2FieldAppliedCapabilities {
+    /// canRead property.
+    pub can_read: Option<bool>,
+    /// canSearch property.
+    pub can_search: Option<bool>,
+    /// canWrite property.
+    pub can_write: Option<bool>,
+}
+
+/// `GoogleTypeColor` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeColor {
+    /// alpha property.
+    pub alpha: Option<f64>,
+    /// blue property.
+    pub blue: Option<f64>,
+    /// green property.
+    pub green: Option<f64>,
+    /// red property.
+    pub red: Option<f64>,
+}
+
+/// `GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceSchemaCapabilities` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceSchemaCapabilities {
     /// canDelete property.
     pub can_delete: Option<bool>,
     /// canDisable property.
@@ -528,20 +463,60 @@ pub struct GoogleAppsDriveLabelsV2FieldSchemaCapabilities {
     pub can_update: Option<bool>,
 }
 
-/// `GoogleTypeDate` type.
+/// `GoogleAppsDriveLabelsV2BadgeColors` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeDate {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
+pub struct GoogleAppsDriveLabelsV2BadgeColors {
+    /// backgroundColor property.
+    pub background_color: Option<GoogleTypeColor>,
+    /// foregroundColor property.
+    pub foreground_color: Option<GoogleTypeColor>,
+    /// soloColor property.
+    pub solo_color: Option<GoogleTypeColor>,
 }
 
-/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateFieldTypeResponse` type.
+/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseEnableFieldResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateFieldTypeResponse {}
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseEnableFieldResponse {}
+
+/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateFieldPropertiesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateFieldPropertiesResponse {
+    /// priority property.
+    pub priority: Option<i64>,
+}
+
+/// `GoogleAppsDriveLabelsV2FieldSelectionOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2FieldSelectionOptions {
+    /// choices property.
+    pub choices: Option<Vec<GoogleAppsDriveLabelsV2FieldSelectionOptionsChoice>>,
+    /// listOptions property.
+    pub list_options: Option<GoogleAppsDriveLabelsV2FieldListOptions>,
+}
+
+/// `GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceAppliedCapabilities` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceAppliedCapabilities {
+    /// canRead property.
+    pub can_read: Option<bool>,
+    /// canSearch property.
+    pub can_search: Option<bool>,
+    /// canSelect property.
+    pub can_select: Option<bool>,
+}
+
+/// `GoogleAppsDriveLabelsV2LabelDisplayHints` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2LabelDisplayHints {
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// hiddenInSearch property.
+    pub hidden_in_search: Option<bool>,
+    /// priority property.
+    pub priority: Option<String>,
+    /// shownInApply property.
+    pub shown_in_apply: Option<bool>,
+}
 
 /// `GoogleAppsDriveLabelsV2Lifecycle` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -554,12 +529,49 @@ pub struct GoogleAppsDriveLabelsV2Lifecycle {
     pub state: Option<String>,
 }
 
-/// `GoogleAppsDriveLabelsV2UserInfo` type.
+/// `GoogleAppsDriveLabelsV2ListLabelsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2UserInfo {
-    /// person property.
-    pub person: Option<String>,
+pub struct GoogleAppsDriveLabelsV2ListLabelsResponse {
+    /// labels property.
+    pub labels: Option<Vec<GoogleAppsDriveLabelsV2Label>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
+
+/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseCreateSelectionChoiceResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseCreateSelectionChoiceResponse {
+    /// fieldId property.
+    pub field_id: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+}
+
+/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateLabelPropertiesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateLabelPropertiesResponse {}
+
+/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDeleteSelectionChoiceResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDeleteSelectionChoiceResponse {}
+
+/// `GoogleAppsDriveLabelsV2LabelEnabledAppSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2LabelEnabledAppSettings {
+    /// enabledApps property.
+    pub enabled_apps: Option<Vec<GoogleAppsDriveLabelsV2LabelEnabledAppSettingsEnabledApp>>,
+}
+
+/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateSelectionChoicePropertiesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateSelectionChoicePropertiesResponse {
+    /// priority property.
+    pub priority: Option<i64>,
+}
+
+/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateFieldTypeResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateFieldTypeResponse {}
 
 /// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -568,17 +580,6 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponse {
     pub responses: Option<Vec<GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseResponse>>,
     /// updatedLabel property.
     pub updated_label: Option<GoogleAppsDriveLabelsV2Label>,
-}
-
-/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateLabelPropertiesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateLabelPropertiesResponse {}
-
-/// `GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateSelectionChoicePropertiesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateSelectionChoicePropertiesResponse {
-    /// priority property.
-    pub priority: Option<i64>,
 }
 
 // =============================================================================

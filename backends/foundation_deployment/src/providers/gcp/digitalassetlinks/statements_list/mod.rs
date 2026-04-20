@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `AndroidAppAsset` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AndroidAppAsset {
+    /// certificate property.
+    pub certificate: Option<CertificateInfo>,
+    /// packageName property.
+    pub package_name: Option<String>,
+}
 
 /// `ListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -35,13 +45,6 @@ pub struct ListResponse {
     pub max_age: Option<String>,
     /// statements property.
     pub statements: Option<Vec<Statement>>,
-}
-
-/// `WebAsset` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WebAsset {
-    /// site property.
-    pub site: Option<String>,
 }
 
 /// `Statement` type.
@@ -57,6 +60,13 @@ pub struct Statement {
     pub target: Option<Asset>,
 }
 
+/// `CertificateInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CertificateInfo {
+    /// sha256Fingerprint property.
+    pub sha256_fingerprint: Option<String>,
+}
+
 /// `Asset` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Asset {
@@ -66,20 +76,11 @@ pub struct Asset {
     pub web: Option<WebAsset>,
 }
 
-/// `CertificateInfo` type.
+/// `WebAsset` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CertificateInfo {
-    /// sha256Fingerprint property.
-    pub sha256_fingerprint: Option<String>,
-}
-
-/// `AndroidAppAsset` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AndroidAppAsset {
-    /// certificate property.
-    pub certificate: Option<CertificateInfo>,
-    /// packageName property.
-    pub package_name: Option<String>,
+pub struct WebAsset {
+    /// site property.
+    pub site: Option<String>,
 }
 
 // =============================================================================

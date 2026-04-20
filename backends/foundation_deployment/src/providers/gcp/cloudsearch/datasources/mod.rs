@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,33 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GSuitePrincipal` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GSuitePrincipal {
-    /// gsuiteDomain property.
-    pub gsuite_domain: Option<bool>,
-    /// gsuiteGroupEmail property.
-    pub gsuite_group_email: Option<String>,
-    /// gsuiteUserEmail property.
-    pub gsuite_user_email: Option<String>,
-}
 
 /// `DataSourceIndexStats` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -56,15 +35,6 @@ pub struct DataSourceIndexStats {
     pub date: Option<Date>,
     /// itemCountByStatus property.
     pub item_count_by_status: Option<Vec<ItemCountByStatus>>,
-}
-
-/// `GetDataSourceIndexStatsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetDataSourceIndexStatsResponse {
-    /// averageIndexedItemCount property.
-    pub average_indexed_item_count: Option<String>,
-    /// stats property.
-    pub stats: Option<Vec<DataSourceIndexStats>>,
 }
 
 /// `DataSource` type.
@@ -90,6 +60,17 @@ pub struct DataSource {
     pub short_name: Option<String>,
 }
 
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
 /// `Date` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
@@ -108,6 +89,26 @@ pub struct ListDataSourceResponse {
     pub next_page_token: Option<String>,
     /// sources property.
     pub sources: Option<Vec<DataSource>>,
+}
+
+/// `GetDataSourceIndexStatsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetDataSourceIndexStatsResponse {
+    /// averageIndexedItemCount property.
+    pub average_indexed_item_count: Option<String>,
+    /// stats property.
+    pub stats: Option<Vec<DataSourceIndexStats>>,
+}
+
+/// `GSuitePrincipal` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GSuitePrincipal {
+    /// gsuiteDomain property.
+    pub gsuite_domain: Option<bool>,
+    /// gsuiteGroupEmail property.
+    pub gsuite_group_email: Option<String>,
+    /// gsuiteUserEmail property.
+    pub gsuite_user_email: Option<String>,
 }
 
 /// `ItemCountByStatus` type.

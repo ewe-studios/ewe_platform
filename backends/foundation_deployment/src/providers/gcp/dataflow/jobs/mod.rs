@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,291 +24,11 @@ use super::shared::Job;
 use super::shared::ListJobsResponse;
 use super::shared::Snapshot;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `SdkBug` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SdkBug {
-    /// severity property.
-    pub severity: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `BigTableIODetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BigTableIODetails {
-    /// instanceId property.
-    pub instance_id: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// tableId property.
-    pub table_id: Option<String>,
-}
-
-/// `SpannerIODetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpannerIODetails {
-    /// databaseId property.
-    pub database_id: Option<String>,
-    /// instanceId property.
-    pub instance_id: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-}
-
-/// `DisplayData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DisplayData {
-    /// boolValue property.
-    pub bool_value: Option<bool>,
-    /// durationValue property.
-    pub duration_value: Option<String>,
-    /// floatValue property.
-    pub float_value: Option<f64>,
-    /// int64Value property.
-    pub int64_value: Option<String>,
-    /// javaClassValue property.
-    pub java_class_value: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// label property.
-    pub label: Option<String>,
-    /// namespace property.
-    pub namespace: Option<String>,
-    /// shortStrValue property.
-    pub short_str_value: Option<String>,
-    /// strValue property.
-    pub str_value: Option<String>,
-    /// timestampValue property.
-    pub timestamp_value: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `ComponentTransform` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComponentTransform {
-    /// name property.
-    pub name: Option<String>,
-    /// originalTransform property.
-    pub original_transform: Option<String>,
-    /// userName property.
-    pub user_name: Option<String>,
-}
-
-/// `Disk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Disk {
-    /// diskType property.
-    pub disk_type: Option<String>,
-    /// mountPoint property.
-    pub mount_point: Option<String>,
-    /// sizeGb property.
-    pub size_gb: Option<i64>,
-}
-
-/// `PubsubSnapshotMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PubsubSnapshotMetadata {
-    /// expireTime property.
-    pub expire_time: Option<String>,
-    /// snapshotName property.
-    pub snapshot_name: Option<String>,
-    /// topicName property.
-    pub topic_name: Option<String>,
-}
-
-/// `ExecutionStageSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExecutionStageSummary {
-    /// componentSource property.
-    pub component_source: Option<Vec<ComponentSource>>,
-    /// componentTransform property.
-    pub component_transform: Option<Vec<ComponentTransform>>,
-    /// id property.
-    pub id: Option<String>,
-    /// inputSource property.
-    pub input_source: Option<Vec<StageSource>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// outputSource property.
-    pub output_source: Option<Vec<StageSource>>,
-    /// prerequisiteStage property.
-    pub prerequisite_stage: Option<Vec<String>>,
-}
-
-/// `TransformSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransformSummary {
-    /// displayData property.
-    pub display_data: Option<Vec<DisplayData>>,
-    /// id property.
-    pub id: Option<String>,
-    /// inputCollectionName property.
-    pub input_collection_name: Option<Vec<String>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// outputCollectionName property.
-    pub output_collection_name: Option<Vec<String>>,
-}
-
-/// `SdkHarnessContainerImage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SdkHarnessContainerImage {
-    /// capabilities property.
-    pub capabilities: Option<Vec<String>>,
-    /// containerImage property.
-    pub container_image: Option<String>,
-    /// environmentId property.
-    pub environment_id: Option<String>,
-    /// useSingleCorePerContainer property.
-    pub use_single_core_per_container: Option<bool>,
-}
-
-/// `ExecutionStageState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExecutionStageState {
-    /// currentStateTime property.
-    pub current_state_time: Option<String>,
-    /// executionStageName property.
-    pub execution_stage_name: Option<String>,
-    /// executionStageState property.
-    pub execution_stage_state: Option<String>,
-}
-
-/// `DatastoreIODetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatastoreIODetails {
-    /// namespace property.
-    pub namespace: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-}
-
-/// `AutoscalingSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoscalingSettings {
-    /// algorithm property.
-    pub algorithm: Option<String>,
-    /// maxNumWorkers property.
-    pub max_num_workers: Option<i64>,
-}
-
-/// `SdkVersion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SdkVersion {
-    /// bugs property.
-    pub bugs: Option<Vec<SdkBug>>,
-    /// sdkSupportStatus property.
-    pub sdk_support_status: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-    /// versionDisplayName property.
-    pub version_display_name: Option<String>,
-}
-
-/// `BigQueryIODetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BigQueryIODetails {
-    /// dataset property.
-    pub dataset: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// query property.
-    pub query: Option<String>,
-    /// table property.
-    pub table: Option<String>,
-}
-
-/// `JobMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobMetadata {
-    /// bigTableDetails property.
-    pub big_table_details: Option<Vec<BigTableIODetails>>,
-    /// bigqueryDetails property.
-    pub bigquery_details: Option<Vec<BigQueryIODetails>>,
-    /// datastoreDetails property.
-    pub datastore_details: Option<Vec<DatastoreIODetails>>,
-    /// fileDetails property.
-    pub file_details: Option<Vec<FileIODetails>>,
-    /// pubsubDetails property.
-    pub pubsub_details: Option<Vec<PubSubIODetails>>,
-    /// sdkVersion property.
-    pub sdk_version: Option<SdkVersion>,
-    /// spannerDetails property.
-    pub spanner_details: Option<Vec<SpannerIODetails>>,
-    /// userDisplayProperties property.
-    pub user_display_properties: Option<serde_json::Value>,
-}
-
-/// `Step` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Step {
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
-}
-
-/// `ComponentSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComponentSource {
-    /// name property.
-    pub name: Option<String>,
-    /// originalTransformOrCollection property.
-    pub original_transform_or_collection: Option<String>,
-    /// userName property.
-    pub user_name: Option<String>,
-}
-
-/// `FileIODetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FileIODetails {
-    /// filePattern property.
-    pub file_pattern: Option<String>,
-}
-
-/// `PubSubIODetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PubSubIODetails {
-    /// subscription property.
-    pub subscription: Option<String>,
-    /// topic property.
-    pub topic: Option<String>,
-}
-
-/// `PipelineDescription` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PipelineDescription {
-    /// displayData property.
-    pub display_data: Option<Vec<DisplayData>>,
-    /// executionPipelineStage property.
-    pub execution_pipeline_stage: Option<Vec<ExecutionStageSummary>>,
-    /// originalPipelineTransform property.
-    pub original_pipeline_transform: Option<Vec<TransformSummary>>,
-    /// stepNamesHash property.
-    pub step_names_hash: Option<String>,
-}
-
-/// `FailedLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FailedLocation {
-    /// name property.
-    pub name: Option<String>,
-}
 
 /// `WorkerPool` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -362,47 +83,28 @@ pub struct WorkerPool {
     pub zone: Option<String>,
 }
 
-/// `TaskRunnerSettings` type.
+/// `StageSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TaskRunnerSettings {
-    /// alsologtostderr property.
-    pub alsologtostderr: Option<bool>,
-    /// baseTaskDir property.
-    pub base_task_dir: Option<String>,
-    /// baseUrl property.
-    pub base_url: Option<String>,
-    /// commandlinesFileName property.
-    pub commandlines_file_name: Option<String>,
-    /// continueOnException property.
-    pub continue_on_exception: Option<bool>,
-    /// dataflowApiVersion property.
-    pub dataflow_api_version: Option<String>,
-    /// harnessCommand property.
-    pub harness_command: Option<String>,
-    /// languageHint property.
-    pub language_hint: Option<String>,
-    /// logDir property.
-    pub log_dir: Option<String>,
-    /// logToSerialconsole property.
-    pub log_to_serialconsole: Option<bool>,
-    /// logUploadLocation property.
-    pub log_upload_location: Option<String>,
-    /// oauthScopes property.
-    pub oauth_scopes: Option<Vec<String>>,
-    /// parallelWorkerSettings property.
-    pub parallel_worker_settings: Option<WorkerSettings>,
-    /// streamingWorkerMainClass property.
-    pub streaming_worker_main_class: Option<String>,
-    /// taskGroup property.
-    pub task_group: Option<String>,
-    /// taskUser property.
-    pub task_user: Option<String>,
-    /// tempStoragePrefix property.
-    pub temp_storage_prefix: Option<String>,
-    /// vmId property.
-    pub vm_id: Option<String>,
-    /// workflowFileName property.
-    pub workflow_file_name: Option<String>,
+pub struct StageSource {
+    /// name property.
+    pub name: Option<String>,
+    /// originalTransformOrCollection property.
+    pub original_transform_or_collection: Option<String>,
+    /// sizeBytes property.
+    pub size_bytes: Option<String>,
+    /// userName property.
+    pub user_name: Option<String>,
+}
+
+/// `ComponentSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComponentSource {
+    /// name property.
+    pub name: Option<String>,
+    /// originalTransformOrCollection property.
+    pub original_transform_or_collection: Option<String>,
+    /// userName property.
+    pub user_name: Option<String>,
 }
 
 /// `Environment` type.
@@ -450,59 +152,6 @@ pub struct Environment {
     pub worker_zone: Option<String>,
 }
 
-/// `ServiceResources` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceResources {
-    /// zones property.
-    pub zones: Option<Vec<String>>,
-}
-
-/// `StageSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StageSource {
-    /// name property.
-    pub name: Option<String>,
-    /// originalTransformOrCollection property.
-    pub original_transform_or_collection: Option<String>,
-    /// sizeBytes property.
-    pub size_bytes: Option<String>,
-    /// userName property.
-    pub user_name: Option<String>,
-}
-
-/// `DebugOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DebugOptions {
-    /// dataSampling property.
-    pub data_sampling: Option<DataSamplingConfig>,
-    /// enableHotKeyLogging property.
-    pub enable_hot_key_logging: Option<bool>,
-}
-
-/// `JobExecutionInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobExecutionInfo {
-    /// stages property.
-    pub stages: Option<serde_json::Value>,
-}
-
-/// `WorkerSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkerSettings {
-    /// baseUrl property.
-    pub base_url: Option<String>,
-    /// reportingEnabled property.
-    pub reporting_enabled: Option<bool>,
-    /// servicePath property.
-    pub service_path: Option<String>,
-    /// shuffleServicePath property.
-    pub shuffle_service_path: Option<String>,
-    /// tempStoragePrefix property.
-    pub temp_storage_prefix: Option<String>,
-    /// workerId property.
-    pub worker_id: Option<String>,
-}
-
 /// `RuntimeUpdatableParams` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RuntimeUpdatableParams {
@@ -520,11 +169,311 @@ pub struct RuntimeUpdatableParams {
     pub worker_utilization_hint: Option<f64>,
 }
 
+/// `TransformSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TransformSummary {
+    /// displayData property.
+    pub display_data: Option<Vec<DisplayData>>,
+    /// id property.
+    pub id: Option<String>,
+    /// inputCollectionName property.
+    pub input_collection_name: Option<Vec<String>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// outputCollectionName property.
+    pub output_collection_name: Option<Vec<String>>,
+}
+
+/// `FailedLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FailedLocation {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `ComponentTransform` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComponentTransform {
+    /// name property.
+    pub name: Option<String>,
+    /// originalTransform property.
+    pub original_transform: Option<String>,
+    /// userName property.
+    pub user_name: Option<String>,
+}
+
+/// `JobExecutionInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JobExecutionInfo {
+    /// stages property.
+    pub stages: Option<serde_json::Value>,
+}
+
+/// `FileIODetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FileIODetails {
+    /// filePattern property.
+    pub file_pattern: Option<String>,
+}
+
+/// `Disk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Disk {
+    /// diskType property.
+    pub disk_type: Option<String>,
+    /// mountPoint property.
+    pub mount_point: Option<String>,
+    /// sizeGb property.
+    pub size_gb: Option<i64>,
+}
+
+/// `TaskRunnerSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TaskRunnerSettings {
+    /// alsologtostderr property.
+    pub alsologtostderr: Option<bool>,
+    /// baseTaskDir property.
+    pub base_task_dir: Option<String>,
+    /// baseUrl property.
+    pub base_url: Option<String>,
+    /// commandlinesFileName property.
+    pub commandlines_file_name: Option<String>,
+    /// continueOnException property.
+    pub continue_on_exception: Option<bool>,
+    /// dataflowApiVersion property.
+    pub dataflow_api_version: Option<String>,
+    /// harnessCommand property.
+    pub harness_command: Option<String>,
+    /// languageHint property.
+    pub language_hint: Option<String>,
+    /// logDir property.
+    pub log_dir: Option<String>,
+    /// logToSerialconsole property.
+    pub log_to_serialconsole: Option<bool>,
+    /// logUploadLocation property.
+    pub log_upload_location: Option<String>,
+    /// oauthScopes property.
+    pub oauth_scopes: Option<Vec<String>>,
+    /// parallelWorkerSettings property.
+    pub parallel_worker_settings: Option<WorkerSettings>,
+    /// streamingWorkerMainClass property.
+    pub streaming_worker_main_class: Option<String>,
+    /// taskGroup property.
+    pub task_group: Option<String>,
+    /// taskUser property.
+    pub task_user: Option<String>,
+    /// tempStoragePrefix property.
+    pub temp_storage_prefix: Option<String>,
+    /// vmId property.
+    pub vm_id: Option<String>,
+    /// workflowFileName property.
+    pub workflow_file_name: Option<String>,
+}
+
+/// `BigQueryIODetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BigQueryIODetails {
+    /// dataset property.
+    pub dataset: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// query property.
+    pub query: Option<String>,
+    /// table property.
+    pub table: Option<String>,
+}
+
+/// `JobMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JobMetadata {
+    /// bigTableDetails property.
+    pub big_table_details: Option<Vec<BigTableIODetails>>,
+    /// bigqueryDetails property.
+    pub bigquery_details: Option<Vec<BigQueryIODetails>>,
+    /// datastoreDetails property.
+    pub datastore_details: Option<Vec<DatastoreIODetails>>,
+    /// fileDetails property.
+    pub file_details: Option<Vec<FileIODetails>>,
+    /// pubsubDetails property.
+    pub pubsub_details: Option<Vec<PubSubIODetails>>,
+    /// sdkVersion property.
+    pub sdk_version: Option<SdkVersion>,
+    /// spannerDetails property.
+    pub spanner_details: Option<Vec<SpannerIODetails>>,
+    /// userDisplayProperties property.
+    pub user_display_properties: Option<serde_json::Value>,
+}
+
+/// `PubSubIODetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PubSubIODetails {
+    /// subscription property.
+    pub subscription: Option<String>,
+    /// topic property.
+    pub topic: Option<String>,
+}
+
+/// `SpannerIODetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpannerIODetails {
+    /// databaseId property.
+    pub database_id: Option<String>,
+    /// instanceId property.
+    pub instance_id: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+}
+
+/// `SdkBug` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SdkBug {
+    /// severity property.
+    pub severity: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `PubsubSnapshotMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PubsubSnapshotMetadata {
+    /// expireTime property.
+    pub expire_time: Option<String>,
+    /// snapshotName property.
+    pub snapshot_name: Option<String>,
+    /// topicName property.
+    pub topic_name: Option<String>,
+}
+
+/// `ExecutionStageState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExecutionStageState {
+    /// currentStateTime property.
+    pub current_state_time: Option<String>,
+    /// executionStageName property.
+    pub execution_stage_name: Option<String>,
+    /// executionStageState property.
+    pub execution_stage_state: Option<String>,
+}
+
+/// `ServiceResources` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceResources {
+    /// zones property.
+    pub zones: Option<Vec<String>>,
+}
+
+/// `DisplayData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DisplayData {
+    /// boolValue property.
+    pub bool_value: Option<bool>,
+    /// durationValue property.
+    pub duration_value: Option<String>,
+    /// floatValue property.
+    pub float_value: Option<f64>,
+    /// int64Value property.
+    pub int64_value: Option<String>,
+    /// javaClassValue property.
+    pub java_class_value: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// label property.
+    pub label: Option<String>,
+    /// namespace property.
+    pub namespace: Option<String>,
+    /// shortStrValue property.
+    pub short_str_value: Option<String>,
+    /// strValue property.
+    pub str_value: Option<String>,
+    /// timestampValue property.
+    pub timestamp_value: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `ExecutionStageSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExecutionStageSummary {
+    /// componentSource property.
+    pub component_source: Option<Vec<ComponentSource>>,
+    /// componentTransform property.
+    pub component_transform: Option<Vec<ComponentTransform>>,
+    /// id property.
+    pub id: Option<String>,
+    /// inputSource property.
+    pub input_source: Option<Vec<StageSource>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// outputSource property.
+    pub output_source: Option<Vec<StageSource>>,
+    /// prerequisiteStage property.
+    pub prerequisite_stage: Option<Vec<String>>,
+}
+
+/// `BigTableIODetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BigTableIODetails {
+    /// instanceId property.
+    pub instance_id: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// tableId property.
+    pub table_id: Option<String>,
+}
+
+/// `SdkHarnessContainerImage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SdkHarnessContainerImage {
+    /// capabilities property.
+    pub capabilities: Option<Vec<String>>,
+    /// containerImage property.
+    pub container_image: Option<String>,
+    /// environmentId property.
+    pub environment_id: Option<String>,
+    /// useSingleCorePerContainer property.
+    pub use_single_core_per_container: Option<bool>,
+}
+
 /// `DataSamplingConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataSamplingConfig {
     /// behaviors property.
     pub behaviors: Option<Vec<String>>,
+}
+
+/// `DebugOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DebugOptions {
+    /// dataSampling property.
+    pub data_sampling: Option<DataSamplingConfig>,
+    /// enableHotKeyLogging property.
+    pub enable_hot_key_logging: Option<bool>,
+}
+
+/// `AutoscalingSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutoscalingSettings {
+    /// algorithm property.
+    pub algorithm: Option<String>,
+    /// maxNumWorkers property.
+    pub max_num_workers: Option<i64>,
+}
+
+/// `Step` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Step {
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
 }
 
 /// `Package` type.
@@ -534,6 +483,58 @@ pub struct Package {
     pub location: Option<String>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `SdkVersion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SdkVersion {
+    /// bugs property.
+    pub bugs: Option<Vec<SdkBug>>,
+    /// sdkSupportStatus property.
+    pub sdk_support_status: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+    /// versionDisplayName property.
+    pub version_display_name: Option<String>,
+}
+
+/// `DatastoreIODetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatastoreIODetails {
+    /// namespace property.
+    pub namespace: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+}
+
+/// `PipelineDescription` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PipelineDescription {
+    /// displayData property.
+    pub display_data: Option<Vec<DisplayData>>,
+    /// executionPipelineStage property.
+    pub execution_pipeline_stage: Option<Vec<ExecutionStageSummary>>,
+    /// originalPipelineTransform property.
+    pub original_pipeline_transform: Option<Vec<TransformSummary>>,
+    /// stepNamesHash property.
+    pub step_names_hash: Option<String>,
+}
+
+/// `WorkerSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkerSettings {
+    /// baseUrl property.
+    pub base_url: Option<String>,
+    /// reportingEnabled property.
+    pub reporting_enabled: Option<bool>,
+    /// servicePath property.
+    pub service_path: Option<String>,
+    /// shuffleServicePath property.
+    pub shuffle_service_path: Option<String>,
+    /// tempStoragePrefix property.
+    pub temp_storage_prefix: Option<String>,
+    /// workerId property.
+    pub worker_id: Option<String>,
 }
 
 // =============================================================================

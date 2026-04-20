@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,17 +23,26 @@ use serde::{Deserialize, Serialize};
 use super::shared::Empty;
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ClusterConfig` type.
+/// `AutoscalingTargets` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterConfig {
-    /// clusterAutoscalingConfig property.
-    pub cluster_autoscaling_config: Option<ClusterAutoscalingConfig>,
+pub struct AutoscalingTargets {
+    /// cpuUtilizationPercent property.
+    pub cpu_utilization_percent: Option<i64>,
+    /// storageUtilizationGibPerNode property.
+    pub storage_utilization_gib_per_node: Option<i64>,
+}
+
+/// `EncryptionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EncryptionConfig {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
 }
 
 /// `ListClustersResponse` type.
@@ -44,6 +54,42 @@ pub struct ListClustersResponse {
     pub failed_locations: Option<Vec<String>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `AutoscalingLimits` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutoscalingLimits {
+    /// maxServeNodes property.
+    pub max_serve_nodes: Option<i64>,
+    /// minServeNodes property.
+    pub min_serve_nodes: Option<i64>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ClusterAutoscalingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterAutoscalingConfig {
+    /// autoscalingLimits property.
+    pub autoscaling_limits: Option<AutoscalingLimits>,
+    /// autoscalingTargets property.
+    pub autoscaling_targets: Option<AutoscalingTargets>,
+}
+
+/// `ClusterConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterConfig {
+    /// clusterAutoscalingConfig property.
+    pub cluster_autoscaling_config: Option<ClusterAutoscalingConfig>,
 }
 
 /// `Cluster` type.
@@ -65,51 +111,6 @@ pub struct Cluster {
     pub serve_nodes: Option<i64>,
     /// state property.
     pub state: Option<String>,
-}
-
-/// `ClusterAutoscalingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterAutoscalingConfig {
-    /// autoscalingLimits property.
-    pub autoscaling_limits: Option<AutoscalingLimits>,
-    /// autoscalingTargets property.
-    pub autoscaling_targets: Option<AutoscalingTargets>,
-}
-
-/// `EncryptionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionConfig {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-}
-
-/// `AutoscalingTargets` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoscalingTargets {
-    /// cpuUtilizationPercent property.
-    pub cpu_utilization_percent: Option<i64>,
-    /// storageUtilizationGibPerNode property.
-    pub storage_utilization_gib_per_node: Option<i64>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `AutoscalingLimits` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoscalingLimits {
-    /// maxServeNodes property.
-    pub max_serve_nodes: Option<i64>,
-    /// minServeNodes property.
-    pub min_serve_nodes: Option<i64>,
 }
 
 // =============================================================================

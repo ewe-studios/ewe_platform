@@ -12,32 +12,31 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListUserPermissionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListUserPermissionsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// userPermission property.
-    pub user_permission: Option<Vec<UserPermission>>,
-}
 
 /// `ContainerAccess` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContainerAccess {
     /// containerId property.
     pub container_id: Option<String>,
+    /// permission property.
+    pub permission: Option<String>,
+}
+
+/// `AccountAccess` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountAccess {
     /// permission property.
     pub permission: Option<String>,
 }
@@ -57,11 +56,13 @@ pub struct UserPermission {
     pub path: Option<String>,
 }
 
-/// `AccountAccess` type.
+/// `ListUserPermissionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountAccess {
-    /// permission property.
-    pub permission: Option<String>,
+pub struct ListUserPermissionsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// userPermission property.
+    pub user_permission: Option<Vec<UserPermission>>,
 }
 
 // =============================================================================

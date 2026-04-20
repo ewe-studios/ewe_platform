@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,59 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Actuation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Actuation {
+    /// actuationOutput property.
+    pub actuation_output: Option<ActuationOutput>,
+    /// deploymentOutput property.
+    pub deployment_output: Option<Vec<DeploymentOutput>>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `DeploymentOutput` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeploymentOutput {
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ListActuationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListActuationsResponse {
+    /// actuations property.
+    pub actuations: Option<Vec<Actuation>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
 
 /// `ActuationOutput` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -50,54 +99,6 @@ pub struct ActuationOutput {
     pub terraform_error: Option<String>,
     /// terraformTemplate property.
     pub terraform_template: Option<String>,
-}
-
-/// `DeploymentOutput` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeploymentOutput {
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `Actuation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Actuation {
-    /// actuationOutput property.
-    pub actuation_output: Option<ActuationOutput>,
-    /// deploymentOutput property.
-    pub deployment_output: Option<Vec<DeploymentOutput>>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `ListActuationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListActuationsResponse {
-    /// actuations property.
-    pub actuations: Option<Vec<Actuation>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
 }
 
 // =============================================================================

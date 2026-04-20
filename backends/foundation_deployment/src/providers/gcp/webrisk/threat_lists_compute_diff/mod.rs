@@ -12,41 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudWebriskV1RawIndices` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudWebriskV1RawIndices {
-    /// indices property.
-    pub indices: Option<Vec<i64>>,
-}
-
-/// `GoogleCloudWebriskV1ComputeThreatListDiffResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudWebriskV1ComputeThreatListDiffResponse {
-    /// additions property.
-    pub additions: Option<GoogleCloudWebriskV1ThreatEntryAdditions>,
-    /// checksum property.
-    pub checksum: Option<GoogleCloudWebriskV1ComputeThreatListDiffResponseChecksum>,
-    /// newVersionToken property.
-    pub new_version_token: Option<String>,
-    /// recommendedNextDiff property.
-    pub recommended_next_diff: Option<String>,
-    /// removals property.
-    pub removals: Option<GoogleCloudWebriskV1ThreatEntryRemovals>,
-    /// responseType property.
-    pub response_type: Option<String>,
-}
 
 /// `GoogleCloudWebriskV1RawHashes` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -55,6 +32,15 @@ pub struct GoogleCloudWebriskV1RawHashes {
     pub prefix_size: Option<i64>,
     /// rawHashes property.
     pub raw_hashes: Option<String>,
+}
+
+/// `GoogleCloudWebriskV1ThreatEntryAdditions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudWebriskV1ThreatEntryAdditions {
+    /// rawHashes property.
+    pub raw_hashes: Option<Vec<GoogleCloudWebriskV1RawHashes>>,
+    /// riceHashes property.
+    pub rice_hashes: Option<GoogleCloudWebriskV1RiceDeltaEncoding>,
 }
 
 /// `GoogleCloudWebriskV1RiceDeltaEncoding` type.
@@ -77,13 +63,28 @@ pub struct GoogleCloudWebriskV1ComputeThreatListDiffResponseChecksum {
     pub sha256: Option<String>,
 }
 
-/// `GoogleCloudWebriskV1ThreatEntryAdditions` type.
+/// `GoogleCloudWebriskV1ComputeThreatListDiffResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudWebriskV1ThreatEntryAdditions {
-    /// rawHashes property.
-    pub raw_hashes: Option<Vec<GoogleCloudWebriskV1RawHashes>>,
-    /// riceHashes property.
-    pub rice_hashes: Option<GoogleCloudWebriskV1RiceDeltaEncoding>,
+pub struct GoogleCloudWebriskV1ComputeThreatListDiffResponse {
+    /// additions property.
+    pub additions: Option<GoogleCloudWebriskV1ThreatEntryAdditions>,
+    /// checksum property.
+    pub checksum: Option<GoogleCloudWebriskV1ComputeThreatListDiffResponseChecksum>,
+    /// newVersionToken property.
+    pub new_version_token: Option<String>,
+    /// recommendedNextDiff property.
+    pub recommended_next_diff: Option<String>,
+    /// removals property.
+    pub removals: Option<GoogleCloudWebriskV1ThreatEntryRemovals>,
+    /// responseType property.
+    pub response_type: Option<String>,
+}
+
+/// `GoogleCloudWebriskV1RawIndices` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudWebriskV1RawIndices {
+    /// indices property.
+    pub indices: Option<Vec<i64>>,
 }
 
 /// `GoogleCloudWebriskV1ThreatEntryRemovals` type.

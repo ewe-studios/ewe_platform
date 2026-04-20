@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,11 +24,132 @@ use super::shared::GoogleIamV1Policy;
 use super::shared::GoogleIamV1TestIamPermissionsResponse;
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudBeyondcorpAppconnectorsV1NotificationConfigCloudPubSubNotificationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBeyondcorpAppconnectorsV1NotificationConfigCloudPubSubNotificationConfig {
+    /// pubsubSubscription property.
+    pub pubsub_subscription: Option<String>,
+}
+
+/// `GoogleCloudBeyondcorpAppconnectorsV1ResourceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBeyondcorpAppconnectorsV1ResourceInfo {
+    /// id property.
+    pub id: Option<String>,
+    /// resource property.
+    pub resource: Option<serde_json::Value>,
+    /// status property.
+    pub status: Option<String>,
+    /// sub property.
+    pub sub: Option<Vec<Box<GoogleCloudBeyondcorpAppconnectorsV1ResourceInfo>>>,
+    /// time property.
+    pub time: Option<String>,
+}
+
+/// `GoogleCloudBeyondcorpAppconnectorsV1AppConnectorPrincipalInfoServiceAccount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBeyondcorpAppconnectorsV1AppConnectorPrincipalInfoServiceAccount {
+    /// email property.
+    pub email: Option<String>,
+}
+
+/// `GoogleCloudBeyondcorpAppconnectorsV1ResolveInstanceConfigResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBeyondcorpAppconnectorsV1ResolveInstanceConfigResponse {
+    /// instanceConfig property.
+    pub instance_config: Option<GoogleCloudBeyondcorpAppconnectorsV1AppConnectorInstanceConfig>,
+}
+
+/// `GoogleIamV1Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1Binding {
+    /// condition property.
+    pub condition: Option<GoogleTypeExpr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `GoogleCloudBeyondcorpAppconnectorsV1ImageConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBeyondcorpAppconnectorsV1ImageConfig {
+    /// stableImage property.
+    pub stable_image: Option<String>,
+    /// targetImage property.
+    pub target_image: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleTypeExpr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeExpr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleIamV1AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `GoogleCloudBeyondcorpAppconnectorsV1AppConnectorInstanceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBeyondcorpAppconnectorsV1AppConnectorInstanceConfig {
+    /// imageConfig property.
+    pub image_config: Option<GoogleCloudBeyondcorpAppconnectorsV1ImageConfig>,
+    /// instanceConfig property.
+    pub instance_config: Option<serde_json::Value>,
+    /// notificationConfig property.
+    pub notification_config: Option<GoogleCloudBeyondcorpAppconnectorsV1NotificationConfig>,
+    /// sequenceNumber property.
+    pub sequence_number: Option<String>,
+}
+
+/// `GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse {
+    /// appConnectors property.
+    pub app_connectors: Option<Vec<GoogleCloudBeyondcorpAppconnectorsV1AppConnector>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `GoogleCloudBeyondcorpAppconnectorsV1AppConnectorPrincipalInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBeyondcorpAppconnectorsV1AppConnectorPrincipalInfo {
+    /// serviceAccount property.
+    pub service_account:
+        Option<GoogleCloudBeyondcorpAppconnectorsV1AppConnectorPrincipalInfoServiceAccount>,
+}
 
 /// `GoogleCloudBeyondcorpAppconnectorsV1NotificationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -46,61 +168,6 @@ pub struct GoogleIamV1AuditConfig {
     pub service: Option<String>,
 }
 
-/// `GoogleCloudBeyondcorpAppconnectorsV1ImageConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpAppconnectorsV1ImageConfig {
-    /// stableImage property.
-    pub stable_image: Option<String>,
-    /// targetImage property.
-    pub target_image: Option<String>,
-}
-
-/// `GoogleCloudBeyondcorpAppconnectorsV1NotificationConfigCloudPubSubNotificationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpAppconnectorsV1NotificationConfigCloudPubSubNotificationConfig {
-    /// pubsubSubscription property.
-    pub pubsub_subscription: Option<String>,
-}
-
-/// `GoogleTypeExpr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeExpr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse {
-    /// appConnectors property.
-    pub app_connectors: Option<Vec<GoogleCloudBeyondcorpAppconnectorsV1AppConnector>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `GoogleCloudBeyondcorpAppconnectorsV1ResourceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpAppconnectorsV1ResourceInfo {
-    /// id property.
-    pub id: Option<String>,
-    /// resource property.
-    pub resource: Option<serde_json::Value>,
-    /// status property.
-    pub status: Option<String>,
-    /// sub property.
-    pub sub: Option<Vec<GoogleCloudBeyondcorpAppconnectorsV1ResourceInfo>>,
-    /// time property.
-    pub time: Option<String>,
-}
-
 /// `GoogleCloudBeyondcorpAppconnectorsV1AppConnector` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectorsV1AppConnector {
@@ -115,79 +182,13 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1AppConnector {
     /// principalInfo property.
     pub principal_info: Option<GoogleCloudBeyondcorpAppconnectorsV1AppConnectorPrincipalInfo>,
     /// resourceInfo property.
-    pub resource_info: Option<GoogleCloudBeyondcorpAppconnectorsV1ResourceInfo>,
+    pub resource_info: Option<Box<GoogleCloudBeyondcorpAppconnectorsV1ResourceInfo>>,
     /// state property.
     pub state: Option<String>,
     /// uid property.
     pub uid: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `GoogleIamV1Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Binding {
-    /// condition property.
-    pub condition: Option<GoogleTypeExpr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `GoogleIamV1AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `GoogleCloudBeyondcorpAppconnectorsV1AppConnectorPrincipalInfoServiceAccount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpAppconnectorsV1AppConnectorPrincipalInfoServiceAccount {
-    /// email property.
-    pub email: Option<String>,
-}
-
-/// `GoogleCloudBeyondcorpAppconnectorsV1AppConnectorInstanceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpAppconnectorsV1AppConnectorInstanceConfig {
-    /// imageConfig property.
-    pub image_config: Option<GoogleCloudBeyondcorpAppconnectorsV1ImageConfig>,
-    /// instanceConfig property.
-    pub instance_config: Option<serde_json::Value>,
-    /// notificationConfig property.
-    pub notification_config: Option<GoogleCloudBeyondcorpAppconnectorsV1NotificationConfig>,
-    /// sequenceNumber property.
-    pub sequence_number: Option<String>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudBeyondcorpAppconnectorsV1AppConnectorPrincipalInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpAppconnectorsV1AppConnectorPrincipalInfo {
-    /// serviceAccount property.
-    pub service_account:
-        Option<GoogleCloudBeyondcorpAppconnectorsV1AppConnectorPrincipalInfoServiceAccount>,
-}
-
-/// `GoogleCloudBeyondcorpAppconnectorsV1ResolveInstanceConfigResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpAppconnectorsV1ResolveInstanceConfigResponse {
-    /// instanceConfig property.
-    pub instance_config: Option<GoogleCloudBeyondcorpAppconnectorsV1AppConnectorInstanceConfig>,
 }
 
 // =============================================================================

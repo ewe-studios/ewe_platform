@@ -12,23 +12,110 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `SecretLocation` type.
+/// `Fingerprint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecretLocation {
-    /// fileLocation property.
-    pub file_location: Option<GrafeasV1FileLocation>,
+pub struct Fingerprint {
+    /// v1Name property.
+    pub v1_name: Option<String>,
+    /// v2Blob property.
+    pub v2_blob: Option<Vec<String>>,
+    /// v2Name property.
+    pub v2_name: Option<String>,
+}
+
+/// `ListVulnerabilitiesResponseV1` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListVulnerabilitiesResponseV1 {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// occurrences property.
+    pub occurrences: Option<Vec<Occurrence>>,
+}
+
+/// `VexAssessment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VexAssessment {
+    /// cve property.
+    pub cve: Option<String>,
+    /// impacts property.
+    pub impacts: Option<Vec<String>>,
+    /// justification property.
+    pub justification: Option<Justification>,
+    /// noteName property.
+    pub note_name: Option<String>,
+    /// relatedUris property.
+    pub related_uris: Option<Vec<RelatedUrl>>,
+    /// remediations property.
+    pub remediations: Option<Vec<Remediation>>,
+    /// state property.
+    pub state: Option<String>,
+    /// vulnerabilityId property.
+    pub vulnerability_id: Option<String>,
+}
+
+/// `GrafeasV1SlsaProvenanceZeroTwoSlsaMaterial` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaMaterial {
+    /// digest property.
+    pub digest: Option<serde_json::Value>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `GrafeasV1SlsaProvenanceZeroTwoSlsaMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaMetadata {
+    /// buildFinishedOn property.
+    pub build_finished_on: Option<String>,
+    /// buildInvocationId property.
+    pub build_invocation_id: Option<String>,
+    /// buildStartedOn property.
+    pub build_started_on: Option<String>,
+    /// completeness property.
+    pub completeness: Option<GrafeasV1SlsaProvenanceZeroTwoSlsaCompleteness>,
+    /// reproducible property.
+    pub reproducible: Option<bool>,
+}
+
+/// `CloudRepoSourceContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudRepoSourceContext {
+    /// aliasContext property.
+    pub alias_context: Option<AliasContext>,
+    /// repoId property.
+    pub repo_id: Option<RepoId>,
+    /// revisionId property.
+    pub revision_id: Option<String>,
+}
+
+/// `SlsaProvenanceZeroTwo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SlsaProvenanceZeroTwo {
+    /// buildConfig property.
+    pub build_config: Option<serde_json::Value>,
+    /// buildType property.
+    pub build_type: Option<String>,
+    /// builder property.
+    pub builder: Option<GrafeasV1SlsaProvenanceZeroTwoSlsaBuilder>,
+    /// invocation property.
+    pub invocation: Option<GrafeasV1SlsaProvenanceZeroTwoSlsaInvocation>,
+    /// materials property.
+    pub materials: Option<Vec<GrafeasV1SlsaProvenanceZeroTwoSlsaMaterial>>,
+    /// metadata property.
+    pub metadata: Option<GrafeasV1SlsaProvenanceZeroTwoSlsaMetadata>,
 }
 
 /// `BuilderConfig` type.
@@ -36,6 +123,120 @@ pub struct SecretLocation {
 pub struct BuilderConfig {
     /// id property.
     pub id: Option<String>,
+}
+
+/// `Identity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Identity {
+    /// revision property.
+    pub revision: Option<i64>,
+    /// updateId property.
+    pub update_id: Option<String>,
+}
+
+/// `BuildProvenance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BuildProvenance {
+    /// buildOptions property.
+    pub build_options: Option<serde_json::Value>,
+    /// builderVersion property.
+    pub builder_version: Option<String>,
+    /// builtArtifacts property.
+    pub built_artifacts: Option<Vec<Artifact>>,
+    /// commands property.
+    pub commands: Option<Vec<Command>>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// creator property.
+    pub creator: Option<String>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// logsUri property.
+    pub logs_uri: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// sourceProvenance property.
+    pub source_provenance: Option<Source>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// triggerId property.
+    pub trigger_id: Option<String>,
+}
+
+/// `BuildOccurrence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BuildOccurrence {
+    /// inTotoSlsaProvenanceV1 property.
+    pub in_toto_slsa_provenance_v1: Option<InTotoSlsaProvenanceV1>,
+    /// intotoProvenance property.
+    pub intoto_provenance: Option<InTotoProvenance>,
+    /// intotoStatement property.
+    pub intoto_statement: Option<InTotoStatement>,
+    /// provenance property.
+    pub provenance: Option<BuildProvenance>,
+    /// provenanceBytes property.
+    pub provenance_bytes: Option<String>,
+}
+
+/// `Recipe` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Recipe {
+    /// arguments property.
+    pub arguments: Option<Vec<serde_json::Value>>,
+    /// definedInMaterial property.
+    pub defined_in_material: Option<String>,
+    /// entryPoint property.
+    pub entry_point: Option<String>,
+    /// environment property.
+    pub environment: Option<Vec<serde_json::Value>>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ImageOccurrence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImageOccurrence {
+    /// baseResourceUrl property.
+    pub base_resource_url: Option<String>,
+    /// distance property.
+    pub distance: Option<i64>,
+    /// fingerprint property.
+    pub fingerprint: Option<Fingerprint>,
+    /// layerInfo property.
+    pub layer_info: Option<Vec<Layer>>,
+}
+
+/// `GrafeasV1SlsaProvenanceZeroTwoSlsaConfigSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaConfigSource {
+    /// digest property.
+    pub digest: Option<serde_json::Value>,
+    /// entryPoint property.
+    pub entry_point: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `ExploitPredictionScoringSystem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExploitPredictionScoringSystem {
+    /// percentile property.
+    pub percentile: Option<f64>,
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GrafeasV1SlsaProvenanceZeroTwoSlsaCompleteness` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaCompleteness {
+    /// environment property.
+    pub environment: Option<bool>,
+    /// materials property.
+    pub materials: Option<bool>,
+    /// parameters property.
+    pub parameters: Option<bool>,
 }
 
 /// `SourceContext` type.
@@ -49,79 +250,6 @@ pub struct SourceContext {
     pub git: Option<GitSourceContext>,
     /// labels property.
     pub labels: Option<serde_json::Value>,
-}
-
-/// `SlsaRecipe` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SlsaRecipe {
-    /// arguments property.
-    pub arguments: Option<serde_json::Value>,
-    /// definedInMaterial property.
-    pub defined_in_material: Option<String>,
-    /// entryPoint property.
-    pub entry_point: Option<String>,
-    /// environment property.
-    pub environment: Option<serde_json::Value>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `NonCompliantFile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NonCompliantFile {
-    /// displayCommand property.
-    pub display_command: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `PackageOccurrence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PackageOccurrence {
-    /// architecture property.
-    pub architecture: Option<String>,
-    /// cpeUri property.
-    pub cpe_uri: Option<String>,
-    /// license property.
-    pub license: Option<License>,
-    /// location property.
-    pub location: Option<Vec<Location>>,
-    /// name property.
-    pub name: Option<String>,
-    /// packageType property.
-    pub package_type: Option<String>,
-    /// version property.
-    pub version: Option<Version>,
-}
-
-/// `ListVulnerabilitiesResponseV1` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListVulnerabilitiesResponseV1 {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// occurrences property.
-    pub occurrences: Option<Vec<Occurrence>>,
-}
-
-/// `ResourceDescriptor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceDescriptor {
-    /// annotations property.
-    pub annotations: Option<serde_json::Value>,
-    /// content property.
-    pub content: Option<String>,
-    /// digest property.
-    pub digest: Option<serde_json::Value>,
-    /// downloadLocation property.
-    pub download_location: Option<String>,
-    /// mediaType property.
-    pub media_type: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
 }
 
 /// `WindowsUpdate` type.
@@ -143,58 +271,187 @@ pub struct WindowsUpdate {
     pub title: Option<String>,
 }
 
-/// `Layer` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Layer {
-    /// arguments property.
-    pub arguments: Option<String>,
-    /// directive property.
-    pub directive: Option<String>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
-/// `AnalysisCompleted` type.
+/// `ResourceDescriptor` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AnalysisCompleted {
-    /// analysisType property.
-    pub analysis_type: Option<Vec<String>>,
+pub struct ResourceDescriptor {
+    /// annotations property.
+    pub annotations: Option<serde_json::Value>,
+    /// content property.
+    pub content: Option<String>,
+    /// digest property.
+    pub digest: Option<serde_json::Value>,
+    /// downloadLocation property.
+    pub download_location: Option<String>,
+    /// mediaType property.
+    pub media_type: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
 }
 
-/// `CVSS` type.
+/// `NonCompliantFile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CVSS {
-    /// attackComplexity property.
-    pub attack_complexity: Option<String>,
-    /// attackVector property.
-    pub attack_vector: Option<String>,
-    /// authentication property.
-    pub authentication: Option<String>,
-    /// availabilityImpact property.
-    pub availability_impact: Option<String>,
-    /// baseScore property.
-    pub base_score: Option<f64>,
-    /// confidentialityImpact property.
-    pub confidentiality_impact: Option<String>,
-    /// exploitabilityScore property.
-    pub exploitability_score: Option<f64>,
-    /// impactScore property.
-    pub impact_score: Option<f64>,
-    /// integrityImpact property.
-    pub integrity_impact: Option<String>,
-    /// privilegesRequired property.
-    pub privileges_required: Option<String>,
-    /// scope property.
-    pub scope: Option<String>,
-    /// userInteraction property.
-    pub user_interaction: Option<String>,
+pub struct NonCompliantFile {
+    /// displayCommand property.
+    pub display_command: Option<String>,
+    /// path property.
+    pub path: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
 }
 
-/// `GitSourceContext` type.
+/// `License` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GitSourceContext {
-    /// revisionId property.
-    pub revision_id: Option<String>,
-    /// url property.
-    pub url: Option<String>,
+pub struct License {
+    /// comments property.
+    pub comments: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+}
+
+/// `DeploymentOccurrence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeploymentOccurrence {
+    /// address property.
+    pub address: Option<String>,
+    /// config property.
+    pub config: Option<String>,
+    /// deployTime property.
+    pub deploy_time: Option<String>,
+    /// platform property.
+    pub platform: Option<String>,
+    /// resourceUri property.
+    pub resource_uri: Option<Vec<String>>,
+    /// undeployTime property.
+    pub undeploy_time: Option<String>,
+    /// userEmail property.
+    pub user_email: Option<String>,
+}
+
+/// `Metadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Metadata {
+    /// buildFinishedOn property.
+    pub build_finished_on: Option<String>,
+    /// buildInvocationId property.
+    pub build_invocation_id: Option<String>,
+    /// buildStartedOn property.
+    pub build_started_on: Option<String>,
+    /// completeness property.
+    pub completeness: Option<Completeness>,
+    /// reproducible property.
+    pub reproducible: Option<bool>,
+}
+
+/// `UpgradeOccurrence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpgradeOccurrence {
+    /// distribution property.
+    pub distribution: Option<UpgradeDistribution>,
+    /// package property.
+    pub package: Option<String>,
+    /// parsedVersion property.
+    pub parsed_version: Option<Version>,
+    /// windowsUpdate property.
+    pub windows_update: Option<WindowsUpdate>,
+}
+
+/// `Jwt` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Jwt {
+    /// compactJwt property.
+    pub compact_jwt: Option<String>,
+}
+
+/// `GrafeasV1LayerDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GrafeasV1LayerDetails {
+    /// baseImages property.
+    pub base_images: Option<Vec<GrafeasV1BaseImage>>,
+    /// chainId property.
+    pub chain_id: Option<String>,
+    /// command property.
+    pub command: Option<String>,
+    /// diffId property.
+    pub diff_id: Option<String>,
+    /// index property.
+    pub index: Option<i64>,
+}
+
+/// `SecretStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecretStatus {
+    /// message property.
+    pub message: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `SlsaProvenance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SlsaProvenance {
+    /// builder property.
+    pub builder: Option<SlsaBuilder>,
+    /// materials property.
+    pub materials: Option<Vec<Material>>,
+    /// metadata property.
+    pub metadata: Option<SlsaMetadata>,
+    /// recipe property.
+    pub recipe: Option<SlsaRecipe>,
+}
+
+/// `Artifact` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Artifact {
+    /// checksum property.
+    pub checksum: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// names property.
+    pub names: Option<Vec<String>>,
+}
+
+/// `SBOMReferenceOccurrence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SBOMReferenceOccurrence {
+    /// payload property.
+    pub payload: Option<SbomReferenceIntotoPayload>,
+    /// payloadType property.
+    pub payload_type: Option<String>,
+    /// signatures property.
+    pub signatures: Option<Vec<EnvelopeSignature>>,
+}
+
+/// `ProvenanceBuilder` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProvenanceBuilder {
+    /// builderDependencies property.
+    pub builder_dependencies: Option<Vec<ResourceDescriptor>>,
+    /// id property.
+    pub id: Option<String>,
+    /// version property.
+    pub version: Option<serde_json::Value>,
+}
+
+/// `GrafeasV1SlsaProvenanceZeroTwoSlsaBuilder` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaBuilder {
+    /// id property.
+    pub id: Option<String>,
 }
 
 /// `DiscoveryOccurrence` type.
@@ -224,28 +481,6 @@ pub struct DiscoveryOccurrence {
     pub sbom_status: Option<SBOMStatus>,
 }
 
-/// `SBOMReferenceOccurrence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SBOMReferenceOccurrence {
-    /// payload property.
-    pub payload: Option<SbomReferenceIntotoPayload>,
-    /// payloadType property.
-    pub payload_type: Option<String>,
-    /// signatures property.
-    pub signatures: Option<Vec<EnvelopeSignature>>,
-}
-
-/// `GrafeasV1SlsaProvenanceZeroTwoSlsaConfigSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaConfigSource {
-    /// digest property.
-    pub digest: Option<serde_json::Value>,
-    /// entryPoint property.
-    pub entry_point: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
 /// `AttestationOccurrence` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttestationOccurrence {
@@ -257,282 +492,24 @@ pub struct AttestationOccurrence {
     pub signatures: Option<Vec<Signature>>,
 }
 
-/// `DSSEAttestationOccurrence` type.
+/// `GerritSourceContext` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DSSEAttestationOccurrence {
-    /// envelope property.
-    pub envelope: Option<Envelope>,
-    /// statement property.
-    pub statement: Option<InTotoStatement>,
+pub struct GerritSourceContext {
+    /// aliasContext property.
+    pub alias_context: Option<AliasContext>,
+    /// gerritProject property.
+    pub gerrit_project: Option<String>,
+    /// hostUri property.
+    pub host_uri: Option<String>,
+    /// revisionId property.
+    pub revision_id: Option<String>,
 }
 
-/// `Category` type.
+/// `SlsaBuilder` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Category {
-    /// categoryId property.
-    pub category_id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `Metadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Metadata {
-    /// buildFinishedOn property.
-    pub build_finished_on: Option<String>,
-    /// buildInvocationId property.
-    pub build_invocation_id: Option<String>,
-    /// buildStartedOn property.
-    pub build_started_on: Option<String>,
-    /// completeness property.
-    pub completeness: Option<Completeness>,
-    /// reproducible property.
-    pub reproducible: Option<bool>,
-}
-
-/// `Artifact` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Artifact {
-    /// checksum property.
-    pub checksum: Option<String>,
+pub struct SlsaBuilder {
     /// id property.
     pub id: Option<String>,
-    /// names property.
-    pub names: Option<Vec<String>>,
-}
-
-/// `Material` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Material {
-    /// digest property.
-    pub digest: Option<serde_json::Value>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `ComplianceOccurrence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComplianceOccurrence {
-    /// nonComplianceReason property.
-    pub non_compliance_reason: Option<String>,
-    /// nonCompliantFiles property.
-    pub non_compliant_files: Option<Vec<NonCompliantFile>>,
-    /// version property.
-    pub version: Option<ComplianceVersion>,
-}
-
-/// `DeploymentOccurrence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeploymentOccurrence {
-    /// address property.
-    pub address: Option<String>,
-    /// config property.
-    pub config: Option<String>,
-    /// deployTime property.
-    pub deploy_time: Option<String>,
-    /// platform property.
-    pub platform: Option<String>,
-    /// resourceUri property.
-    pub resource_uri: Option<Vec<String>>,
-    /// undeployTime property.
-    pub undeploy_time: Option<String>,
-    /// userEmail property.
-    pub user_email: Option<String>,
-}
-
-/// `PackageIssue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PackageIssue {
-    /// affectedCpeUri property.
-    pub affected_cpe_uri: Option<String>,
-    /// affectedPackage property.
-    pub affected_package: Option<String>,
-    /// affectedVersion property.
-    pub affected_version: Option<Version>,
-    /// effectiveSeverity property.
-    pub effective_severity: Option<String>,
-    /// fileLocation property.
-    pub file_location: Option<Vec<GrafeasV1FileLocation>>,
-    /// fixAvailable property.
-    pub fix_available: Option<bool>,
-    /// fixedCpeUri property.
-    pub fixed_cpe_uri: Option<String>,
-    /// fixedPackage property.
-    pub fixed_package: Option<String>,
-    /// fixedVersion property.
-    pub fixed_version: Option<Version>,
-    /// packageType property.
-    pub package_type: Option<String>,
-}
-
-/// `Version` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Version {
-    /// epoch property.
-    pub epoch: Option<i64>,
-    /// fullName property.
-    pub full_name: Option<String>,
-    /// inclusive property.
-    pub inclusive: Option<bool>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// revision property.
-    pub revision: Option<String>,
-}
-
-/// `GrafeasV1SlsaProvenanceZeroTwoSlsaBuilder` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaBuilder {
-    /// id property.
-    pub id: Option<String>,
-}
-
-/// `Recipe` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Recipe {
-    /// arguments property.
-    pub arguments: Option<Vec<serde_json::Value>>,
-    /// definedInMaterial property.
-    pub defined_in_material: Option<String>,
-    /// entryPoint property.
-    pub entry_point: Option<String>,
-    /// environment property.
-    pub environment: Option<Vec<serde_json::Value>>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `UpgradeOccurrence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpgradeOccurrence {
-    /// distribution property.
-    pub distribution: Option<UpgradeDistribution>,
-    /// package property.
-    pub package: Option<String>,
-    /// parsedVersion property.
-    pub parsed_version: Option<Version>,
-    /// windowsUpdate property.
-    pub windows_update: Option<WindowsUpdate>,
-}
-
-/// `Location` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Location {
-    /// cpeUri property.
-    pub cpe_uri: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-    /// version property.
-    pub version: Option<Version>,
-}
-
-/// `GrafeasV1SlsaProvenanceZeroTwoSlsaMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaMetadata {
-    /// buildFinishedOn property.
-    pub build_finished_on: Option<String>,
-    /// buildInvocationId property.
-    pub build_invocation_id: Option<String>,
-    /// buildStartedOn property.
-    pub build_started_on: Option<String>,
-    /// completeness property.
-    pub completeness: Option<GrafeasV1SlsaProvenanceZeroTwoSlsaCompleteness>,
-    /// reproducible property.
-    pub reproducible: Option<bool>,
-}
-
-/// `SlsaProvenanceV1` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SlsaProvenanceV1 {
-    /// buildDefinition property.
-    pub build_definition: Option<BuildDefinition>,
-    /// runDetails property.
-    pub run_details: Option<RunDetails>,
-}
-
-/// `BuildOccurrence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BuildOccurrence {
-    /// inTotoSlsaProvenanceV1 property.
-    pub in_toto_slsa_provenance_v1: Option<InTotoSlsaProvenanceV1>,
-    /// intotoProvenance property.
-    pub intoto_provenance: Option<InTotoProvenance>,
-    /// intotoStatement property.
-    pub intoto_statement: Option<InTotoStatement>,
-    /// provenance property.
-    pub provenance: Option<BuildProvenance>,
-    /// provenanceBytes property.
-    pub provenance_bytes: Option<String>,
-}
-
-/// `Envelope` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Envelope {
-    /// payload property.
-    pub payload: Option<String>,
-    /// payloadType property.
-    pub payload_type: Option<String>,
-    /// signatures property.
-    pub signatures: Option<Vec<EnvelopeSignature>>,
-}
-
-/// `GrafeasV1LayerDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GrafeasV1LayerDetails {
-    /// baseImages property.
-    pub base_images: Option<Vec<GrafeasV1BaseImage>>,
-    /// chainId property.
-    pub chain_id: Option<String>,
-    /// command property.
-    pub command: Option<String>,
-    /// diffId property.
-    pub diff_id: Option<String>,
-    /// index property.
-    pub index: Option<i64>,
-}
-
-/// `UpgradeDistribution` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpgradeDistribution {
-    /// classification property.
-    pub classification: Option<String>,
-    /// cpeUri property.
-    pub cpe_uri: Option<String>,
-    /// cve property.
-    pub cve: Option<Vec<String>>,
-    /// severity property.
-    pub severity: Option<String>,
-}
-
-/// `Risk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Risk {
-    /// cisaKev property.
-    pub cisa_kev: Option<CISAKnownExploitedVulnerabilities>,
-    /// epss property.
-    pub epss: Option<ExploitPredictionScoringSystem>,
-}
-
-/// `Fingerprint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Fingerprint {
-    /// v1Name property.
-    pub v1_name: Option<String>,
-    /// v2Blob property.
-    pub v2_blob: Option<Vec<String>>,
-    /// v2Name property.
-    pub v2_name: Option<String>,
-}
-
-/// `EnvelopeSignature` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnvelopeSignature {
-    /// keyid property.
-    pub keyid: Option<String>,
-    /// sig property.
-    pub sig: Option<String>,
 }
 
 /// `SBOMStatus` type.
@@ -544,225 +521,20 @@ pub struct SBOMStatus {
     pub sbom_state: Option<String>,
 }
 
-/// `SlsaMetadata` type.
+/// `File` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SlsaMetadata {
-    /// buildFinishedOn property.
-    pub build_finished_on: Option<String>,
-    /// buildInvocationId property.
-    pub build_invocation_id: Option<String>,
-    /// buildStartedOn property.
-    pub build_started_on: Option<String>,
-    /// completeness property.
-    pub completeness: Option<SlsaCompleteness>,
-    /// reproducible property.
-    pub reproducible: Option<bool>,
-}
-
-/// `SbomReferenceIntotoPayload` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SbomReferenceIntotoPayload {
-    /// _type property.
-    pub r#type: Option<String>,
-    /// predicate property.
-    pub predicate: Option<SbomReferenceIntotoPredicate>,
-    /// predicateType property.
-    pub predicate_type: Option<String>,
-    /// subject property.
-    pub subject: Option<Vec<Subject>>,
-}
-
-/// `SbomReferenceIntotoPredicate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SbomReferenceIntotoPredicate {
+pub struct File {
     /// digest property.
     pub digest: Option<serde_json::Value>,
-    /// location property.
-    pub location: Option<String>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-    /// referrerId property.
-    pub referrer_id: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `InTotoSlsaProvenanceV1` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InTotoSlsaProvenanceV1 {
-    /// _type property.
-    pub r#type: Option<String>,
-    /// predicate property.
-    pub predicate: Option<SlsaProvenanceV1>,
-    /// predicateType property.
-    pub predicate_type: Option<String>,
-    /// subject property.
-    pub subject: Option<Vec<Subject>>,
-}
-
-/// `Source` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Source {
-    /// additionalContexts property.
-    pub additional_contexts: Option<Vec<SourceContext>>,
-    /// artifactStorageSourceUri property.
-    pub artifact_storage_source_uri: Option<String>,
-    /// context property.
-    pub context: Option<SourceContext>,
-    /// fileHashes property.
-    pub file_hashes: Option<serde_json::Value>,
-}
-
-/// `SlsaCompleteness` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SlsaCompleteness {
-    /// arguments property.
-    pub arguments: Option<bool>,
-    /// environment property.
-    pub environment: Option<bool>,
-    /// materials property.
-    pub materials: Option<bool>,
-}
-
-/// `ProjectRepoId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectRepoId {
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// repoName property.
-    pub repo_name: Option<String>,
-}
-
-/// `RunDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RunDetails {
-    /// builder property.
-    pub builder: Option<ProvenanceBuilder>,
-    /// byproducts property.
-    pub byproducts: Option<Vec<ResourceDescriptor>>,
-    /// metadata property.
-    pub metadata: Option<BuildMetadata>,
-}
-
-/// `ProvenanceBuilder` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProvenanceBuilder {
-    /// builderDependencies property.
-    pub builder_dependencies: Option<Vec<ResourceDescriptor>>,
-    /// id property.
-    pub id: Option<String>,
-    /// version property.
-    pub version: Option<serde_json::Value>,
-}
-
-/// `ImageOccurrence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImageOccurrence {
-    /// baseResourceUrl property.
-    pub base_resource_url: Option<String>,
-    /// distance property.
-    pub distance: Option<i64>,
-    /// fingerprint property.
-    pub fingerprint: Option<Fingerprint>,
-    /// layerInfo property.
-    pub layer_info: Option<Vec<Layer>>,
-}
-
-/// `SecretOccurrence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecretOccurrence {
-    /// kind property.
-    pub kind: Option<String>,
-    /// locations property.
-    pub locations: Option<Vec<SecretLocation>>,
-    /// statuses property.
-    pub statuses: Option<Vec<SecretStatus>>,
-}
-
-/// `ExploitPredictionScoringSystem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExploitPredictionScoringSystem {
-    /// percentile property.
-    pub percentile: Option<f64>,
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `Identity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Identity {
-    /// revision property.
-    pub revision: Option<i64>,
-    /// updateId property.
-    pub update_id: Option<String>,
-}
-
-/// `BuildMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BuildMetadata {
-    /// finishedOn property.
-    pub finished_on: Option<String>,
-    /// invocationId property.
-    pub invocation_id: Option<String>,
-    /// startedOn property.
-    pub started_on: Option<String>,
-}
-
-/// `SlsaBuilder` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SlsaBuilder {
-    /// id property.
-    pub id: Option<String>,
-}
-
-/// `Command` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Command {
-    /// args property.
-    pub args: Option<Vec<String>>,
-    /// dir property.
-    pub dir: Option<String>,
-    /// env property.
-    pub env: Option<Vec<String>>,
-    /// id property.
-    pub id: Option<String>,
     /// name property.
     pub name: Option<String>,
-    /// waitFor property.
-    pub wait_for: Option<Vec<String>>,
 }
 
-/// `Jwt` type.
+/// `CISAKnownExploitedVulnerabilities` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Jwt {
-    /// compactJwt property.
-    pub compact_jwt: Option<String>,
-}
-
-/// `SlsaProvenanceZeroTwo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SlsaProvenanceZeroTwo {
-    /// buildConfig property.
-    pub build_config: Option<serde_json::Value>,
-    /// buildType property.
-    pub build_type: Option<String>,
-    /// builder property.
-    pub builder: Option<GrafeasV1SlsaProvenanceZeroTwoSlsaBuilder>,
-    /// invocation property.
-    pub invocation: Option<GrafeasV1SlsaProvenanceZeroTwoSlsaInvocation>,
-    /// materials property.
-    pub materials: Option<Vec<GrafeasV1SlsaProvenanceZeroTwoSlsaMaterial>>,
-    /// metadata property.
-    pub metadata: Option<GrafeasV1SlsaProvenanceZeroTwoSlsaMetadata>,
+pub struct CISAKnownExploitedVulnerabilities {
+    /// knownRansomwareCampaignUse property.
+    pub known_ransomware_campaign_use: Option<String>,
 }
 
 /// `ComplianceVersion` type.
@@ -776,52 +548,15 @@ pub struct ComplianceVersion {
     pub version: Option<String>,
 }
 
-/// `Completeness` type.
+/// `GrafeasV1FileLocation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Completeness {
-    /// arguments property.
-    pub arguments: Option<bool>,
-    /// environment property.
-    pub environment: Option<bool>,
-    /// materials property.
-    pub materials: Option<bool>,
-}
-
-/// `Signature` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Signature {
-    /// publicKeyId property.
-    pub public_key_id: Option<String>,
-    /// signature property.
-    pub signature: Option<String>,
-}
-
-/// `VexAssessment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VexAssessment {
-    /// cve property.
-    pub cve: Option<String>,
-    /// impacts property.
-    pub impacts: Option<Vec<String>>,
-    /// justification property.
-    pub justification: Option<Justification>,
-    /// noteName property.
-    pub note_name: Option<String>,
-    /// relatedUris property.
-    pub related_uris: Option<Vec<RelatedUrl>>,
-    /// remediations property.
-    pub remediations: Option<Vec<Remediation>>,
-    /// state property.
-    pub state: Option<String>,
-    /// vulnerabilityId property.
-    pub vulnerability_id: Option<String>,
-}
-
-/// `CISAKnownExploitedVulnerabilities` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CISAKnownExploitedVulnerabilities {
-    /// knownRansomwareCampaignUse property.
-    pub known_ransomware_campaign_use: Option<String>,
+pub struct GrafeasV1FileLocation {
+    /// filePath property.
+    pub file_path: Option<String>,
+    /// layerDetails property.
+    pub layer_details: Option<GrafeasV1LayerDetails>,
+    /// lineNumber property.
+    pub line_number: Option<i64>,
 }
 
 /// `Occurrence` type.
@@ -871,15 +606,312 @@ pub struct Occurrence {
     pub vulnerability: Option<VulnerabilityOccurrence>,
 }
 
-/// `CloudRepoSourceContext` type.
+/// `InTotoProvenance` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudRepoSourceContext {
-    /// aliasContext property.
-    pub alias_context: Option<AliasContext>,
-    /// repoId property.
-    pub repo_id: Option<RepoId>,
+pub struct InTotoProvenance {
+    /// builderConfig property.
+    pub builder_config: Option<BuilderConfig>,
+    /// materials property.
+    pub materials: Option<Vec<String>>,
+    /// metadata property.
+    pub metadata: Option<Metadata>,
+    /// recipe property.
+    pub recipe: Option<Recipe>,
+}
+
+/// `GrafeasV1BaseImage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GrafeasV1BaseImage {
+    /// layerCount property.
+    pub layer_count: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// registry property.
+    pub registry: Option<String>,
+    /// repository property.
+    pub repository: Option<String>,
+}
+
+/// `Risk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Risk {
+    /// cisaKev property.
+    pub cisa_kev: Option<CISAKnownExploitedVulnerabilities>,
+    /// epss property.
+    pub epss: Option<ExploitPredictionScoringSystem>,
+}
+
+/// `RelatedUrl` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RelatedUrl {
+    /// label property.
+    pub label: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `SlsaRecipe` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SlsaRecipe {
+    /// arguments property.
+    pub arguments: Option<serde_json::Value>,
+    /// definedInMaterial property.
+    pub defined_in_material: Option<String>,
+    /// entryPoint property.
+    pub entry_point: Option<String>,
+    /// environment property.
+    pub environment: Option<serde_json::Value>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GitSourceContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GitSourceContext {
     /// revisionId property.
     pub revision_id: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `CVSS` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CVSS {
+    /// attackComplexity property.
+    pub attack_complexity: Option<String>,
+    /// attackVector property.
+    pub attack_vector: Option<String>,
+    /// authentication property.
+    pub authentication: Option<String>,
+    /// availabilityImpact property.
+    pub availability_impact: Option<String>,
+    /// baseScore property.
+    pub base_score: Option<f64>,
+    /// confidentialityImpact property.
+    pub confidentiality_impact: Option<String>,
+    /// exploitabilityScore property.
+    pub exploitability_score: Option<f64>,
+    /// impactScore property.
+    pub impact_score: Option<f64>,
+    /// integrityImpact property.
+    pub integrity_impact: Option<String>,
+    /// privilegesRequired property.
+    pub privileges_required: Option<String>,
+    /// scope property.
+    pub scope: Option<String>,
+    /// userInteraction property.
+    pub user_interaction: Option<String>,
+}
+
+/// `Remediation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Remediation {
+    /// details property.
+    pub details: Option<String>,
+    /// remediationType property.
+    pub remediation_type: Option<String>,
+    /// remediationUri property.
+    pub remediation_uri: Option<RelatedUrl>,
+}
+
+/// `Category` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Category {
+    /// categoryId property.
+    pub category_id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `InTotoSlsaProvenanceV1` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InTotoSlsaProvenanceV1 {
+    /// _type property.
+    pub r#type: Option<String>,
+    /// predicate property.
+    pub predicate: Option<SlsaProvenanceV1>,
+    /// predicateType property.
+    pub predicate_type: Option<String>,
+    /// subject property.
+    pub subject: Option<Vec<Subject>>,
+}
+
+/// `SlsaCompleteness` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SlsaCompleteness {
+    /// arguments property.
+    pub arguments: Option<bool>,
+    /// environment property.
+    pub environment: Option<bool>,
+    /// materials property.
+    pub materials: Option<bool>,
+}
+
+/// `AliasContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AliasContext {
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `DSSEAttestationOccurrence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DSSEAttestationOccurrence {
+    /// envelope property.
+    pub envelope: Option<Envelope>,
+    /// statement property.
+    pub statement: Option<InTotoStatement>,
+}
+
+/// `SbomReferenceIntotoPredicate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SbomReferenceIntotoPredicate {
+    /// digest property.
+    pub digest: Option<serde_json::Value>,
+    /// location property.
+    pub location: Option<String>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+    /// referrerId property.
+    pub referrer_id: Option<String>,
+}
+
+/// `BuildDefinition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BuildDefinition {
+    /// buildType property.
+    pub build_type: Option<String>,
+    /// externalParameters property.
+    pub external_parameters: Option<serde_json::Value>,
+    /// internalParameters property.
+    pub internal_parameters: Option<serde_json::Value>,
+    /// resolvedDependencies property.
+    pub resolved_dependencies: Option<Vec<ResourceDescriptor>>,
+}
+
+/// `PackageIssue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PackageIssue {
+    /// affectedCpeUri property.
+    pub affected_cpe_uri: Option<String>,
+    /// affectedPackage property.
+    pub affected_package: Option<String>,
+    /// affectedVersion property.
+    pub affected_version: Option<Version>,
+    /// effectiveSeverity property.
+    pub effective_severity: Option<String>,
+    /// fileLocation property.
+    pub file_location: Option<Vec<GrafeasV1FileLocation>>,
+    /// fixAvailable property.
+    pub fix_available: Option<bool>,
+    /// fixedCpeUri property.
+    pub fixed_cpe_uri: Option<String>,
+    /// fixedPackage property.
+    pub fixed_package: Option<String>,
+    /// fixedVersion property.
+    pub fixed_version: Option<Version>,
+    /// packageType property.
+    pub package_type: Option<String>,
+}
+
+/// `RunDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RunDetails {
+    /// builder property.
+    pub builder: Option<ProvenanceBuilder>,
+    /// byproducts property.
+    pub byproducts: Option<Vec<ResourceDescriptor>>,
+    /// metadata property.
+    pub metadata: Option<BuildMetadata>,
+}
+
+/// `ProjectRepoId` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectRepoId {
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// repoName property.
+    pub repo_name: Option<String>,
+}
+
+/// `Version` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Version {
+    /// epoch property.
+    pub epoch: Option<i64>,
+    /// fullName property.
+    pub full_name: Option<String>,
+    /// inclusive property.
+    pub inclusive: Option<bool>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// revision property.
+    pub revision: Option<String>,
+}
+
+/// `UpgradeDistribution` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpgradeDistribution {
+    /// classification property.
+    pub classification: Option<String>,
+    /// cpeUri property.
+    pub cpe_uri: Option<String>,
+    /// cve property.
+    pub cve: Option<Vec<String>>,
+    /// severity property.
+    pub severity: Option<String>,
+}
+
+/// `SbomReferenceIntotoPayload` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SbomReferenceIntotoPayload {
+    /// _type property.
+    pub r#type: Option<String>,
+    /// predicate property.
+    pub predicate: Option<SbomReferenceIntotoPredicate>,
+    /// predicateType property.
+    pub predicate_type: Option<String>,
+    /// subject property.
+    pub subject: Option<Vec<Subject>>,
+}
+
+/// `SecretLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecretLocation {
+    /// fileLocation property.
+    pub file_location: Option<GrafeasV1FileLocation>,
+}
+
+/// `RepoId` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RepoId {
+    /// projectRepoId property.
+    pub project_repo_id: Option<ProjectRepoId>,
+    /// uid property.
+    pub uid: Option<String>,
+}
+
+/// `PackageOccurrence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PackageOccurrence {
+    /// architecture property.
+    pub architecture: Option<String>,
+    /// cpeUri property.
+    pub cpe_uri: Option<String>,
+    /// license property.
+    pub license: Option<License>,
+    /// location property.
+    pub location: Option<Vec<Location>>,
+    /// name property.
+    pub name: Option<String>,
+    /// packageType property.
+    pub package_type: Option<String>,
+    /// version property.
+    pub version: Option<Version>,
 }
 
 /// `VulnerabilityOccurrence` type.
@@ -917,17 +949,99 @@ pub struct VulnerabilityOccurrence {
     pub vex_assessment: Option<VexAssessment>,
 }
 
-/// `GerritSourceContext` type.
+/// `Subject` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GerritSourceContext {
-    /// aliasContext property.
-    pub alias_context: Option<AliasContext>,
-    /// gerritProject property.
-    pub gerrit_project: Option<String>,
-    /// hostUri property.
-    pub host_uri: Option<String>,
-    /// revisionId property.
-    pub revision_id: Option<String>,
+pub struct Subject {
+    /// digest property.
+    pub digest: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `Layer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Layer {
+    /// arguments property.
+    pub arguments: Option<String>,
+    /// directive property.
+    pub directive: Option<String>,
+}
+
+/// `Justification` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Justification {
+    /// details property.
+    pub details: Option<String>,
+    /// justificationType property.
+    pub justification_type: Option<String>,
+}
+
+/// `Completeness` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Completeness {
+    /// arguments property.
+    pub arguments: Option<bool>,
+    /// environment property.
+    pub environment: Option<bool>,
+    /// materials property.
+    pub materials: Option<bool>,
+}
+
+/// `Source` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Source {
+    /// additionalContexts property.
+    pub additional_contexts: Option<Vec<SourceContext>>,
+    /// artifactStorageSourceUri property.
+    pub artifact_storage_source_uri: Option<String>,
+    /// context property.
+    pub context: Option<SourceContext>,
+    /// fileHashes property.
+    pub file_hashes: Option<serde_json::Value>,
+}
+
+/// `SecretOccurrence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecretOccurrence {
+    /// kind property.
+    pub kind: Option<String>,
+    /// locations property.
+    pub locations: Option<Vec<SecretLocation>>,
+    /// statuses property.
+    pub statuses: Option<Vec<SecretStatus>>,
+}
+
+/// `AnalysisCompleted` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AnalysisCompleted {
+    /// analysisType property.
+    pub analysis_type: Option<Vec<String>>,
+}
+
+/// `BuildMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BuildMetadata {
+    /// finishedOn property.
+    pub finished_on: Option<String>,
+    /// invocationId property.
+    pub invocation_id: Option<String>,
+    /// startedOn property.
+    pub started_on: Option<String>,
+}
+
+/// `SlsaMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SlsaMetadata {
+    /// buildFinishedOn property.
+    pub build_finished_on: Option<String>,
+    /// buildInvocationId property.
+    pub build_invocation_id: Option<String>,
+    /// buildStartedOn property.
+    pub build_started_on: Option<String>,
+    /// completeness property.
+    pub completeness: Option<SlsaCompleteness>,
+    /// reproducible property.
+    pub reproducible: Option<bool>,
 }
 
 /// `InTotoStatement` type.
@@ -947,161 +1061,33 @@ pub struct InTotoStatement {
     pub subject: Option<Vec<Subject>>,
 }
 
-/// `RepoId` type.
+/// `EnvelopeSignature` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RepoId {
-    /// projectRepoId property.
-    pub project_repo_id: Option<ProjectRepoId>,
-    /// uid property.
-    pub uid: Option<String>,
+pub struct EnvelopeSignature {
+    /// keyid property.
+    pub keyid: Option<String>,
+    /// sig property.
+    pub sig: Option<String>,
 }
 
-/// `SecretStatus` type.
+/// `Location` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecretStatus {
-    /// message property.
-    pub message: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
+pub struct Location {
+    /// cpeUri property.
+    pub cpe_uri: Option<String>,
+    /// path property.
+    pub path: Option<String>,
+    /// version property.
+    pub version: Option<Version>,
 }
 
-/// `GrafeasV1BaseImage` type.
+/// `Material` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GrafeasV1BaseImage {
-    /// layerCount property.
-    pub layer_count: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-    /// registry property.
-    pub registry: Option<String>,
-    /// repository property.
-    pub repository: Option<String>,
-}
-
-/// `GrafeasV1FileLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GrafeasV1FileLocation {
-    /// filePath property.
-    pub file_path: Option<String>,
-    /// layerDetails property.
-    pub layer_details: Option<GrafeasV1LayerDetails>,
-    /// lineNumber property.
-    pub line_number: Option<i64>,
-}
-
-/// `InTotoProvenance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InTotoProvenance {
-    /// builderConfig property.
-    pub builder_config: Option<BuilderConfig>,
-    /// materials property.
-    pub materials: Option<Vec<String>>,
-    /// metadata property.
-    pub metadata: Option<Metadata>,
-    /// recipe property.
-    pub recipe: Option<Recipe>,
-}
-
-/// `File` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct File {
+pub struct Material {
     /// digest property.
     pub digest: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `BuildDefinition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BuildDefinition {
-    /// buildType property.
-    pub build_type: Option<String>,
-    /// externalParameters property.
-    pub external_parameters: Option<serde_json::Value>,
-    /// internalParameters property.
-    pub internal_parameters: Option<serde_json::Value>,
-    /// resolvedDependencies property.
-    pub resolved_dependencies: Option<Vec<ResourceDescriptor>>,
-}
-
-/// `License` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct License {
-    /// comments property.
-    pub comments: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-}
-
-/// `BuildProvenance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BuildProvenance {
-    /// buildOptions property.
-    pub build_options: Option<serde_json::Value>,
-    /// builderVersion property.
-    pub builder_version: Option<String>,
-    /// builtArtifacts property.
-    pub built_artifacts: Option<Vec<Artifact>>,
-    /// commands property.
-    pub commands: Option<Vec<Command>>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// creator property.
-    pub creator: Option<String>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// logsUri property.
-    pub logs_uri: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// sourceProvenance property.
-    pub source_provenance: Option<Source>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// triggerId property.
-    pub trigger_id: Option<String>,
-}
-
-/// `Justification` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Justification {
-    /// details property.
-    pub details: Option<String>,
-    /// justificationType property.
-    pub justification_type: Option<String>,
-}
-
-/// `Subject` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Subject {
-    /// digest property.
-    pub digest: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `Remediation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Remediation {
-    /// details property.
-    pub details: Option<String>,
-    /// remediationType property.
-    pub remediation_type: Option<String>,
-    /// remediationUri property.
-    pub remediation_uri: Option<RelatedUrl>,
-}
-
-/// `RelatedUrl` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RelatedUrl {
-    /// label property.
-    pub label: Option<String>,
-    /// url property.
-    pub url: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
 }
 
 /// `GrafeasV1SlsaProvenanceZeroTwoSlsaInvocation` type.
@@ -1115,46 +1101,61 @@ pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaInvocation {
     pub parameters: Option<serde_json::Value>,
 }
 
-/// `AliasContext` type.
+/// `Command` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AliasContext {
-    /// kind property.
-    pub kind: Option<String>,
+pub struct Command {
+    /// args property.
+    pub args: Option<Vec<String>>,
+    /// dir property.
+    pub dir: Option<String>,
+    /// env property.
+    pub env: Option<Vec<String>>,
+    /// id property.
+    pub id: Option<String>,
     /// name property.
     pub name: Option<String>,
+    /// waitFor property.
+    pub wait_for: Option<Vec<String>>,
 }
 
-/// `GrafeasV1SlsaProvenanceZeroTwoSlsaCompleteness` type.
+/// `ComplianceOccurrence` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaCompleteness {
-    /// environment property.
-    pub environment: Option<bool>,
-    /// materials property.
-    pub materials: Option<bool>,
-    /// parameters property.
-    pub parameters: Option<bool>,
+pub struct ComplianceOccurrence {
+    /// nonComplianceReason property.
+    pub non_compliance_reason: Option<String>,
+    /// nonCompliantFiles property.
+    pub non_compliant_files: Option<Vec<NonCompliantFile>>,
+    /// version property.
+    pub version: Option<ComplianceVersion>,
 }
 
-/// `SlsaProvenance` type.
+/// `Envelope` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SlsaProvenance {
-    /// builder property.
-    pub builder: Option<SlsaBuilder>,
-    /// materials property.
-    pub materials: Option<Vec<Material>>,
-    /// metadata property.
-    pub metadata: Option<SlsaMetadata>,
-    /// recipe property.
-    pub recipe: Option<SlsaRecipe>,
+pub struct Envelope {
+    /// payload property.
+    pub payload: Option<String>,
+    /// payloadType property.
+    pub payload_type: Option<String>,
+    /// signatures property.
+    pub signatures: Option<Vec<EnvelopeSignature>>,
 }
 
-/// `GrafeasV1SlsaProvenanceZeroTwoSlsaMaterial` type.
+/// `SlsaProvenanceV1` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaMaterial {
-    /// digest property.
-    pub digest: Option<serde_json::Value>,
-    /// uri property.
-    pub uri: Option<String>,
+pub struct SlsaProvenanceV1 {
+    /// buildDefinition property.
+    pub build_definition: Option<BuildDefinition>,
+    /// runDetails property.
+    pub run_details: Option<RunDetails>,
+}
+
+/// `Signature` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Signature {
+    /// publicKeyId property.
+    pub public_key_id: Option<String>,
+    /// signature property.
+    pub signature: Option<String>,
 }
 
 // =============================================================================

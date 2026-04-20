@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,7 +23,7 @@ use serde::{Deserialize, Serialize};
 use super::shared::GoogleLongrunningOperation;
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -42,6 +43,17 @@ pub struct GoogleCloudRetailV2ListModelsResponse {
 pub struct GoogleCloudRetailV2ModelServingConfigList {
     /// servingConfigIds property.
     pub serving_config_ids: Option<Vec<String>>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `GoogleCloudRetailV2Model` type.
@@ -79,30 +91,19 @@ pub struct GoogleCloudRetailV2Model {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudRetailV2ModelFrequentlyBoughtTogetherFeaturesConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2ModelFrequentlyBoughtTogetherFeaturesConfig {
-    /// contextProductsType property.
-    pub context_products_type: Option<String>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
 /// `GoogleCloudRetailV2ModelModelFeaturesConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ModelModelFeaturesConfig {
     /// frequentlyBoughtTogetherConfig property.
     pub frequently_bought_together_config:
         Option<GoogleCloudRetailV2ModelFrequentlyBoughtTogetherFeaturesConfig>,
+}
+
+/// `GoogleCloudRetailV2ModelFrequentlyBoughtTogetherFeaturesConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2ModelFrequentlyBoughtTogetherFeaturesConfig {
+    /// contextProductsType property.
+    pub context_products_type: Option<String>,
 }
 
 // =============================================================================

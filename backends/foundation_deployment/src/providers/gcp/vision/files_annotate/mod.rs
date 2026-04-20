@@ -12,23 +12,33 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DetectedLanguage` type.
+/// `LatLng` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DetectedLanguage {
-    /// confidence property.
-    pub confidence: Option<f64>,
+pub struct LatLng {
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
+}
+
+/// `WebLabel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WebLabel {
+    /// label property.
+    pub label: Option<String>,
     /// languageCode property.
     pub language_code: Option<String>,
 }
@@ -42,261 +52,6 @@ pub struct WebEntity {
     pub entity_id: Option<String>,
     /// score property.
     pub score: Option<f64>,
-}
-
-/// `LocationInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocationInfo {
-    /// latLng property.
-    pub lat_lng: Option<LatLng>,
-}
-
-/// `DominantColorsAnnotation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DominantColorsAnnotation {
-    /// colors property.
-    pub colors: Option<Vec<ColorInfo>>,
-}
-
-/// `Word` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Word {
-    /// boundingBox property.
-    pub bounding_box: Option<BoundingPoly>,
-    /// confidence property.
-    pub confidence: Option<f64>,
-    /// property property.
-    pub property: Option<TextProperty>,
-    /// symbols property.
-    pub symbols: Option<Vec<Symbol>>,
-}
-
-/// `BatchAnnotateFilesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BatchAnnotateFilesResponse {
-    /// responses property.
-    pub responses: Option<Vec<AnnotateFileResponse>>,
-}
-
-/// `ImageProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImageProperties {
-    /// dominantColors property.
-    pub dominant_colors: Option<DominantColorsAnnotation>,
-}
-
-/// `Vertex` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Vertex {
-    /// x property.
-    pub x: Option<i64>,
-    /// y property.
-    pub y: Option<i64>,
-}
-
-/// `Paragraph` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Paragraph {
-    /// boundingBox property.
-    pub bounding_box: Option<BoundingPoly>,
-    /// confidence property.
-    pub confidence: Option<f64>,
-    /// property property.
-    pub property: Option<TextProperty>,
-    /// words property.
-    pub words: Option<Vec<Word>>,
-}
-
-/// `Position` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Position {
-    /// x property.
-    pub x: Option<f64>,
-    /// y property.
-    pub y: Option<f64>,
-    /// z property.
-    pub z: Option<f64>,
-}
-
-/// `SafeSearchAnnotation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SafeSearchAnnotation {
-    /// adult property.
-    pub adult: Option<String>,
-    /// medical property.
-    pub medical: Option<String>,
-    /// racy property.
-    pub racy: Option<String>,
-    /// spoof property.
-    pub spoof: Option<String>,
-    /// violence property.
-    pub violence: Option<String>,
-}
-
-/// `AnnotateImageResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AnnotateImageResponse {
-    /// context property.
-    pub context: Option<ImageAnnotationContext>,
-    /// cropHintsAnnotation property.
-    pub crop_hints_annotation: Option<CropHintsAnnotation>,
-    /// error property.
-    pub error: Option<Status>,
-    /// faceAnnotations property.
-    pub face_annotations: Option<Vec<FaceAnnotation>>,
-    /// fullTextAnnotation property.
-    pub full_text_annotation: Option<TextAnnotation>,
-    /// imagePropertiesAnnotation property.
-    pub image_properties_annotation: Option<ImageProperties>,
-    /// labelAnnotations property.
-    pub label_annotations: Option<Vec<EntityAnnotation>>,
-    /// landmarkAnnotations property.
-    pub landmark_annotations: Option<Vec<EntityAnnotation>>,
-    /// localizedObjectAnnotations property.
-    pub localized_object_annotations: Option<Vec<LocalizedObjectAnnotation>>,
-    /// logoAnnotations property.
-    pub logo_annotations: Option<Vec<EntityAnnotation>>,
-    /// productSearchResults property.
-    pub product_search_results: Option<ProductSearchResults>,
-    /// safeSearchAnnotation property.
-    pub safe_search_annotation: Option<SafeSearchAnnotation>,
-    /// textAnnotations property.
-    pub text_annotations: Option<Vec<EntityAnnotation>>,
-    /// webDetection property.
-    pub web_detection: Option<WebDetection>,
-}
-
-/// `ProductSearchResults` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductSearchResults {
-    /// indexTime property.
-    pub index_time: Option<String>,
-    /// productGroupedResults property.
-    pub product_grouped_results: Option<Vec<GroupedResult>>,
-    /// results property.
-    pub results: Option<Vec<ResultType>>,
-}
-
-/// `ImageAnnotationContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImageAnnotationContext {
-    /// pageNumber property.
-    pub page_number: Option<i64>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `ColorInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ColorInfo {
-    /// color property.
-    pub color: Option<Color>,
-    /// pixelFraction property.
-    pub pixel_fraction: Option<f64>,
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `Page` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Page {
-    /// blocks property.
-    pub blocks: Option<Vec<Block>>,
-    /// confidence property.
-    pub confidence: Option<f64>,
-    /// height property.
-    pub height: Option<i64>,
-    /// property property.
-    pub property: Option<TextProperty>,
-    /// width property.
-    pub width: Option<i64>,
-}
-
-/// `LatLng` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LatLng {
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
-}
-
-/// `Block` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Block {
-    /// blockType property.
-    pub block_type: Option<String>,
-    /// boundingBox property.
-    pub bounding_box: Option<BoundingPoly>,
-    /// confidence property.
-    pub confidence: Option<f64>,
-    /// paragraphs property.
-    pub paragraphs: Option<Vec<Paragraph>>,
-    /// property property.
-    pub property: Option<TextProperty>,
-}
-
-/// `Symbol` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Symbol {
-    /// boundingBox property.
-    pub bounding_box: Option<BoundingPoly>,
-    /// confidence property.
-    pub confidence: Option<f64>,
-    /// property property.
-    pub property: Option<TextProperty>,
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `ObjectAnnotation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObjectAnnotation {
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// mid property.
-    pub mid: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `Property` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Property {
-    /// name property.
-    pub name: Option<String>,
-    /// uint64Value property.
-    pub uint64_value: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `CropHintsAnnotation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CropHintsAnnotation {
-    /// cropHints property.
-    pub crop_hints: Option<Vec<CropHint>>,
-}
-
-/// `ResultType` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResultType {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `GroupedResult` type.
@@ -319,6 +74,44 @@ pub struct KeyValue {
     pub value: Option<String>,
 }
 
+/// `DetectedBreak` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DetectedBreak {
+    /// isPrefix property.
+    pub is_prefix: Option<bool>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `TextAnnotation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextAnnotation {
+    /// pages property.
+    pub pages: Option<Vec<Page>>,
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `Landmark` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Landmark {
+    /// position property.
+    pub position: Option<Position>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ColorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ColorInfo {
+    /// color property.
+    pub color: Option<Color>,
+    /// pixelFraction property.
+    pub pixel_fraction: Option<f64>,
+    /// score property.
+    pub score: Option<f64>,
+}
+
 /// `AnnotateFileResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnnotateFileResponse {
@@ -332,6 +125,15 @@ pub struct AnnotateFileResponse {
     pub total_pages: Option<i64>,
 }
 
+/// `BoundingPoly` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BoundingPoly {
+    /// normalizedVertices property.
+    pub normalized_vertices: Option<Vec<NormalizedVertex>>,
+    /// vertices property.
+    pub vertices: Option<Vec<Vertex>>,
+}
+
 /// `TextProperty` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextProperty {
@@ -341,50 +143,55 @@ pub struct TextProperty {
     pub detected_languages: Option<Vec<DetectedLanguage>>,
 }
 
-/// `WebDetection` type.
+/// `Position` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WebDetection {
-    /// bestGuessLabels property.
-    pub best_guess_labels: Option<Vec<WebLabel>>,
-    /// fullMatchingImages property.
-    pub full_matching_images: Option<Vec<WebImage>>,
-    /// pagesWithMatchingImages property.
-    pub pages_with_matching_images: Option<Vec<WebPage>>,
-    /// partialMatchingImages property.
-    pub partial_matching_images: Option<Vec<WebImage>>,
-    /// visuallySimilarImages property.
-    pub visually_similar_images: Option<Vec<WebImage>>,
-    /// webEntities property.
-    pub web_entities: Option<Vec<WebEntity>>,
+pub struct Position {
+    /// x property.
+    pub x: Option<f64>,
+    /// y property.
+    pub y: Option<f64>,
+    /// z property.
+    pub z: Option<f64>,
 }
 
-/// `DetectedBreak` type.
+/// `Word` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DetectedBreak {
-    /// isPrefix property.
-    pub is_prefix: Option<bool>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `WebLabel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WebLabel {
-    /// label property.
-    pub label: Option<String>,
-    /// languageCode property.
-    pub language_code: Option<String>,
-}
-
-/// `CropHint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CropHint {
-    /// boundingPoly property.
-    pub bounding_poly: Option<BoundingPoly>,
+pub struct Word {
+    /// boundingBox property.
+    pub bounding_box: Option<BoundingPoly>,
     /// confidence property.
     pub confidence: Option<f64>,
-    /// importanceFraction property.
-    pub importance_fraction: Option<f64>,
+    /// property property.
+    pub property: Option<TextProperty>,
+    /// symbols property.
+    pub symbols: Option<Vec<Symbol>>,
+}
+
+/// `CropHintsAnnotation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CropHintsAnnotation {
+    /// cropHints property.
+    pub crop_hints: Option<Vec<CropHint>>,
+}
+
+/// `Property` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Property {
+    /// name property.
+    pub name: Option<String>,
+    /// uint64Value property.
+    pub uint64_value: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `NormalizedVertex` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NormalizedVertex {
+    /// x property.
+    pub x: Option<f64>,
+    /// y property.
+    pub y: Option<f64>,
 }
 
 /// `FaceAnnotation` type.
@@ -422,6 +229,154 @@ pub struct FaceAnnotation {
     pub under_exposed_likelihood: Option<String>,
 }
 
+/// `ProductSearchResults` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductSearchResults {
+    /// indexTime property.
+    pub index_time: Option<String>,
+    /// productGroupedResults property.
+    pub product_grouped_results: Option<Vec<GroupedResult>>,
+    /// results property.
+    pub results: Option<Vec<ResultType>>,
+}
+
+/// `Page` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Page {
+    /// blocks property.
+    pub blocks: Option<Vec<Block>>,
+    /// confidence property.
+    pub confidence: Option<f64>,
+    /// height property.
+    pub height: Option<i64>,
+    /// property property.
+    pub property: Option<TextProperty>,
+    /// width property.
+    pub width: Option<i64>,
+}
+
+/// `Paragraph` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Paragraph {
+    /// boundingBox property.
+    pub bounding_box: Option<BoundingPoly>,
+    /// confidence property.
+    pub confidence: Option<f64>,
+    /// property property.
+    pub property: Option<TextProperty>,
+    /// words property.
+    pub words: Option<Vec<Word>>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `AnnotateImageResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AnnotateImageResponse {
+    /// context property.
+    pub context: Option<ImageAnnotationContext>,
+    /// cropHintsAnnotation property.
+    pub crop_hints_annotation: Option<CropHintsAnnotation>,
+    /// error property.
+    pub error: Option<Status>,
+    /// faceAnnotations property.
+    pub face_annotations: Option<Vec<FaceAnnotation>>,
+    /// fullTextAnnotation property.
+    pub full_text_annotation: Option<TextAnnotation>,
+    /// imagePropertiesAnnotation property.
+    pub image_properties_annotation: Option<ImageProperties>,
+    /// labelAnnotations property.
+    pub label_annotations: Option<Vec<EntityAnnotation>>,
+    /// landmarkAnnotations property.
+    pub landmark_annotations: Option<Vec<EntityAnnotation>>,
+    /// localizedObjectAnnotations property.
+    pub localized_object_annotations: Option<Vec<LocalizedObjectAnnotation>>,
+    /// logoAnnotations property.
+    pub logo_annotations: Option<Vec<EntityAnnotation>>,
+    /// productSearchResults property.
+    pub product_search_results: Option<ProductSearchResults>,
+    /// safeSearchAnnotation property.
+    pub safe_search_annotation: Option<SafeSearchAnnotation>,
+    /// textAnnotations property.
+    pub text_annotations: Option<Vec<EntityAnnotation>>,
+    /// webDetection property.
+    pub web_detection: Option<WebDetection>,
+}
+
+/// `Color` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Color {
+    /// alpha property.
+    pub alpha: Option<f64>,
+    /// blue property.
+    pub blue: Option<f64>,
+    /// green property.
+    pub green: Option<f64>,
+    /// red property.
+    pub red: Option<f64>,
+}
+
+/// `WebDetection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WebDetection {
+    /// bestGuessLabels property.
+    pub best_guess_labels: Option<Vec<WebLabel>>,
+    /// fullMatchingImages property.
+    pub full_matching_images: Option<Vec<WebImage>>,
+    /// pagesWithMatchingImages property.
+    pub pages_with_matching_images: Option<Vec<WebPage>>,
+    /// partialMatchingImages property.
+    pub partial_matching_images: Option<Vec<WebImage>>,
+    /// visuallySimilarImages property.
+    pub visually_similar_images: Option<Vec<WebImage>>,
+    /// webEntities property.
+    pub web_entities: Option<Vec<WebEntity>>,
+}
+
+/// `DetectedLanguage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DetectedLanguage {
+    /// confidence property.
+    pub confidence: Option<f64>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+}
+
+/// `Symbol` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Symbol {
+    /// boundingBox property.
+    pub bounding_box: Option<BoundingPoly>,
+    /// confidence property.
+    pub confidence: Option<f64>,
+    /// property property.
+    pub property: Option<TextProperty>,
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `ObjectAnnotation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ObjectAnnotation {
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// mid property.
+    pub mid: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// score property.
+    pub score: Option<f64>,
+}
+
 /// `LocalizedObjectAnnotation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocalizedObjectAnnotation {
@@ -437,13 +392,80 @@ pub struct LocalizedObjectAnnotation {
     pub score: Option<f64>,
 }
 
-/// `Landmark` type.
+/// `LocationInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Landmark {
-    /// position property.
-    pub position: Option<Position>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct LocationInfo {
+    /// latLng property.
+    pub lat_lng: Option<LatLng>,
+}
+
+/// `InputConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InputConfig {
+    /// content property.
+    pub content: Option<String>,
+    /// gcsSource property.
+    pub gcs_source: Option<GcsSource>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+}
+
+/// `WebImage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WebImage {
+    /// score property.
+    pub score: Option<f64>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `DominantColorsAnnotation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DominantColorsAnnotation {
+    /// colors property.
+    pub colors: Option<Vec<ColorInfo>>,
+}
+
+/// `Block` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Block {
+    /// blockType property.
+    pub block_type: Option<String>,
+    /// boundingBox property.
+    pub bounding_box: Option<BoundingPoly>,
+    /// confidence property.
+    pub confidence: Option<f64>,
+    /// paragraphs property.
+    pub paragraphs: Option<Vec<Paragraph>>,
+    /// property property.
+    pub property: Option<TextProperty>,
+}
+
+/// `CropHint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CropHint {
+    /// boundingPoly property.
+    pub bounding_poly: Option<BoundingPoly>,
+    /// confidence property.
+    pub confidence: Option<f64>,
+    /// importanceFraction property.
+    pub importance_fraction: Option<f64>,
+}
+
+/// `ImageAnnotationContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImageAnnotationContext {
+    /// pageNumber property.
+    pub page_number: Option<i64>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `ImageProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImageProperties {
+    /// dominantColors property.
+    pub dominant_colors: Option<DominantColorsAnnotation>,
 }
 
 /// `GcsSource` type.
@@ -468,64 +490,36 @@ pub struct Product {
     pub product_labels: Option<Vec<KeyValue>>,
 }
 
-/// `Color` type.
+/// `Vertex` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Color {
-    /// alpha property.
-    pub alpha: Option<f64>,
-    /// blue property.
-    pub blue: Option<f64>,
-    /// green property.
-    pub green: Option<f64>,
-    /// red property.
-    pub red: Option<f64>,
-}
-
-/// `BoundingPoly` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BoundingPoly {
-    /// normalizedVertices property.
-    pub normalized_vertices: Option<Vec<NormalizedVertex>>,
-    /// vertices property.
-    pub vertices: Option<Vec<Vertex>>,
-}
-
-/// `InputConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InputConfig {
-    /// content property.
-    pub content: Option<String>,
-    /// gcsSource property.
-    pub gcs_source: Option<GcsSource>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-}
-
-/// `WebImage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WebImage {
-    /// score property.
-    pub score: Option<f64>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `TextAnnotation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextAnnotation {
-    /// pages property.
-    pub pages: Option<Vec<Page>>,
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `NormalizedVertex` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NormalizedVertex {
+pub struct Vertex {
     /// x property.
-    pub x: Option<f64>,
+    pub x: Option<i64>,
     /// y property.
-    pub y: Option<f64>,
+    pub y: Option<i64>,
+}
+
+/// `SafeSearchAnnotation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SafeSearchAnnotation {
+    /// adult property.
+    pub adult: Option<String>,
+    /// medical property.
+    pub medical: Option<String>,
+    /// racy property.
+    pub racy: Option<String>,
+    /// spoof property.
+    pub spoof: Option<String>,
+    /// violence property.
+    pub violence: Option<String>,
+}
+
+/// `ResultType` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResultType {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `EntityAnnotation` type.
@@ -549,6 +543,13 @@ pub struct EntityAnnotation {
     pub score: Option<f64>,
     /// topicality property.
     pub topicality: Option<f64>,
+}
+
+/// `BatchAnnotateFilesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BatchAnnotateFilesResponse {
+    /// responses property.
+    pub responses: Option<Vec<AnnotateFileResponse>>,
 }
 
 /// `WebPage` type.

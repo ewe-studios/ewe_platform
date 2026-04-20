@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,34 +22,52 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `WeeklyMaintenanceWindow` type.
+/// `NodeConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WeeklyMaintenanceWindow {
-    /// day property.
-    pub day: Option<String>,
-    /// duration property.
-    pub duration: Option<String>,
-    /// startTime property.
-    pub start_time: Option<TimeOfDay>,
+pub struct NodeConfig {
+    /// cpuCount property.
+    pub cpu_count: Option<i64>,
+    /// memorySizeMb property.
+    pub memory_size_mb: Option<i64>,
 }
 
-/// `TimeOfDay` type.
+/// `SetTagsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeOfDay {
-    /// hours property.
-    pub hours: Option<i64>,
-    /// minutes property.
-    pub minutes: Option<i64>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<i64>,
+pub struct SetTagsResponse {
+    /// etag property.
+    pub etag: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// tags property.
+    pub tags: Option<serde_json::Value>,
+}
+
+/// `InstanceMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceMessage {
+    /// code property.
+    pub code: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudMemcacheV1MaintenancePolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudMemcacheV1MaintenancePolicy {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+    /// weeklyMaintenanceWindow property.
+    pub weekly_maintenance_window: Option<Vec<WeeklyMaintenanceWindow>>,
 }
 
 /// `MaintenanceSchedule` type.
@@ -62,22 +81,25 @@ pub struct MaintenanceSchedule {
     pub start_time: Option<String>,
 }
 
-/// `MemcacheParameters` type.
+/// `Node` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MemcacheParameters {
-    /// id property.
-    pub id: Option<String>,
-    /// params property.
-    pub params: Option<serde_json::Value>,
-}
-
-/// `InstanceMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceMessage {
-    /// code property.
-    pub code: Option<String>,
-    /// message property.
-    pub message: Option<String>,
+pub struct Node {
+    /// host property.
+    pub host: Option<String>,
+    /// memcacheFullVersion property.
+    pub memcache_full_version: Option<String>,
+    /// memcacheVersion property.
+    pub memcache_version: Option<String>,
+    /// nodeId property.
+    pub node_id: Option<String>,
+    /// parameters property.
+    pub parameters: Option<MemcacheParameters>,
+    /// port property.
+    pub port: Option<i64>,
+    /// state property.
+    pub state: Option<String>,
+    /// zone property.
+    pub zone: Option<String>,
 }
 
 /// `Instance` type.
@@ -133,6 +155,28 @@ pub struct Instance {
     pub zones: Option<Vec<String>>,
 }
 
+/// `MemcacheParameters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MemcacheParameters {
+    /// id property.
+    pub id: Option<String>,
+    /// params property.
+    pub params: Option<serde_json::Value>,
+}
+
+/// `TimeOfDay` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeOfDay {
+    /// hours property.
+    pub hours: Option<i64>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<i64>,
+}
+
 /// `ListInstancesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInstancesResponse {
@@ -144,56 +188,15 @@ pub struct ListInstancesResponse {
     pub unreachable: Option<Vec<String>>,
 }
 
-/// `Status` type.
+/// `WeeklyMaintenanceWindow` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `Node` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Node {
-    /// host property.
-    pub host: Option<String>,
-    /// memcacheFullVersion property.
-    pub memcache_full_version: Option<String>,
-    /// memcacheVersion property.
-    pub memcache_version: Option<String>,
-    /// nodeId property.
-    pub node_id: Option<String>,
-    /// parameters property.
-    pub parameters: Option<MemcacheParameters>,
-    /// port property.
-    pub port: Option<i64>,
-    /// state property.
-    pub state: Option<String>,
-    /// zone property.
-    pub zone: Option<String>,
-}
-
-/// `NodeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeConfig {
-    /// cpuCount property.
-    pub cpu_count: Option<i64>,
-    /// memorySizeMb property.
-    pub memory_size_mb: Option<i64>,
-}
-
-/// `SetTagsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetTagsResponse {
-    /// etag property.
-    pub etag: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// tags property.
-    pub tags: Option<serde_json::Value>,
+pub struct WeeklyMaintenanceWindow {
+    /// day property.
+    pub day: Option<String>,
+    /// duration property.
+    pub duration: Option<String>,
+    /// startTime property.
+    pub start_time: Option<TimeOfDay>,
 }
 
 /// `GetTagsResponse` type.
@@ -207,17 +210,15 @@ pub struct GetTagsResponse {
     pub tags: Option<serde_json::Value>,
 }
 
-/// `GoogleCloudMemcacheV1MaintenancePolicy` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudMemcacheV1MaintenancePolicy {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-    /// weeklyMaintenanceWindow property.
-    pub weekly_maintenance_window: Option<Vec<WeeklyMaintenanceWindow>>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

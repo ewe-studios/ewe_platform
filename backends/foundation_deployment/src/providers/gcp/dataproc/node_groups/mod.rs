@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,34 +22,32 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `AttachedDiskConfig` type.
+/// `NodeGroup` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AttachedDiskConfig {
-    /// diskSizeGb property.
-    pub disk_size_gb: Option<i64>,
-    /// diskType property.
-    pub disk_type: Option<String>,
-    /// provisionedIops property.
-    pub provisioned_iops: Option<String>,
-    /// provisionedThroughput property.
-    pub provisioned_throughput: Option<String>,
+pub struct NodeGroup {
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// nodeGroupConfig property.
+    pub node_group_config: Option<InstanceGroupConfig>,
+    /// roles property.
+    pub roles: Option<Vec<String>>,
 }
 
-/// `Status` type.
+/// `AcceleratorConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct AcceleratorConfig {
+    /// acceleratorCount property.
+    pub accelerator_count: Option<i64>,
+    /// acceleratorTypeUri property.
+    pub accelerator_type_uri: Option<String>,
 }
 
 /// `InstanceFlexibilityPolicy` type.
@@ -64,26 +63,6 @@ pub struct InstanceFlexibilityPolicy {
     pub provisioning_model_mix: Option<ProvisioningModelMix>,
 }
 
-/// `NodeGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeGroup {
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// nodeGroupConfig property.
-    pub node_group_config: Option<InstanceGroupConfig>,
-    /// roles property.
-    pub roles: Option<Vec<String>>,
-}
-
-/// `StartupConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StartupConfig {
-    /// requiredRegistrationFraction property.
-    pub required_registration_fraction: Option<f64>,
-}
-
 /// `ManagedGroupConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedGroupConfig {
@@ -93,6 +72,48 @@ pub struct ManagedGroupConfig {
     pub instance_group_manager_uri: Option<String>,
     /// instanceTemplateName property.
     pub instance_template_name: Option<String>,
+}
+
+/// `InstanceReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceReference {
+    /// instanceId property.
+    pub instance_id: Option<String>,
+    /// instanceName property.
+    pub instance_name: Option<String>,
+    /// publicEciesKey property.
+    pub public_ecies_key: Option<String>,
+    /// publicKey property.
+    pub public_key: Option<String>,
+}
+
+/// `InstanceSelectionResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceSelectionResult {
+    /// machineType property.
+    pub machine_type: Option<String>,
+    /// vmCount property.
+    pub vm_count: Option<i64>,
+}
+
+/// `ProvisioningModelMix` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProvisioningModelMix {
+    /// standardCapacityBase property.
+    pub standard_capacity_base: Option<i64>,
+    /// standardCapacityPercentAboveBase property.
+    pub standard_capacity_percent_above_base: Option<i64>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `InstanceGroupConfig` type.
@@ -128,37 +149,6 @@ pub struct InstanceGroupConfig {
     pub startup_config: Option<StartupConfig>,
 }
 
-/// `InstanceReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceReference {
-    /// instanceId property.
-    pub instance_id: Option<String>,
-    /// instanceName property.
-    pub instance_name: Option<String>,
-    /// publicEciesKey property.
-    pub public_ecies_key: Option<String>,
-    /// publicKey property.
-    pub public_key: Option<String>,
-}
-
-/// `InstanceSelection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceSelection {
-    /// machineTypes property.
-    pub machine_types: Option<Vec<String>>,
-    /// rank property.
-    pub rank: Option<i64>,
-}
-
-/// `InstanceSelectionResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceSelectionResult {
-    /// machineType property.
-    pub machine_type: Option<String>,
-    /// vmCount property.
-    pub vm_count: Option<i64>,
-}
-
 /// `DiskConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskConfig {
@@ -178,22 +168,33 @@ pub struct DiskConfig {
     pub num_local_ssds: Option<i64>,
 }
 
-/// `AcceleratorConfig` type.
+/// `InstanceSelection` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcceleratorConfig {
-    /// acceleratorCount property.
-    pub accelerator_count: Option<i64>,
-    /// acceleratorTypeUri property.
-    pub accelerator_type_uri: Option<String>,
+pub struct InstanceSelection {
+    /// machineTypes property.
+    pub machine_types: Option<Vec<String>>,
+    /// rank property.
+    pub rank: Option<i64>,
 }
 
-/// `ProvisioningModelMix` type.
+/// `StartupConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProvisioningModelMix {
-    /// standardCapacityBase property.
-    pub standard_capacity_base: Option<i64>,
-    /// standardCapacityPercentAboveBase property.
-    pub standard_capacity_percent_above_base: Option<i64>,
+pub struct StartupConfig {
+    /// requiredRegistrationFraction property.
+    pub required_registration_fraction: Option<f64>,
+}
+
+/// `AttachedDiskConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AttachedDiskConfig {
+    /// diskSizeGb property.
+    pub disk_size_gb: Option<i64>,
+    /// diskType property.
+    pub disk_type: Option<String>,
+    /// provisionedIops property.
+    pub provisioned_iops: Option<String>,
+    /// provisionedThroughput property.
+    pub provisioned_throughput: Option<String>,
 }
 
 // =============================================================================

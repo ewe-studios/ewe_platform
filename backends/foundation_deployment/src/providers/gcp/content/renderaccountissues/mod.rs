@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `AlternateDisputeResolution` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AlternateDisputeResolution {
-    /// label property.
-    pub label: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
 
 /// `Breakdown` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -42,20 +34,35 @@ pub struct Breakdown {
     pub regions: Option<Vec<BreakdownRegion>>,
 }
 
-/// `BuiltInSimpleActionAdditionalContent` type.
+/// `InputFieldTextInput` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BuiltInSimpleActionAdditionalContent {
-    /// paragraphs property.
-    pub paragraphs: Option<Vec<String>>,
-    /// title property.
-    pub title: Option<String>,
+pub struct InputFieldTextInput {
+    /// additionalInfo property.
+    pub additional_info: Option<TextWithTooltip>,
+    /// ariaLabel property.
+    pub aria_label: Option<String>,
+    /// formatInfo property.
+    pub format_info: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `InputFieldChoiceInputChoiceInputOption` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InputFieldChoiceInputChoiceInputOption {
+    /// additionalInput property.
+    pub additional_input: Option<Box<InputField>>,
+    /// id property.
+    pub id: Option<String>,
+    /// label property.
+    pub label: Option<TextWithTooltip>,
 }
 
 /// `AccountIssue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountIssue {
     /// actions property.
-    pub actions: Option<Vec<Action>>,
+    pub actions: Option<Vec<Box<Action>>>,
     /// impact property.
     pub impact: Option<AccountIssueImpact>,
     /// prerenderedContent property.
@@ -66,116 +73,17 @@ pub struct AccountIssue {
     pub title: Option<String>,
 }
 
-/// `InputField` type.
+/// `InputFieldCheckboxInput` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InputField {
-    /// checkboxInput property.
-    pub checkbox_input: Option<InputFieldCheckboxInput>,
-    /// choiceInput property.
-    pub choice_input: Option<InputFieldChoiceInput>,
-    /// id property.
-    pub id: Option<String>,
+pub struct InputFieldCheckboxInput {}
+
+/// `AlternateDisputeResolution` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AlternateDisputeResolution {
     /// label property.
-    pub label: Option<TextWithTooltip>,
-    /// required property.
-    pub required: Option<bool>,
-    /// textInput property.
-    pub text_input: Option<InputFieldTextInput>,
-}
-
-/// `ActionReason` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActionReason {
-    /// action property.
-    pub action: Option<Action>,
-    /// detail property.
-    pub detail: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `Action` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Action {
-    /// builtinSimpleAction property.
-    pub builtin_simple_action: Option<BuiltInSimpleAction>,
-    /// builtinUserInputAction property.
-    pub builtin_user_input_action: Option<BuiltInUserInputAction>,
-    /// buttonLabel property.
-    pub button_label: Option<String>,
-    /// externalAction property.
-    pub external_action: Option<ExternalAction>,
-    /// isAvailable property.
-    pub is_available: Option<bool>,
-    /// reasons property.
-    pub reasons: Option<Vec<ActionReason>>,
-}
-
-/// `BuiltInSimpleAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BuiltInSimpleAction {
-    /// additionalContent property.
-    pub additional_content: Option<BuiltInSimpleActionAdditionalContent>,
-    /// attributeCode property.
-    pub attribute_code: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `Callout` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Callout {
-    /// fullMessage property.
-    pub full_message: Option<TextWithTooltip>,
-    /// styleHint property.
-    pub style_hint: Option<String>,
-}
-
-/// `AccountIssueImpact` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountIssueImpact {
-    /// breakdowns property.
-    pub breakdowns: Option<Vec<Breakdown>>,
-    /// message property.
-    pub message: Option<String>,
-    /// severity property.
-    pub severity: Option<String>,
-}
-
-/// `InputFieldChoiceInput` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InputFieldChoiceInput {
-    /// options property.
-    pub options: Option<Vec<InputFieldChoiceInputChoiceInputOption>>,
-}
-
-/// `RenderAccountIssuesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RenderAccountIssuesResponse {
-    /// alternateDisputeResolution property.
-    pub alternate_dispute_resolution: Option<AlternateDisputeResolution>,
-    /// issues property.
-    pub issues: Option<Vec<AccountIssue>>,
-}
-
-/// `InputFieldChoiceInputChoiceInputOption` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InputFieldChoiceInputChoiceInputOption {
-    /// additionalInput property.
-    pub additional_input: Option<InputField>,
-    /// id property.
-    pub id: Option<String>,
-    /// label property.
-    pub label: Option<TextWithTooltip>,
-}
-
-/// `BuiltInUserInputAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BuiltInUserInputAction {
-    /// actionContext property.
-    pub action_context: Option<String>,
-    /// flows property.
-    pub flows: Option<Vec<ActionFlow>>,
+    pub label: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
 }
 
 /// `ActionFlow` type.
@@ -192,9 +100,101 @@ pub struct ActionFlow {
     /// id property.
     pub id: Option<String>,
     /// inputs property.
-    pub inputs: Option<Vec<InputField>>,
+    pub inputs: Option<Vec<Box<InputField>>>,
     /// label property.
     pub label: Option<String>,
+}
+
+/// `BuiltInSimpleActionAdditionalContent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BuiltInSimpleActionAdditionalContent {
+    /// paragraphs property.
+    pub paragraphs: Option<Vec<String>>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `Action` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Action {
+    /// builtinSimpleAction property.
+    pub builtin_simple_action: Option<BuiltInSimpleAction>,
+    /// builtinUserInputAction property.
+    pub builtin_user_input_action: Option<BuiltInUserInputAction>,
+    /// buttonLabel property.
+    pub button_label: Option<String>,
+    /// externalAction property.
+    pub external_action: Option<ExternalAction>,
+    /// isAvailable property.
+    pub is_available: Option<bool>,
+    /// reasons property.
+    pub reasons: Option<Vec<Box<ActionReason>>>,
+}
+
+/// `BuiltInUserInputAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BuiltInUserInputAction {
+    /// actionContext property.
+    pub action_context: Option<String>,
+    /// flows property.
+    pub flows: Option<Vec<ActionFlow>>,
+}
+
+/// `ActionReason` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActionReason {
+    /// action property.
+    pub action: Option<Box<Action>>,
+    /// detail property.
+    pub detail: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `BreakdownRegion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BreakdownRegion {
+    /// code property.
+    pub code: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `RenderAccountIssuesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RenderAccountIssuesResponse {
+    /// alternateDisputeResolution property.
+    pub alternate_dispute_resolution: Option<AlternateDisputeResolution>,
+    /// issues property.
+    pub issues: Option<Vec<AccountIssue>>,
+}
+
+/// `InputField` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InputField {
+    /// checkboxInput property.
+    pub checkbox_input: Option<InputFieldCheckboxInput>,
+    /// choiceInput property.
+    pub choice_input: Option<Box<InputFieldChoiceInput>>,
+    /// id property.
+    pub id: Option<String>,
+    /// label property.
+    pub label: Option<TextWithTooltip>,
+    /// required property.
+    pub required: Option<bool>,
+    /// textInput property.
+    pub text_input: Option<InputFieldTextInput>,
+}
+
+/// `AccountIssueImpact` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountIssueImpact {
+    /// breakdowns property.
+    pub breakdowns: Option<Vec<Breakdown>>,
+    /// message property.
+    pub message: Option<String>,
+    /// severity property.
+    pub severity: Option<String>,
 }
 
 /// `TextWithTooltip` type.
@@ -208,17 +208,11 @@ pub struct TextWithTooltip {
     pub tooltip_icon_style: Option<String>,
 }
 
-/// `InputFieldTextInput` type.
+/// `InputFieldChoiceInput` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InputFieldTextInput {
-    /// additionalInfo property.
-    pub additional_info: Option<TextWithTooltip>,
-    /// ariaLabel property.
-    pub aria_label: Option<String>,
-    /// formatInfo property.
-    pub format_info: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct InputFieldChoiceInput {
+    /// options property.
+    pub options: Option<Vec<Box<InputFieldChoiceInputChoiceInputOption>>>,
 }
 
 /// `ExternalAction` type.
@@ -230,17 +224,24 @@ pub struct ExternalAction {
     pub uri: Option<String>,
 }
 
-/// `InputFieldCheckboxInput` type.
+/// `Callout` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InputFieldCheckboxInput {}
+pub struct Callout {
+    /// fullMessage property.
+    pub full_message: Option<TextWithTooltip>,
+    /// styleHint property.
+    pub style_hint: Option<String>,
+}
 
-/// `BreakdownRegion` type.
+/// `BuiltInSimpleAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BreakdownRegion {
-    /// code property.
-    pub code: Option<String>,
-    /// name property.
-    pub name: Option<String>,
+pub struct BuiltInSimpleAction {
+    /// additionalContent property.
+    pub additional_content: Option<BuiltInSimpleActionAdditionalContent>,
+    /// attributeCode property.
+    pub attribute_code: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 // =============================================================================

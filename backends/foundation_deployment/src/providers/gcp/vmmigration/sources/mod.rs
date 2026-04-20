@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,21 +22,186 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Disk` type.
+/// `AwsSourceDiskDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Disk {
-    /// lun property.
-    pub lun: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-    /// sizeGb property.
-    pub size_gb: Option<i64>,
+pub struct AwsSourceDiskDetails {
+    /// diskType property.
+    pub disk_type: Option<String>,
+    /// sizeGib property.
+    pub size_gib: Option<String>,
+    /// tags property.
+    pub tags: Option<serde_json::Value>,
+    /// volumeId property.
+    pub volume_id: Option<String>,
+}
+
+/// `AwsSourceDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AwsSourceDetails {
+    /// accessKeyCreds property.
+    pub access_key_creds: Option<AccessKeyCredentials>,
+    /// awsRegion property.
+    pub aws_region: Option<String>,
+    /// error property.
+    pub error: Option<Status>,
+    /// inventorySecurityGroupNames property.
+    pub inventory_security_group_names: Option<Vec<String>>,
+    /// inventoryTagList property.
+    pub inventory_tag_list: Option<Vec<Tag>>,
+    /// migrationResourcesUserTags property.
+    pub migration_resources_user_tags: Option<serde_json::Value>,
+    /// publicIp property.
+    pub public_ip: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `VmwareVmsDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmwareVmsDetails {
+    /// details property.
+    pub details: Option<Vec<VmwareVmDetails>>,
+}
+
+/// `ClientSecretCredentials` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClientSecretCredentials {
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// clientSecret property.
+    pub client_secret: Option<String>,
+    /// tenantId property.
+    pub tenant_id: Option<String>,
+}
+
+/// `FetchInventoryResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FetchInventoryResponse {
+    /// awsVms property.
+    pub aws_vms: Option<AwsVmsDetails>,
+    /// azureVms property.
+    pub azure_vms: Option<AzureVmsDetails>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+    /// vmwareVms property.
+    pub vmware_vms: Option<VmwareVmsDetails>,
+}
+
+/// `AccessKeyCredentials` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessKeyCredentials {
+    /// accessKeyId property.
+    pub access_key_id: Option<String>,
+    /// secretAccessKey property.
+    pub secret_access_key: Option<String>,
+    /// sessionToken property.
+    pub session_token: Option<String>,
+}
+
+/// `Tag` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Tag {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `SourceStorageResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SourceStorageResource {
+    /// awsDiskDetails property.
+    pub aws_disk_details: Option<AwsSourceDiskDetails>,
+}
+
+/// `AwsVmsDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AwsVmsDetails {
+    /// details property.
+    pub details: Option<Vec<AwsVmDetails>>,
+}
+
+/// `VmwareVmDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmwareVmDetails {
+    /// architecture property.
+    pub architecture: Option<String>,
+    /// bootOption property.
+    pub boot_option: Option<String>,
+    /// committedStorageMb property.
+    pub committed_storage_mb: Option<String>,
+    /// cpuCount property.
+    pub cpu_count: Option<i64>,
+    /// datacenterDescription property.
+    pub datacenter_description: Option<String>,
+    /// datacenterId property.
+    pub datacenter_id: Option<String>,
+    /// diskCount property.
+    pub disk_count: Option<i64>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// guestDescription property.
+    pub guest_description: Option<String>,
+    /// memoryMb property.
+    pub memory_mb: Option<i64>,
+    /// powerState property.
+    pub power_state: Option<String>,
+    /// uuid property.
+    pub uuid: Option<String>,
+    /// vmId property.
+    pub vm_id: Option<String>,
+}
+
+/// `AzureVmDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AzureVmDetails {
+    /// architecture property.
+    pub architecture: Option<String>,
+    /// bootOption property.
+    pub boot_option: Option<String>,
+    /// committedStorageMb property.
+    pub committed_storage_mb: Option<String>,
+    /// computerName property.
+    pub computer_name: Option<String>,
+    /// cpuCount property.
+    pub cpu_count: Option<i64>,
+    /// diskCount property.
+    pub disk_count: Option<i64>,
+    /// disks property.
+    pub disks: Option<Vec<Disk>>,
+    /// memoryMb property.
+    pub memory_mb: Option<i64>,
+    /// osDescription property.
+    pub os_description: Option<OSDescription>,
+    /// osDisk property.
+    pub os_disk: Option<OSDisk>,
+    /// powerState property.
+    pub power_state: Option<String>,
+    /// tags property.
+    pub tags: Option<serde_json::Value>,
+    /// vmId property.
+    pub vm_id: Option<String>,
+    /// vmSize property.
+    pub vm_size: Option<String>,
 }
 
 /// `AwsVmDetails` type.
@@ -81,15 +247,6 @@ pub struct AwsVmDetails {
     pub zone: Option<String>,
 }
 
-/// `Tag` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Tag {
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
 /// `AwsSecurityGroup` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsSecurityGroup {
@@ -97,6 +254,89 @@ pub struct AwsSecurityGroup {
     pub id: Option<String>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `AzureSourceDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AzureSourceDetails {
+    /// azureLocation property.
+    pub azure_location: Option<String>,
+    /// clientSecretCreds property.
+    pub client_secret_creds: Option<ClientSecretCredentials>,
+    /// error property.
+    pub error: Option<Status>,
+    /// migrationResourcesUserTags property.
+    pub migration_resources_user_tags: Option<serde_json::Value>,
+    /// resourceGroupId property.
+    pub resource_group_id: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// subscriptionId property.
+    pub subscription_id: Option<String>,
+}
+
+/// `AzureVmsDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AzureVmsDetails {
+    /// details property.
+    pub details: Option<Vec<AzureVmDetails>>,
+}
+
+/// `OSDisk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OSDisk {
+    /// name property.
+    pub name: Option<String>,
+    /// sizeGb property.
+    pub size_gb: Option<i64>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `OSDescription` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OSDescription {
+    /// offer property.
+    pub offer: Option<String>,
+    /// plan property.
+    pub plan: Option<String>,
+    /// publisher property.
+    pub publisher: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ListSourcesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListSourcesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// sources property.
+    pub sources: Option<Vec<Source>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `VmwareSourceDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmwareSourceDetails {
+    /// password property.
+    pub password: Option<String>,
+    /// resolvedVcenterHost property.
+    pub resolved_vcenter_host: Option<String>,
+    /// thumbprint property.
+    pub thumbprint: Option<String>,
+    /// username property.
+    pub username: Option<String>,
+    /// vcenterIp property.
+    pub vcenter_ip: Option<String>,
+}
+
+/// `Encryption` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Encryption {
+    /// kmsKey property.
+    pub kms_key: Option<String>,
 }
 
 /// `Source` type.
@@ -122,103 +362,15 @@ pub struct Source {
     pub vmware: Option<VmwareSourceDetails>,
 }
 
-/// `AwsSourceDetails` type.
+/// `Disk` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AwsSourceDetails {
-    /// accessKeyCreds property.
-    pub access_key_creds: Option<AccessKeyCredentials>,
-    /// awsRegion property.
-    pub aws_region: Option<String>,
-    /// error property.
-    pub error: Option<Status>,
-    /// inventorySecurityGroupNames property.
-    pub inventory_security_group_names: Option<Vec<String>>,
-    /// inventoryTagList property.
-    pub inventory_tag_list: Option<Vec<Tag>>,
-    /// migrationResourcesUserTags property.
-    pub migration_resources_user_tags: Option<serde_json::Value>,
-    /// publicIp property.
-    pub public_ip: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `OSDescription` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OSDescription {
-    /// offer property.
-    pub offer: Option<String>,
-    /// plan property.
-    pub plan: Option<String>,
-    /// publisher property.
-    pub publisher: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `SourceStorageResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceStorageResource {
-    /// awsDiskDetails property.
-    pub aws_disk_details: Option<AwsSourceDiskDetails>,
-}
-
-/// `AzureVmsDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AzureVmsDetails {
-    /// details property.
-    pub details: Option<Vec<AzureVmDetails>>,
-}
-
-/// `AwsSourceDiskDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AwsSourceDiskDetails {
-    /// diskType property.
-    pub disk_type: Option<String>,
-    /// sizeGib property.
-    pub size_gib: Option<String>,
-    /// tags property.
-    pub tags: Option<serde_json::Value>,
-    /// volumeId property.
-    pub volume_id: Option<String>,
-}
-
-/// `VmwareVmsDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareVmsDetails {
-    /// details property.
-    pub details: Option<Vec<VmwareVmDetails>>,
-}
-
-/// `VmwareVmDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareVmDetails {
-    /// architecture property.
-    pub architecture: Option<String>,
-    /// bootOption property.
-    pub boot_option: Option<String>,
-    /// committedStorageMb property.
-    pub committed_storage_mb: Option<String>,
-    /// cpuCount property.
-    pub cpu_count: Option<i64>,
-    /// datacenterDescription property.
-    pub datacenter_description: Option<String>,
-    /// datacenterId property.
-    pub datacenter_id: Option<String>,
-    /// diskCount property.
-    pub disk_count: Option<i64>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// guestDescription property.
-    pub guest_description: Option<String>,
-    /// memoryMb property.
-    pub memory_mb: Option<i64>,
-    /// powerState property.
-    pub power_state: Option<String>,
-    /// uuid property.
-    pub uuid: Option<String>,
-    /// vmId property.
-    pub vm_id: Option<String>,
+pub struct Disk {
+    /// lun property.
+    pub lun: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// sizeGb property.
+    pub size_gb: Option<i64>,
 }
 
 /// `FetchStorageInventoryResponse` type.
@@ -230,157 +382,6 @@ pub struct FetchStorageInventoryResponse {
     pub resources: Option<Vec<SourceStorageResource>>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `AzureSourceDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AzureSourceDetails {
-    /// azureLocation property.
-    pub azure_location: Option<String>,
-    /// clientSecretCreds property.
-    pub client_secret_creds: Option<ClientSecretCredentials>,
-    /// error property.
-    pub error: Option<Status>,
-    /// migrationResourcesUserTags property.
-    pub migration_resources_user_tags: Option<serde_json::Value>,
-    /// resourceGroupId property.
-    pub resource_group_id: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// subscriptionId property.
-    pub subscription_id: Option<String>,
-}
-
-/// `AzureVmDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AzureVmDetails {
-    /// architecture property.
-    pub architecture: Option<String>,
-    /// bootOption property.
-    pub boot_option: Option<String>,
-    /// committedStorageMb property.
-    pub committed_storage_mb: Option<String>,
-    /// computerName property.
-    pub computer_name: Option<String>,
-    /// cpuCount property.
-    pub cpu_count: Option<i64>,
-    /// diskCount property.
-    pub disk_count: Option<i64>,
-    /// disks property.
-    pub disks: Option<Vec<Disk>>,
-    /// memoryMb property.
-    pub memory_mb: Option<i64>,
-    /// osDescription property.
-    pub os_description: Option<OSDescription>,
-    /// osDisk property.
-    pub os_disk: Option<OSDisk>,
-    /// powerState property.
-    pub power_state: Option<String>,
-    /// tags property.
-    pub tags: Option<serde_json::Value>,
-    /// vmId property.
-    pub vm_id: Option<String>,
-    /// vmSize property.
-    pub vm_size: Option<String>,
-}
-
-/// `OSDisk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OSDisk {
-    /// name property.
-    pub name: Option<String>,
-    /// sizeGb property.
-    pub size_gb: Option<i64>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `ListSourcesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSourcesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// sources property.
-    pub sources: Option<Vec<Source>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `Encryption` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Encryption {
-    /// kmsKey property.
-    pub kms_key: Option<String>,
-}
-
-/// `ClientSecretCredentials` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClientSecretCredentials {
-    /// clientId property.
-    pub client_id: Option<String>,
-    /// clientSecret property.
-    pub client_secret: Option<String>,
-    /// tenantId property.
-    pub tenant_id: Option<String>,
-}
-
-/// `FetchInventoryResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FetchInventoryResponse {
-    /// awsVms property.
-    pub aws_vms: Option<AwsVmsDetails>,
-    /// azureVms property.
-    pub azure_vms: Option<AzureVmsDetails>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-    /// vmwareVms property.
-    pub vmware_vms: Option<VmwareVmsDetails>,
-}
-
-/// `VmwareSourceDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmwareSourceDetails {
-    /// password property.
-    pub password: Option<String>,
-    /// resolvedVcenterHost property.
-    pub resolved_vcenter_host: Option<String>,
-    /// thumbprint property.
-    pub thumbprint: Option<String>,
-    /// username property.
-    pub username: Option<String>,
-    /// vcenterIp property.
-    pub vcenter_ip: Option<String>,
-}
-
-/// `AwsVmsDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AwsVmsDetails {
-    /// details property.
-    pub details: Option<Vec<AwsVmDetails>>,
-}
-
-/// `AccessKeyCredentials` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessKeyCredentials {
-    /// accessKeyId property.
-    pub access_key_id: Option<String>,
-    /// secretAccessKey property.
-    pub secret_access_key: Option<String>,
-    /// sessionToken property.
-    pub session_token: Option<String>,
 }
 
 // =============================================================================

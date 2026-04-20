@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,17 +22,46 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GetVersionOperationMetadata` type.
+/// `HelpLink` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadata {
-    /// inlineSbomInfo property.
-    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// machineType property.
+    pub machine_type: Option<String>,
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `ErrorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `Help` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
 }
 
 /// `QuotaExceededInfo` type.
@@ -51,38 +81,11 @@ pub struct QuotaExceededInfo {
     pub rollout_status: Option<String>,
 }
 
-/// `ErrorInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `InstancesBulkInsertOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// machineType property.
-    pub machine_type: Option<String>,
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
-}
-
 /// `FirewallPolicyRuleOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallPolicyRuleOperationMetadata {
     /// allocatedPriority property.
     pub allocated_priority: Option<i64>,
-}
-
-/// `Help` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
 }
 
 /// `DebugInfo` type.
@@ -94,22 +97,20 @@ pub struct DebugInfo {
     pub stack_entries: Option<Vec<String>>,
 }
 
-/// `SetAutoscalerLinkOperationMetadata` type.
+/// `LocalizedMessage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetAutoscalerLinkOperationMetadata {
-    /// zonalIgmIds property.
-    pub zonal_igm_ids: Option<Vec<String>>,
-    /// zoneToIgmIds property.
-    pub zone_to_igm_ids: Option<serde_json::Value>,
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
 }
 
-/// `HelpLink` type.
+/// `GetVersionOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
+pub struct GetVersionOperationMetadata {
+    /// inlineSbomInfo property.
+    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
 }
 
 /// `GetVersionOperationMetadataSbomInfo` type.
@@ -121,6 +122,15 @@ pub struct GetVersionOperationMetadataSbomInfo {
     pub target_component_versions: Option<serde_json::Value>,
 }
 
+/// `SetAutoscalerLinkOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetAutoscalerLinkOperationMetadata {
+    /// zonalIgmIds property.
+    pub zonal_igm_ids: Option<Vec<String>>,
+    /// zoneToIgmIds property.
+    pub zone_to_igm_ids: Option<serde_json::Value>,
+}
+
 /// `SetCommonInstanceMetadataOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetCommonInstanceMetadataOperationMetadata {
@@ -128,15 +138,6 @@ pub struct SetCommonInstanceMetadataOperationMetadata {
     pub client_operation_id: Option<String>,
     /// perLocationOperations property.
     pub per_location_operations: Option<serde_json::Value>,
-}
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 // =============================================================================

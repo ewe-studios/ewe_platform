@@ -12,35 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `RegionsVersion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegionsVersion {
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `ConvertRegionPricesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConvertRegionPricesResponse {
-    /// convertedOtherRegionsPrice property.
-    pub converted_other_regions_price: Option<ConvertedOtherRegionsPrice>,
-    /// convertedRegionPrices property.
-    pub converted_region_prices: Option<serde_json::Value>,
-    /// regionVersion property.
-    pub region_version: Option<RegionsVersion>,
-}
 
 /// `ConvertedOtherRegionsPrice` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,6 +32,13 @@ pub struct ConvertedOtherRegionsPrice {
     pub eur_price: Option<Money>,
     /// usdPrice property.
     pub usd_price: Option<Money>,
+}
+
+/// `RegionsVersion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegionsVersion {
+    /// version property.
+    pub version: Option<String>,
 }
 
 /// `Money` type.
@@ -60,6 +50,17 @@ pub struct Money {
     pub nanos: Option<i64>,
     /// units property.
     pub units: Option<String>,
+}
+
+/// `ConvertRegionPricesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConvertRegionPricesResponse {
+    /// convertedOtherRegionsPrice property.
+    pub converted_other_regions_price: Option<ConvertedOtherRegionsPrice>,
+    /// convertedRegionPrices property.
+    pub converted_region_prices: Option<serde_json::Value>,
+    /// regionVersion property.
+    pub region_version: Option<RegionsVersion>,
 }
 
 // =============================================================================

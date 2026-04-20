@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudDialogflowCxV3ListDeploymentsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ListDeploymentsResponse {
+    /// deployments property.
+    pub deployments: Option<Vec<GoogleCloudDialogflowCxV3Deployment>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `GoogleCloudDialogflowCxV3Deployment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -48,15 +58,6 @@ pub struct GoogleCloudDialogflowCxV3DeploymentResult {
     pub deployment_test_results: Option<Vec<String>>,
     /// experiment property.
     pub experiment: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3ListDeploymentsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ListDeploymentsResponse {
-    /// deployments property.
-    pub deployments: Option<Vec<GoogleCloudDialogflowCxV3Deployment>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

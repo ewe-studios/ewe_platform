@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,29 +22,108 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudContactcenterinsightsV1GenerativeInsights` type.
+/// `GoogleCloudContactcenterinsightsV1DateRangeConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1GenerativeInsights {
-    /// chartCheckpoint property.
-    pub chart_checkpoint:
-        Option<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartCheckpoint>,
-    /// chartConversations property.
-    pub chart_conversations:
-        Option<Vec<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation>>,
+pub struct GoogleCloudContactcenterinsightsV1DateRangeConfig {
+    /// absoluteDateRange property.
+    pub absolute_date_range: Option<GoogleCloudContactcenterinsightsV1QueryInterval>,
+    /// relativeDateRange property.
+    pub relative_date_range:
+        Option<GoogleCloudContactcenterinsightsV1DateRangeConfigRelativeDateRange>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1RedirectAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1RedirectAction {
+    /// relativePath property.
+    pub relative_path: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessage {
     /// chartSpec property.
     pub chart_spec: Option<serde_json::Value>,
-    /// request property.
-    pub request: Option<serde_json::Value>,
-    /// sqlComparisonKey property.
-    pub sql_comparison_key: Option<String>,
-    /// sqlQuery property.
-    pub sql_query: Option<String>,
+    /// generatedSqlQuery property.
+    pub generated_sql_query: Option<String>,
+    /// textOutput property.
+    pub text_output: Option<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessageTextOutput>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1GenerativeInsightsChartCheckpoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartCheckpoint {
+    /// revisionId property.
+    pub revision_id: Option<String>,
+    /// sessionId property.
+    pub session_id: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessage {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// messageId property.
+    pub message_id: Option<String>,
+    /// systemMessage property.
+    pub system_message: Option<
+        GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessage,
+    >,
+    /// userMessage property.
+    pub user_message: Option<
+        GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageUserMessage,
+    >,
+}
+
+/// `GoogleCloudContactcenterinsightsV1DateRangeConfigRelativeDateRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1DateRangeConfigRelativeDateRange {
+    /// quantity property.
+    pub quantity: Option<String>,
+    /// unit property.
+    pub unit: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageUserMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageUserMessage {
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessageTextOutput` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessageTextOutput
+{
+    /// texts property.
+    pub texts: Option<Vec<String>>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1ListChartsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1ListChartsResponse {
+    /// charts property.
+    pub charts: Option<Vec<GoogleCloudContactcenterinsightsV1Chart>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1QueryInterval` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1QueryInterval {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
 }
 
 /// `GoogleCloudContactcenterinsightsV1Chart` type.
@@ -77,15 +157,6 @@ pub struct GoogleCloudContactcenterinsightsV1Chart {
     pub width: Option<i64>,
 }
 
-/// `GoogleCloudContactcenterinsightsV1ListChartsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1ListChartsResponse {
-    /// charts property.
-    pub charts: Option<Vec<GoogleCloudContactcenterinsightsV1Chart>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
 /// `GoogleCloudContactcenterinsightsV1ChartDataSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ChartDataSource {
@@ -95,65 +166,37 @@ pub struct GoogleCloudContactcenterinsightsV1ChartDataSource {
     pub query_metrics: Option<GoogleCloudContactcenterinsightsV1QueryMetrics>,
 }
 
-/// `GoogleCloudContactcenterinsightsV1DateRangeConfigRelativeDateRange` type.
+/// `GoogleCloudContactcenterinsightsV1ChartAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1DateRangeConfigRelativeDateRange {
-    /// quantity property.
-    pub quantity: Option<String>,
-    /// unit property.
-    pub unit: Option<String>,
+pub struct GoogleCloudContactcenterinsightsV1ChartAction {
+    /// redirectAction property.
+    pub redirect_action: Option<GoogleCloudContactcenterinsightsV1RedirectAction>,
 }
 
-/// `GoogleCloudContactcenterinsightsV1GenerativeInsightsChartCheckpoint` type.
+/// `GoogleCloudContactcenterinsightsV1QueryMetrics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartCheckpoint {
-    /// revisionId property.
-    pub revision_id: Option<String>,
-    /// sessionId property.
-    pub session_id: Option<String>,
+pub struct GoogleCloudContactcenterinsightsV1QueryMetrics {
+    /// request property.
+    pub request: Option<serde_json::Value>,
 }
 
-/// `GoogleCloudContactcenterinsightsV1QueryInterval` type.
+/// `GoogleCloudContactcenterinsightsV1GenerativeInsights` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1QueryInterval {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessageTextOutput` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessageTextOutput
-{
-    /// texts property.
-    pub texts: Option<Vec<String>>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessage {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// messageId property.
-    pub message_id: Option<String>,
-    /// systemMessage property.
-    pub system_message: Option<
-        GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessage,
-    >,
-    /// userMessage property.
-    pub user_message: Option<
-        GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageUserMessage,
-    >,
-}
-
-/// `GoogleCloudContactcenterinsightsV1RedirectAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1RedirectAction {
-    /// relativePath property.
-    pub relative_path: Option<String>,
+pub struct GoogleCloudContactcenterinsightsV1GenerativeInsights {
+    /// chartCheckpoint property.
+    pub chart_checkpoint:
+        Option<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartCheckpoint>,
+    /// chartConversations property.
+    pub chart_conversations:
+        Option<Vec<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation>>,
+    /// chartSpec property.
+    pub chart_spec: Option<serde_json::Value>,
+    /// request property.
+    pub request: Option<serde_json::Value>,
+    /// sqlComparisonKey property.
+    pub sql_comparison_key: Option<String>,
+    /// sqlQuery property.
+    pub sql_query: Option<String>,
 }
 
 /// `GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation` type.
@@ -168,48 +211,6 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation
         Option<Vec<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessage>>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1ChartAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1ChartAction {
-    /// redirectAction property.
-    pub redirect_action: Option<GoogleCloudContactcenterinsightsV1RedirectAction>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageUserMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageUserMessage {
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessage {
-    /// chartSpec property.
-    pub chart_spec: Option<serde_json::Value>,
-    /// generatedSqlQuery property.
-    pub generated_sql_query: Option<String>,
-    /// textOutput property.
-    pub text_output: Option<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessageTextOutput>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1QueryMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1QueryMetrics {
-    /// request property.
-    pub request: Option<serde_json::Value>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1DateRangeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1DateRangeConfig {
-    /// absoluteDateRange property.
-    pub absolute_date_range: Option<GoogleCloudContactcenterinsightsV1QueryInterval>,
-    /// relativeDateRange property.
-    pub relative_date_range:
-        Option<GoogleCloudContactcenterinsightsV1DateRangeConfigRelativeDateRange>,
 }
 
 // =============================================================================

@@ -12,28 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `AccessCredentials` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessCredentials {
-    /// accessToken property.
-    pub access_token: Option<String>,
-    /// expiresIn property.
-    pub expires_in: Option<String>,
-    /// refreshToken property.
-    pub refresh_token: Option<String>,
-}
 
 /// `ToolName` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,26 +34,6 @@ pub struct ToolName {
     pub name: Option<String>,
     /// operation property.
     pub operation: Option<String>,
-}
-
-/// `CheckStatusResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CheckStatusResponse {
-    /// description property.
-    pub description: Option<String>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `RefreshAccessTokenResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RefreshAccessTokenResponse {
-    /// accessCredentials property.
-    pub access_credentials: Option<AccessCredentials>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
 }
 
 /// `CheckReadinessResponse` type.
@@ -80,6 +50,17 @@ pub struct ExecuteSqlQueryResponse {
     pub results: Option<Vec<serde_json::Value>>,
 }
 
+/// `AccessCredentials` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessCredentials {
+    /// accessToken property.
+    pub access_token: Option<String>,
+    /// expiresIn property.
+    pub expires_in: Option<String>,
+    /// refreshToken property.
+    pub refresh_token: Option<String>,
+}
+
 /// `ExchangeAuthCodeResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExchangeAuthCodeResponse {
@@ -87,6 +68,24 @@ pub struct ExchangeAuthCodeResponse {
     pub access_credentials: Option<AccessCredentials>,
     /// metadata property.
     pub metadata: Option<serde_json::Value>,
+}
+
+/// `RefreshAccessTokenResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RefreshAccessTokenResponse {
+    /// accessCredentials property.
+    pub access_credentials: Option<AccessCredentials>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+}
+
+/// `ToolSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ToolSpec {
+    /// toolDefinitions property.
+    pub tool_definitions: Option<Vec<serde_json::Value>>,
+    /// toolSpecVersion property.
+    pub tool_spec_version: Option<String>,
 }
 
 /// `ListCustomToolNamesResponse` type.
@@ -103,13 +102,15 @@ pub struct GenerateCustomToolspecResponse {
     pub tool_spec: Option<ToolSpec>,
 }
 
-/// `ToolSpec` type.
+/// `CheckStatusResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ToolSpec {
-    /// toolDefinitions property.
-    pub tool_definitions: Option<Vec<serde_json::Value>>,
-    /// toolSpecVersion property.
-    pub tool_spec_version: Option<String>,
+pub struct CheckStatusResponse {
+    /// description property.
+    pub description: Option<String>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// state property.
+    pub state: Option<String>,
 }
 
 // =============================================================================

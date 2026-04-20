@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,11 +24,18 @@ use super::shared::GoogleLongrunningOperation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GetBackupIndexDownloadUrlResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetBackupIndexDownloadUrlResponse {
+    /// signedUrl property.
+    pub signed_url: Option<String>,
+}
 
 /// `Backup` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -100,15 +108,31 @@ pub struct Backup {
     pub volume_count: Option<i64>,
 }
 
-/// `GoogleRpcStatus` type.
+/// `AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `NamespacedNames` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NamespacedNames {
+    /// namespacedNames property.
+    pub namespaced_names: Option<Vec<NamespacedName>>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `ListBackupsResponse` type.
@@ -122,6 +146,31 @@ pub struct ListBackupsResponse {
     pub unreachable: Option<Vec<String>>,
 }
 
+/// `Namespaces` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Namespaces {
+    /// namespaces property.
+    pub namespaces: Option<Vec<String>>,
+}
+
+/// `Label` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Label {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
 /// `EncryptionKey` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionKey {
@@ -129,11 +178,13 @@ pub struct EncryptionKey {
     pub gcp_kms_encryption_key: Option<String>,
 }
 
-/// `NamespacedNames` type.
+/// `NamespacedName` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NamespacedNames {
-    /// namespacedNames property.
-    pub namespaced_names: Option<Vec<NamespacedName>>,
+pub struct NamespacedName {
+    /// name property.
+    pub name: Option<String>,
+    /// namespace property.
+    pub namespace: Option<String>,
 }
 
 /// `TroubleshootingInfo` type.
@@ -143,6 +194,24 @@ pub struct TroubleshootingInfo {
     pub state_reason_code: Option<String>,
     /// stateReasonUri property.
     pub state_reason_uri: Option<String>,
+}
+
+/// `ResourceLabels` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceLabels {
+    /// resourceLabels property.
+    pub resource_labels: Option<Vec<Label>>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `ClusterMetadata` type.
@@ -158,74 +227,6 @@ pub struct ClusterMetadata {
     pub gke_version: Option<String>,
     /// k8sVersion property.
     pub k8s_version: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `Label` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Label {
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `GetBackupIndexDownloadUrlResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetBackupIndexDownloadUrlResponse {
-    /// signedUrl property.
-    pub signed_url: Option<String>,
-}
-
-/// `ResourceLabels` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceLabels {
-    /// resourceLabels property.
-    pub resource_labels: Option<Vec<Label>>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `Namespaces` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Namespaces {
-    /// namespaces property.
-    pub namespaces: Option<Vec<String>>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `NamespacedName` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NamespacedName {
-    /// name property.
-    pub name: Option<String>,
-    /// namespace property.
-    pub namespace: Option<String>,
 }
 
 /// `Expr` type.

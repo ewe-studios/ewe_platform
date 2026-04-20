@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,21 +22,78 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `VoluntaryNutritionFact` type.
+/// `Grocery` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VoluntaryNutritionFact {
-    /// dailyPercentage property.
-    pub daily_percentage: Option<f64>,
+pub struct Grocery {
+    /// activeIngredients property.
+    pub active_ingredients: Option<String>,
+    /// alcoholByVolume property.
+    pub alcohol_by_volume: Option<f64>,
+    /// allergens property.
+    pub allergens: Option<String>,
+    /// derivedNutritionClaim property.
+    pub derived_nutrition_claim: Option<Vec<String>>,
+    /// directions property.
+    pub directions: Option<String>,
+    /// indications property.
+    pub indications: Option<String>,
+    /// ingredients property.
+    pub ingredients: Option<String>,
+    /// nutritionClaim property.
+    pub nutrition_claim: Option<Vec<String>>,
+    /// storageInstructions property.
+    pub storage_instructions: Option<String>,
+}
+
+/// `FeatureDescription` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FeatureDescription {
+    /// headline property.
+    pub headline: Option<String>,
+    /// image property.
+    pub image: Option<Image>,
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `Product` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Product {
+    /// attributes property.
+    pub attributes: Option<Attributes>,
+    /// contentLanguage property.
+    pub content_language: Option<String>,
+    /// destinationStatuses property.
+    pub destination_statuses: Option<Vec<DestinationStatus>>,
+    /// feedLabel property.
+    pub feed_label: Option<String>,
+    /// issues property.
+    pub issues: Option<Vec<Issue>>,
     /// name property.
     pub name: Option<String>,
-    /// value property.
-    pub value: Option<FloatUnit>,
+    /// parent property.
+    pub parent: Option<String>,
+    /// productId property.
+    pub product_id: Option<String>,
+    /// targetCountry property.
+    pub target_country: Option<String>,
+}
+
+/// `Image` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Image {
+    /// imageUrl property.
+    pub image_url: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `Nutrition` type.
@@ -138,123 +196,6 @@ pub struct FloatUnit {
     pub unit: Option<String>,
 }
 
-/// `ProductDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductDetail {
-    /// attributeName property.
-    pub attribute_name: Option<String>,
-    /// attributeValue property.
-    pub attribute_value: Option<String>,
-    /// sectionName property.
-    pub section_name: Option<String>,
-}
-
-/// `ListProductsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListProductsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// products property.
-    pub products: Option<Vec<Product>>,
-}
-
-/// `Capacity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Capacity {
-    /// unit property.
-    pub unit: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `FeatureDescription` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FeatureDescription {
-    /// headline property.
-    pub headline: Option<String>,
-    /// image property.
-    pub image: Option<Image>,
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `DestinationStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DestinationStatus {
-    /// approvedCountries property.
-    pub approved_countries: Option<Vec<String>>,
-    /// destination property.
-    pub destination: Option<String>,
-    /// disapprovedCountries property.
-    pub disapproved_countries: Option<Vec<String>>,
-    /// pendingCountries property.
-    pub pending_countries: Option<Vec<String>>,
-    /// status property.
-    pub status: Option<String>,
-}
-
-/// `Image` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Image {
-    /// imageUrl property.
-    pub image_url: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `Price` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Price {
-    /// amount property.
-    pub amount: Option<String>,
-    /// currency property.
-    pub currency: Option<String>,
-}
-
-/// `GoogleShoppingManufacturersV1ProductCertification` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleShoppingManufacturersV1ProductCertification {
-    /// authority property.
-    pub authority: Option<String>,
-    /// code property.
-    pub code: Option<String>,
-    /// link property.
-    pub link: Option<String>,
-    /// logo property.
-    pub logo: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// validUntil property.
-    pub valid_until: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Grocery` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Grocery {
-    /// activeIngredients property.
-    pub active_ingredients: Option<String>,
-    /// alcoholByVolume property.
-    pub alcohol_by_volume: Option<f64>,
-    /// allergens property.
-    pub allergens: Option<String>,
-    /// derivedNutritionClaim property.
-    pub derived_nutrition_claim: Option<Vec<String>>,
-    /// directions property.
-    pub directions: Option<String>,
-    /// indications property.
-    pub indications: Option<String>,
-    /// ingredients property.
-    pub ingredients: Option<String>,
-    /// nutritionClaim property.
-    pub nutrition_claim: Option<Vec<String>>,
-    /// storageInstructions property.
-    pub storage_instructions: Option<String>,
-}
-
 /// `Attributes` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Attributes {
@@ -344,6 +285,56 @@ pub struct Attributes {
     pub virtual_model_link: Option<String>,
 }
 
+/// `ProductDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductDetail {
+    /// attributeName property.
+    pub attribute_name: Option<String>,
+    /// attributeValue property.
+    pub attribute_value: Option<String>,
+    /// sectionName property.
+    pub section_name: Option<String>,
+}
+
+/// `VoluntaryNutritionFact` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VoluntaryNutritionFact {
+    /// dailyPercentage property.
+    pub daily_percentage: Option<f64>,
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<FloatUnit>,
+}
+
+/// `Capacity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Capacity {
+    /// unit property.
+    pub unit: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GoogleShoppingManufacturersV1ProductCertification` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleShoppingManufacturersV1ProductCertification {
+    /// authority property.
+    pub authority: Option<String>,
+    /// code property.
+    pub code: Option<String>,
+    /// link property.
+    pub link: Option<String>,
+    /// logo property.
+    pub logo: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// validUntil property.
+    pub valid_until: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
 /// `Issue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Issue {
@@ -367,6 +358,39 @@ pub struct Issue {
     pub r#type: Option<String>,
 }
 
+/// `Price` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Price {
+    /// amount property.
+    pub amount: Option<String>,
+    /// currency property.
+    pub currency: Option<String>,
+}
+
+/// `DestinationStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DestinationStatus {
+    /// approvedCountries property.
+    pub approved_countries: Option<Vec<String>>,
+    /// destination property.
+    pub destination: Option<String>,
+    /// disapprovedCountries property.
+    pub disapproved_countries: Option<Vec<String>>,
+    /// pendingCountries property.
+    pub pending_countries: Option<Vec<String>>,
+    /// status property.
+    pub status: Option<String>,
+}
+
+/// `ListProductsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListProductsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// products property.
+    pub products: Option<Vec<Product>>,
+}
+
 /// `Count` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Count {
@@ -374,29 +398,6 @@ pub struct Count {
     pub unit: Option<String>,
     /// value property.
     pub value: Option<String>,
-}
-
-/// `Product` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Product {
-    /// attributes property.
-    pub attributes: Option<Attributes>,
-    /// contentLanguage property.
-    pub content_language: Option<String>,
-    /// destinationStatuses property.
-    pub destination_statuses: Option<Vec<DestinationStatus>>,
-    /// feedLabel property.
-    pub feed_label: Option<String>,
-    /// issues property.
-    pub issues: Option<Vec<Issue>>,
-    /// name property.
-    pub name: Option<String>,
-    /// parent property.
-    pub parent: Option<String>,
-    /// productId property.
-    pub product_id: Option<String>,
-    /// targetCountry property.
-    pub target_country: Option<String>,
 }
 
 // =============================================================================

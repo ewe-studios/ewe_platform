@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,24 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Signature` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Signature {
-    /// image property.
-    pub image: Option<Image>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// signatureTime property.
-    pub signature_time: Option<String>,
-    /// userId property.
-    pub user_id: Option<String>,
-}
 
 /// `ListConsentArtifactsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -47,15 +35,6 @@ pub struct ListConsentArtifactsResponse {
     pub consent_artifacts: Option<Vec<ConsentArtifact>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-}
-
-/// `Image` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Image {
-    /// gcsUri property.
-    pub gcs_uri: Option<String>,
-    /// rawBytes property.
-    pub raw_bytes: Option<String>,
 }
 
 /// `ConsentArtifact` type.
@@ -77,6 +56,28 @@ pub struct ConsentArtifact {
     pub user_signature: Option<Signature>,
     /// witnessSignature property.
     pub witness_signature: Option<Signature>,
+}
+
+/// `Signature` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Signature {
+    /// image property.
+    pub image: Option<Image>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// signatureTime property.
+    pub signature_time: Option<String>,
+    /// userId property.
+    pub user_id: Option<String>,
+}
+
+/// `Image` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Image {
+    /// gcsUri property.
+    pub gcs_uri: Option<String>,
+    /// rawBytes property.
+    pub raw_bytes: Option<String>,
 }
 
 // =============================================================================

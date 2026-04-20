@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListDataSourcesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDataSourcesResponse {
+    /// dataSources property.
+    pub data_sources: Option<Vec<DataSource>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `DataSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -52,7 +62,7 @@ pub struct DataSource {
     /// name property.
     pub name: Option<String>,
     /// parameters property.
-    pub parameters: Option<Vec<DataSourceParameter>>,
+    pub parameters: Option<Vec<Box<DataSourceParameter>>>,
     /// scopes property.
     pub scopes: Option<Vec<String>>,
     /// supportsCustomSchedule property.
@@ -63,6 +73,13 @@ pub struct DataSource {
     pub transfer_type: Option<String>,
     /// updateDeadlineSeconds property.
     pub update_deadline_seconds: Option<i64>,
+}
+
+/// `CheckValidCredsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CheckValidCredsResponse {
+    /// hasValidCreds property.
+    pub has_valid_creds: Option<bool>,
 }
 
 /// `DataSourceParameter` type.
@@ -77,7 +94,7 @@ pub struct DataSourceParameter {
     /// displayName property.
     pub display_name: Option<String>,
     /// fields property.
-    pub fields: Option<Vec<DataSourceParameter>>,
+    pub fields: Option<Vec<Box<DataSourceParameter>>>,
     /// immutable property.
     pub immutable: Option<bool>,
     /// maxListSize property.
@@ -102,22 +119,6 @@ pub struct DataSourceParameter {
     pub validation_help_url: Option<String>,
     /// validationRegex property.
     pub validation_regex: Option<String>,
-}
-
-/// `CheckValidCredsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CheckValidCredsResponse {
-    /// hasValidCreds property.
-    pub has_valid_creds: Option<bool>,
-}
-
-/// `ListDataSourcesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDataSourcesResponse {
-    /// dataSources property.
-    pub data_sources: Option<Vec<DataSource>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

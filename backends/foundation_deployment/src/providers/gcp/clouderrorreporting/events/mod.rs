@@ -12,32 +12,39 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `HttpRequestContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRequestContext {
+    /// method property.
+    pub method: Option<String>,
+    /// referrer property.
+    pub referrer: Option<String>,
+    /// remoteIp property.
+    pub remote_ip: Option<String>,
+    /// responseStatusCode property.
+    pub response_status_code: Option<i64>,
+    /// url property.
+    pub url: Option<String>,
+    /// userAgent property.
+    pub user_agent: Option<String>,
+}
+
 /// `DeleteEventsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteEventsResponse {}
-
-/// `ListEventsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListEventsResponse {
-    /// errorEvents property.
-    pub error_events: Option<Vec<ErrorEvent>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// timeRangeBegin property.
-    pub time_range_begin: Option<String>,
-}
 
 /// `ErrorEvent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -74,6 +81,26 @@ pub struct ServiceContext {
     pub version: Option<String>,
 }
 
+/// `SourceReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SourceReference {
+    /// repository property.
+    pub repository: Option<String>,
+    /// revisionId property.
+    pub revision_id: Option<String>,
+}
+
+/// `ListEventsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListEventsResponse {
+    /// errorEvents property.
+    pub error_events: Option<Vec<ErrorEvent>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// timeRangeBegin property.
+    pub time_range_begin: Option<String>,
+}
+
 /// `ErrorContext` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorContext {
@@ -85,32 +112,6 @@ pub struct ErrorContext {
     pub source_references: Option<Vec<SourceReference>>,
     /// user property.
     pub user: Option<String>,
-}
-
-/// `HttpRequestContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRequestContext {
-    /// method property.
-    pub method: Option<String>,
-    /// referrer property.
-    pub referrer: Option<String>,
-    /// remoteIp property.
-    pub remote_ip: Option<String>,
-    /// responseStatusCode property.
-    pub response_status_code: Option<i64>,
-    /// url property.
-    pub url: Option<String>,
-    /// userAgent property.
-    pub user_agent: Option<String>,
-}
-
-/// `SourceReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceReference {
-    /// repository property.
-    pub repository: Option<String>,
-    /// revisionId property.
-    pub revision_id: Option<String>,
 }
 
 // =============================================================================

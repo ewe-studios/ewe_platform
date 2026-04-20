@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,189 +23,19 @@ use serde::{Deserialize, Serialize};
 use super::shared::Empty;
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `SparkSqlBatch` type.
+/// `PeripheralsConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkSqlBatch {
-    /// jarFileUris property.
-    pub jar_file_uris: Option<Vec<String>>,
-    /// queryFileUri property.
-    pub query_file_uri: Option<String>,
-    /// queryVariables property.
-    pub query_variables: Option<serde_json::Value>,
-}
-
-/// `UsageSnapshot` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UsageSnapshot {
-    /// acceleratorType property.
-    pub accelerator_type: Option<String>,
-    /// milliAccelerator property.
-    pub milli_accelerator: Option<String>,
-    /// milliDcu property.
-    pub milli_dcu: Option<String>,
-    /// milliDcuPremium property.
-    pub milli_dcu_premium: Option<String>,
-    /// shuffleStorageGb property.
-    pub shuffle_storage_gb: Option<String>,
-    /// shuffleStorageGbPremium property.
-    pub shuffle_storage_gb_premium: Option<String>,
-    /// snapshotTime property.
-    pub snapshot_time: Option<String>,
-}
-
-/// `SparkRBatch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkRBatch {
-    /// archiveUris property.
-    pub archive_uris: Option<Vec<String>>,
-    /// args property.
-    pub args: Option<Vec<String>>,
-    /// fileUris property.
-    pub file_uris: Option<Vec<String>>,
-    /// mainRFileUri property.
-    pub main_r_file_uri: Option<String>,
-}
-
-/// `RepositoryConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RepositoryConfig {
-    /// pypiRepositoryConfig property.
-    pub pypi_repository_config: Option<PyPiRepositoryConfig>,
-}
-
-/// `StateHistory` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StateHistory {
-    /// state property.
-    pub state: Option<String>,
-    /// stateMessage property.
-    pub state_message: Option<String>,
-    /// stateStartTime property.
-    pub state_start_time: Option<String>,
-}
-
-/// `PyPiRepositoryConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PyPiRepositoryConfig {
-    /// pypiRepository property.
-    pub pypi_repository: Option<String>,
-}
-
-/// `UsageMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UsageMetrics {
-    /// acceleratorType property.
-    pub accelerator_type: Option<String>,
-    /// milliAcceleratorSeconds property.
-    pub milli_accelerator_seconds: Option<String>,
-    /// milliDcuSeconds property.
-    pub milli_dcu_seconds: Option<String>,
-    /// shuffleStorageGbSeconds property.
-    pub shuffle_storage_gb_seconds: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `AuthenticationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthenticationConfig {
-    /// userWorkloadAuthenticationType property.
-    pub user_workload_authentication_type: Option<String>,
-}
-
-/// `AutotuningConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutotuningConfig {
-    /// scenarios property.
-    pub scenarios: Option<Vec<String>>,
-}
-
-/// `PySparkBatch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PySparkBatch {
-    /// archiveUris property.
-    pub archive_uris: Option<Vec<String>>,
-    /// args property.
-    pub args: Option<Vec<String>>,
-    /// fileUris property.
-    pub file_uris: Option<Vec<String>>,
-    /// jarFileUris property.
-    pub jar_file_uris: Option<Vec<String>>,
-    /// mainPythonFileUri property.
-    pub main_python_file_uri: Option<String>,
-    /// pythonFileUris property.
-    pub python_file_uris: Option<Vec<String>>,
-}
-
-/// `RuntimeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RuntimeConfig {
-    /// autotuningConfig property.
-    pub autotuning_config: Option<AutotuningConfig>,
-    /// cohort property.
-    pub cohort: Option<String>,
-    /// containerImage property.
-    pub container_image: Option<String>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
-    /// repositoryConfig property.
-    pub repository_config: Option<RepositoryConfig>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `PropertiesInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PropertiesInfo {
-    /// autotuningProperties property.
-    pub autotuning_properties: Option<serde_json::Value>,
-}
-
-/// `ExecutionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExecutionConfig {
-    /// authenticationConfig property.
-    pub authentication_config: Option<AuthenticationConfig>,
-    /// idleTtl property.
-    pub idle_ttl: Option<String>,
-    /// kmsKey property.
-    pub kms_key: Option<String>,
-    /// networkTags property.
-    pub network_tags: Option<Vec<String>>,
-    /// networkUri property.
-    pub network_uri: Option<String>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-    /// stagingBucket property.
-    pub staging_bucket: Option<String>,
-    /// subnetworkUri property.
-    pub subnetwork_uri: Option<String>,
-    /// ttl property.
-    pub ttl: Option<String>,
-}
-
-/// `SparkHistoryServerConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkHistoryServerConfig {
-    /// dataprocCluster property.
-    pub dataproc_cluster: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct PeripheralsConfig {
+    /// metastoreService property.
+    pub metastore_service: Option<String>,
+    /// sparkHistoryServerConfig property.
+    pub spark_history_server_config: Option<SparkHistoryServerConfig>,
 }
 
 /// `ListBatchesResponse` type.
@@ -225,6 +56,58 @@ pub struct EnvironmentConfig {
     pub execution_config: Option<ExecutionConfig>,
     /// peripheralsConfig property.
     pub peripherals_config: Option<PeripheralsConfig>,
+}
+
+/// `CohortInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CohortInfo {
+    /// cohort property.
+    pub cohort: Option<String>,
+    /// cohortSource property.
+    pub cohort_source: Option<String>,
+}
+
+/// `UsageMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UsageMetrics {
+    /// acceleratorType property.
+    pub accelerator_type: Option<String>,
+    /// milliAcceleratorSeconds property.
+    pub milli_accelerator_seconds: Option<String>,
+    /// milliDcuSeconds property.
+    pub milli_dcu_seconds: Option<String>,
+    /// shuffleStorageGbSeconds property.
+    pub shuffle_storage_gb_seconds: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `StateHistory` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StateHistory {
+    /// state property.
+    pub state: Option<String>,
+    /// stateMessage property.
+    pub state_message: Option<String>,
+    /// stateStartTime property.
+    pub state_start_time: Option<String>,
+}
+
+/// `RuntimeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RuntimeConfig {
+    /// autotuningConfig property.
+    pub autotuning_config: Option<AutotuningConfig>,
+    /// cohort property.
+    pub cohort: Option<String>,
+    /// containerImage property.
+    pub container_image: Option<String>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
+    /// repositoryConfig property.
+    pub repository_config: Option<RepositoryConfig>,
+    /// version property.
+    pub version: Option<String>,
 }
 
 /// `Batch` type.
@@ -266,6 +149,109 @@ pub struct Batch {
     pub uuid: Option<String>,
 }
 
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `PyPiRepositoryConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PyPiRepositoryConfig {
+    /// pypiRepository property.
+    pub pypi_repository: Option<String>,
+}
+
+/// `AuthenticationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthenticationConfig {
+    /// userWorkloadAuthenticationType property.
+    pub user_workload_authentication_type: Option<String>,
+}
+
+/// `SparkSqlBatch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkSqlBatch {
+    /// jarFileUris property.
+    pub jar_file_uris: Option<Vec<String>>,
+    /// queryFileUri property.
+    pub query_file_uri: Option<String>,
+    /// queryVariables property.
+    pub query_variables: Option<serde_json::Value>,
+}
+
+/// `PropertiesInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PropertiesInfo {
+    /// autotuningProperties property.
+    pub autotuning_properties: Option<serde_json::Value>,
+}
+
+/// `ExecutionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExecutionConfig {
+    /// authenticationConfig property.
+    pub authentication_config: Option<AuthenticationConfig>,
+    /// idleTtl property.
+    pub idle_ttl: Option<String>,
+    /// kmsKey property.
+    pub kms_key: Option<String>,
+    /// networkTags property.
+    pub network_tags: Option<Vec<String>>,
+    /// networkUri property.
+    pub network_uri: Option<String>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// stagingBucket property.
+    pub staging_bucket: Option<String>,
+    /// subnetworkUri property.
+    pub subnetwork_uri: Option<String>,
+    /// ttl property.
+    pub ttl: Option<String>,
+}
+
+/// `SparkHistoryServerConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkHistoryServerConfig {
+    /// dataprocCluster property.
+    pub dataproc_cluster: Option<String>,
+}
+
+/// `SparkRBatch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkRBatch {
+    /// archiveUris property.
+    pub archive_uris: Option<Vec<String>>,
+    /// args property.
+    pub args: Option<Vec<String>>,
+    /// fileUris property.
+    pub file_uris: Option<Vec<String>>,
+    /// mainRFileUri property.
+    pub main_r_file_uri: Option<String>,
+}
+
+/// `PySparkBatch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PySparkBatch {
+    /// archiveUris property.
+    pub archive_uris: Option<Vec<String>>,
+    /// args property.
+    pub args: Option<Vec<String>>,
+    /// fileUris property.
+    pub file_uris: Option<Vec<String>>,
+    /// jarFileUris property.
+    pub jar_file_uris: Option<Vec<String>>,
+    /// mainPythonFileUri property.
+    pub main_python_file_uri: Option<String>,
+    /// pythonFileUris property.
+    pub python_file_uris: Option<Vec<String>>,
+}
+
 /// `RuntimeInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RuntimeInfo {
@@ -285,22 +271,18 @@ pub struct RuntimeInfo {
     pub properties_info: Option<PropertiesInfo>,
 }
 
-/// `PeripheralsConfig` type.
+/// `AutotuningConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PeripheralsConfig {
-    /// metastoreService property.
-    pub metastore_service: Option<String>,
-    /// sparkHistoryServerConfig property.
-    pub spark_history_server_config: Option<SparkHistoryServerConfig>,
+pub struct AutotuningConfig {
+    /// scenarios property.
+    pub scenarios: Option<Vec<String>>,
 }
 
-/// `CohortInfo` type.
+/// `RepositoryConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CohortInfo {
-    /// cohort property.
-    pub cohort: Option<String>,
-    /// cohortSource property.
-    pub cohort_source: Option<String>,
+pub struct RepositoryConfig {
+    /// pypiRepositoryConfig property.
+    pub pypi_repository_config: Option<PyPiRepositoryConfig>,
 }
 
 /// `SparkBatch` type.
@@ -318,6 +300,25 @@ pub struct SparkBatch {
     pub main_class: Option<String>,
     /// mainJarFileUri property.
     pub main_jar_file_uri: Option<String>,
+}
+
+/// `UsageSnapshot` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UsageSnapshot {
+    /// acceleratorType property.
+    pub accelerator_type: Option<String>,
+    /// milliAccelerator property.
+    pub milli_accelerator: Option<String>,
+    /// milliDcu property.
+    pub milli_dcu: Option<String>,
+    /// milliDcuPremium property.
+    pub milli_dcu_premium: Option<String>,
+    /// shuffleStorageGb property.
+    pub shuffle_storage_gb: Option<String>,
+    /// shuffleStorageGbPremium property.
+    pub shuffle_storage_gb_premium: Option<String>,
+    /// snapshotTime property.
+    pub snapshot_time: Option<String>,
 }
 
 // =============================================================================

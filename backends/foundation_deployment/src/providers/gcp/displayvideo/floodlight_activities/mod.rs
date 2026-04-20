@@ -12,17 +12,36 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListFloodlightActivitiesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListFloodlightActivitiesResponse {
+    /// floodlightActivities property.
+    pub floodlight_activities: Option<Vec<FloodlightActivity>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `RemarketingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RemarketingConfig {
+    /// advertiserId property.
+    pub advertiser_id: Option<String>,
+    /// remarketingEnabled property.
+    pub remarketing_enabled: Option<bool>,
+}
 
 /// `FloodlightActivity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -43,24 +62,6 @@ pub struct FloodlightActivity {
     pub serving_status: Option<String>,
     /// sslRequired property.
     pub ssl_required: Option<bool>,
-}
-
-/// `ListFloodlightActivitiesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListFloodlightActivitiesResponse {
-    /// floodlightActivities property.
-    pub floodlight_activities: Option<Vec<FloodlightActivity>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `RemarketingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemarketingConfig {
-    /// advertiserId property.
-    pub advertiser_id: Option<String>,
-    /// remarketingEnabled property.
-    pub remarketing_enabled: Option<bool>,
 }
 
 // =============================================================================

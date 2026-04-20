@@ -12,50 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `InconclusiveDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InconclusiveDetail {
-    /// abortedByUser property.
-    pub aborted_by_user: Option<bool>,
-    /// hasErrorLogs property.
-    pub has_error_logs: Option<bool>,
-    /// infrastructureFailure property.
-    pub infrastructure_failure: Option<bool>,
-}
-
-/// `ShardSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShardSummary {
-    /// runs property.
-    pub runs: Option<Vec<StepSummary>>,
-    /// shardResult property.
-    pub shard_result: Option<MergedResult>,
-}
-
-/// `StepSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StepSummary {}
-
-/// `ResultsStorage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResultsStorage {
-    /// resultsStoragePath property.
-    pub results_storage_path: Option<FileReference>,
-    /// xunitXmlFile property.
-    pub xunit_xml_file: Option<FileReference>,
-}
 
 /// `Environment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -84,63 +52,6 @@ pub struct Environment {
     pub shard_summaries: Option<Vec<ShardSummary>>,
 }
 
-/// `Duration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Duration {
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<String>,
-}
-
-/// `Outcome` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Outcome {
-    /// failureDetail property.
-    pub failure_detail: Option<FailureDetail>,
-    /// inconclusiveDetail property.
-    pub inconclusive_detail: Option<InconclusiveDetail>,
-    /// skippedDetail property.
-    pub skipped_detail: Option<SkippedDetail>,
-    /// successDetail property.
-    pub success_detail: Option<SuccessDetail>,
-    /// summary property.
-    pub summary: Option<String>,
-}
-
-/// `SkippedDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SkippedDetail {
-    /// incompatibleAppVersion property.
-    pub incompatible_app_version: Option<bool>,
-    /// incompatibleArchitecture property.
-    pub incompatible_architecture: Option<bool>,
-    /// incompatibleDevice property.
-    pub incompatible_device: Option<bool>,
-    /// pendingTimeout property.
-    pub pending_timeout: Option<bool>,
-}
-
-/// `MergedResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MergedResult {
-    /// outcome property.
-    pub outcome: Option<Outcome>,
-    /// state property.
-    pub state: Option<String>,
-    /// testSuiteOverviews property.
-    pub test_suite_overviews: Option<Vec<TestSuiteOverview>>,
-}
-
-/// `Timestamp` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Timestamp {
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<String>,
-}
-
 /// `TestSuiteOverview` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestSuiteOverview {
@@ -162,35 +73,6 @@ pub struct TestSuiteOverview {
     pub xml_source: Option<FileReference>,
 }
 
-/// `SuccessDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SuccessDetail {
-    /// otherNativeCrash property.
-    pub other_native_crash: Option<bool>,
-}
-
-/// `FileReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FileReference {
-    /// fileUri property.
-    pub file_uri: Option<String>,
-}
-
-/// `ListEnvironmentsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListEnvironmentsResponse {
-    /// environments property.
-    pub environments: Option<Vec<Environment>>,
-    /// executionId property.
-    pub execution_id: Option<String>,
-    /// historyId property.
-    pub history_id: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-}
-
 /// `FailureDetail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FailureDetail {
@@ -210,6 +92,10 @@ pub struct FailureDetail {
     pub unable_to_crawl: Option<bool>,
 }
 
+/// `StepSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StepSummary {}
+
 /// `EnvironmentDimensionValueEntry` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnvironmentDimensionValueEntry {
@@ -217,6 +103,121 @@ pub struct EnvironmentDimensionValueEntry {
     pub key: Option<String>,
     /// value property.
     pub value: Option<String>,
+}
+
+/// `Timestamp` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Timestamp {
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<String>,
+}
+
+/// `MergedResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MergedResult {
+    /// outcome property.
+    pub outcome: Option<Outcome>,
+    /// state property.
+    pub state: Option<String>,
+    /// testSuiteOverviews property.
+    pub test_suite_overviews: Option<Vec<TestSuiteOverview>>,
+}
+
+/// `ListEnvironmentsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListEnvironmentsResponse {
+    /// environments property.
+    pub environments: Option<Vec<Environment>>,
+    /// executionId property.
+    pub execution_id: Option<String>,
+    /// historyId property.
+    pub history_id: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+}
+
+/// `InconclusiveDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InconclusiveDetail {
+    /// abortedByUser property.
+    pub aborted_by_user: Option<bool>,
+    /// hasErrorLogs property.
+    pub has_error_logs: Option<bool>,
+    /// infrastructureFailure property.
+    pub infrastructure_failure: Option<bool>,
+}
+
+/// `Duration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Duration {
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<String>,
+}
+
+/// `ResultsStorage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResultsStorage {
+    /// resultsStoragePath property.
+    pub results_storage_path: Option<FileReference>,
+    /// xunitXmlFile property.
+    pub xunit_xml_file: Option<FileReference>,
+}
+
+/// `FileReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FileReference {
+    /// fileUri property.
+    pub file_uri: Option<String>,
+}
+
+/// `SkippedDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SkippedDetail {
+    /// incompatibleAppVersion property.
+    pub incompatible_app_version: Option<bool>,
+    /// incompatibleArchitecture property.
+    pub incompatible_architecture: Option<bool>,
+    /// incompatibleDevice property.
+    pub incompatible_device: Option<bool>,
+    /// pendingTimeout property.
+    pub pending_timeout: Option<bool>,
+}
+
+/// `SuccessDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SuccessDetail {
+    /// otherNativeCrash property.
+    pub other_native_crash: Option<bool>,
+}
+
+/// `Outcome` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Outcome {
+    /// failureDetail property.
+    pub failure_detail: Option<FailureDetail>,
+    /// inconclusiveDetail property.
+    pub inconclusive_detail: Option<InconclusiveDetail>,
+    /// skippedDetail property.
+    pub skipped_detail: Option<SkippedDetail>,
+    /// successDetail property.
+    pub success_detail: Option<SuccessDetail>,
+    /// summary property.
+    pub summary: Option<String>,
+}
+
+/// `ShardSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShardSummary {
+    /// runs property.
+    pub runs: Option<Vec<StepSummary>>,
+    /// shardResult property.
+    pub shard_result: Option<MergedResult>,
 }
 
 // =============================================================================

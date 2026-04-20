@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -32,22 +33,6 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 pub struct GoogleCloudContactcenterinsightsV1NoteQaQuestionNote {
     /// qaQuestion property.
     pub qa_question: Option<String>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1NoteConversationTurnNote` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1NoteConversationTurnNote {
-    /// turnIndex property.
-    pub turn_index: Option<i64>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1ListNotesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1ListNotesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// notes property.
-    pub notes: Option<Vec<GoogleCloudContactcenterinsightsV1Note>>,
 }
 
 /// `GoogleCloudContactcenterinsightsV1UserInfo` type.
@@ -78,9 +63,25 @@ pub struct GoogleCloudContactcenterinsightsV1Note {
     pub update_time: Option<String>,
 }
 
+/// `GoogleCloudContactcenterinsightsV1NoteConversationTurnNote` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1NoteConversationTurnNote {
+    /// turnIndex property.
+    pub turn_index: Option<i64>,
+}
+
 /// `GoogleCloudContactcenterinsightsV1NoteAssessmentNote` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1NoteAssessmentNote {}
+
+/// `GoogleCloudContactcenterinsightsV1ListNotesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1ListNotesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// notes property.
+    pub notes: Option<Vec<GoogleCloudContactcenterinsightsV1Note>>,
+}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

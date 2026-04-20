@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -23,13 +24,6 @@ use super::shared::ApiResponse;
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `DatabasesRestorePostResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesRestorePostResponse {
-    /// data property.
-    pub data: DatabasesRestore,
-}
 
 /// `DatabasesRestoreConnectionsItem` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -50,6 +44,102 @@ pub struct DatabasesRestoreConnectionsItem {
     pub name: String,
     /// type property.
     pub r#type: String,
+    /// url property.
+    pub url: String,
+}
+
+/// `DatabasesRestoreConnectionsItemEndpoints` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesRestoreConnectionsItemEndpoints {
+    /// accelerate property.
+    pub accelerate: Option<DatabasesRestoreConnectionsItemEndpointsAccelerate>,
+    /// direct property.
+    pub direct: Option<DatabasesRestoreConnectionsItemEndpointsDirect>,
+    /// pooled property.
+    pub pooled: Option<DatabasesRestoreConnectionsItemEndpointsPooled>,
+}
+
+/// `DatabasesRestoreConnectionsItemEndpointsDirect` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesRestoreConnectionsItemEndpointsDirect {
+    /// host property.
+    pub host: String,
+    /// port property.
+    pub port: f64,
+}
+
+/// `DatabasesRestoreProject` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesRestoreProject {
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+    /// url property.
+    pub url: String,
+}
+
+/// `DatabasesRestorePostResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesRestorePostResponse {
+    /// data property.
+    pub data: DatabasesRestore,
+}
+
+/// `DatabasesRestoreSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesRestoreSource {
+    /// backupId property.
+    pub backup_id: String,
+    /// databaseId property.
+    pub database_id: String,
+    /// type property.
+    pub r#type: String,
+}
+
+/// `DatabasesRestorePostRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesRestorePostRequest {
+    /// source property.
+    pub source: DatabasesRestorePostRequestSource,
+}
+
+/// `DatabasesRestoreConnectionsItemEndpointsPooled` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesRestoreConnectionsItemEndpointsPooled {
+    /// host property.
+    pub host: String,
+    /// port property.
+    pub port: f64,
+}
+
+/// `DatabasesRestorePostRequestSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesRestorePostRequestSource {
+    /// backupId property.
+    pub backup_id: String,
+    /// databaseId property.
+    pub database_id: String,
+    /// type property.
+    pub r#type: String,
+}
+
+/// `DatabasesRestoreConnectionsItemEndpointsAccelerate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesRestoreConnectionsItemEndpointsAccelerate {
+    /// host property.
+    pub host: String,
+    /// port property.
+    pub port: f64,
+}
+
+/// `DatabasesRestoreConnectionsItemDatabase` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesRestoreConnectionsItemDatabase {
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
     /// url property.
     pub url: String,
 }
@@ -81,95 +171,6 @@ pub struct DatabasesRestore {
     pub r#type: String,
     /// url property.
     pub url: String,
-}
-
-/// `DatabasesRestoreConnectionsItemDatabase` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesRestoreConnectionsItemDatabase {
-    /// id property.
-    pub id: String,
-    /// name property.
-    pub name: String,
-    /// url property.
-    pub url: String,
-}
-
-/// `DatabasesRestoreProject` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesRestoreProject {
-    /// id property.
-    pub id: String,
-    /// name property.
-    pub name: String,
-    /// url property.
-    pub url: String,
-}
-
-/// `DatabasesRestorePostRequestSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesRestorePostRequestSource {
-    /// backupId property.
-    pub backup_id: String,
-    /// databaseId property.
-    pub database_id: String,
-    /// type property.
-    pub r#type: String,
-}
-
-/// `DatabasesRestoreConnectionsItemEndpointsDirect` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesRestoreConnectionsItemEndpointsDirect {
-    /// host property.
-    pub host: String,
-    /// port property.
-    pub port: f64,
-}
-
-/// `DatabasesRestoreConnectionsItemEndpointsAccelerate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesRestoreConnectionsItemEndpointsAccelerate {
-    /// host property.
-    pub host: String,
-    /// port property.
-    pub port: f64,
-}
-
-/// `DatabasesRestorePostRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesRestorePostRequest {
-    /// source property.
-    pub source: DatabasesRestorePostRequestSource,
-}
-
-/// `DatabasesRestoreConnectionsItemEndpoints` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesRestoreConnectionsItemEndpoints {
-    /// accelerate property.
-    pub accelerate: Option<DatabasesRestoreConnectionsItemEndpointsAccelerate>,
-    /// direct property.
-    pub direct: Option<DatabasesRestoreConnectionsItemEndpointsDirect>,
-    /// pooled property.
-    pub pooled: Option<DatabasesRestoreConnectionsItemEndpointsPooled>,
-}
-
-/// `DatabasesRestoreConnectionsItemEndpointsPooled` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesRestoreConnectionsItemEndpointsPooled {
-    /// host property.
-    pub host: String,
-    /// port property.
-    pub port: f64,
-}
-
-/// `DatabasesRestoreSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesRestoreSource {
-    /// backupId property.
-    pub backup_id: String,
-    /// databaseId property.
-    pub database_id: String,
-    /// type property.
-    pub r#type: String,
 }
 
 // =============================================================================

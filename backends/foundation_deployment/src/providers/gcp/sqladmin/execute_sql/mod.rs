@@ -12,17 +12,32 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Row` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Row {
+    /// values property.
+    pub values: Option<Vec<Value>>,
+}
+
+/// `Metadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Metadata {
+    /// sqlStatementExecutionTime property.
+    pub sql_statement_execution_time: Option<String>,
+}
 
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -35,15 +50,6 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `Value` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Value {
-    /// nullValue property.
-    pub null_value: Option<bool>,
-    /// value property.
-    pub value: Option<String>,
-}
-
 /// `Message` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Message {
@@ -51,33 +57,6 @@ pub struct Message {
     pub message: Option<String>,
     /// severity property.
     pub severity: Option<String>,
-}
-
-/// `Metadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Metadata {
-    /// sqlStatementExecutionTime property.
-    pub sql_statement_execution_time: Option<String>,
-}
-
-/// `Row` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Row {
-    /// values property.
-    pub values: Option<Vec<Value>>,
-}
-
-/// `SqlInstancesExecuteSqlResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlInstancesExecuteSqlResponse {
-    /// messages property.
-    pub messages: Option<Vec<Message>>,
-    /// metadata property.
-    pub metadata: Option<Metadata>,
-    /// results property.
-    pub results: Option<Vec<QueryResult>>,
-    /// status property.
-    pub status: Option<Status>,
 }
 
 /// `QueryResult` type.
@@ -91,6 +70,28 @@ pub struct QueryResult {
     pub partial_result: Option<bool>,
     /// rows property.
     pub rows: Option<Vec<Row>>,
+    /// status property.
+    pub status: Option<Status>,
+}
+
+/// `Value` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Value {
+    /// nullValue property.
+    pub null_value: Option<bool>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `SqlInstancesExecuteSqlResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlInstancesExecuteSqlResponse {
+    /// messages property.
+    pub messages: Option<Vec<Message>>,
+    /// metadata property.
+    pub metadata: Option<Metadata>,
+    /// results property.
+    pub results: Option<Vec<QueryResult>>,
     /// status property.
     pub status: Option<Status>,
 }

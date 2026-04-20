@@ -12,28 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `StructuredMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StructuredMessage {
-    /// messageKey property.
-    pub message_key: Option<String>,
-    /// messageText property.
-    pub message_text: Option<String>,
-    /// parameters property.
-    pub parameters: Option<Vec<Parameter>>,
-}
 
 /// `JobMessage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -46,17 +36,6 @@ pub struct JobMessage {
     pub message_text: Option<String>,
     /// time property.
     pub time: Option<String>,
-}
-
-/// `ListJobMessagesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListJobMessagesResponse {
-    /// autoscalingEvents property.
-    pub autoscaling_events: Option<Vec<AutoscalingEvent>>,
-    /// jobMessages property.
-    pub job_messages: Option<Vec<JobMessage>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 /// `AutoscalingEvent` type.
@@ -74,6 +53,28 @@ pub struct AutoscalingEvent {
     pub time: Option<String>,
     /// workerPool property.
     pub worker_pool: Option<String>,
+}
+
+/// `StructuredMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StructuredMessage {
+    /// messageKey property.
+    pub message_key: Option<String>,
+    /// messageText property.
+    pub message_text: Option<String>,
+    /// parameters property.
+    pub parameters: Option<Vec<Parameter>>,
+}
+
+/// `ListJobMessagesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListJobMessagesResponse {
+    /// autoscalingEvents property.
+    pub autoscaling_events: Option<Vec<AutoscalingEvent>>,
+    /// jobMessages property.
+    pub job_messages: Option<Vec<JobMessage>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `Parameter` type.

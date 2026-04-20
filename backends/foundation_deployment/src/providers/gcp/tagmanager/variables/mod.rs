@@ -12,25 +12,43 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListVariablesResponse` type.
+/// `RevertVariableResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListVariablesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct RevertVariableResponse {
     /// variable property.
-    pub variable: Option<Vec<Variable>>,
+    pub variable: Option<Variable>,
+}
+
+/// `VariableFormatValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VariableFormatValue {
+    /// caseConversionType property.
+    pub case_conversion_type: Option<String>,
+    /// convertFalseToValue property.
+    pub convert_false_to_value: Option<Box<Parameter>>,
+    /// convertNullToValue property.
+    pub convert_null_to_value: Option<Box<Parameter>>,
+    /// convertToBoolean property.
+    pub convert_to_boolean: Option<bool>,
+    /// convertToNumber property.
+    pub convert_to_number: Option<String>,
+    /// convertTrueToValue property.
+    pub convert_true_to_value: Option<Box<Parameter>>,
+    /// convertUndefinedToValue property.
+    pub convert_undefined_to_value: Option<Box<Parameter>>,
 }
 
 /// `Parameter` type.
@@ -41,9 +59,9 @@ pub struct Parameter {
     /// key property.
     pub key: Option<String>,
     /// list property.
-    pub list: Option<Vec<Parameter>>,
+    pub list: Option<Vec<Box<Parameter>>>,
     /// map property.
-    pub map: Option<Vec<Parameter>>,
+    pub map: Option<Vec<Box<Parameter>>>,
     /// type property.
     pub r#type: Option<String>,
     /// value property.
@@ -70,7 +88,7 @@ pub struct Variable {
     /// notes property.
     pub notes: Option<String>,
     /// parameter property.
-    pub parameter: Option<Vec<Parameter>>,
+    pub parameter: Option<Vec<Box<Parameter>>>,
     /// parentFolderId property.
     pub parent_folder_id: Option<String>,
     /// path property.
@@ -89,30 +107,13 @@ pub struct Variable {
     pub workspace_id: Option<String>,
 }
 
-/// `VariableFormatValue` type.
+/// `ListVariablesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VariableFormatValue {
-    /// caseConversionType property.
-    pub case_conversion_type: Option<String>,
-    /// convertFalseToValue property.
-    pub convert_false_to_value: Option<Parameter>,
-    /// convertNullToValue property.
-    pub convert_null_to_value: Option<Parameter>,
-    /// convertToBoolean property.
-    pub convert_to_boolean: Option<bool>,
-    /// convertToNumber property.
-    pub convert_to_number: Option<String>,
-    /// convertTrueToValue property.
-    pub convert_true_to_value: Option<Parameter>,
-    /// convertUndefinedToValue property.
-    pub convert_undefined_to_value: Option<Parameter>,
-}
-
-/// `RevertVariableResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RevertVariableResponse {
+pub struct ListVariablesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
     /// variable property.
-    pub variable: Option<Variable>,
+    pub variable: Option<Vec<Variable>>,
 }
 
 // =============================================================================

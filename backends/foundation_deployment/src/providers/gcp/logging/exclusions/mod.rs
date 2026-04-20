@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,20 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListExclusionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListExclusionsResponse {
+    /// exclusions property.
+    pub exclusions: Option<Vec<LogExclusion>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `LogExclusion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -42,15 +52,6 @@ pub struct LogExclusion {
     pub name: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `ListExclusionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListExclusionsResponse {
-    /// exclusions property.
-    pub exclusions: Option<Vec<LogExclusion>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

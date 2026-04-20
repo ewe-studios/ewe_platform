@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,59 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleIamV2DenyRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV2DenyRule {
-    /// denialCondition property.
-    pub denial_condition: Option<GoogleTypeExpr>,
-    /// deniedPermissions property.
-    pub denied_permissions: Option<Vec<String>>,
-    /// deniedPrincipals property.
-    pub denied_principals: Option<Vec<String>>,
-    /// exceptionPermissions property.
-    pub exception_permissions: Option<Vec<String>>,
-    /// exceptionPrincipals property.
-    pub exception_principals: Option<Vec<String>>,
-}
-
-/// `GoogleTypeExpr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeExpr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleIamV2ListPoliciesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV2ListPoliciesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// policies property.
-    pub policies: Option<Vec<GoogleIamV2Policy>>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
 
 /// `GoogleIamV2Policy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -100,6 +53,32 @@ pub struct GoogleIamV2Policy {
     pub update_time: Option<String>,
 }
 
+/// `GoogleIamV2DenyRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV2DenyRule {
+    /// denialCondition property.
+    pub denial_condition: Option<GoogleTypeExpr>,
+    /// deniedPermissions property.
+    pub denied_permissions: Option<Vec<String>>,
+    /// deniedPrincipals property.
+    pub denied_principals: Option<Vec<String>>,
+    /// exceptionPermissions property.
+    pub exception_permissions: Option<Vec<String>>,
+    /// exceptionPrincipals property.
+    pub exception_principals: Option<Vec<String>>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
 /// `GoogleIamV2PolicyRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV2PolicyRule {
@@ -107,6 +86,28 @@ pub struct GoogleIamV2PolicyRule {
     pub deny_rule: Option<GoogleIamV2DenyRule>,
     /// description property.
     pub description: Option<String>,
+}
+
+/// `GoogleIamV2ListPoliciesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV2ListPoliciesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// policies property.
+    pub policies: Option<Vec<GoogleIamV2Policy>>,
+}
+
+/// `GoogleTypeExpr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeExpr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 // =============================================================================

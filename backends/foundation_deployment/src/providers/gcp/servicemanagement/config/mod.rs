@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,144 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Service;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `MonitoredResourceDescriptor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MonitoredResourceDescriptor {
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// labels property.
-    pub labels: Option<Vec<LabelDescriptor>>,
-    /// launchStage property.
-    pub launch_stage: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `Enum` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Enum {
-    /// edition property.
-    pub edition: Option<String>,
-    /// enumvalue property.
-    pub enumvalue: Option<Vec<EnumValue>>,
-    /// name property.
-    pub name: Option<String>,
-    /// options property.
-    pub options: Option<Vec<OptionType>>,
-    /// sourceContext property.
-    pub source_context: Option<SourceContext>,
-    /// syntax property.
-    pub syntax: Option<String>,
-}
-
-/// `Logging` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Logging {
-    /// consumerDestinations property.
-    pub consumer_destinations: Option<Vec<LoggingDestination>>,
-    /// producerDestinations property.
-    pub producer_destinations: Option<Vec<LoggingDestination>>,
-}
-
-/// `JavaSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JavaSettings {
-    /// common property.
-    pub common: Option<CommonLanguageSettings>,
-    /// libraryPackage property.
-    pub library_package: Option<String>,
-    /// serviceClassNames property.
-    pub service_class_names: Option<serde_json::Value>,
-}
-
-/// `SystemParameters` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SystemParameters {
-    /// rules property.
-    pub rules: Option<Vec<SystemParameterRule>>,
-}
-
-/// `Control` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Control {
-    /// environment property.
-    pub environment: Option<String>,
-    /// methodPolicies property.
-    pub method_policies: Option<Vec<MethodPolicy>>,
-}
-
-/// `Publishing` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Publishing {
-    /// apiShortName property.
-    pub api_short_name: Option<String>,
-    /// codeownerGithubTeams property.
-    pub codeowner_github_teams: Option<Vec<String>>,
-    /// docTagPrefix property.
-    pub doc_tag_prefix: Option<String>,
-    /// documentationUri property.
-    pub documentation_uri: Option<String>,
-    /// githubLabel property.
-    pub github_label: Option<String>,
-    /// librarySettings property.
-    pub library_settings: Option<Vec<ClientLibrarySettings>>,
-    /// methodSettings property.
-    pub method_settings: Option<Vec<MethodSettings>>,
-    /// newIssueUri property.
-    pub new_issue_uri: Option<String>,
-    /// organization property.
-    pub organization: Option<String>,
-    /// protoReferenceDocumentationUri property.
-    pub proto_reference_documentation_uri: Option<String>,
-    /// restReferenceDocumentationUri property.
-    pub rest_reference_documentation_uri: Option<String>,
-}
-
-/// `SystemParameterRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SystemParameterRule {
-    /// parameters property.
-    pub parameters: Option<Vec<SystemParameter>>,
-    /// selector property.
-    pub selector: Option<String>,
-}
-
-/// `AspectRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AspectRule {
-    /// config property.
-    pub config: Option<serde_json::Value>,
-    /// selector property.
-    pub selector: Option<String>,
-}
-
-/// `OAuthRequirements` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OAuthRequirements {
-    /// canonicalScopes property.
-    pub canonical_scopes: Option<String>,
-}
-
-/// `LabelDescriptor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LabelDescriptor {
-    /// description property.
-    pub description: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// valueType property.
-    pub value_type: Option<String>,
-}
 
 /// `DocumentationRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -173,403 +41,11 @@ pub struct DocumentationRule {
     pub selector: Option<String>,
 }
 
-/// `SourceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceInfo {
-    /// sourceFiles property.
-    pub source_files: Option<Vec<serde_json::Value>>,
-}
-
-/// `EnumValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnumValue {
-    /// name property.
-    pub name: Option<String>,
-    /// number property.
-    pub number: Option<i64>,
-    /// options property.
-    pub options: Option<Vec<OptionType>>,
-}
-
-/// `ExperimentalFeatures` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExperimentalFeatures {
-    /// protobufPythonicTypesEnabled property.
-    pub protobuf_pythonic_types_enabled: Option<bool>,
-    /// restAsyncIoEnabled property.
-    pub rest_async_io_enabled: Option<bool>,
-    /// unversionedPackageDisabled property.
-    pub unversioned_package_disabled: Option<bool>,
-}
-
-/// `QuotaLimit` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotaLimit {
-    /// defaultLimit property.
-    pub default_limit: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// duration property.
-    pub duration: Option<String>,
-    /// freeTier property.
-    pub free_tier: Option<String>,
-    /// maxLimit property.
-    pub max_limit: Option<String>,
-    /// metric property.
-    pub metric: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// unit property.
-    pub unit: Option<String>,
-    /// values property.
-    pub values: Option<serde_json::Value>,
-}
-
-/// `CustomHttpPattern` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomHttpPattern {
-    /// kind property.
-    pub kind: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-}
-
-/// `SelectiveGapicGeneration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SelectiveGapicGeneration {
-    /// generateOmittedAsInternal property.
-    pub generate_omitted_as_internal: Option<bool>,
-    /// methods property.
-    pub methods: Option<Vec<String>>,
-}
-
-/// `Http` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Http {
-    /// fullyDecodeReservedExpansion property.
-    pub fully_decode_reserved_expansion: Option<bool>,
-    /// rules property.
-    pub rules: Option<Vec<HttpRule>>,
-}
-
-/// `MetricRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetricRule {
-    /// metricCosts property.
-    pub metric_costs: Option<serde_json::Value>,
-    /// selector property.
-    pub selector: Option<String>,
-}
-
-/// `MonitoringDestination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MonitoringDestination {
-    /// metrics property.
-    pub metrics: Option<Vec<String>>,
-    /// monitoredResource property.
-    pub monitored_resource: Option<String>,
-}
-
 /// `NodeSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeSettings {
     /// common property.
     pub common: Option<CommonLanguageSettings>,
-}
-
-/// `Documentation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Documentation {
-    /// additionalIamInfo property.
-    pub additional_iam_info: Option<String>,
-    /// documentationRootUrl property.
-    pub documentation_root_url: Option<String>,
-    /// overview property.
-    pub overview: Option<String>,
-    /// pages property.
-    pub pages: Option<Vec<Page>>,
-    /// rules property.
-    pub rules: Option<Vec<DocumentationRule>>,
-    /// sectionOverrides property.
-    pub section_overrides: Option<Vec<Page>>,
-    /// serviceRootUrl property.
-    pub service_root_url: Option<String>,
-    /// summary property.
-    pub summary: Option<String>,
-}
-
-/// `SourceContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceContext {
-    /// fileName property.
-    pub file_name: Option<String>,
-}
-
-/// `Context` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Context {
-    /// rules property.
-    pub rules: Option<Vec<ContextRule>>,
-}
-
-/// `LogDescriptor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LogDescriptor {
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// labels property.
-    pub labels: Option<Vec<LabelDescriptor>>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `DotnetSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DotnetSettings {
-    /// common property.
-    pub common: Option<CommonLanguageSettings>,
-    /// forcedNamespaceAliases property.
-    pub forced_namespace_aliases: Option<Vec<String>>,
-    /// handwrittenSignatures property.
-    pub handwritten_signatures: Option<Vec<String>>,
-    /// ignoredResources property.
-    pub ignored_resources: Option<Vec<String>>,
-    /// renamedResources property.
-    pub renamed_resources: Option<serde_json::Value>,
-    /// renamedServices property.
-    pub renamed_services: Option<serde_json::Value>,
-}
-
-/// `Authentication` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Authentication {
-    /// providers property.
-    pub providers: Option<Vec<AuthProvider>>,
-    /// rules property.
-    pub rules: Option<Vec<AuthenticationRule>>,
-}
-
-/// `RubySettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RubySettings {
-    /// common property.
-    pub common: Option<CommonLanguageSettings>,
-}
-
-/// `Quota` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Quota {
-    /// limits property.
-    pub limits: Option<Vec<QuotaLimit>>,
-    /// metricRules property.
-    pub metric_rules: Option<Vec<MetricRule>>,
-}
-
-/// `GoSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoSettings {
-    /// common property.
-    pub common: Option<CommonLanguageSettings>,
-    /// renamedServices property.
-    pub renamed_services: Option<serde_json::Value>,
-}
-
-/// `Backend` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Backend {
-    /// rules property.
-    pub rules: Option<Vec<BackendRule>>,
-}
-
-/// `JwtLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JwtLocation {
-    /// cookie property.
-    pub cookie: Option<String>,
-    /// header property.
-    pub header: Option<String>,
-    /// query property.
-    pub query: Option<String>,
-    /// valuePrefix property.
-    pub value_prefix: Option<String>,
-}
-
-/// `LongRunning` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LongRunning {
-    /// initialPollDelay property.
-    pub initial_poll_delay: Option<String>,
-    /// maxPollDelay property.
-    pub max_poll_delay: Option<String>,
-    /// pollDelayMultiplier property.
-    pub poll_delay_multiplier: Option<f64>,
-    /// totalPollTimeout property.
-    pub total_poll_timeout: Option<String>,
-}
-
-/// `Monitoring` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Monitoring {
-    /// consumerDestinations property.
-    pub consumer_destinations: Option<Vec<MonitoringDestination>>,
-    /// producerDestinations property.
-    pub producer_destinations: Option<Vec<MonitoringDestination>>,
-}
-
-/// `MetricDescriptorMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetricDescriptorMetadata {
-    /// ingestDelay property.
-    pub ingest_delay: Option<String>,
-    /// launchStage property.
-    pub launch_stage: Option<String>,
-    /// samplePeriod property.
-    pub sample_period: Option<String>,
-    /// timeSeriesResourceHierarchyLevel property.
-    pub time_series_resource_hierarchy_level: Option<Vec<String>>,
-}
-
-/// `SystemParameter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SystemParameter {
-    /// httpHeader property.
-    pub http_header: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// urlQueryParameter property.
-    pub url_query_parameter: Option<String>,
-}
-
-/// `Page` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Page {
-    /// content property.
-    pub content: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// subpages property.
-    pub subpages: Option<Vec<Page>>,
-}
-
-/// `MetricDescriptor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetricDescriptor {
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// labels property.
-    pub labels: Option<Vec<LabelDescriptor>>,
-    /// launchStage property.
-    pub launch_stage: Option<String>,
-    /// metadata property.
-    pub metadata: Option<MetricDescriptorMetadata>,
-    /// metricKind property.
-    pub metric_kind: Option<String>,
-    /// monitoredResourceTypes property.
-    pub monitored_resource_types: Option<Vec<String>>,
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// unit property.
-    pub unit: Option<String>,
-    /// valueType property.
-    pub value_type: Option<String>,
-}
-
-/// `CppSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CppSettings {
-    /// common property.
-    pub common: Option<CommonLanguageSettings>,
-}
-
-/// `ContextRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContextRule {
-    /// allowedRequestExtensions property.
-    pub allowed_request_extensions: Option<Vec<String>>,
-    /// allowedResponseExtensions property.
-    pub allowed_response_extensions: Option<Vec<String>>,
-    /// provided property.
-    pub provided: Option<Vec<String>>,
-    /// requested property.
-    pub requested: Option<Vec<String>>,
-    /// selector property.
-    pub selector: Option<String>,
-}
-
-/// `Api` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Api {
-    /// edition property.
-    pub edition: Option<String>,
-    /// methods property.
-    pub methods: Option<Vec<Method>>,
-    /// mixins property.
-    pub mixins: Option<Vec<Mixin>>,
-    /// name property.
-    pub name: Option<String>,
-    /// options property.
-    pub options: Option<Vec<OptionType>>,
-    /// sourceContext property.
-    pub source_context: Option<SourceContext>,
-    /// syntax property.
-    pub syntax: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `AuthRequirement` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthRequirement {
-    /// audiences property.
-    pub audiences: Option<String>,
-    /// providerId property.
-    pub provider_id: Option<String>,
-}
-
-/// `FieldPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FieldPolicy {
-    /// resourcePermission property.
-    pub resource_permission: Option<String>,
-    /// resourceType property.
-    pub resource_type: Option<String>,
-    /// selector property.
-    pub selector: Option<String>,
-}
-
-/// `BillingDestination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BillingDestination {
-    /// metrics property.
-    pub metrics: Option<Vec<String>>,
-    /// monitoredResource property.
-    pub monitored_resource: Option<String>,
-}
-
-/// `LoggingDestination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoggingDestination {
-    /// logs property.
-    pub logs: Option<Vec<String>>,
-    /// monitoredResource property.
-    pub monitored_resource: Option<String>,
-}
-
-/// `PhpSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PhpSettings {
-    /// common property.
-    pub common: Option<CommonLanguageSettings>,
-    /// libraryPackage property.
-    pub library_package: Option<String>,
 }
 
 /// `BackendRule` type.
@@ -599,85 +75,6 @@ pub struct BackendRule {
     pub selector: Option<String>,
 }
 
-/// `UsageRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UsageRule {
-    /// allowUnregisteredCalls property.
-    pub allow_unregistered_calls: Option<bool>,
-    /// selector property.
-    pub selector: Option<String>,
-    /// skipServiceControl property.
-    pub skip_service_control: Option<bool>,
-}
-
-/// `PythonSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PythonSettings {
-    /// common property.
-    pub common: Option<CommonLanguageSettings>,
-    /// experimentalFeatures property.
-    pub experimental_features: Option<ExperimentalFeatures>,
-}
-
-/// `CustomErrorRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomErrorRule {
-    /// isErrorType property.
-    pub is_error_type: Option<bool>,
-    /// selector property.
-    pub selector: Option<String>,
-}
-
-/// `BatchingDescriptorProto` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BatchingDescriptorProto {
-    /// batchedField property.
-    pub batched_field: Option<String>,
-    /// discriminatorFields property.
-    pub discriminator_fields: Option<Vec<String>>,
-    /// subresponseField property.
-    pub subresponse_field: Option<String>,
-}
-
-/// `MethodPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MethodPolicy {
-    /// requestPolicies property.
-    pub request_policies: Option<Vec<FieldPolicy>>,
-    /// selector property.
-    pub selector: Option<String>,
-}
-
-/// `AuthProvider` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthProvider {
-    /// audiences property.
-    pub audiences: Option<String>,
-    /// authorizationUrl property.
-    pub authorization_url: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// issuer property.
-    pub issuer: Option<String>,
-    /// jwksUri property.
-    pub jwks_uri: Option<String>,
-    /// jwtLocations property.
-    pub jwt_locations: Option<Vec<JwtLocation>>,
-}
-
-/// `AuthenticationRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthenticationRule {
-    /// allowWithoutCredential property.
-    pub allow_without_credential: Option<bool>,
-    /// oauth property.
-    pub oauth: Option<OAuthRequirements>,
-    /// requirements property.
-    pub requirements: Option<Vec<AuthRequirement>>,
-    /// selector property.
-    pub selector: Option<String>,
-}
-
 /// `Method` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Method {
@@ -699,34 +96,209 @@ pub struct Method {
     pub syntax: Option<String>,
 }
 
-/// `Endpoint` type.
+/// `MonitoringDestination` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Endpoint {
-    /// aliases property.
-    pub aliases: Option<Vec<String>>,
-    /// allowCors property.
-    pub allow_cors: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-    /// target property.
-    pub target: Option<String>,
+pub struct MonitoringDestination {
+    /// metrics property.
+    pub metrics: Option<Vec<String>>,
+    /// monitoredResource property.
+    pub monitored_resource: Option<String>,
 }
 
-/// `OptionType` response type.
+/// `SourceInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OptionType {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct SourceInfo {
+    /// sourceFiles property.
+    pub source_files: Option<Vec<serde_json::Value>>,
 }
 
-/// `Mixin` type.
+/// `BatchingConfigProto` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Mixin {
+pub struct BatchingConfigProto {
+    /// batchDescriptor property.
+    pub batch_descriptor: Option<BatchingDescriptorProto>,
+    /// thresholds property.
+    pub thresholds: Option<BatchingSettingsProto>,
+}
+
+/// `FieldPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FieldPolicy {
+    /// resourcePermission property.
+    pub resource_permission: Option<String>,
+    /// resourceType property.
+    pub resource_type: Option<String>,
+    /// selector property.
+    pub selector: Option<String>,
+}
+
+/// `Enum` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Enum {
+    /// edition property.
+    pub edition: Option<String>,
+    /// enumvalue property.
+    pub enumvalue: Option<Vec<EnumValue>>,
     /// name property.
     pub name: Option<String>,
-    /// root property.
-    pub root: Option<String>,
+    /// options property.
+    pub options: Option<Vec<OptionType>>,
+    /// sourceContext property.
+    pub source_context: Option<SourceContext>,
+    /// syntax property.
+    pub syntax: Option<String>,
+}
+
+/// `MethodSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MethodSettings {
+    /// autoPopulatedFields property.
+    pub auto_populated_fields: Option<Vec<String>>,
+    /// batching property.
+    pub batching: Option<BatchingConfigProto>,
+    /// longRunning property.
+    pub long_running: Option<LongRunning>,
+    /// selector property.
+    pub selector: Option<String>,
+}
+
+/// `MethodPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MethodPolicy {
+    /// requestPolicies property.
+    pub request_policies: Option<Vec<FieldPolicy>>,
+    /// selector property.
+    pub selector: Option<String>,
+}
+
+/// `QuotaLimit` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuotaLimit {
+    /// defaultLimit property.
+    pub default_limit: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// duration property.
+    pub duration: Option<String>,
+    /// freeTier property.
+    pub free_tier: Option<String>,
+    /// maxLimit property.
+    pub max_limit: Option<String>,
+    /// metric property.
+    pub metric: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// unit property.
+    pub unit: Option<String>,
+    /// values property.
+    pub values: Option<serde_json::Value>,
+}
+
+/// `Documentation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Documentation {
+    /// additionalIamInfo property.
+    pub additional_iam_info: Option<String>,
+    /// documentationRootUrl property.
+    pub documentation_root_url: Option<String>,
+    /// overview property.
+    pub overview: Option<String>,
+    /// pages property.
+    pub pages: Option<Vec<Box<Page>>>,
+    /// rules property.
+    pub rules: Option<Vec<DocumentationRule>>,
+    /// sectionOverrides property.
+    pub section_overrides: Option<Vec<Box<Page>>>,
+    /// serviceRootUrl property.
+    pub service_root_url: Option<String>,
+    /// summary property.
+    pub summary: Option<String>,
+}
+
+/// `OAuthRequirements` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OAuthRequirements {
+    /// canonicalScopes property.
+    pub canonical_scopes: Option<String>,
+}
+
+/// `EnumValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnumValue {
+    /// name property.
+    pub name: Option<String>,
+    /// number property.
+    pub number: Option<i64>,
+    /// options property.
+    pub options: Option<Vec<OptionType>>,
+}
+
+/// `Logging` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Logging {
+    /// consumerDestinations property.
+    pub consumer_destinations: Option<Vec<LoggingDestination>>,
+    /// producerDestinations property.
+    pub producer_destinations: Option<Vec<LoggingDestination>>,
+}
+
+/// `Api` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Api {
+    /// edition property.
+    pub edition: Option<String>,
+    /// methods property.
+    pub methods: Option<Vec<Method>>,
+    /// mixins property.
+    pub mixins: Option<Vec<Mixin>>,
+    /// name property.
+    pub name: Option<String>,
+    /// options property.
+    pub options: Option<Vec<OptionType>>,
+    /// sourceContext property.
+    pub source_context: Option<SourceContext>,
+    /// syntax property.
+    pub syntax: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `MetricRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetricRule {
+    /// metricCosts property.
+    pub metric_costs: Option<serde_json::Value>,
+    /// selector property.
+    pub selector: Option<String>,
+}
+
+/// `CppSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CppSettings {
+    /// common property.
+    pub common: Option<CommonLanguageSettings>,
+}
+
+/// `Page` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Page {
+    /// content property.
+    pub content: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// subpages property.
+    pub subpages: Option<Vec<Box<Page>>>,
+}
+
+/// `Authentication` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Authentication {
+    /// providers property.
+    pub providers: Option<Vec<AuthProvider>>,
+    /// rules property.
+    pub rules: Option<Vec<AuthenticationRule>>,
 }
 
 /// `ClientLibrarySettings` type.
@@ -756,6 +328,230 @@ pub struct ClientLibrarySettings {
     pub version: Option<String>,
 }
 
+/// `BatchingDescriptorProto` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BatchingDescriptorProto {
+    /// batchedField property.
+    pub batched_field: Option<String>,
+    /// discriminatorFields property.
+    pub discriminator_fields: Option<Vec<String>>,
+    /// subresponseField property.
+    pub subresponse_field: Option<String>,
+}
+
+/// `BillingDestination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BillingDestination {
+    /// metrics property.
+    pub metrics: Option<Vec<String>>,
+    /// monitoredResource property.
+    pub monitored_resource: Option<String>,
+}
+
+/// `AspectRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AspectRule {
+    /// config property.
+    pub config: Option<serde_json::Value>,
+    /// selector property.
+    pub selector: Option<String>,
+}
+
+/// `PythonSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PythonSettings {
+    /// common property.
+    pub common: Option<CommonLanguageSettings>,
+    /// experimentalFeatures property.
+    pub experimental_features: Option<ExperimentalFeatures>,
+}
+
+/// `LoggingDestination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoggingDestination {
+    /// logs property.
+    pub logs: Option<Vec<String>>,
+    /// monitoredResource property.
+    pub monitored_resource: Option<String>,
+}
+
+/// `CustomHttpPattern` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomHttpPattern {
+    /// kind property.
+    pub kind: Option<String>,
+    /// path property.
+    pub path: Option<String>,
+}
+
+/// `MetricDescriptorMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetricDescriptorMetadata {
+    /// ingestDelay property.
+    pub ingest_delay: Option<String>,
+    /// launchStage property.
+    pub launch_stage: Option<String>,
+    /// samplePeriod property.
+    pub sample_period: Option<String>,
+    /// timeSeriesResourceHierarchyLevel property.
+    pub time_series_resource_hierarchy_level: Option<Vec<String>>,
+}
+
+/// `Publishing` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Publishing {
+    /// apiShortName property.
+    pub api_short_name: Option<String>,
+    /// codeownerGithubTeams property.
+    pub codeowner_github_teams: Option<Vec<String>>,
+    /// docTagPrefix property.
+    pub doc_tag_prefix: Option<String>,
+    /// documentationUri property.
+    pub documentation_uri: Option<String>,
+    /// githubLabel property.
+    pub github_label: Option<String>,
+    /// librarySettings property.
+    pub library_settings: Option<Vec<ClientLibrarySettings>>,
+    /// methodSettings property.
+    pub method_settings: Option<Vec<MethodSettings>>,
+    /// newIssueUri property.
+    pub new_issue_uri: Option<String>,
+    /// organization property.
+    pub organization: Option<String>,
+    /// protoReferenceDocumentationUri property.
+    pub proto_reference_documentation_uri: Option<String>,
+    /// restReferenceDocumentationUri property.
+    pub rest_reference_documentation_uri: Option<String>,
+}
+
+/// `LongRunning` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LongRunning {
+    /// initialPollDelay property.
+    pub initial_poll_delay: Option<String>,
+    /// maxPollDelay property.
+    pub max_poll_delay: Option<String>,
+    /// pollDelayMultiplier property.
+    pub poll_delay_multiplier: Option<f64>,
+    /// totalPollTimeout property.
+    pub total_poll_timeout: Option<String>,
+}
+
+/// `CustomError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomError {
+    /// rules property.
+    pub rules: Option<Vec<CustomErrorRule>>,
+    /// types property.
+    pub types: Option<Vec<String>>,
+}
+
+/// `SourceContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SourceContext {
+    /// fileName property.
+    pub file_name: Option<String>,
+}
+
+/// `SelectiveGapicGeneration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SelectiveGapicGeneration {
+    /// generateOmittedAsInternal property.
+    pub generate_omitted_as_internal: Option<bool>,
+    /// methods property.
+    pub methods: Option<Vec<String>>,
+}
+
+/// `AuthProvider` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthProvider {
+    /// audiences property.
+    pub audiences: Option<String>,
+    /// authorizationUrl property.
+    pub authorization_url: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// issuer property.
+    pub issuer: Option<String>,
+    /// jwksUri property.
+    pub jwks_uri: Option<String>,
+    /// jwtLocations property.
+    pub jwt_locations: Option<Vec<JwtLocation>>,
+}
+
+/// `MonitoredResourceDescriptor` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MonitoredResourceDescriptor {
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// labels property.
+    pub labels: Option<Vec<LabelDescriptor>>,
+    /// launchStage property.
+    pub launch_stage: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `AuthRequirement` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthRequirement {
+    /// audiences property.
+    pub audiences: Option<String>,
+    /// providerId property.
+    pub provider_id: Option<String>,
+}
+
+/// `AuthenticationRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthenticationRule {
+    /// allowWithoutCredential property.
+    pub allow_without_credential: Option<bool>,
+    /// oauth property.
+    pub oauth: Option<OAuthRequirements>,
+    /// requirements property.
+    pub requirements: Option<Vec<AuthRequirement>>,
+    /// selector property.
+    pub selector: Option<String>,
+}
+
+/// `Control` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Control {
+    /// environment property.
+    pub environment: Option<String>,
+    /// methodPolicies property.
+    pub method_policies: Option<Vec<MethodPolicy>>,
+}
+
+/// `Http` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Http {
+    /// fullyDecodeReservedExpansion property.
+    pub fully_decode_reserved_expansion: Option<bool>,
+    /// rules property.
+    pub rules: Option<Vec<Box<HttpRule>>>,
+}
+
+/// `RubySettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RubySettings {
+    /// common property.
+    pub common: Option<CommonLanguageSettings>,
+}
+
+/// `Mixin` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Mixin {
+    /// name property.
+    pub name: Option<String>,
+    /// root property.
+    pub root: Option<String>,
+}
+
 /// `Type` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Type {
@@ -773,6 +569,280 @@ pub struct Type {
     pub source_context: Option<SourceContext>,
     /// syntax property.
     pub syntax: Option<String>,
+}
+
+/// `SystemParameters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SystemParameters {
+    /// rules property.
+    pub rules: Option<Vec<SystemParameterRule>>,
+}
+
+/// `ContextRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContextRule {
+    /// allowedRequestExtensions property.
+    pub allowed_request_extensions: Option<Vec<String>>,
+    /// allowedResponseExtensions property.
+    pub allowed_response_extensions: Option<Vec<String>>,
+    /// provided property.
+    pub provided: Option<Vec<String>>,
+    /// requested property.
+    pub requested: Option<Vec<String>>,
+    /// selector property.
+    pub selector: Option<String>,
+}
+
+/// `Aspect` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Aspect {
+    /// kind property.
+    pub kind: Option<String>,
+    /// rules property.
+    pub rules: Option<Vec<AspectRule>>,
+    /// spec property.
+    pub spec: Option<serde_json::Value>,
+}
+
+/// `OptionType` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OptionType {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CustomErrorRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomErrorRule {
+    /// isErrorType property.
+    pub is_error_type: Option<bool>,
+    /// selector property.
+    pub selector: Option<String>,
+}
+
+/// `UsageRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UsageRule {
+    /// allowUnregisteredCalls property.
+    pub allow_unregistered_calls: Option<bool>,
+    /// selector property.
+    pub selector: Option<String>,
+    /// skipServiceControl property.
+    pub skip_service_control: Option<bool>,
+}
+
+/// `PhpSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PhpSettings {
+    /// common property.
+    pub common: Option<CommonLanguageSettings>,
+    /// libraryPackage property.
+    pub library_package: Option<String>,
+}
+
+/// `BatchingSettingsProto` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BatchingSettingsProto {
+    /// delayThreshold property.
+    pub delay_threshold: Option<String>,
+    /// elementCountLimit property.
+    pub element_count_limit: Option<i64>,
+    /// elementCountThreshold property.
+    pub element_count_threshold: Option<i64>,
+    /// flowControlByteLimit property.
+    pub flow_control_byte_limit: Option<i64>,
+    /// flowControlElementLimit property.
+    pub flow_control_element_limit: Option<i64>,
+    /// flowControlLimitExceededBehavior property.
+    pub flow_control_limit_exceeded_behavior: Option<String>,
+    /// requestByteLimit property.
+    pub request_byte_limit: Option<i64>,
+    /// requestByteThreshold property.
+    pub request_byte_threshold: Option<String>,
+}
+
+/// `CommonLanguageSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CommonLanguageSettings {
+    /// destinations property.
+    pub destinations: Option<Vec<String>>,
+    /// referenceDocsUri property.
+    pub reference_docs_uri: Option<String>,
+    /// selectiveGapicGeneration property.
+    pub selective_gapic_generation: Option<SelectiveGapicGeneration>,
+}
+
+/// `GoSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoSettings {
+    /// common property.
+    pub common: Option<CommonLanguageSettings>,
+    /// renamedServices property.
+    pub renamed_services: Option<serde_json::Value>,
+}
+
+/// `HttpRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRule {
+    /// additionalBindings property.
+    pub additional_bindings: Option<Vec<Box<HttpRule>>>,
+    /// body property.
+    pub body: Option<String>,
+    /// custom property.
+    pub custom: Option<CustomHttpPattern>,
+    /// delete property.
+    pub delete: Option<String>,
+    /// get property.
+    pub get: Option<String>,
+    /// patch property.
+    pub patch: Option<String>,
+    /// post property.
+    pub post: Option<String>,
+    /// put property.
+    pub put: Option<String>,
+    /// responseBody property.
+    pub response_body: Option<String>,
+    /// selector property.
+    pub selector: Option<String>,
+}
+
+/// `Backend` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Backend {
+    /// rules property.
+    pub rules: Option<Vec<BackendRule>>,
+}
+
+/// `Quota` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Quota {
+    /// limits property.
+    pub limits: Option<Vec<QuotaLimit>>,
+    /// metricRules property.
+    pub metric_rules: Option<Vec<MetricRule>>,
+}
+
+/// `LogDescriptor` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogDescriptor {
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// labels property.
+    pub labels: Option<Vec<LabelDescriptor>>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `Endpoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Endpoint {
+    /// aliases property.
+    pub aliases: Option<Vec<String>>,
+    /// allowCors property.
+    pub allow_cors: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+    /// target property.
+    pub target: Option<String>,
+}
+
+/// `Context` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Context {
+    /// rules property.
+    pub rules: Option<Vec<ContextRule>>,
+}
+
+/// `Billing` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Billing {
+    /// consumerDestinations property.
+    pub consumer_destinations: Option<Vec<BillingDestination>>,
+}
+
+/// `Usage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Usage {
+    /// producerNotificationChannel property.
+    pub producer_notification_channel: Option<String>,
+    /// requirements property.
+    pub requirements: Option<Vec<String>>,
+    /// rules property.
+    pub rules: Option<Vec<UsageRule>>,
+}
+
+/// `ExperimentalFeatures` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExperimentalFeatures {
+    /// protobufPythonicTypesEnabled property.
+    pub protobuf_pythonic_types_enabled: Option<bool>,
+    /// restAsyncIoEnabled property.
+    pub rest_async_io_enabled: Option<bool>,
+    /// unversionedPackageDisabled property.
+    pub unversioned_package_disabled: Option<bool>,
+}
+
+/// `JavaSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JavaSettings {
+    /// common property.
+    pub common: Option<CommonLanguageSettings>,
+    /// libraryPackage property.
+    pub library_package: Option<String>,
+    /// serviceClassNames property.
+    pub service_class_names: Option<serde_json::Value>,
+}
+
+/// `MetricDescriptor` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetricDescriptor {
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// labels property.
+    pub labels: Option<Vec<LabelDescriptor>>,
+    /// launchStage property.
+    pub launch_stage: Option<String>,
+    /// metadata property.
+    pub metadata: Option<MetricDescriptorMetadata>,
+    /// metricKind property.
+    pub metric_kind: Option<String>,
+    /// monitoredResourceTypes property.
+    pub monitored_resource_types: Option<Vec<String>>,
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// unit property.
+    pub unit: Option<String>,
+    /// valueType property.
+    pub value_type: Option<String>,
+}
+
+/// `SystemParameterRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SystemParameterRule {
+    /// parameters property.
+    pub parameters: Option<Vec<SystemParameter>>,
+    /// selector property.
+    pub selector: Option<String>,
+}
+
+/// `JwtLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JwtLocation {
+    /// cookie property.
+    pub cookie: Option<String>,
+    /// header property.
+    pub header: Option<String>,
+    /// query property.
+    pub query: Option<String>,
+    /// valuePrefix property.
+    pub value_prefix: Option<String>,
 }
 
 /// `Field` type.
@@ -800,121 +870,52 @@ pub struct Field {
     pub type_url: Option<String>,
 }
 
-/// `MethodSettings` type.
+/// `Monitoring` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MethodSettings {
-    /// autoPopulatedFields property.
-    pub auto_populated_fields: Option<Vec<String>>,
-    /// batching property.
-    pub batching: Option<BatchingConfigProto>,
-    /// longRunning property.
-    pub long_running: Option<LongRunning>,
-    /// selector property.
-    pub selector: Option<String>,
-}
-
-/// `CommonLanguageSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CommonLanguageSettings {
-    /// destinations property.
-    pub destinations: Option<Vec<String>>,
-    /// referenceDocsUri property.
-    pub reference_docs_uri: Option<String>,
-    /// selectiveGapicGeneration property.
-    pub selective_gapic_generation: Option<SelectiveGapicGeneration>,
-}
-
-/// `Billing` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Billing {
+pub struct Monitoring {
     /// consumerDestinations property.
-    pub consumer_destinations: Option<Vec<BillingDestination>>,
+    pub consumer_destinations: Option<Vec<MonitoringDestination>>,
+    /// producerDestinations property.
+    pub producer_destinations: Option<Vec<MonitoringDestination>>,
 }
 
-/// `Aspect` type.
+/// `LabelDescriptor` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Aspect {
-    /// kind property.
-    pub kind: Option<String>,
-    /// rules property.
-    pub rules: Option<Vec<AspectRule>>,
-    /// spec property.
-    pub spec: Option<serde_json::Value>,
+pub struct LabelDescriptor {
+    /// description property.
+    pub description: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// valueType property.
+    pub value_type: Option<String>,
 }
 
-/// `BatchingSettingsProto` type.
+/// `SystemParameter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BatchingSettingsProto {
-    /// delayThreshold property.
-    pub delay_threshold: Option<String>,
-    /// elementCountLimit property.
-    pub element_count_limit: Option<i64>,
-    /// elementCountThreshold property.
-    pub element_count_threshold: Option<i64>,
-    /// flowControlByteLimit property.
-    pub flow_control_byte_limit: Option<i64>,
-    /// flowControlElementLimit property.
-    pub flow_control_element_limit: Option<i64>,
-    /// flowControlLimitExceededBehavior property.
-    pub flow_control_limit_exceeded_behavior: Option<String>,
-    /// requestByteLimit property.
-    pub request_byte_limit: Option<i64>,
-    /// requestByteThreshold property.
-    pub request_byte_threshold: Option<String>,
+pub struct SystemParameter {
+    /// httpHeader property.
+    pub http_header: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// urlQueryParameter property.
+    pub url_query_parameter: Option<String>,
 }
 
-/// `HttpRule` type.
+/// `DotnetSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRule {
-    /// additionalBindings property.
-    pub additional_bindings: Option<Vec<HttpRule>>,
-    /// body property.
-    pub body: Option<String>,
-    /// custom property.
-    pub custom: Option<CustomHttpPattern>,
-    /// delete property.
-    pub delete: Option<String>,
-    /// get property.
-    pub get: Option<String>,
-    /// patch property.
-    pub patch: Option<String>,
-    /// post property.
-    pub post: Option<String>,
-    /// put property.
-    pub put: Option<String>,
-    /// responseBody property.
-    pub response_body: Option<String>,
-    /// selector property.
-    pub selector: Option<String>,
-}
-
-/// `Usage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Usage {
-    /// producerNotificationChannel property.
-    pub producer_notification_channel: Option<String>,
-    /// requirements property.
-    pub requirements: Option<Vec<String>>,
-    /// rules property.
-    pub rules: Option<Vec<UsageRule>>,
-}
-
-/// `BatchingConfigProto` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BatchingConfigProto {
-    /// batchDescriptor property.
-    pub batch_descriptor: Option<BatchingDescriptorProto>,
-    /// thresholds property.
-    pub thresholds: Option<BatchingSettingsProto>,
-}
-
-/// `CustomError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomError {
-    /// rules property.
-    pub rules: Option<Vec<CustomErrorRule>>,
-    /// types property.
-    pub types: Option<Vec<String>>,
+pub struct DotnetSettings {
+    /// common property.
+    pub common: Option<CommonLanguageSettings>,
+    /// forcedNamespaceAliases property.
+    pub forced_namespace_aliases: Option<Vec<String>>,
+    /// handwrittenSignatures property.
+    pub handwritten_signatures: Option<Vec<String>>,
+    /// ignoredResources property.
+    pub ignored_resources: Option<Vec<String>>,
+    /// renamedResources property.
+    pub renamed_resources: Option<serde_json::Value>,
+    /// renamedServices property.
+    pub renamed_services: Option<serde_json::Value>,
 }
 
 // =============================================================================

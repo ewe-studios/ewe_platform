@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,11 +23,29 @@ use serde::{Deserialize, Serialize};
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `NamespacedName` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NamespacedName {
+    /// name property.
+    pub name: Option<String>,
+    /// namespace property.
+    pub namespace: Option<String>,
+}
 
 /// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -50,13 +69,13 @@ pub struct AuditConfig {
     pub service: Option<String>,
 }
 
-/// `NamespacedName` type.
+/// `ListVolumeBackupsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NamespacedName {
-    /// name property.
-    pub name: Option<String>,
-    /// namespace property.
-    pub namespace: Option<String>,
+pub struct ListVolumeBackupsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// volumeBackups property.
+    pub volume_backups: Option<Vec<VolumeBackup>>,
 }
 
 /// `VolumeBackup` type.
@@ -92,24 +111,6 @@ pub struct VolumeBackup {
     pub update_time: Option<String>,
     /// volumeBackupHandle property.
     pub volume_backup_handle: Option<String>,
-}
-
-/// `ListVolumeBackupsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListVolumeBackupsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// volumeBackups property.
-    pub volume_backups: Option<Vec<VolumeBackup>>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
 }
 
 /// `Binding` type.

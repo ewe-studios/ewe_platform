@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -52,50 +53,6 @@ pub struct WorkflowConfig {
     pub update_time: Option<String>,
 }
 
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `ScheduledExecutionRecord` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScheduledExecutionRecord {
-    /// errorStatus property.
-    pub error_status: Option<Status>,
-    /// executionTime property.
-    pub execution_time: Option<String>,
-    /// workflowInvocation property.
-    pub workflow_invocation: Option<String>,
-}
-
-/// `ListWorkflowConfigsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListWorkflowConfigsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-    /// workflowConfigs property.
-    pub workflow_configs: Option<Vec<WorkflowConfig>>,
-}
-
-/// `Target` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Target {
-    /// database property.
-    pub database: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// schema property.
-    pub schema: Option<String>,
-}
-
 /// `InvocationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvocationConfig {
@@ -113,6 +70,50 @@ pub struct InvocationConfig {
     pub transitive_dependencies_included: Option<bool>,
     /// transitiveDependentsIncluded property.
     pub transitive_dependents_included: Option<bool>,
+}
+
+/// `Target` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Target {
+    /// database property.
+    pub database: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// schema property.
+    pub schema: Option<String>,
+}
+
+/// `ListWorkflowConfigsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListWorkflowConfigsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+    /// workflowConfigs property.
+    pub workflow_configs: Option<Vec<WorkflowConfig>>,
+}
+
+/// `ScheduledExecutionRecord` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ScheduledExecutionRecord {
+    /// errorStatus property.
+    pub error_status: Option<Status>,
+    /// executionTime property.
+    pub execution_time: Option<String>,
+    /// workflowInvocation property.
+    pub workflow_invocation: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

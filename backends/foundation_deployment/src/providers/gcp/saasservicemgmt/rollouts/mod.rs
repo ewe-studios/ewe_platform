@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,28 +22,28 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `RolloutStats` type.
+/// `ListRolloutsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RolloutStats {
-    /// estimatedTotalUnitCount property.
-    pub estimated_total_unit_count: Option<String>,
-    /// operationsByState property.
-    pub operations_by_state: Option<Vec<Aggregate>>,
+pub struct ListRolloutsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// rollouts property.
+    pub rollouts: Option<Vec<Rollout>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
-/// `RolloutControl` type.
+/// `RunRolloutActionParams` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RolloutControl {
-    /// action property.
-    pub action: Option<String>,
-    /// runParams property.
-    pub run_params: Option<RunRolloutActionParams>,
+pub struct RunRolloutActionParams {
+    /// retryFailedOperations property.
+    pub retry_failed_operations: Option<bool>,
 }
 
 /// `Rollout` type.
@@ -94,6 +95,15 @@ pub struct Rollout {
     pub update_time: Option<String>,
 }
 
+/// `RolloutControl` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RolloutControl {
+    /// action property.
+    pub action: Option<String>,
+    /// runParams property.
+    pub run_params: Option<RunRolloutActionParams>,
+}
+
 /// `Aggregate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Aggregate {
@@ -103,22 +113,13 @@ pub struct Aggregate {
     pub group: Option<String>,
 }
 
-/// `ListRolloutsResponse` type.
+/// `RolloutStats` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListRolloutsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// rollouts property.
-    pub rollouts: Option<Vec<Rollout>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `RunRolloutActionParams` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RunRolloutActionParams {
-    /// retryFailedOperations property.
-    pub retry_failed_operations: Option<bool>,
+pub struct RolloutStats {
+    /// estimatedTotalUnitCount property.
+    pub estimated_total_unit_count: Option<String>,
+    /// operationsByState property.
+    pub operations_by_state: Option<Vec<Aggregate>>,
 }
 
 // =============================================================================

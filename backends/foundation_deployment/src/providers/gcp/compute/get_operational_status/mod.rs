@@ -12,32 +12,66 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `InterconnectGroupsGetOperationalStatusResponse` type.
+/// `InterconnectDiagnosticsLinkLACPStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectGroupsGetOperationalStatusResponse {
-    /// etag property.
-    pub etag: Option<String>,
-    /// result property.
-    pub result: Option<InterconnectGroupsOperationalStatus>,
+pub struct InterconnectDiagnosticsLinkLACPStatus {
+    /// googleSystemId property.
+    pub google_system_id: Option<String>,
+    /// neighborSystemId property.
+    pub neighbor_system_id: Option<String>,
+    /// state property.
+    pub state: Option<String>,
 }
 
-/// `InterconnectGroupConfigured` type.
+/// `InterconnectGroupConfiguredTopologyCapability` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectGroupConfigured {
-    /// topologyCapability property.
-    pub topology_capability: Option<InterconnectGroupConfiguredTopologyCapability>,
+pub struct InterconnectGroupConfiguredTopologyCapability {
+    /// intendedCapabilityBlockers property.
+    pub intended_capability_blockers:
+        Option<Vec<InterconnectGroupConfiguredTopologyCapabilityIntendedCapabilityBlockers>>,
+    /// supportedSla property.
+    pub supported_sla: Option<String>,
+}
+
+/// `InterconnectGroupConfiguredTopologyCapabilityIntendedCapabilityBlockers` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectGroupConfiguredTopologyCapabilityIntendedCapabilityBlockers {
+    /// blockerType property.
+    pub blocker_type: Option<String>,
+    /// documentationLink property.
+    pub documentation_link: Option<String>,
+    /// explanation property.
+    pub explanation: Option<String>,
+    /// facilities property.
+    pub facilities: Option<Vec<String>>,
+    /// interconnects property.
+    pub interconnects: Option<Vec<String>>,
+    /// metros property.
+    pub metros: Option<Vec<String>>,
+    /// zones property.
+    pub zones: Option<Vec<String>>,
+}
+
+/// `InterconnectDiagnosticsLinkOpticalPower` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectDiagnosticsLinkOpticalPower {
+    /// state property.
+    pub state: Option<String>,
+    /// value property.
+    pub value: Option<f64>,
 }
 
 /// `InterconnectAttachmentGroupsOperationalStatusAttachmentStatus` type.
@@ -51,109 +85,6 @@ pub struct InterconnectAttachmentGroupsOperationalStatusAttachmentStatus {
     pub is_active: Option<String>,
     /// status property.
     pub status: Option<String>,
-}
-
-/// `InterconnectDiagnosticsLinkLACPStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectDiagnosticsLinkLACPStatus {
-    /// googleSystemId property.
-    pub google_system_id: Option<String>,
-    /// neighborSystemId property.
-    pub neighbor_system_id: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `InterconnectDiagnosticsLinkOpticalPower` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectDiagnosticsLinkOpticalPower {
-    /// state property.
-    pub state: Option<String>,
-    /// value property.
-    pub value: Option<f64>,
-}
-
-/// `InterconnectAttachmentGroupConfiguredAvailabilitySLA` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachmentGroupConfiguredAvailabilitySLA {
-    /// effectiveSla property.
-    pub effective_sla: Option<String>,
-    /// intendedSlaBlockers property.
-    pub intended_sla_blockers:
-        Option<Vec<InterconnectAttachmentGroupConfiguredAvailabilitySLAIntendedSlaBlockers>>,
-}
-
-/// `InterconnectGroupConfiguredTopologyCapability` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectGroupConfiguredTopologyCapability {
-    /// intendedCapabilityBlockers property.
-    pub intended_capability_blockers:
-        Option<Vec<InterconnectGroupConfiguredTopologyCapabilityIntendedCapabilityBlockers>>,
-    /// supportedSla property.
-    pub supported_sla: Option<String>,
-}
-
-/// `InterconnectAttachmentGroupIntent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachmentGroupIntent {
-    /// availabilitySla property.
-    pub availability_sla: Option<String>,
-}
-
-/// `InterconnectAttachmentGroupConfiguredAvailabilitySLAIntendedSlaBlockers` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachmentGroupConfiguredAvailabilitySLAIntendedSlaBlockers {
-    /// attachments property.
-    pub attachments: Option<Vec<String>>,
-    /// blockerType property.
-    pub blocker_type: Option<String>,
-    /// documentationLink property.
-    pub documentation_link: Option<String>,
-    /// explanation property.
-    pub explanation: Option<String>,
-    /// metros property.
-    pub metros: Option<Vec<String>>,
-    /// regions property.
-    pub regions: Option<Vec<String>>,
-    /// zones property.
-    pub zones: Option<Vec<String>>,
-}
-
-/// `InterconnectGroupsOperationalStatusInterconnectStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectGroupsOperationalStatusInterconnectStatus {
-    /// adminEnabled property.
-    pub admin_enabled: Option<bool>,
-    /// diagnostics property.
-    pub diagnostics: Option<InterconnectDiagnostics>,
-    /// interconnect property.
-    pub interconnect: Option<String>,
-    /// isActive property.
-    pub is_active: Option<String>,
-}
-
-/// `InterconnectDiagnostics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectDiagnostics {
-    /// arpCaches property.
-    pub arp_caches: Option<Vec<InterconnectDiagnosticsARPEntry>>,
-    /// bundleAggregationType property.
-    pub bundle_aggregation_type: Option<String>,
-    /// bundleOperationalStatus property.
-    pub bundle_operational_status: Option<String>,
-    /// links property.
-    pub links: Option<Vec<InterconnectDiagnosticsLinkStatus>>,
-    /// macAddress property.
-    pub mac_address: Option<String>,
-}
-
-/// `InterconnectDiagnosticsARPEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectDiagnosticsARPEntry {
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// macAddress property.
-    pub mac_address: Option<String>,
 }
 
 /// `InterconnectDiagnosticsLinkStatus` type.
@@ -177,32 +108,6 @@ pub struct InterconnectDiagnosticsLinkStatus {
     pub transmitting_optical_power: Option<InterconnectDiagnosticsLinkOpticalPower>,
 }
 
-/// `InterconnectAttachmentGroupConfigured` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachmentGroupConfigured {
-    /// availabilitySla property.
-    pub availability_sla: Option<InterconnectAttachmentGroupConfiguredAvailabilitySLA>,
-}
-
-/// `InterconnectGroupConfiguredTopologyCapabilityIntendedCapabilityBlockers` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectGroupConfiguredTopologyCapabilityIntendedCapabilityBlockers {
-    /// blockerType property.
-    pub blocker_type: Option<String>,
-    /// documentationLink property.
-    pub documentation_link: Option<String>,
-    /// explanation property.
-    pub explanation: Option<String>,
-    /// facilities property.
-    pub facilities: Option<Vec<String>>,
-    /// interconnects property.
-    pub interconnects: Option<Vec<String>>,
-    /// metros property.
-    pub metros: Option<Vec<String>>,
-    /// zones property.
-    pub zones: Option<Vec<String>>,
-}
-
 /// `InterconnectAttachmentGroupsGetOperationalStatusResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentGroupsGetOperationalStatusResponse {
@@ -210,6 +115,74 @@ pub struct InterconnectAttachmentGroupsGetOperationalStatusResponse {
     pub etag: Option<String>,
     /// result property.
     pub result: Option<InterconnectAttachmentGroupsOperationalStatus>,
+}
+
+/// `InterconnectDiagnostics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectDiagnostics {
+    /// arpCaches property.
+    pub arp_caches: Option<Vec<InterconnectDiagnosticsARPEntry>>,
+    /// bundleAggregationType property.
+    pub bundle_aggregation_type: Option<String>,
+    /// bundleOperationalStatus property.
+    pub bundle_operational_status: Option<String>,
+    /// links property.
+    pub links: Option<Vec<InterconnectDiagnosticsLinkStatus>>,
+    /// macAddress property.
+    pub mac_address: Option<String>,
+}
+
+/// `InterconnectGroupIntent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectGroupIntent {
+    /// topologyCapability property.
+    pub topology_capability: Option<String>,
+}
+
+/// `InterconnectGroupsGetOperationalStatusResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectGroupsGetOperationalStatusResponse {
+    /// etag property.
+    pub etag: Option<String>,
+    /// result property.
+    pub result: Option<InterconnectGroupsOperationalStatus>,
+}
+
+/// `InterconnectGroupsOperationalStatusInterconnectStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectGroupsOperationalStatusInterconnectStatus {
+    /// adminEnabled property.
+    pub admin_enabled: Option<bool>,
+    /// diagnostics property.
+    pub diagnostics: Option<InterconnectDiagnostics>,
+    /// interconnect property.
+    pub interconnect: Option<String>,
+    /// isActive property.
+    pub is_active: Option<String>,
+}
+
+/// `InterconnectDiagnosticsARPEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectDiagnosticsARPEntry {
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// macAddress property.
+    pub mac_address: Option<String>,
+}
+
+/// `InterconnectGroupsOperationalStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectGroupsOperationalStatus {
+    /// configured property.
+    pub configured: Option<InterconnectGroupConfigured>,
+    /// groupStatus property.
+    pub group_status: Option<String>,
+    /// intent property.
+    pub intent: Option<InterconnectGroupIntent>,
+    /// interconnectStatuses property.
+    pub interconnect_statuses: Option<Vec<InterconnectGroupsOperationalStatusInterconnectStatus>>,
+    /// operational property.
+    pub operational: Option<InterconnectGroupConfigured>,
 }
 
 /// `InterconnectAttachmentGroupsOperationalStatus` type.
@@ -228,26 +201,11 @@ pub struct InterconnectAttachmentGroupsOperationalStatus {
     pub operational: Option<InterconnectAttachmentGroupConfigured>,
 }
 
-/// `InterconnectGroupsOperationalStatus` type.
+/// `InterconnectAttachmentGroupIntent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectGroupsOperationalStatus {
-    /// configured property.
-    pub configured: Option<InterconnectGroupConfigured>,
-    /// groupStatus property.
-    pub group_status: Option<String>,
-    /// intent property.
-    pub intent: Option<InterconnectGroupIntent>,
-    /// interconnectStatuses property.
-    pub interconnect_statuses: Option<Vec<InterconnectGroupsOperationalStatusInterconnectStatus>>,
-    /// operational property.
-    pub operational: Option<InterconnectGroupConfigured>,
-}
-
-/// `InterconnectGroupIntent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectGroupIntent {
-    /// topologyCapability property.
-    pub topology_capability: Option<String>,
+pub struct InterconnectAttachmentGroupIntent {
+    /// availabilitySla property.
+    pub availability_sla: Option<String>,
 }
 
 /// `InterconnectDiagnosticsMacsecStatus` type.
@@ -257,6 +215,49 @@ pub struct InterconnectDiagnosticsMacsecStatus {
     pub ckn: Option<String>,
     /// operational property.
     pub operational: Option<bool>,
+}
+
+/// `InterconnectAttachmentGroupConfigured` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectAttachmentGroupConfigured {
+    /// availabilitySla property.
+    pub availability_sla: Option<InterconnectAttachmentGroupConfiguredAvailabilitySLA>,
+}
+
+/// `InterconnectAttachmentGroupConfiguredAvailabilitySLA` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectAttachmentGroupConfiguredAvailabilitySLA {
+    /// effectiveSla property.
+    pub effective_sla: Option<String>,
+    /// intendedSlaBlockers property.
+    pub intended_sla_blockers:
+        Option<Vec<InterconnectAttachmentGroupConfiguredAvailabilitySLAIntendedSlaBlockers>>,
+}
+
+/// `InterconnectAttachmentGroupConfiguredAvailabilitySLAIntendedSlaBlockers` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectAttachmentGroupConfiguredAvailabilitySLAIntendedSlaBlockers {
+    /// attachments property.
+    pub attachments: Option<Vec<String>>,
+    /// blockerType property.
+    pub blocker_type: Option<String>,
+    /// documentationLink property.
+    pub documentation_link: Option<String>,
+    /// explanation property.
+    pub explanation: Option<String>,
+    /// metros property.
+    pub metros: Option<Vec<String>>,
+    /// regions property.
+    pub regions: Option<Vec<String>>,
+    /// zones property.
+    pub zones: Option<Vec<String>>,
+}
+
+/// `InterconnectGroupConfigured` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectGroupConfigured {
+    /// topologyCapability property.
+    pub topology_capability: Option<InterconnectGroupConfiguredTopologyCapability>,
 }
 
 // =============================================================================

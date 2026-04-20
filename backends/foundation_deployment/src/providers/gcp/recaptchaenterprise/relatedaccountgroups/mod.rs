@@ -12,17 +12,25 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudRecaptchaenterpriseV1RelatedAccountGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1RelatedAccountGroup {
+    /// name property.
+    pub name: Option<String>,
+}
 
 /// `GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -31,13 +39,6 @@ pub struct GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupsResponse {
     pub next_page_token: Option<String>,
     /// relatedAccountGroups property.
     pub related_account_groups: Option<Vec<GoogleCloudRecaptchaenterpriseV1RelatedAccountGroup>>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1RelatedAccountGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1RelatedAccountGroup {
-    /// name property.
-    pub name: Option<String>,
 }
 
 // =============================================================================

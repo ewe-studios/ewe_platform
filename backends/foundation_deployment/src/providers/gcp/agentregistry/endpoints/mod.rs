@@ -12,17 +12,36 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Interface` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Interface {
+    /// protocolBinding property.
+    pub protocol_binding: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `ListEndpointsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListEndpointsResponse {
+    /// endpoints property.
+    pub endpoints: Option<Vec<Endpoint>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `Endpoint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -43,24 +62,6 @@ pub struct Endpoint {
     pub name: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `ListEndpointsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListEndpointsResponse {
-    /// endpoints property.
-    pub endpoints: Option<Vec<Endpoint>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `Interface` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Interface {
-    /// protocolBinding property.
-    pub protocol_binding: Option<String>,
-    /// url property.
-    pub url: Option<String>,
 }
 
 // =============================================================================

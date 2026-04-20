@@ -7,67 +7,44 @@
 
 #![cfg(feature = "gcp_calendar_events")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
 use super::shared::Event;
 use super::shared::Events;
 
-use super::shared::{ApiResponse, ApiError, ApiPending};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `EventAttachment` type.
+/// `ConferenceSolution` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventAttachment {
-    /// fileId property.
-    pub file_id: Option<String>,
-    /// fileUrl property.
-    pub file_url: Option<String>,
-    /// iconLink property.
-    pub icon_link: Option<String>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct ConferenceSolution {
+    /// iconUri property.
+    pub icon_uri: Option<String>,
+    /// key property.
+    pub key: Option<ConferenceSolutionKey>,
+    /// name property.
+    pub name: Option<String>,
 }
 
-/// `CreateConferenceRequest` type.
+/// `ConferenceRequestStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateConferenceRequest {
-    /// conferenceSolutionKey property.
-    pub conference_solution_key: Option<ConferenceSolutionKey>,
-    /// requestId property.
-    pub request_id: Option<String>,
-    /// status property.
-    pub status: Option<ConferenceRequestStatus>,
-}
-
-/// `EventReminder` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventReminder {
-    /// method property.
-    pub method: Option<String>,
-    /// minutes property.
-    pub minutes: Option<i64>,
-}
-
-/// `EventDateTime` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventDateTime {
-    /// date property.
-    pub date: Option<String>,
-    /// dateTime property.
-    pub date_time: Option<String>,
-    /// timeZone property.
-    pub time_zone: Option<String>,
+pub struct ConferenceRequestStatus {
+    /// statusCode property.
+    pub status_code: Option<String>,
 }
 
 /// `EventWorkingLocationProperties` type.
@@ -90,11 +67,15 @@ pub struct ConferenceSolutionKey {
     pub r#type: Option<String>,
 }
 
-/// `ConferenceParameters` type.
+/// `CreateConferenceRequest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConferenceParameters {
-    /// addOnParameters property.
-    pub add_on_parameters: Option<ConferenceParametersAddOnParameters>,
+pub struct CreateConferenceRequest {
+    /// conferenceSolutionKey property.
+    pub conference_solution_key: Option<ConferenceSolutionKey>,
+    /// requestId property.
+    pub request_id: Option<String>,
+    /// status property.
+    pub status: Option<ConferenceRequestStatus>,
 }
 
 /// `EventOutOfOfficeProperties` type.
@@ -104,71 +85,6 @@ pub struct EventOutOfOfficeProperties {
     pub auto_decline_mode: Option<String>,
     /// declineMessage property.
     pub decline_message: Option<String>,
-}
-
-/// `ConferenceSolution` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConferenceSolution {
-    /// iconUri property.
-    pub icon_uri: Option<String>,
-    /// key property.
-    pub key: Option<ConferenceSolutionKey>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `EventFocusTimeProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventFocusTimeProperties {
-    /// autoDeclineMode property.
-    pub auto_decline_mode: Option<String>,
-    /// chatStatus property.
-    pub chat_status: Option<String>,
-    /// declineMessage property.
-    pub decline_message: Option<String>,
-}
-
-/// `EntryPoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EntryPoint {
-    /// accessCode property.
-    pub access_code: Option<String>,
-    /// entryPointFeatures property.
-    pub entry_point_features: Option<Vec<String>>,
-    /// entryPointType property.
-    pub entry_point_type: Option<String>,
-    /// label property.
-    pub label: Option<String>,
-    /// meetingCode property.
-    pub meeting_code: Option<String>,
-    /// passcode property.
-    pub passcode: Option<String>,
-    /// password property.
-    pub password: Option<String>,
-    /// pin property.
-    pub pin: Option<String>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `ConferenceRequestStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConferenceRequestStatus {
-    /// statusCode property.
-    pub status_code: Option<String>,
-}
-
-/// `EventBirthdayProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventBirthdayProperties {
-    /// contact property.
-    pub contact: Option<String>,
-    /// customTypeName property.
-    pub custom_type_name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
 }
 
 /// `ConferenceData` type.
@@ -188,6 +104,43 @@ pub struct ConferenceData {
     pub parameters: Option<ConferenceParameters>,
     /// signature property.
     pub signature: Option<String>,
+}
+
+/// `EventDateTime` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EventDateTime {
+    /// date property.
+    pub date: Option<String>,
+    /// dateTime property.
+    pub date_time: Option<String>,
+    /// timeZone property.
+    pub time_zone: Option<String>,
+}
+
+/// `EventFocusTimeProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EventFocusTimeProperties {
+    /// autoDeclineMode property.
+    pub auto_decline_mode: Option<String>,
+    /// chatStatus property.
+    pub chat_status: Option<String>,
+    /// declineMessage property.
+    pub decline_message: Option<String>,
+}
+
+/// `EventAttachment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EventAttachment {
+    /// fileId property.
+    pub file_id: Option<String>,
+    /// fileUrl property.
+    pub file_url: Option<String>,
+    /// iconLink property.
+    pub icon_link: Option<String>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 /// `ConferenceParametersAddOnParameters` type.
@@ -219,7 +172,59 @@ pub struct EventAttendee {
     /// responseStatus property.
     pub response_status: Option<String>,
     /// self property.
-    pub r#self: Option<bool>,
+    pub _self: Option<bool>,
+}
+
+/// `ConferenceParameters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConferenceParameters {
+    /// addOnParameters property.
+    pub add_on_parameters: Option<ConferenceParametersAddOnParameters>,
+}
+
+/// `EntryPoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EntryPoint {
+    /// accessCode property.
+    pub access_code: Option<String>,
+    /// entryPointFeatures property.
+    pub entry_point_features: Option<Vec<String>>,
+    /// entryPointType property.
+    pub entry_point_type: Option<String>,
+    /// label property.
+    pub label: Option<String>,
+    /// meetingCode property.
+    pub meeting_code: Option<String>,
+    /// passcode property.
+    pub passcode: Option<String>,
+    /// password property.
+    pub password: Option<String>,
+    /// pin property.
+    pub pin: Option<String>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `EventBirthdayProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EventBirthdayProperties {
+    /// contact property.
+    pub contact: Option<String>,
+    /// customTypeName property.
+    pub custom_type_name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `EventReminder` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EventReminder {
+    /// method property.
+    pub method: Option<String>,
+    /// minutes property.
+    pub minutes: Option<i64>,
 }
 
 // =============================================================================
@@ -387,40 +392,63 @@ pub fn calendar_events_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
     args: &CalendarEventsDeleteArgs,
     builder_mod: Option<F>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<()>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError>
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}",
-        args.calendar_id,
-        args.event_id,
+        args.calendar_id, args.event_id,
     );
 
-    let mut builder = client.delete(&endpoint_url)
+    let mut builder = client
+        .delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e: foundation_core::wire::simple_http::HttpClientError| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream: _, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: () })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream: _,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
@@ -450,42 +478,69 @@ pub fn calendar_events_get_request<R, F>(
     client: &SimpleHttpClient<R>,
     args: &CalendarEventsGetArgs,
     builder_mod: Option<F>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<Event>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError>
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Event>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}",
-        args.calendar_id,
-        args.event_id,
+        args.calendar_id, args.event_id,
     );
 
-    let mut builder = client.get(&endpoint_url)
+    let mut builder = client
+        .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e: foundation_core::wire::simple_http::HttpClientError| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                    let parsed: Event = serde_json::from_str(&body).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Event =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
@@ -515,7 +570,15 @@ pub fn calendar_events_insert_request<R, F>(
     client: &SimpleHttpClient<R>,
     args: &CalendarEventsInsertArgs,
     builder_mod: Option<F>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<Event>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError>
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Event>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
@@ -525,31 +588,51 @@ where
         args.calendar_id,
     );
 
-    let mut builder = client.post(&endpoint_url)
+    let mut builder = client
+        .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e: foundation_core::wire::simple_http::HttpClientError| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                    let parsed: Event = serde_json::from_str(&body).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Event =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
@@ -579,7 +662,15 @@ pub fn calendar_events_list_request<R, F>(
     client: &SimpleHttpClient<R>,
     args: &CalendarEventsListArgs,
     builder_mod: Option<F>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<Events>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError>
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Events>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
@@ -589,31 +680,51 @@ where
         args.calendar_id,
     );
 
-    let mut builder = client.get(&endpoint_url)
+    let mut builder = client
+        .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e: foundation_core::wire::simple_http::HttpClientError| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                    let parsed: Events = serde_json::from_str(&body).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Events =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
@@ -643,42 +754,69 @@ pub fn calendar_events_patch_request<R, F>(
     client: &SimpleHttpClient<R>,
     args: &CalendarEventsPatchArgs,
     builder_mod: Option<F>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<Event>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError>
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Event>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}",
-        args.calendar_id,
-        args.event_id,
+        args.calendar_id, args.event_id,
     );
 
-    let mut builder = client.patch(&endpoint_url)
+    let mut builder = client
+        .patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e: foundation_core::wire::simple_http::HttpClientError| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                    let parsed: Event = serde_json::from_str(&body).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Event =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
@@ -708,41 +846,67 @@ pub fn calendar_events_update_request<R, F>(
     client: &SimpleHttpClient<R>,
     args: &CalendarEventsUpdateArgs,
     builder_mod: Option<F>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<Event>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError>
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Event>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}",
-        args.calendar_id,
-        args.event_id,
+        args.calendar_id, args.event_id,
     );
 
-    let mut builder = client.put(&endpoint_url)
+    let mut builder = client
+        .put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e: foundation_core::wire::simple_http::HttpClientError| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                    let parsed: Event = serde_json::from_str(&body).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Event =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
-

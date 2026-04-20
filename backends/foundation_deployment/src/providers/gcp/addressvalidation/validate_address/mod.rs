@@ -12,104 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleMapsAddressvalidationV1PlusCode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsAddressvalidationV1PlusCode {
-    /// compoundCode property.
-    pub compound_code: Option<String>,
-    /// globalCode property.
-    pub global_code: Option<String>,
-}
-
-/// `GoogleMapsAddressvalidationV1ComponentName` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsAddressvalidationV1ComponentName {
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `GoogleTypeLatLng` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeLatLng {
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
-}
-
-/// `GoogleMapsAddressvalidationV1Geocode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsAddressvalidationV1Geocode {
-    /// bounds property.
-    pub bounds: Option<GoogleGeoTypeViewport>,
-    /// featureSizeMeters property.
-    pub feature_size_meters: Option<f64>,
-    /// location property.
-    pub location: Option<GoogleTypeLatLng>,
-    /// placeId property.
-    pub place_id: Option<String>,
-    /// placeTypes property.
-    pub place_types: Option<Vec<String>>,
-    /// plusCode property.
-    pub plus_code: Option<GoogleMapsAddressvalidationV1PlusCode>,
-}
-
-/// `GoogleMapsAddressvalidationV1Verdict` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsAddressvalidationV1Verdict {
-    /// addressComplete property.
-    pub address_complete: Option<bool>,
-    /// geocodeGranularity property.
-    pub geocode_granularity: Option<String>,
-    /// hasInferredComponents property.
-    pub has_inferred_components: Option<bool>,
-    /// hasReplacedComponents property.
-    pub has_replaced_components: Option<bool>,
-    /// hasSpellCorrectedComponents property.
-    pub has_spell_corrected_components: Option<bool>,
-    /// hasUnconfirmedComponents property.
-    pub has_unconfirmed_components: Option<bool>,
-    /// inputGranularity property.
-    pub input_granularity: Option<String>,
-    /// possibleNextAction property.
-    pub possible_next_action: Option<String>,
-    /// validationGranularity property.
-    pub validation_granularity: Option<String>,
-}
-
-/// `GoogleMapsAddressvalidationV1AddressMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsAddressvalidationV1AddressMetadata {
-    /// business property.
-    pub business: Option<bool>,
-    /// poBox property.
-    pub po_box: Option<bool>,
-    /// residential property.
-    pub residential: Option<bool>,
-}
-
-/// `GoogleMapsAddressvalidationV1ValidateAddressResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsAddressvalidationV1ValidateAddressResponse {
-    /// responseId property.
-    pub response_id: Option<String>,
-    /// result property.
-    pub result: Option<GoogleMapsAddressvalidationV1ValidationResult>,
-}
 
 /// `GoogleMapsAddressvalidationV1UspsAddress` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -134,6 +48,15 @@ pub struct GoogleMapsAddressvalidationV1UspsAddress {
     pub zip_code_extension: Option<String>,
 }
 
+/// `GoogleGeoTypeViewport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleGeoTypeViewport {
+    /// high property.
+    pub high: Option<GoogleTypeLatLng>,
+    /// low property.
+    pub low: Option<GoogleTypeLatLng>,
+}
+
 /// `GoogleMapsAddressvalidationV1AddressComponent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsAddressvalidationV1AddressComponent {
@@ -153,38 +76,40 @@ pub struct GoogleMapsAddressvalidationV1AddressComponent {
     pub unexpected: Option<bool>,
 }
 
-/// `GoogleMapsAddressvalidationV1ValidationResult` type.
+/// `GoogleTypePostalAddress` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsAddressvalidationV1ValidationResult {
-    /// address property.
-    pub address: Option<GoogleMapsAddressvalidationV1Address>,
-    /// englishLatinAddress property.
-    pub english_latin_address: Option<GoogleMapsAddressvalidationV1Address>,
-    /// geocode property.
-    pub geocode: Option<GoogleMapsAddressvalidationV1Geocode>,
-    /// metadata property.
-    pub metadata: Option<GoogleMapsAddressvalidationV1AddressMetadata>,
-    /// uspsData property.
-    pub usps_data: Option<GoogleMapsAddressvalidationV1UspsData>,
-    /// verdict property.
-    pub verdict: Option<GoogleMapsAddressvalidationV1Verdict>,
+pub struct GoogleTypePostalAddress {
+    /// addressLines property.
+    pub address_lines: Option<Vec<String>>,
+    /// administrativeArea property.
+    pub administrative_area: Option<String>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// locality property.
+    pub locality: Option<String>,
+    /// organization property.
+    pub organization: Option<String>,
+    /// postalCode property.
+    pub postal_code: Option<String>,
+    /// recipients property.
+    pub recipients: Option<Vec<String>>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+    /// revision property.
+    pub revision: Option<i64>,
+    /// sortingCode property.
+    pub sorting_code: Option<String>,
+    /// sublocality property.
+    pub sublocality: Option<String>,
 }
 
-/// `GoogleMapsAddressvalidationV1Address` type.
+/// `GoogleMapsAddressvalidationV1ComponentName` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsAddressvalidationV1Address {
-    /// addressComponents property.
-    pub address_components: Option<Vec<GoogleMapsAddressvalidationV1AddressComponent>>,
-    /// formattedAddress property.
-    pub formatted_address: Option<String>,
-    /// missingComponentTypes property.
-    pub missing_component_types: Option<Vec<String>>,
-    /// postalAddress property.
-    pub postal_address: Option<GoogleTypePostalAddress>,
-    /// unconfirmedComponentTypes property.
-    pub unconfirmed_component_types: Option<Vec<String>>,
-    /// unresolvedTokens property.
-    pub unresolved_tokens: Option<Vec<String>>,
+pub struct GoogleMapsAddressvalidationV1ComponentName {
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// text property.
+    pub text: Option<String>,
 }
 
 /// `GoogleMapsAddressvalidationV1UspsData` type.
@@ -266,40 +191,116 @@ pub struct GoogleMapsAddressvalidationV1UspsData {
     pub suitelink_footnote: Option<String>,
 }
 
-/// `GoogleTypePostalAddress` type.
+/// `GoogleMapsAddressvalidationV1ValidateAddressResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypePostalAddress {
-    /// addressLines property.
-    pub address_lines: Option<Vec<String>>,
-    /// administrativeArea property.
-    pub administrative_area: Option<String>,
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// locality property.
-    pub locality: Option<String>,
-    /// organization property.
-    pub organization: Option<String>,
-    /// postalCode property.
-    pub postal_code: Option<String>,
-    /// recipients property.
-    pub recipients: Option<Vec<String>>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-    /// revision property.
-    pub revision: Option<i64>,
-    /// sortingCode property.
-    pub sorting_code: Option<String>,
-    /// sublocality property.
-    pub sublocality: Option<String>,
+pub struct GoogleMapsAddressvalidationV1ValidateAddressResponse {
+    /// responseId property.
+    pub response_id: Option<String>,
+    /// result property.
+    pub result: Option<GoogleMapsAddressvalidationV1ValidationResult>,
 }
 
-/// `GoogleGeoTypeViewport` type.
+/// `GoogleTypeLatLng` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleGeoTypeViewport {
-    /// high property.
-    pub high: Option<GoogleTypeLatLng>,
-    /// low property.
-    pub low: Option<GoogleTypeLatLng>,
+pub struct GoogleTypeLatLng {
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
+}
+
+/// `GoogleMapsAddressvalidationV1ValidationResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsAddressvalidationV1ValidationResult {
+    /// address property.
+    pub address: Option<GoogleMapsAddressvalidationV1Address>,
+    /// englishLatinAddress property.
+    pub english_latin_address: Option<GoogleMapsAddressvalidationV1Address>,
+    /// geocode property.
+    pub geocode: Option<GoogleMapsAddressvalidationV1Geocode>,
+    /// metadata property.
+    pub metadata: Option<GoogleMapsAddressvalidationV1AddressMetadata>,
+    /// uspsData property.
+    pub usps_data: Option<GoogleMapsAddressvalidationV1UspsData>,
+    /// verdict property.
+    pub verdict: Option<GoogleMapsAddressvalidationV1Verdict>,
+}
+
+/// `GoogleMapsAddressvalidationV1PlusCode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsAddressvalidationV1PlusCode {
+    /// compoundCode property.
+    pub compound_code: Option<String>,
+    /// globalCode property.
+    pub global_code: Option<String>,
+}
+
+/// `GoogleMapsAddressvalidationV1Address` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsAddressvalidationV1Address {
+    /// addressComponents property.
+    pub address_components: Option<Vec<GoogleMapsAddressvalidationV1AddressComponent>>,
+    /// formattedAddress property.
+    pub formatted_address: Option<String>,
+    /// missingComponentTypes property.
+    pub missing_component_types: Option<Vec<String>>,
+    /// postalAddress property.
+    pub postal_address: Option<GoogleTypePostalAddress>,
+    /// unconfirmedComponentTypes property.
+    pub unconfirmed_component_types: Option<Vec<String>>,
+    /// unresolvedTokens property.
+    pub unresolved_tokens: Option<Vec<String>>,
+}
+
+/// `GoogleMapsAddressvalidationV1Verdict` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsAddressvalidationV1Verdict {
+    /// addressComplete property.
+    pub address_complete: Option<bool>,
+    /// geocodeGranularity property.
+    pub geocode_granularity: Option<String>,
+    /// hasInferredComponents property.
+    pub has_inferred_components: Option<bool>,
+    /// hasReplacedComponents property.
+    pub has_replaced_components: Option<bool>,
+    /// hasSpellCorrectedComponents property.
+    pub has_spell_corrected_components: Option<bool>,
+    /// hasUnconfirmedComponents property.
+    pub has_unconfirmed_components: Option<bool>,
+    /// inputGranularity property.
+    pub input_granularity: Option<String>,
+    /// possibleNextAction property.
+    pub possible_next_action: Option<String>,
+    /// validationGranularity property.
+    pub validation_granularity: Option<String>,
+}
+
+/// `GoogleMapsAddressvalidationV1Geocode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsAddressvalidationV1Geocode {
+    /// bounds property.
+    pub bounds: Option<GoogleGeoTypeViewport>,
+    /// featureSizeMeters property.
+    pub feature_size_meters: Option<f64>,
+    /// location property.
+    pub location: Option<GoogleTypeLatLng>,
+    /// placeId property.
+    pub place_id: Option<String>,
+    /// placeTypes property.
+    pub place_types: Option<Vec<String>>,
+    /// plusCode property.
+    pub plus_code: Option<GoogleMapsAddressvalidationV1PlusCode>,
+}
+
+/// `GoogleMapsAddressvalidationV1AddressMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleMapsAddressvalidationV1AddressMetadata {
+    /// business property.
+    pub business: Option<bool>,
+    /// poBox property.
+    pub po_box: Option<bool>,
+    /// residential property.
+    pub residential: Option<bool>,
 }
 
 // =============================================================================

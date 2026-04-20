@@ -12,42 +12,21 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::OneTimeProduct;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `OneTimeProductPurchaseOptionNewRegionsConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OneTimeProductPurchaseOptionNewRegionsConfig {
-    /// availability property.
-    pub availability: Option<String>,
-    /// eurPrice property.
-    pub eur_price: Option<Money>,
-    /// usdPrice property.
-    pub usd_price: Option<Money>,
-}
-
-/// `RestrictedPaymentCountries` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RestrictedPaymentCountries {
-    /// regionCodes property.
-    pub region_codes: Option<Vec<String>>,
-}
-
-/// `OfferTag` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OfferTag {
-    /// tag property.
-    pub tag: Option<String>,
-}
 
 /// `RegionsVersion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -56,37 +35,11 @@ pub struct RegionsVersion {
     pub version: Option<String>,
 }
 
-/// `OneTimeProductPurchaseOptionRegionalPricingAndAvailabilityConfig` type.
+/// `RestrictedPaymentCountries` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OneTimeProductPurchaseOptionRegionalPricingAndAvailabilityConfig {
-    /// availability property.
-    pub availability: Option<String>,
-    /// price property.
-    pub price: Option<Money>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-}
-
-/// `Money` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Money {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// units property.
-    pub units: Option<String>,
-}
-
-/// `OneTimeProductListing` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OneTimeProductListing {
-    /// description property.
-    pub description: Option<String>,
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct RestrictedPaymentCountries {
+    /// regionCodes property.
+    pub region_codes: Option<Vec<String>>,
 }
 
 /// `RegionalTaxConfig` type.
@@ -102,20 +55,13 @@ pub struct RegionalTaxConfig {
     pub tax_tier: Option<String>,
 }
 
-/// `RegionalProductAgeRatingInfo` type.
+/// `OneTimeProductRentPurchaseOption` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegionalProductAgeRatingInfo {
-    /// productAgeRatingTier property.
-    pub product_age_rating_tier: Option<String>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-}
-
-/// `PurchaseOptionTaxAndComplianceSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PurchaseOptionTaxAndComplianceSettings {
-    /// withdrawalRightType property.
-    pub withdrawal_right_type: Option<String>,
+pub struct OneTimeProductRentPurchaseOption {
+    /// expirationPeriod property.
+    pub expiration_period: Option<String>,
+    /// rentalPeriod property.
+    pub rental_period: Option<String>,
 }
 
 /// `OneTimeProductPurchaseOption` type.
@@ -140,11 +86,26 @@ pub struct OneTimeProductPurchaseOption {
     pub tax_and_compliance_settings: Option<PurchaseOptionTaxAndComplianceSettings>,
 }
 
-/// `BatchUpdatePurchaseOptionStatesResponse` type.
+/// `OneTimeProductPurchaseOptionRegionalPricingAndAvailabilityConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BatchUpdatePurchaseOptionStatesResponse {
-    /// oneTimeProducts property.
-    pub one_time_products: Option<Vec<OneTimeProduct>>,
+pub struct OneTimeProductPurchaseOptionRegionalPricingAndAvailabilityConfig {
+    /// availability property.
+    pub availability: Option<String>,
+    /// price property.
+    pub price: Option<Money>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+}
+
+/// `Money` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Money {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// units property.
+    pub units: Option<String>,
 }
 
 /// `OneTimeProductTaxAndComplianceSettings` type.
@@ -169,13 +130,56 @@ pub struct OneTimeProductBuyPurchaseOption {
     pub multi_quantity_enabled: Option<bool>,
 }
 
-/// `OneTimeProductRentPurchaseOption` type.
+/// `OneTimeProductListing` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OneTimeProductRentPurchaseOption {
-    /// expirationPeriod property.
-    pub expiration_period: Option<String>,
-    /// rentalPeriod property.
-    pub rental_period: Option<String>,
+pub struct OneTimeProductListing {
+    /// description property.
+    pub description: Option<String>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `OfferTag` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OfferTag {
+    /// tag property.
+    pub tag: Option<String>,
+}
+
+/// `BatchUpdatePurchaseOptionStatesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BatchUpdatePurchaseOptionStatesResponse {
+    /// oneTimeProducts property.
+    pub one_time_products: Option<Vec<OneTimeProduct>>,
+}
+
+/// `RegionalProductAgeRatingInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegionalProductAgeRatingInfo {
+    /// productAgeRatingTier property.
+    pub product_age_rating_tier: Option<String>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+}
+
+/// `OneTimeProductPurchaseOptionNewRegionsConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OneTimeProductPurchaseOptionNewRegionsConfig {
+    /// availability property.
+    pub availability: Option<String>,
+    /// eurPrice property.
+    pub eur_price: Option<Money>,
+    /// usdPrice property.
+    pub usd_price: Option<Money>,
+}
+
+/// `PurchaseOptionTaxAndComplianceSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PurchaseOptionTaxAndComplianceSettings {
+    /// withdrawalRightType property.
+    pub withdrawal_right_type: Option<String>,
 }
 
 // =============================================================================

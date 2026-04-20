@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -25,37 +26,11 @@ use super::shared::Policy;
 use super::shared::SetTagsResponse;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ExclusionWindow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExclusionWindow {
-    /// daily property.
-    pub daily: Option<bool>,
-    /// daysOfWeek property.
-    pub days_of_week: Option<DayOfWeekList>,
-    /// duration property.
-    pub duration: Option<String>,
-    /// singleOccurrenceDate property.
-    pub single_occurrence_date: Option<Date>,
-    /// startTime property.
-    pub start_time: Option<TimeOfDay>,
-}
-
-/// `RetentionPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RetentionPolicy {
-    /// backupDeleteLockDays property.
-    pub backup_delete_lock_days: Option<i64>,
-    /// backupRetainDays property.
-    pub backup_retain_days: Option<i64>,
-    /// locked property.
-    pub locked: Option<bool>,
-}
 
 /// `TimeOfDay` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -70,51 +45,6 @@ pub struct TimeOfDay {
     pub seconds: Option<i64>,
 }
 
-/// `NamespacedNames` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NamespacedNames {
-    /// namespacedNames property.
-    pub namespaced_names: Option<Vec<NamespacedName>>,
-}
-
-/// `NamespacedName` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NamespacedName {
-    /// name property.
-    pub name: Option<String>,
-    /// namespace property.
-    pub namespace: Option<String>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `Schedule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Schedule {
-    /// cronSchedule property.
-    pub cron_schedule: Option<String>,
-    /// nextScheduledBackupTime property.
-    pub next_scheduled_backup_time: Option<String>,
-    /// paused property.
-    pub paused: Option<bool>,
-    /// rpoConfig property.
-    pub rpo_config: Option<RpoConfig>,
-}
-
-/// `Namespaces` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Namespaces {
-    /// namespaces property.
-    pub namespaces: Option<Vec<String>>,
-}
-
 /// `Date` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
@@ -126,42 +56,6 @@ pub struct Date {
     pub year: Option<i64>,
 }
 
-/// `ResourceLabels` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceLabels {
-    /// resourceLabels property.
-    pub resource_labels: Option<Vec<Label>>,
-}
-
-/// `Label` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Label {
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `RpoConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RpoConfig {
-    /// exclusionWindows property.
-    pub exclusion_windows: Option<Vec<ExclusionWindow>>,
-    /// targetRpoMinutes property.
-    pub target_rpo_minutes: Option<i64>,
-}
-
-/// `ListBackupPlansResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListBackupPlansResponse {
-    /// backupPlans property.
-    pub backup_plans: Option<Vec<BackupPlan>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
 /// `EncryptionKey` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionKey {
@@ -169,37 +63,15 @@ pub struct EncryptionKey {
     pub gcp_kms_encryption_key: Option<String>,
 }
 
-/// `Binding` type.
+/// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `BackupConfig` type.
@@ -223,22 +95,76 @@ pub struct BackupConfig {
     pub selected_namespaces: Option<Namespaces>,
 }
 
-/// `GoogleRpcStatus` type.
+/// `Label` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct Label {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
-/// `DayOfWeekList` type.
+/// `RetentionPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DayOfWeekList {
-    /// daysOfWeek property.
-    pub days_of_week: Option<Vec<String>>,
+pub struct RetentionPolicy {
+    /// backupDeleteLockDays property.
+    pub backup_delete_lock_days: Option<i64>,
+    /// backupRetainDays property.
+    pub backup_retain_days: Option<i64>,
+    /// locked property.
+    pub locked: Option<bool>,
+}
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `NamespacedName` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NamespacedName {
+    /// name property.
+    pub name: Option<String>,
+    /// namespace property.
+    pub namespace: Option<String>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `ListBackupPlansResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListBackupPlansResponse {
+    /// backupPlans property.
+    pub backup_plans: Option<Vec<BackupPlan>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `NamespacedNames` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NamespacedNames {
+    /// namespacedNames property.
+    pub namespaced_names: Option<Vec<NamespacedName>>,
+}
+
+/// `Namespaces` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Namespaces {
+    /// namespaces property.
+    pub namespaces: Option<Vec<String>>,
 }
 
 /// `BackupPlan` type.
@@ -284,6 +210,81 @@ pub struct BackupPlan {
     pub uid: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `Schedule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Schedule {
+    /// cronSchedule property.
+    pub cron_schedule: Option<String>,
+    /// nextScheduledBackupTime property.
+    pub next_scheduled_backup_time: Option<String>,
+    /// paused property.
+    pub paused: Option<bool>,
+    /// rpoConfig property.
+    pub rpo_config: Option<RpoConfig>,
+}
+
+/// `DayOfWeekList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DayOfWeekList {
+    /// daysOfWeek property.
+    pub days_of_week: Option<Vec<String>>,
+}
+
+/// `ExclusionWindow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExclusionWindow {
+    /// daily property.
+    pub daily: Option<bool>,
+    /// daysOfWeek property.
+    pub days_of_week: Option<DayOfWeekList>,
+    /// duration property.
+    pub duration: Option<String>,
+    /// singleOccurrenceDate property.
+    pub single_occurrence_date: Option<Date>,
+    /// startTime property.
+    pub start_time: Option<TimeOfDay>,
+}
+
+/// `ResourceLabels` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceLabels {
+    /// resourceLabels property.
+    pub resource_labels: Option<Vec<Label>>,
+}
+
+/// `RpoConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RpoConfig {
+    /// exclusionWindows property.
+    pub exclusion_windows: Option<Vec<ExclusionWindow>>,
+    /// targetRpoMinutes property.
+    pub target_rpo_minutes: Option<i64>,
 }
 
 // =============================================================================

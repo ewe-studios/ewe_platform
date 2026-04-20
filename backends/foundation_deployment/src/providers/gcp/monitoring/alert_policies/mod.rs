@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,32 +22,98 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Daily` type.
+/// `AlertStrategy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Daily {
-    /// executionTime property.
-    pub execution_time: Option<TimeOfDay>,
-    /// periodicity property.
-    pub periodicity: Option<i64>,
+pub struct AlertStrategy {
+    /// autoClose property.
+    pub auto_close: Option<String>,
+    /// notificationChannelStrategy property.
+    pub notification_channel_strategy: Option<Vec<NotificationChannelStrategy>>,
+    /// notificationPrompts property.
+    pub notification_prompts: Option<Vec<String>>,
+    /// notificationRateLimit property.
+    pub notification_rate_limit: Option<NotificationRateLimit>,
 }
 
-/// `Documentation` type.
+/// `MetricThreshold` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Documentation {
-    /// content property.
-    pub content: Option<String>,
-    /// links property.
-    pub links: Option<Vec<Link>>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-    /// subject property.
-    pub subject: Option<String>,
+pub struct MetricThreshold {
+    /// aggregations property.
+    pub aggregations: Option<Vec<Aggregation>>,
+    /// comparison property.
+    pub comparison: Option<String>,
+    /// denominatorAggregations property.
+    pub denominator_aggregations: Option<Vec<Aggregation>>,
+    /// denominatorFilter property.
+    pub denominator_filter: Option<String>,
+    /// duration property.
+    pub duration: Option<String>,
+    /// evaluationMissingData property.
+    pub evaluation_missing_data: Option<String>,
+    /// filter property.
+    pub filter: Option<String>,
+    /// forecastOptions property.
+    pub forecast_options: Option<ForecastOptions>,
+    /// thresholdValue property.
+    pub threshold_value: Option<f64>,
+    /// trigger property.
+    pub trigger: Option<Trigger>,
+}
+
+/// `RowCountTest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RowCountTest {
+    /// comparison property.
+    pub comparison: Option<String>,
+    /// threshold property.
+    pub threshold: Option<String>,
+}
+
+/// `NotificationChannelStrategy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NotificationChannelStrategy {
+    /// notificationChannelNames property.
+    pub notification_channel_names: Option<Vec<String>>,
+    /// renotifyInterval property.
+    pub renotify_interval: Option<String>,
+}
+
+/// `TimeOfDay` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeOfDay {
+    /// hours property.
+    pub hours: Option<i64>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<i64>,
+}
+
+/// `PrometheusQueryLanguageCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrometheusQueryLanguageCondition {
+    /// alertRule property.
+    pub alert_rule: Option<String>,
+    /// disableMetricValidation property.
+    pub disable_metric_validation: Option<bool>,
+    /// duration property.
+    pub duration: Option<String>,
+    /// evaluationInterval property.
+    pub evaluation_interval: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// query property.
+    pub query: Option<String>,
+    /// ruleGroup property.
+    pub rule_group: Option<String>,
 }
 
 /// `Status` type.
@@ -77,74 +144,6 @@ pub struct SqlCondition {
     pub row_count_test: Option<RowCountTest>,
 }
 
-/// `RowCountTest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RowCountTest {
-    /// comparison property.
-    pub comparison: Option<String>,
-    /// threshold property.
-    pub threshold: Option<String>,
-}
-
-/// `NotificationChannelStrategy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NotificationChannelStrategy {
-    /// notificationChannelNames property.
-    pub notification_channel_names: Option<Vec<String>>,
-    /// renotifyInterval property.
-    pub renotify_interval: Option<String>,
-}
-
-/// `MutationRecord` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MutationRecord {
-    /// mutateTime property.
-    pub mutate_time: Option<String>,
-    /// mutatedBy property.
-    pub mutated_by: Option<String>,
-}
-
-/// `PrometheusQueryLanguageCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrometheusQueryLanguageCondition {
-    /// alertRule property.
-    pub alert_rule: Option<String>,
-    /// disableMetricValidation property.
-    pub disable_metric_validation: Option<bool>,
-    /// duration property.
-    pub duration: Option<String>,
-    /// evaluationInterval property.
-    pub evaluation_interval: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// query property.
-    pub query: Option<String>,
-    /// ruleGroup property.
-    pub rule_group: Option<String>,
-}
-
-/// `LogMatch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LogMatch {
-    /// filter property.
-    pub filter: Option<String>,
-    /// labelExtractors property.
-    pub label_extractors: Option<serde_json::Value>,
-}
-
-/// `MonitoringQueryLanguageCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MonitoringQueryLanguageCondition {
-    /// duration property.
-    pub duration: Option<String>,
-    /// evaluationMissingData property.
-    pub evaluation_missing_data: Option<String>,
-    /// query property.
-    pub query: Option<String>,
-    /// trigger property.
-    pub trigger: Option<Trigger>,
-}
-
 /// `Condition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Condition {
@@ -166,6 +165,87 @@ pub struct Condition {
     pub name: Option<String>,
 }
 
+/// `Link` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Link {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `MetricAbsence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetricAbsence {
+    /// aggregations property.
+    pub aggregations: Option<Vec<Aggregation>>,
+    /// duration property.
+    pub duration: Option<String>,
+    /// filter property.
+    pub filter: Option<String>,
+    /// trigger property.
+    pub trigger: Option<Trigger>,
+}
+
+/// `Trigger` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Trigger {
+    /// count property.
+    pub count: Option<i64>,
+    /// percent property.
+    pub percent: Option<f64>,
+}
+
+/// `Aggregation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Aggregation {
+    /// alignmentPeriod property.
+    pub alignment_period: Option<String>,
+    /// crossSeriesReducer property.
+    pub cross_series_reducer: Option<String>,
+    /// groupByFields property.
+    pub group_by_fields: Option<Vec<String>>,
+    /// perSeriesAligner property.
+    pub per_series_aligner: Option<String>,
+}
+
+/// `ForecastOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ForecastOptions {
+    /// forecastHorizon property.
+    pub forecast_horizon: Option<String>,
+}
+
+/// `LogMatch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogMatch {
+    /// filter property.
+    pub filter: Option<String>,
+    /// labelExtractors property.
+    pub label_extractors: Option<serde_json::Value>,
+}
+
+/// `BooleanTest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BooleanTest {
+    /// column property.
+    pub column: Option<String>,
+}
+
+/// `Minutes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Minutes {
+    /// periodicity property.
+    pub periodicity: Option<i64>,
+}
+
+/// `NotificationRateLimit` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NotificationRateLimit {
+    /// period property.
+    pub period: Option<String>,
+}
+
 /// `ListAlertPoliciesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAlertPoliciesResponse {
@@ -177,6 +257,19 @@ pub struct ListAlertPoliciesResponse {
     pub total_size: Option<i64>,
 }
 
+/// `Documentation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Documentation {
+    /// content property.
+    pub content: Option<String>,
+    /// links property.
+    pub links: Option<Vec<Link>>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+    /// subject property.
+    pub subject: Option<String>,
+}
+
 /// `Hourly` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Hourly {
@@ -184,15 +277,6 @@ pub struct Hourly {
     pub minute_offset: Option<i64>,
     /// periodicity property.
     pub periodicity: Option<i64>,
-}
-
-/// `Trigger` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Trigger {
-    /// count property.
-    pub count: Option<i64>,
-    /// percent property.
-    pub percent: Option<f64>,
 }
 
 /// `AlertPolicy` type.
@@ -226,118 +310,35 @@ pub struct AlertPolicy {
     pub validity: Option<Status>,
 }
 
-/// `AlertStrategy` type.
+/// `MonitoringQueryLanguageCondition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AlertStrategy {
-    /// autoClose property.
-    pub auto_close: Option<String>,
-    /// notificationChannelStrategy property.
-    pub notification_channel_strategy: Option<Vec<NotificationChannelStrategy>>,
-    /// notificationPrompts property.
-    pub notification_prompts: Option<Vec<String>>,
-    /// notificationRateLimit property.
-    pub notification_rate_limit: Option<NotificationRateLimit>,
-}
-
-/// `Minutes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Minutes {
-    /// periodicity property.
-    pub periodicity: Option<i64>,
-}
-
-/// `Aggregation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Aggregation {
-    /// alignmentPeriod property.
-    pub alignment_period: Option<String>,
-    /// crossSeriesReducer property.
-    pub cross_series_reducer: Option<String>,
-    /// groupByFields property.
-    pub group_by_fields: Option<Vec<String>>,
-    /// perSeriesAligner property.
-    pub per_series_aligner: Option<String>,
-}
-
-/// `MetricAbsence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetricAbsence {
-    /// aggregations property.
-    pub aggregations: Option<Vec<Aggregation>>,
-    /// duration property.
-    pub duration: Option<String>,
-    /// filter property.
-    pub filter: Option<String>,
-    /// trigger property.
-    pub trigger: Option<Trigger>,
-}
-
-/// `Link` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Link {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `BooleanTest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BooleanTest {
-    /// column property.
-    pub column: Option<String>,
-}
-
-/// `MetricThreshold` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetricThreshold {
-    /// aggregations property.
-    pub aggregations: Option<Vec<Aggregation>>,
-    /// comparison property.
-    pub comparison: Option<String>,
-    /// denominatorAggregations property.
-    pub denominator_aggregations: Option<Vec<Aggregation>>,
-    /// denominatorFilter property.
-    pub denominator_filter: Option<String>,
+pub struct MonitoringQueryLanguageCondition {
     /// duration property.
     pub duration: Option<String>,
     /// evaluationMissingData property.
     pub evaluation_missing_data: Option<String>,
-    /// filter property.
-    pub filter: Option<String>,
-    /// forecastOptions property.
-    pub forecast_options: Option<ForecastOptions>,
-    /// thresholdValue property.
-    pub threshold_value: Option<f64>,
+    /// query property.
+    pub query: Option<String>,
     /// trigger property.
     pub trigger: Option<Trigger>,
 }
 
-/// `ForecastOptions` type.
+/// `Daily` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ForecastOptions {
-    /// forecastHorizon property.
-    pub forecast_horizon: Option<String>,
+pub struct Daily {
+    /// executionTime property.
+    pub execution_time: Option<TimeOfDay>,
+    /// periodicity property.
+    pub periodicity: Option<i64>,
 }
 
-/// `TimeOfDay` type.
+/// `MutationRecord` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeOfDay {
-    /// hours property.
-    pub hours: Option<i64>,
-    /// minutes property.
-    pub minutes: Option<i64>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<i64>,
-}
-
-/// `NotificationRateLimit` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NotificationRateLimit {
-    /// period property.
-    pub period: Option<String>,
+pub struct MutationRecord {
+    /// mutateTime property.
+    pub mutate_time: Option<String>,
+    /// mutatedBy property.
+    pub mutated_by: Option<String>,
 }
 
 // =============================================================================

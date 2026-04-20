@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,49 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudApigeeV1Properties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1Properties {
-    /// property property.
-    pub property: Option<Vec<GoogleCloudApigeeV1Property>>,
-}
-
-/// `GoogleCloudApigeeV1AccessSet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1AccessSet {
-    /// name property.
-    pub name: Option<String>,
-    /// success property.
-    pub success: Option<bool>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1Access` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1Access {
-    /// Get property.
-    pub get: Option<GoogleCloudApigeeV1AccessGet>,
-    /// Remove property.
-    pub remove: Option<GoogleCloudApigeeV1AccessRemove>,
-    /// Set property.
-    pub set: Option<GoogleCloudApigeeV1AccessSet>,
-}
-
-/// `GoogleCloudApigeeV1Point` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1Point {
-    /// id property.
-    pub id: Option<String>,
-    /// results property.
-    pub results: Option<Vec<GoogleCloudApigeeV1Result>>,
-}
 
 /// `GoogleCloudApigeeV1AccessRemove` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -74,20 +37,22 @@ pub struct GoogleCloudApigeeV1AccessRemove {
     pub success: Option<bool>,
 }
 
-/// `GoogleCloudApigeeV1Property` type.
+/// `GoogleCloudApigeeV1AccessGet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1Property {
+pub struct GoogleCloudApigeeV1AccessGet {
     /// name property.
     pub name: Option<String>,
     /// value property.
     pub value: Option<String>,
 }
 
-/// `GoogleCloudApigeeV1AccessGet` type.
+/// `GoogleCloudApigeeV1AccessSet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1AccessGet {
+pub struct GoogleCloudApigeeV1AccessSet {
     /// name property.
     pub name: Option<String>,
+    /// success property.
+    pub success: Option<bool>,
     /// value property.
     pub value: Option<String>,
 }
@@ -124,6 +89,42 @@ pub struct GoogleCloudApigeeV1DebugSessionTransaction {
     pub completed: Option<bool>,
     /// point property.
     pub point: Option<Vec<GoogleCloudApigeeV1Point>>,
+}
+
+/// `GoogleCloudApigeeV1Property` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1Property {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1Properties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1Properties {
+    /// property property.
+    pub property: Option<Vec<GoogleCloudApigeeV1Property>>,
+}
+
+/// `GoogleCloudApigeeV1Access` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1Access {
+    /// Get property.
+    pub get: Option<GoogleCloudApigeeV1AccessGet>,
+    /// Remove property.
+    pub remove: Option<GoogleCloudApigeeV1AccessRemove>,
+    /// Set property.
+    pub set: Option<GoogleCloudApigeeV1AccessSet>,
+}
+
+/// `GoogleCloudApigeeV1Point` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1Point {
+    /// id property.
+    pub id: Option<String>,
+    /// results property.
+    pub results: Option<Vec<GoogleCloudApigeeV1Result>>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,47 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudContactcenterinsightsV1ListIssueModelsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1ListIssueModelsResponse {
-    /// issueModels property.
-    pub issue_models: Option<Vec<GoogleCloudContactcenterinsightsV1IssueModel>>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1IssueModelLabelStats` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1IssueModelLabelStats {
-    /// analyzedConversationsCount property.
-    pub analyzed_conversations_count: Option<String>,
-    /// issueStats property.
-    pub issue_stats: Option<serde_json::Value>,
-    /// unclassifiedConversationsCount property.
-    pub unclassified_conversations_count: Option<String>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1CalculateIssueModelStatsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1CalculateIssueModelStatsResponse {
-    /// currentStats property.
-    pub current_stats: Option<GoogleCloudContactcenterinsightsV1IssueModelLabelStats>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1IssueModelInputDataConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1IssueModelInputDataConfig {
-    /// filter property.
-    pub filter: Option<String>,
-    /// medium property.
-    pub medium: Option<String>,
-    /// trainingConversationsCount property.
-    pub training_conversations_count: Option<String>,
-}
 
 /// `GoogleCloudContactcenterinsightsV1IssueModel` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -97,6 +62,42 @@ pub struct GoogleRpcStatus {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1CalculateIssueModelStatsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1CalculateIssueModelStatsResponse {
+    /// currentStats property.
+    pub current_stats: Option<GoogleCloudContactcenterinsightsV1IssueModelLabelStats>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1ListIssueModelsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1ListIssueModelsResponse {
+    /// issueModels property.
+    pub issue_models: Option<Vec<GoogleCloudContactcenterinsightsV1IssueModel>>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1IssueModelLabelStats` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1IssueModelLabelStats {
+    /// analyzedConversationsCount property.
+    pub analyzed_conversations_count: Option<String>,
+    /// issueStats property.
+    pub issue_stats: Option<serde_json::Value>,
+    /// unclassifiedConversationsCount property.
+    pub unclassified_conversations_count: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1IssueModelInputDataConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1IssueModelInputDataConfig {
+    /// filter property.
+    pub filter: Option<String>,
+    /// medium property.
+    pub medium: Option<String>,
+    /// trainingConversationsCount property.
+    pub training_conversations_count: Option<String>,
 }
 
 // =============================================================================

@@ -12,92 +12,22 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
+use super::shared::GoogleCloudDiscoveryengineV1CmekConfig;
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleIamV1Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Binding {
-    /// condition property.
-    pub condition: Option<GoogleTypeExpr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `GoogleTypeExpr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeExpr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1EngineChatEngineConfigAgentCreationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1EngineChatEngineConfigAgentCreationConfig {
-    /// business property.
-    pub business: Option<String>,
-    /// defaultLanguageCode property.
-    pub default_language_code: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// timeZone property.
-    pub time_zone: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1EngineCommonConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1EngineCommonConfig {
-    /// companyName property.
-    pub company_name: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigEngineFeaturesConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigEngineFeaturesConfig {
-    /// mostPopularConfig property.
-    pub most_popular_config: Option<GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigMostPopularFeatureConfig>,
-    /// recommendedForYouConfig property.
-    pub recommended_for_you_config: Option<GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigRecommendedForYouFeatureConfig>,
-}
-
-/// `GoogleCloudDiscoveryengineV1EngineSearchEngineConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1EngineSearchEngineConfig {
-    /// requiredSubscriptionTier property.
-    pub required_subscription_tier: Option<String>,
-    /// searchAddOns property.
-    pub search_add_ons: Option<Vec<String>>,
-    /// searchTier property.
-    pub search_tier: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1AgentGatewaySetting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AgentGatewaySetting {
-    /// defaultEgressAgentGateway property.
-    pub default_egress_agent_gateway:
-        Option<GoogleCloudDiscoveryengineV1AgentGatewaySettingAgentGatewayReference>,
-}
 
 /// `GoogleCloudDiscoveryengineV1EngineChatEngineConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -109,6 +39,41 @@ pub struct GoogleCloudDiscoveryengineV1EngineChatEngineConfig {
     pub allow_cross_region: Option<bool>,
     /// dialogflowAgentToLink property.
     pub dialogflow_agent_to_link: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1EngineCommonConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1EngineCommonConfig {
+    /// companyName property.
+    pub company_name: Option<String>,
+}
+
+/// `GoogleIamV1Policy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1Policy {
+    /// bindings property.
+    pub bindings: Option<Vec<GoogleIamV1Binding>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// version property.
+    pub version: Option<i64>,
+}
+
+/// `GoogleCloudDiscoveryengineV1ListEnginesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1ListEnginesResponse {
+    /// engines property.
+    pub engines: Option<Vec<GoogleCloudDiscoveryengineV1Engine>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1AgentGatewaySetting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1AgentGatewaySetting {
+    /// defaultEgressAgentGateway property.
+    pub default_egress_agent_gateway:
+        Option<GoogleCloudDiscoveryengineV1AgentGatewaySettingAgentGatewayReference>,
 }
 
 /// `GoogleCloudDiscoveryengineV1Engine` type.
@@ -165,99 +130,12 @@ pub struct GoogleCloudDiscoveryengineV1Engine {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigRecommendedForYouFeatureConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigRecommendedForYouFeatureConfig
-{
-    /// contextEventType property.
-    pub context_event_type: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfig {
-    /// engineFeaturesConfig property.
-    pub engine_features_config: Option<GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigEngineFeaturesConfig>,
-    /// optimizationObjective property.
-    pub optimization_objective: Option<String>,
-    /// optimizationObjectiveConfig property.
-    pub optimization_objective_config: Option<GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigOptimizationObjectiveConfig>,
-    /// trainingState property.
-    pub training_state: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
 /// `GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigMostPopularFeatureConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigMostPopularFeatureConfig
 {
     /// timeWindowDays property.
     pub time_window_days: Option<String>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1AgentGatewaySettingAgentGatewayReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AgentGatewaySettingAgentGatewayReference {
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1ListEnginesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ListEnginesResponse {
-    /// engines property.
-    pub engines: Option<Vec<GoogleCloudDiscoveryengineV1Engine>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1ObservabilityConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ObservabilityConfig {
-    /// observabilityEnabled property.
-    pub observability_enabled: Option<bool>,
-    /// sensitiveLoggingEnabled property.
-    pub sensitive_logging_enabled: Option<bool>,
-}
-
-/// `GoogleIamV1Policy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Policy {
-    /// bindings property.
-    pub bindings: Option<Vec<GoogleIamV1Binding>>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// version property.
-    pub version: Option<i64>,
-}
-
-/// `GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigOptimizationObjectiveConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigOptimizationObjectiveConfig
-{
-    /// targetField property.
-    pub target_field: Option<String>,
-    /// targetFieldValueFloat property.
-    pub target_field_value_float: Option<f64>,
-}
-
-/// `GoogleCloudDiscoveryengineV1EngineChatEngineMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1EngineChatEngineMetadata {
-    /// dialogflowAgent property.
-    pub dialogflow_agent: Option<String>,
 }
 
 /// `GoogleCloudDiscoveryengineV1EngineKnowledgeGraphConfig` type.
@@ -275,6 +153,44 @@ pub struct GoogleCloudDiscoveryengineV1EngineKnowledgeGraphConfig {
     pub private_knowledge_graph_types: Option<Vec<String>>,
 }
 
+/// `GoogleCloudDiscoveryengineV1SingleRegionKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1SingleRegionKey {
+    /// kmsKey property.
+    pub kms_key: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigOptimizationObjectiveConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigOptimizationObjectiveConfig
+{
+    /// targetField property.
+    pub target_field: Option<String>,
+    /// targetFieldValueFloat property.
+    pub target_field_value_float: Option<f64>,
+}
+
+/// `GoogleCloudDiscoveryengineV1EngineChatEngineConfigAgentCreationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1EngineChatEngineConfigAgentCreationConfig {
+    /// business property.
+    pub business: Option<String>,
+    /// defaultLanguageCode property.
+    pub default_language_code: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// timeZone property.
+    pub time_zone: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigRecommendedForYouFeatureConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigRecommendedForYouFeatureConfig
+{
+    /// contextEventType property.
+    pub context_event_type: Option<String>,
+}
+
 /// `GoogleCloudDiscoveryengineV1EngineKnowledgeGraphConfigFeatureConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1EngineKnowledgeGraphConfigFeatureConfig {
@@ -288,11 +204,97 @@ pub struct GoogleCloudDiscoveryengineV1EngineKnowledgeGraphConfigFeatureConfig {
     pub disable_private_kg_query_understanding: Option<bool>,
 }
 
-/// `GoogleCloudDiscoveryengineV1SingleRegionKey` type.
+/// `GoogleIamV1Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SingleRegionKey {
-    /// kmsKey property.
-    pub kms_key: Option<String>,
+pub struct GoogleIamV1Binding {
+    /// condition property.
+    pub condition: Option<GoogleTypeExpr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfig {
+    /// engineFeaturesConfig property.
+    pub engine_features_config: Option<GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigEngineFeaturesConfig>,
+    /// optimizationObjective property.
+    pub optimization_objective: Option<String>,
+    /// optimizationObjectiveConfig property.
+    pub optimization_objective_config: Option<GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigOptimizationObjectiveConfig>,
+    /// trainingState property.
+    pub training_state: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigEngineFeaturesConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigEngineFeaturesConfig {
+    /// mostPopularConfig property.
+    pub most_popular_config: Option<GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigMostPopularFeatureConfig>,
+    /// recommendedForYouConfig property.
+    pub recommended_for_you_config: Option<GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigRecommendedForYouFeatureConfig>,
+}
+
+/// `GoogleCloudDiscoveryengineV1ObservabilityConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1ObservabilityConfig {
+    /// observabilityEnabled property.
+    pub observability_enabled: Option<bool>,
+    /// sensitiveLoggingEnabled property.
+    pub sensitive_logging_enabled: Option<bool>,
+}
+
+/// `GoogleTypeExpr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeExpr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1AgentGatewaySettingAgentGatewayReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1AgentGatewaySettingAgentGatewayReference {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1EngineSearchEngineConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1EngineSearchEngineConfig {
+    /// requiredSubscriptionTier property.
+    pub required_subscription_tier: Option<String>,
+    /// searchAddOns property.
+    pub search_add_ons: Option<Vec<String>>,
+    /// searchTier property.
+    pub search_tier: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1EngineChatEngineMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1EngineChatEngineMetadata {
+    /// dialogflowAgent property.
+    pub dialogflow_agent: Option<String>,
 }
 
 // =============================================================================

@@ -12,28 +12,40 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `CustomBiddingScriptRef` type.
+/// `CustomBiddingModelDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomBiddingScriptRef {
-    /// resourceName property.
-    pub resource_name: Option<String>,
+pub struct CustomBiddingModelDetails {
+    /// advertiserId property.
+    pub advertiser_id: Option<String>,
+    /// readinessState property.
+    pub readiness_state: Option<String>,
+    /// suspensionState property.
+    pub suspension_state: Option<String>,
 }
 
 /// `CustomBiddingAlgorithmRulesRef` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomBiddingAlgorithmRulesRef {
+    /// resourceName property.
+    pub resource_name: Option<String>,
+}
+
+/// `CustomBiddingScriptRef` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomBiddingScriptRef {
     /// resourceName property.
     pub resource_name: Option<String>,
 }
@@ -61,17 +73,6 @@ pub struct CustomBiddingAlgorithm {
     pub shared_advertiser_ids: Option<Vec<String>>,
     /// thirdPartyOptimizationPartner property.
     pub third_party_optimization_partner: Option<String>,
-}
-
-/// `CustomBiddingModelDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomBiddingModelDetails {
-    /// advertiserId property.
-    pub advertiser_id: Option<String>,
-    /// readinessState property.
-    pub readiness_state: Option<String>,
-    /// suspensionState property.
-    pub suspension_state: Option<String>,
 }
 
 /// `ListCustomBiddingAlgorithmsResponse` type.

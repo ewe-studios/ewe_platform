@@ -12,17 +12,93 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudContactcenterinsightsV1SettingsAnalysisConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1SettingsAnalysisConfig {
+    /// annotatorSelector property.
+    pub annotator_selector: Option<GoogleCloudContactcenterinsightsV1AnnotatorSelector>,
+    /// runtimeIntegrationAnalysisPercentage property.
+    pub runtime_integration_analysis_percentage: Option<f64>,
+    /// uploadConversationAnalysisPercentage property.
+    pub upload_conversation_analysis_percentage: Option<f64>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfig {
+    /// scorecardList property.
+    pub scorecard_list:
+        Option<GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfigScorecardList>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1SpeechConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1SpeechConfig {
+    /// disableWordTimeOffsets property.
+    pub disable_word_time_offsets: Option<bool>,
+    /// speechRecognizer property.
+    pub speech_recognizer: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1AnnotatorSelectorSummarizationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorSummarizationConfig {
+    /// conversationProfile property.
+    pub conversation_profile: Option<String>,
+    /// generator property.
+    pub generator: Option<String>,
+    /// summarizationModel property.
+    pub summarization_model: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1Settings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1Settings {
+    /// analysisConfig property.
+    pub analysis_config: Option<GoogleCloudContactcenterinsightsV1SettingsAnalysisConfig>,
+    /// conversationTtl property.
+    pub conversation_ttl: Option<String>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// pubsubNotificationSettings property.
+    pub pubsub_notification_settings: Option<serde_json::Value>,
+    /// redactionConfig property.
+    pub redaction_config: Option<GoogleCloudContactcenterinsightsV1RedactionConfig>,
+    /// screenRecordingBucketUri property.
+    pub screen_recording_bucket_uri: Option<String>,
+    /// speechConfig property.
+    pub speech_config: Option<GoogleCloudContactcenterinsightsV1SpeechConfig>,
+    /// timeZone property.
+    pub time_zone: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1RedactionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1RedactionConfig {
+    /// deidentifyTemplate property.
+    pub deidentify_template: Option<String>,
+    /// inspectTemplate property.
+    pub inspect_template: Option<String>,
+}
 
 /// `GoogleCloudContactcenterinsightsV1AnnotatorSelector` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -58,86 +134,11 @@ pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelector {
         Option<GoogleCloudContactcenterinsightsV1AnnotatorSelectorSummarizationConfig>,
 }
 
-/// `GoogleCloudContactcenterinsightsV1Settings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1Settings {
-    /// analysisConfig property.
-    pub analysis_config: Option<GoogleCloudContactcenterinsightsV1SettingsAnalysisConfig>,
-    /// conversationTtl property.
-    pub conversation_ttl: Option<String>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// pubsubNotificationSettings property.
-    pub pubsub_notification_settings: Option<serde_json::Value>,
-    /// redactionConfig property.
-    pub redaction_config: Option<GoogleCloudContactcenterinsightsV1RedactionConfig>,
-    /// screenRecordingBucketUri property.
-    pub screen_recording_bucket_uri: Option<String>,
-    /// speechConfig property.
-    pub speech_config: Option<GoogleCloudContactcenterinsightsV1SpeechConfig>,
-    /// timeZone property.
-    pub time_zone: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1SpeechConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1SpeechConfig {
-    /// disableWordTimeOffsets property.
-    pub disable_word_time_offsets: Option<bool>,
-    /// speechRecognizer property.
-    pub speech_recognizer: Option<String>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfig {
-    /// scorecardList property.
-    pub scorecard_list:
-        Option<GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfigScorecardList>,
-}
-
 /// `GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfigScorecardList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfigScorecardList {
     /// qaScorecardRevisions property.
     pub qa_scorecard_revisions: Option<Vec<String>>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1AnnotatorSelectorSummarizationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorSummarizationConfig {
-    /// conversationProfile property.
-    pub conversation_profile: Option<String>,
-    /// generator property.
-    pub generator: Option<String>,
-    /// summarizationModel property.
-    pub summarization_model: Option<String>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1SettingsAnalysisConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1SettingsAnalysisConfig {
-    /// annotatorSelector property.
-    pub annotator_selector: Option<GoogleCloudContactcenterinsightsV1AnnotatorSelector>,
-    /// runtimeIntegrationAnalysisPercentage property.
-    pub runtime_integration_analysis_percentage: Option<f64>,
-    /// uploadConversationAnalysisPercentage property.
-    pub upload_conversation_analysis_percentage: Option<f64>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1RedactionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1RedactionConfig {
-    /// deidentifyTemplate property.
-    pub deidentify_template: Option<String>,
-    /// inspectTemplate property.
-    pub inspect_template: Option<String>,
 }
 
 // =============================================================================

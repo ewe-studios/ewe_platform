@@ -12,17 +12,36 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ScanData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ScanData {
+    /// data property.
+    pub data: Option<VisualizationData>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `MetricMatrix` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetricMatrix {
+    /// rows property.
+    pub rows: Option<Vec<MetricMatrixRow>>,
+}
 
 /// `Metric` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -53,15 +72,19 @@ pub struct Metric {
     pub visible: Option<bool>,
 }
 
-/// `LocalizedString` type.
+/// `Scan` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedString {
-    /// args property.
-    pub args: Option<serde_json::Value>,
-    /// message property.
-    pub message: Option<String>,
-    /// token property.
-    pub token: Option<String>,
+pub struct Scan {
+    /// details property.
+    pub details: Option<serde_json::Value>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// scanData property.
+    pub scan_data: Option<ScanData>,
+    /// startTime property.
+    pub start_time: Option<String>,
 }
 
 /// `ListScansResponse` type.
@@ -88,6 +111,32 @@ pub struct DiagnosticMessage {
     pub short_message: Option<LocalizedString>,
 }
 
+/// `PrefixNode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrefixNode {
+    /// dataSourceNode property.
+    pub data_source_node: Option<bool>,
+    /// depth property.
+    pub depth: Option<i64>,
+    /// endIndex property.
+    pub end_index: Option<i64>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+    /// word property.
+    pub word: Option<String>,
+}
+
+/// `LocalizedString` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedString {
+    /// args property.
+    pub args: Option<serde_json::Value>,
+    /// message property.
+    pub message: Option<String>,
+    /// token property.
+    pub token: Option<String>,
+}
+
 /// `DerivedMetric` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DerivedMetric {
@@ -95,46 +144,6 @@ pub struct DerivedMetric {
     pub denominator: Option<LocalizedString>,
     /// numerator property.
     pub numerator: Option<LocalizedString>,
-}
-
-/// `MetricMatrix` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetricMatrix {
-    /// rows property.
-    pub rows: Option<Vec<MetricMatrixRow>>,
-}
-
-/// `ScanData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScanData {
-    /// data property.
-    pub data: Option<VisualizationData>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `Scan` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Scan {
-    /// details property.
-    pub details: Option<serde_json::Value>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// scanData property.
-    pub scan_data: Option<ScanData>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `MetricMatrixRow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetricMatrixRow {
-    /// cols property.
-    pub cols: Option<Vec<f64>>,
 }
 
 /// `VisualizationData` type.
@@ -162,19 +171,11 @@ pub struct VisualizationData {
     pub prefix_nodes: Option<Vec<PrefixNode>>,
 }
 
-/// `PrefixNode` type.
+/// `MetricMatrixRow` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrefixNode {
-    /// dataSourceNode property.
-    pub data_source_node: Option<bool>,
-    /// depth property.
-    pub depth: Option<i64>,
-    /// endIndex property.
-    pub end_index: Option<i64>,
-    /// startIndex property.
-    pub start_index: Option<i64>,
-    /// word property.
-    pub word: Option<String>,
+pub struct MetricMatrixRow {
+    /// cols property.
+    pub cols: Option<Vec<f64>>,
 }
 
 // =============================================================================

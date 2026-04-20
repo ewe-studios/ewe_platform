@@ -12,28 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `EventRecordFailure` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventRecordFailure {
-    /// eventId property.
-    pub event_id: Option<String>,
-    /// failureCause property.
-    pub failure_cause: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-}
 
 /// `EventUpdateResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -59,17 +49,6 @@ pub struct EventPeriodRange {
     pub period_start_millis: Option<String>,
 }
 
-/// `EventBatchRecordFailure` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventBatchRecordFailure {
-    /// failureCause property.
-    pub failure_cause: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// range property.
-    pub range: Option<EventPeriodRange>,
-}
-
 /// `PlayerEventListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlayerEventListResponse {
@@ -79,6 +58,17 @@ pub struct PlayerEventListResponse {
     pub kind: Option<String>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `EventBatchRecordFailure` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EventBatchRecordFailure {
+    /// failureCause property.
+    pub failure_cause: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// range property.
+    pub range: Option<EventPeriodRange>,
 }
 
 /// `PlayerEvent` type.
@@ -94,6 +84,17 @@ pub struct PlayerEvent {
     pub num_events: Option<String>,
     /// playerId property.
     pub player_id: Option<String>,
+}
+
+/// `EventRecordFailure` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EventRecordFailure {
+    /// eventId property.
+    pub event_id: Option<String>,
+    /// failureCause property.
+    pub failure_cause: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
 }
 
 // =============================================================================

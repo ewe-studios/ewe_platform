@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,65 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `TargetLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TargetLocation {
-    /// address property.
-    pub address: Option<String>,
-    /// locationName property.
-    pub location_name: Option<String>,
-}
-
-/// `ListInvitationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListInvitationsResponse {
-    /// invitations property.
-    pub invitations: Option<Vec<Invitation>>,
-}
-
-/// `OrganizationInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OrganizationInfo {
-    /// address property.
-    pub address: Option<PostalAddress>,
-    /// phoneNumber property.
-    pub phone_number: Option<String>,
-    /// registeredDomain property.
-    pub registered_domain: Option<String>,
-}
-
-/// `PostalAddress` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostalAddress {
-    /// addressLines property.
-    pub address_lines: Option<Vec<String>>,
-    /// administrativeArea property.
-    pub administrative_area: Option<String>,
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// locality property.
-    pub locality: Option<String>,
-    /// organization property.
-    pub organization: Option<String>,
-    /// postalCode property.
-    pub postal_code: Option<String>,
-    /// recipients property.
-    pub recipients: Option<Vec<String>>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-    /// revision property.
-    pub revision: Option<i64>,
-    /// sortingCode property.
-    pub sorting_code: Option<String>,
-    /// sublocality property.
-    pub sublocality: Option<String>,
-}
 
 /// `Invitation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -119,6 +66,60 @@ pub struct Account {
     pub verification_state: Option<String>,
     /// vettedState property.
     pub vetted_state: Option<String>,
+}
+
+/// `TargetLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TargetLocation {
+    /// address property.
+    pub address: Option<String>,
+    /// locationName property.
+    pub location_name: Option<String>,
+}
+
+/// `PostalAddress` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostalAddress {
+    /// addressLines property.
+    pub address_lines: Option<Vec<String>>,
+    /// administrativeArea property.
+    pub administrative_area: Option<String>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// locality property.
+    pub locality: Option<String>,
+    /// organization property.
+    pub organization: Option<String>,
+    /// postalCode property.
+    pub postal_code: Option<String>,
+    /// recipients property.
+    pub recipients: Option<Vec<String>>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+    /// revision property.
+    pub revision: Option<i64>,
+    /// sortingCode property.
+    pub sorting_code: Option<String>,
+    /// sublocality property.
+    pub sublocality: Option<String>,
+}
+
+/// `ListInvitationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListInvitationsResponse {
+    /// invitations property.
+    pub invitations: Option<Vec<Invitation>>,
+}
+
+/// `OrganizationInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OrganizationInfo {
+    /// address property.
+    pub address: Option<PostalAddress>,
+    /// phoneNumber property.
+    pub phone_number: Option<String>,
+    /// registeredDomain property.
+    pub registered_domain: Option<String>,
 }
 
 // =============================================================================

@@ -12,25 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `SetPublishedDeployPercentageResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetPublishedDeployPercentageResponse {}
-
-/// `CancelSubmissionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelSubmissionResponse {}
 
 /// `UploadItemPackageResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,6 +37,10 @@ pub struct UploadItemPackageResponse {
     /// uploadState property.
     pub upload_state: Option<String>,
 }
+
+/// `CancelSubmissionResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CancelSubmissionResponse {}
 
 /// `FetchItemStatusResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -77,14 +74,9 @@ pub struct PublishItemResponse {
     pub state: Option<String>,
 }
 
-/// `ItemRevisionStatus` type.
+/// `SetPublishedDeployPercentageResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ItemRevisionStatus {
-    /// distributionChannels property.
-    pub distribution_channels: Option<Vec<DistributionChannel>>,
-    /// state property.
-    pub state: Option<String>,
-}
+pub struct SetPublishedDeployPercentageResponse {}
 
 /// `DistributionChannel` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -93,6 +85,15 @@ pub struct DistributionChannel {
     pub crx_version: Option<String>,
     /// deployPercentage property.
     pub deploy_percentage: Option<i64>,
+}
+
+/// `ItemRevisionStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ItemRevisionStatus {
+    /// distributionChannels property.
+    pub distribution_channels: Option<Vec<DistributionChannel>>,
+    /// state property.
+    pub state: Option<String>,
 }
 
 // =============================================================================

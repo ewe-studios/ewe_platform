@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,19 +24,21 @@ use super::shared::Empty;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudDatacatalogV1ListPolicyTagsResponse` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1ListPolicyTagsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// policyTags property.
-    pub policy_tags: Option<Vec<GoogleCloudDatacatalogV1PolicyTag>>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `GoogleCloudDatacatalogV1PolicyTag` type.
@@ -53,6 +56,15 @@ pub struct GoogleCloudDatacatalogV1PolicyTag {
     pub parent_policy_tag: Option<String>,
 }
 
+/// `GoogleCloudDatacatalogV1ListPolicyTagsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1ListPolicyTagsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// policyTags property.
+    pub policy_tags: Option<Vec<GoogleCloudDatacatalogV1PolicyTag>>,
+}
+
 /// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
@@ -64,17 +76,6 @@ pub struct Expr {
     pub location: Option<String>,
     /// title property.
     pub title: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
 }
 
 // =============================================================================

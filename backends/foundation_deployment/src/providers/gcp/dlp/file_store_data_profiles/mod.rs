@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,936 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GooglePrivacyDlpV2InspectionRule` type.
+/// `GooglePrivacyDlpV2TagCondition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2InspectionRule {
-    /// adjustmentRule property.
-    pub adjustment_rule: Option<GooglePrivacyDlpV2AdjustmentRule>,
-    /// exclusionRule property.
-    pub exclusion_rule: Option<GooglePrivacyDlpV2ExclusionRule>,
-    /// hotwordRule property.
-    pub hotword_rule: Option<GooglePrivacyDlpV2HotwordRule>,
-}
-
-/// `GooglePrivacyDlpV2DataProfileConfigSnapshot` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DataProfileConfigSnapshot {
-    /// dataProfileJob property.
-    pub data_profile_job: Option<GooglePrivacyDlpV2DataProfileJobConfig>,
-    /// discoveryConfig property.
-    pub discovery_config: Option<GooglePrivacyDlpV2DiscoveryConfig>,
-    /// inspectConfig property.
-    pub inspect_config: Option<GooglePrivacyDlpV2InspectConfig>,
-    /// inspectTemplateModifiedTime property.
-    pub inspect_template_modified_time: Option<String>,
-    /// inspectTemplateName property.
-    pub inspect_template_name: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2ExcludeByHotword` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ExcludeByHotword {
-    /// hotwordRegex property.
-    pub hotword_regex: Option<GooglePrivacyDlpV2Regex>,
-    /// proximity property.
-    pub proximity: Option<GooglePrivacyDlpV2Proximity>,
-}
-
-/// `GooglePrivacyDlpV2DatabaseResourceReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DatabaseResourceReference {
-    /// database property.
-    pub database: Option<String>,
-    /// databaseResource property.
-    pub database_resource: Option<String>,
-    /// instance property.
-    pub instance: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2MetadataKeyValueExpression` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2MetadataKeyValueExpression {
-    /// keyRegex property.
-    pub key_regex: Option<String>,
-    /// valueRegex property.
-    pub value_regex: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2DiscoveryTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DiscoveryTarget {
-    /// bigQueryTarget property.
-    pub big_query_target: Option<GooglePrivacyDlpV2BigQueryDiscoveryTarget>,
-    /// cloudSqlTarget property.
-    pub cloud_sql_target: Option<GooglePrivacyDlpV2CloudSqlDiscoveryTarget>,
-    /// cloudStorageTarget property.
-    pub cloud_storage_target: Option<GooglePrivacyDlpV2CloudStorageDiscoveryTarget>,
-    /// otherCloudTarget property.
-    pub other_cloud_target: Option<GooglePrivacyDlpV2OtherCloudDiscoveryTarget>,
-    /// secretsTarget property.
-    pub secrets_target: Option<GooglePrivacyDlpV2SecretsDiscoveryTarget>,
-    /// vertexDatasetTarget property.
-    pub vertex_dataset_target: Option<GooglePrivacyDlpV2VertexDatasetDiscoveryTarget>,
-}
-
-/// `GooglePrivacyDlpV2InspectionRuleSet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2InspectionRuleSet {
-    /// infoTypes property.
-    pub info_types: Option<Vec<GooglePrivacyDlpV2InfoType>>,
-    /// rules property.
-    pub rules: Option<Vec<GooglePrivacyDlpV2InspectionRule>>,
-}
-
-/// `GooglePrivacyDlpV2OtherCloudDiscoveryTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2OtherCloudDiscoveryTarget {
-    /// conditions property.
-    pub conditions: Option<GooglePrivacyDlpV2DiscoveryOtherCloudConditions>,
-    /// dataSourceType property.
-    pub data_source_type: Option<GooglePrivacyDlpV2DataSourceType>,
-    /// disabled property.
-    pub disabled: Option<GooglePrivacyDlpV2Disabled>,
-    /// filter property.
-    pub filter: Option<GooglePrivacyDlpV2DiscoveryOtherCloudFilter>,
-    /// generationCadence property.
-    pub generation_cadence: Option<GooglePrivacyDlpV2DiscoveryOtherCloudGenerationCadence>,
-}
-
-/// `GooglePrivacyDlpV2DiscoveryGenerationCadence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DiscoveryGenerationCadence {
-    /// inspectTemplateModifiedCadence property.
-    pub inspect_template_modified_cadence:
-        Option<GooglePrivacyDlpV2DiscoveryInspectTemplateModifiedCadence>,
-    /// refreshFrequency property.
-    pub refresh_frequency: Option<String>,
-    /// schemaModifiedCadence property.
-    pub schema_modified_cadence: Option<GooglePrivacyDlpV2DiscoverySchemaModifiedCadence>,
-    /// tableModifiedCadence property.
-    pub table_modified_cadence: Option<GooglePrivacyDlpV2DiscoveryTableModifiedCadence>,
-}
-
-/// `GooglePrivacyDlpV2VertexDatasetRegexes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2VertexDatasetRegexes {
-    /// patterns property.
-    pub patterns: Option<Vec<GooglePrivacyDlpV2VertexDatasetRegex>>,
-}
-
-/// `GooglePrivacyDlpV2PublishToSecurityCommandCenter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2PublishToSecurityCommandCenter {}
-
-/// `GooglePrivacyDlpV2DataProfileAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DataProfileAction {
-    /// exportData property.
-    pub export_data: Option<GooglePrivacyDlpV2Export>,
-    /// pubSubNotification property.
-    pub pub_sub_notification: Option<GooglePrivacyDlpV2PubSubNotification>,
-    /// publishToChronicle property.
-    pub publish_to_chronicle: Option<GooglePrivacyDlpV2PublishToChronicle>,
-    /// publishToDataplexCatalog property.
-    pub publish_to_dataplex_catalog: Option<GooglePrivacyDlpV2PublishToDataplexCatalog>,
-    /// publishToScc property.
-    pub publish_to_scc: Option<GooglePrivacyDlpV2PublishToSecurityCommandCenter>,
-    /// tagResources property.
-    pub tag_resources: Option<GooglePrivacyDlpV2TagResources>,
-}
-
-/// `GooglePrivacyDlpV2DiscoveryVertexDatasetFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DiscoveryVertexDatasetFilter {
-    /// collection property.
-    pub collection: Option<GooglePrivacyDlpV2VertexDatasetCollection>,
-    /// others property.
-    pub others: Option<GooglePrivacyDlpV2AllOtherResources>,
-    /// vertexDatasetResourceReference property.
-    pub vertex_dataset_resource_reference: Option<GooglePrivacyDlpV2VertexDatasetResourceReference>,
-}
-
-/// `GooglePrivacyDlpV2ProfileStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ProfileStatus {
-    /// status property.
-    pub status: Option<GoogleRpcStatus>,
-    /// timestamp property.
-    pub timestamp: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2AmazonS3BucketConditions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2AmazonS3BucketConditions {
-    /// bucketTypes property.
-    pub bucket_types: Option<Vec<String>>,
-    /// objectStorageClasses property.
-    pub object_storage_classes: Option<Vec<String>>,
-}
-
-/// `GooglePrivacyDlpV2DiscoveryConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DiscoveryConfig {
-    /// actions property.
-    pub actions: Option<Vec<GooglePrivacyDlpV2DataProfileAction>>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// errors property.
-    pub errors: Option<Vec<GooglePrivacyDlpV2Error>>,
-    /// inspectTemplates property.
-    pub inspect_templates: Option<Vec<String>>,
-    /// lastRunTime property.
-    pub last_run_time: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// orgConfig property.
-    pub org_config: Option<GooglePrivacyDlpV2OrgConfig>,
-    /// otherCloudStartingLocation property.
-    pub other_cloud_starting_location:
-        Option<GooglePrivacyDlpV2OtherCloudDiscoveryStartingLocation>,
-    /// processingLocation property.
-    pub processing_location: Option<GooglePrivacyDlpV2ProcessingLocation>,
-    /// status property.
-    pub status: Option<String>,
-    /// targets property.
-    pub targets: Option<Vec<GooglePrivacyDlpV2DiscoveryTarget>>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2CloudStorageRegex` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2CloudStorageRegex {
-    /// bucketNameRegex property.
-    pub bucket_name_regex: Option<String>,
-    /// projectIdRegex property.
-    pub project_id_regex: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2FindingLimits` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2FindingLimits {
-    /// maxFindingsPerInfoType property.
-    pub max_findings_per_info_type: Option<Vec<GooglePrivacyDlpV2InfoTypeLimit>>,
-    /// maxFindingsPerItem property.
-    pub max_findings_per_item: Option<i64>,
-    /// maxFindingsPerRequest property.
-    pub max_findings_per_request: Option<i64>,
-}
-
-/// `GooglePrivacyDlpV2BigQueryTableTypes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2BigQueryTableTypes {
-    /// types property.
-    pub types: Option<Vec<String>>,
-}
-
-/// `GooglePrivacyDlpV2PubSubNotification` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2PubSubNotification {
-    /// detailOfMessage property.
-    pub detail_of_message: Option<String>,
-    /// event property.
-    pub event: Option<String>,
-    /// pubsubCondition property.
-    pub pubsub_condition: Option<GooglePrivacyDlpV2DataProfilePubSubCondition>,
-    /// topic property.
-    pub topic: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2FileStoreInfoTypeSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2FileStoreInfoTypeSummary {
-    /// infoType property.
-    pub info_type: Option<GooglePrivacyDlpV2InfoType>,
-}
-
-/// `GooglePrivacyDlpV2SensitivityScore` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2SensitivityScore {
-    /// score property.
-    pub score: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2ExclusionRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ExclusionRule {
-    /// dictionary property.
-    pub dictionary: Option<GooglePrivacyDlpV2Dictionary>,
-    /// excludeByHotword property.
-    pub exclude_by_hotword: Option<GooglePrivacyDlpV2ExcludeByHotword>,
-    /// excludeByImageFindings property.
-    pub exclude_by_image_findings: Option<GooglePrivacyDlpV2ExcludeByImageFindings>,
-    /// excludeInfoTypes property.
-    pub exclude_info_types: Option<GooglePrivacyDlpV2ExcludeInfoTypes>,
-    /// matchingType property.
-    pub matching_type: Option<String>,
-    /// regex property.
-    pub regex: Option<GooglePrivacyDlpV2Regex>,
-}
-
-/// `GooglePrivacyDlpV2VertexDatasetResourceReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2VertexDatasetResourceReference {
-    /// datasetResourceName property.
-    pub dataset_resource_name: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2TableReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2TableReference {
-    /// datasetId property.
-    pub dataset_id: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// tableId property.
-    pub table_id: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2GlobalProcessing` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2GlobalProcessing {}
-
-/// `GooglePrivacyDlpV2DataRiskLevel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DataRiskLevel {
-    /// score property.
-    pub score: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2AllOtherBigQueryTables` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2AllOtherBigQueryTables {}
-
-/// `GooglePrivacyDlpV2AwsAccount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2AwsAccount {
-    /// accountId property.
-    pub account_id: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2SurrogateType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2SurrogateType {}
-
-/// `GooglePrivacyDlpV2CloudStoragePath` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2CloudStoragePath {
-    /// path property.
-    pub path: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2DiscoveryBigQueryConditions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DiscoveryBigQueryConditions {
-    /// createdAfter property.
-    pub created_after: Option<String>,
-    /// orConditions property.
-    pub or_conditions: Option<GooglePrivacyDlpV2OrConditions>,
-    /// typeCollection property.
-    pub type_collection: Option<String>,
-    /// types property.
-    pub types: Option<GooglePrivacyDlpV2BigQueryTableTypes>,
-}
-
-/// `GooglePrivacyDlpV2DiscoveryCloudStorageGenerationCadence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DiscoveryCloudStorageGenerationCadence {
-    /// inspectTemplateModifiedCadence property.
-    pub inspect_template_modified_cadence:
-        Option<GooglePrivacyDlpV2DiscoveryInspectTemplateModifiedCadence>,
-    /// refreshFrequency property.
-    pub refresh_frequency: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2CloudSqlDiscoveryTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2CloudSqlDiscoveryTarget {
-    /// conditions property.
-    pub conditions: Option<GooglePrivacyDlpV2DiscoveryCloudSqlConditions>,
-    /// disabled property.
-    pub disabled: Option<GooglePrivacyDlpV2Disabled>,
-    /// filter property.
-    pub filter: Option<GooglePrivacyDlpV2DiscoveryCloudSqlFilter>,
-    /// generationCadence property.
-    pub generation_cadence: Option<GooglePrivacyDlpV2DiscoveryCloudSqlGenerationCadence>,
-}
-
-/// `GooglePrivacyDlpV2BigQueryTable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2BigQueryTable {
-    /// datasetId property.
-    pub dataset_id: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// tableId property.
-    pub table_id: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2CloudStorageResourceReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2CloudStorageResourceReference {
-    /// bucketName property.
-    pub bucket_name: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2Proximity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Proximity {
-    /// windowAfter property.
-    pub window_after: Option<i64>,
-    /// windowBefore property.
-    pub window_before: Option<i64>,
-}
-
-/// `GooglePrivacyDlpV2DiscoveryOtherCloudConditions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DiscoveryOtherCloudConditions {
-    /// amazonS3BucketConditions property.
-    pub amazon_s3_bucket_conditions: Option<GooglePrivacyDlpV2AmazonS3BucketConditions>,
-    /// minAge property.
-    pub min_age: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2InfoType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2InfoType {
-    /// name property.
-    pub name: Option<String>,
+pub struct GooglePrivacyDlpV2TagCondition {
     /// sensitivityScore property.
     pub sensitivity_score: Option<GooglePrivacyDlpV2SensitivityScore>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2OrConditions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2OrConditions {
-    /// minAge property.
-    pub min_age: Option<String>,
-    /// minRowCount property.
-    pub min_row_count: Option<i64>,
-}
-
-/// `GooglePrivacyDlpV2DiscoveryInspectTemplateModifiedCadence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DiscoveryInspectTemplateModifiedCadence {
-    /// frequency property.
-    pub frequency: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2MultiRegionProcessing` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2MultiRegionProcessing {}
-
-/// `GooglePrivacyDlpV2DiscoveryStartingLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DiscoveryStartingLocation {
-    /// folderId property.
-    pub folder_id: Option<String>,
-    /// organizationId property.
-    pub organization_id: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2DiscoverySchemaModifiedCadence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DiscoverySchemaModifiedCadence {
-    /// frequency property.
-    pub frequency: Option<String>,
-    /// types property.
-    pub types: Option<Vec<String>>,
-}
-
-/// `GooglePrivacyDlpV2VertexDatasetRegex` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2VertexDatasetRegex {
-    /// projectIdRegex property.
-    pub project_id_regex: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2TagFilters` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2TagFilters {
-    /// tagFilters property.
-    pub tag_filters: Option<Vec<GooglePrivacyDlpV2TagFilter>>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2DataProfileJobConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DataProfileJobConfig {
-    /// dataProfileActions property.
-    pub data_profile_actions: Option<Vec<GooglePrivacyDlpV2DataProfileAction>>,
-    /// inspectTemplates property.
-    pub inspect_templates: Option<Vec<String>>,
-    /// location property.
-    pub location: Option<GooglePrivacyDlpV2DataProfileLocation>,
-    /// otherCloudStartingLocation property.
-    pub other_cloud_starting_location:
-        Option<GooglePrivacyDlpV2OtherCloudDiscoveryStartingLocation>,
-    /// projectId property.
-    pub project_id: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2DatabaseResourceRegex` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DatabaseResourceRegex {
-    /// databaseRegex property.
-    pub database_regex: Option<String>,
-    /// databaseResourceNameRegex property.
-    pub database_resource_name_regex: Option<String>,
-    /// instanceRegex property.
-    pub instance_regex: Option<String>,
-    /// projectIdRegex property.
-    pub project_id_regex: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2AdjustmentRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2AdjustmentRule {
-    /// adjustByImageFindings property.
-    pub adjust_by_image_findings: Option<GooglePrivacyDlpV2AdjustByImageFindings>,
-    /// adjustByMatchingInfoTypes property.
-    pub adjust_by_matching_info_types: Option<GooglePrivacyDlpV2AdjustByMatchingInfoTypes>,
-    /// likelihoodAdjustment property.
-    pub likelihood_adjustment: Option<GooglePrivacyDlpV2LikelihoodAdjustment>,
-}
-
-/// `GooglePrivacyDlpV2DataProfilePubSubCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DataProfilePubSubCondition {
-    /// expressions property.
-    pub expressions: Option<GooglePrivacyDlpV2PubSubExpressions>,
-}
-
-/// `GooglePrivacyDlpV2Disabled` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Disabled {}
-
-/// `GooglePrivacyDlpV2ExcludeByImageFindings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ExcludeByImageFindings {
-    /// imageContainmentType property.
-    pub image_containment_type: Option<GooglePrivacyDlpV2ImageContainmentType>,
-    /// infoTypes property.
-    pub info_types: Option<Vec<GooglePrivacyDlpV2InfoType>>,
-}
-
-/// `GooglePrivacyDlpV2AwsAccountRegex` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2AwsAccountRegex {
-    /// accountIdRegex property.
-    pub account_id_regex: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2FileStoreCollection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2FileStoreCollection {
-    /// includeRegexes property.
-    pub include_regexes: Option<GooglePrivacyDlpV2FileStoreRegexes>,
-    /// includeTags property.
-    pub include_tags: Option<GooglePrivacyDlpV2TagFilters>,
-}
-
-/// `GooglePrivacyDlpV2PubSubCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2PubSubCondition {
-    /// minimumRiskScore property.
-    pub minimum_risk_score: Option<String>,
-    /// minimumSensitivityScore property.
-    pub minimum_sensitivity_score: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2SecretsDiscoveryTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2SecretsDiscoveryTarget {}
-
-/// `GooglePrivacyDlpV2Export` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Export {
-    /// profileTable property.
-    pub profile_table: Option<GooglePrivacyDlpV2BigQueryTable>,
-    /// sampleFindingsTable property.
-    pub sample_findings_table: Option<GooglePrivacyDlpV2BigQueryTable>,
-}
-
-/// `GooglePrivacyDlpV2DetectionRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DetectionRule {
-    /// hotwordRule property.
-    pub hotword_rule: Option<GooglePrivacyDlpV2HotwordRule>,
-}
-
-/// `GooglePrivacyDlpV2CloudStorageDiscoveryTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2CloudStorageDiscoveryTarget {
-    /// conditions property.
-    pub conditions: Option<GooglePrivacyDlpV2DiscoveryFileStoreConditions>,
-    /// disabled property.
-    pub disabled: Option<GooglePrivacyDlpV2Disabled>,
-    /// filter property.
-    pub filter: Option<GooglePrivacyDlpV2DiscoveryCloudStorageFilter>,
-    /// generationCadence property.
-    pub generation_cadence: Option<GooglePrivacyDlpV2DiscoveryCloudStorageGenerationCadence>,
-}
-
-/// `GooglePrivacyDlpV2DiscoveryOtherCloudGenerationCadence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DiscoveryOtherCloudGenerationCadence {
-    /// inspectTemplateModifiedCadence property.
-    pub inspect_template_modified_cadence:
-        Option<GooglePrivacyDlpV2DiscoveryInspectTemplateModifiedCadence>,
-    /// refreshFrequency property.
-    pub refresh_frequency: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2Dictionary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Dictionary {
-    /// cloudStoragePath property.
-    pub cloud_storage_path: Option<GooglePrivacyDlpV2CloudStoragePath>,
-    /// wordList property.
-    pub word_list: Option<GooglePrivacyDlpV2WordList>,
-}
-
-/// `GooglePrivacyDlpV2AmazonS3BucketRegex` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2AmazonS3BucketRegex {
-    /// awsAccountRegex property.
-    pub aws_account_regex: Option<GooglePrivacyDlpV2AwsAccountRegex>,
-    /// bucketNameRegex property.
-    pub bucket_name_regex: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2AllOtherResources` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2AllOtherResources {}
-
-/// `GooglePrivacyDlpV2ImageFallbackLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ImageFallbackLocation {
-    /// globalProcessing property.
-    pub global_processing: Option<GooglePrivacyDlpV2GlobalProcessing>,
-    /// multiRegionProcessing property.
-    pub multi_region_processing: Option<GooglePrivacyDlpV2MultiRegionProcessing>,
-}
-
-/// `GooglePrivacyDlpV2FileClusterType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2FileClusterType {
-    /// cluster property.
-    pub cluster: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2DiscoveryOtherCloudFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DiscoveryOtherCloudFilter {
-    /// collection property.
-    pub collection: Option<GooglePrivacyDlpV2OtherCloudResourceCollection>,
-    /// others property.
-    pub others: Option<GooglePrivacyDlpV2AllOtherResources>,
-    /// singleResource property.
-    pub single_resource: Option<GooglePrivacyDlpV2OtherCloudSingleResourceReference>,
-}
-
-/// `GooglePrivacyDlpV2Encloses` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Encloses {}
-
-/// `GooglePrivacyDlpV2RelatedResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2RelatedResource {
-    /// fullResource property.
-    pub full_resource: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2DiscoveryCloudSqlConditions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DiscoveryCloudSqlConditions {
-    /// databaseEngines property.
-    pub database_engines: Option<Vec<String>>,
-    /// types property.
-    pub types: Option<Vec<String>>,
-}
-
-/// `GooglePrivacyDlpV2Regex` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Regex {
-    /// groupIndexes property.
-    pub group_indexes: Option<Vec<i64>>,
-    /// pattern property.
-    pub pattern: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2ImageContainmentType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ImageContainmentType {
-    /// encloses property.
-    pub encloses: Option<GooglePrivacyDlpV2Encloses>,
-    /// fullyInside property.
-    pub fully_inside: Option<GooglePrivacyDlpV2FullyInside>,
-    /// overlaps property.
-    pub overlaps: Option<GooglePrivacyDlpV2Overlap>,
-}
-
-/// `GooglePrivacyDlpV2FileStoreRegex` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2FileStoreRegex {
-    /// cloudStorageRegex property.
-    pub cloud_storage_regex: Option<GooglePrivacyDlpV2CloudStorageRegex>,
-}
-
-/// `GooglePrivacyDlpV2PublishToDataplexCatalog` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2PublishToDataplexCatalog {
-    /// lowerDataRiskToLow property.
-    pub lower_data_risk_to_low: Option<bool>,
-}
-
-/// `GooglePrivacyDlpV2OtherCloudDiscoveryStartingLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2OtherCloudDiscoveryStartingLocation {
-    /// awsLocation property.
-    pub aws_location: Option<GooglePrivacyDlpV2AwsDiscoveryStartingLocation>,
-}
-
-/// `GooglePrivacyDlpV2OtherCloudResourceCollection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2OtherCloudResourceCollection {
-    /// includeRegexes property.
-    pub include_regexes: Option<GooglePrivacyDlpV2OtherCloudResourceRegexes>,
-}
-
-/// `GooglePrivacyDlpV2DiscoveryVertexDatasetConditions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DiscoveryVertexDatasetConditions {
-    /// createdAfter property.
-    pub created_after: Option<String>,
-    /// minAge property.
-    pub min_age: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2VertexDatasetCollection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2VertexDatasetCollection {
-    /// vertexDatasetRegexes property.
-    pub vertex_dataset_regexes: Option<GooglePrivacyDlpV2VertexDatasetRegexes>,
-}
-
-/// `GooglePrivacyDlpV2Domain` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Domain {
-    /// category property.
-    pub category: Option<String>,
-    /// signals property.
-    pub signals: Option<Vec<String>>,
-}
-
-/// `GooglePrivacyDlpV2DiscoveryBigQueryFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DiscoveryBigQueryFilter {
-    /// otherTables property.
-    pub other_tables: Option<GooglePrivacyDlpV2AllOtherBigQueryTables>,
-    /// tableReference property.
-    pub table_reference: Option<GooglePrivacyDlpV2TableReference>,
-    /// tables property.
-    pub tables: Option<GooglePrivacyDlpV2BigQueryTableCollection>,
-}
-
-/// `GooglePrivacyDlpV2DiscoveryFileStoreConditions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DiscoveryFileStoreConditions {
-    /// cloudStorageConditions property.
-    pub cloud_storage_conditions: Option<GooglePrivacyDlpV2DiscoveryCloudStorageConditions>,
-    /// createdAfter property.
-    pub created_after: Option<String>,
-    /// minAge property.
-    pub min_age: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2DiscoveryCloudSqlFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DiscoveryCloudSqlFilter {
-    /// collection property.
-    pub collection: Option<GooglePrivacyDlpV2DatabaseResourceCollection>,
-    /// databaseResourceReference property.
-    pub database_resource_reference: Option<GooglePrivacyDlpV2DatabaseResourceReference>,
-    /// others property.
-    pub others: Option<GooglePrivacyDlpV2AllOtherDatabaseResources>,
-}
-
-/// `GooglePrivacyDlpV2DatabaseResourceRegexes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DatabaseResourceRegexes {
-    /// patterns property.
-    pub patterns: Option<Vec<GooglePrivacyDlpV2DatabaseResourceRegex>>,
-}
-
-/// `GooglePrivacyDlpV2BigQueryDiscoveryTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2BigQueryDiscoveryTarget {
-    /// cadence property.
-    pub cadence: Option<GooglePrivacyDlpV2DiscoveryGenerationCadence>,
-    /// conditions property.
-    pub conditions: Option<GooglePrivacyDlpV2DiscoveryBigQueryConditions>,
-    /// disabled property.
-    pub disabled: Option<GooglePrivacyDlpV2Disabled>,
-    /// filter property.
-    pub filter: Option<GooglePrivacyDlpV2DiscoveryBigQueryFilter>,
-}
-
-/// `GooglePrivacyDlpV2InfoTypeLimit` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2InfoTypeLimit {
-    /// infoType property.
-    pub info_type: Option<GooglePrivacyDlpV2InfoType>,
-    /// maxFindings property.
-    pub max_findings: Option<i64>,
-}
-
-/// `GooglePrivacyDlpV2DiscoveryVertexDatasetGenerationCadence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DiscoveryVertexDatasetGenerationCadence {
-    /// inspectTemplateModifiedCadence property.
-    pub inspect_template_modified_cadence:
-        Option<GooglePrivacyDlpV2DiscoveryInspectTemplateModifiedCadence>,
-    /// refreshFrequency property.
-    pub refresh_frequency: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2AdjustByImageFindings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2AdjustByImageFindings {
-    /// imageContainmentType property.
-    pub image_containment_type: Option<GooglePrivacyDlpV2ImageContainmentType>,
-    /// infoTypes property.
-    pub info_types: Option<Vec<GooglePrivacyDlpV2InfoType>>,
-    /// minLikelihood property.
-    pub min_likelihood: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2BigQueryRegexes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2BigQueryRegexes {
-    /// patterns property.
-    pub patterns: Option<Vec<GooglePrivacyDlpV2BigQueryRegex>>,
-}
-
-/// `GooglePrivacyDlpV2LikelihoodAdjustment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2LikelihoodAdjustment {
-    /// fixedLikelihood property.
-    pub fixed_likelihood: Option<String>,
-    /// relativeLikelihood property.
-    pub relative_likelihood: Option<i64>,
-}
-
-/// `GooglePrivacyDlpV2PublishToChronicle` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2PublishToChronicle {}
-
-/// `GooglePrivacyDlpV2TagFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2TagFilter {
-    /// namespacedTagKey property.
-    pub namespaced_tag_key: Option<String>,
-    /// namespacedTagValue property.
-    pub namespaced_tag_value: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2ExcludeInfoTypes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ExcludeInfoTypes {
-    /// infoTypes property.
-    pub info_types: Option<Vec<GooglePrivacyDlpV2InfoType>>,
-}
-
-/// `GooglePrivacyDlpV2BigQueryTableCollection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2BigQueryTableCollection {
-    /// includeRegexes property.
-    pub include_regexes: Option<GooglePrivacyDlpV2BigQueryRegexes>,
-}
-
-/// `GooglePrivacyDlpV2SchemaModifiedCadence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2SchemaModifiedCadence {
-    /// frequency property.
-    pub frequency: Option<String>,
-    /// types property.
-    pub types: Option<Vec<String>>,
-}
-
-/// `GooglePrivacyDlpV2DataSourceType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DataSourceType {
-    /// dataSource property.
-    pub data_source: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2VertexDatasetDiscoveryTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2VertexDatasetDiscoveryTarget {
-    /// conditions property.
-    pub conditions: Option<GooglePrivacyDlpV2DiscoveryVertexDatasetConditions>,
-    /// disabled property.
-    pub disabled: Option<GooglePrivacyDlpV2Disabled>,
-    /// filter property.
-    pub filter: Option<GooglePrivacyDlpV2DiscoveryVertexDatasetFilter>,
-    /// generationCadence property.
-    pub generation_cadence: Option<GooglePrivacyDlpV2DiscoveryVertexDatasetGenerationCadence>,
-}
-
-/// `GooglePrivacyDlpV2AmazonS3Bucket` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2AmazonS3Bucket {
-    /// awsAccount property.
-    pub aws_account: Option<GooglePrivacyDlpV2AwsAccount>,
-    /// bucketName property.
-    pub bucket_name: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2FileClusterSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2FileClusterSummary {
-    /// dataRiskLevel property.
-    pub data_risk_level: Option<GooglePrivacyDlpV2DataRiskLevel>,
-    /// errors property.
-    pub errors: Option<Vec<GooglePrivacyDlpV2Error>>,
-    /// fileClusterType property.
-    pub file_cluster_type: Option<GooglePrivacyDlpV2FileClusterType>,
-    /// fileExtensionsScanned property.
-    pub file_extensions_scanned: Option<Vec<GooglePrivacyDlpV2FileExtensionInfo>>,
-    /// fileExtensionsSeen property.
-    pub file_extensions_seen: Option<Vec<GooglePrivacyDlpV2FileExtensionInfo>>,
-    /// fileStoreInfoTypeSummaries property.
-    pub file_store_info_type_summaries: Option<Vec<GooglePrivacyDlpV2FileStoreInfoTypeSummary>>,
-    /// noFilesExist property.
-    pub no_files_exist: Option<bool>,
-    /// sensitivityScore property.
-    pub sensitivity_score: Option<GooglePrivacyDlpV2SensitivityScore>,
+    /// tag property.
+    pub tag: Option<GooglePrivacyDlpV2TagValue>,
 }
 
 /// `GooglePrivacyDlpV2DiscoveryCloudSqlGenerationCadence` type.
@@ -965,146 +49,56 @@ pub struct GooglePrivacyDlpV2DiscoveryCloudSqlGenerationCadence {
     pub schema_modified_cadence: Option<GooglePrivacyDlpV2SchemaModifiedCadence>,
 }
 
-/// `GooglePrivacyDlpV2TagCondition` type.
+/// `GooglePrivacyDlpV2GlobalProcessing` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2TagCondition {
-    /// sensitivityScore property.
-    pub sensitivity_score: Option<GooglePrivacyDlpV2SensitivityScore>,
-    /// tag property.
-    pub tag: Option<GooglePrivacyDlpV2TagValue>,
+pub struct GooglePrivacyDlpV2GlobalProcessing {}
+
+/// `GooglePrivacyDlpV2AwsDiscoveryStartingLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2AwsDiscoveryStartingLocation {
+    /// accountId property.
+    pub account_id: Option<String>,
+    /// allAssetInventoryAssets property.
+    pub all_asset_inventory_assets: Option<bool>,
 }
 
-/// `GooglePrivacyDlpV2CustomInfoType` type.
+/// `GooglePrivacyDlpV2AdjustByImageFindings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2CustomInfoType {
-    /// detectionRules property.
-    pub detection_rules: Option<Vec<GooglePrivacyDlpV2DetectionRule>>,
-    /// dictionary property.
-    pub dictionary: Option<GooglePrivacyDlpV2Dictionary>,
-    /// exclusionType property.
-    pub exclusion_type: Option<String>,
-    /// infoType property.
-    pub info_type: Option<GooglePrivacyDlpV2InfoType>,
-    /// likelihood property.
-    pub likelihood: Option<String>,
-    /// metadataKeyValueExpression property.
-    pub metadata_key_value_expression: Option<GooglePrivacyDlpV2MetadataKeyValueExpression>,
-    /// regex property.
-    pub regex: Option<GooglePrivacyDlpV2Regex>,
-    /// sensitivityScore property.
-    pub sensitivity_score: Option<GooglePrivacyDlpV2SensitivityScore>,
-    /// storedType property.
-    pub stored_type: Option<GooglePrivacyDlpV2StoredType>,
-    /// surrogateType property.
-    pub surrogate_type: Option<GooglePrivacyDlpV2SurrogateType>,
-}
-
-/// `GooglePrivacyDlpV2InfoTypeLikelihood` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2InfoTypeLikelihood {
-    /// infoType property.
-    pub info_type: Option<GooglePrivacyDlpV2InfoType>,
-    /// minLikelihood property.
-    pub min_likelihood: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2FileExtensionInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2FileExtensionInfo {
-    /// fileExtension property.
-    pub file_extension: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2AdjustByMatchingInfoTypes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2AdjustByMatchingInfoTypes {
+pub struct GooglePrivacyDlpV2AdjustByImageFindings {
+    /// imageContainmentType property.
+    pub image_containment_type: Option<GooglePrivacyDlpV2ImageContainmentType>,
     /// infoTypes property.
     pub info_types: Option<Vec<GooglePrivacyDlpV2InfoType>>,
-    /// matchingType property.
-    pub matching_type: Option<String>,
     /// minLikelihood property.
     pub min_likelihood: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2Error` type.
+/// `GooglePrivacyDlpV2DiscoveryInspectTemplateModifiedCadence` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Error {
-    /// details property.
-    pub details: Option<GoogleRpcStatus>,
-    /// extraInfo property.
-    pub extra_info: Option<String>,
-    /// timestamps property.
-    pub timestamps: Option<Vec<String>>,
+pub struct GooglePrivacyDlpV2DiscoveryInspectTemplateModifiedCadence {
+    /// frequency property.
+    pub frequency: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2DatabaseResourceCollection` type.
+/// `GooglePrivacyDlpV2SurrogateType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DatabaseResourceCollection {
-    /// includeRegexes property.
-    pub include_regexes: Option<GooglePrivacyDlpV2DatabaseResourceRegexes>,
+pub struct GooglePrivacyDlpV2SurrogateType {}
+
+/// `GooglePrivacyDlpV2BigQueryTableTypes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2BigQueryTableTypes {
+    /// types property.
+    pub types: Option<Vec<String>>,
 }
 
-/// `GooglePrivacyDlpV2WordList` type.
+/// `GooglePrivacyDlpV2ProfileStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2WordList {
-    /// words property.
-    pub words: Option<Vec<String>>,
+pub struct GooglePrivacyDlpV2ProfileStatus {
+    /// status property.
+    pub status: Option<GoogleRpcStatus>,
+    /// timestamp property.
+    pub timestamp: Option<String>,
 }
-
-/// `GooglePrivacyDlpV2OtherCloudSingleResourceReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2OtherCloudSingleResourceReference {
-    /// amazonS3Bucket property.
-    pub amazon_s3_bucket: Option<GooglePrivacyDlpV2AmazonS3Bucket>,
-}
-
-/// `GooglePrivacyDlpV2AllOtherDatabaseResources` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2AllOtherDatabaseResources {}
-
-/// `GooglePrivacyDlpV2DiscoveryCloudStorageFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DiscoveryCloudStorageFilter {
-    /// cloudStorageResourceReference property.
-    pub cloud_storage_resource_reference: Option<GooglePrivacyDlpV2CloudStorageResourceReference>,
-    /// collection property.
-    pub collection: Option<GooglePrivacyDlpV2FileStoreCollection>,
-    /// others property.
-    pub others: Option<GooglePrivacyDlpV2AllOtherResources>,
-}
-
-/// `GooglePrivacyDlpV2ProcessingLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ProcessingLocation {
-    /// documentFallbackLocation property.
-    pub document_fallback_location: Option<GooglePrivacyDlpV2DocumentFallbackLocation>,
-    /// imageFallbackLocation property.
-    pub image_fallback_location: Option<GooglePrivacyDlpV2ImageFallbackLocation>,
-}
-
-/// `GooglePrivacyDlpV2BigQueryRegex` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2BigQueryRegex {
-    /// datasetIdRegex property.
-    pub dataset_id_regex: Option<String>,
-    /// projectIdRegex property.
-    pub project_id_regex: Option<String>,
-    /// tableIdRegex property.
-    pub table_id_regex: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2StoredType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2StoredType {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2Overlap` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Overlap {}
 
 /// `GooglePrivacyDlpV2OrgConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1115,40 +109,63 @@ pub struct GooglePrivacyDlpV2OrgConfig {
     pub project_id: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2OtherCloudResourceRegexes` type.
+/// `GooglePrivacyDlpV2DiscoveryVertexDatasetGenerationCadence` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2OtherCloudResourceRegexes {
-    /// patterns property.
-    pub patterns: Option<Vec<GooglePrivacyDlpV2OtherCloudResourceRegex>>,
+pub struct GooglePrivacyDlpV2DiscoveryVertexDatasetGenerationCadence {
+    /// inspectTemplateModifiedCadence property.
+    pub inspect_template_modified_cadence:
+        Option<GooglePrivacyDlpV2DiscoveryInspectTemplateModifiedCadence>,
+    /// refreshFrequency property.
+    pub refresh_frequency: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2DiscoveryTableModifiedCadence` type.
+/// `GooglePrivacyDlpV2ExcludeInfoTypes` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DiscoveryTableModifiedCadence {
-    /// frequency property.
-    pub frequency: Option<String>,
+pub struct GooglePrivacyDlpV2ExcludeInfoTypes {
+    /// infoTypes property.
+    pub info_types: Option<Vec<GooglePrivacyDlpV2InfoType>>,
+}
+
+/// `GooglePrivacyDlpV2OrConditions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2OrConditions {
+    /// minAge property.
+    pub min_age: Option<String>,
+    /// minRowCount property.
+    pub min_row_count: Option<i64>,
+}
+
+/// `GooglePrivacyDlpV2Overlap` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Overlap {}
+
+/// `GooglePrivacyDlpV2DiscoveryBigQueryConditions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DiscoveryBigQueryConditions {
+    /// createdAfter property.
+    pub created_after: Option<String>,
+    /// orConditions property.
+    pub or_conditions: Option<GooglePrivacyDlpV2OrConditions>,
+    /// typeCollection property.
+    pub type_collection: Option<String>,
     /// types property.
-    pub types: Option<Vec<String>>,
+    pub types: Option<GooglePrivacyDlpV2BigQueryTableTypes>,
 }
 
-/// `GooglePrivacyDlpV2TagResources` type.
+/// `GooglePrivacyDlpV2ListFileStoreDataProfilesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2TagResources {
-    /// lowerDataRiskToLow property.
-    pub lower_data_risk_to_low: Option<bool>,
-    /// profileGenerationsToTag property.
-    pub profile_generations_to_tag: Option<Vec<String>>,
-    /// tagConditions property.
-    pub tag_conditions: Option<Vec<GooglePrivacyDlpV2TagCondition>>,
+pub struct GooglePrivacyDlpV2ListFileStoreDataProfilesResponse {
+    /// fileStoreDataProfiles property.
+    pub file_store_data_profiles: Option<Vec<GooglePrivacyDlpV2FileStoreDataProfile>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2PubSubExpressions` type.
+/// `GooglePrivacyDlpV2VertexDatasetRegexes` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2PubSubExpressions {
-    /// conditions property.
-    pub conditions: Option<Vec<GooglePrivacyDlpV2PubSubCondition>>,
-    /// logicalOperator property.
-    pub logical_operator: Option<String>,
+pub struct GooglePrivacyDlpV2VertexDatasetRegexes {
+    /// patterns property.
+    pub patterns: Option<Vec<GooglePrivacyDlpV2VertexDatasetRegex>>,
 }
 
 /// `GooglePrivacyDlpV2DiscoveryCloudStorageConditions` type.
@@ -1158,24 +175,6 @@ pub struct GooglePrivacyDlpV2DiscoveryCloudStorageConditions {
     pub included_bucket_attributes: Option<Vec<String>>,
     /// includedObjectAttributes property.
     pub included_object_attributes: Option<Vec<String>>,
-}
-
-/// `GooglePrivacyDlpV2OtherCloudResourceRegex` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2OtherCloudResourceRegex {
-    /// amazonS3BucketRegex property.
-    pub amazon_s3_bucket_regex: Option<GooglePrivacyDlpV2AmazonS3BucketRegex>,
-}
-
-/// `GooglePrivacyDlpV2Tag` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Tag {
-    /// key property.
-    pub key: Option<String>,
-    /// namespacedTagValue property.
-    pub namespaced_tag_value: Option<String>,
-    /// value property.
-    pub value: Option<String>,
 }
 
 /// `GooglePrivacyDlpV2FileStoreDataProfile` type.
@@ -1237,15 +236,313 @@ pub struct GooglePrivacyDlpV2FileStoreDataProfile {
     pub tags: Option<Vec<GooglePrivacyDlpV2Tag>>,
 }
 
-/// `GooglePrivacyDlpV2HotwordRule` type.
+/// `GooglePrivacyDlpV2CloudStorageRegex` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2HotwordRule {
+pub struct GooglePrivacyDlpV2CloudStorageRegex {
+    /// bucketNameRegex property.
+    pub bucket_name_regex: Option<String>,
+    /// projectIdRegex property.
+    pub project_id_regex: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2ImageContainmentType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2ImageContainmentType {
+    /// encloses property.
+    pub encloses: Option<GooglePrivacyDlpV2Encloses>,
+    /// fullyInside property.
+    pub fully_inside: Option<GooglePrivacyDlpV2FullyInside>,
+    /// overlaps property.
+    pub overlaps: Option<GooglePrivacyDlpV2Overlap>,
+}
+
+/// `GooglePrivacyDlpV2Tag` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Tag {
+    /// key property.
+    pub key: Option<String>,
+    /// namespacedTagValue property.
+    pub namespaced_tag_value: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2InfoTypeLimit` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2InfoTypeLimit {
+    /// infoType property.
+    pub info_type: Option<GooglePrivacyDlpV2InfoType>,
+    /// maxFindings property.
+    pub max_findings: Option<i64>,
+}
+
+/// `GooglePrivacyDlpV2DataSourceType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DataSourceType {
+    /// dataSource property.
+    pub data_source: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2FindingLimits` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2FindingLimits {
+    /// maxFindingsPerInfoType property.
+    pub max_findings_per_info_type: Option<Vec<GooglePrivacyDlpV2InfoTypeLimit>>,
+    /// maxFindingsPerItem property.
+    pub max_findings_per_item: Option<i64>,
+    /// maxFindingsPerRequest property.
+    pub max_findings_per_request: Option<i64>,
+}
+
+/// `GooglePrivacyDlpV2CloudStoragePath` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2CloudStoragePath {
+    /// path property.
+    pub path: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2Encloses` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Encloses {}
+
+/// `GooglePrivacyDlpV2MetadataKeyValueExpression` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2MetadataKeyValueExpression {
+    /// keyRegex property.
+    pub key_regex: Option<String>,
+    /// valueRegex property.
+    pub value_regex: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2PubSubNotification` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2PubSubNotification {
+    /// detailOfMessage property.
+    pub detail_of_message: Option<String>,
+    /// event property.
+    pub event: Option<String>,
+    /// pubsubCondition property.
+    pub pubsub_condition: Option<GooglePrivacyDlpV2DataProfilePubSubCondition>,
+    /// topic property.
+    pub topic: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2ExcludeByHotword` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2ExcludeByHotword {
     /// hotwordRegex property.
     pub hotword_regex: Option<GooglePrivacyDlpV2Regex>,
-    /// likelihoodAdjustment property.
-    pub likelihood_adjustment: Option<GooglePrivacyDlpV2LikelihoodAdjustment>,
     /// proximity property.
     pub proximity: Option<GooglePrivacyDlpV2Proximity>,
+}
+
+/// `GooglePrivacyDlpV2TagFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2TagFilter {
+    /// namespacedTagKey property.
+    pub namespaced_tag_key: Option<String>,
+    /// namespacedTagValue property.
+    pub namespaced_tag_value: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2DiscoveryOtherCloudFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DiscoveryOtherCloudFilter {
+    /// collection property.
+    pub collection: Option<GooglePrivacyDlpV2OtherCloudResourceCollection>,
+    /// others property.
+    pub others: Option<GooglePrivacyDlpV2AllOtherResources>,
+    /// singleResource property.
+    pub single_resource: Option<GooglePrivacyDlpV2OtherCloudSingleResourceReference>,
+}
+
+/// `GooglePrivacyDlpV2AmazonS3BucketRegex` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2AmazonS3BucketRegex {
+    /// awsAccountRegex property.
+    pub aws_account_regex: Option<GooglePrivacyDlpV2AwsAccountRegex>,
+    /// bucketNameRegex property.
+    pub bucket_name_regex: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2DatabaseResourceRegexes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DatabaseResourceRegexes {
+    /// patterns property.
+    pub patterns: Option<Vec<GooglePrivacyDlpV2DatabaseResourceRegex>>,
+}
+
+/// `GooglePrivacyDlpV2AllOtherBigQueryTables` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2AllOtherBigQueryTables {}
+
+/// `GooglePrivacyDlpV2CloudStorageDiscoveryTarget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2CloudStorageDiscoveryTarget {
+    /// conditions property.
+    pub conditions: Option<GooglePrivacyDlpV2DiscoveryFileStoreConditions>,
+    /// disabled property.
+    pub disabled: Option<GooglePrivacyDlpV2Disabled>,
+    /// filter property.
+    pub filter: Option<GooglePrivacyDlpV2DiscoveryCloudStorageFilter>,
+    /// generationCadence property.
+    pub generation_cadence: Option<GooglePrivacyDlpV2DiscoveryCloudStorageGenerationCadence>,
+}
+
+/// `GooglePrivacyDlpV2DatabaseResourceReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DatabaseResourceReference {
+    /// database property.
+    pub database: Option<String>,
+    /// databaseResource property.
+    pub database_resource: Option<String>,
+    /// instance property.
+    pub instance: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2SensitivityScore` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2SensitivityScore {
+    /// score property.
+    pub score: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2OtherCloudDiscoveryStartingLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2OtherCloudDiscoveryStartingLocation {
+    /// awsLocation property.
+    pub aws_location: Option<GooglePrivacyDlpV2AwsDiscoveryStartingLocation>,
+}
+
+/// `GooglePrivacyDlpV2Disabled` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Disabled {}
+
+/// `GooglePrivacyDlpV2VertexDatasetResourceReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2VertexDatasetResourceReference {
+    /// datasetResourceName property.
+    pub dataset_resource_name: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2BigQueryTable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2BigQueryTable {
+    /// datasetId property.
+    pub dataset_id: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// tableId property.
+    pub table_id: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2InspectionRuleSet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2InspectionRuleSet {
+    /// infoTypes property.
+    pub info_types: Option<Vec<GooglePrivacyDlpV2InfoType>>,
+    /// rules property.
+    pub rules: Option<Vec<GooglePrivacyDlpV2InspectionRule>>,
+}
+
+/// `GooglePrivacyDlpV2TagFilters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2TagFilters {
+    /// tagFilters property.
+    pub tag_filters: Option<Vec<GooglePrivacyDlpV2TagFilter>>,
+}
+
+/// `GooglePrivacyDlpV2DiscoveryBigQueryFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DiscoveryBigQueryFilter {
+    /// otherTables property.
+    pub other_tables: Option<GooglePrivacyDlpV2AllOtherBigQueryTables>,
+    /// tableReference property.
+    pub table_reference: Option<GooglePrivacyDlpV2TableReference>,
+    /// tables property.
+    pub tables: Option<GooglePrivacyDlpV2BigQueryTableCollection>,
+}
+
+/// `GooglePrivacyDlpV2BigQueryRegex` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2BigQueryRegex {
+    /// datasetIdRegex property.
+    pub dataset_id_regex: Option<String>,
+    /// projectIdRegex property.
+    pub project_id_regex: Option<String>,
+    /// tableIdRegex property.
+    pub table_id_regex: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2AdjustByMatchingInfoTypes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2AdjustByMatchingInfoTypes {
+    /// infoTypes property.
+    pub info_types: Option<Vec<GooglePrivacyDlpV2InfoType>>,
+    /// matchingType property.
+    pub matching_type: Option<String>,
+    /// minLikelihood property.
+    pub min_likelihood: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2BigQueryTableCollection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2BigQueryTableCollection {
+    /// includeRegexes property.
+    pub include_regexes: Option<GooglePrivacyDlpV2BigQueryRegexes>,
+}
+
+/// `GooglePrivacyDlpV2TagValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2TagValue {
+    /// namespacedValue property.
+    pub namespaced_value: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2AllOtherResources` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2AllOtherResources {}
+
+/// `GooglePrivacyDlpV2FullyInside` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2FullyInside {}
+
+/// `GooglePrivacyDlpV2DetectionRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DetectionRule {
+    /// hotwordRule property.
+    pub hotword_rule: Option<GooglePrivacyDlpV2HotwordRule>,
+}
+
+/// `GooglePrivacyDlpV2OtherCloudResourceRegex` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2OtherCloudResourceRegex {
+    /// amazonS3BucketRegex property.
+    pub amazon_s3_bucket_regex: Option<GooglePrivacyDlpV2AmazonS3BucketRegex>,
+}
+
+/// `GooglePrivacyDlpV2DiscoverySchemaModifiedCadence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DiscoverySchemaModifiedCadence {
+    /// frequency property.
+    pub frequency: Option<String>,
+    /// types property.
+    pub types: Option<Vec<String>>,
+}
+
+/// `GooglePrivacyDlpV2DatabaseResourceRegex` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DatabaseResourceRegex {
+    /// databaseRegex property.
+    pub database_regex: Option<String>,
+    /// databaseResourceNameRegex property.
+    pub database_resource_name_regex: Option<String>,
+    /// instanceRegex property.
+    pub instance_regex: Option<String>,
+    /// projectIdRegex property.
+    pub project_id_regex: Option<String>,
 }
 
 /// `GooglePrivacyDlpV2DocumentFallbackLocation` type.
@@ -1257,11 +554,111 @@ pub struct GooglePrivacyDlpV2DocumentFallbackLocation {
     pub multi_region_processing: Option<GooglePrivacyDlpV2MultiRegionProcessing>,
 }
 
-/// `GooglePrivacyDlpV2FileStoreRegexes` type.
+/// `GooglePrivacyDlpV2DiscoveryFileStoreConditions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2FileStoreRegexes {
-    /// patterns property.
-    pub patterns: Option<Vec<GooglePrivacyDlpV2FileStoreRegex>>,
+pub struct GooglePrivacyDlpV2DiscoveryFileStoreConditions {
+    /// cloudStorageConditions property.
+    pub cloud_storage_conditions: Option<GooglePrivacyDlpV2DiscoveryCloudStorageConditions>,
+    /// createdAfter property.
+    pub created_after: Option<String>,
+    /// minAge property.
+    pub min_age: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2ImageFallbackLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2ImageFallbackLocation {
+    /// globalProcessing property.
+    pub global_processing: Option<GooglePrivacyDlpV2GlobalProcessing>,
+    /// multiRegionProcessing property.
+    pub multi_region_processing: Option<GooglePrivacyDlpV2MultiRegionProcessing>,
+}
+
+/// `GooglePrivacyDlpV2MultiRegionProcessing` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2MultiRegionProcessing {}
+
+/// `GooglePrivacyDlpV2DiscoveryStartingLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DiscoveryStartingLocation {
+    /// folderId property.
+    pub folder_id: Option<String>,
+    /// organizationId property.
+    pub organization_id: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2InfoType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2InfoType {
+    /// name property.
+    pub name: Option<String>,
+    /// sensitivityScore property.
+    pub sensitivity_score: Option<GooglePrivacyDlpV2SensitivityScore>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2DataProfilePubSubCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DataProfilePubSubCondition {
+    /// expressions property.
+    pub expressions: Option<GooglePrivacyDlpV2PubSubExpressions>,
+}
+
+/// `GooglePrivacyDlpV2ExclusionRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2ExclusionRule {
+    /// dictionary property.
+    pub dictionary: Option<GooglePrivacyDlpV2Dictionary>,
+    /// excludeByHotword property.
+    pub exclude_by_hotword: Option<GooglePrivacyDlpV2ExcludeByHotword>,
+    /// excludeByImageFindings property.
+    pub exclude_by_image_findings: Option<GooglePrivacyDlpV2ExcludeByImageFindings>,
+    /// excludeInfoTypes property.
+    pub exclude_info_types: Option<GooglePrivacyDlpV2ExcludeInfoTypes>,
+    /// matchingType property.
+    pub matching_type: Option<String>,
+    /// regex property.
+    pub regex: Option<GooglePrivacyDlpV2Regex>,
+}
+
+/// `GooglePrivacyDlpV2CloudSqlDiscoveryTarget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2CloudSqlDiscoveryTarget {
+    /// conditions property.
+    pub conditions: Option<GooglePrivacyDlpV2DiscoveryCloudSqlConditions>,
+    /// disabled property.
+    pub disabled: Option<GooglePrivacyDlpV2Disabled>,
+    /// filter property.
+    pub filter: Option<GooglePrivacyDlpV2DiscoveryCloudSqlFilter>,
+    /// generationCadence property.
+    pub generation_cadence: Option<GooglePrivacyDlpV2DiscoveryCloudSqlGenerationCadence>,
+}
+
+/// `GooglePrivacyDlpV2AdjustmentRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2AdjustmentRule {
+    /// adjustByImageFindings property.
+    pub adjust_by_image_findings: Option<GooglePrivacyDlpV2AdjustByImageFindings>,
+    /// adjustByMatchingInfoTypes property.
+    pub adjust_by_matching_info_types: Option<GooglePrivacyDlpV2AdjustByMatchingInfoTypes>,
+    /// likelihoodAdjustment property.
+    pub likelihood_adjustment: Option<GooglePrivacyDlpV2LikelihoodAdjustment>,
+}
+
+/// `GooglePrivacyDlpV2OtherCloudDiscoveryTarget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2OtherCloudDiscoveryTarget {
+    /// conditions property.
+    pub conditions: Option<GooglePrivacyDlpV2DiscoveryOtherCloudConditions>,
+    /// dataSourceType property.
+    pub data_source_type: Option<GooglePrivacyDlpV2DataSourceType>,
+    /// disabled property.
+    pub disabled: Option<GooglePrivacyDlpV2Disabled>,
+    /// filter property.
+    pub filter: Option<GooglePrivacyDlpV2DiscoveryOtherCloudFilter>,
+    /// generationCadence property.
+    pub generation_cadence: Option<GooglePrivacyDlpV2DiscoveryOtherCloudGenerationCadence>,
 }
 
 /// `GooglePrivacyDlpV2DataProfileLocation` type.
@@ -1271,6 +668,607 @@ pub struct GooglePrivacyDlpV2DataProfileLocation {
     pub folder_id: Option<String>,
     /// organizationId property.
     pub organization_id: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2DiscoveryCloudStorageFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DiscoveryCloudStorageFilter {
+    /// cloudStorageResourceReference property.
+    pub cloud_storage_resource_reference: Option<GooglePrivacyDlpV2CloudStorageResourceReference>,
+    /// collection property.
+    pub collection: Option<GooglePrivacyDlpV2FileStoreCollection>,
+    /// others property.
+    pub others: Option<GooglePrivacyDlpV2AllOtherResources>,
+}
+
+/// `GooglePrivacyDlpV2DiscoveryOtherCloudGenerationCadence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DiscoveryOtherCloudGenerationCadence {
+    /// inspectTemplateModifiedCadence property.
+    pub inspect_template_modified_cadence:
+        Option<GooglePrivacyDlpV2DiscoveryInspectTemplateModifiedCadence>,
+    /// refreshFrequency property.
+    pub refresh_frequency: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2FileStoreInfoTypeSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2FileStoreInfoTypeSummary {
+    /// infoType property.
+    pub info_type: Option<GooglePrivacyDlpV2InfoType>,
+}
+
+/// `GooglePrivacyDlpV2ExcludeByImageFindings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2ExcludeByImageFindings {
+    /// imageContainmentType property.
+    pub image_containment_type: Option<GooglePrivacyDlpV2ImageContainmentType>,
+    /// infoTypes property.
+    pub info_types: Option<Vec<GooglePrivacyDlpV2InfoType>>,
+}
+
+/// `GooglePrivacyDlpV2DiscoveryOtherCloudConditions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DiscoveryOtherCloudConditions {
+    /// amazonS3BucketConditions property.
+    pub amazon_s3_bucket_conditions: Option<GooglePrivacyDlpV2AmazonS3BucketConditions>,
+    /// minAge property.
+    pub min_age: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2OtherCloudResourceRegexes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2OtherCloudResourceRegexes {
+    /// patterns property.
+    pub patterns: Option<Vec<GooglePrivacyDlpV2OtherCloudResourceRegex>>,
+}
+
+/// `GooglePrivacyDlpV2TableReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2TableReference {
+    /// datasetId property.
+    pub dataset_id: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// tableId property.
+    pub table_id: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2AmazonS3BucketConditions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2AmazonS3BucketConditions {
+    /// bucketTypes property.
+    pub bucket_types: Option<Vec<String>>,
+    /// objectStorageClasses property.
+    pub object_storage_classes: Option<Vec<String>>,
+}
+
+/// `GooglePrivacyDlpV2OtherCloudSingleResourceReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2OtherCloudSingleResourceReference {
+    /// amazonS3Bucket property.
+    pub amazon_s3_bucket: Option<GooglePrivacyDlpV2AmazonS3Bucket>,
+}
+
+/// `GooglePrivacyDlpV2CloudStorageResourceReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2CloudStorageResourceReference {
+    /// bucketName property.
+    pub bucket_name: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2DatabaseResourceCollection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DatabaseResourceCollection {
+    /// includeRegexes property.
+    pub include_regexes: Option<GooglePrivacyDlpV2DatabaseResourceRegexes>,
+}
+
+/// `GooglePrivacyDlpV2PubSubCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2PubSubCondition {
+    /// minimumRiskScore property.
+    pub minimum_risk_score: Option<String>,
+    /// minimumSensitivityScore property.
+    pub minimum_sensitivity_score: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2Proximity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Proximity {
+    /// windowAfter property.
+    pub window_after: Option<i64>,
+    /// windowBefore property.
+    pub window_before: Option<i64>,
+}
+
+/// `GooglePrivacyDlpV2DataProfileConfigSnapshot` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DataProfileConfigSnapshot {
+    /// dataProfileJob property.
+    pub data_profile_job: Option<GooglePrivacyDlpV2DataProfileJobConfig>,
+    /// discoveryConfig property.
+    pub discovery_config: Option<GooglePrivacyDlpV2DiscoveryConfig>,
+    /// inspectConfig property.
+    pub inspect_config: Option<GooglePrivacyDlpV2InspectConfig>,
+    /// inspectTemplateModifiedTime property.
+    pub inspect_template_modified_time: Option<String>,
+    /// inspectTemplateName property.
+    pub inspect_template_name: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2ProcessingLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2ProcessingLocation {
+    /// documentFallbackLocation property.
+    pub document_fallback_location: Option<GooglePrivacyDlpV2DocumentFallbackLocation>,
+    /// imageFallbackLocation property.
+    pub image_fallback_location: Option<GooglePrivacyDlpV2ImageFallbackLocation>,
+}
+
+/// `GooglePrivacyDlpV2DataRiskLevel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DataRiskLevel {
+    /// score property.
+    pub score: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2DiscoveryTarget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DiscoveryTarget {
+    /// bigQueryTarget property.
+    pub big_query_target: Option<GooglePrivacyDlpV2BigQueryDiscoveryTarget>,
+    /// cloudSqlTarget property.
+    pub cloud_sql_target: Option<GooglePrivacyDlpV2CloudSqlDiscoveryTarget>,
+    /// cloudStorageTarget property.
+    pub cloud_storage_target: Option<GooglePrivacyDlpV2CloudStorageDiscoveryTarget>,
+    /// otherCloudTarget property.
+    pub other_cloud_target: Option<GooglePrivacyDlpV2OtherCloudDiscoveryTarget>,
+    /// secretsTarget property.
+    pub secrets_target: Option<GooglePrivacyDlpV2SecretsDiscoveryTarget>,
+    /// vertexDatasetTarget property.
+    pub vertex_dataset_target: Option<GooglePrivacyDlpV2VertexDatasetDiscoveryTarget>,
+}
+
+/// `GooglePrivacyDlpV2DiscoveryVertexDatasetFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DiscoveryVertexDatasetFilter {
+    /// collection property.
+    pub collection: Option<GooglePrivacyDlpV2VertexDatasetCollection>,
+    /// others property.
+    pub others: Option<GooglePrivacyDlpV2AllOtherResources>,
+    /// vertexDatasetResourceReference property.
+    pub vertex_dataset_resource_reference: Option<GooglePrivacyDlpV2VertexDatasetResourceReference>,
+}
+
+/// `GooglePrivacyDlpV2PublishToChronicle` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2PublishToChronicle {}
+
+/// `GooglePrivacyDlpV2PubSubExpressions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2PubSubExpressions {
+    /// conditions property.
+    pub conditions: Option<Vec<GooglePrivacyDlpV2PubSubCondition>>,
+    /// logicalOperator property.
+    pub logical_operator: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2DataProfileAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DataProfileAction {
+    /// exportData property.
+    pub export_data: Option<GooglePrivacyDlpV2Export>,
+    /// pubSubNotification property.
+    pub pub_sub_notification: Option<GooglePrivacyDlpV2PubSubNotification>,
+    /// publishToChronicle property.
+    pub publish_to_chronicle: Option<GooglePrivacyDlpV2PublishToChronicle>,
+    /// publishToDataplexCatalog property.
+    pub publish_to_dataplex_catalog: Option<GooglePrivacyDlpV2PublishToDataplexCatalog>,
+    /// publishToScc property.
+    pub publish_to_scc: Option<GooglePrivacyDlpV2PublishToSecurityCommandCenter>,
+    /// tagResources property.
+    pub tag_resources: Option<GooglePrivacyDlpV2TagResources>,
+}
+
+/// `GooglePrivacyDlpV2FileStoreRegex` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2FileStoreRegex {
+    /// cloudStorageRegex property.
+    pub cloud_storage_regex: Option<GooglePrivacyDlpV2CloudStorageRegex>,
+}
+
+/// `GooglePrivacyDlpV2DiscoveryVertexDatasetConditions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DiscoveryVertexDatasetConditions {
+    /// createdAfter property.
+    pub created_after: Option<String>,
+    /// minAge property.
+    pub min_age: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2FileExtensionInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2FileExtensionInfo {
+    /// fileExtension property.
+    pub file_extension: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2SecretsDiscoveryTarget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2SecretsDiscoveryTarget {}
+
+/// `GooglePrivacyDlpV2FileClusterType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2FileClusterType {
+    /// cluster property.
+    pub cluster: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2Error` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Error {
+    /// details property.
+    pub details: Option<GoogleRpcStatus>,
+    /// extraInfo property.
+    pub extra_info: Option<String>,
+    /// timestamps property.
+    pub timestamps: Option<Vec<String>>,
+}
+
+/// `GooglePrivacyDlpV2SchemaModifiedCadence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2SchemaModifiedCadence {
+    /// frequency property.
+    pub frequency: Option<String>,
+    /// types property.
+    pub types: Option<Vec<String>>,
+}
+
+/// `GooglePrivacyDlpV2DataProfileJobConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DataProfileJobConfig {
+    /// dataProfileActions property.
+    pub data_profile_actions: Option<Vec<GooglePrivacyDlpV2DataProfileAction>>,
+    /// inspectTemplates property.
+    pub inspect_templates: Option<Vec<String>>,
+    /// location property.
+    pub location: Option<GooglePrivacyDlpV2DataProfileLocation>,
+    /// otherCloudStartingLocation property.
+    pub other_cloud_starting_location:
+        Option<GooglePrivacyDlpV2OtherCloudDiscoveryStartingLocation>,
+    /// projectId property.
+    pub project_id: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2DiscoveryCloudSqlFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DiscoveryCloudSqlFilter {
+    /// collection property.
+    pub collection: Option<GooglePrivacyDlpV2DatabaseResourceCollection>,
+    /// databaseResourceReference property.
+    pub database_resource_reference: Option<GooglePrivacyDlpV2DatabaseResourceReference>,
+    /// others property.
+    pub others: Option<GooglePrivacyDlpV2AllOtherDatabaseResources>,
+}
+
+/// `GooglePrivacyDlpV2RelatedResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2RelatedResource {
+    /// fullResource property.
+    pub full_resource: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2VertexDatasetRegex` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2VertexDatasetRegex {
+    /// projectIdRegex property.
+    pub project_id_regex: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2FileClusterSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2FileClusterSummary {
+    /// dataRiskLevel property.
+    pub data_risk_level: Option<GooglePrivacyDlpV2DataRiskLevel>,
+    /// errors property.
+    pub errors: Option<Vec<GooglePrivacyDlpV2Error>>,
+    /// fileClusterType property.
+    pub file_cluster_type: Option<GooglePrivacyDlpV2FileClusterType>,
+    /// fileExtensionsScanned property.
+    pub file_extensions_scanned: Option<Vec<GooglePrivacyDlpV2FileExtensionInfo>>,
+    /// fileExtensionsSeen property.
+    pub file_extensions_seen: Option<Vec<GooglePrivacyDlpV2FileExtensionInfo>>,
+    /// fileStoreInfoTypeSummaries property.
+    pub file_store_info_type_summaries: Option<Vec<GooglePrivacyDlpV2FileStoreInfoTypeSummary>>,
+    /// noFilesExist property.
+    pub no_files_exist: Option<bool>,
+    /// sensitivityScore property.
+    pub sensitivity_score: Option<GooglePrivacyDlpV2SensitivityScore>,
+}
+
+/// `GooglePrivacyDlpV2StoredType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2StoredType {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2FileStoreRegexes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2FileStoreRegexes {
+    /// patterns property.
+    pub patterns: Option<Vec<GooglePrivacyDlpV2FileStoreRegex>>,
+}
+
+/// `GooglePrivacyDlpV2HotwordRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2HotwordRule {
+    /// hotwordRegex property.
+    pub hotword_regex: Option<GooglePrivacyDlpV2Regex>,
+    /// likelihoodAdjustment property.
+    pub likelihood_adjustment: Option<GooglePrivacyDlpV2LikelihoodAdjustment>,
+    /// proximity property.
+    pub proximity: Option<GooglePrivacyDlpV2Proximity>,
+}
+
+/// `GooglePrivacyDlpV2CustomInfoType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2CustomInfoType {
+    /// detectionRules property.
+    pub detection_rules: Option<Vec<GooglePrivacyDlpV2DetectionRule>>,
+    /// dictionary property.
+    pub dictionary: Option<GooglePrivacyDlpV2Dictionary>,
+    /// exclusionType property.
+    pub exclusion_type: Option<String>,
+    /// infoType property.
+    pub info_type: Option<GooglePrivacyDlpV2InfoType>,
+    /// likelihood property.
+    pub likelihood: Option<String>,
+    /// metadataKeyValueExpression property.
+    pub metadata_key_value_expression: Option<GooglePrivacyDlpV2MetadataKeyValueExpression>,
+    /// regex property.
+    pub regex: Option<GooglePrivacyDlpV2Regex>,
+    /// sensitivityScore property.
+    pub sensitivity_score: Option<GooglePrivacyDlpV2SensitivityScore>,
+    /// storedType property.
+    pub stored_type: Option<GooglePrivacyDlpV2StoredType>,
+    /// surrogateType property.
+    pub surrogate_type: Option<GooglePrivacyDlpV2SurrogateType>,
+}
+
+/// `GooglePrivacyDlpV2Export` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Export {
+    /// profileTable property.
+    pub profile_table: Option<GooglePrivacyDlpV2BigQueryTable>,
+    /// sampleFindingsTable property.
+    pub sample_findings_table: Option<GooglePrivacyDlpV2BigQueryTable>,
+}
+
+/// `GooglePrivacyDlpV2PublishToDataplexCatalog` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2PublishToDataplexCatalog {
+    /// lowerDataRiskToLow property.
+    pub lower_data_risk_to_low: Option<bool>,
+}
+
+/// `GooglePrivacyDlpV2DiscoveryConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DiscoveryConfig {
+    /// actions property.
+    pub actions: Option<Vec<GooglePrivacyDlpV2DataProfileAction>>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// errors property.
+    pub errors: Option<Vec<GooglePrivacyDlpV2Error>>,
+    /// inspectTemplates property.
+    pub inspect_templates: Option<Vec<String>>,
+    /// lastRunTime property.
+    pub last_run_time: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// orgConfig property.
+    pub org_config: Option<GooglePrivacyDlpV2OrgConfig>,
+    /// otherCloudStartingLocation property.
+    pub other_cloud_starting_location:
+        Option<GooglePrivacyDlpV2OtherCloudDiscoveryStartingLocation>,
+    /// processingLocation property.
+    pub processing_location: Option<GooglePrivacyDlpV2ProcessingLocation>,
+    /// status property.
+    pub status: Option<String>,
+    /// targets property.
+    pub targets: Option<Vec<GooglePrivacyDlpV2DiscoveryTarget>>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2AllOtherDatabaseResources` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2AllOtherDatabaseResources {}
+
+/// `GooglePrivacyDlpV2VertexDatasetDiscoveryTarget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2VertexDatasetDiscoveryTarget {
+    /// conditions property.
+    pub conditions: Option<GooglePrivacyDlpV2DiscoveryVertexDatasetConditions>,
+    /// disabled property.
+    pub disabled: Option<GooglePrivacyDlpV2Disabled>,
+    /// filter property.
+    pub filter: Option<GooglePrivacyDlpV2DiscoveryVertexDatasetFilter>,
+    /// generationCadence property.
+    pub generation_cadence: Option<GooglePrivacyDlpV2DiscoveryVertexDatasetGenerationCadence>,
+}
+
+/// `GooglePrivacyDlpV2InspectionRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2InspectionRule {
+    /// adjustmentRule property.
+    pub adjustment_rule: Option<GooglePrivacyDlpV2AdjustmentRule>,
+    /// exclusionRule property.
+    pub exclusion_rule: Option<GooglePrivacyDlpV2ExclusionRule>,
+    /// hotwordRule property.
+    pub hotword_rule: Option<GooglePrivacyDlpV2HotwordRule>,
+}
+
+/// `GooglePrivacyDlpV2DiscoveryGenerationCadence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DiscoveryGenerationCadence {
+    /// inspectTemplateModifiedCadence property.
+    pub inspect_template_modified_cadence:
+        Option<GooglePrivacyDlpV2DiscoveryInspectTemplateModifiedCadence>,
+    /// refreshFrequency property.
+    pub refresh_frequency: Option<String>,
+    /// schemaModifiedCadence property.
+    pub schema_modified_cadence: Option<GooglePrivacyDlpV2DiscoverySchemaModifiedCadence>,
+    /// tableModifiedCadence property.
+    pub table_modified_cadence: Option<GooglePrivacyDlpV2DiscoveryTableModifiedCadence>,
+}
+
+/// `GooglePrivacyDlpV2DiscoveryCloudSqlConditions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DiscoveryCloudSqlConditions {
+    /// databaseEngines property.
+    pub database_engines: Option<Vec<String>>,
+    /// types property.
+    pub types: Option<Vec<String>>,
+}
+
+/// `GooglePrivacyDlpV2InfoTypeLikelihood` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2InfoTypeLikelihood {
+    /// infoType property.
+    pub info_type: Option<GooglePrivacyDlpV2InfoType>,
+    /// minLikelihood property.
+    pub min_likelihood: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2TagResources` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2TagResources {
+    /// lowerDataRiskToLow property.
+    pub lower_data_risk_to_low: Option<bool>,
+    /// profileGenerationsToTag property.
+    pub profile_generations_to_tag: Option<Vec<String>>,
+    /// tagConditions property.
+    pub tag_conditions: Option<Vec<GooglePrivacyDlpV2TagCondition>>,
+}
+
+/// `GooglePrivacyDlpV2WordList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2WordList {
+    /// words property.
+    pub words: Option<Vec<String>>,
+}
+
+/// `GooglePrivacyDlpV2BigQueryDiscoveryTarget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2BigQueryDiscoveryTarget {
+    /// cadence property.
+    pub cadence: Option<GooglePrivacyDlpV2DiscoveryGenerationCadence>,
+    /// conditions property.
+    pub conditions: Option<GooglePrivacyDlpV2DiscoveryBigQueryConditions>,
+    /// disabled property.
+    pub disabled: Option<GooglePrivacyDlpV2Disabled>,
+    /// filter property.
+    pub filter: Option<GooglePrivacyDlpV2DiscoveryBigQueryFilter>,
+}
+
+/// `GooglePrivacyDlpV2PublishToSecurityCommandCenter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2PublishToSecurityCommandCenter {}
+
+/// `GooglePrivacyDlpV2DiscoveryTableModifiedCadence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DiscoveryTableModifiedCadence {
+    /// frequency property.
+    pub frequency: Option<String>,
+    /// types property.
+    pub types: Option<Vec<String>>,
+}
+
+/// `GooglePrivacyDlpV2AwsAccountRegex` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2AwsAccountRegex {
+    /// accountIdRegex property.
+    pub account_id_regex: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2DiscoveryCloudStorageGenerationCadence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DiscoveryCloudStorageGenerationCadence {
+    /// inspectTemplateModifiedCadence property.
+    pub inspect_template_modified_cadence:
+        Option<GooglePrivacyDlpV2DiscoveryInspectTemplateModifiedCadence>,
+    /// refreshFrequency property.
+    pub refresh_frequency: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2Regex` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Regex {
+    /// groupIndexes property.
+    pub group_indexes: Option<Vec<i64>>,
+    /// pattern property.
+    pub pattern: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2FileStoreCollection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2FileStoreCollection {
+    /// includeRegexes property.
+    pub include_regexes: Option<GooglePrivacyDlpV2FileStoreRegexes>,
+    /// includeTags property.
+    pub include_tags: Option<GooglePrivacyDlpV2TagFilters>,
+}
+
+/// `GooglePrivacyDlpV2BigQueryRegexes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2BigQueryRegexes {
+    /// patterns property.
+    pub patterns: Option<Vec<GooglePrivacyDlpV2BigQueryRegex>>,
+}
+
+/// `GooglePrivacyDlpV2AmazonS3Bucket` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2AmazonS3Bucket {
+    /// awsAccount property.
+    pub aws_account: Option<GooglePrivacyDlpV2AwsAccount>,
+    /// bucketName property.
+    pub bucket_name: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2LikelihoodAdjustment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2LikelihoodAdjustment {
+    /// fixedLikelihood property.
+    pub fixed_likelihood: Option<String>,
+    /// relativeLikelihood property.
+    pub relative_likelihood: Option<i64>,
+}
+
+/// `GooglePrivacyDlpV2OtherCloudResourceCollection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2OtherCloudResourceCollection {
+    /// includeRegexes property.
+    pub include_regexes: Option<GooglePrivacyDlpV2OtherCloudResourceRegexes>,
 }
 
 /// `GooglePrivacyDlpV2InspectConfig` type.
@@ -1296,33 +1294,36 @@ pub struct GooglePrivacyDlpV2InspectConfig {
     pub rule_set: Option<Vec<GooglePrivacyDlpV2InspectionRuleSet>>,
 }
 
-/// `GooglePrivacyDlpV2ListFileStoreDataProfilesResponse` type.
+/// `GooglePrivacyDlpV2Domain` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ListFileStoreDataProfilesResponse {
-    /// fileStoreDataProfiles property.
-    pub file_store_data_profiles: Option<Vec<GooglePrivacyDlpV2FileStoreDataProfile>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct GooglePrivacyDlpV2Domain {
+    /// category property.
+    pub category: Option<String>,
+    /// signals property.
+    pub signals: Option<Vec<String>>,
 }
 
-/// `GooglePrivacyDlpV2FullyInside` type.
+/// `GooglePrivacyDlpV2VertexDatasetCollection` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2FullyInside {}
+pub struct GooglePrivacyDlpV2VertexDatasetCollection {
+    /// vertexDatasetRegexes property.
+    pub vertex_dataset_regexes: Option<GooglePrivacyDlpV2VertexDatasetRegexes>,
+}
 
-/// `GooglePrivacyDlpV2AwsDiscoveryStartingLocation` type.
+/// `GooglePrivacyDlpV2AwsAccount` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2AwsDiscoveryStartingLocation {
+pub struct GooglePrivacyDlpV2AwsAccount {
     /// accountId property.
     pub account_id: Option<String>,
-    /// allAssetInventoryAssets property.
-    pub all_asset_inventory_assets: Option<bool>,
 }
 
-/// `GooglePrivacyDlpV2TagValue` type.
+/// `GooglePrivacyDlpV2Dictionary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2TagValue {
-    /// namespacedValue property.
-    pub namespaced_value: Option<String>,
+pub struct GooglePrivacyDlpV2Dictionary {
+    /// cloudStoragePath property.
+    pub cloud_storage_path: Option<GooglePrivacyDlpV2CloudStoragePath>,
+    /// wordList property.
+    pub word_list: Option<GooglePrivacyDlpV2WordList>,
 }
 
 // =============================================================================

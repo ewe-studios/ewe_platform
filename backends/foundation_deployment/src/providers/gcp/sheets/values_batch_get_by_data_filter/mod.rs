@@ -12,48 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ValueRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValueRange {
-    /// majorDimension property.
-    pub major_dimension: Option<String>,
-    /// range property.
-    pub range: Option<String>,
-    /// values property.
-    pub values: Option<Vec<Vec<serde_json::Value>>>,
-}
-
-/// `DataFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataFilter {
-    /// a1Range property.
-    pub a1_range: Option<String>,
-    /// developerMetadataLookup property.
-    pub developer_metadata_lookup: Option<DeveloperMetadataLookup>,
-    /// gridRange property.
-    pub grid_range: Option<GridRange>,
-}
-
-/// `BatchGetValuesByDataFilterResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BatchGetValuesByDataFilterResponse {
-    /// spreadsheetId property.
-    pub spreadsheet_id: Option<String>,
-    /// valueRanges property.
-    pub value_ranges: Option<Vec<MatchedValueRange>>,
-}
 
 /// `DeveloperMetadataLookup` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -74,6 +44,28 @@ pub struct DeveloperMetadataLookup {
     pub visibility: Option<String>,
 }
 
+/// `DimensionRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DimensionRange {
+    /// dimension property.
+    pub dimension: Option<String>,
+    /// endIndex property.
+    pub end_index: Option<i64>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+}
+
+/// `BatchGetValuesByDataFilterResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BatchGetValuesByDataFilterResponse {
+    /// spreadsheetId property.
+    pub spreadsheet_id: Option<String>,
+    /// valueRanges property.
+    pub value_ranges: Option<Vec<MatchedValueRange>>,
+}
+
 /// `DeveloperMetadataLocation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeveloperMetadataLocation {
@@ -87,17 +79,24 @@ pub struct DeveloperMetadataLocation {
     pub spreadsheet: Option<bool>,
 }
 
-/// `DimensionRange` type.
+/// `MatchedValueRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DimensionRange {
-    /// dimension property.
-    pub dimension: Option<String>,
-    /// endIndex property.
-    pub end_index: Option<i64>,
-    /// sheetId property.
-    pub sheet_id: Option<i64>,
-    /// startIndex property.
-    pub start_index: Option<i64>,
+pub struct MatchedValueRange {
+    /// dataFilters property.
+    pub data_filters: Option<Vec<DataFilter>>,
+    /// valueRange property.
+    pub value_range: Option<ValueRange>,
+}
+
+/// `ValueRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ValueRange {
+    /// majorDimension property.
+    pub major_dimension: Option<String>,
+    /// range property.
+    pub range: Option<String>,
+    /// values property.
+    pub values: Option<Vec<Vec<serde_json::Value>>>,
 }
 
 /// `GridRange` type.
@@ -115,13 +114,15 @@ pub struct GridRange {
     pub start_row_index: Option<i64>,
 }
 
-/// `MatchedValueRange` type.
+/// `DataFilter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MatchedValueRange {
-    /// dataFilters property.
-    pub data_filters: Option<Vec<DataFilter>>,
-    /// valueRange property.
-    pub value_range: Option<ValueRange>,
+pub struct DataFilter {
+    /// a1Range property.
+    pub a1_range: Option<String>,
+    /// developerMetadataLookup property.
+    pub developer_metadata_lookup: Option<DeveloperMetadataLookup>,
+    /// gridRange property.
+    pub grid_range: Option<GridRange>,
 }
 
 // =============================================================================

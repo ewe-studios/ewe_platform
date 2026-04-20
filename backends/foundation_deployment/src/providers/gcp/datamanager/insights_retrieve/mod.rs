@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -29,6 +30,15 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 pub struct RetrieveInsightsResponse {
     /// marketingDataInsights property.
     pub marketing_data_insights: Option<Vec<MarketingDataInsight>>,
+}
+
+/// `MarketingDataInsight` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MarketingDataInsight {
+    /// attributes property.
+    pub attributes: Option<Vec<MarketingDataInsightsAttribute>>,
+    /// dimension property.
+    pub dimension: Option<String>,
 }
 
 /// `MarketingDataInsightsAttribute` type.
@@ -42,15 +52,6 @@ pub struct MarketingDataInsightsAttribute {
     pub lift: Option<f64>,
     /// userInterestId property.
     pub user_interest_id: Option<String>,
-}
-
-/// `MarketingDataInsight` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MarketingDataInsight {
-    /// attributes property.
-    pub attributes: Option<Vec<MarketingDataInsightsAttribute>>,
-    /// dimension property.
-    pub dimension: Option<String>,
 }
 
 // =============================================================================

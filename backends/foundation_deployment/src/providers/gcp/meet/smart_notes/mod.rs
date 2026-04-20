@@ -12,17 +12,33 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `SmartNote` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SmartNote {
+    /// docsDestination property.
+    pub docs_destination: Option<DocsDestination>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
 
 /// `ListSmartNotesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,21 +56,6 @@ pub struct DocsDestination {
     pub document: Option<String>,
     /// exportUri property.
     pub export_uri: Option<String>,
-}
-
-/// `SmartNote` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SmartNote {
-    /// docsDestination property.
-    pub docs_destination: Option<DocsDestination>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// state property.
-    pub state: Option<String>,
 }
 
 // =============================================================================

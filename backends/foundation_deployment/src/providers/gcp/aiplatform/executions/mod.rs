@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,15 +23,11 @@ use serde::{Deserialize, Serialize};
 use super::shared::GoogleCloudAiplatformV1LineageSubgraph;
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudAiplatformV1AddExecutionEventsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1AddExecutionEventsResponse {}
 
 /// `GoogleCloudAiplatformV1Artifact` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -61,6 +58,36 @@ pub struct GoogleCloudAiplatformV1Artifact {
     pub uri: Option<String>,
 }
 
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1Event` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1Event {
+    /// artifact property.
+    pub artifact: Option<String>,
+    /// eventTime property.
+    pub event_time: Option<String>,
+    /// execution property.
+    pub execution: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1AddExecutionEventsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1AddExecutionEventsResponse {}
+
 /// `GoogleCloudAiplatformV1Execution` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Execution {
@@ -86,32 +113,6 @@ pub struct GoogleCloudAiplatformV1Execution {
     pub state: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1Event` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Event {
-    /// artifact property.
-    pub artifact: Option<String>,
-    /// eventTime property.
-    pub event_time: Option<String>,
-    /// execution property.
-    pub execution: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// type property.
-    pub r#type: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1ListExecutionsResponse` type.

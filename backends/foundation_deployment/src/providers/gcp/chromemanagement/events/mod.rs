@@ -12,77 +12,56 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleChromeManagementV1TelemetryHttpsLatencyChangeEvent` type.
+/// `GoogleChromeManagementV1TelemetryAppUninstallEvent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1TelemetryHttpsLatencyChangeEvent {
-    /// httpsLatencyRoutineData property.
-    pub https_latency_routine_data: Option<GoogleChromeManagementV1HttpsLatencyRoutineData>,
-    /// httpsLatencyState property.
-    pub https_latency_state: Option<String>,
+pub struct GoogleChromeManagementV1TelemetryAppUninstallEvent {
+    /// appId property.
+    pub app_id: Option<String>,
+    /// appType property.
+    pub app_type: Option<String>,
+    /// appUninstallSource property.
+    pub app_uninstall_source: Option<String>,
 }
 
-/// `GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent` type.
+/// `GoogleChromeManagementV1TelemetryExternalDisplayData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent {
-    /// connectionState property.
-    pub connection_state: Option<String>,
-    /// guid property.
-    pub guid: Option<String>,
+pub struct GoogleChromeManagementV1TelemetryExternalDisplayData {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// edidVersion property.
+    pub edid_version: Option<String>,
+    /// refreshRate property.
+    pub refresh_rate: Option<String>,
+    /// resolutionHorizontal property.
+    pub resolution_horizontal: Option<i64>,
+    /// resolutionVertical property.
+    pub resolution_vertical: Option<i64>,
+    /// serialNumber property.
+    pub serial_number: Option<i64>,
 }
 
-/// `GoogleChromeManagementV1TelemetryAudioSevereUnderrunEvent` type.
+/// `GoogleChromeManagementV1TelemetryAppLaunchEvent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1TelemetryAudioSevereUnderrunEvent {}
-
-/// `GoogleChromeManagementV1HttpsLatencyRoutineData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1HttpsLatencyRoutineData {
-    /// latency property.
-    pub latency: Option<String>,
-    /// problem property.
-    pub problem: Option<String>,
-}
-
-/// `GoogleChromeManagementV1TelemetryUserInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1TelemetryUserInfo {
-    /// email property.
-    pub email: Option<String>,
-    /// orgUnitId property.
-    pub org_unit_id: Option<String>,
-}
-
-/// `GoogleChromeManagementV1UsbPeripheralReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1UsbPeripheralReport {
-    /// categories property.
-    pub categories: Option<Vec<String>>,
-    /// classId property.
-    pub class_id: Option<i64>,
-    /// firmwareVersion property.
-    pub firmware_version: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// pid property.
-    pub pid: Option<i64>,
-    /// subclassId property.
-    pub subclass_id: Option<i64>,
-    /// vendor property.
-    pub vendor: Option<String>,
-    /// vid property.
-    pub vid: Option<i64>,
+pub struct GoogleChromeManagementV1TelemetryAppLaunchEvent {
+    /// appId property.
+    pub app_id: Option<String>,
+    /// appLaunchSource property.
+    pub app_launch_source: Option<String>,
+    /// appType property.
+    pub app_type: Option<String>,
 }
 
 /// `GoogleChromeManagementV1TelemetryOsCrashEvent` type.
@@ -94,6 +73,51 @@ pub struct GoogleChromeManagementV1TelemetryOsCrashEvent {
     pub crash_type: Option<String>,
     /// sessionType property.
     pub session_type: Option<String>,
+}
+
+/// `GoogleChromeManagementV1TelemetryDeviceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1TelemetryDeviceInfo {
+    /// deviceId property.
+    pub device_id: Option<String>,
+    /// orgUnitId property.
+    pub org_unit_id: Option<String>,
+}
+
+/// `GoogleChromeManagementV1TelemetryUsbPeripheralsEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1TelemetryUsbPeripheralsEvent {
+    /// usbPeripheralReport property.
+    pub usb_peripheral_report: Option<Vec<GoogleChromeManagementV1UsbPeripheralReport>>,
+}
+
+/// `GoogleChromeManagementV1ListTelemetryEventsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1ListTelemetryEventsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// telemetryEvents property.
+    pub telemetry_events: Option<Vec<GoogleChromeManagementV1TelemetryEvent>>,
+}
+
+/// `GoogleChromeManagementV1TelemetryAudioSevereUnderrunEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1TelemetryAudioSevereUnderrunEvent {}
+
+/// `GoogleChromeManagementV1TelemetryExternalDisplayEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1TelemetryExternalDisplayEvent {
+    /// externalDisplayData property.
+    pub external_display_data: Option<Vec<GoogleChromeManagementV1TelemetryExternalDisplayData>>,
+}
+
+/// `GoogleChromeManagementV1TelemetryNetworkSignalStrengthEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1TelemetryNetworkSignalStrengthEvent {
+    /// guid property.
+    pub guid: Option<String>,
+    /// signalStrengthDbm property.
+    pub signal_strength_dbm: Option<i64>,
 }
 
 /// `GoogleChromeManagementV1TelemetryAppInstallEvent` type.
@@ -111,11 +135,20 @@ pub struct GoogleChromeManagementV1TelemetryAppInstallEvent {
     pub app_type: Option<String>,
 }
 
-/// `GoogleChromeManagementV1TelemetryDeviceInfo` type.
+/// `GoogleChromeManagementV1TelemetryHttpsLatencyChangeEvent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1TelemetryDeviceInfo {
-    /// deviceId property.
-    pub device_id: Option<String>,
+pub struct GoogleChromeManagementV1TelemetryHttpsLatencyChangeEvent {
+    /// httpsLatencyRoutineData property.
+    pub https_latency_routine_data: Option<GoogleChromeManagementV1HttpsLatencyRoutineData>,
+    /// httpsLatencyState property.
+    pub https_latency_state: Option<String>,
+}
+
+/// `GoogleChromeManagementV1TelemetryUserInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1TelemetryUserInfo {
+    /// email property.
+    pub email: Option<String>,
     /// orgUnitId property.
     pub org_unit_id: Option<String>,
 }
@@ -162,75 +195,43 @@ pub struct GoogleChromeManagementV1TelemetryEvent {
         Option<GoogleChromeManagementV1TelemetryNetworkSignalStrengthEvent>,
 }
 
-/// `GoogleChromeManagementV1TelemetryExternalDisplayEvent` type.
+/// `GoogleChromeManagementV1UsbPeripheralReport` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1TelemetryExternalDisplayEvent {
-    /// externalDisplayData property.
-    pub external_display_data: Option<Vec<GoogleChromeManagementV1TelemetryExternalDisplayData>>,
+pub struct GoogleChromeManagementV1UsbPeripheralReport {
+    /// categories property.
+    pub categories: Option<Vec<String>>,
+    /// classId property.
+    pub class_id: Option<i64>,
+    /// firmwareVersion property.
+    pub firmware_version: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// pid property.
+    pub pid: Option<i64>,
+    /// subclassId property.
+    pub subclass_id: Option<i64>,
+    /// vendor property.
+    pub vendor: Option<String>,
+    /// vid property.
+    pub vid: Option<i64>,
 }
 
-/// `GoogleChromeManagementV1ListTelemetryEventsResponse` type.
+/// `GoogleChromeManagementV1HttpsLatencyRoutineData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1ListTelemetryEventsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// telemetryEvents property.
-    pub telemetry_events: Option<Vec<GoogleChromeManagementV1TelemetryEvent>>,
+pub struct GoogleChromeManagementV1HttpsLatencyRoutineData {
+    /// latency property.
+    pub latency: Option<String>,
+    /// problem property.
+    pub problem: Option<String>,
 }
 
-/// `GoogleChromeManagementV1TelemetryNetworkSignalStrengthEvent` type.
+/// `GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1TelemetryNetworkSignalStrengthEvent {
+pub struct GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent {
+    /// connectionState property.
+    pub connection_state: Option<String>,
     /// guid property.
     pub guid: Option<String>,
-    /// signalStrengthDbm property.
-    pub signal_strength_dbm: Option<i64>,
-}
-
-/// `GoogleChromeManagementV1TelemetryExternalDisplayData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1TelemetryExternalDisplayData {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// edidVersion property.
-    pub edid_version: Option<String>,
-    /// refreshRate property.
-    pub refresh_rate: Option<String>,
-    /// resolutionHorizontal property.
-    pub resolution_horizontal: Option<i64>,
-    /// resolutionVertical property.
-    pub resolution_vertical: Option<i64>,
-    /// serialNumber property.
-    pub serial_number: Option<i64>,
-}
-
-/// `GoogleChromeManagementV1TelemetryAppUninstallEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1TelemetryAppUninstallEvent {
-    /// appId property.
-    pub app_id: Option<String>,
-    /// appType property.
-    pub app_type: Option<String>,
-    /// appUninstallSource property.
-    pub app_uninstall_source: Option<String>,
-}
-
-/// `GoogleChromeManagementV1TelemetryUsbPeripheralsEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1TelemetryUsbPeripheralsEvent {
-    /// usbPeripheralReport property.
-    pub usb_peripheral_report: Option<Vec<GoogleChromeManagementV1UsbPeripheralReport>>,
-}
-
-/// `GoogleChromeManagementV1TelemetryAppLaunchEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1TelemetryAppLaunchEvent {
-    /// appId property.
-    pub app_id: Option<String>,
-    /// appLaunchSource property.
-    pub app_launch_source: Option<String>,
-    /// appType property.
-    pub app_type: Option<String>,
 }
 
 // =============================================================================

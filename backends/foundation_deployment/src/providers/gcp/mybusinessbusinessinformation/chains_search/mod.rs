@@ -12,32 +12,24 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ChainName` type.
+/// `ChainUri` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChainName {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// languageCode property.
-    pub language_code: Option<String>,
-}
-
-/// `SearchChainsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SearchChainsResponse {
-    /// chains property.
-    pub chains: Option<Vec<Chain>>,
+pub struct ChainUri {
+    /// uri property.
+    pub uri: Option<String>,
 }
 
 /// `Chain` type.
@@ -53,11 +45,20 @@ pub struct Chain {
     pub websites: Option<Vec<ChainUri>>,
 }
 
-/// `ChainUri` type.
+/// `ChainName` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChainUri {
-    /// uri property.
-    pub uri: Option<String>,
+pub struct ChainName {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+}
+
+/// `SearchChainsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchChainsResponse {
+    /// chains property.
+    pub chains: Option<Vec<Chain>>,
 }
 
 // =============================================================================

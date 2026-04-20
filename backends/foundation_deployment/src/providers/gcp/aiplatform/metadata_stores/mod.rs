@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,18 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudAiplatformV1MetadataStoreMetadataStoreState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MetadataStoreMetadataStoreState {
-    /// diskUtilizationBytes property.
-    pub disk_utilization_bytes: Option<String>,
-}
 
 /// `GoogleCloudAiplatformV1MetadataStore` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -62,13 +56,6 @@ pub struct GoogleCloudAiplatformV1ListMetadataStoresResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1MetadataStoreDataplexConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MetadataStoreDataplexConfig {
-    /// enabledPipelinesLineage property.
-    pub enabled_pipelines_lineage: Option<bool>,
-}
-
 /// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
@@ -85,6 +72,20 @@ pub struct GoogleRpcStatus {
 pub struct GoogleCloudAiplatformV1EncryptionSpec {
     /// kmsKeyName property.
     pub kms_key_name: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1MetadataStoreMetadataStoreState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1MetadataStoreMetadataStoreState {
+    /// diskUtilizationBytes property.
+    pub disk_utilization_bytes: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1MetadataStoreDataplexConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1MetadataStoreDataplexConfig {
+    /// enabledPipelinesLineage property.
+    pub enabled_pipelines_lineage: Option<bool>,
 }
 
 // =============================================================================

@@ -12,17 +12,36 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `DbVersion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DbVersion {
+    /// name property.
+    pub name: Option<String>,
+    /// properties property.
+    pub properties: Option<DbVersionProperties>,
+}
+
+/// `ListDbVersionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDbVersionsResponse {
+    /// dbVersions property.
+    pub db_versions: Option<Vec<DbVersion>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `DbVersionProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -37,24 +56,6 @@ pub struct DbVersionProperties {
     pub supports_pdb: Option<bool>,
     /// version property.
     pub version: Option<String>,
-}
-
-/// `ListDbVersionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDbVersionsResponse {
-    /// dbVersions property.
-    pub db_versions: Option<Vec<DbVersion>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `DbVersion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DbVersion {
-    /// name property.
-    pub name: Option<String>,
-    /// properties property.
-    pub properties: Option<DbVersionProperties>,
 }
 
 // =============================================================================

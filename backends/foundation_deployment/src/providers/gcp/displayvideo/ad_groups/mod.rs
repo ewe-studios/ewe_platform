@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,36 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListAdGroupsResponse` type.
+/// `CustomLabel` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAdGroupsResponse {
-    /// adGroups property.
-    pub ad_groups: Option<Vec<AdGroup>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `SelectedInventories` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SelectedInventories {
-    /// allowDiscover property.
-    pub allow_discover: Option<bool>,
-    /// allowGmail property.
-    pub allow_gmail: Option<bool>,
-    /// allowGoogleDisplayNetwork property.
-    pub allow_google_display_network: Option<bool>,
-    /// allowYoutubeFeed property.
-    pub allow_youtube_feed: Option<bool>,
-    /// allowYoutubeShorts property.
-    pub allow_youtube_shorts: Option<bool>,
-    /// allowYoutubeStream property.
-    pub allow_youtube_stream: Option<bool>,
+pub struct CustomLabel {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
 /// `AdGroupInventoryControl` type.
@@ -73,33 +57,6 @@ pub struct YoutubeAndPartnersBiddingStrategy {
     pub r#type: Option<String>,
     /// value property.
     pub value: Option<String>,
-}
-
-/// `ProductFeedData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductFeedData {
-    /// isFeedDisabled property.
-    pub is_feed_disabled: Option<bool>,
-    /// productMatchDimensions property.
-    pub product_match_dimensions: Option<Vec<ProductMatchDimension>>,
-    /// productMatchType property.
-    pub product_match_type: Option<String>,
-}
-
-/// `CustomLabel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomLabel {
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `FixedBidStrategy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FixedBidStrategy {
-    /// bidAmountMicros property.
-    pub bid_amount_micros: Option<String>,
 }
 
 /// `MaximizeSpendBidStrategy` type.
@@ -142,52 +99,31 @@ pub struct AdGroup {
     pub targeting_expansion: Option<TargetingExpansionConfig>,
 }
 
-/// `DemandGenBiddingStrategy` type.
+/// `ProductFeedData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DemandGenBiddingStrategy {
-    /// effectiveBiddingValue property.
-    pub effective_bidding_value: Option<String>,
-    /// effectiveBiddingValueSource property.
-    pub effective_bidding_value_source: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct ProductFeedData {
+    /// isFeedDisabled property.
+    pub is_feed_disabled: Option<bool>,
+    /// productMatchDimensions property.
+    pub product_match_dimensions: Option<Vec<ProductMatchDimension>>,
+    /// productMatchType property.
+    pub product_match_type: Option<String>,
 }
 
-/// `PerformanceGoalBidStrategy` type.
+/// `FixedBidStrategy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PerformanceGoalBidStrategy {
-    /// customBiddingAlgorithmId property.
-    pub custom_bidding_algorithm_id: Option<String>,
-    /// maxAverageCpmBidAmountMicros property.
-    pub max_average_cpm_bid_amount_micros: Option<String>,
-    /// performanceGoalAmountMicros property.
-    pub performance_goal_amount_micros: Option<String>,
-    /// performanceGoalType property.
-    pub performance_goal_type: Option<String>,
+pub struct FixedBidStrategy {
+    /// bidAmountMicros property.
+    pub bid_amount_micros: Option<String>,
 }
 
-/// `ProductMatchDimension` type.
+/// `ListAdGroupsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductMatchDimension {
-    /// customLabel property.
-    pub custom_label: Option<CustomLabel>,
-    /// productOfferId property.
-    pub product_offer_id: Option<String>,
-}
-
-/// `TargetingExpansionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TargetingExpansionConfig {
-    /// audienceExpansionLevel property.
-    pub audience_expansion_level: Option<String>,
-    /// audienceExpansionSeedListExcluded property.
-    pub audience_expansion_seed_list_excluded: Option<bool>,
-    /// enableOptimizedTargeting property.
-    pub enable_optimized_targeting: Option<bool>,
-    /// excludeDemographicExpansion property.
-    pub exclude_demographic_expansion: Option<bool>,
+pub struct ListAdGroupsResponse {
+    /// adGroups property.
+    pub ad_groups: Option<Vec<AdGroup>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `BiddingStrategy` type.
@@ -203,6 +139,71 @@ pub struct BiddingStrategy {
     pub performance_goal_auto_bid: Option<PerformanceGoalBidStrategy>,
     /// youtubeAndPartnersBid property.
     pub youtube_and_partners_bid: Option<YoutubeAndPartnersBiddingStrategy>,
+}
+
+/// `PerformanceGoalBidStrategy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PerformanceGoalBidStrategy {
+    /// customBiddingAlgorithmId property.
+    pub custom_bidding_algorithm_id: Option<String>,
+    /// maxAverageCpmBidAmountMicros property.
+    pub max_average_cpm_bid_amount_micros: Option<String>,
+    /// performanceGoalAmountMicros property.
+    pub performance_goal_amount_micros: Option<String>,
+    /// performanceGoalType property.
+    pub performance_goal_type: Option<String>,
+}
+
+/// `SelectedInventories` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SelectedInventories {
+    /// allowDiscover property.
+    pub allow_discover: Option<bool>,
+    /// allowGmail property.
+    pub allow_gmail: Option<bool>,
+    /// allowGoogleDisplayNetwork property.
+    pub allow_google_display_network: Option<bool>,
+    /// allowYoutubeFeed property.
+    pub allow_youtube_feed: Option<bool>,
+    /// allowYoutubeShorts property.
+    pub allow_youtube_shorts: Option<bool>,
+    /// allowYoutubeStream property.
+    pub allow_youtube_stream: Option<bool>,
+}
+
+/// `TargetingExpansionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TargetingExpansionConfig {
+    /// audienceExpansionLevel property.
+    pub audience_expansion_level: Option<String>,
+    /// audienceExpansionSeedListExcluded property.
+    pub audience_expansion_seed_list_excluded: Option<bool>,
+    /// enableOptimizedTargeting property.
+    pub enable_optimized_targeting: Option<bool>,
+    /// excludeDemographicExpansion property.
+    pub exclude_demographic_expansion: Option<bool>,
+}
+
+/// `DemandGenBiddingStrategy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DemandGenBiddingStrategy {
+    /// effectiveBiddingValue property.
+    pub effective_bidding_value: Option<String>,
+    /// effectiveBiddingValueSource property.
+    pub effective_bidding_value_source: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `ProductMatchDimension` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductMatchDimension {
+    /// customLabel property.
+    pub custom_label: Option<CustomLabel>,
+    /// productOfferId property.
+    pub product_offer_id: Option<String>,
 }
 
 // =============================================================================

@@ -12,26 +12,49 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
+use super::shared::Empty;
 use super::shared::Execution;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `StackTraceElement` type.
+/// `ListExecutionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StackTraceElement {
-    /// position property.
-    pub position: Option<Position>,
+pub struct ListExecutionsResponse {
+    /// executions property.
+    pub executions: Option<Vec<Execution>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `ExportDataResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExportDataResponse {
+    /// data property.
+    pub data: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// currentSteps property.
+    pub current_steps: Option<Vec<Step>>,
+}
+
+/// `Step` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Step {
     /// routine property.
     pub routine: Option<String>,
     /// step property.
@@ -49,15 +72,6 @@ pub struct Position {
     pub line: Option<String>,
 }
 
-/// `ListExecutionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListExecutionsResponse {
-    /// executions property.
-    pub executions: Option<Vec<Execution>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
 /// `StackTrace` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StackTrace {
@@ -65,9 +79,20 @@ pub struct StackTrace {
     pub elements: Option<Vec<StackTraceElement>>,
 }
 
-/// `Step` type.
+/// `StateError` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Step {
+pub struct StateError {
+    /// details property.
+    pub details: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `StackTraceElement` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StackTraceElement {
+    /// position property.
+    pub position: Option<Position>,
     /// routine property.
     pub routine: Option<String>,
     /// step property.
@@ -84,33 +109,6 @@ pub struct Error {
     /// stackTrace property.
     pub stack_trace: Option<StackTrace>,
 }
-
-/// `ExportDataResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExportDataResponse {
-    /// data property.
-    pub data: Option<String>,
-}
-
-/// `StateError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StateError {
-    /// details property.
-    pub details: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// currentSteps property.
-    pub current_steps: Option<Vec<Step>>,
-}
-
-/// `Empty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

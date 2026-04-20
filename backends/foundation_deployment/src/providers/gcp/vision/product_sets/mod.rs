@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,24 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ProductSet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProductSet {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// indexError property.
+    pub index_error: Option<Status>,
+    /// indexTime property.
+    pub index_time: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
 
 /// `ListProductSetsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,19 +59,6 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
-}
-
-/// `ProductSet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductSet {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// indexError property.
-    pub index_error: Option<Status>,
-    /// indexTime property.
-    pub index_time: Option<String>,
-    /// name property.
-    pub name: Option<String>,
 }
 
 // =============================================================================

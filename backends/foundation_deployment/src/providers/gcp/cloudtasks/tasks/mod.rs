@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,17 +22,32 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `BufferTaskResponse` type.
+/// `ListTasksResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BufferTaskResponse {
-    /// task property.
-    pub task: Option<Task>,
+pub struct ListTasksResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// tasks property.
+    pub tasks: Option<Vec<Task>>,
+}
+
+/// `AppEngineRouting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppEngineRouting {
+    /// host property.
+    pub host: Option<String>,
+    /// instance property.
+    pub instance: Option<String>,
+    /// service property.
+    pub service: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
 /// `OAuthToken` type.
@@ -41,32 +57,6 @@ pub struct OAuthToken {
     pub scope: Option<String>,
     /// serviceAccountEmail property.
     pub service_account_email: Option<String>,
-}
-
-/// `OidcToken` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OidcToken {
-    /// audience property.
-    pub audience: Option<String>,
-    /// serviceAccountEmail property.
-    pub service_account_email: Option<String>,
-}
-
-/// `HttpRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRequest {
-    /// body property.
-    pub body: Option<String>,
-    /// headers property.
-    pub headers: Option<serde_json::Value>,
-    /// httpMethod property.
-    pub http_method: Option<String>,
-    /// oauthToken property.
-    pub oauth_token: Option<OAuthToken>,
-    /// oidcToken property.
-    pub oidc_token: Option<OidcToken>,
-    /// url property.
-    pub url: Option<String>,
 }
 
 /// `AppEngineHttpRequest` type.
@@ -84,28 +74,50 @@ pub struct AppEngineHttpRequest {
     pub relative_uri: Option<String>,
 }
 
-/// `Status` type.
+/// `BufferTaskResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct BufferTaskResponse {
+    /// task property.
+    pub task: Option<Task>,
 }
 
-/// `AppEngineRouting` type.
+/// `OidcToken` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppEngineRouting {
-    /// host property.
-    pub host: Option<String>,
-    /// instance property.
-    pub instance: Option<String>,
-    /// service property.
-    pub service: Option<String>,
-    /// version property.
-    pub version: Option<String>,
+pub struct OidcToken {
+    /// audience property.
+    pub audience: Option<String>,
+    /// serviceAccountEmail property.
+    pub service_account_email: Option<String>,
+}
+
+/// `Attempt` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Attempt {
+    /// dispatchTime property.
+    pub dispatch_time: Option<String>,
+    /// responseStatus property.
+    pub response_status: Option<Status>,
+    /// responseTime property.
+    pub response_time: Option<String>,
+    /// scheduleTime property.
+    pub schedule_time: Option<String>,
+}
+
+/// `HttpRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRequest {
+    /// body property.
+    pub body: Option<String>,
+    /// headers property.
+    pub headers: Option<serde_json::Value>,
+    /// httpMethod property.
+    pub http_method: Option<String>,
+    /// oauthToken property.
+    pub oauth_token: Option<OAuthToken>,
+    /// oidcToken property.
+    pub oidc_token: Option<OidcToken>,
+    /// url property.
+    pub url: Option<String>,
 }
 
 /// `Task` type.
@@ -135,26 +147,15 @@ pub struct Task {
     pub view: Option<String>,
 }
 
-/// `ListTasksResponse` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListTasksResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// tasks property.
-    pub tasks: Option<Vec<Task>>,
-}
-
-/// `Attempt` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Attempt {
-    /// dispatchTime property.
-    pub dispatch_time: Option<String>,
-    /// responseStatus property.
-    pub response_status: Option<Status>,
-    /// responseTime property.
-    pub response_time: Option<String>,
-    /// scheduleTime property.
-    pub schedule_time: Option<String>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

@@ -12,23 +12,42 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ResourceIssue` type.
+/// `MobileFriendlyIssue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceIssue {
-    /// blockedResource property.
-    pub blocked_resource: Option<BlockedResource>,
+pub struct MobileFriendlyIssue {
+    /// rule property.
+    pub rule: Option<String>,
+}
+
+/// `TestStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TestStatus {
+    /// details property.
+    pub details: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+}
+
+/// `Image` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Image {
+    /// data property.
+    pub data: Option<String>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
 }
 
 /// `BlockedResource` type.
@@ -36,6 +55,13 @@ pub struct ResourceIssue {
 pub struct BlockedResource {
     /// url property.
     pub url: Option<String>,
+}
+
+/// `ResourceIssue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceIssue {
+    /// blockedResource property.
+    pub blocked_resource: Option<BlockedResource>,
 }
 
 /// `RunMobileFriendlyTestResponse` type.
@@ -51,31 +77,6 @@ pub struct RunMobileFriendlyTestResponse {
     pub screenshot: Option<Image>,
     /// testStatus property.
     pub test_status: Option<TestStatus>,
-}
-
-/// `MobileFriendlyIssue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MobileFriendlyIssue {
-    /// rule property.
-    pub rule: Option<String>,
-}
-
-/// `Image` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Image {
-    /// data property.
-    pub data: Option<String>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-}
-
-/// `TestStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestStatus {
-    /// details property.
-    pub details: Option<String>,
-    /// status property.
-    pub status: Option<String>,
 }
 
 // =============================================================================

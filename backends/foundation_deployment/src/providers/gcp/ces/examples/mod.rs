@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,20 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Blob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Blob {
-    /// data property.
-    pub data: Option<String>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-}
 
 /// `Example` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -59,6 +51,33 @@ pub struct Example {
     pub update_time: Option<String>,
 }
 
+/// `AgentTransfer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AgentTransfer {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// targetAgent property.
+    pub target_agent: Option<String>,
+}
+
+/// `Blob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Blob {
+    /// data property.
+    pub data: Option<String>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+}
+
+/// `Image` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Image {
+    /// data property.
+    pub data: Option<String>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+}
+
 /// `ListExamplesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListExamplesResponse {
@@ -68,15 +87,15 @@ pub struct ListExamplesResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `ToolResponse` type.
+/// `ToolCall` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ToolResponse {
+pub struct ToolCall {
+    /// args property.
+    pub args: Option<serde_json::Value>,
     /// displayName property.
     pub display_name: Option<String>,
     /// id property.
     pub id: Option<String>,
-    /// response property.
-    pub response: Option<serde_json::Value>,
     /// tool property.
     pub tool: Option<String>,
     /// toolsetTool property.
@@ -94,24 +113,24 @@ pub struct Message {
     pub role: Option<String>,
 }
 
-/// `Image` type.
+/// `ToolsetTool` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Image {
-    /// data property.
-    pub data: Option<String>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
+pub struct ToolsetTool {
+    /// toolId property.
+    pub tool_id: Option<String>,
+    /// toolset property.
+    pub toolset: Option<String>,
 }
 
-/// `ToolCall` type.
+/// `ToolResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ToolCall {
-    /// args property.
-    pub args: Option<serde_json::Value>,
+pub struct ToolResponse {
     /// displayName property.
     pub display_name: Option<String>,
     /// id property.
     pub id: Option<String>,
+    /// response property.
+    pub response: Option<serde_json::Value>,
     /// tool property.
     pub tool: Option<String>,
     /// toolsetTool property.
@@ -141,24 +160,6 @@ pub struct Chunk {
     pub transcript: Option<String>,
     /// updatedVariables property.
     pub updated_variables: Option<serde_json::Value>,
-}
-
-/// `AgentTransfer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AgentTransfer {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// targetAgent property.
-    pub target_agent: Option<String>,
-}
-
-/// `ToolsetTool` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ToolsetTool {
-    /// toolId property.
-    pub tool_id: Option<String>,
-    /// toolset property.
-    pub toolset: Option<String>,
 }
 
 // =============================================================================

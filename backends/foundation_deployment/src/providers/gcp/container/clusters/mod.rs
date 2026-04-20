@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,107 +22,35 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `MaxPodsConstraint` type.
+/// `CompliancePostureConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaxPodsConstraint {
-    /// maxPodsPerNode property.
-    pub max_pods_per_node: Option<String>,
+pub struct CompliancePostureConfig {
+    /// complianceStandards property.
+    pub compliance_standards: Option<Vec<ComplianceStandard>>,
+    /// mode property.
+    pub mode: Option<String>,
 }
 
-/// `SyncRotationConfig` type.
+/// `BestEffortProvisioning` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SyncRotationConfig {
+pub struct BestEffortProvisioning {
     /// enabled property.
     pub enabled: Option<bool>,
-    /// rotationInterval property.
-    pub rotation_interval: Option<String>,
+    /// minProvisionNodes property.
+    pub min_provision_nodes: Option<i64>,
 }
 
-/// `BigQueryDestination` type.
+/// `AccurateTimeConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BigQueryDestination {
-    /// datasetId property.
-    pub dataset_id: Option<String>,
-}
-
-/// `UpdateInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateInfo {
-    /// blueGreenInfo property.
-    pub blue_green_info: Option<BlueGreenInfo>,
-}
-
-/// `BlueGreenSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BlueGreenSettings {
-    /// autoscaledRolloutPolicy property.
-    pub autoscaled_rollout_policy: Option<AutoscaledRolloutPolicy>,
-    /// nodePoolSoakDuration property.
-    pub node_pool_soak_duration: Option<String>,
-    /// standardRolloutPolicy property.
-    pub standard_rollout_policy: Option<StandardRolloutPolicy>,
-}
-
-/// `OperationProgress` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperationProgress {
-    /// metrics property.
-    pub metrics: Option<Vec<Metric>>,
-    /// name property.
-    pub name: Option<String>,
-    /// stages property.
-    pub stages: Option<Vec<OperationProgress>>,
-    /// status property.
-    pub status: Option<String>,
-}
-
-/// `MemoryManager` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MemoryManager {
-    /// policy property.
-    pub policy: Option<String>,
-}
-
-/// `PrivateClusterMasterGlobalAccessConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrivateClusterMasterGlobalAccessConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `NetworkTierConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkTierConfig {
-    /// networkTier property.
-    pub network_tier: Option<String>,
-}
-
-/// `SwapConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SwapConfig {
-    /// bootDiskProfile property.
-    pub boot_disk_profile: Option<BootDiskProfile>,
-    /// dedicatedLocalSsdProfile property.
-    pub dedicated_local_ssd_profile: Option<DedicatedLocalSsdProfile>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// encryptionConfig property.
-    pub encryption_config: Option<EncryptionConfig>,
-    /// ephemeralLocalSsdProfile property.
-    pub ephemeral_local_ssd_profile: Option<EphemeralLocalSsdProfile>,
-}
-
-/// `GPUDirectConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GPUDirectConfig {
-    /// gpuDirectStrategy property.
-    pub gpu_direct_strategy: Option<String>,
+pub struct AccurateTimeConfig {
+    /// enablePtpKvmTimeSync property.
+    pub enable_ptp_kvm_time_sync: Option<bool>,
 }
 
 /// `GPUDriverInstallationConfig` type.
@@ -131,52 +60,18 @@ pub struct GPUDriverInstallationConfig {
     pub gpu_driver_version: Option<String>,
 }
 
-/// `WorkloadPolicyConfig` type.
+/// `ResourceManagerTags` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkloadPolicyConfig {
-    /// allowNetAdmin property.
-    pub allow_net_admin: Option<bool>,
-    /// autopilotCompatibilityAuditingEnabled property.
-    pub autopilot_compatibility_auditing_enabled: Option<bool>,
-}
-
-/// `ServiceExternalIPsConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceExternalIPsConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `RayOperatorConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RayOperatorConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// rayClusterLoggingConfig property.
-    pub ray_cluster_logging_config: Option<RayClusterLoggingConfig>,
-    /// rayClusterMonitoringConfig property.
-    pub ray_cluster_monitoring_config: Option<RayClusterMonitoringConfig>,
-}
-
-/// `NetworkTags` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkTags {
+pub struct ResourceManagerTags {
     /// tags property.
-    pub tags: Option<Vec<String>>,
+    pub tags: Option<serde_json::Value>,
 }
 
-/// `VirtualNIC` type.
+/// `FastSocket` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VirtualNIC {
+pub struct FastSocket {
     /// enabled property.
     pub enabled: Option<bool>,
-}
-
-/// `NodeDrainConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeDrainConfig {
-    /// respectPdbDuringNodePoolDeletion property.
-    pub respect_pdb_during_node_pool_deletion: Option<bool>,
 }
 
 /// `ShieldedInstanceConfig` type.
@@ -186,153 +81,6 @@ pub struct ShieldedInstanceConfig {
     pub enable_integrity_monitoring: Option<bool>,
     /// enableSecureBoot property.
     pub enable_secure_boot: Option<bool>,
-}
-
-/// `GatewayAPIConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GatewayAPIConfig {
-    /// channel property.
-    pub channel: Option<String>,
-}
-
-/// `QueuedProvisioning` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueuedProvisioning {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `AdditionalNodeNetworkConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdditionalNodeNetworkConfig {
-    /// network property.
-    pub network: Option<String>,
-    /// subnetwork property.
-    pub subnetwork: Option<String>,
-}
-
-/// `TopologyManager` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TopologyManager {
-    /// policy property.
-    pub policy: Option<String>,
-    /// scope property.
-    pub scope: Option<String>,
-}
-
-/// `EphemeralStorageLocalSsdConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EphemeralStorageLocalSsdConfig {
-    /// dataCacheCount property.
-    pub data_cache_count: Option<i64>,
-    /// localSsdCount property.
-    pub local_ssd_count: Option<i64>,
-}
-
-/// `GcfsConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GcfsConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `ListClustersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListClustersResponse {
-    /// clusters property.
-    pub clusters: Option<Vec<Cluster>>,
-    /// missingZones property.
-    pub missing_zones: Option<Vec<String>>,
-}
-
-/// `LoggingComponentConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoggingComponentConfig {
-    /// enableComponents property.
-    pub enable_components: Option<Vec<String>>,
-}
-
-/// `SecretSyncConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecretSyncConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// rotationConfig property.
-    pub rotation_config: Option<SyncRotationConfig>,
-}
-
-/// `CertificateAuthorityDomainConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CertificateAuthorityDomainConfig {
-    /// fqdns property.
-    pub fqdns: Option<Vec<String>>,
-    /// gcpSecretManagerCertificateConfig property.
-    pub gcp_secret_manager_certificate_config: Option<GCPSecretManagerCertificateConfig>,
-}
-
-/// `ConfidentialNodes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfidentialNodes {
-    /// confidentialInstanceType property.
-    pub confidential_instance_type: Option<String>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `MaintenanceExclusionOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaintenanceExclusionOptions {
-    /// endTimeBehavior property.
-    pub end_time_behavior: Option<String>,
-    /// scope property.
-    pub scope: Option<String>,
-}
-
-/// `IdentityServiceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdentityServiceConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `ResourceManagerTags` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceManagerTags {
-    /// tags property.
-    pub tags: Option<serde_json::Value>,
-}
-
-/// `Metric` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Metric {
-    /// doubleValue property.
-    pub double_value: Option<f64>,
-    /// intValue property.
-    pub int_value: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// stringValue property.
-    pub string_value: Option<String>,
-}
-
-/// `HugepagesConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HugepagesConfig {
-    /// hugepageSize1g property.
-    pub hugepage_size1g: Option<i64>,
-    /// hugepageSize2m property.
-    pub hugepage_size2m: Option<i64>,
-}
-
-/// `NodeManagement` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeManagement {
-    /// autoRepair property.
-    pub auto_repair: Option<bool>,
-    /// autoUpgrade property.
-    pub auto_upgrade: Option<bool>,
-    /// upgradeOptions property.
-    pub upgrade_options: Option<AutoUpgradeOptions>,
 }
 
 /// `Fleet` type.
@@ -346,1218 +94,6 @@ pub struct Fleet {
     pub pre_registered: Option<bool>,
     /// project property.
     pub project: Option<String>,
-}
-
-/// `HostConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HostConfig {
-    /// ca property.
-    pub ca: Option<Vec<CertificateConfig>>,
-    /// capabilities property.
-    pub capabilities: Option<Vec<String>>,
-    /// client property.
-    pub client: Option<Vec<CertificateConfigPair>>,
-    /// dialTimeout property.
-    pub dial_timeout: Option<String>,
-    /// header property.
-    pub header: Option<Vec<RegistryHeader>>,
-    /// host property.
-    pub host: Option<String>,
-    /// overridePath property.
-    pub override_path: Option<bool>,
-}
-
-/// `AutoUpgradeOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoUpgradeOptions {
-    /// autoUpgradeStartTime property.
-    pub auto_upgrade_start_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-}
-
-/// `BootDiskProfile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BootDiskProfile {
-    /// swapSizeGib property.
-    pub swap_size_gib: Option<String>,
-    /// swapSizePercent property.
-    pub swap_size_percent: Option<i64>,
-}
-
-/// `LustreCsiDriverConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LustreCsiDriverConfig {
-    /// disableMultiNic property.
-    pub disable_multi_nic: Option<bool>,
-    /// enableLegacyLustrePort property.
-    pub enable_legacy_lustre_port: Option<bool>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `EphemeralLocalSsdProfile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EphemeralLocalSsdProfile {
-    /// swapSizeGib property.
-    pub swap_size_gib: Option<String>,
-    /// swapSizePercent property.
-    pub swap_size_percent: Option<i64>,
-}
-
-/// `NetworkPolicyConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkPolicyConfig {
-    /// disabled property.
-    pub disabled: Option<bool>,
-}
-
-/// `RayClusterLoggingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RayClusterLoggingConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `ComplianceStandard` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComplianceStandard {
-    /// standard property.
-    pub standard: Option<String>,
-}
-
-/// `CompliancePostureConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompliancePostureConfig {
-    /// complianceStandards property.
-    pub compliance_standards: Option<Vec<ComplianceStandard>>,
-    /// mode property.
-    pub mode: Option<String>,
-}
-
-/// `SliceControllerConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SliceControllerConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `CheckAutopilotCompatibilityResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CheckAutopilotCompatibilityResponse {
-    /// issues property.
-    pub issues: Option<Vec<AutopilotCompatibilityIssue>>,
-    /// summary property.
-    pub summary: Option<String>,
-}
-
-/// `GcpFilestoreCsiDriverConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GcpFilestoreCsiDriverConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `WindowsNodeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WindowsNodeConfig {
-    /// osVersion property.
-    pub os_version: Option<String>,
-}
-
-/// `GcePersistentDiskCsiDriverConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GcePersistentDiskCsiDriverConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `PrivateRegistryAccessConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrivateRegistryAccessConfig {
-    /// certificateAuthorityDomainConfig property.
-    pub certificate_authority_domain_config: Option<Vec<CertificateAuthorityDomainConfig>>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `ClusterUpgradeInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterUpgradeInfo {
-    /// autoUpgradeStatus property.
-    pub auto_upgrade_status: Option<Vec<String>>,
-    /// endOfExtendedSupportTimestamp property.
-    pub end_of_extended_support_timestamp: Option<String>,
-    /// endOfStandardSupportTimestamp property.
-    pub end_of_standard_support_timestamp: Option<String>,
-    /// minorTargetVersion property.
-    pub minor_target_version: Option<String>,
-    /// patchTargetVersion property.
-    pub patch_target_version: Option<String>,
-    /// pausedReason property.
-    pub paused_reason: Option<Vec<String>>,
-    /// upgradeDetails property.
-    pub upgrade_details: Option<Vec<UpgradeDetails>>,
-}
-
-/// `TimeWindow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeWindow {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// maintenanceExclusionOptions property.
-    pub maintenance_exclusion_options: Option<MaintenanceExclusionOptions>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `StatusCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StatusCondition {
-    /// canonicalCode property.
-    pub canonical_code: Option<String>,
-    /// code property.
-    pub code: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `LegacyAbac` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LegacyAbac {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `DNSConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DNSConfig {
-    /// additiveVpcScopeDnsDomain property.
-    pub additive_vpc_scope_dns_domain: Option<String>,
-    /// clusterDns property.
-    pub cluster_dns: Option<String>,
-    /// clusterDnsDomain property.
-    pub cluster_dns_domain: Option<String>,
-    /// clusterDnsScope property.
-    pub cluster_dns_scope: Option<String>,
-}
-
-/// `NodePoolLoggingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodePoolLoggingConfig {
-    /// variantConfig property.
-    pub variant_config: Option<LoggingVariantConfig>,
-}
-
-/// `BinaryAuthorization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BinaryAuthorization {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// evaluationMode property.
-    pub evaluation_mode: Option<String>,
-}
-
-/// `CidrBlock` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CidrBlock {
-    /// cidrBlock property.
-    pub cidr_block: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-}
-
-/// `OperationError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperationError {
-    /// errorMessage property.
-    pub error_message: Option<String>,
-    /// keyName property.
-    pub key_name: Option<String>,
-    /// timestamp property.
-    pub timestamp: Option<String>,
-}
-
-/// `ReleaseChannel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReleaseChannel {
-    /// channel property.
-    pub channel: Option<String>,
-}
-
-/// `AccurateTimeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccurateTimeConfig {
-    /// enablePtpKvmTimeSync property.
-    pub enable_ptp_kvm_time_sync: Option<bool>,
-}
-
-/// `NodeKernelModuleLoading` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeKernelModuleLoading {
-    /// policy property.
-    pub policy: Option<String>,
-}
-
-/// `ClusterPolicyConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterPolicyConfig {
-    /// noStandardNodePools property.
-    pub no_standard_node_pools: Option<bool>,
-    /// noSystemImpersonation property.
-    pub no_system_impersonation: Option<bool>,
-    /// noSystemMutation property.
-    pub no_system_mutation: Option<bool>,
-    /// noUnsafeWebhooks property.
-    pub no_unsafe_webhooks: Option<bool>,
-}
-
-/// `DnsCacheConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsCacheConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `ConfigConnectorConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigConnectorConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `AdvancedDatapathObservabilityConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdvancedDatapathObservabilityConfig {
-    /// enableMetrics property.
-    pub enable_metrics: Option<bool>,
-    /// enableRelay property.
-    pub enable_relay: Option<bool>,
-    /// relayMode property.
-    pub relay_mode: Option<String>,
-}
-
-/// `CrashLoopBackOffConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CrashLoopBackOffConfig {
-    /// maxContainerRestartPeriod property.
-    pub max_container_restart_period: Option<String>,
-}
-
-/// `Filter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Filter {
-    /// eventType property.
-    pub event_type: Option<Vec<String>>,
-}
-
-/// `VerticalPodAutoscaling` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VerticalPodAutoscaling {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `AutoIpamConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoIpamConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `AddonsConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AddonsConfig {
-    /// cloudRunConfig property.
-    pub cloud_run_config: Option<CloudRunConfig>,
-    /// configConnectorConfig property.
-    pub config_connector_config: Option<ConfigConnectorConfig>,
-    /// dnsCacheConfig property.
-    pub dns_cache_config: Option<DnsCacheConfig>,
-    /// gcePersistentDiskCsiDriverConfig property.
-    pub gce_persistent_disk_csi_driver_config: Option<GcePersistentDiskCsiDriverConfig>,
-    /// gcpFilestoreCsiDriverConfig property.
-    pub gcp_filestore_csi_driver_config: Option<GcpFilestoreCsiDriverConfig>,
-    /// gcsFuseCsiDriverConfig property.
-    pub gcs_fuse_csi_driver_config: Option<GcsFuseCsiDriverConfig>,
-    /// gkeBackupAgentConfig property.
-    pub gke_backup_agent_config: Option<GkeBackupAgentConfig>,
-    /// highScaleCheckpointingConfig property.
-    pub high_scale_checkpointing_config: Option<HighScaleCheckpointingConfig>,
-    /// horizontalPodAutoscaling property.
-    pub horizontal_pod_autoscaling: Option<HorizontalPodAutoscaling>,
-    /// httpLoadBalancing property.
-    pub http_load_balancing: Option<HttpLoadBalancing>,
-    /// kubernetesDashboard property.
-    pub kubernetes_dashboard: Option<KubernetesDashboard>,
-    /// lustreCsiDriverConfig property.
-    pub lustre_csi_driver_config: Option<LustreCsiDriverConfig>,
-    /// networkPolicyConfig property.
-    pub network_policy_config: Option<NetworkPolicyConfig>,
-    /// parallelstoreCsiDriverConfig property.
-    pub parallelstore_csi_driver_config: Option<ParallelstoreCsiDriverConfig>,
-    /// podSnapshotConfig property.
-    pub pod_snapshot_config: Option<PodSnapshotConfig>,
-    /// rayOperatorConfig property.
-    pub ray_operator_config: Option<RayOperatorConfig>,
-    /// sliceControllerConfig property.
-    pub slice_controller_config: Option<SliceControllerConfig>,
-    /// statefulHaConfig property.
-    pub stateful_ha_config: Option<StatefulHAConfig>,
-}
-
-/// `Autopilot` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Autopilot {
-    /// clusterPolicyConfig property.
-    pub cluster_policy_config: Option<ClusterPolicyConfig>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// privilegedAdmissionConfig property.
-    pub privileged_admission_config: Option<PrivilegedAdmissionConfig>,
-    /// workloadPolicyConfig property.
-    pub workload_policy_config: Option<WorkloadPolicyConfig>,
-}
-
-/// `WorkloadMetadataConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkloadMetadataConfig {
-    /// mode property.
-    pub mode: Option<String>,
-}
-
-/// `DedicatedLocalSsdProfile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DedicatedLocalSsdProfile {
-    /// diskCount property.
-    pub disk_count: Option<String>,
-}
-
-/// `MonitoringConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MonitoringConfig {
-    /// advancedDatapathObservabilityConfig property.
-    pub advanced_datapath_observability_config: Option<AdvancedDatapathObservabilityConfig>,
-    /// componentConfig property.
-    pub component_config: Option<MonitoringComponentConfig>,
-    /// managedPrometheusConfig property.
-    pub managed_prometheus_config: Option<ManagedPrometheusConfig>,
-}
-
-/// `PodCIDROverprovisionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PodCIDROverprovisionConfig {
-    /// disable property.
-    pub disable: Option<bool>,
-}
-
-/// `ManagedPrometheusConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedPrometheusConfig {
-    /// autoMonitoringConfig property.
-    pub auto_monitoring_config: Option<AutoMonitoringConfig>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `AdditionalPodNetworkConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdditionalPodNetworkConfig {
-    /// maxPodsPerNode property.
-    pub max_pods_per_node: Option<MaxPodsConstraint>,
-    /// networkAttachment property.
-    pub network_attachment: Option<String>,
-    /// secondaryPodRange property.
-    pub secondary_pod_range: Option<String>,
-    /// subnetwork property.
-    pub subnetwork: Option<String>,
-}
-
-/// `WritableCgroups` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WritableCgroups {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `RangeInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RangeInfo {
-    /// rangeName property.
-    pub range_name: Option<String>,
-    /// utilization property.
-    pub utilization: Option<f64>,
-}
-
-/// `EvictionMinimumReclaim` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EvictionMinimumReclaim {
-    /// imagefsAvailable property.
-    pub imagefs_available: Option<String>,
-    /// imagefsInodesFree property.
-    pub imagefs_inodes_free: Option<String>,
-    /// memoryAvailable property.
-    pub memory_available: Option<String>,
-    /// nodefsAvailable property.
-    pub nodefs_available: Option<String>,
-    /// nodefsInodesFree property.
-    pub nodefs_inodes_free: Option<String>,
-    /// pidAvailable property.
-    pub pid_available: Option<String>,
-}
-
-/// `IPEndpointsConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IPEndpointsConfig {
-    /// authorizedNetworksConfig property.
-    pub authorized_networks_config: Option<MasterAuthorizedNetworksConfig>,
-    /// enablePublicEndpoint property.
-    pub enable_public_endpoint: Option<bool>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// globalAccess property.
-    pub global_access: Option<bool>,
-    /// privateEndpoint property.
-    pub private_endpoint: Option<String>,
-    /// privateEndpointSubnetwork property.
-    pub private_endpoint_subnetwork: Option<String>,
-    /// publicEndpoint property.
-    pub public_endpoint: Option<String>,
-}
-
-/// `GcsFuseCsiDriverConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GcsFuseCsiDriverConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `GkeBackupAgentConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GkeBackupAgentConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `HighScaleCheckpointingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HighScaleCheckpointingConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `StatefulHAConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StatefulHAConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `StandardRolloutPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StandardRolloutPolicy {
-    /// batchNodeCount property.
-    pub batch_node_count: Option<i64>,
-    /// batchPercentage property.
-    pub batch_percentage: Option<f64>,
-    /// batchSoakDuration property.
-    pub batch_soak_duration: Option<String>,
-}
-
-/// `DNSEndpointConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DNSEndpointConfig {
-    /// allowExternalTraffic property.
-    pub allow_external_traffic: Option<bool>,
-    /// enableK8sCertsViaDns property.
-    pub enable_k8s_certs_via_dns: Option<bool>,
-    /// enableK8sTokensViaDns property.
-    pub enable_k8s_tokens_via_dns: Option<bool>,
-    /// endpoint property.
-    pub endpoint: Option<String>,
-}
-
-/// `SandboxConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SandboxConfig {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `ClientCertificateConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClientCertificateConfig {
-    /// issueClientCertificate property.
-    pub issue_client_certificate: Option<bool>,
-}
-
-/// `RayClusterMonitoringConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RayClusterMonitoringConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `BlueGreenInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BlueGreenInfo {
-    /// blueInstanceGroupUrls property.
-    pub blue_instance_group_urls: Option<Vec<String>>,
-    /// bluePoolDeletionStartTime property.
-    pub blue_pool_deletion_start_time: Option<String>,
-    /// greenInstanceGroupUrls property.
-    pub green_instance_group_urls: Option<Vec<String>>,
-    /// greenPoolVersion property.
-    pub green_pool_version: Option<String>,
-    /// phase property.
-    pub phase: Option<String>,
-}
-
-/// `LoggingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoggingConfig {
-    /// componentConfig property.
-    pub component_config: Option<LoggingComponentConfig>,
-}
-
-/// `ParallelstoreCsiDriverConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ParallelstoreCsiDriverConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `DisruptionBudget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DisruptionBudget {
-    /// lastDisruptionTime property.
-    pub last_disruption_time: Option<String>,
-    /// lastMinorVersionDisruptionTime property.
-    pub last_minor_version_disruption_time: Option<String>,
-    /// minorVersionDisruptionInterval property.
-    pub minor_version_disruption_interval: Option<String>,
-    /// patchVersionDisruptionInterval property.
-    pub patch_version_disruption_interval: Option<String>,
-}
-
-/// `NetworkPerformanceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkPerformanceConfig {
-    /// totalEgressBandwidthTier property.
-    pub total_egress_bandwidth_tier: Option<String>,
-}
-
-/// `EncryptionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionConfig {
-    /// disabled property.
-    pub disabled: Option<bool>,
-}
-
-/// `MaintenancePolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaintenancePolicy {
-    /// disruptionBudget property.
-    pub disruption_budget: Option<DisruptionBudget>,
-    /// resourceVersion property.
-    pub resource_version: Option<String>,
-    /// window property.
-    pub window: Option<MaintenanceWindow>,
-}
-
-/// `EvictionSignals` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EvictionSignals {
-    /// imagefsAvailable property.
-    pub imagefs_available: Option<String>,
-    /// imagefsInodesFree property.
-    pub imagefs_inodes_free: Option<String>,
-    /// memoryAvailable property.
-    pub memory_available: Option<String>,
-    /// nodefsAvailable property.
-    pub nodefs_available: Option<String>,
-    /// nodefsInodesFree property.
-    pub nodefs_inodes_free: Option<String>,
-    /// pidAvailable property.
-    pub pid_available: Option<String>,
-}
-
-/// `CertificateConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CertificateConfig {
-    /// gcpSecretManagerSecretUri property.
-    pub gcp_secret_manager_secret_uri: Option<String>,
-}
-
-/// `PrivateClusterConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrivateClusterConfig {
-    /// enablePrivateEndpoint property.
-    pub enable_private_endpoint: Option<bool>,
-    /// enablePrivateNodes property.
-    pub enable_private_nodes: Option<bool>,
-    /// masterGlobalAccessConfig property.
-    pub master_global_access_config: Option<PrivateClusterMasterGlobalAccessConfig>,
-    /// masterIpv4CidrBlock property.
-    pub master_ipv4_cidr_block: Option<String>,
-    /// peeringName property.
-    pub peering_name: Option<String>,
-    /// privateEndpoint property.
-    pub private_endpoint: Option<String>,
-    /// privateEndpointSubnetwork property.
-    pub private_endpoint_subnetwork: Option<String>,
-    /// publicEndpoint property.
-    pub public_endpoint: Option<String>,
-}
-
-/// `NotificationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NotificationConfig {
-    /// pubsub property.
-    pub pubsub: Option<PubSub>,
-}
-
-/// `NodeNetworkConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeNetworkConfig {
-    /// acceleratorNetworkProfile property.
-    pub accelerator_network_profile: Option<String>,
-    /// additionalNodeNetworkConfigs property.
-    pub additional_node_network_configs: Option<Vec<AdditionalNodeNetworkConfig>>,
-    /// additionalPodNetworkConfigs property.
-    pub additional_pod_network_configs: Option<Vec<AdditionalPodNetworkConfig>>,
-    /// createPodRange property.
-    pub create_pod_range: Option<bool>,
-    /// enablePrivateNodes property.
-    pub enable_private_nodes: Option<bool>,
-    /// networkPerformanceConfig property.
-    pub network_performance_config: Option<NetworkPerformanceConfig>,
-    /// networkTierConfig property.
-    pub network_tier_config: Option<NetworkTierConfig>,
-    /// podCidrOverprovisionConfig property.
-    pub pod_cidr_overprovision_config: Option<PodCIDROverprovisionConfig>,
-    /// podIpv4CidrBlock property.
-    pub pod_ipv4_cidr_block: Option<String>,
-    /// podIpv4RangeUtilization property.
-    pub pod_ipv4_range_utilization: Option<f64>,
-    /// podRange property.
-    pub pod_range: Option<String>,
-    /// subnetwork property.
-    pub subnetwork: Option<String>,
-}
-
-/// `GPUSharingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GPUSharingConfig {
-    /// gpuSharingStrategy property.
-    pub gpu_sharing_strategy: Option<String>,
-    /// maxSharedClientsPerGpu property.
-    pub max_shared_clients_per_gpu: Option<String>,
-}
-
-/// `UpgradeDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpgradeDetails {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// initialVersion property.
-    pub initial_version: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// startType property.
-    pub start_type: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// targetVersion property.
-    pub target_version: Option<String>,
-}
-
-/// `CloudRunConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudRunConfig {
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// loadBalancerType property.
-    pub load_balancer_type: Option<String>,
-}
-
-/// `AutoprovisioningNodePoolDefaults` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoprovisioningNodePoolDefaults {
-    /// bootDiskKmsKey property.
-    pub boot_disk_kms_key: Option<String>,
-    /// diskSizeGb property.
-    pub disk_size_gb: Option<i64>,
-    /// diskType property.
-    pub disk_type: Option<String>,
-    /// imageType property.
-    pub image_type: Option<String>,
-    /// insecureKubeletReadonlyPortEnabled property.
-    pub insecure_kubelet_readonly_port_enabled: Option<bool>,
-    /// management property.
-    pub management: Option<NodeManagement>,
-    /// minCpuPlatform property.
-    pub min_cpu_platform: Option<String>,
-    /// oauthScopes property.
-    pub oauth_scopes: Option<Vec<String>>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-    /// shieldedInstanceConfig property.
-    pub shielded_instance_config: Option<ShieldedInstanceConfig>,
-    /// upgradeSettings property.
-    pub upgrade_settings: Option<UpgradeSettings>,
-}
-
-/// `SecurityPostureConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPostureConfig {
-    /// mode property.
-    pub mode: Option<String>,
-    /// vulnerabilityMode property.
-    pub vulnerability_mode: Option<String>,
-}
-
-/// `UpgradeSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpgradeSettings {
-    /// blueGreenSettings property.
-    pub blue_green_settings: Option<BlueGreenSettings>,
-    /// maxSurge property.
-    pub max_surge: Option<i64>,
-    /// maxUnavailable property.
-    pub max_unavailable: Option<i64>,
-    /// strategy property.
-    pub strategy: Option<String>,
-}
-
-/// `SoleTenantConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SoleTenantConfig {
-    /// minNodeCpus property.
-    pub min_node_cpus: Option<i64>,
-    /// nodeAffinities property.
-    pub node_affinities: Option<Vec<NodeAffinity>>,
-}
-
-/// `K8SBetaAPIConfig` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct K8SBetaAPIConfig {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AutoscaledRolloutPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoscaledRolloutPolicy {
-    /// waitForDrainDuration property.
-    pub wait_for_drain_duration: Option<String>,
-}
-
-/// `AutoMonitoringConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoMonitoringConfig {
-    /// scope property.
-    pub scope: Option<String>,
-}
-
-/// `SecondaryBootDiskUpdateStrategy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryBootDiskUpdateStrategy {}
-
-/// `NodeConfigDefaults` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeConfigDefaults {
-    /// containerdConfig property.
-    pub containerd_config: Option<ContainerdConfig>,
-    /// gcfsConfig property.
-    pub gcfs_config: Option<GcfsConfig>,
-    /// loggingConfig property.
-    pub logging_config: Option<NodePoolLoggingConfig>,
-    /// nodeKubeletConfig property.
-    pub node_kubelet_config: Option<NodeKubeletConfig>,
-}
-
-/// `ScheduleUpgradeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScheduleUpgradeConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `ClusterNetworkPerformanceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterNetworkPerformanceConfig {
-    /// totalEgressBandwidthTier property.
-    pub total_egress_bandwidth_tier: Option<String>,
-}
-
-/// `IPAllocationPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IPAllocationPolicy {
-    /// additionalIpRangesConfigs property.
-    pub additional_ip_ranges_configs: Option<Vec<AdditionalIPRangesConfig>>,
-    /// additionalPodRangesConfig property.
-    pub additional_pod_ranges_config: Option<AdditionalPodRangesConfig>,
-    /// autoIpamConfig property.
-    pub auto_ipam_config: Option<AutoIpamConfig>,
-    /// clusterIpv4Cidr property.
-    pub cluster_ipv4_cidr: Option<String>,
-    /// clusterIpv4CidrBlock property.
-    pub cluster_ipv4_cidr_block: Option<String>,
-    /// clusterSecondaryRangeName property.
-    pub cluster_secondary_range_name: Option<String>,
-    /// createSubnetwork property.
-    pub create_subnetwork: Option<bool>,
-    /// defaultPodIpv4RangeUtilization property.
-    pub default_pod_ipv4_range_utilization: Option<f64>,
-    /// ipv6AccessType property.
-    pub ipv6_access_type: Option<String>,
-    /// networkTierConfig property.
-    pub network_tier_config: Option<NetworkTierConfig>,
-    /// nodeIpv4Cidr property.
-    pub node_ipv4_cidr: Option<String>,
-    /// nodeIpv4CidrBlock property.
-    pub node_ipv4_cidr_block: Option<String>,
-    /// podCidrOverprovisionConfig property.
-    pub pod_cidr_overprovision_config: Option<PodCIDROverprovisionConfig>,
-    /// servicesIpv4Cidr property.
-    pub services_ipv4_cidr: Option<String>,
-    /// servicesIpv4CidrBlock property.
-    pub services_ipv4_cidr_block: Option<String>,
-    /// servicesIpv6CidrBlock property.
-    pub services_ipv6_cidr_block: Option<String>,
-    /// servicesSecondaryRangeName property.
-    pub services_secondary_range_name: Option<String>,
-    /// stackType property.
-    pub stack_type: Option<String>,
-    /// subnetIpv6CidrBlock property.
-    pub subnet_ipv6_cidr_block: Option<String>,
-    /// subnetworkName property.
-    pub subnetwork_name: Option<String>,
-    /// tpuIpv4CidrBlock property.
-    pub tpu_ipv4_cidr_block: Option<String>,
-    /// useIpAliases property.
-    pub use_ip_aliases: Option<bool>,
-    /// useRoutes property.
-    pub use_routes: Option<bool>,
-}
-
-/// `NodePoolDefaults` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodePoolDefaults {
-    /// nodeConfigDefaults property.
-    pub node_config_defaults: Option<NodeConfigDefaults>,
-}
-
-/// `AutopilotConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutopilotConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `FastSocket` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FastSocket {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `TaintConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TaintConfig {
-    /// architectureTaintBehavior property.
-    pub architecture_taint_behavior: Option<String>,
-}
-
-/// `PrivilegedAdmissionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrivilegedAdmissionConfig {
-    /// allowlistPaths property.
-    pub allowlist_paths: Option<Vec<String>>,
-}
-
-/// `UserManagedKeysConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserManagedKeysConfig {
-    /// aggregationCa property.
-    pub aggregation_ca: Option<String>,
-    /// clusterCa property.
-    pub cluster_ca: Option<String>,
-    /// controlPlaneDiskEncryptionKey property.
-    pub control_plane_disk_encryption_key: Option<String>,
-    /// controlPlaneDiskEncryptionKeyVersions property.
-    pub control_plane_disk_encryption_key_versions: Option<Vec<String>>,
-    /// etcdApiCa property.
-    pub etcd_api_ca: Option<String>,
-    /// etcdPeerCa property.
-    pub etcd_peer_ca: Option<String>,
-    /// gkeopsEtcdBackupEncryptionKey property.
-    pub gkeops_etcd_backup_encryption_key: Option<String>,
-    /// serviceAccountSigningKeys property.
-    pub service_account_signing_keys: Option<Vec<String>>,
-    /// serviceAccountVerificationKeys property.
-    pub service_account_verification_keys: Option<Vec<String>>,
-}
-
-/// `PodSnapshotConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PodSnapshotConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `AdvancedMachineFeatures` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdvancedMachineFeatures {
-    /// enableNestedVirtualization property.
-    pub enable_nested_virtualization: Option<bool>,
-    /// performanceMonitoringUnit property.
-    pub performance_monitoring_unit: Option<String>,
-    /// threadsPerCore property.
-    pub threads_per_core: Option<String>,
-}
-
-/// `RecurringTimeWindow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RecurringTimeWindow {
-    /// recurrence property.
-    pub recurrence: Option<String>,
-    /// window property.
-    pub window: Option<TimeWindow>,
-}
-
-/// `NodePool` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodePool {
-    /// autopilotConfig property.
-    pub autopilot_config: Option<AutopilotConfig>,
-    /// autoscaling property.
-    pub autoscaling: Option<NodePoolAutoscaling>,
-    /// bestEffortProvisioning property.
-    pub best_effort_provisioning: Option<BestEffortProvisioning>,
-    /// conditions property.
-    pub conditions: Option<Vec<StatusCondition>>,
-    /// config property.
-    pub config: Option<NodeConfig>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// initialNodeCount property.
-    pub initial_node_count: Option<i64>,
-    /// instanceGroupUrls property.
-    pub instance_group_urls: Option<Vec<String>>,
-    /// locations property.
-    pub locations: Option<Vec<String>>,
-    /// management property.
-    pub management: Option<NodeManagement>,
-    /// maxPodsConstraint property.
-    pub max_pods_constraint: Option<MaxPodsConstraint>,
-    /// name property.
-    pub name: Option<String>,
-    /// networkConfig property.
-    pub network_config: Option<NodeNetworkConfig>,
-    /// nodeDrainConfig property.
-    pub node_drain_config: Option<NodeDrainConfig>,
-    /// placementPolicy property.
-    pub placement_policy: Option<PlacementPolicy>,
-    /// podIpv4CidrSize property.
-    pub pod_ipv4_cidr_size: Option<i64>,
-    /// queuedProvisioning property.
-    pub queued_provisioning: Option<QueuedProvisioning>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-    /// statusMessage property.
-    pub status_message: Option<String>,
-    /// updateInfo property.
-    pub update_info: Option<UpdateInfo>,
-    /// upgradeSettings property.
-    pub upgrade_settings: Option<UpgradeSettings>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `BootDisk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BootDisk {
-    /// diskType property.
-    pub disk_type: Option<String>,
-    /// provisionedIops property.
-    pub provisioned_iops: Option<String>,
-    /// provisionedThroughput property.
-    pub provisioned_throughput: Option<String>,
-    /// sizeGb property.
-    pub size_gb: Option<String>,
-}
-
-/// `ControlPlaneEndpointsConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ControlPlaneEndpointsConfig {
-    /// dnsEndpointConfig property.
-    pub dns_endpoint_config: Option<DNSEndpointConfig>,
-    /// ipEndpointsConfig property.
-    pub ip_endpoints_config: Option<IPEndpointsConfig>,
-}
-
-/// `RBACBindingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RBACBindingConfig {
-    /// enableInsecureBindingSystemAuthenticated property.
-    pub enable_insecure_binding_system_authenticated: Option<bool>,
-    /// enableInsecureBindingSystemUnauthenticated property.
-    pub enable_insecure_binding_system_unauthenticated: Option<bool>,
-}
-
-/// `SecondaryBootDisk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryBootDisk {
-    /// diskImage property.
-    pub disk_image: Option<String>,
-    /// mode property.
-    pub mode: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `EnterpriseConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseConfig {
-    /// clusterTier property.
-    pub cluster_tier: Option<String>,
-    /// desiredTier property.
-    pub desired_tier: Option<String>,
-}
-
-/// `DatabaseEncryption` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseEncryption {
-    /// currentState property.
-    pub current_state: Option<String>,
-    /// decryptionKeys property.
-    pub decryption_keys: Option<Vec<String>>,
-    /// keyName property.
-    pub key_name: Option<String>,
-    /// lastOperationErrors property.
-    pub last_operation_errors: Option<Vec<OperationError>>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `ConsumptionMeteringConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConsumptionMeteringConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `NodeKubeletConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeKubeletConfig {
-    /// allowedUnsafeSysctls property.
-    pub allowed_unsafe_sysctls: Option<Vec<String>>,
-    /// containerLogMaxFiles property.
-    pub container_log_max_files: Option<i64>,
-    /// containerLogMaxSize property.
-    pub container_log_max_size: Option<String>,
-    /// cpuCfsQuota property.
-    pub cpu_cfs_quota: Option<bool>,
-    /// cpuCfsQuotaPeriod property.
-    pub cpu_cfs_quota_period: Option<String>,
-    /// cpuManagerPolicy property.
-    pub cpu_manager_policy: Option<String>,
-    /// crashLoopBackOff property.
-    pub crash_loop_back_off: Option<CrashLoopBackOffConfig>,
-    /// evictionMaxPodGracePeriodSeconds property.
-    pub eviction_max_pod_grace_period_seconds: Option<i64>,
-    /// evictionMinimumReclaim property.
-    pub eviction_minimum_reclaim: Option<EvictionMinimumReclaim>,
-    /// evictionSoft property.
-    pub eviction_soft: Option<EvictionSignals>,
-    /// evictionSoftGracePeriod property.
-    pub eviction_soft_grace_period: Option<EvictionGracePeriod>,
-    /// imageGcHighThresholdPercent property.
-    pub image_gc_high_threshold_percent: Option<i64>,
-    /// imageGcLowThresholdPercent property.
-    pub image_gc_low_threshold_percent: Option<i64>,
-    /// imageMaximumGcAge property.
-    pub image_maximum_gc_age: Option<String>,
-    /// imageMinimumGcAge property.
-    pub image_minimum_gc_age: Option<String>,
-    /// insecureKubeletReadonlyPortEnabled property.
-    pub insecure_kubelet_readonly_port_enabled: Option<bool>,
-    /// maxParallelImagePulls property.
-    pub max_parallel_image_pulls: Option<i64>,
-    /// memoryManager property.
-    pub memory_manager: Option<MemoryManager>,
-    /// podPidsLimit property.
-    pub pod_pids_limit: Option<String>,
-    /// shutdownGracePeriodCriticalPodsSeconds property.
-    pub shutdown_grace_period_critical_pods_seconds: Option<i64>,
-    /// shutdownGracePeriodSeconds property.
-    pub shutdown_grace_period_seconds: Option<i64>,
-    /// singleProcessOomKill property.
-    pub single_process_oom_kill: Option<bool>,
-    /// topologyManager property.
-    pub topology_manager: Option<TopologyManager>,
-}
-
-/// `NodePoolAutoscaling` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodePoolAutoscaling {
-    /// autoprovisioned property.
-    pub autoprovisioned: Option<bool>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// locationPolicy property.
-    pub location_policy: Option<String>,
-    /// maxNodeCount property.
-    pub max_node_count: Option<i64>,
-    /// minNodeCount property.
-    pub min_node_count: Option<i64>,
-    /// totalMaxNodeCount property.
-    pub total_max_node_count: Option<i64>,
-    /// totalMinNodeCount property.
-    pub total_min_node_count: Option<i64>,
-}
-
-/// `ReservationAffinity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReservationAffinity {
-    /// consumeReservationType property.
-    pub consume_reservation_type: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `AdditionalPodRangesConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdditionalPodRangesConfig {
-    /// podRangeInfo property.
-    pub pod_range_info: Option<Vec<RangeInfo>>,
-    /// podRangeNames property.
-    pub pod_range_names: Option<Vec<String>>,
-}
-
-/// `RotationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RotationConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// rotationInterval property.
-    pub rotation_interval: Option<String>,
 }
 
 /// `NodeConfig` type.
@@ -1661,13 +197,392 @@ pub struct NodeConfig {
     pub workload_metadata_config: Option<WorkloadMetadataConfig>,
 }
 
-/// `ParentProductConfig` type.
+/// `CertificateConfigPair` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ParentProductConfig {
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// productName property.
-    pub product_name: Option<String>,
+pub struct CertificateConfigPair {
+    /// cert property.
+    pub cert: Option<CertificateConfig>,
+    /// key property.
+    pub key: Option<CertificateConfig>,
+}
+
+/// `DNSConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DNSConfig {
+    /// additiveVpcScopeDnsDomain property.
+    pub additive_vpc_scope_dns_domain: Option<String>,
+    /// clusterDns property.
+    pub cluster_dns: Option<String>,
+    /// clusterDnsDomain property.
+    pub cluster_dns_domain: Option<String>,
+    /// clusterDnsScope property.
+    pub cluster_dns_scope: Option<String>,
+}
+
+/// `LoggingComponentConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoggingComponentConfig {
+    /// enableComponents property.
+    pub enable_components: Option<Vec<String>>,
+}
+
+/// `ResourceLimit` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceLimit {
+    /// maximum property.
+    pub maximum: Option<String>,
+    /// minimum property.
+    pub minimum: Option<String>,
+    /// resourceType property.
+    pub resource_type: Option<String>,
+}
+
+/// `BigQueryDestination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BigQueryDestination {
+    /// datasetId property.
+    pub dataset_id: Option<String>,
+}
+
+/// `CertificateAuthorityDomainConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CertificateAuthorityDomainConfig {
+    /// fqdns property.
+    pub fqdns: Option<Vec<String>>,
+    /// gcpSecretManagerCertificateConfig property.
+    pub gcp_secret_manager_certificate_config: Option<GCPSecretManagerCertificateConfig>,
+}
+
+/// `AutoIpamConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutoIpamConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `CheckAutopilotCompatibilityResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CheckAutopilotCompatibilityResponse {
+    /// issues property.
+    pub issues: Option<Vec<AutopilotCompatibilityIssue>>,
+    /// summary property.
+    pub summary: Option<String>,
+}
+
+/// `ServiceExternalIPsConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceExternalIPsConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `ClusterPolicyConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterPolicyConfig {
+    /// noStandardNodePools property.
+    pub no_standard_node_pools: Option<bool>,
+    /// noSystemImpersonation property.
+    pub no_system_impersonation: Option<bool>,
+    /// noSystemMutation property.
+    pub no_system_mutation: Option<bool>,
+    /// noUnsafeWebhooks property.
+    pub no_unsafe_webhooks: Option<bool>,
+}
+
+/// `BinaryAuthorization` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BinaryAuthorization {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// evaluationMode property.
+    pub evaluation_mode: Option<String>,
+}
+
+/// `PlacementPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlacementPolicy {
+    /// policyName property.
+    pub policy_name: Option<String>,
+    /// tpuTopology property.
+    pub tpu_topology: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `DnsCacheConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsCacheConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `WorkloadIdentityConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkloadIdentityConfig {
+    /// workloadPool property.
+    pub workload_pool: Option<String>,
+}
+
+/// `AdditionalIPRangesConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdditionalIPRangesConfig {
+    /// podIpv4RangeNames property.
+    pub pod_ipv4_range_names: Option<Vec<String>>,
+    /// status property.
+    pub status: Option<String>,
+    /// subnetwork property.
+    pub subnetwork: Option<String>,
+}
+
+/// `ClusterAutoscaling` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterAutoscaling {
+    /// autopilotGeneralProfile property.
+    pub autopilot_general_profile: Option<String>,
+    /// autoprovisioningLocations property.
+    pub autoprovisioning_locations: Option<Vec<String>>,
+    /// autoprovisioningNodePoolDefaults property.
+    pub autoprovisioning_node_pool_defaults: Option<AutoprovisioningNodePoolDefaults>,
+    /// autoscalingProfile property.
+    pub autoscaling_profile: Option<String>,
+    /// defaultComputeClassConfig property.
+    pub default_compute_class_config: Option<DefaultComputeClassConfig>,
+    /// enableNodeAutoprovisioning property.
+    pub enable_node_autoprovisioning: Option<bool>,
+    /// resourceLimits property.
+    pub resource_limits: Option<Vec<ResourceLimit>>,
+}
+
+/// `NetworkPolicyConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkPolicyConfig {
+    /// disabled property.
+    pub disabled: Option<bool>,
+}
+
+/// `MasterAuth` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MasterAuth {
+    /// clientCertificate property.
+    pub client_certificate: Option<String>,
+    /// clientCertificateConfig property.
+    pub client_certificate_config: Option<ClientCertificateConfig>,
+    /// clientKey property.
+    pub client_key: Option<String>,
+    /// clusterCaCertificate property.
+    pub cluster_ca_certificate: Option<String>,
+    /// password property.
+    pub password: Option<String>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `ShieldedNodes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShieldedNodes {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `AutopilotConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutopilotConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `AutoprovisioningNodePoolDefaults` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutoprovisioningNodePoolDefaults {
+    /// bootDiskKmsKey property.
+    pub boot_disk_kms_key: Option<String>,
+    /// diskSizeGb property.
+    pub disk_size_gb: Option<i64>,
+    /// diskType property.
+    pub disk_type: Option<String>,
+    /// imageType property.
+    pub image_type: Option<String>,
+    /// insecureKubeletReadonlyPortEnabled property.
+    pub insecure_kubelet_readonly_port_enabled: Option<bool>,
+    /// management property.
+    pub management: Option<NodeManagement>,
+    /// minCpuPlatform property.
+    pub min_cpu_platform: Option<String>,
+    /// oauthScopes property.
+    pub oauth_scopes: Option<Vec<String>>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// shieldedInstanceConfig property.
+    pub shielded_instance_config: Option<ShieldedInstanceConfig>,
+    /// upgradeSettings property.
+    pub upgrade_settings: Option<UpgradeSettings>,
+}
+
+/// `RegistryHeader` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegistryHeader {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<Vec<String>>,
+}
+
+/// `WorkloadPolicyConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkloadPolicyConfig {
+    /// allowNetAdmin property.
+    pub allow_net_admin: Option<bool>,
+    /// autopilotCompatibilityAuditingEnabled property.
+    pub autopilot_compatibility_auditing_enabled: Option<bool>,
+}
+
+/// `DefaultComputeClassConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DefaultComputeClassConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `ReservationAffinity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReservationAffinity {
+    /// consumeReservationType property.
+    pub consume_reservation_type: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `HighScaleCheckpointingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HighScaleCheckpointingConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `NodeTaint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodeTaint {
+    /// effect property.
+    pub effect: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `RangeInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RangeInfo {
+    /// rangeName property.
+    pub range_name: Option<String>,
+    /// utilization property.
+    pub utilization: Option<f64>,
+}
+
+/// `GcfsConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GcfsConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `ClusterNetworkPerformanceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterNetworkPerformanceConfig {
+    /// totalEgressBandwidthTier property.
+    pub total_egress_bandwidth_tier: Option<String>,
+}
+
+/// `PodAutoscaling` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PodAutoscaling {
+    /// hpaProfile property.
+    pub hpa_profile: Option<String>,
+}
+
+/// `AdditionalPodNetworkConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdditionalPodNetworkConfig {
+    /// maxPodsPerNode property.
+    pub max_pods_per_node: Option<MaxPodsConstraint>,
+    /// networkAttachment property.
+    pub network_attachment: Option<String>,
+    /// secondaryPodRange property.
+    pub secondary_pod_range: Option<String>,
+    /// subnetwork property.
+    pub subnetwork: Option<String>,
+}
+
+/// `DedicatedLocalSsdProfile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DedicatedLocalSsdProfile {
+    /// diskCount property.
+    pub disk_count: Option<String>,
+}
+
+/// `NodeAffinity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodeAffinity {
+    /// key property.
+    pub key: Option<String>,
+    /// operator property.
+    pub operator: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `ReleaseChannel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReleaseChannel {
+    /// channel property.
+    pub channel: Option<String>,
+}
+
+/// `GcePersistentDiskCsiDriverConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GcePersistentDiskCsiDriverConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `GkeBackupAgentConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GkeBackupAgentConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `ControlPlaneEgress` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ControlPlaneEgress {
+    /// mode property.
+    pub mode: Option<String>,
+}
+
+/// `EvictionSignals` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EvictionSignals {
+    /// imagefsAvailable property.
+    pub imagefs_available: Option<String>,
+    /// imagefsInodesFree property.
+    pub imagefs_inodes_free: Option<String>,
+    /// memoryAvailable property.
+    pub memory_available: Option<String>,
+    /// nodefsAvailable property.
+    pub nodefs_available: Option<String>,
+    /// nodefsInodesFree property.
+    pub nodefs_inodes_free: Option<String>,
+    /// pidAvailable property.
+    pub pid_available: Option<String>,
+}
+
+/// `HttpLoadBalancing` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpLoadBalancing {
+    /// disabled property.
+    pub disabled: Option<bool>,
 }
 
 /// `MasterAuthorizedNetworksConfig` type.
@@ -1683,130 +598,403 @@ pub struct MasterAuthorizedNetworksConfig {
     pub private_endpoint_enforcement_enabled: Option<bool>,
 }
 
-/// `PodAutoscaling` type.
+/// `BootDisk` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PodAutoscaling {
-    /// hpaProfile property.
-    pub hpa_profile: Option<String>,
+pub struct BootDisk {
+    /// diskType property.
+    pub disk_type: Option<String>,
+    /// provisionedIops property.
+    pub provisioned_iops: Option<String>,
+    /// provisionedThroughput property.
+    pub provisioned_throughput: Option<String>,
+    /// sizeGb property.
+    pub size_gb: Option<String>,
 }
 
-/// `MeshCertificates` type.
+/// `DatabaseEncryption` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MeshCertificates {
-    /// enableCertificates property.
-    pub enable_certificates: Option<bool>,
+pub struct DatabaseEncryption {
+    /// currentState property.
+    pub current_state: Option<String>,
+    /// decryptionKeys property.
+    pub decryption_keys: Option<Vec<String>>,
+    /// keyName property.
+    pub key_name: Option<String>,
+    /// lastOperationErrors property.
+    pub last_operation_errors: Option<Vec<OperationError>>,
+    /// state property.
+    pub state: Option<String>,
 }
 
-/// `BestEffortProvisioning` type.
+/// `AcceleratorConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BestEffortProvisioning {
+pub struct AcceleratorConfig {
+    /// acceleratorCount property.
+    pub accelerator_count: Option<String>,
+    /// acceleratorType property.
+    pub accelerator_type: Option<String>,
+    /// gpuDriverInstallationConfig property.
+    pub gpu_driver_installation_config: Option<GPUDriverInstallationConfig>,
+    /// gpuPartitionSize property.
+    pub gpu_partition_size: Option<String>,
+    /// gpuSharingConfig property.
+    pub gpu_sharing_config: Option<GPUSharingConfig>,
+}
+
+/// `EnterpriseConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseConfig {
+    /// clusterTier property.
+    pub cluster_tier: Option<String>,
+    /// desiredTier property.
+    pub desired_tier: Option<String>,
+}
+
+/// `ComplianceStandard` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComplianceStandard {
+    /// standard property.
+    pub standard: Option<String>,
+}
+
+/// `BlueGreenSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BlueGreenSettings {
+    /// autoscaledRolloutPolicy property.
+    pub autoscaled_rollout_policy: Option<AutoscaledRolloutPolicy>,
+    /// nodePoolSoakDuration property.
+    pub node_pool_soak_duration: Option<String>,
+    /// standardRolloutPolicy property.
+    pub standard_rollout_policy: Option<StandardRolloutPolicy>,
+}
+
+/// `CidrBlock` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CidrBlock {
+    /// cidrBlock property.
+    pub cidr_block: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+}
+
+/// `ResourceUsageExportConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceUsageExportConfig {
+    /// bigqueryDestination property.
+    pub bigquery_destination: Option<BigQueryDestination>,
+    /// consumptionMeteringConfig property.
+    pub consumption_metering_config: Option<ConsumptionMeteringConfig>,
+    /// enableNetworkEgressMetering property.
+    pub enable_network_egress_metering: Option<bool>,
+}
+
+/// `MaintenanceExclusionOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MaintenanceExclusionOptions {
+    /// endTimeBehavior property.
+    pub end_time_behavior: Option<String>,
+    /// scope property.
+    pub scope: Option<String>,
+}
+
+/// `MaxPodsConstraint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MaxPodsConstraint {
+    /// maxPodsPerNode property.
+    pub max_pods_per_node: Option<String>,
+}
+
+/// `SandboxConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SandboxConfig {
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `BlueGreenInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BlueGreenInfo {
+    /// blueInstanceGroupUrls property.
+    pub blue_instance_group_urls: Option<Vec<String>>,
+    /// bluePoolDeletionStartTime property.
+    pub blue_pool_deletion_start_time: Option<String>,
+    /// greenInstanceGroupUrls property.
+    pub green_instance_group_urls: Option<Vec<String>>,
+    /// greenPoolVersion property.
+    pub green_pool_version: Option<String>,
+    /// phase property.
+    pub phase: Option<String>,
+}
+
+/// `ConfigConnectorConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigConnectorConfig {
     /// enabled property.
     pub enabled: Option<bool>,
-    /// minProvisionNodes property.
-    pub min_provision_nodes: Option<i64>,
 }
 
-/// `SecretManagerConfig` type.
+/// `SecondaryBootDiskUpdateStrategy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecretManagerConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// rotationConfig property.
-    pub rotation_config: Option<RotationConfig>,
+pub struct SecondaryBootDiskUpdateStrategy {}
+
+/// `CrashLoopBackOffConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CrashLoopBackOffConfig {
+    /// maxContainerRestartPeriod property.
+    pub max_container_restart_period: Option<String>,
 }
 
-/// `DailyMaintenanceWindow` type.
+/// `ClientCertificateConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DailyMaintenanceWindow {
-    /// duration property.
-    pub duration: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
+pub struct ClientCertificateConfig {
+    /// issueClientCertificate property.
+    pub issue_client_certificate: Option<bool>,
 }
 
-/// `AdditionalIPRangesConfig` type.
+/// `AdditionalNodeNetworkConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdditionalIPRangesConfig {
-    /// podIpv4RangeNames property.
-    pub pod_ipv4_range_names: Option<Vec<String>>,
-    /// status property.
-    pub status: Option<String>,
+pub struct AdditionalNodeNetworkConfig {
+    /// network property.
+    pub network: Option<String>,
     /// subnetwork property.
     pub subnetwork: Option<String>,
 }
 
-/// `ContainerdConfig` type.
+/// `OperationProgress` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContainerdConfig {
-    /// privateRegistryAccessConfig property.
-    pub private_registry_access_config: Option<PrivateRegistryAccessConfig>,
-    /// registryHosts property.
-    pub registry_hosts: Option<Vec<RegistryHostConfig>>,
-    /// writableCgroups property.
-    pub writable_cgroups: Option<WritableCgroups>,
+pub struct OperationProgress {
+    /// metrics property.
+    pub metrics: Option<Vec<Metric>>,
+    /// name property.
+    pub name: Option<String>,
+    /// stages property.
+    pub stages: Option<Vec<Box<OperationProgress>>>,
+    /// status property.
+    pub status: Option<String>,
 }
 
-/// `AnonymousAuthenticationConfig` type.
+/// `NetworkTierConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AnonymousAuthenticationConfig {
+pub struct NetworkTierConfig {
+    /// networkTier property.
+    pub network_tier: Option<String>,
+}
+
+/// `AddonsConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AddonsConfig {
+    /// cloudRunConfig property.
+    pub cloud_run_config: Option<CloudRunConfig>,
+    /// configConnectorConfig property.
+    pub config_connector_config: Option<ConfigConnectorConfig>,
+    /// dnsCacheConfig property.
+    pub dns_cache_config: Option<DnsCacheConfig>,
+    /// gcePersistentDiskCsiDriverConfig property.
+    pub gce_persistent_disk_csi_driver_config: Option<GcePersistentDiskCsiDriverConfig>,
+    /// gcpFilestoreCsiDriverConfig property.
+    pub gcp_filestore_csi_driver_config: Option<GcpFilestoreCsiDriverConfig>,
+    /// gcsFuseCsiDriverConfig property.
+    pub gcs_fuse_csi_driver_config: Option<GcsFuseCsiDriverConfig>,
+    /// gkeBackupAgentConfig property.
+    pub gke_backup_agent_config: Option<GkeBackupAgentConfig>,
+    /// highScaleCheckpointingConfig property.
+    pub high_scale_checkpointing_config: Option<HighScaleCheckpointingConfig>,
+    /// horizontalPodAutoscaling property.
+    pub horizontal_pod_autoscaling: Option<HorizontalPodAutoscaling>,
+    /// httpLoadBalancing property.
+    pub http_load_balancing: Option<HttpLoadBalancing>,
+    /// kubernetesDashboard property.
+    pub kubernetes_dashboard: Option<KubernetesDashboard>,
+    /// lustreCsiDriverConfig property.
+    pub lustre_csi_driver_config: Option<LustreCsiDriverConfig>,
+    /// networkPolicyConfig property.
+    pub network_policy_config: Option<NetworkPolicyConfig>,
+    /// parallelstoreCsiDriverConfig property.
+    pub parallelstore_csi_driver_config: Option<ParallelstoreCsiDriverConfig>,
+    /// podSnapshotConfig property.
+    pub pod_snapshot_config: Option<PodSnapshotConfig>,
+    /// rayOperatorConfig property.
+    pub ray_operator_config: Option<RayOperatorConfig>,
+    /// sliceControllerConfig property.
+    pub slice_controller_config: Option<SliceControllerConfig>,
+    /// statefulHaConfig property.
+    pub stateful_ha_config: Option<StatefulHAConfig>,
+}
+
+/// `ClusterUpgradeInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterUpgradeInfo {
+    /// autoUpgradeStatus property.
+    pub auto_upgrade_status: Option<Vec<String>>,
+    /// endOfExtendedSupportTimestamp property.
+    pub end_of_extended_support_timestamp: Option<String>,
+    /// endOfStandardSupportTimestamp property.
+    pub end_of_standard_support_timestamp: Option<String>,
+    /// minorTargetVersion property.
+    pub minor_target_version: Option<String>,
+    /// patchTargetVersion property.
+    pub patch_target_version: Option<String>,
+    /// pausedReason property.
+    pub paused_reason: Option<Vec<String>>,
+    /// upgradeDetails property.
+    pub upgrade_details: Option<Vec<UpgradeDetails>>,
+}
+
+/// `EvictionGracePeriod` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EvictionGracePeriod {
+    /// imagefsAvailable property.
+    pub imagefs_available: Option<String>,
+    /// imagefsInodesFree property.
+    pub imagefs_inodes_free: Option<String>,
+    /// memoryAvailable property.
+    pub memory_available: Option<String>,
+    /// nodefsAvailable property.
+    pub nodefs_available: Option<String>,
+    /// nodefsInodesFree property.
+    pub nodefs_inodes_free: Option<String>,
+    /// pidAvailable property.
+    pub pid_available: Option<String>,
+}
+
+/// `IdentityServiceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IdentityServiceConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `EvictionMinimumReclaim` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EvictionMinimumReclaim {
+    /// imagefsAvailable property.
+    pub imagefs_available: Option<String>,
+    /// imagefsInodesFree property.
+    pub imagefs_inodes_free: Option<String>,
+    /// memoryAvailable property.
+    pub memory_available: Option<String>,
+    /// nodefsAvailable property.
+    pub nodefs_available: Option<String>,
+    /// nodefsInodesFree property.
+    pub nodefs_inodes_free: Option<String>,
+    /// pidAvailable property.
+    pub pid_available: Option<String>,
+}
+
+/// `LoggingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoggingConfig {
+    /// componentConfig property.
+    pub component_config: Option<LoggingComponentConfig>,
+}
+
+/// `LinuxNodeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LinuxNodeConfig {
+    /// accurateTimeConfig property.
+    pub accurate_time_config: Option<AccurateTimeConfig>,
+    /// cgroupMode property.
+    pub cgroup_mode: Option<String>,
+    /// hugepages property.
+    pub hugepages: Option<HugepagesConfig>,
+    /// nodeKernelModuleLoading property.
+    pub node_kernel_module_loading: Option<NodeKernelModuleLoading>,
+    /// swapConfig property.
+    pub swap_config: Option<SwapConfig>,
+    /// sysctls property.
+    pub sysctls: Option<serde_json::Value>,
+    /// transparentHugepageDefrag property.
+    pub transparent_hugepage_defrag: Option<String>,
+    /// transparentHugepageEnabled property.
+    pub transparent_hugepage_enabled: Option<String>,
+}
+
+/// `UpgradeSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpgradeSettings {
+    /// blueGreenSettings property.
+    pub blue_green_settings: Option<BlueGreenSettings>,
+    /// maxSurge property.
+    pub max_surge: Option<i64>,
+    /// maxUnavailable property.
+    pub max_unavailable: Option<i64>,
+    /// strategy property.
+    pub strategy: Option<String>,
+}
+
+/// `MemoryManager` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MemoryManager {
+    /// policy property.
+    pub policy: Option<String>,
+}
+
+/// `PubSub` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PubSub {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// filter property.
+    pub filter: Option<Filter>,
+    /// topic property.
+    pub topic: Option<String>,
+}
+
+/// `WorkloadMetadataConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkloadMetadataConfig {
     /// mode property.
     pub mode: Option<String>,
 }
 
-/// `ControlPlaneEgress` type.
+/// `AdvancedDatapathObservabilityConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ControlPlaneEgress {
-    /// mode property.
-    pub mode: Option<String>,
+pub struct AdvancedDatapathObservabilityConfig {
+    /// enableMetrics property.
+    pub enable_metrics: Option<bool>,
+    /// enableRelay property.
+    pub enable_relay: Option<bool>,
+    /// relayMode property.
+    pub relay_mode: Option<String>,
 }
 
-/// `AuthenticatorGroupsConfig` type.
+/// `AdditionalPodRangesConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthenticatorGroupsConfig {
+pub struct AdditionalPodRangesConfig {
+    /// podRangeInfo property.
+    pub pod_range_info: Option<Vec<RangeInfo>>,
+    /// podRangeNames property.
+    pub pod_range_names: Option<Vec<String>>,
+}
+
+/// `EphemeralStorageLocalSsdConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EphemeralStorageLocalSsdConfig {
+    /// dataCacheCount property.
+    pub data_cache_count: Option<i64>,
+    /// localSsdCount property.
+    pub local_ssd_count: Option<i64>,
+}
+
+/// `DefaultSnatStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DefaultSnatStatus {
+    /// disabled property.
+    pub disabled: Option<bool>,
+}
+
+/// `LoggingVariantConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoggingVariantConfig {
+    /// variant property.
+    pub variant: Option<String>,
+}
+
+/// `VirtualNIC` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VirtualNIC {
     /// enabled property.
     pub enabled: Option<bool>,
-    /// securityGroup property.
-    pub security_group: Option<String>,
-}
-
-/// `ShieldedNodes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShieldedNodes {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `AutopilotCompatibilityIssue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutopilotCompatibilityIssue {
-    /// constraintType property.
-    pub constraint_type: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// documentationUrl property.
-    pub documentation_url: Option<String>,
-    /// incompatibilityType property.
-    pub incompatibility_type: Option<String>,
-    /// lastObservation property.
-    pub last_observation: Option<String>,
-    /// subjects property.
-    pub subjects: Option<Vec<String>>,
-}
-
-/// `RegistryHostConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegistryHostConfig {
-    /// hosts property.
-    pub hosts: Option<Vec<HostConfig>>,
-    /// server property.
-    pub server: Option<String>,
-}
-
-/// `WorkloadIdentityConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkloadIdentityConfig {
-    /// workloadPool property.
-    pub workload_pool: Option<String>,
 }
 
 /// `Cluster` type.
@@ -1983,108 +1171,137 @@ pub struct Cluster {
     pub zone: Option<String>,
 }
 
-/// `EvictionGracePeriod` type.
+/// `ManagedMachineLearningDiagnosticsConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EvictionGracePeriod {
-    /// imagefsAvailable property.
-    pub imagefs_available: Option<String>,
-    /// imagefsInodesFree property.
-    pub imagefs_inodes_free: Option<String>,
-    /// memoryAvailable property.
-    pub memory_available: Option<String>,
-    /// nodefsAvailable property.
-    pub nodefs_available: Option<String>,
-    /// nodefsInodesFree property.
-    pub nodefs_inodes_free: Option<String>,
-    /// pidAvailable property.
-    pub pid_available: Option<String>,
-}
-
-/// `CertificateConfigPair` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CertificateConfigPair {
-    /// cert property.
-    pub cert: Option<CertificateConfig>,
-    /// key property.
-    pub key: Option<CertificateConfig>,
-}
-
-/// `ClusterAutoscaling` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterAutoscaling {
-    /// autopilotGeneralProfile property.
-    pub autopilot_general_profile: Option<String>,
-    /// autoprovisioningLocations property.
-    pub autoprovisioning_locations: Option<Vec<String>>,
-    /// autoprovisioningNodePoolDefaults property.
-    pub autoprovisioning_node_pool_defaults: Option<AutoprovisioningNodePoolDefaults>,
-    /// autoscalingProfile property.
-    pub autoscaling_profile: Option<String>,
-    /// defaultComputeClassConfig property.
-    pub default_compute_class_config: Option<DefaultComputeClassConfig>,
-    /// enableNodeAutoprovisioning property.
-    pub enable_node_autoprovisioning: Option<bool>,
-    /// resourceLimits property.
-    pub resource_limits: Option<Vec<ResourceLimit>>,
-}
-
-/// `ManagedOpenTelemetryConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedOpenTelemetryConfig {
-    /// scope property.
-    pub scope: Option<String>,
-}
-
-/// `RegistryHeader` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegistryHeader {
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<Vec<String>>,
-}
-
-/// `LinuxNodeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LinuxNodeConfig {
-    /// accurateTimeConfig property.
-    pub accurate_time_config: Option<AccurateTimeConfig>,
-    /// cgroupMode property.
-    pub cgroup_mode: Option<String>,
-    /// hugepages property.
-    pub hugepages: Option<HugepagesConfig>,
-    /// nodeKernelModuleLoading property.
-    pub node_kernel_module_loading: Option<NodeKernelModuleLoading>,
-    /// swapConfig property.
-    pub swap_config: Option<SwapConfig>,
-    /// sysctls property.
-    pub sysctls: Option<serde_json::Value>,
-    /// transparentHugepageDefrag property.
-    pub transparent_hugepage_defrag: Option<String>,
-    /// transparentHugepageEnabled property.
-    pub transparent_hugepage_enabled: Option<String>,
-}
-
-/// `PlacementPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlacementPolicy {
-    /// policyName property.
-    pub policy_name: Option<String>,
-    /// tpuTopology property.
-    pub tpu_topology: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `PubSub` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PubSub {
+pub struct ManagedMachineLearningDiagnosticsConfig {
     /// enabled property.
     pub enabled: Option<bool>,
-    /// filter property.
-    pub filter: Option<Filter>,
-    /// topic property.
-    pub topic: Option<String>,
+}
+
+/// `VerticalPodAutoscaling` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VerticalPodAutoscaling {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `SliceControllerConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SliceControllerConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `HostConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HostConfig {
+    /// ca property.
+    pub ca: Option<Vec<CertificateConfig>>,
+    /// capabilities property.
+    pub capabilities: Option<Vec<String>>,
+    /// client property.
+    pub client: Option<Vec<CertificateConfigPair>>,
+    /// dialTimeout property.
+    pub dial_timeout: Option<String>,
+    /// header property.
+    pub header: Option<Vec<RegistryHeader>>,
+    /// host property.
+    pub host: Option<String>,
+    /// overridePath property.
+    pub override_path: Option<bool>,
+}
+
+/// `NodeKubeletConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodeKubeletConfig {
+    /// allowedUnsafeSysctls property.
+    pub allowed_unsafe_sysctls: Option<Vec<String>>,
+    /// containerLogMaxFiles property.
+    pub container_log_max_files: Option<i64>,
+    /// containerLogMaxSize property.
+    pub container_log_max_size: Option<String>,
+    /// cpuCfsQuota property.
+    pub cpu_cfs_quota: Option<bool>,
+    /// cpuCfsQuotaPeriod property.
+    pub cpu_cfs_quota_period: Option<String>,
+    /// cpuManagerPolicy property.
+    pub cpu_manager_policy: Option<String>,
+    /// crashLoopBackOff property.
+    pub crash_loop_back_off: Option<CrashLoopBackOffConfig>,
+    /// evictionMaxPodGracePeriodSeconds property.
+    pub eviction_max_pod_grace_period_seconds: Option<i64>,
+    /// evictionMinimumReclaim property.
+    pub eviction_minimum_reclaim: Option<EvictionMinimumReclaim>,
+    /// evictionSoft property.
+    pub eviction_soft: Option<EvictionSignals>,
+    /// evictionSoftGracePeriod property.
+    pub eviction_soft_grace_period: Option<EvictionGracePeriod>,
+    /// imageGcHighThresholdPercent property.
+    pub image_gc_high_threshold_percent: Option<i64>,
+    /// imageGcLowThresholdPercent property.
+    pub image_gc_low_threshold_percent: Option<i64>,
+    /// imageMaximumGcAge property.
+    pub image_maximum_gc_age: Option<String>,
+    /// imageMinimumGcAge property.
+    pub image_minimum_gc_age: Option<String>,
+    /// insecureKubeletReadonlyPortEnabled property.
+    pub insecure_kubelet_readonly_port_enabled: Option<bool>,
+    /// maxParallelImagePulls property.
+    pub max_parallel_image_pulls: Option<i64>,
+    /// memoryManager property.
+    pub memory_manager: Option<MemoryManager>,
+    /// podPidsLimit property.
+    pub pod_pids_limit: Option<String>,
+    /// shutdownGracePeriodCriticalPodsSeconds property.
+    pub shutdown_grace_period_critical_pods_seconds: Option<i64>,
+    /// shutdownGracePeriodSeconds property.
+    pub shutdown_grace_period_seconds: Option<i64>,
+    /// singleProcessOomKill property.
+    pub single_process_oom_kill: Option<bool>,
+    /// topologyManager property.
+    pub topology_manager: Option<TopologyManager>,
+}
+
+/// `AnonymousAuthenticationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AnonymousAuthenticationConfig {
+    /// mode property.
+    pub mode: Option<String>,
+}
+
+/// `AdvancedMachineFeatures` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdvancedMachineFeatures {
+    /// enableNestedVirtualization property.
+    pub enable_nested_virtualization: Option<bool>,
+    /// performanceMonitoringUnit property.
+    pub performance_monitoring_unit: Option<String>,
+    /// threadsPerCore property.
+    pub threads_per_core: Option<String>,
+}
+
+/// `K8SBetaAPIConfig` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct K8SBetaAPIConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RBACBindingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RBACBindingConfig {
+    /// enableInsecureBindingSystemAuthenticated property.
+    pub enable_insecure_binding_system_authenticated: Option<bool>,
+    /// enableInsecureBindingSystemUnauthenticated property.
+    pub enable_insecure_binding_system_unauthenticated: Option<bool>,
+}
+
+/// `EncryptionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EncryptionConfig {
+    /// disabled property.
+    pub disabled: Option<bool>,
 }
 
 /// `LocalNvmeSsdBlockConfig` type.
@@ -2094,82 +1311,135 @@ pub struct LocalNvmeSsdBlockConfig {
     pub local_ssd_count: Option<i64>,
 }
 
-/// `GCPSecretManagerCertificateConfig` type.
+/// `NodeConfigDefaults` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GCPSecretManagerCertificateConfig {
-    /// secretUri property.
-    pub secret_uri: Option<String>,
+pub struct NodeConfigDefaults {
+    /// containerdConfig property.
+    pub containerd_config: Option<ContainerdConfig>,
+    /// gcfsConfig property.
+    pub gcfs_config: Option<GcfsConfig>,
+    /// loggingConfig property.
+    pub logging_config: Option<NodePoolLoggingConfig>,
+    /// nodeKubeletConfig property.
+    pub node_kubelet_config: Option<NodeKubeletConfig>,
 }
 
-/// `NodeAffinity` type.
+/// `SoleTenantConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeAffinity {
-    /// key property.
-    pub key: Option<String>,
-    /// operator property.
-    pub operator: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
+pub struct SoleTenantConfig {
+    /// minNodeCpus property.
+    pub min_node_cpus: Option<i64>,
+    /// nodeAffinities property.
+    pub node_affinities: Option<Vec<NodeAffinity>>,
 }
 
-/// `DefaultSnatStatus` type.
+/// `GkeAutoUpgradeConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DefaultSnatStatus {
-    /// disabled property.
-    pub disabled: Option<bool>,
+pub struct GkeAutoUpgradeConfig {
+    /// patchMode property.
+    pub patch_mode: Option<String>,
 }
 
-/// `DefaultComputeClassConfig` type.
+/// `PrivilegedAdmissionConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DefaultComputeClassConfig {
+pub struct PrivilegedAdmissionConfig {
+    /// allowlistPaths property.
+    pub allowlist_paths: Option<Vec<String>>,
+}
+
+/// `GcsFuseCsiDriverConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GcsFuseCsiDriverConfig {
     /// enabled property.
     pub enabled: Option<bool>,
 }
 
-/// `ResourceLimit` type.
+/// `NotificationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceLimit {
-    /// maximum property.
-    pub maximum: Option<String>,
-    /// minimum property.
-    pub minimum: Option<String>,
-    /// resourceType property.
-    pub resource_type: Option<String>,
+pub struct NotificationConfig {
+    /// pubsub property.
+    pub pubsub: Option<PubSub>,
 }
 
-/// `HttpLoadBalancing` type.
+/// `LustreCsiDriverConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpLoadBalancing {
-    /// disabled property.
-    pub disabled: Option<bool>,
+pub struct LustreCsiDriverConfig {
+    /// disableMultiNic property.
+    pub disable_multi_nic: Option<bool>,
+    /// enableLegacyLustrePort property.
+    pub enable_legacy_lustre_port: Option<bool>,
+    /// enabled property.
+    pub enabled: Option<bool>,
 }
 
-/// `ResourceUsageExportConfig` type.
+/// `HugepagesConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceUsageExportConfig {
-    /// bigqueryDestination property.
-    pub bigquery_destination: Option<BigQueryDestination>,
-    /// consumptionMeteringConfig property.
-    pub consumption_metering_config: Option<ConsumptionMeteringConfig>,
-    /// enableNetworkEgressMetering property.
-    pub enable_network_egress_metering: Option<bool>,
+pub struct HugepagesConfig {
+    /// hugepageSize1g property.
+    pub hugepage_size1g: Option<i64>,
+    /// hugepageSize2m property.
+    pub hugepage_size2m: Option<i64>,
 }
 
-/// `MasterAuth` type.
+/// `UpdateInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MasterAuth {
-    /// clientCertificate property.
-    pub client_certificate: Option<String>,
-    /// clientCertificateConfig property.
-    pub client_certificate_config: Option<ClientCertificateConfig>,
-    /// clientKey property.
-    pub client_key: Option<String>,
-    /// clusterCaCertificate property.
-    pub cluster_ca_certificate: Option<String>,
-    /// password property.
-    pub password: Option<String>,
-    /// username property.
-    pub username: Option<String>,
+pub struct UpdateInfo {
+    /// blueGreenInfo property.
+    pub blue_green_info: Option<BlueGreenInfo>,
+}
+
+/// `StandardRolloutPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StandardRolloutPolicy {
+    /// batchNodeCount property.
+    pub batch_node_count: Option<i64>,
+    /// batchPercentage property.
+    pub batch_percentage: Option<f64>,
+    /// batchSoakDuration property.
+    pub batch_soak_duration: Option<String>,
+}
+
+/// `PodCIDROverprovisionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PodCIDROverprovisionConfig {
+    /// disable property.
+    pub disable: Option<bool>,
+}
+
+/// `GPUSharingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GPUSharingConfig {
+    /// gpuSharingStrategy property.
+    pub gpu_sharing_strategy: Option<String>,
+    /// maxSharedClientsPerGpu property.
+    pub max_shared_clients_per_gpu: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `AutoscaledRolloutPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutoscaledRolloutPolicy {
+    /// waitForDrainDuration property.
+    pub wait_for_drain_duration: Option<String>,
+}
+
+/// `SyncRotationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SyncRotationConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// rotationInterval property.
+    pub rotation_interval: Option<String>,
 }
 
 /// `CostManagementConfig` type.
@@ -2179,22 +1449,810 @@ pub struct CostManagementConfig {
     pub enabled: Option<bool>,
 }
 
-/// `ManagedMachineLearningDiagnosticsConfig` type.
+/// `NodePoolLoggingConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedMachineLearningDiagnosticsConfig {
+pub struct NodePoolLoggingConfig {
+    /// variantConfig property.
+    pub variant_config: Option<LoggingVariantConfig>,
+}
+
+/// `MaintenancePolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MaintenancePolicy {
+    /// disruptionBudget property.
+    pub disruption_budget: Option<DisruptionBudget>,
+    /// resourceVersion property.
+    pub resource_version: Option<String>,
+    /// window property.
+    pub window: Option<MaintenanceWindow>,
+}
+
+/// `PrivateRegistryAccessConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrivateRegistryAccessConfig {
+    /// certificateAuthorityDomainConfig property.
+    pub certificate_authority_domain_config: Option<Vec<CertificateAuthorityDomainConfig>>,
     /// enabled property.
     pub enabled: Option<bool>,
 }
 
-/// `NodeTaint` type.
+/// `NodeKernelModuleLoading` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeTaint {
-    /// effect property.
-    pub effect: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct NodeKernelModuleLoading {
+    /// policy property.
+    pub policy: Option<String>,
+}
+
+/// `TaintConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TaintConfig {
+    /// architectureTaintBehavior property.
+    pub architecture_taint_behavior: Option<String>,
+}
+
+/// `MaintenanceWindow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MaintenanceWindow {
+    /// dailyMaintenanceWindow property.
+    pub daily_maintenance_window: Option<DailyMaintenanceWindow>,
+    /// maintenanceExclusions property.
+    pub maintenance_exclusions: Option<serde_json::Value>,
+    /// recurringWindow property.
+    pub recurring_window: Option<RecurringTimeWindow>,
+}
+
+/// `ScheduleUpgradeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ScheduleUpgradeConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `HorizontalPodAutoscaling` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HorizontalPodAutoscaling {
+    /// disabled property.
+    pub disabled: Option<bool>,
+}
+
+/// `TopologyManager` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TopologyManager {
+    /// policy property.
+    pub policy: Option<String>,
+    /// scope property.
+    pub scope: Option<String>,
+}
+
+/// `SwapConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SwapConfig {
+    /// bootDiskProfile property.
+    pub boot_disk_profile: Option<BootDiskProfile>,
+    /// dedicatedLocalSsdProfile property.
+    pub dedicated_local_ssd_profile: Option<DedicatedLocalSsdProfile>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// encryptionConfig property.
+    pub encryption_config: Option<EncryptionConfig>,
+    /// ephemeralLocalSsdProfile property.
+    pub ephemeral_local_ssd_profile: Option<EphemeralLocalSsdProfile>,
+}
+
+/// `KubernetesDashboard` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KubernetesDashboard {
+    /// disabled property.
+    pub disabled: Option<bool>,
+}
+
+/// `MonitoringComponentConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MonitoringComponentConfig {
+    /// enableComponents property.
+    pub enable_components: Option<Vec<String>>,
+}
+
+/// `ListClustersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListClustersResponse {
+    /// clusters property.
+    pub clusters: Option<Vec<Cluster>>,
+    /// missingZones property.
+    pub missing_zones: Option<Vec<String>>,
+}
+
+/// `IPEndpointsConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IPEndpointsConfig {
+    /// authorizedNetworksConfig property.
+    pub authorized_networks_config: Option<MasterAuthorizedNetworksConfig>,
+    /// enablePublicEndpoint property.
+    pub enable_public_endpoint: Option<bool>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// globalAccess property.
+    pub global_access: Option<bool>,
+    /// privateEndpoint property.
+    pub private_endpoint: Option<String>,
+    /// privateEndpointSubnetwork property.
+    pub private_endpoint_subnetwork: Option<String>,
+    /// publicEndpoint property.
+    pub public_endpoint: Option<String>,
+}
+
+/// `NetworkPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkPolicy {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// provider property.
+    pub provider: Option<String>,
+}
+
+/// `NetworkTags` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkTags {
+    /// tags property.
+    pub tags: Option<Vec<String>>,
+}
+
+/// `MeshCertificates` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MeshCertificates {
+    /// enableCertificates property.
+    pub enable_certificates: Option<bool>,
+}
+
+/// `UserManagedKeysConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UserManagedKeysConfig {
+    /// aggregationCa property.
+    pub aggregation_ca: Option<String>,
+    /// clusterCa property.
+    pub cluster_ca: Option<String>,
+    /// controlPlaneDiskEncryptionKey property.
+    pub control_plane_disk_encryption_key: Option<String>,
+    /// controlPlaneDiskEncryptionKeyVersions property.
+    pub control_plane_disk_encryption_key_versions: Option<Vec<String>>,
+    /// etcdApiCa property.
+    pub etcd_api_ca: Option<String>,
+    /// etcdPeerCa property.
+    pub etcd_peer_ca: Option<String>,
+    /// gkeopsEtcdBackupEncryptionKey property.
+    pub gkeops_etcd_backup_encryption_key: Option<String>,
+    /// serviceAccountSigningKeys property.
+    pub service_account_signing_keys: Option<Vec<String>>,
+    /// serviceAccountVerificationKeys property.
+    pub service_account_verification_keys: Option<Vec<String>>,
+}
+
+/// `AutoMonitoringConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutoMonitoringConfig {
+    /// scope property.
+    pub scope: Option<String>,
+}
+
+/// `DailyMaintenanceWindow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DailyMaintenanceWindow {
+    /// duration property.
+    pub duration: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `NodePoolDefaults` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodePoolDefaults {
+    /// nodeConfigDefaults property.
+    pub node_config_defaults: Option<NodeConfigDefaults>,
+}
+
+/// `PrivateClusterConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrivateClusterConfig {
+    /// enablePrivateEndpoint property.
+    pub enable_private_endpoint: Option<bool>,
+    /// enablePrivateNodes property.
+    pub enable_private_nodes: Option<bool>,
+    /// masterGlobalAccessConfig property.
+    pub master_global_access_config: Option<PrivateClusterMasterGlobalAccessConfig>,
+    /// masterIpv4CidrBlock property.
+    pub master_ipv4_cidr_block: Option<String>,
+    /// peeringName property.
+    pub peering_name: Option<String>,
+    /// privateEndpoint property.
+    pub private_endpoint: Option<String>,
+    /// privateEndpointSubnetwork property.
+    pub private_endpoint_subnetwork: Option<String>,
+    /// publicEndpoint property.
+    pub public_endpoint: Option<String>,
+}
+
+/// `StatusCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StatusCondition {
+    /// canonicalCode property.
+    pub canonical_code: Option<String>,
+    /// code property.
+    pub code: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `NodePool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodePool {
+    /// autopilotConfig property.
+    pub autopilot_config: Option<AutopilotConfig>,
+    /// autoscaling property.
+    pub autoscaling: Option<NodePoolAutoscaling>,
+    /// bestEffortProvisioning property.
+    pub best_effort_provisioning: Option<BestEffortProvisioning>,
+    /// conditions property.
+    pub conditions: Option<Vec<StatusCondition>>,
+    /// config property.
+    pub config: Option<NodeConfig>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// initialNodeCount property.
+    pub initial_node_count: Option<i64>,
+    /// instanceGroupUrls property.
+    pub instance_group_urls: Option<Vec<String>>,
+    /// locations property.
+    pub locations: Option<Vec<String>>,
+    /// management property.
+    pub management: Option<NodeManagement>,
+    /// maxPodsConstraint property.
+    pub max_pods_constraint: Option<MaxPodsConstraint>,
+    /// name property.
+    pub name: Option<String>,
+    /// networkConfig property.
+    pub network_config: Option<NodeNetworkConfig>,
+    /// nodeDrainConfig property.
+    pub node_drain_config: Option<NodeDrainConfig>,
+    /// placementPolicy property.
+    pub placement_policy: Option<PlacementPolicy>,
+    /// podIpv4CidrSize property.
+    pub pod_ipv4_cidr_size: Option<i64>,
+    /// queuedProvisioning property.
+    pub queued_provisioning: Option<QueuedProvisioning>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+    /// statusMessage property.
+    pub status_message: Option<String>,
+    /// updateInfo property.
+    pub update_info: Option<UpdateInfo>,
+    /// upgradeSettings property.
+    pub upgrade_settings: Option<UpgradeSettings>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `PrivateClusterMasterGlobalAccessConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrivateClusterMasterGlobalAccessConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `EphemeralLocalSsdProfile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EphemeralLocalSsdProfile {
+    /// swapSizeGib property.
+    pub swap_size_gib: Option<String>,
+    /// swapSizePercent property.
+    pub swap_size_percent: Option<i64>,
+}
+
+/// `ParallelstoreCsiDriverConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ParallelstoreCsiDriverConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `IPAllocationPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IPAllocationPolicy {
+    /// additionalIpRangesConfigs property.
+    pub additional_ip_ranges_configs: Option<Vec<AdditionalIPRangesConfig>>,
+    /// additionalPodRangesConfig property.
+    pub additional_pod_ranges_config: Option<AdditionalPodRangesConfig>,
+    /// autoIpamConfig property.
+    pub auto_ipam_config: Option<AutoIpamConfig>,
+    /// clusterIpv4Cidr property.
+    pub cluster_ipv4_cidr: Option<String>,
+    /// clusterIpv4CidrBlock property.
+    pub cluster_ipv4_cidr_block: Option<String>,
+    /// clusterSecondaryRangeName property.
+    pub cluster_secondary_range_name: Option<String>,
+    /// createSubnetwork property.
+    pub create_subnetwork: Option<bool>,
+    /// defaultPodIpv4RangeUtilization property.
+    pub default_pod_ipv4_range_utilization: Option<f64>,
+    /// ipv6AccessType property.
+    pub ipv6_access_type: Option<String>,
+    /// networkTierConfig property.
+    pub network_tier_config: Option<NetworkTierConfig>,
+    /// nodeIpv4Cidr property.
+    pub node_ipv4_cidr: Option<String>,
+    /// nodeIpv4CidrBlock property.
+    pub node_ipv4_cidr_block: Option<String>,
+    /// podCidrOverprovisionConfig property.
+    pub pod_cidr_overprovision_config: Option<PodCIDROverprovisionConfig>,
+    /// servicesIpv4Cidr property.
+    pub services_ipv4_cidr: Option<String>,
+    /// servicesIpv4CidrBlock property.
+    pub services_ipv4_cidr_block: Option<String>,
+    /// servicesIpv6CidrBlock property.
+    pub services_ipv6_cidr_block: Option<String>,
+    /// servicesSecondaryRangeName property.
+    pub services_secondary_range_name: Option<String>,
+    /// stackType property.
+    pub stack_type: Option<String>,
+    /// subnetIpv6CidrBlock property.
+    pub subnet_ipv6_cidr_block: Option<String>,
+    /// subnetworkName property.
+    pub subnetwork_name: Option<String>,
+    /// tpuIpv4CidrBlock property.
+    pub tpu_ipv4_cidr_block: Option<String>,
+    /// useIpAliases property.
+    pub use_ip_aliases: Option<bool>,
+    /// useRoutes property.
+    pub use_routes: Option<bool>,
+}
+
+/// `NodePoolAutoConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodePoolAutoConfig {
+    /// linuxNodeConfig property.
+    pub linux_node_config: Option<LinuxNodeConfig>,
+    /// networkTags property.
+    pub network_tags: Option<NetworkTags>,
+    /// nodeKubeletConfig property.
+    pub node_kubelet_config: Option<NodeKubeletConfig>,
+    /// resourceManagerTags property.
+    pub resource_manager_tags: Option<ResourceManagerTags>,
+}
+
+/// `WritableCgroups` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WritableCgroups {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `RayOperatorConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RayOperatorConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// rayClusterLoggingConfig property.
+    pub ray_cluster_logging_config: Option<RayClusterLoggingConfig>,
+    /// rayClusterMonitoringConfig property.
+    pub ray_cluster_monitoring_config: Option<RayClusterMonitoringConfig>,
+}
+
+/// `ConfidentialNodes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfidentialNodes {
+    /// confidentialInstanceType property.
+    pub confidential_instance_type: Option<String>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `NodeDrainConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodeDrainConfig {
+    /// respectPdbDuringNodePoolDeletion property.
+    pub respect_pdb_during_node_pool_deletion: Option<bool>,
+}
+
+/// `ConsumptionMeteringConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConsumptionMeteringConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `MonitoringConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MonitoringConfig {
+    /// advancedDatapathObservabilityConfig property.
+    pub advanced_datapath_observability_config: Option<AdvancedDatapathObservabilityConfig>,
+    /// componentConfig property.
+    pub component_config: Option<MonitoringComponentConfig>,
+    /// managedPrometheusConfig property.
+    pub managed_prometheus_config: Option<ManagedPrometheusConfig>,
+}
+
+/// `TimeWindow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeWindow {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// maintenanceExclusionOptions property.
+    pub maintenance_exclusion_options: Option<MaintenanceExclusionOptions>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `ManagedPrometheusConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedPrometheusConfig {
+    /// autoMonitoringConfig property.
+    pub auto_monitoring_config: Option<AutoMonitoringConfig>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `ContainerdConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContainerdConfig {
+    /// privateRegistryAccessConfig property.
+    pub private_registry_access_config: Option<PrivateRegistryAccessConfig>,
+    /// registryHosts property.
+    pub registry_hosts: Option<Vec<RegistryHostConfig>>,
+    /// writableCgroups property.
+    pub writable_cgroups: Option<WritableCgroups>,
+}
+
+/// `ParentProductConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ParentProductConfig {
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// productName property.
+    pub product_name: Option<String>,
+}
+
+/// `NodeNetworkConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodeNetworkConfig {
+    /// acceleratorNetworkProfile property.
+    pub accelerator_network_profile: Option<String>,
+    /// additionalNodeNetworkConfigs property.
+    pub additional_node_network_configs: Option<Vec<AdditionalNodeNetworkConfig>>,
+    /// additionalPodNetworkConfigs property.
+    pub additional_pod_network_configs: Option<Vec<AdditionalPodNetworkConfig>>,
+    /// createPodRange property.
+    pub create_pod_range: Option<bool>,
+    /// enablePrivateNodes property.
+    pub enable_private_nodes: Option<bool>,
+    /// networkPerformanceConfig property.
+    pub network_performance_config: Option<NetworkPerformanceConfig>,
+    /// networkTierConfig property.
+    pub network_tier_config: Option<NetworkTierConfig>,
+    /// podCidrOverprovisionConfig property.
+    pub pod_cidr_overprovision_config: Option<PodCIDROverprovisionConfig>,
+    /// podIpv4CidrBlock property.
+    pub pod_ipv4_cidr_block: Option<String>,
+    /// podIpv4RangeUtilization property.
+    pub pod_ipv4_range_utilization: Option<f64>,
+    /// podRange property.
+    pub pod_range: Option<String>,
+    /// subnetwork property.
+    pub subnetwork: Option<String>,
+}
+
+/// `RegistryHostConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegistryHostConfig {
+    /// hosts property.
+    pub hosts: Option<Vec<HostConfig>>,
+    /// server property.
+    pub server: Option<String>,
+}
+
+/// `Filter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Filter {
+    /// eventType property.
+    pub event_type: Option<Vec<String>>,
+}
+
+/// `GCPSecretManagerCertificateConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GCPSecretManagerCertificateConfig {
+    /// secretUri property.
+    pub secret_uri: Option<String>,
+}
+
+/// `RayClusterLoggingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RayClusterLoggingConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `NetworkPerformanceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkPerformanceConfig {
+    /// totalEgressBandwidthTier property.
+    pub total_egress_bandwidth_tier: Option<String>,
+}
+
+/// `Metric` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Metric {
+    /// doubleValue property.
+    pub double_value: Option<f64>,
+    /// intValue property.
+    pub int_value: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// stringValue property.
+    pub string_value: Option<String>,
+}
+
+/// `ControlPlaneEndpointsConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ControlPlaneEndpointsConfig {
+    /// dnsEndpointConfig property.
+    pub dns_endpoint_config: Option<DNSEndpointConfig>,
+    /// ipEndpointsConfig property.
+    pub ip_endpoints_config: Option<IPEndpointsConfig>,
+}
+
+/// `SecurityPostureConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPostureConfig {
+    /// mode property.
+    pub mode: Option<String>,
+    /// vulnerabilityMode property.
+    pub vulnerability_mode: Option<String>,
+}
+
+/// `RotationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RotationConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// rotationInterval property.
+    pub rotation_interval: Option<String>,
+}
+
+/// `LegacyAbac` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LegacyAbac {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `GcpFilestoreCsiDriverConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GcpFilestoreCsiDriverConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `CloudRunConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudRunConfig {
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// loadBalancerType property.
+    pub load_balancer_type: Option<String>,
+}
+
+/// `NodePoolAutoscaling` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodePoolAutoscaling {
+    /// autoprovisioned property.
+    pub autoprovisioned: Option<bool>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// locationPolicy property.
+    pub location_policy: Option<String>,
+    /// maxNodeCount property.
+    pub max_node_count: Option<i64>,
+    /// minNodeCount property.
+    pub min_node_count: Option<i64>,
+    /// totalMaxNodeCount property.
+    pub total_max_node_count: Option<i64>,
+    /// totalMinNodeCount property.
+    pub total_min_node_count: Option<i64>,
+}
+
+/// `RecurringTimeWindow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RecurringTimeWindow {
+    /// recurrence property.
+    pub recurrence: Option<String>,
+    /// window property.
+    pub window: Option<TimeWindow>,
+}
+
+/// `WindowsNodeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WindowsNodeConfig {
+    /// osVersion property.
+    pub os_version: Option<String>,
+}
+
+/// `AutopilotCompatibilityIssue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutopilotCompatibilityIssue {
+    /// constraintType property.
+    pub constraint_type: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// documentationUrl property.
+    pub documentation_url: Option<String>,
+    /// incompatibilityType property.
+    pub incompatibility_type: Option<String>,
+    /// lastObservation property.
+    pub last_observation: Option<String>,
+    /// subjects property.
+    pub subjects: Option<Vec<String>>,
+}
+
+/// `RayClusterMonitoringConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RayClusterMonitoringConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `SecretManagerConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecretManagerConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// rotationConfig property.
+    pub rotation_config: Option<RotationConfig>,
+}
+
+/// `AuthenticatorGroupsConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthenticatorGroupsConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// securityGroup property.
+    pub security_group: Option<String>,
+}
+
+/// `OperationError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OperationError {
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// keyName property.
+    pub key_name: Option<String>,
+    /// timestamp property.
+    pub timestamp: Option<String>,
+}
+
+/// `DisruptionBudget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DisruptionBudget {
+    /// lastDisruptionTime property.
+    pub last_disruption_time: Option<String>,
+    /// lastMinorVersionDisruptionTime property.
+    pub last_minor_version_disruption_time: Option<String>,
+    /// minorVersionDisruptionInterval property.
+    pub minor_version_disruption_interval: Option<String>,
+    /// patchVersionDisruptionInterval property.
+    pub patch_version_disruption_interval: Option<String>,
+}
+
+/// `Autopilot` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Autopilot {
+    /// clusterPolicyConfig property.
+    pub cluster_policy_config: Option<ClusterPolicyConfig>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// privilegedAdmissionConfig property.
+    pub privileged_admission_config: Option<PrivilegedAdmissionConfig>,
+    /// workloadPolicyConfig property.
+    pub workload_policy_config: Option<WorkloadPolicyConfig>,
+}
+
+/// `QueuedProvisioning` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueuedProvisioning {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `CertificateConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CertificateConfig {
+    /// gcpSecretManagerSecretUri property.
+    pub gcp_secret_manager_secret_uri: Option<String>,
+}
+
+/// `ManagedOpenTelemetryConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedOpenTelemetryConfig {
+    /// scope property.
+    pub scope: Option<String>,
+}
+
+/// `SecondaryBootDisk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryBootDisk {
+    /// diskImage property.
+    pub disk_image: Option<String>,
+    /// mode property.
+    pub mode: Option<String>,
+}
+
+/// `GPUDirectConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GPUDirectConfig {
+    /// gpuDirectStrategy property.
+    pub gpu_direct_strategy: Option<String>,
+}
+
+/// `GatewayAPIConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GatewayAPIConfig {
+    /// channel property.
+    pub channel: Option<String>,
+}
+
+/// `NodeManagement` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodeManagement {
+    /// autoRepair property.
+    pub auto_repair: Option<bool>,
+    /// autoUpgrade property.
+    pub auto_upgrade: Option<bool>,
+    /// upgradeOptions property.
+    pub upgrade_options: Option<AutoUpgradeOptions>,
+}
+
+/// `SecretSyncConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecretSyncConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// rotationConfig property.
+    pub rotation_config: Option<SyncRotationConfig>,
+}
+
+/// `PodSnapshotConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PodSnapshotConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `DNSEndpointConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DNSEndpointConfig {
+    /// allowExternalTraffic property.
+    pub allow_external_traffic: Option<bool>,
+    /// enableK8sCertsViaDns property.
+    pub enable_k8s_certs_via_dns: Option<bool>,
+    /// enableK8sTokensViaDns property.
+    pub enable_k8s_tokens_via_dns: Option<bool>,
+    /// endpoint property.
+    pub endpoint: Option<String>,
+}
+
+/// `AutoUpgradeOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutoUpgradeOptions {
+    /// autoUpgradeStartTime property.
+    pub auto_upgrade_start_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+}
+
+/// `StatefulHAConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StatefulHAConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
 }
 
 /// `NetworkConfig` type.
@@ -2236,87 +2294,30 @@ pub struct NetworkConfig {
     pub subnetwork: Option<String>,
 }
 
-/// `NetworkPolicy` type.
+/// `BootDiskProfile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkPolicy {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// provider property.
-    pub provider: Option<String>,
+pub struct BootDiskProfile {
+    /// swapSizeGib property.
+    pub swap_size_gib: Option<String>,
+    /// swapSizePercent property.
+    pub swap_size_percent: Option<i64>,
 }
 
-/// `AcceleratorConfig` type.
+/// `UpgradeDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcceleratorConfig {
-    /// acceleratorCount property.
-    pub accelerator_count: Option<String>,
-    /// acceleratorType property.
-    pub accelerator_type: Option<String>,
-    /// gpuDriverInstallationConfig property.
-    pub gpu_driver_installation_config: Option<GPUDriverInstallationConfig>,
-    /// gpuPartitionSize property.
-    pub gpu_partition_size: Option<String>,
-    /// gpuSharingConfig property.
-    pub gpu_sharing_config: Option<GPUSharingConfig>,
-}
-
-/// `GkeAutoUpgradeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GkeAutoUpgradeConfig {
-    /// patchMode property.
-    pub patch_mode: Option<String>,
-}
-
-/// `MonitoringComponentConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MonitoringComponentConfig {
-    /// enableComponents property.
-    pub enable_components: Option<Vec<String>>,
-}
-
-/// `MaintenanceWindow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaintenanceWindow {
-    /// dailyMaintenanceWindow property.
-    pub daily_maintenance_window: Option<DailyMaintenanceWindow>,
-    /// maintenanceExclusions property.
-    pub maintenance_exclusions: Option<serde_json::Value>,
-    /// recurringWindow property.
-    pub recurring_window: Option<RecurringTimeWindow>,
-}
-
-/// `KubernetesDashboard` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KubernetesDashboard {
-    /// disabled property.
-    pub disabled: Option<bool>,
-}
-
-/// `HorizontalPodAutoscaling` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HorizontalPodAutoscaling {
-    /// disabled property.
-    pub disabled: Option<bool>,
-}
-
-/// `NodePoolAutoConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodePoolAutoConfig {
-    /// linuxNodeConfig property.
-    pub linux_node_config: Option<LinuxNodeConfig>,
-    /// networkTags property.
-    pub network_tags: Option<NetworkTags>,
-    /// nodeKubeletConfig property.
-    pub node_kubelet_config: Option<NodeKubeletConfig>,
-    /// resourceManagerTags property.
-    pub resource_manager_tags: Option<ResourceManagerTags>,
-}
-
-/// `LoggingVariantConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoggingVariantConfig {
-    /// variant property.
-    pub variant: Option<String>,
+pub struct UpgradeDetails {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// initialVersion property.
+    pub initial_version: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// startType property.
+    pub start_type: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// targetVersion property.
+    pub target_version: Option<String>,
 }
 
 // =============================================================================

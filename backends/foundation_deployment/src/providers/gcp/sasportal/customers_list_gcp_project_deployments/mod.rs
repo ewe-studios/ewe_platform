@@ -12,17 +12,31 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `SasPortalDeployment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SasPortalDeployment {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// frns property.
+    pub frns: Option<Vec<String>>,
+    /// name property.
+    pub name: Option<String>,
+    /// sasUserIds property.
+    pub sas_user_ids: Option<Vec<String>>,
+}
 
 /// `SasPortalListGcpProjectDeploymentsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -38,19 +52,6 @@ pub struct SasPortalGcpProjectDeployment {
     pub deployment: Option<SasPortalDeployment>,
     /// hasEnabledAnalytics property.
     pub has_enabled_analytics: Option<bool>,
-}
-
-/// `SasPortalDeployment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalDeployment {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// frns property.
-    pub frns: Option<Vec<String>>,
-    /// name property.
-    pub name: Option<String>,
-    /// sasUserIds property.
-    pub sas_user_ids: Option<Vec<String>>,
 }
 
 // =============================================================================

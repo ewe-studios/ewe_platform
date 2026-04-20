@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,20 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListTopicResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListTopicResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// topic property.
-    pub topic: Option<Vec<Topic>>,
-}
 
 /// `Topic` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -47,6 +39,15 @@ pub struct Topic {
     pub topic_id: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `ListTopicResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListTopicResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// topic property.
+    pub topic: Option<Vec<Topic>>,
 }
 
 // =============================================================================

@@ -12,34 +12,59 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GooglePrivacyDlpV2SummaryResult` type.
+/// `GooglePrivacyDlpV2RecordCondition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2SummaryResult {
-    /// code property.
-    pub code: Option<String>,
-    /// count property.
-    pub count: Option<String>,
-    /// details property.
-    pub details: Option<String>,
+pub struct GooglePrivacyDlpV2RecordCondition {
+    /// expressions property.
+    pub expressions: Option<GooglePrivacyDlpV2Expressions>,
 }
 
-/// `GooglePrivacyDlpV2UnwrappedCryptoKey` type.
+/// `GooglePrivacyDlpV2Table` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2UnwrappedCryptoKey {
-    /// key property.
-    pub key: Option<String>,
+pub struct GooglePrivacyDlpV2Table {
+    /// headers property.
+    pub headers: Option<Vec<GooglePrivacyDlpV2FieldId>>,
+    /// rows property.
+    pub rows: Option<Vec<GooglePrivacyDlpV2Row>>,
+}
+
+/// `GooglePrivacyDlpV2CharsToIgnore` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2CharsToIgnore {
+    /// charactersToSkip property.
+    pub characters_to_skip: Option<String>,
+    /// commonCharactersToIgnore property.
+    pub common_characters_to_ignore: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2CryptoReplaceFfxFpeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2CryptoReplaceFfxFpeConfig {
+    /// commonAlphabet property.
+    pub common_alphabet: Option<String>,
+    /// context property.
+    pub context: Option<GooglePrivacyDlpV2FieldId>,
+    /// cryptoKey property.
+    pub crypto_key: Option<GooglePrivacyDlpV2CryptoKey>,
+    /// customAlphabet property.
+    pub custom_alphabet: Option<String>,
+    /// radix property.
+    pub radix: Option<i64>,
+    /// surrogateInfoType property.
+    pub surrogate_info_type: Option<GooglePrivacyDlpV2InfoType>,
 }
 
 /// `GooglePrivacyDlpV2FieldTransformation` type.
@@ -55,20 +80,21 @@ pub struct GooglePrivacyDlpV2FieldTransformation {
     pub primitive_transformation: Option<GooglePrivacyDlpV2PrimitiveTransformation>,
 }
 
-/// `GooglePrivacyDlpV2WordList` type.
+/// `GooglePrivacyDlpV2RedactConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2WordList {
-    /// words property.
-    pub words: Option<Vec<String>>,
-}
+pub struct GooglePrivacyDlpV2RedactConfig {}
 
-/// `GooglePrivacyDlpV2ByteContentItem` type.
+/// `GoogleTypeTimeOfDay` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ByteContentItem {
-    /// data property.
-    pub data: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct GoogleTypeTimeOfDay {
+    /// hours property.
+    pub hours: Option<i64>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<i64>,
 }
 
 /// `GooglePrivacyDlpV2TransientCryptoKey` type.
@@ -78,75 +104,44 @@ pub struct GooglePrivacyDlpV2TransientCryptoKey {
     pub name: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2Bucket` type.
+/// `GooglePrivacyDlpV2WordList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Bucket {
-    /// max property.
-    pub max: Option<GooglePrivacyDlpV2Value>,
-    /// min property.
-    pub min: Option<GooglePrivacyDlpV2Value>,
-    /// replacementValue property.
-    pub replacement_value: Option<GooglePrivacyDlpV2Value>,
+pub struct GooglePrivacyDlpV2WordList {
+    /// words property.
+    pub words: Option<Vec<String>>,
 }
 
-/// `GooglePrivacyDlpV2PrimitiveTransformation` type.
+/// `GooglePrivacyDlpV2UnwrappedCryptoKey` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2PrimitiveTransformation {
-    /// bucketingConfig property.
-    pub bucketing_config: Option<GooglePrivacyDlpV2BucketingConfig>,
-    /// characterMaskConfig property.
-    pub character_mask_config: Option<GooglePrivacyDlpV2CharacterMaskConfig>,
-    /// cryptoDeterministicConfig property.
-    pub crypto_deterministic_config: Option<GooglePrivacyDlpV2CryptoDeterministicConfig>,
-    /// cryptoHashConfig property.
-    pub crypto_hash_config: Option<GooglePrivacyDlpV2CryptoHashConfig>,
-    /// cryptoReplaceFfxFpeConfig property.
-    pub crypto_replace_ffx_fpe_config: Option<GooglePrivacyDlpV2CryptoReplaceFfxFpeConfig>,
-    /// dateShiftConfig property.
-    pub date_shift_config: Option<GooglePrivacyDlpV2DateShiftConfig>,
-    /// fixedSizeBucketingConfig property.
-    pub fixed_size_bucketing_config: Option<GooglePrivacyDlpV2FixedSizeBucketingConfig>,
-    /// redactConfig property.
-    pub redact_config: Option<GooglePrivacyDlpV2RedactConfig>,
-    /// replaceConfig property.
-    pub replace_config: Option<GooglePrivacyDlpV2ReplaceValueConfig>,
-    /// replaceDictionaryConfig property.
-    pub replace_dictionary_config: Option<GooglePrivacyDlpV2ReplaceDictionaryConfig>,
-    /// replaceWithInfoTypeConfig property.
-    pub replace_with_info_type_config: Option<GooglePrivacyDlpV2ReplaceWithInfoTypeConfig>,
-    /// timePartConfig property.
-    pub time_part_config: Option<GooglePrivacyDlpV2TimePartConfig>,
+pub struct GooglePrivacyDlpV2UnwrappedCryptoKey {
+    /// key property.
+    pub key: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2TransformationSummary` type.
+/// `GooglePrivacyDlpV2FieldId` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2TransformationSummary {
-    /// field property.
-    pub field: Option<GooglePrivacyDlpV2FieldId>,
-    /// fieldTransformations property.
-    pub field_transformations: Option<Vec<GooglePrivacyDlpV2FieldTransformation>>,
-    /// infoType property.
-    pub info_type: Option<GooglePrivacyDlpV2InfoType>,
-    /// recordSuppress property.
-    pub record_suppress: Option<GooglePrivacyDlpV2RecordSuppression>,
-    /// results property.
-    pub results: Option<Vec<GooglePrivacyDlpV2SummaryResult>>,
-    /// transformation property.
-    pub transformation: Option<GooglePrivacyDlpV2PrimitiveTransformation>,
-    /// transformedBytes property.
-    pub transformed_bytes: Option<String>,
+pub struct GooglePrivacyDlpV2FieldId {
+    /// name property.
+    pub name: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2TimePartConfig` type.
+/// `GooglePrivacyDlpV2InfoTypeTransformations` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2TimePartConfig {
-    /// partToExtract property.
-    pub part_to_extract: Option<String>,
+pub struct GooglePrivacyDlpV2InfoTypeTransformations {
+    /// transformations property.
+    pub transformations: Option<Vec<GooglePrivacyDlpV2InfoTypeTransformation>>,
 }
 
-/// `GooglePrivacyDlpV2ReplaceWithInfoTypeConfig` type.
+/// `GooglePrivacyDlpV2CryptoDeterministicConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ReplaceWithInfoTypeConfig {}
+pub struct GooglePrivacyDlpV2CryptoDeterministicConfig {
+    /// context property.
+    pub context: Option<GooglePrivacyDlpV2FieldId>,
+    /// cryptoKey property.
+    pub crypto_key: Option<GooglePrivacyDlpV2CryptoKey>,
+    /// surrogateInfoType property.
+    pub surrogate_info_type: Option<GooglePrivacyDlpV2InfoType>,
+}
 
 /// `GooglePrivacyDlpV2Value` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -178,13 +173,77 @@ pub struct GooglePrivacyDlpV2DeidentifyContentResponse {
     pub overview: Option<GooglePrivacyDlpV2TransformationOverview>,
 }
 
-/// `GooglePrivacyDlpV2CharsToIgnore` type.
+/// `GooglePrivacyDlpV2TransformationSummary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2CharsToIgnore {
-    /// charactersToSkip property.
-    pub characters_to_skip: Option<String>,
-    /// commonCharactersToIgnore property.
-    pub common_characters_to_ignore: Option<String>,
+pub struct GooglePrivacyDlpV2TransformationSummary {
+    /// field property.
+    pub field: Option<GooglePrivacyDlpV2FieldId>,
+    /// fieldTransformations property.
+    pub field_transformations: Option<Vec<GooglePrivacyDlpV2FieldTransformation>>,
+    /// infoType property.
+    pub info_type: Option<GooglePrivacyDlpV2InfoType>,
+    /// recordSuppress property.
+    pub record_suppress: Option<GooglePrivacyDlpV2RecordSuppression>,
+    /// results property.
+    pub results: Option<Vec<GooglePrivacyDlpV2SummaryResult>>,
+    /// transformation property.
+    pub transformation: Option<GooglePrivacyDlpV2PrimitiveTransformation>,
+    /// transformedBytes property.
+    pub transformed_bytes: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2ReplaceValueConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2ReplaceValueConfig {
+    /// newValue property.
+    pub new_value: Option<GooglePrivacyDlpV2Value>,
+}
+
+/// `GooglePrivacyDlpV2CryptoKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2CryptoKey {
+    /// kmsWrapped property.
+    pub kms_wrapped: Option<GooglePrivacyDlpV2KmsWrappedCryptoKey>,
+    /// transient property.
+    pub transient: Option<GooglePrivacyDlpV2TransientCryptoKey>,
+    /// unwrapped property.
+    pub unwrapped: Option<GooglePrivacyDlpV2UnwrappedCryptoKey>,
+}
+
+/// `GooglePrivacyDlpV2KeyValueMetadataProperty` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2KeyValueMetadataProperty {
+    /// key property.
+    pub key: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2Row` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Row {
+    /// values property.
+    pub values: Option<Vec<GooglePrivacyDlpV2Value>>,
+}
+
+/// `GooglePrivacyDlpV2Bucket` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Bucket {
+    /// max property.
+    pub max: Option<GooglePrivacyDlpV2Value>,
+    /// min property.
+    pub min: Option<GooglePrivacyDlpV2Value>,
+    /// replacementValue property.
+    pub replacement_value: Option<GooglePrivacyDlpV2Value>,
+}
+
+/// `GooglePrivacyDlpV2ByteContentItem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2ByteContentItem {
+    /// data property.
+    pub data: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `GooglePrivacyDlpV2TransformationOverview` type.
@@ -196,133 +255,11 @@ pub struct GooglePrivacyDlpV2TransformationOverview {
     pub transformed_bytes: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2CharacterMaskConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2CharacterMaskConfig {
-    /// charactersToIgnore property.
-    pub characters_to_ignore: Option<Vec<GooglePrivacyDlpV2CharsToIgnore>>,
-    /// maskingCharacter property.
-    pub masking_character: Option<String>,
-    /// numberToMask property.
-    pub number_to_mask: Option<i64>,
-    /// reverseOrder property.
-    pub reverse_order: Option<bool>,
-}
-
-/// `GooglePrivacyDlpV2Conditions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Conditions {
-    /// conditions property.
-    pub conditions: Option<Vec<GooglePrivacyDlpV2Condition>>,
-}
-
-/// `GooglePrivacyDlpV2Row` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Row {
-    /// values property.
-    pub values: Option<Vec<GooglePrivacyDlpV2Value>>,
-}
-
-/// `GooglePrivacyDlpV2CryptoReplaceFfxFpeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2CryptoReplaceFfxFpeConfig {
-    /// commonAlphabet property.
-    pub common_alphabet: Option<String>,
-    /// context property.
-    pub context: Option<GooglePrivacyDlpV2FieldId>,
-    /// cryptoKey property.
-    pub crypto_key: Option<GooglePrivacyDlpV2CryptoKey>,
-    /// customAlphabet property.
-    pub custom_alphabet: Option<String>,
-    /// radix property.
-    pub radix: Option<i64>,
-    /// surrogateInfoType property.
-    pub surrogate_info_type: Option<GooglePrivacyDlpV2InfoType>,
-}
-
-/// `GooglePrivacyDlpV2Expressions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Expressions {
-    /// conditions property.
-    pub conditions: Option<GooglePrivacyDlpV2Conditions>,
-    /// logicalOperator property.
-    pub logical_operator: Option<String>,
-}
-
 /// `GooglePrivacyDlpV2RecordSuppression` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2RecordSuppression {
     /// condition property.
     pub condition: Option<GooglePrivacyDlpV2RecordCondition>,
-}
-
-/// `GoogleTypeDate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeDate {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `GooglePrivacyDlpV2InfoType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2InfoType {
-    /// name property.
-    pub name: Option<String>,
-    /// sensitivityScore property.
-    pub sensitivity_score: Option<GooglePrivacyDlpV2SensitivityScore>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2SensitivityScore` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2SensitivityScore {
-    /// score property.
-    pub score: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2KmsWrappedCryptoKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2KmsWrappedCryptoKey {
-    /// cryptoKeyName property.
-    pub crypto_key_name: Option<String>,
-    /// wrappedKey property.
-    pub wrapped_key: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2FixedSizeBucketingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2FixedSizeBucketingConfig {
-    /// bucketSize property.
-    pub bucket_size: Option<f64>,
-    /// lowerBound property.
-    pub lower_bound: Option<GooglePrivacyDlpV2Value>,
-    /// upperBound property.
-    pub upper_bound: Option<GooglePrivacyDlpV2Value>,
-}
-
-/// `GooglePrivacyDlpV2CryptoHashConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2CryptoHashConfig {
-    /// cryptoKey property.
-    pub crypto_key: Option<GooglePrivacyDlpV2CryptoKey>,
-}
-
-/// `GoogleTypeTimeOfDay` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeTimeOfDay {
-    /// hours property.
-    pub hours: Option<i64>,
-    /// minutes property.
-    pub minutes: Option<i64>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<i64>,
 }
 
 /// `GooglePrivacyDlpV2ContentItem` type.
@@ -338,83 +275,51 @@ pub struct GooglePrivacyDlpV2ContentItem {
     pub value: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2DateShiftConfig` type.
+/// `GooglePrivacyDlpV2SummaryResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DateShiftConfig {
-    /// context property.
-    pub context: Option<GooglePrivacyDlpV2FieldId>,
-    /// cryptoKey property.
-    pub crypto_key: Option<GooglePrivacyDlpV2CryptoKey>,
-    /// lowerBoundDays property.
-    pub lower_bound_days: Option<i64>,
-    /// upperBoundDays property.
-    pub upper_bound_days: Option<i64>,
+pub struct GooglePrivacyDlpV2SummaryResult {
+    /// code property.
+    pub code: Option<String>,
+    /// count property.
+    pub count: Option<String>,
+    /// details property.
+    pub details: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2ReplaceValueConfig` type.
+/// `GooglePrivacyDlpV2InfoType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ReplaceValueConfig {
-    /// newValue property.
-    pub new_value: Option<GooglePrivacyDlpV2Value>,
-}
-
-/// `GooglePrivacyDlpV2BucketingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2BucketingConfig {
-    /// buckets property.
-    pub buckets: Option<Vec<GooglePrivacyDlpV2Bucket>>,
-}
-
-/// `GooglePrivacyDlpV2CryptoDeterministicConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2CryptoDeterministicConfig {
-    /// context property.
-    pub context: Option<GooglePrivacyDlpV2FieldId>,
-    /// cryptoKey property.
-    pub crypto_key: Option<GooglePrivacyDlpV2CryptoKey>,
-    /// surrogateInfoType property.
-    pub surrogate_info_type: Option<GooglePrivacyDlpV2InfoType>,
-}
-
-/// `GooglePrivacyDlpV2FieldId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2FieldId {
+pub struct GooglePrivacyDlpV2InfoType {
     /// name property.
     pub name: Option<String>,
+    /// sensitivityScore property.
+    pub sensitivity_score: Option<GooglePrivacyDlpV2SensitivityScore>,
+    /// version property.
+    pub version: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2InfoTypeTransformation` type.
+/// `GooglePrivacyDlpV2CryptoHashConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2InfoTypeTransformation {
-    /// infoTypes property.
-    pub info_types: Option<Vec<GooglePrivacyDlpV2InfoType>>,
-    /// primitiveTransformation property.
-    pub primitive_transformation: Option<GooglePrivacyDlpV2PrimitiveTransformation>,
+pub struct GooglePrivacyDlpV2CryptoHashConfig {
+    /// cryptoKey property.
+    pub crypto_key: Option<GooglePrivacyDlpV2CryptoKey>,
 }
 
-/// `GooglePrivacyDlpV2RecordCondition` type.
+/// `GooglePrivacyDlpV2KmsWrappedCryptoKey` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2RecordCondition {
-    /// expressions property.
-    pub expressions: Option<GooglePrivacyDlpV2Expressions>,
+pub struct GooglePrivacyDlpV2KmsWrappedCryptoKey {
+    /// cryptoKeyName property.
+    pub crypto_key_name: Option<String>,
+    /// wrappedKey property.
+    pub wrapped_key: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2InfoTypeTransformations` type.
+/// `GooglePrivacyDlpV2Expressions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2InfoTypeTransformations {
-    /// transformations property.
-    pub transformations: Option<Vec<GooglePrivacyDlpV2InfoTypeTransformation>>,
-}
-
-/// `GooglePrivacyDlpV2RedactConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2RedactConfig {}
-
-/// `GooglePrivacyDlpV2ContentMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ContentMetadata {
-    /// properties property.
-    pub properties: Option<Vec<GooglePrivacyDlpV2KeyValueMetadataProperty>>,
+pub struct GooglePrivacyDlpV2Expressions {
+    /// conditions property.
+    pub conditions: Option<GooglePrivacyDlpV2Conditions>,
+    /// logicalOperator property.
+    pub logical_operator: Option<String>,
 }
 
 /// `GooglePrivacyDlpV2Condition` type.
@@ -428,22 +333,67 @@ pub struct GooglePrivacyDlpV2Condition {
     pub value: Option<GooglePrivacyDlpV2Value>,
 }
 
-/// `GooglePrivacyDlpV2Table` type.
+/// `GooglePrivacyDlpV2InfoTypeTransformation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Table {
-    /// headers property.
-    pub headers: Option<Vec<GooglePrivacyDlpV2FieldId>>,
-    /// rows property.
-    pub rows: Option<Vec<GooglePrivacyDlpV2Row>>,
+pub struct GooglePrivacyDlpV2InfoTypeTransformation {
+    /// infoTypes property.
+    pub info_types: Option<Vec<GooglePrivacyDlpV2InfoType>>,
+    /// primitiveTransformation property.
+    pub primitive_transformation: Option<GooglePrivacyDlpV2PrimitiveTransformation>,
 }
 
-/// `GooglePrivacyDlpV2KeyValueMetadataProperty` type.
+/// `GooglePrivacyDlpV2PrimitiveTransformation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2KeyValueMetadataProperty {
-    /// key property.
-    pub key: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct GooglePrivacyDlpV2PrimitiveTransformation {
+    /// bucketingConfig property.
+    pub bucketing_config: Option<GooglePrivacyDlpV2BucketingConfig>,
+    /// characterMaskConfig property.
+    pub character_mask_config: Option<GooglePrivacyDlpV2CharacterMaskConfig>,
+    /// cryptoDeterministicConfig property.
+    pub crypto_deterministic_config: Option<GooglePrivacyDlpV2CryptoDeterministicConfig>,
+    /// cryptoHashConfig property.
+    pub crypto_hash_config: Option<GooglePrivacyDlpV2CryptoHashConfig>,
+    /// cryptoReplaceFfxFpeConfig property.
+    pub crypto_replace_ffx_fpe_config: Option<GooglePrivacyDlpV2CryptoReplaceFfxFpeConfig>,
+    /// dateShiftConfig property.
+    pub date_shift_config: Option<GooglePrivacyDlpV2DateShiftConfig>,
+    /// fixedSizeBucketingConfig property.
+    pub fixed_size_bucketing_config: Option<GooglePrivacyDlpV2FixedSizeBucketingConfig>,
+    /// redactConfig property.
+    pub redact_config: Option<GooglePrivacyDlpV2RedactConfig>,
+    /// replaceConfig property.
+    pub replace_config: Option<GooglePrivacyDlpV2ReplaceValueConfig>,
+    /// replaceDictionaryConfig property.
+    pub replace_dictionary_config: Option<GooglePrivacyDlpV2ReplaceDictionaryConfig>,
+    /// replaceWithInfoTypeConfig property.
+    pub replace_with_info_type_config: Option<GooglePrivacyDlpV2ReplaceWithInfoTypeConfig>,
+    /// timePartConfig property.
+    pub time_part_config: Option<GooglePrivacyDlpV2TimePartConfig>,
+}
+
+/// `GooglePrivacyDlpV2BucketingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2BucketingConfig {
+    /// buckets property.
+    pub buckets: Option<Vec<GooglePrivacyDlpV2Bucket>>,
+}
+
+/// `GoogleTypeDate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeDate {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `GooglePrivacyDlpV2Conditions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Conditions {
+    /// conditions property.
+    pub conditions: Option<Vec<GooglePrivacyDlpV2Condition>>,
 }
 
 /// `GooglePrivacyDlpV2ReplaceDictionaryConfig` type.
@@ -453,15 +403,66 @@ pub struct GooglePrivacyDlpV2ReplaceDictionaryConfig {
     pub word_list: Option<GooglePrivacyDlpV2WordList>,
 }
 
-/// `GooglePrivacyDlpV2CryptoKey` type.
+/// `GooglePrivacyDlpV2SensitivityScore` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2CryptoKey {
-    /// kmsWrapped property.
-    pub kms_wrapped: Option<GooglePrivacyDlpV2KmsWrappedCryptoKey>,
-    /// transient property.
-    pub transient: Option<GooglePrivacyDlpV2TransientCryptoKey>,
-    /// unwrapped property.
-    pub unwrapped: Option<GooglePrivacyDlpV2UnwrappedCryptoKey>,
+pub struct GooglePrivacyDlpV2SensitivityScore {
+    /// score property.
+    pub score: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2DateShiftConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DateShiftConfig {
+    /// context property.
+    pub context: Option<GooglePrivacyDlpV2FieldId>,
+    /// cryptoKey property.
+    pub crypto_key: Option<GooglePrivacyDlpV2CryptoKey>,
+    /// lowerBoundDays property.
+    pub lower_bound_days: Option<i64>,
+    /// upperBoundDays property.
+    pub upper_bound_days: Option<i64>,
+}
+
+/// `GooglePrivacyDlpV2FixedSizeBucketingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2FixedSizeBucketingConfig {
+    /// bucketSize property.
+    pub bucket_size: Option<f64>,
+    /// lowerBound property.
+    pub lower_bound: Option<GooglePrivacyDlpV2Value>,
+    /// upperBound property.
+    pub upper_bound: Option<GooglePrivacyDlpV2Value>,
+}
+
+/// `GooglePrivacyDlpV2ReplaceWithInfoTypeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2ReplaceWithInfoTypeConfig {}
+
+/// `GooglePrivacyDlpV2CharacterMaskConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2CharacterMaskConfig {
+    /// charactersToIgnore property.
+    pub characters_to_ignore: Option<Vec<GooglePrivacyDlpV2CharsToIgnore>>,
+    /// maskingCharacter property.
+    pub masking_character: Option<String>,
+    /// numberToMask property.
+    pub number_to_mask: Option<i64>,
+    /// reverseOrder property.
+    pub reverse_order: Option<bool>,
+}
+
+/// `GooglePrivacyDlpV2ContentMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2ContentMetadata {
+    /// properties property.
+    pub properties: Option<Vec<GooglePrivacyDlpV2KeyValueMetadataProperty>>,
+}
+
+/// `GooglePrivacyDlpV2TimePartConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2TimePartConfig {
+    /// partToExtract property.
+    pub part_to_extract: Option<String>,
 }
 
 // =============================================================================

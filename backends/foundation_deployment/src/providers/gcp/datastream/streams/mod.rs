@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,237 +22,21 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `MysqlTable` type.
+/// `SalesforceField` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MysqlTable {
-    /// mysqlColumns property.
-    pub mysql_columns: Option<Vec<MysqlColumn>>,
-    /// table property.
-    pub table: Option<String>,
-}
-
-/// `IngestionTimePartition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IngestionTimePartition {
-    /// partitioningTimeGranularity property.
-    pub partitioning_time_granularity: Option<String>,
-}
-
-/// `OracleRdbms` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OracleRdbms {
-    /// oracleSchemas property.
-    pub oracle_schemas: Option<Vec<OracleSchema>>,
-}
-
-/// `BigQueryClustering` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BigQueryClustering {
-    /// columns property.
-    pub columns: Option<Vec<String>>,
-}
-
-/// `IntegerRangePartition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntegerRangePartition {
-    /// column property.
-    pub column: Option<String>,
-    /// end property.
-    pub end: Option<String>,
-    /// interval property.
-    pub interval: Option<String>,
-    /// start property.
-    pub start: Option<String>,
-}
-
-/// `DropLargeObjects` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DropLargeObjects {}
-
-/// `CustomizationRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomizationRule {
-    /// bigqueryClustering property.
-    pub bigquery_clustering: Option<BigQueryClustering>,
-    /// bigqueryPartitioning property.
-    pub bigquery_partitioning: Option<BigQueryPartitioning>,
-}
-
-/// `SourceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceConfig {
-    /// mongodbSourceConfig property.
-    pub mongodb_source_config: Option<MongodbSourceConfig>,
-    /// mysqlSourceConfig property.
-    pub mysql_source_config: Option<MysqlSourceConfig>,
-    /// oracleSourceConfig property.
-    pub oracle_source_config: Option<OracleSourceConfig>,
-    /// postgresqlSourceConfig property.
-    pub postgresql_source_config: Option<PostgresqlSourceConfig>,
-    /// salesforceSourceConfig property.
-    pub salesforce_source_config: Option<SalesforceSourceConfig>,
-    /// sourceConnectionProfile property.
-    pub source_connection_profile: Option<String>,
-    /// spannerSourceConfig property.
-    pub spanner_source_config: Option<SpannerSourceConfig>,
-    /// sqlServerSourceConfig property.
-    pub sql_server_source_config: Option<SqlServerSourceConfig>,
-}
-
-/// `SqlServerTable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerTable {
-    /// columns property.
-    pub columns: Option<Vec<SqlServerColumn>>,
-    /// table property.
-    pub table: Option<String>,
-}
-
-/// `ObjectFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObjectFilter {
-    /// sourceObjectIdentifier property.
-    pub source_object_identifier: Option<SourceObjectIdentifier>,
-}
-
-/// `AppendOnly` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppendOnly {}
-
-/// `DestinationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DestinationConfig {
-    /// bigqueryDestinationConfig property.
-    pub bigquery_destination_config: Option<BigQueryDestinationConfig>,
-    /// destinationConnectionProfile property.
-    pub destination_connection_profile: Option<String>,
-    /// gcsDestinationConfig property.
-    pub gcs_destination_config: Option<GcsDestinationConfig>,
-}
-
-/// `SingleTargetDataset` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SingleTargetDataset {
-    /// datasetId property.
-    pub dataset_id: Option<String>,
-}
-
-/// `SpannerTable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpannerTable {
-    /// columns property.
-    pub columns: Option<Vec<SpannerColumn>>,
-    /// table property.
-    pub table: Option<String>,
-}
-
-/// `MysqlObjectIdentifier` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MysqlObjectIdentifier {
-    /// database property.
-    pub database: Option<String>,
-    /// table property.
-    pub table: Option<String>,
-}
-
-/// `SqlServerObjectIdentifier` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerObjectIdentifier {
-    /// schema property.
-    pub schema: Option<String>,
-    /// table property.
-    pub table: Option<String>,
-}
-
-/// `AvroFileFormat` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AvroFileFormat {}
-
-/// `BackfillNoneStrategy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackfillNoneStrategy {}
-
-/// `MongodbSourceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MongodbSourceConfig {
-    /// excludeObjects property.
-    pub exclude_objects: Option<MongodbCluster>,
-    /// includeObjects property.
-    pub include_objects: Option<MongodbCluster>,
-    /// jsonMode property.
-    pub json_mode: Option<String>,
-    /// maxConcurrentBackfillTasks property.
-    pub max_concurrent_backfill_tasks: Option<i64>,
-}
-
-/// `PostgresqlRdbms` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostgresqlRdbms {
-    /// postgresqlSchemas property.
-    pub postgresql_schemas: Option<Vec<PostgresqlSchema>>,
-}
-
-/// `SalesforceObjectIdentifier` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SalesforceObjectIdentifier {
-    /// objectName property.
-    pub object_name: Option<String>,
-}
-
-/// `OracleAsmLogFileAccess` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OracleAsmLogFileAccess {}
-
-/// `MysqlSourceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MysqlSourceConfig {
-    /// binaryLogPosition property.
-    pub binary_log_position: Option<BinaryLogPosition>,
-    /// excludeObjects property.
-    pub exclude_objects: Option<MysqlRdbms>,
-    /// gtid property.
-    pub gtid: Option<Gtid>,
-    /// includeObjects property.
-    pub include_objects: Option<MysqlRdbms>,
-    /// maxConcurrentBackfillTasks property.
-    pub max_concurrent_backfill_tasks: Option<i64>,
-    /// maxConcurrentCdcTasks property.
-    pub max_concurrent_cdc_tasks: Option<i64>,
-}
-
-/// `SqlServerRdbms` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerRdbms {
-    /// schemas property.
-    pub schemas: Option<Vec<SqlServerSchema>>,
-}
-
-/// `SalesforceObject` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SalesforceObject {
-    /// fields property.
-    pub fields: Option<Vec<SalesforceField>>,
-    /// objectName property.
-    pub object_name: Option<String>,
-}
-
-/// `StreamLargeObjects` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StreamLargeObjects {}
-
-/// `MysqlDatabase` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MysqlDatabase {
-    /// database property.
-    pub database: Option<String>,
-    /// mysqlTables property.
-    pub mysql_tables: Option<Vec<MysqlTable>>,
+pub struct SalesforceField {
+    /// dataType property.
+    pub data_type: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// nillable property.
+    pub nillable: Option<bool>,
 }
 
 /// `MongodbDatabase` type.
@@ -263,30 +48,39 @@ pub struct MongodbDatabase {
     pub database: Option<String>,
 }
 
-/// `PostgresqlTable` type.
+/// `PostgresqlSchema` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostgresqlTable {
-    /// postgresqlColumns property.
-    pub postgresql_columns: Option<Vec<PostgresqlColumn>>,
-    /// table property.
-    pub table: Option<String>,
+pub struct PostgresqlSchema {
+    /// postgresqlTables property.
+    pub postgresql_tables: Option<Vec<PostgresqlTable>>,
+    /// schema property.
+    pub schema: Option<String>,
 }
 
-/// `BigQueryDestinationConfig` type.
+/// `GcsDestinationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BigQueryDestinationConfig {
-    /// appendOnly property.
-    pub append_only: Option<AppendOnly>,
-    /// blmtConfig property.
-    pub blmt_config: Option<BlmtConfig>,
-    /// dataFreshness property.
-    pub data_freshness: Option<String>,
-    /// merge property.
-    pub merge: Option<Merge>,
-    /// singleTargetDataset property.
-    pub single_target_dataset: Option<SingleTargetDataset>,
-    /// sourceHierarchyDatasets property.
-    pub source_hierarchy_datasets: Option<SourceHierarchyDatasets>,
+pub struct GcsDestinationConfig {
+    /// avroFileFormat property.
+    pub avro_file_format: Option<AvroFileFormat>,
+    /// fileRotationInterval property.
+    pub file_rotation_interval: Option<String>,
+    /// fileRotationMb property.
+    pub file_rotation_mb: Option<i64>,
+    /// jsonFileFormat property.
+    pub json_file_format: Option<JsonFileFormat>,
+    /// path property.
+    pub path: Option<String>,
+}
+
+/// `ListStreamsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListStreamsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// streams property.
+    pub streams: Option<Vec<Stream>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `BackfillAllStrategy` type.
@@ -306,6 +100,129 @@ pub struct BackfillAllStrategy {
     pub spanner_excluded_objects: Option<SpannerDatabase>,
     /// sqlServerExcludedObjects property.
     pub sql_server_excluded_objects: Option<SqlServerRdbms>,
+}
+
+/// `MongodbSourceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MongodbSourceConfig {
+    /// excludeObjects property.
+    pub exclude_objects: Option<MongodbCluster>,
+    /// includeObjects property.
+    pub include_objects: Option<MongodbCluster>,
+    /// jsonMode property.
+    pub json_mode: Option<String>,
+    /// maxConcurrentBackfillTasks property.
+    pub max_concurrent_backfill_tasks: Option<i64>,
+}
+
+/// `SqlServerRdbms` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerRdbms {
+    /// schemas property.
+    pub schemas: Option<Vec<SqlServerSchema>>,
+}
+
+/// `OracleSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OracleSchema {
+    /// oracleTables property.
+    pub oracle_tables: Option<Vec<OracleTable>>,
+    /// schema property.
+    pub schema: Option<String>,
+}
+
+/// `OracleAsmLogFileAccess` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OracleAsmLogFileAccess {}
+
+/// `BinaryLogParser` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BinaryLogParser {
+    /// logFileDirectories property.
+    pub log_file_directories: Option<LogFileDirectories>,
+    /// oracleAsmLogFileAccess property.
+    pub oracle_asm_log_file_access: Option<OracleAsmLogFileAccess>,
+}
+
+/// `SalesforceObjectIdentifier` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SalesforceObjectIdentifier {
+    /// objectName property.
+    pub object_name: Option<String>,
+}
+
+/// `PostgresqlRdbms` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostgresqlRdbms {
+    /// postgresqlSchemas property.
+    pub postgresql_schemas: Option<Vec<PostgresqlSchema>>,
+}
+
+/// `PostgresqlTable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostgresqlTable {
+    /// postgresqlColumns property.
+    pub postgresql_columns: Option<Vec<PostgresqlColumn>>,
+    /// table property.
+    pub table: Option<String>,
+}
+
+/// `BinaryLogPosition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BinaryLogPosition {}
+
+/// `SalesforceObject` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SalesforceObject {
+    /// fields property.
+    pub fields: Option<Vec<SalesforceField>>,
+    /// objectName property.
+    pub object_name: Option<String>,
+}
+
+/// `OracleObjectIdentifier` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OracleObjectIdentifier {
+    /// schema property.
+    pub schema: Option<String>,
+    /// table property.
+    pub table: Option<String>,
+}
+
+/// `SpannerObjectIdentifier` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpannerObjectIdentifier {
+    /// schema property.
+    pub schema: Option<String>,
+    /// table property.
+    pub table: Option<String>,
+}
+
+/// `JsonFileFormat` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JsonFileFormat {
+    /// compression property.
+    pub compression: Option<String>,
+    /// schemaFileFormat property.
+    pub schema_file_format: Option<String>,
+}
+
+/// `TimeUnitPartition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeUnitPartition {
+    /// column property.
+    pub column: Option<String>,
+    /// partitioningTimeGranularity property.
+    pub partitioning_time_granularity: Option<String>,
+}
+
+/// `MongodbCollection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MongodbCollection {
+    /// collection property.
+    pub collection: Option<String>,
+    /// fields property.
+    pub fields: Option<Vec<MongodbField>>,
 }
 
 /// `OracleColumn` type.
@@ -331,6 +248,86 @@ pub struct OracleColumn {
     pub scale: Option<i64>,
 }
 
+/// `BigQueryDestinationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BigQueryDestinationConfig {
+    /// appendOnly property.
+    pub append_only: Option<AppendOnly>,
+    /// blmtConfig property.
+    pub blmt_config: Option<BlmtConfig>,
+    /// dataFreshness property.
+    pub data_freshness: Option<String>,
+    /// merge property.
+    pub merge: Option<Merge>,
+    /// singleTargetDataset property.
+    pub single_target_dataset: Option<SingleTargetDataset>,
+    /// sourceHierarchyDatasets property.
+    pub source_hierarchy_datasets: Option<SourceHierarchyDatasets>,
+}
+
+/// `RuleSet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RuleSet {
+    /// customizationRules property.
+    pub customization_rules: Option<Vec<CustomizationRule>>,
+    /// objectFilter property.
+    pub object_filter: Option<ObjectFilter>,
+}
+
+/// `SpannerSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpannerSchema {
+    /// schema property.
+    pub schema: Option<String>,
+    /// tables property.
+    pub tables: Option<Vec<SpannerTable>>,
+}
+
+/// `CustomizationRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomizationRule {
+    /// bigqueryClustering property.
+    pub bigquery_clustering: Option<BigQueryClustering>,
+    /// bigqueryPartitioning property.
+    pub bigquery_partitioning: Option<BigQueryPartitioning>,
+}
+
+/// `DestinationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DestinationConfig {
+    /// bigqueryDestinationConfig property.
+    pub bigquery_destination_config: Option<BigQueryDestinationConfig>,
+    /// destinationConnectionProfile property.
+    pub destination_connection_profile: Option<String>,
+    /// gcsDestinationConfig property.
+    pub gcs_destination_config: Option<GcsDestinationConfig>,
+}
+
+/// `MysqlRdbms` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MysqlRdbms {
+    /// mysqlDatabases property.
+    pub mysql_databases: Option<Vec<MysqlDatabase>>,
+}
+
+/// `SalesforceOrg` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SalesforceOrg {
+    /// objects property.
+    pub objects: Option<Vec<SalesforceObject>>,
+}
+
+/// `SalesforceSourceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SalesforceSourceConfig {
+    /// excludeObjects property.
+    pub exclude_objects: Option<SalesforceOrg>,
+    /// includeObjects property.
+    pub include_objects: Option<SalesforceOrg>,
+    /// pollingInterval property.
+    pub polling_interval: Option<String>,
+}
+
 /// `PostgresqlObjectIdentifier` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostgresqlObjectIdentifier {
@@ -338,123 +335,6 @@ pub struct PostgresqlObjectIdentifier {
     pub schema: Option<String>,
     /// table property.
     pub table: Option<String>,
-}
-
-/// `ListStreamsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListStreamsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// streams property.
-    pub streams: Option<Vec<Stream>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `TimeUnitPartition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeUnitPartition {
-    /// column property.
-    pub column: Option<String>,
-    /// partitioningTimeGranularity property.
-    pub partitioning_time_granularity: Option<String>,
-}
-
-/// `JsonFileFormat` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JsonFileFormat {
-    /// compression property.
-    pub compression: Option<String>,
-    /// schemaFileFormat property.
-    pub schema_file_format: Option<String>,
-}
-
-/// `DatasetTemplate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatasetTemplate {
-    /// datasetIdPrefix property.
-    pub dataset_id_prefix: Option<String>,
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-}
-
-/// `BinaryLogParser` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BinaryLogParser {
-    /// logFileDirectories property.
-    pub log_file_directories: Option<LogFileDirectories>,
-    /// oracleAsmLogFileAccess property.
-    pub oracle_asm_log_file_access: Option<OracleAsmLogFileAccess>,
-}
-
-/// `BinaryLogPosition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BinaryLogPosition {}
-
-/// `MongodbObjectIdentifier` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MongodbObjectIdentifier {
-    /// collection property.
-    pub collection: Option<String>,
-    /// database property.
-    pub database: Option<String>,
-}
-
-/// `PostgresqlSchema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostgresqlSchema {
-    /// postgresqlTables property.
-    pub postgresql_tables: Option<Vec<PostgresqlTable>>,
-    /// schema property.
-    pub schema: Option<String>,
-}
-
-/// `Gtid` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Gtid {}
-
-/// `PostgresqlSourceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostgresqlSourceConfig {
-    /// excludeObjects property.
-    pub exclude_objects: Option<PostgresqlRdbms>,
-    /// includeObjects property.
-    pub include_objects: Option<PostgresqlRdbms>,
-    /// maxConcurrentBackfillTasks property.
-    pub max_concurrent_backfill_tasks: Option<i64>,
-    /// publication property.
-    pub publication: Option<String>,
-    /// replicationSlot property.
-    pub replication_slot: Option<String>,
-}
-
-/// `SpannerDatabase` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpannerDatabase {
-    /// schemas property.
-    pub schemas: Option<Vec<SpannerSchema>>,
-}
-
-/// `SpannerObjectIdentifier` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpannerObjectIdentifier {
-    /// schema property.
-    pub schema: Option<String>,
-    /// table property.
-    pub table: Option<String>,
-}
-
-/// `SalesforceField` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SalesforceField {
-    /// dataType property.
-    pub data_type: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// nillable property.
-    pub nillable: Option<bool>,
 }
 
 /// `SqlServerColumn` type.
@@ -478,55 +358,112 @@ pub struct SqlServerColumn {
     pub scale: Option<i64>,
 }
 
-/// `BlmtConfig` type.
+/// `AppendOnly` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BlmtConfig {
-    /// bucket property.
-    pub bucket: Option<String>,
-    /// connectionName property.
-    pub connection_name: Option<String>,
-    /// fileFormat property.
-    pub file_format: Option<String>,
-    /// rootPath property.
-    pub root_path: Option<String>,
-    /// tableFormat property.
-    pub table_format: Option<String>,
+pub struct AppendOnly {}
+
+/// `SingleTargetDataset` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SingleTargetDataset {
+    /// datasetId property.
+    pub dataset_id: Option<String>,
 }
 
-/// `RuleSet` type.
+/// `BigQueryClustering` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RuleSet {
-    /// customizationRules property.
-    pub customization_rules: Option<Vec<CustomizationRule>>,
-    /// objectFilter property.
-    pub object_filter: Option<ObjectFilter>,
+pub struct BigQueryClustering {
+    /// columns property.
+    pub columns: Option<Vec<String>>,
 }
 
-/// `MysqlRdbms` type.
+/// `DropLargeObjects` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MysqlRdbms {
-    /// mysqlDatabases property.
-    pub mysql_databases: Option<Vec<MysqlDatabase>>,
+pub struct DropLargeObjects {}
+
+/// `IntegerRangePartition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntegerRangePartition {
+    /// column property.
+    pub column: Option<String>,
+    /// end property.
+    pub end: Option<String>,
+    /// interval property.
+    pub interval: Option<String>,
+    /// start property.
+    pub start: Option<String>,
 }
 
-/// `GcsDestinationConfig` type.
+/// `SqlServerSourceConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GcsDestinationConfig {
-    /// avroFileFormat property.
-    pub avro_file_format: Option<AvroFileFormat>,
-    /// fileRotationInterval property.
-    pub file_rotation_interval: Option<String>,
-    /// fileRotationMb property.
-    pub file_rotation_mb: Option<i64>,
-    /// jsonFileFormat property.
-    pub json_file_format: Option<JsonFileFormat>,
-    /// path property.
-    pub path: Option<String>,
+pub struct SqlServerSourceConfig {
+    /// changeTables property.
+    pub change_tables: Option<SqlServerChangeTables>,
+    /// excludeObjects property.
+    pub exclude_objects: Option<SqlServerRdbms>,
+    /// includeObjects property.
+    pub include_objects: Option<SqlServerRdbms>,
+    /// maxConcurrentBackfillTasks property.
+    pub max_concurrent_backfill_tasks: Option<i64>,
+    /// maxConcurrentCdcTasks property.
+    pub max_concurrent_cdc_tasks: Option<i64>,
+    /// transactionLogs property.
+    pub transaction_logs: Option<SqlServerTransactionLogs>,
 }
 
-/// `PostgresqlColumn` type.
+/// `StreamLargeObjects` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostgresqlColumn {
+pub struct StreamLargeObjects {}
+
+/// `MongodbField` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MongodbField {
+    /// field property.
+    pub field: Option<String>,
+}
+
+/// `OracleTable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OracleTable {
+    /// oracleColumns property.
+    pub oracle_columns: Option<Vec<OracleColumn>>,
+    /// table property.
+    pub table: Option<String>,
+}
+
+/// `MysqlObjectIdentifier` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MysqlObjectIdentifier {
+    /// database property.
+    pub database: Option<String>,
+    /// table property.
+    pub table: Option<String>,
+}
+
+/// `SpannerDatabase` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpannerDatabase {
+    /// schemas property.
+    pub schemas: Option<Vec<SpannerSchema>>,
+}
+
+/// `SpannerColumn` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpannerColumn {
+    /// column property.
+    pub column: Option<String>,
+    /// dataType property.
+    pub data_type: Option<String>,
+    /// isPrimaryKey property.
+    pub is_primary_key: Option<bool>,
+    /// ordinalPosition property.
+    pub ordinal_position: Option<String>,
+}
+
+/// `MysqlColumn` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MysqlColumn {
+    /// collation property.
+    pub collation: Option<String>,
     /// column property.
     pub column: Option<String>,
     /// dataType property.
@@ -545,25 +482,75 @@ pub struct PostgresqlColumn {
     pub scale: Option<i64>,
 }
 
-/// `SpannerSourceConfig` type.
+/// `PostgresqlSourceConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpannerSourceConfig {
-    /// backfillDataBoostEnabled property.
-    pub backfill_data_boost_enabled: Option<bool>,
-    /// changeStreamName property.
-    pub change_stream_name: Option<String>,
+pub struct PostgresqlSourceConfig {
     /// excludeObjects property.
-    pub exclude_objects: Option<SpannerDatabase>,
-    /// fgacRole property.
-    pub fgac_role: Option<String>,
+    pub exclude_objects: Option<PostgresqlRdbms>,
     /// includeObjects property.
-    pub include_objects: Option<SpannerDatabase>,
+    pub include_objects: Option<PostgresqlRdbms>,
     /// maxConcurrentBackfillTasks property.
     pub max_concurrent_backfill_tasks: Option<i64>,
-    /// maxConcurrentCdcTasks property.
-    pub max_concurrent_cdc_tasks: Option<i64>,
-    /// spannerRpcPriority property.
-    pub spanner_rpc_priority: Option<String>,
+    /// publication property.
+    pub publication: Option<String>,
+    /// replicationSlot property.
+    pub replication_slot: Option<String>,
+}
+
+/// `SqlServerTransactionLogs` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerTransactionLogs {}
+
+/// `IngestionTimePartition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IngestionTimePartition {
+    /// partitioningTimeGranularity property.
+    pub partitioning_time_granularity: Option<String>,
+}
+
+/// `BlmtConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BlmtConfig {
+    /// bucket property.
+    pub bucket: Option<String>,
+    /// connectionName property.
+    pub connection_name: Option<String>,
+    /// fileFormat property.
+    pub file_format: Option<String>,
+    /// rootPath property.
+    pub root_path: Option<String>,
+    /// tableFormat property.
+    pub table_format: Option<String>,
+}
+
+/// `AvroFileFormat` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AvroFileFormat {}
+
+/// `Error` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Error {
+    /// details property.
+    pub details: Option<serde_json::Value>,
+    /// errorTime property.
+    pub error_time: Option<String>,
+    /// errorUuid property.
+    pub error_uuid: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `DatasetTemplate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatasetTemplate {
+    /// datasetIdPrefix property.
+    pub dataset_id_prefix: Option<String>,
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+    /// location property.
+    pub location: Option<String>,
 }
 
 /// `Stream` type.
@@ -603,53 +590,30 @@ pub struct Stream {
     pub update_time: Option<String>,
 }
 
-/// `MysqlColumn` type.
+/// `Gtid` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MysqlColumn {
-    /// collation property.
-    pub collation: Option<String>,
-    /// column property.
-    pub column: Option<String>,
-    /// dataType property.
-    pub data_type: Option<String>,
-    /// length property.
-    pub length: Option<i64>,
-    /// nullable property.
-    pub nullable: Option<bool>,
-    /// ordinalPosition property.
-    pub ordinal_position: Option<i64>,
-    /// precision property.
-    pub precision: Option<i64>,
-    /// primaryKey property.
-    pub primary_key: Option<bool>,
-    /// scale property.
-    pub scale: Option<i64>,
-}
+pub struct Gtid {}
 
-/// `OracleTable` type.
+/// `Merge` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OracleTable {
-    /// oracleColumns property.
-    pub oracle_columns: Option<Vec<OracleColumn>>,
+pub struct Merge {}
+
+/// `SqlServerTable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerTable {
+    /// columns property.
+    pub columns: Option<Vec<SqlServerColumn>>,
     /// table property.
     pub table: Option<String>,
 }
 
-/// `LogMiner` type.
+/// `MongodbObjectIdentifier` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LogMiner {}
-
-/// `BigQueryPartitioning` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BigQueryPartitioning {
-    /// ingestionTimePartition property.
-    pub ingestion_time_partition: Option<IngestionTimePartition>,
-    /// integerRangePartition property.
-    pub integer_range_partition: Option<IntegerRangePartition>,
-    /// requirePartitionFilter property.
-    pub require_partition_filter: Option<bool>,
-    /// timeUnitPartition property.
-    pub time_unit_partition: Option<TimeUnitPartition>,
+pub struct MongodbObjectIdentifier {
+    /// collection property.
+    pub collection: Option<String>,
+    /// database property.
+    pub database: Option<String>,
 }
 
 /// `SourceHierarchyDatasets` type.
@@ -661,123 +625,37 @@ pub struct SourceHierarchyDatasets {
     pub project_id: Option<String>,
 }
 
-/// `SpannerSchema` type.
+/// `BackfillNoneStrategy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpannerSchema {
-    /// schema property.
-    pub schema: Option<String>,
-    /// tables property.
-    pub tables: Option<Vec<SpannerTable>>,
+pub struct BackfillNoneStrategy {}
+
+/// `LogMiner` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogMiner {}
+
+/// `LogFileDirectories` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogFileDirectories {
+    /// archivedLogDirectory property.
+    pub archived_log_directory: Option<String>,
+    /// onlineLogDirectory property.
+    pub online_log_directory: Option<String>,
 }
 
-/// `SalesforceOrg` type.
+/// `MysqlTable` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SalesforceOrg {
-    /// objects property.
-    pub objects: Option<Vec<SalesforceObject>>,
+pub struct MysqlTable {
+    /// mysqlColumns property.
+    pub mysql_columns: Option<Vec<MysqlColumn>>,
+    /// table property.
+    pub table: Option<String>,
 }
 
-/// `Error` type.
+/// `ObjectFilter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Error {
-    /// details property.
-    pub details: Option<serde_json::Value>,
-    /// errorTime property.
-    pub error_time: Option<String>,
-    /// errorUuid property.
-    pub error_uuid: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `SpannerColumn` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpannerColumn {
-    /// column property.
-    pub column: Option<String>,
-    /// dataType property.
-    pub data_type: Option<String>,
-    /// isPrimaryKey property.
-    pub is_primary_key: Option<bool>,
-    /// ordinalPosition property.
-    pub ordinal_position: Option<String>,
-}
-
-/// `MongodbCluster` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MongodbCluster {
-    /// databases property.
-    pub databases: Option<Vec<MongodbDatabase>>,
-}
-
-/// `SqlServerSchema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerSchema {
-    /// schema property.
-    pub schema: Option<String>,
-    /// tables property.
-    pub tables: Option<Vec<SqlServerTable>>,
-}
-
-/// `MongodbCollection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MongodbCollection {
-    /// collection property.
-    pub collection: Option<String>,
-    /// fields property.
-    pub fields: Option<Vec<MongodbField>>,
-}
-
-/// `SourceObjectIdentifier` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceObjectIdentifier {
-    /// mongodbIdentifier property.
-    pub mongodb_identifier: Option<MongodbObjectIdentifier>,
-    /// mysqlIdentifier property.
-    pub mysql_identifier: Option<MysqlObjectIdentifier>,
-    /// oracleIdentifier property.
-    pub oracle_identifier: Option<OracleObjectIdentifier>,
-    /// postgresqlIdentifier property.
-    pub postgresql_identifier: Option<PostgresqlObjectIdentifier>,
-    /// salesforceIdentifier property.
-    pub salesforce_identifier: Option<SalesforceObjectIdentifier>,
-    /// spannerIdentifier property.
-    pub spanner_identifier: Option<SpannerObjectIdentifier>,
-    /// sqlServerIdentifier property.
-    pub sql_server_identifier: Option<SqlServerObjectIdentifier>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `MongodbField` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MongodbField {
-    /// field property.
-    pub field: Option<String>,
-}
-
-/// `Merge` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Merge {}
-
-/// `OracleSchema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OracleSchema {
-    /// oracleTables property.
-    pub oracle_tables: Option<Vec<OracleTable>>,
-    /// schema property.
-    pub schema: Option<String>,
+pub struct ObjectFilter {
+    /// sourceObjectIdentifier property.
+    pub source_object_identifier: Option<SourceObjectIdentifier>,
 }
 
 /// `OracleSourceConfig` type.
@@ -801,54 +679,177 @@ pub struct OracleSourceConfig {
     pub stream_large_objects: Option<StreamLargeObjects>,
 }
 
-/// `SqlServerChangeTables` type.
+/// `SpannerSourceConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerChangeTables {}
-
-/// `SqlServerSourceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerSourceConfig {
-    /// changeTables property.
-    pub change_tables: Option<SqlServerChangeTables>,
+pub struct SpannerSourceConfig {
+    /// backfillDataBoostEnabled property.
+    pub backfill_data_boost_enabled: Option<bool>,
+    /// changeStreamName property.
+    pub change_stream_name: Option<String>,
     /// excludeObjects property.
-    pub exclude_objects: Option<SqlServerRdbms>,
+    pub exclude_objects: Option<SpannerDatabase>,
+    /// fgacRole property.
+    pub fgac_role: Option<String>,
     /// includeObjects property.
-    pub include_objects: Option<SqlServerRdbms>,
+    pub include_objects: Option<SpannerDatabase>,
     /// maxConcurrentBackfillTasks property.
     pub max_concurrent_backfill_tasks: Option<i64>,
     /// maxConcurrentCdcTasks property.
     pub max_concurrent_cdc_tasks: Option<i64>,
-    /// transactionLogs property.
-    pub transaction_logs: Option<SqlServerTransactionLogs>,
+    /// spannerRpcPriority property.
+    pub spanner_rpc_priority: Option<String>,
 }
 
-/// `LogFileDirectories` type.
+/// `SqlServerChangeTables` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LogFileDirectories {
-    /// archivedLogDirectory property.
-    pub archived_log_directory: Option<String>,
-    /// onlineLogDirectory property.
-    pub online_log_directory: Option<String>,
+pub struct SqlServerChangeTables {}
+
+/// `SqlServerSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerSchema {
+    /// schema property.
+    pub schema: Option<String>,
+    /// tables property.
+    pub tables: Option<Vec<SqlServerTable>>,
 }
 
-/// `SalesforceSourceConfig` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SalesforceSourceConfig {
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `SourceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SourceConfig {
+    /// mongodbSourceConfig property.
+    pub mongodb_source_config: Option<MongodbSourceConfig>,
+    /// mysqlSourceConfig property.
+    pub mysql_source_config: Option<MysqlSourceConfig>,
+    /// oracleSourceConfig property.
+    pub oracle_source_config: Option<OracleSourceConfig>,
+    /// postgresqlSourceConfig property.
+    pub postgresql_source_config: Option<PostgresqlSourceConfig>,
+    /// salesforceSourceConfig property.
+    pub salesforce_source_config: Option<SalesforceSourceConfig>,
+    /// sourceConnectionProfile property.
+    pub source_connection_profile: Option<String>,
+    /// spannerSourceConfig property.
+    pub spanner_source_config: Option<SpannerSourceConfig>,
+    /// sqlServerSourceConfig property.
+    pub sql_server_source_config: Option<SqlServerSourceConfig>,
+}
+
+/// `MongodbCluster` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MongodbCluster {
+    /// databases property.
+    pub databases: Option<Vec<MongodbDatabase>>,
+}
+
+/// `SpannerTable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpannerTable {
+    /// columns property.
+    pub columns: Option<Vec<SpannerColumn>>,
+    /// table property.
+    pub table: Option<String>,
+}
+
+/// `MysqlSourceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MysqlSourceConfig {
+    /// binaryLogPosition property.
+    pub binary_log_position: Option<BinaryLogPosition>,
     /// excludeObjects property.
-    pub exclude_objects: Option<SalesforceOrg>,
+    pub exclude_objects: Option<MysqlRdbms>,
+    /// gtid property.
+    pub gtid: Option<Gtid>,
     /// includeObjects property.
-    pub include_objects: Option<SalesforceOrg>,
-    /// pollingInterval property.
-    pub polling_interval: Option<String>,
+    pub include_objects: Option<MysqlRdbms>,
+    /// maxConcurrentBackfillTasks property.
+    pub max_concurrent_backfill_tasks: Option<i64>,
+    /// maxConcurrentCdcTasks property.
+    pub max_concurrent_cdc_tasks: Option<i64>,
 }
 
-/// `SqlServerTransactionLogs` type.
+/// `PostgresqlColumn` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerTransactionLogs {}
+pub struct PostgresqlColumn {
+    /// column property.
+    pub column: Option<String>,
+    /// dataType property.
+    pub data_type: Option<String>,
+    /// length property.
+    pub length: Option<i64>,
+    /// nullable property.
+    pub nullable: Option<bool>,
+    /// ordinalPosition property.
+    pub ordinal_position: Option<i64>,
+    /// precision property.
+    pub precision: Option<i64>,
+    /// primaryKey property.
+    pub primary_key: Option<bool>,
+    /// scale property.
+    pub scale: Option<i64>,
+}
 
-/// `OracleObjectIdentifier` type.
+/// `MysqlDatabase` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OracleObjectIdentifier {
+pub struct MysqlDatabase {
+    /// database property.
+    pub database: Option<String>,
+    /// mysqlTables property.
+    pub mysql_tables: Option<Vec<MysqlTable>>,
+}
+
+/// `SourceObjectIdentifier` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SourceObjectIdentifier {
+    /// mongodbIdentifier property.
+    pub mongodb_identifier: Option<MongodbObjectIdentifier>,
+    /// mysqlIdentifier property.
+    pub mysql_identifier: Option<MysqlObjectIdentifier>,
+    /// oracleIdentifier property.
+    pub oracle_identifier: Option<OracleObjectIdentifier>,
+    /// postgresqlIdentifier property.
+    pub postgresql_identifier: Option<PostgresqlObjectIdentifier>,
+    /// salesforceIdentifier property.
+    pub salesforce_identifier: Option<SalesforceObjectIdentifier>,
+    /// spannerIdentifier property.
+    pub spanner_identifier: Option<SpannerObjectIdentifier>,
+    /// sqlServerIdentifier property.
+    pub sql_server_identifier: Option<SqlServerObjectIdentifier>,
+}
+
+/// `BigQueryPartitioning` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BigQueryPartitioning {
+    /// ingestionTimePartition property.
+    pub ingestion_time_partition: Option<IngestionTimePartition>,
+    /// integerRangePartition property.
+    pub integer_range_partition: Option<IntegerRangePartition>,
+    /// requirePartitionFilter property.
+    pub require_partition_filter: Option<bool>,
+    /// timeUnitPartition property.
+    pub time_unit_partition: Option<TimeUnitPartition>,
+}
+
+/// `OracleRdbms` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OracleRdbms {
+    /// oracleSchemas property.
+    pub oracle_schemas: Option<Vec<OracleSchema>>,
+}
+
+/// `SqlServerObjectIdentifier` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerObjectIdentifier {
     /// schema property.
     pub schema: Option<String>,
     /// table property.

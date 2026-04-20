@@ -12,54 +12,21 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::SslCert;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `DnsNameMapping` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsNameMapping {
-    /// connectionType property.
-    pub connection_type: Option<String>,
-    /// dnsScope property.
-    pub dns_scope: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// recordManager property.
-    pub record_manager: Option<String>,
-}
-
-/// `IpMapping` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IpMapping {
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// timeToRetire property.
-    pub time_to_retire: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `ConnectPoolNodeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectPoolNodeConfig {
-    /// dnsName property.
-    pub dns_name: Option<String>,
-    /// dnsNames property.
-    pub dns_names: Option<Vec<DnsNameMapping>>,
-    /// ipAddresses property.
-    pub ip_addresses: Option<Vec<IpMapping>>,
-    /// name property.
-    pub name: Option<String>,
-}
 
 /// `ConnectSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -92,6 +59,43 @@ pub struct ConnectSettings {
     pub server_ca_cert: Option<SslCert>,
     /// serverCaMode property.
     pub server_ca_mode: Option<String>,
+}
+
+/// `ConnectPoolNodeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectPoolNodeConfig {
+    /// dnsName property.
+    pub dns_name: Option<String>,
+    /// dnsNames property.
+    pub dns_names: Option<Vec<DnsNameMapping>>,
+    /// ipAddresses property.
+    pub ip_addresses: Option<Vec<IpMapping>>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `DnsNameMapping` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsNameMapping {
+    /// connectionType property.
+    pub connection_type: Option<String>,
+    /// dnsScope property.
+    pub dns_scope: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// recordManager property.
+    pub record_manager: Option<String>,
+}
+
+/// `IpMapping` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IpMapping {
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// timeToRetire property.
+    pub time_to_retire: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 // =============================================================================

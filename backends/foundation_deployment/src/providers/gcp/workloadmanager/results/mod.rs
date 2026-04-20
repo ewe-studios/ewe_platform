@@ -12,17 +12,36 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListExecutionResultsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListExecutionResultsResponse {
+    /// executionResults property.
+    pub execution_results: Option<Vec<ExecutionResult>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `RuleOutput` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RuleOutput {
+    /// details property.
+    pub details: Option<serde_json::Value>,
+    /// message property.
+    pub message: Option<String>,
+}
 
 /// `Resource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -35,13 +54,17 @@ pub struct Resource {
     pub r#type: Option<String>,
 }
 
-/// `Command` type.
+/// `ViolationDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Command {
-    /// agentCommand property.
-    pub agent_command: Option<AgentCommand>,
-    /// shellCommand property.
-    pub shell_command: Option<ShellCommand>,
+pub struct ViolationDetails {
+    /// asset property.
+    pub asset: Option<String>,
+    /// observed property.
+    pub observed: Option<serde_json::Value>,
+    /// ruleOutput property.
+    pub rule_output: Option<Vec<RuleOutput>>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
 }
 
 /// `AgentCommand` type.
@@ -51,24 +74,6 @@ pub struct AgentCommand {
     pub command: Option<String>,
     /// parameters property.
     pub parameters: Option<serde_json::Value>,
-}
-
-/// `RuleOutput` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RuleOutput {
-    /// details property.
-    pub details: Option<serde_json::Value>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `ListExecutionResultsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListExecutionResultsResponse {
-    /// executionResults property.
-    pub execution_results: Option<Vec<ExecutionResult>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 /// `ExecutionResult` type.
@@ -92,6 +97,15 @@ pub struct ExecutionResult {
     pub violation_message: Option<String>,
 }
 
+/// `Command` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Command {
+    /// agentCommand property.
+    pub agent_command: Option<AgentCommand>,
+    /// shellCommand property.
+    pub shell_command: Option<ShellCommand>,
+}
+
 /// `ShellCommand` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShellCommand {
@@ -101,19 +115,6 @@ pub struct ShellCommand {
     pub command: Option<String>,
     /// timeoutSeconds property.
     pub timeout_seconds: Option<i64>,
-}
-
-/// `ViolationDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ViolationDetails {
-    /// asset property.
-    pub asset: Option<String>,
-    /// observed property.
-    pub observed: Option<serde_json::Value>,
-    /// ruleOutput property.
-    pub rule_output: Option<Vec<RuleOutput>>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
 }
 
 // =============================================================================

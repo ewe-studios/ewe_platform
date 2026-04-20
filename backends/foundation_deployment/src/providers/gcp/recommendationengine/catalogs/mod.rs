@@ -12,17 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudRecommendationengineV1Beta1CatalogItemLevelConfig` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecommendationengineV1Beta1CatalogItemLevelConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
 
 /// `GoogleCloudRecommendationengineV1beta1ListCatalogsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -31,14 +40,6 @@ pub struct GoogleCloudRecommendationengineV1beta1ListCatalogsResponse {
     pub catalogs: Option<Vec<GoogleCloudRecommendationengineV1Beta1Catalog>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudRecommendationengineV1Beta1Catalog` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecommendationengineV1Beta1Catalog {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `GoogleCloudRecommendationengineV1beta1Catalog` type.
@@ -55,9 +56,9 @@ pub struct GoogleCloudRecommendationengineV1beta1Catalog {
     pub name: Option<String>,
 }
 
-/// `GoogleCloudRecommendationengineV1Beta1CatalogItemLevelConfig` response type.
+/// `GoogleCloudRecommendationengineV1Beta1Catalog` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecommendationengineV1Beta1CatalogItemLevelConfig {
+pub struct GoogleCloudRecommendationengineV1Beta1Catalog {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

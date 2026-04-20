@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -23,192 +24,6 @@ use super::shared::ApiResponse;
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `OAuthTokenResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OAuthTokenResponse {
-    /// access_token property.
-    pub access_token: String,
-    /// expires_in property.
-    pub expires_in: i64,
-    /// refresh_token property.
-    pub refresh_token: String,
-    /// token_type property.
-    pub token_type: String,
-}
-
-/// `CreateProjectClaimTokenResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateProjectClaimTokenResponse {
-    /// created_at property.
-    pub created_at: String,
-    /// created_by property.
-    pub created_by: String,
-    /// expires_at property.
-    pub expires_at: String,
-    /// token property.
-    pub token: String,
-    /// token_alias property.
-    pub token_alias: String,
-}
-
-/// `SigningKeyResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SigningKeyResponse {
-    /// algorithm property.
-    pub algorithm: String,
-    /// created_at property.
-    pub created_at: String,
-    /// id property.
-    pub id: String,
-    /// public_jwk property.
-    pub public_jwk: Option<serde_json::Value>,
-    /// status property.
-    pub status: String,
-    /// updated_at property.
-    pub updated_at: String,
-}
-
-/// `CreateProviderBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateProviderBody {
-    /// attribute_mapping property.
-    pub attribute_mapping: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// domains property.
-    pub domains: Option<Vec<String>>,
-    /// metadata_url property.
-    pub metadata_url: Option<String>,
-    /// metadata_xml property.
-    pub metadata_xml: Option<String>,
-    /// name_id_format property.
-    pub name_id_format: Option<String>,
-    /// type property.
-    pub r#type: String,
-}
-
-/// `OAuthRevokeTokenBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OAuthRevokeTokenBody {
-    /// client_id property.
-    pub client_id: String,
-    /// client_secret property.
-    pub client_secret: String,
-    /// refresh_token property.
-    pub refresh_token: String,
-}
-
-/// `DeleteProviderResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteProviderResponse {
-    /// created_at property.
-    pub created_at: Option<String>,
-    /// domains property.
-    pub domains: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// id property.
-    pub id: String,
-    /// saml property.
-    pub saml: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// updated_at property.
-    pub updated_at: Option<String>,
-}
-
-/// `SigningKeysResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SigningKeysResponse {
-    /// keys property.
-    pub keys: Vec<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `OrganizationProjectClaimResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OrganizationProjectClaimResponse {
-    /// created_at property.
-    pub created_at: String,
-    /// created_by property.
-    pub created_by: String,
-    /// expires_at property.
-    pub expires_at: String,
-    /// preview property.
-    pub preview: std::collections::HashMap<String, serde_json::Value>,
-    /// project property.
-    pub project: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CreateProviderResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateProviderResponse {
-    /// created_at property.
-    pub created_at: Option<String>,
-    /// domains property.
-    pub domains: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// id property.
-    pub id: String,
-    /// saml property.
-    pub saml: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// updated_at property.
-    pub updated_at: Option<String>,
-}
-
-/// `GetProviderResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetProviderResponse {
-    /// created_at property.
-    pub created_at: Option<String>,
-    /// domains property.
-    pub domains: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// id property.
-    pub id: String,
-    /// saml property.
-    pub saml: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// updated_at property.
-    pub updated_at: Option<String>,
-}
-
-/// `UpdateProviderBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateProviderBody {
-    /// attribute_mapping property.
-    pub attribute_mapping: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// domains property.
-    pub domains: Option<Vec<String>>,
-    /// metadata_url property.
-    pub metadata_url: Option<String>,
-    /// metadata_xml property.
-    pub metadata_xml: Option<String>,
-    /// name_id_format property.
-    pub name_id_format: Option<String>,
-}
-
-/// `ProjectClaimTokenResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectClaimTokenResponse {
-    /// created_at property.
-    pub created_at: String,
-    /// created_by property.
-    pub created_by: String,
-    /// expires_at property.
-    pub expires_at: String,
-    /// token_alias property.
-    pub token_alias: String,
-}
-
-/// `CreateSigningKeyBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateSigningKeyBody {
-    /// algorithm property.
-    pub algorithm: String,
-    /// private_jwk property.
-    pub private_jwk: Option<serde_json::Value>,
-    /// status property.
-    pub status: Option<String>,
-}
-
-/// `UpdateSigningKeyBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateSigningKeyBody {
-    /// status property.
-    pub status: String,
-}
 
 /// `AuthConfigResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -689,6 +504,63 @@ pub struct AuthConfigResponse {
     pub webauthn_rp_origins: String,
 }
 
+/// `CreateSigningKeyBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateSigningKeyBody {
+    /// algorithm property.
+    pub algorithm: String,
+    /// private_jwk property.
+    pub private_jwk: Option<serde_json::Value>,
+    /// status property.
+    pub status: Option<String>,
+}
+
+/// `CreateProviderBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateProviderBody {
+    /// attribute_mapping property.
+    pub attribute_mapping: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// domains property.
+    pub domains: Option<Vec<String>>,
+    /// metadata_url property.
+    pub metadata_url: Option<String>,
+    /// metadata_xml property.
+    pub metadata_xml: Option<String>,
+    /// name_id_format property.
+    pub name_id_format: Option<String>,
+    /// type property.
+    pub r#type: String,
+}
+
+/// `SigningKeysResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SigningKeysResponse {
+    /// keys property.
+    pub keys: Vec<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `ListProvidersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListProvidersResponse {
+    /// items property.
+    pub items: Vec<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `CreateProviderResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateProviderResponse {
+    /// created_at property.
+    pub created_at: Option<String>,
+    /// domains property.
+    pub domains: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// id property.
+    pub id: String,
+    /// saml property.
+    pub saml: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+}
+
 /// `UpdateAuthConfigBody` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateAuthConfigBody {
@@ -1162,30 +1034,26 @@ pub struct UpdateAuthConfigBody {
     pub webauthn_rp_origins: Option<String>,
 }
 
-/// `UpdateProviderResponse` type.
+/// `OrganizationProjectClaimResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateProviderResponse {
+pub struct OrganizationProjectClaimResponse {
     /// created_at property.
-    pub created_at: Option<String>,
-    /// domains property.
-    pub domains: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// id property.
-    pub id: String,
-    /// saml property.
-    pub saml: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// updated_at property.
-    pub updated_at: Option<String>,
+    pub created_at: String,
+    /// created_by property.
+    pub created_by: String,
+    /// expires_at property.
+    pub expires_at: String,
+    /// preview property.
+    pub preview: std::collections::HashMap<String, serde_json::Value>,
+    /// project property.
+    pub project: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `CreateThirdPartyAuthBody` type.
+/// `UpdateSigningKeyBody` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateThirdPartyAuthBody {
-    /// custom_jwks property.
-    pub custom_jwks: Option<serde_json::Value>,
-    /// jwks_url property.
-    pub jwks_url: Option<String>,
-    /// oidc_issuer_url property.
-    pub oidc_issuer_url: Option<String>,
+pub struct UpdateSigningKeyBody {
+    /// status property.
+    pub status: String,
 }
 
 /// `ThirdPartyAuth` type.
@@ -1211,11 +1079,144 @@ pub struct ThirdPartyAuth {
     pub updated_at: String,
 }
 
-/// `ListProvidersResponse` type.
+/// `UpdateProviderResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListProvidersResponse {
-    /// items property.
-    pub items: Vec<std::collections::HashMap<String, serde_json::Value>>,
+pub struct UpdateProviderResponse {
+    /// created_at property.
+    pub created_at: Option<String>,
+    /// domains property.
+    pub domains: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// id property.
+    pub id: String,
+    /// saml property.
+    pub saml: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+}
+
+/// `OAuthTokenResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OAuthTokenResponse {
+    /// access_token property.
+    pub access_token: String,
+    /// expires_in property.
+    pub expires_in: i64,
+    /// refresh_token property.
+    pub refresh_token: String,
+    /// token_type property.
+    pub token_type: String,
+}
+
+/// `OAuthRevokeTokenBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OAuthRevokeTokenBody {
+    /// client_id property.
+    pub client_id: String,
+    /// client_secret property.
+    pub client_secret: String,
+    /// refresh_token property.
+    pub refresh_token: String,
+}
+
+/// `SigningKeyResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SigningKeyResponse {
+    /// algorithm property.
+    pub algorithm: String,
+    /// created_at property.
+    pub created_at: String,
+    /// id property.
+    pub id: String,
+    /// public_jwk property.
+    pub public_jwk: Option<serde_json::Value>,
+    /// status property.
+    pub status: String,
+    /// updated_at property.
+    pub updated_at: String,
+}
+
+/// `DeleteProviderResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeleteProviderResponse {
+    /// created_at property.
+    pub created_at: Option<String>,
+    /// domains property.
+    pub domains: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// id property.
+    pub id: String,
+    /// saml property.
+    pub saml: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+}
+
+/// `ProjectClaimTokenResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectClaimTokenResponse {
+    /// created_at property.
+    pub created_at: String,
+    /// created_by property.
+    pub created_by: String,
+    /// expires_at property.
+    pub expires_at: String,
+    /// token_alias property.
+    pub token_alias: String,
+}
+
+/// `CreateProjectClaimTokenResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateProjectClaimTokenResponse {
+    /// created_at property.
+    pub created_at: String,
+    /// created_by property.
+    pub created_by: String,
+    /// expires_at property.
+    pub expires_at: String,
+    /// token property.
+    pub token: String,
+    /// token_alias property.
+    pub token_alias: String,
+}
+
+/// `UpdateProviderBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateProviderBody {
+    /// attribute_mapping property.
+    pub attribute_mapping: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// domains property.
+    pub domains: Option<Vec<String>>,
+    /// metadata_url property.
+    pub metadata_url: Option<String>,
+    /// metadata_xml property.
+    pub metadata_xml: Option<String>,
+    /// name_id_format property.
+    pub name_id_format: Option<String>,
+}
+
+/// `GetProviderResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetProviderResponse {
+    /// created_at property.
+    pub created_at: Option<String>,
+    /// domains property.
+    pub domains: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// id property.
+    pub id: String,
+    /// saml property.
+    pub saml: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+}
+
+/// `CreateThirdPartyAuthBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateThirdPartyAuthBody {
+    /// custom_jwks property.
+    pub custom_jwks: Option<serde_json::Value>,
+    /// jwks_url property.
+    pub jwks_url: Option<String>,
+    /// oidc_issuer_url property.
+    pub oidc_issuer_url: Option<String>,
 }
 
 // =============================================================================

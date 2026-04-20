@@ -12,27 +12,210 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ColorStop` type.
+/// `Group` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ColorStop {
-    /// alpha property.
-    pub alpha: Option<f64>,
-    /// color property.
-    pub color: Option<OpaqueColor>,
-    /// position property.
-    pub position: Option<f64>,
+pub struct Group {
+    /// children property.
+    pub children: Option<Vec<Box<PageElement>>>,
+}
+
+/// `WordArt` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WordArt {
+    /// renderedText property.
+    pub rendered_text: Option<String>,
+}
+
+/// `TableRow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableRow {
+    /// rowHeight property.
+    pub row_height: Option<Dimension>,
+    /// tableCells property.
+    pub table_cells: Option<Vec<TableCell>>,
+    /// tableRowProperties property.
+    pub table_row_properties: Option<TableRowProperties>,
+}
+
+/// `ImageProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImageProperties {
+    /// brightness property.
+    pub brightness: Option<f64>,
+    /// contrast property.
+    pub contrast: Option<f64>,
+    /// cropProperties property.
+    pub crop_properties: Option<CropProperties>,
+    /// link property.
+    pub link: Option<Link>,
+    /// outline property.
+    pub outline: Option<Outline>,
+    /// recolor property.
+    pub recolor: Option<Recolor>,
+    /// shadow property.
+    pub shadow: Option<Shadow>,
+    /// transparency property.
+    pub transparency: Option<f64>,
+}
+
+/// `TableCellBackgroundFill` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableCellBackgroundFill {
+    /// propertyState property.
+    pub property_state: Option<String>,
+    /// solidFill property.
+    pub solid_fill: Option<SolidFill>,
+}
+
+/// `CropProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CropProperties {
+    /// angle property.
+    pub angle: Option<f64>,
+    /// bottomOffset property.
+    pub bottom_offset: Option<f64>,
+    /// leftOffset property.
+    pub left_offset: Option<f64>,
+    /// rightOffset property.
+    pub right_offset: Option<f64>,
+    /// topOffset property.
+    pub top_offset: Option<f64>,
+}
+
+/// `PageElement` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PageElement {
+    /// description property.
+    pub description: Option<String>,
+    /// elementGroup property.
+    pub element_group: Option<Box<Group>>,
+    /// image property.
+    pub image: Option<Image>,
+    /// line property.
+    pub line: Option<Line>,
+    /// objectId property.
+    pub object_id: Option<String>,
+    /// shape property.
+    pub shape: Option<Shape>,
+    /// sheetsChart property.
+    pub sheets_chart: Option<SheetsChart>,
+    /// size property.
+    pub size: Option<Size>,
+    /// speakerSpotlight property.
+    pub speaker_spotlight: Option<SpeakerSpotlight>,
+    /// table property.
+    pub table: Option<Table>,
+    /// title property.
+    pub title: Option<String>,
+    /// transform property.
+    pub transform: Option<AffineTransform>,
+    /// video property.
+    pub video: Option<Video>,
+    /// wordArt property.
+    pub word_art: Option<WordArt>,
+}
+
+/// `Link` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Link {
+    /// pageObjectId property.
+    pub page_object_id: Option<String>,
+    /// relativeLink property.
+    pub relative_link: Option<String>,
+    /// slideIndex property.
+    pub slide_index: Option<i64>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `Dimension` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Dimension {
+    /// magnitude property.
+    pub magnitude: Option<f64>,
+    /// unit property.
+    pub unit: Option<String>,
+}
+
+/// `AffineTransform` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AffineTransform {
+    /// scaleX property.
+    pub scale_x: Option<f64>,
+    /// scaleY property.
+    pub scale_y: Option<f64>,
+    /// shearX property.
+    pub shear_x: Option<f64>,
+    /// shearY property.
+    pub shear_y: Option<f64>,
+    /// translateX property.
+    pub translate_x: Option<f64>,
+    /// translateY property.
+    pub translate_y: Option<f64>,
+    /// unit property.
+    pub unit: Option<String>,
+}
+
+/// `ShapeProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShapeProperties {
+    /// autofit property.
+    pub autofit: Option<Autofit>,
+    /// contentAlignment property.
+    pub content_alignment: Option<String>,
+    /// link property.
+    pub link: Option<Link>,
+    /// outline property.
+    pub outline: Option<Outline>,
+    /// shadow property.
+    pub shadow: Option<Shadow>,
+    /// shapeBackgroundFill property.
+    pub shape_background_fill: Option<ShapeBackgroundFill>,
+}
+
+/// `MasterProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MasterProperties {
+    /// displayName property.
+    pub display_name: Option<String>,
+}
+
+/// `TableColumnProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableColumnProperties {
+    /// columnWidth property.
+    pub column_width: Option<Dimension>,
+}
+
+/// `Placeholder` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Placeholder {
+    /// index property.
+    pub index: Option<i64>,
+    /// parentObjectId property.
+    pub parent_object_id: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `TableBorderRow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableBorderRow {
+    /// tableBorderCells property.
+    pub table_border_cells: Option<Vec<TableBorderCell>>,
 }
 
 /// `Outline` type.
@@ -46,6 +229,258 @@ pub struct Outline {
     pub property_state: Option<String>,
     /// weight property.
     pub weight: Option<Dimension>,
+}
+
+/// `PageProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PageProperties {
+    /// colorScheme property.
+    pub color_scheme: Option<ColorScheme>,
+    /// pageBackgroundFill property.
+    pub page_background_fill: Option<PageBackgroundFill>,
+}
+
+/// `VideoProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoProperties {
+    /// autoPlay property.
+    pub auto_play: Option<bool>,
+    /// end property.
+    pub end: Option<i64>,
+    /// mute property.
+    pub mute: Option<bool>,
+    /// outline property.
+    pub outline: Option<Outline>,
+    /// start property.
+    pub start: Option<i64>,
+}
+
+/// `ColorScheme` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ColorScheme {
+    /// colors property.
+    pub colors: Option<Vec<ThemeColorPair>>,
+}
+
+/// `Image` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Image {
+    /// contentUrl property.
+    pub content_url: Option<String>,
+    /// imageProperties property.
+    pub image_properties: Option<ImageProperties>,
+    /// placeholder property.
+    pub placeholder: Option<Placeholder>,
+    /// sourceUrl property.
+    pub source_url: Option<String>,
+}
+
+/// `TableCell` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableCell {
+    /// columnSpan property.
+    pub column_span: Option<i64>,
+    /// location property.
+    pub location: Option<TableCellLocation>,
+    /// rowSpan property.
+    pub row_span: Option<i64>,
+    /// tableCellProperties property.
+    pub table_cell_properties: Option<TableCellProperties>,
+    /// text property.
+    pub text: Option<TextContent>,
+}
+
+/// `AutoText` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutoText {
+    /// content property.
+    pub content: Option<String>,
+    /// style property.
+    pub style: Option<TextStyle>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `SheetsChartProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SheetsChartProperties {
+    /// chartImageProperties property.
+    pub chart_image_properties: Option<ImageProperties>,
+}
+
+/// `TableBorderFill` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableBorderFill {
+    /// solidFill property.
+    pub solid_fill: Option<SolidFill>,
+}
+
+/// `SlideProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SlideProperties {
+    /// isSkipped property.
+    pub is_skipped: Option<bool>,
+    /// layoutObjectId property.
+    pub layout_object_id: Option<String>,
+    /// masterObjectId property.
+    pub master_object_id: Option<String>,
+    /// notesPage property.
+    pub notes_page: Option<Box<Page>>,
+}
+
+/// `TableCellProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableCellProperties {
+    /// contentAlignment property.
+    pub content_alignment: Option<String>,
+    /// tableCellBackgroundFill property.
+    pub table_cell_background_fill: Option<TableCellBackgroundFill>,
+}
+
+/// `SpeakerSpotlightProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpeakerSpotlightProperties {
+    /// outline property.
+    pub outline: Option<Outline>,
+    /// shadow property.
+    pub shadow: Option<Shadow>,
+}
+
+/// `ColorStop` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ColorStop {
+    /// alpha property.
+    pub alpha: Option<f64>,
+    /// color property.
+    pub color: Option<OpaqueColor>,
+    /// position property.
+    pub position: Option<f64>,
+}
+
+/// `ShapeBackgroundFill` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShapeBackgroundFill {
+    /// propertyState property.
+    pub property_state: Option<String>,
+    /// solidFill property.
+    pub solid_fill: Option<SolidFill>,
+}
+
+/// `LineConnection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LineConnection {
+    /// connectedObjectId property.
+    pub connected_object_id: Option<String>,
+    /// connectionSiteIndex property.
+    pub connection_site_index: Option<i64>,
+}
+
+/// `SpeakerSpotlight` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpeakerSpotlight {
+    /// speakerSpotlightProperties property.
+    pub speaker_spotlight_properties: Option<SpeakerSpotlightProperties>,
+}
+
+/// `OutlineFill` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OutlineFill {
+    /// solidFill property.
+    pub solid_fill: Option<SolidFill>,
+}
+
+/// `ThemeColorPair` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ThemeColorPair {
+    /// color property.
+    pub color: Option<RgbColor>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ParagraphStyle` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ParagraphStyle {
+    /// alignment property.
+    pub alignment: Option<String>,
+    /// direction property.
+    pub direction: Option<String>,
+    /// indentEnd property.
+    pub indent_end: Option<Dimension>,
+    /// indentFirstLine property.
+    pub indent_first_line: Option<Dimension>,
+    /// indentStart property.
+    pub indent_start: Option<Dimension>,
+    /// lineSpacing property.
+    pub line_spacing: Option<f64>,
+    /// spaceAbove property.
+    pub space_above: Option<Dimension>,
+    /// spaceBelow property.
+    pub space_below: Option<Dimension>,
+    /// spacingMode property.
+    pub spacing_mode: Option<String>,
+}
+
+/// `OpaqueColor` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OpaqueColor {
+    /// rgbColor property.
+    pub rgb_color: Option<RgbColor>,
+    /// themeColor property.
+    pub theme_color: Option<String>,
+}
+
+/// `ParagraphMarker` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ParagraphMarker {
+    /// bullet property.
+    pub bullet: Option<Bullet>,
+    /// style property.
+    pub style: Option<ParagraphStyle>,
+}
+
+/// `Bullet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Bullet {
+    /// bulletStyle property.
+    pub bullet_style: Option<TextStyle>,
+    /// glyph property.
+    pub glyph: Option<String>,
+    /// listId property.
+    pub list_id: Option<String>,
+    /// nestingLevel property.
+    pub nesting_level: Option<i64>,
+}
+
+/// `TextContent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextContent {
+    /// lists property.
+    pub lists: Option<serde_json::Value>,
+    /// textElements property.
+    pub text_elements: Option<Vec<TextElement>>,
+}
+
+/// `SheetsChart` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SheetsChart {
+    /// chartId property.
+    pub chart_id: Option<i64>,
+    /// contentUrl property.
+    pub content_url: Option<String>,
+    /// sheetsChartProperties property.
+    pub sheets_chart_properties: Option<SheetsChartProperties>,
+    /// spreadsheetId property.
+    pub spreadsheet_id: Option<String>,
+}
+
+/// `Size` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Size {
+    /// height property.
+    pub height: Option<Dimension>,
+    /// width property.
+    pub width: Option<Dimension>,
 }
 
 /// `TextStyle` type.
@@ -77,140 +512,13 @@ pub struct TextStyle {
     pub weighted_font_family: Option<WeightedFontFamily>,
 }
 
-/// `CropProperties` type.
+/// `TextRun` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CropProperties {
-    /// angle property.
-    pub angle: Option<f64>,
-    /// bottomOffset property.
-    pub bottom_offset: Option<f64>,
-    /// leftOffset property.
-    pub left_offset: Option<f64>,
-    /// rightOffset property.
-    pub right_offset: Option<f64>,
-    /// topOffset property.
-    pub top_offset: Option<f64>,
-}
-
-/// `Link` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Link {
-    /// pageObjectId property.
-    pub page_object_id: Option<String>,
-    /// relativeLink property.
-    pub relative_link: Option<String>,
-    /// slideIndex property.
-    pub slide_index: Option<i64>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `ColorScheme` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ColorScheme {
-    /// colors property.
-    pub colors: Option<Vec<ThemeColorPair>>,
-}
-
-/// `Recolor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Recolor {
-    /// name property.
-    pub name: Option<String>,
-    /// recolorStops property.
-    pub recolor_stops: Option<Vec<ColorStop>>,
-}
-
-/// `OptionalColor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OptionalColor {
-    /// opaqueColor property.
-    pub opaque_color: Option<OpaqueColor>,
-}
-
-/// `AffineTransform` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AffineTransform {
-    /// scaleX property.
-    pub scale_x: Option<f64>,
-    /// scaleY property.
-    pub scale_y: Option<f64>,
-    /// shearX property.
-    pub shear_x: Option<f64>,
-    /// shearY property.
-    pub shear_y: Option<f64>,
-    /// translateX property.
-    pub translate_x: Option<f64>,
-    /// translateY property.
-    pub translate_y: Option<f64>,
-    /// unit property.
-    pub unit: Option<String>,
-}
-
-/// `SheetsChartProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SheetsChartProperties {
-    /// chartImageProperties property.
-    pub chart_image_properties: Option<ImageProperties>,
-}
-
-/// `TableCell` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableCell {
-    /// columnSpan property.
-    pub column_span: Option<i64>,
-    /// location property.
-    pub location: Option<TableCellLocation>,
-    /// rowSpan property.
-    pub row_span: Option<i64>,
-    /// tableCellProperties property.
-    pub table_cell_properties: Option<TableCellProperties>,
-    /// text property.
-    pub text: Option<TextContent>,
-}
-
-/// `OutlineFill` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OutlineFill {
-    /// solidFill property.
-    pub solid_fill: Option<SolidFill>,
-}
-
-/// `SlideProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SlideProperties {
-    /// isSkipped property.
-    pub is_skipped: Option<bool>,
-    /// layoutObjectId property.
-    pub layout_object_id: Option<String>,
-    /// masterObjectId property.
-    pub master_object_id: Option<String>,
-    /// notesPage property.
-    pub notes_page: Option<Page>,
-}
-
-/// `SolidFill` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SolidFill {
-    /// alpha property.
-    pub alpha: Option<f64>,
-    /// color property.
-    pub color: Option<OpaqueColor>,
-}
-
-/// `TextElement` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextElement {
-    /// autoText property.
-    pub auto_text: Option<AutoText>,
-    /// endIndex property.
-    pub end_index: Option<i64>,
-    /// paragraphMarker property.
-    pub paragraph_marker: Option<ParagraphMarker>,
-    /// startIndex property.
-    pub start_index: Option<i64>,
-    /// textRun property.
-    pub text_run: Option<TextRun>,
+pub struct TextRun {
+    /// content property.
+    pub content: Option<String>,
+    /// style property.
+    pub style: Option<TextStyle>,
 }
 
 /// `Table` type.
@@ -230,230 +538,11 @@ pub struct Table {
     pub vertical_border_rows: Option<Vec<TableBorderRow>>,
 }
 
-/// `TableRowProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableRowProperties {
-    /// minRowHeight property.
-    pub min_row_height: Option<Dimension>,
-}
-
-/// `LineProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LineProperties {
-    /// dashStyle property.
-    pub dash_style: Option<String>,
-    /// endArrow property.
-    pub end_arrow: Option<String>,
-    /// endConnection property.
-    pub end_connection: Option<LineConnection>,
-    /// lineFill property.
-    pub line_fill: Option<LineFill>,
-    /// link property.
-    pub link: Option<Link>,
-    /// startArrow property.
-    pub start_arrow: Option<String>,
-    /// startConnection property.
-    pub start_connection: Option<LineConnection>,
-    /// weight property.
-    pub weight: Option<Dimension>,
-}
-
-/// `WordArt` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WordArt {
-    /// renderedText property.
-    pub rendered_text: Option<String>,
-}
-
-/// `OpaqueColor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OpaqueColor {
-    /// rgbColor property.
-    pub rgb_color: Option<RgbColor>,
-    /// themeColor property.
-    pub theme_color: Option<String>,
-}
-
-/// `Line` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Line {
-    /// lineCategory property.
-    pub line_category: Option<String>,
-    /// lineProperties property.
-    pub line_properties: Option<LineProperties>,
-    /// lineType property.
-    pub line_type: Option<String>,
-}
-
 /// `LineFill` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LineFill {
     /// solidFill property.
     pub solid_fill: Option<SolidFill>,
-}
-
-/// `StretchedPictureFill` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StretchedPictureFill {
-    /// contentUrl property.
-    pub content_url: Option<String>,
-    /// size property.
-    pub size: Option<Size>,
-}
-
-/// `TableColumnProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableColumnProperties {
-    /// columnWidth property.
-    pub column_width: Option<Dimension>,
-}
-
-/// `ShapeProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShapeProperties {
-    /// autofit property.
-    pub autofit: Option<Autofit>,
-    /// contentAlignment property.
-    pub content_alignment: Option<String>,
-    /// link property.
-    pub link: Option<Link>,
-    /// outline property.
-    pub outline: Option<Outline>,
-    /// shadow property.
-    pub shadow: Option<Shadow>,
-    /// shapeBackgroundFill property.
-    pub shape_background_fill: Option<ShapeBackgroundFill>,
-}
-
-/// `WeightedFontFamily` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WeightedFontFamily {
-    /// fontFamily property.
-    pub font_family: Option<String>,
-    /// weight property.
-    pub weight: Option<i64>,
-}
-
-/// `PageElement` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PageElement {
-    /// description property.
-    pub description: Option<String>,
-    /// elementGroup property.
-    pub element_group: Option<Group>,
-    /// image property.
-    pub image: Option<Image>,
-    /// line property.
-    pub line: Option<Line>,
-    /// objectId property.
-    pub object_id: Option<String>,
-    /// shape property.
-    pub shape: Option<Shape>,
-    /// sheetsChart property.
-    pub sheets_chart: Option<SheetsChart>,
-    /// size property.
-    pub size: Option<Size>,
-    /// speakerSpotlight property.
-    pub speaker_spotlight: Option<SpeakerSpotlight>,
-    /// table property.
-    pub table: Option<Table>,
-    /// title property.
-    pub title: Option<String>,
-    /// transform property.
-    pub transform: Option<AffineTransform>,
-    /// video property.
-    pub video: Option<Video>,
-    /// wordArt property.
-    pub word_art: Option<WordArt>,
-}
-
-/// `TableCellProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableCellProperties {
-    /// contentAlignment property.
-    pub content_alignment: Option<String>,
-    /// tableCellBackgroundFill property.
-    pub table_cell_background_fill: Option<TableCellBackgroundFill>,
-}
-
-/// `NotesProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NotesProperties {
-    /// speakerNotesObjectId property.
-    pub speaker_notes_object_id: Option<String>,
-}
-
-/// `SheetsChart` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SheetsChart {
-    /// chartId property.
-    pub chart_id: Option<i64>,
-    /// contentUrl property.
-    pub content_url: Option<String>,
-    /// sheetsChartProperties property.
-    pub sheets_chart_properties: Option<SheetsChartProperties>,
-    /// spreadsheetId property.
-    pub spreadsheet_id: Option<String>,
-}
-
-/// `TextContent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextContent {
-    /// lists property.
-    pub lists: Option<serde_json::Value>,
-    /// textElements property.
-    pub text_elements: Option<Vec<TextElement>>,
-}
-
-/// `MasterProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MasterProperties {
-    /// displayName property.
-    pub display_name: Option<String>,
-}
-
-/// `ParagraphMarker` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ParagraphMarker {
-    /// bullet property.
-    pub bullet: Option<Bullet>,
-    /// style property.
-    pub style: Option<ParagraphStyle>,
-}
-
-/// `ThemeColorPair` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ThemeColorPair {
-    /// color property.
-    pub color: Option<RgbColor>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `VideoProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoProperties {
-    /// autoPlay property.
-    pub auto_play: Option<bool>,
-    /// end property.
-    pub end: Option<i64>,
-    /// mute property.
-    pub mute: Option<bool>,
-    /// outline property.
-    pub outline: Option<Outline>,
-    /// start property.
-    pub start: Option<i64>,
-}
-
-/// `PageBackgroundFill` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PageBackgroundFill {
-    /// propertyState property.
-    pub property_state: Option<String>,
-    /// solidFill property.
-    pub solid_fill: Option<SolidFill>,
-    /// stretchedPictureFill property.
-    pub stretched_picture_fill: Option<StretchedPictureFill>,
 }
 
 /// `TableCellLocation` type.
@@ -465,53 +554,63 @@ pub struct TableCellLocation {
     pub row_index: Option<i64>,
 }
 
-/// `Group` type.
+/// `SolidFill` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Group {
-    /// children property.
-    pub children: Option<Vec<PageElement>>,
+pub struct SolidFill {
+    /// alpha property.
+    pub alpha: Option<f64>,
+    /// color property.
+    pub color: Option<OpaqueColor>,
 }
 
-/// `TableBorderCell` type.
+/// `WeightedFontFamily` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableBorderCell {
-    /// location property.
-    pub location: Option<TableCellLocation>,
-    /// tableBorderProperties property.
-    pub table_border_properties: Option<TableBorderProperties>,
+pub struct WeightedFontFamily {
+    /// fontFamily property.
+    pub font_family: Option<String>,
+    /// weight property.
+    pub weight: Option<i64>,
 }
 
-/// `Bullet` type.
+/// `NotesProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Bullet {
-    /// bulletStyle property.
-    pub bullet_style: Option<TextStyle>,
-    /// glyph property.
-    pub glyph: Option<String>,
-    /// listId property.
-    pub list_id: Option<String>,
-    /// nestingLevel property.
-    pub nesting_level: Option<i64>,
+pub struct NotesProperties {
+    /// speakerNotesObjectId property.
+    pub speaker_notes_object_id: Option<String>,
 }
 
-/// `Autofit` type.
+/// `Page` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Autofit {
-    /// autofitType property.
-    pub autofit_type: Option<String>,
-    /// fontScale property.
-    pub font_scale: Option<f64>,
-    /// lineSpacingReduction property.
-    pub line_spacing_reduction: Option<f64>,
+pub struct Page {
+    /// layoutProperties property.
+    pub layout_properties: Option<LayoutProperties>,
+    /// masterProperties property.
+    pub master_properties: Option<MasterProperties>,
+    /// notesProperties property.
+    pub notes_properties: Option<NotesProperties>,
+    /// objectId property.
+    pub object_id: Option<String>,
+    /// pageElements property.
+    pub page_elements: Option<Vec<Box<PageElement>>>,
+    /// pageProperties property.
+    pub page_properties: Option<PageProperties>,
+    /// pageType property.
+    pub page_type: Option<String>,
+    /// revisionId property.
+    pub revision_id: Option<String>,
+    /// slideProperties property.
+    pub slide_properties: Option<Box<SlideProperties>>,
 }
 
-/// `TableCellBackgroundFill` type.
+/// `RgbColor` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableCellBackgroundFill {
-    /// propertyState property.
-    pub property_state: Option<String>,
-    /// solidFill property.
-    pub solid_fill: Option<SolidFill>,
+pub struct RgbColor {
+    /// blue property.
+    pub blue: Option<f64>,
+    /// green property.
+    pub green: Option<f64>,
+    /// red property.
+    pub red: Option<f64>,
 }
 
 /// `TableBorderProperties` type.
@@ -525,133 +624,48 @@ pub struct TableBorderProperties {
     pub weight: Option<Dimension>,
 }
 
-/// `SpeakerSpotlightProperties` type.
+/// `Recolor` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpeakerSpotlightProperties {
-    /// outline property.
-    pub outline: Option<Outline>,
-    /// shadow property.
-    pub shadow: Option<Shadow>,
-}
-
-/// `AutoText` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutoText {
-    /// content property.
-    pub content: Option<String>,
-    /// style property.
-    pub style: Option<TextStyle>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `ImageProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImageProperties {
-    /// brightness property.
-    pub brightness: Option<f64>,
-    /// contrast property.
-    pub contrast: Option<f64>,
-    /// cropProperties property.
-    pub crop_properties: Option<CropProperties>,
-    /// link property.
-    pub link: Option<Link>,
-    /// outline property.
-    pub outline: Option<Outline>,
-    /// recolor property.
-    pub recolor: Option<Recolor>,
-    /// shadow property.
-    pub shadow: Option<Shadow>,
-    /// transparency property.
-    pub transparency: Option<f64>,
-}
-
-/// `Placeholder` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Placeholder {
-    /// index property.
-    pub index: Option<i64>,
-    /// parentObjectId property.
-    pub parent_object_id: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `PageProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PageProperties {
-    /// colorScheme property.
-    pub color_scheme: Option<ColorScheme>,
-    /// pageBackgroundFill property.
-    pub page_background_fill: Option<PageBackgroundFill>,
-}
-
-/// `TextRun` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextRun {
-    /// content property.
-    pub content: Option<String>,
-    /// style property.
-    pub style: Option<TextStyle>,
-}
-
-/// `LineConnection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LineConnection {
-    /// connectedObjectId property.
-    pub connected_object_id: Option<String>,
-    /// connectionSiteIndex property.
-    pub connection_site_index: Option<i64>,
-}
-
-/// `LayoutProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LayoutProperties {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// masterObjectId property.
-    pub master_object_id: Option<String>,
+pub struct Recolor {
     /// name property.
     pub name: Option<String>,
+    /// recolorStops property.
+    pub recolor_stops: Option<Vec<ColorStop>>,
 }
 
-/// `ParagraphStyle` type.
+/// `PageBackgroundFill` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ParagraphStyle {
-    /// alignment property.
-    pub alignment: Option<String>,
-    /// direction property.
-    pub direction: Option<String>,
-    /// indentEnd property.
-    pub indent_end: Option<Dimension>,
-    /// indentFirstLine property.
-    pub indent_first_line: Option<Dimension>,
-    /// indentStart property.
-    pub indent_start: Option<Dimension>,
-    /// lineSpacing property.
-    pub line_spacing: Option<f64>,
-    /// spaceAbove property.
-    pub space_above: Option<Dimension>,
-    /// spaceBelow property.
-    pub space_below: Option<Dimension>,
-    /// spacingMode property.
-    pub spacing_mode: Option<String>,
+pub struct PageBackgroundFill {
+    /// propertyState property.
+    pub property_state: Option<String>,
+    /// solidFill property.
+    pub solid_fill: Option<SolidFill>,
+    /// stretchedPictureFill property.
+    pub stretched_picture_fill: Option<StretchedPictureFill>,
 }
 
-/// `Size` type.
+/// `TextElement` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Size {
-    /// height property.
-    pub height: Option<Dimension>,
-    /// width property.
-    pub width: Option<Dimension>,
+pub struct TextElement {
+    /// autoText property.
+    pub auto_text: Option<AutoText>,
+    /// endIndex property.
+    pub end_index: Option<i64>,
+    /// paragraphMarker property.
+    pub paragraph_marker: Option<ParagraphMarker>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+    /// textRun property.
+    pub text_run: Option<TextRun>,
 }
 
-/// `SpeakerSpotlight` type.
+/// `StretchedPictureFill` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpeakerSpotlight {
-    /// speakerSpotlightProperties property.
-    pub speaker_spotlight_properties: Option<SpeakerSpotlightProperties>,
+pub struct StretchedPictureFill {
+    /// contentUrl property.
+    pub content_url: Option<String>,
+    /// size property.
+    pub size: Option<Size>,
 }
 
 /// `Shadow` type.
@@ -675,37 +689,22 @@ pub struct Shadow {
     pub r#type: Option<String>,
 }
 
-/// `ShapeBackgroundFill` type.
+/// `TableRowProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShapeBackgroundFill {
-    /// propertyState property.
-    pub property_state: Option<String>,
-    /// solidFill property.
-    pub solid_fill: Option<SolidFill>,
+pub struct TableRowProperties {
+    /// minRowHeight property.
+    pub min_row_height: Option<Dimension>,
 }
 
-/// `RgbColor` type.
+/// `Autofit` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RgbColor {
-    /// blue property.
-    pub blue: Option<f64>,
-    /// green property.
-    pub green: Option<f64>,
-    /// red property.
-    pub red: Option<f64>,
-}
-
-/// `Image` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Image {
-    /// contentUrl property.
-    pub content_url: Option<String>,
-    /// imageProperties property.
-    pub image_properties: Option<ImageProperties>,
-    /// placeholder property.
-    pub placeholder: Option<Placeholder>,
-    /// sourceUrl property.
-    pub source_url: Option<String>,
+pub struct Autofit {
+    /// autofitType property.
+    pub autofit_type: Option<String>,
+    /// fontScale property.
+    pub font_scale: Option<f64>,
+    /// lineSpacingReduction property.
+    pub line_spacing_reduction: Option<f64>,
 }
 
 /// `Shape` type.
@@ -721,6 +720,65 @@ pub struct Shape {
     pub text: Option<TextContent>,
 }
 
+/// `LineProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LineProperties {
+    /// dashStyle property.
+    pub dash_style: Option<String>,
+    /// endArrow property.
+    pub end_arrow: Option<String>,
+    /// endConnection property.
+    pub end_connection: Option<LineConnection>,
+    /// lineFill property.
+    pub line_fill: Option<LineFill>,
+    /// link property.
+    pub link: Option<Link>,
+    /// startArrow property.
+    pub start_arrow: Option<String>,
+    /// startConnection property.
+    pub start_connection: Option<LineConnection>,
+    /// weight property.
+    pub weight: Option<Dimension>,
+}
+
+/// `TableBorderCell` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableBorderCell {
+    /// location property.
+    pub location: Option<TableCellLocation>,
+    /// tableBorderProperties property.
+    pub table_border_properties: Option<TableBorderProperties>,
+}
+
+/// `OptionalColor` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OptionalColor {
+    /// opaqueColor property.
+    pub opaque_color: Option<OpaqueColor>,
+}
+
+/// `Line` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Line {
+    /// lineCategory property.
+    pub line_category: Option<String>,
+    /// lineProperties property.
+    pub line_properties: Option<LineProperties>,
+    /// lineType property.
+    pub line_type: Option<String>,
+}
+
+/// `LayoutProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LayoutProperties {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// masterObjectId property.
+    pub master_object_id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
 /// `Video` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Video {
@@ -732,63 +790,6 @@ pub struct Video {
     pub url: Option<String>,
     /// videoProperties property.
     pub video_properties: Option<VideoProperties>,
-}
-
-/// `TableRow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableRow {
-    /// rowHeight property.
-    pub row_height: Option<Dimension>,
-    /// tableCells property.
-    pub table_cells: Option<Vec<TableCell>>,
-    /// tableRowProperties property.
-    pub table_row_properties: Option<TableRowProperties>,
-}
-
-/// `TableBorderRow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableBorderRow {
-    /// tableBorderCells property.
-    pub table_border_cells: Option<Vec<TableBorderCell>>,
-}
-
-/// `Dimension` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Dimension {
-    /// magnitude property.
-    pub magnitude: Option<f64>,
-    /// unit property.
-    pub unit: Option<String>,
-}
-
-/// `TableBorderFill` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableBorderFill {
-    /// solidFill property.
-    pub solid_fill: Option<SolidFill>,
-}
-
-/// `Page` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Page {
-    /// layoutProperties property.
-    pub layout_properties: Option<LayoutProperties>,
-    /// masterProperties property.
-    pub master_properties: Option<MasterProperties>,
-    /// notesProperties property.
-    pub notes_properties: Option<NotesProperties>,
-    /// objectId property.
-    pub object_id: Option<String>,
-    /// pageElements property.
-    pub page_elements: Option<Vec<PageElement>>,
-    /// pageProperties property.
-    pub page_properties: Option<PageProperties>,
-    /// pageType property.
-    pub page_type: Option<String>,
-    /// revisionId property.
-    pub revision_id: Option<String>,
-    /// slideProperties property.
-    pub slide_properties: Option<SlideProperties>,
 }
 
 // =============================================================================

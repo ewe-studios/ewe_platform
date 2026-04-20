@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,58 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudDialogflowCxV3GeneratorModelParameter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3GeneratorModelParameter {
-    /// maxDecodeSteps property.
-    pub max_decode_steps: Option<i64>,
-    /// temperature property.
-    pub temperature: Option<f64>,
-    /// topK property.
-    pub top_k: Option<i64>,
-    /// topP property.
-    pub top_p: Option<f64>,
-}
-
-/// `GoogleCloudDialogflowCxV3ListGeneratorsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ListGeneratorsResponse {
-    /// generators property.
-    pub generators: Option<Vec<GoogleCloudDialogflowCxV3Generator>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3GeneratorPlaceholder` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3GeneratorPlaceholder {
-    /// id property.
-    pub id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3LlmModelSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3LlmModelSettings {
-    /// model property.
-    pub model: Option<String>,
-    /// promptText property.
-    pub prompt_text: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3Phrase` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3Phrase {
-    /// text property.
-    pub text: Option<String>,
-}
 
 /// `GoogleCloudDialogflowCxV3Generator` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -89,6 +43,53 @@ pub struct GoogleCloudDialogflowCxV3Generator {
     pub placeholders: Option<Vec<GoogleCloudDialogflowCxV3GeneratorPlaceholder>>,
     /// promptText property.
     pub prompt_text: Option<GoogleCloudDialogflowCxV3Phrase>,
+}
+
+/// `GoogleCloudDialogflowCxV3ListGeneratorsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ListGeneratorsResponse {
+    /// generators property.
+    pub generators: Option<Vec<GoogleCloudDialogflowCxV3Generator>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3Phrase` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3Phrase {
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3LlmModelSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3LlmModelSettings {
+    /// model property.
+    pub model: Option<String>,
+    /// promptText property.
+    pub prompt_text: Option<String>,
+}
+
+/// `GoogleCloudDialogflowCxV3GeneratorModelParameter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3GeneratorModelParameter {
+    /// maxDecodeSteps property.
+    pub max_decode_steps: Option<i64>,
+    /// temperature property.
+    pub temperature: Option<f64>,
+    /// topK property.
+    pub top_k: Option<i64>,
+    /// topP property.
+    pub top_p: Option<f64>,
+}
+
+/// `GoogleCloudDialogflowCxV3GeneratorPlaceholder` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3GeneratorPlaceholder {
+    /// id property.
+    pub id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 // =============================================================================

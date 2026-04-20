@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,22 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleAnalyticsAdminV1betaMeasurementProtocolSecret` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAnalyticsAdminV1betaMeasurementProtocolSecret {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// secretValue property.
-    pub secret_value: Option<String>,
-}
 
 /// `GoogleAnalyticsAdminV1betaListMeasurementProtocolSecretsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -54,6 +44,17 @@ pub struct GoogleAnalyticsAdminV1BetaMeasurementProtocolSecret {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleAnalyticsAdminV1betaMeasurementProtocolSecret` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAnalyticsAdminV1betaMeasurementProtocolSecret {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// secretValue property.
+    pub secret_value: Option<String>,
 }
 
 // =============================================================================

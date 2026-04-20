@@ -12,17 +12,33 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `SnapshotImage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SnapshotImage {
+    /// height property.
+    pub height: Option<i64>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// mime_type property.
+    pub mime_type: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+    /// width property.
+    pub width: Option<i64>,
+}
 
 /// `Snapshot` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,21 +65,6 @@ pub struct Snapshot {
     pub r#type: Option<String>,
     /// uniqueName property.
     pub unique_name: Option<String>,
-}
-
-/// `SnapshotImage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SnapshotImage {
-    /// height property.
-    pub height: Option<i64>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// mime_type property.
-    pub mime_type: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-    /// width property.
-    pub width: Option<i64>,
 }
 
 /// `SnapshotListResponse` type.

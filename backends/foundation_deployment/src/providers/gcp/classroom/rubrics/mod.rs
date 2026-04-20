@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,7 +23,7 @@ use serde::{Deserialize, Serialize};
 use super::shared::Empty;
 use super::shared::Rubric;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -37,19 +38,6 @@ pub struct ListRubricsResponse {
     pub rubrics: Option<Vec<Rubric>>,
 }
 
-/// `Criterion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Criterion {
-    /// description property.
-    pub description: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// levels property.
-    pub levels: Option<Vec<Level>>,
-    /// title property.
-    pub title: Option<String>,
-}
-
 /// `Level` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Level {
@@ -59,6 +47,19 @@ pub struct Level {
     pub id: Option<String>,
     /// points property.
     pub points: Option<f64>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `Criterion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Criterion {
+    /// description property.
+    pub description: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// levels property.
+    pub levels: Option<Vec<Level>>,
     /// title property.
     pub title: Option<String>,
 }

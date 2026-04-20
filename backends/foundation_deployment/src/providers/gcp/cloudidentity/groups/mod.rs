@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,58 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `DynamicGroupStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DynamicGroupStatus {
+    /// status property.
+    pub status: Option<String>,
+    /// statusTime property.
+    pub status_time: Option<String>,
+}
+
+/// `DynamicGroupQuery` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DynamicGroupQuery {
+    /// query property.
+    pub query: Option<String>,
+    /// resourceType property.
+    pub resource_type: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ListGroupsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListGroupsResponse {
+    /// groups property.
+    pub groups: Option<Vec<Group>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `DynamicGroupMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DynamicGroupMetadata {
+    /// queries property.
+    pub queries: Option<Vec<DynamicGroupQuery>>,
+    /// status property.
+    pub status: Option<DynamicGroupStatus>,
+}
 
 /// `Group` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -52,17 +100,6 @@ pub struct Group {
     pub update_time: Option<String>,
 }
 
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
 /// `EntityKey` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntityKey {
@@ -70,42 +107,6 @@ pub struct EntityKey {
     pub id: Option<String>,
     /// namespace property.
     pub namespace: Option<String>,
-}
-
-/// `DynamicGroupMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DynamicGroupMetadata {
-    /// queries property.
-    pub queries: Option<Vec<DynamicGroupQuery>>,
-    /// status property.
-    pub status: Option<DynamicGroupStatus>,
-}
-
-/// `DynamicGroupStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DynamicGroupStatus {
-    /// status property.
-    pub status: Option<String>,
-    /// statusTime property.
-    pub status_time: Option<String>,
-}
-
-/// `ListGroupsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListGroupsResponse {
-    /// groups property.
-    pub groups: Option<Vec<Group>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `DynamicGroupQuery` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DynamicGroupQuery {
-    /// query property.
-    pub query: Option<String>,
-    /// resourceType property.
-    pub resource_type: Option<String>,
 }
 
 // =============================================================================

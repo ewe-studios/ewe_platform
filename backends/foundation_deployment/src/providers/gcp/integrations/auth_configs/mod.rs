@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,39 +22,15 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudIntegrationsV1AlphaStringParameterArray` response type.
+/// `GoogleCloudIntegrationsV1AlphaCredential` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaStringParameterArray {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaBooleanParameterArray` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaBooleanParameterArray {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaAuthToken` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaAuthToken {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaParameterMapField` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaParameterMapField {
+pub struct GoogleCloudIntegrationsV1AlphaCredential {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -67,25 +44,18 @@ pub struct GoogleCloudIntegrationsV1AlphaServiceAccountCredentials {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleCloudIntegrationsV1AlphaDoubleParameterArray` response type.
+/// `GoogleCloudIntegrationsV1alphaListAuthConfigsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaDoubleParameterArray {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct GoogleCloudIntegrationsV1alphaListAuthConfigsResponse {
+    /// authConfigs property.
+    pub auth_configs: Option<Vec<GoogleCloudIntegrationsV1AlphaAuthConfig>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
-/// `GoogleCloudIntegrationsV1AlphaCredential` response type.
+/// `GoogleCloudIntegrationsV1AlphaAccessToken` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaCredential {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaUsernameAndPassword` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaUsernameAndPassword {
+pub struct GoogleCloudIntegrationsV1AlphaAccessToken {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -99,6 +69,22 @@ pub struct GoogleCloudIntegrationsV1AlphaParameterMapEntry {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
+/// `GoogleCloudIntegrationsV1AlphaValueType` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaValueType {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaBooleanParameterArray` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaBooleanParameterArray {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `GoogleCloudIntegrationsV1AlphaIntParameterArray` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1AlphaIntParameterArray {
@@ -107,29 +93,68 @@ pub struct GoogleCloudIntegrationsV1AlphaIntParameterArray {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleCloudIntegrationsV1AlphaParameterMap` response type.
+/// `GoogleCloudIntegrationsV1AlphaOidcToken` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaParameterMap {
+pub struct GoogleCloudIntegrationsV1AlphaOidcToken {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleCloudIntegrationsV1AlphaAuthConfig` response type.
+/// `GoogleCloudIntegrationsV1AlphaAuthToken` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaAuthConfig {
+pub struct GoogleCloudIntegrationsV1AlphaAuthToken {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleCloudIntegrationsV1alphaListAuthConfigsResponse` type.
+/// `GoogleCloudIntegrationsV1AlphaUsernameAndPassword` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1alphaListAuthConfigsResponse {
-    /// authConfigs property.
-    pub auth_configs: Option<Vec<GoogleCloudIntegrationsV1AlphaAuthConfig>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct GoogleCloudIntegrationsV1AlphaUsernameAndPassword {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaDoubleParameterArray` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaDoubleParameterArray {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaOAuth2ResourceOwnerCredentials` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaOAuth2ResourceOwnerCredentials {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaOAuth2AuthorizationCode` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaOAuth2AuthorizationCode {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaJwt` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaJwt {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaOAuth2ClientCredentials` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaOAuth2ClientCredentials {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `GoogleCloudIntegrationsV1alphaAuthConfig` type.
@@ -171,57 +196,33 @@ pub struct GoogleCloudIntegrationsV1alphaAuthConfig {
     pub visibility: Option<String>,
 }
 
-/// `GoogleCloudIntegrationsV1AlphaOAuth2ResourceOwnerCredentials` response type.
+/// `GoogleCloudIntegrationsV1AlphaParameterMapField` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaOAuth2ResourceOwnerCredentials {
+pub struct GoogleCloudIntegrationsV1AlphaParameterMapField {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleCloudIntegrationsV1AlphaAccessToken` response type.
+/// `GoogleCloudIntegrationsV1AlphaParameterMap` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaAccessToken {
+pub struct GoogleCloudIntegrationsV1AlphaParameterMap {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleCloudIntegrationsV1AlphaJwt` response type.
+/// `GoogleCloudIntegrationsV1AlphaStringParameterArray` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaJwt {
+pub struct GoogleCloudIntegrationsV1AlphaStringParameterArray {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleCloudIntegrationsV1AlphaOAuth2AuthorizationCode` response type.
+/// `GoogleCloudIntegrationsV1AlphaAuthConfig` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaOAuth2AuthorizationCode {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaOAuth2ClientCredentials` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaOAuth2ClientCredentials {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaOidcToken` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaOidcToken {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaValueType` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaValueType {
+pub struct GoogleCloudIntegrationsV1AlphaAuthConfig {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

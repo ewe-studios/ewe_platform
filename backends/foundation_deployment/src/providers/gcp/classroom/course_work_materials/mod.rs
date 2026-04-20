@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,125 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `IndividualStudentsOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IndividualStudentsOptions {
-    /// studentIds property.
-    pub student_ids: Option<Vec<String>>,
-}
-
-/// `Link` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Link {
-    /// thumbnailUrl property.
-    pub thumbnail_url: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `SharedDriveFile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SharedDriveFile {
-    /// driveFile property.
-    pub drive_file: Option<DriveFile>,
-    /// shareMode property.
-    pub share_mode: Option<String>,
-}
-
-/// `ListCourseWorkMaterialResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCourseWorkMaterialResponse {
-    /// courseWorkMaterial property.
-    pub course_work_material: Option<Vec<CourseWorkMaterial>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GeminiGem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeminiGem {
-    /// id property.
-    pub id: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `Form` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Form {
-    /// formUrl property.
-    pub form_url: Option<String>,
-    /// responseUrl property.
-    pub response_url: Option<String>,
-    /// thumbnailUrl property.
-    pub thumbnail_url: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `DriveFile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DriveFile {
-    /// alternateLink property.
-    pub alternate_link: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// thumbnailUrl property.
-    pub thumbnail_url: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `NotebookLmNotebook` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NotebookLmNotebook {
-    /// id property.
-    pub id: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `YouTubeVideo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct YouTubeVideo {
-    /// alternateLink property.
-    pub alternate_link: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// thumbnailUrl property.
-    pub thumbnail_url: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `Material` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Material {
-    /// driveFile property.
-    pub drive_file: Option<SharedDriveFile>,
-    /// form property.
-    pub form: Option<Form>,
-    /// gem property.
-    pub gem: Option<GeminiGem>,
-    /// link property.
-    pub link: Option<Link>,
-    /// notebook property.
-    pub notebook: Option<NotebookLmNotebook>,
-    /// youtubeVideo property.
-    pub youtube_video: Option<YouTubeVideo>,
-}
 
 /// `CourseWorkMaterial` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -172,6 +59,120 @@ pub struct CourseWorkMaterial {
     pub topic_id: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `IndividualStudentsOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IndividualStudentsOptions {
+    /// studentIds property.
+    pub student_ids: Option<Vec<String>>,
+}
+
+/// `ListCourseWorkMaterialResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListCourseWorkMaterialResponse {
+    /// courseWorkMaterial property.
+    pub course_work_material: Option<Vec<CourseWorkMaterial>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GeminiGem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GeminiGem {
+    /// id property.
+    pub id: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `Link` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Link {
+    /// thumbnailUrl property.
+    pub thumbnail_url: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `Form` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Form {
+    /// formUrl property.
+    pub form_url: Option<String>,
+    /// responseUrl property.
+    pub response_url: Option<String>,
+    /// thumbnailUrl property.
+    pub thumbnail_url: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `Material` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Material {
+    /// driveFile property.
+    pub drive_file: Option<SharedDriveFile>,
+    /// form property.
+    pub form: Option<Form>,
+    /// gem property.
+    pub gem: Option<GeminiGem>,
+    /// link property.
+    pub link: Option<Link>,
+    /// notebook property.
+    pub notebook: Option<NotebookLmNotebook>,
+    /// youtubeVideo property.
+    pub youtube_video: Option<YouTubeVideo>,
+}
+
+/// `SharedDriveFile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SharedDriveFile {
+    /// driveFile property.
+    pub drive_file: Option<DriveFile>,
+    /// shareMode property.
+    pub share_mode: Option<String>,
+}
+
+/// `YouTubeVideo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct YouTubeVideo {
+    /// alternateLink property.
+    pub alternate_link: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// thumbnailUrl property.
+    pub thumbnail_url: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `DriveFile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DriveFile {
+    /// alternateLink property.
+    pub alternate_link: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// thumbnailUrl property.
+    pub thumbnail_url: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `NotebookLmNotebook` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NotebookLmNotebook {
+    /// id property.
+    pub id: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// url property.
+    pub url: Option<String>,
 }
 
 // =============================================================================

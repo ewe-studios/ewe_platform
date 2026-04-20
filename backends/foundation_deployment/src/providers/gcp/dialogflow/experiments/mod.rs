@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,21 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudDialogflowCxV3ExperimentResultVersionMetrics` type.
+/// `GoogleCloudDialogflowCxV3ExperimentResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ExperimentResultVersionMetrics {
-    /// metrics property.
-    pub metrics: Option<Vec<GoogleCloudDialogflowCxV3ExperimentResultMetric>>,
-    /// sessionCount property.
-    pub session_count: Option<i64>,
-    /// version property.
-    pub version: Option<String>,
+pub struct GoogleCloudDialogflowCxV3ExperimentResult {
+    /// lastUpdateTime property.
+    pub last_update_time: Option<String>,
+    /// versionMetrics property.
+    pub version_metrics: Option<Vec<GoogleCloudDialogflowCxV3ExperimentResultVersionMetrics>>,
 }
 
 /// `GoogleCloudDialogflowCxV3ListExperimentsResponse` type.
@@ -47,15 +46,15 @@ pub struct GoogleCloudDialogflowCxV3ListExperimentsResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `GoogleCloudDialogflowCxV3VersionVariantsVariant` type.
+/// `GoogleCloudDialogflowCxV3RolloutState` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3VersionVariantsVariant {
-    /// isControlGroup property.
-    pub is_control_group: Option<bool>,
-    /// trafficAllocation property.
-    pub traffic_allocation: Option<f64>,
-    /// version property.
-    pub version: Option<String>,
+pub struct GoogleCloudDialogflowCxV3RolloutState {
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// step property.
+    pub step: Option<String>,
+    /// stepIndex property.
+    pub step_index: Option<i64>,
 }
 
 /// `GoogleCloudDialogflowCxV3RolloutConfig` type.
@@ -67,6 +66,17 @@ pub struct GoogleCloudDialogflowCxV3RolloutConfig {
     pub rollout_condition: Option<String>,
     /// rolloutSteps property.
     pub rollout_steps: Option<Vec<GoogleCloudDialogflowCxV3RolloutConfigRolloutStep>>,
+}
+
+/// `GoogleCloudDialogflowCxV3VersionVariantsVariant` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3VersionVariantsVariant {
+    /// isControlGroup property.
+    pub is_control_group: Option<bool>,
+    /// trafficAllocation property.
+    pub traffic_allocation: Option<f64>,
+    /// version property.
+    pub version: Option<String>,
 }
 
 /// `GoogleCloudDialogflowCxV3Experiment` type.
@@ -104,26 +114,6 @@ pub struct GoogleCloudDialogflowCxV3Experiment {
     pub variants_history: Option<Vec<GoogleCloudDialogflowCxV3VariantsHistory>>,
 }
 
-/// `GoogleCloudDialogflowCxV3ExperimentDefinition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ExperimentDefinition {
-    /// condition property.
-    pub condition: Option<String>,
-    /// versionVariants property.
-    pub version_variants: Option<GoogleCloudDialogflowCxV3VersionVariants>,
-}
-
-/// `GoogleCloudDialogflowCxV3RolloutState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3RolloutState {
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// step property.
-    pub step: Option<String>,
-    /// stepIndex property.
-    pub step_index: Option<i64>,
-}
-
 /// `GoogleCloudDialogflowCxV3VariantsHistory` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDialogflowCxV3VariantsHistory {
@@ -140,15 +130,15 @@ pub struct GoogleCloudDialogflowCxV3VersionVariants {
     pub variants: Option<Vec<GoogleCloudDialogflowCxV3VersionVariantsVariant>>,
 }
 
-/// `GoogleCloudDialogflowCxV3RolloutConfigRolloutStep` type.
+/// `GoogleCloudDialogflowCxV3ExperimentResultVersionMetrics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3RolloutConfigRolloutStep {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// minDuration property.
-    pub min_duration: Option<String>,
-    /// trafficPercent property.
-    pub traffic_percent: Option<i64>,
+pub struct GoogleCloudDialogflowCxV3ExperimentResultVersionMetrics {
+    /// metrics property.
+    pub metrics: Option<Vec<GoogleCloudDialogflowCxV3ExperimentResultMetric>>,
+    /// sessionCount property.
+    pub session_count: Option<i64>,
+    /// version property.
+    pub version: Option<String>,
 }
 
 /// `GoogleCloudDialogflowCxV3ExperimentResultConfidenceInterval` type.
@@ -164,13 +154,24 @@ pub struct GoogleCloudDialogflowCxV3ExperimentResultConfidenceInterval {
     pub upper_bound: Option<f64>,
 }
 
-/// `GoogleCloudDialogflowCxV3ExperimentResult` type.
+/// `GoogleCloudDialogflowCxV3RolloutConfigRolloutStep` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ExperimentResult {
-    /// lastUpdateTime property.
-    pub last_update_time: Option<String>,
-    /// versionMetrics property.
-    pub version_metrics: Option<Vec<GoogleCloudDialogflowCxV3ExperimentResultVersionMetrics>>,
+pub struct GoogleCloudDialogflowCxV3RolloutConfigRolloutStep {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// minDuration property.
+    pub min_duration: Option<String>,
+    /// trafficPercent property.
+    pub traffic_percent: Option<i64>,
+}
+
+/// `GoogleCloudDialogflowCxV3ExperimentDefinition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ExperimentDefinition {
+    /// condition property.
+    pub condition: Option<String>,
+    /// versionVariants property.
+    pub version_variants: Option<GoogleCloudDialogflowCxV3VersionVariants>,
 }
 
 /// `GoogleCloudDialogflowCxV3ExperimentResultMetric` type.

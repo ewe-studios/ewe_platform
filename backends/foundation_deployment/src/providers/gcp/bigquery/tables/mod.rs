@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,69 +23,70 @@ use serde::{Deserialize, Serialize};
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `TableReference` type.
+/// `CsvOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableReference {
-    /// datasetId property.
-    pub dataset_id: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// tableId property.
-    pub table_id: Option<String>,
+pub struct CsvOptions {
+    /// allowJaggedRows property.
+    pub allow_jagged_rows: Option<bool>,
+    /// allowQuotedNewlines property.
+    pub allow_quoted_newlines: Option<bool>,
+    /// encoding property.
+    pub encoding: Option<String>,
+    /// fieldDelimiter property.
+    pub field_delimiter: Option<String>,
+    /// nullMarker property.
+    pub null_marker: Option<String>,
+    /// nullMarkers property.
+    pub null_markers: Option<Vec<String>>,
+    /// preserveAsciiControlCharacters property.
+    pub preserve_ascii_control_characters: Option<bool>,
+    /// quote property.
+    pub quote: Option<String>,
+    /// skipLeadingRows property.
+    pub skip_leading_rows: Option<String>,
+    /// sourceColumnMatch property.
+    pub source_column_match: Option<String>,
 }
 
-/// `ForeignTypeInfo` type.
+/// `BigtableColumnFamily` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ForeignTypeInfo {
-    /// typeSystem property.
-    pub type_system: Option<String>,
+pub struct BigtableColumnFamily {
+    /// columns property.
+    pub columns: Option<Vec<BigtableColumn>>,
+    /// encoding property.
+    pub encoding: Option<String>,
+    /// familyId property.
+    pub family_id: Option<String>,
+    /// onlyReadLatest property.
+    pub only_read_latest: Option<bool>,
+    /// protoConfig property.
+    pub proto_config: Option<BigtableProtoConfig>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
-/// `PartitionedColumn` type.
+/// `BigtableProtoConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PartitionedColumn {
-    /// field property.
-    pub field: Option<String>,
+pub struct BigtableProtoConfig {
+    /// protoMessageName property.
+    pub proto_message_name: Option<String>,
+    /// schemaBundleId property.
+    pub schema_bundle_id: Option<String>,
 }
 
-/// `EncryptionConfiguration` type.
+/// `AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionConfiguration {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-}
-
-/// `Clustering` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Clustering {
-    /// fields property.
-    pub fields: Option<Vec<String>>,
-}
-
-/// `JoinRestrictionPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JoinRestrictionPolicy {
-    /// joinAllowedColumns property.
-    pub join_allowed_columns: Option<Vec<String>>,
-    /// joinCondition property.
-    pub join_condition: Option<String>,
-}
-
-/// `ExternalCatalogTableOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExternalCatalogTableOptions {
-    /// connectionId property.
-    pub connection_id: Option<String>,
-    /// parameters property.
-    pub parameters: Option<serde_json::Value>,
-    /// storageDescriptor property.
-    pub storage_descriptor: Option<StorageDescriptor>,
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
 /// `ExternalDataConfiguration` type.
@@ -146,30 +148,20 @@ pub struct ExternalDataConfiguration {
     pub timestamp_target_precision: Option<Vec<i64>>,
 }
 
-/// `MaterializedViewDefinition` type.
+/// `UserDefinedFunctionResource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaterializedViewDefinition {
-    /// allowNonIncrementalDefinition property.
-    pub allow_non_incremental_definition: Option<bool>,
-    /// enableRefresh property.
-    pub enable_refresh: Option<bool>,
-    /// lastRefreshTime property.
-    pub last_refresh_time: Option<String>,
-    /// maxStaleness property.
-    pub max_staleness: Option<String>,
-    /// query property.
-    pub query: Option<String>,
-    /// refreshIntervalMs property.
-    pub refresh_interval_ms: Option<String>,
+pub struct UserDefinedFunctionResource {
+    /// inlineCode property.
+    pub inline_code: Option<String>,
+    /// resourceUri property.
+    pub resource_uri: Option<String>,
 }
 
-/// `MaterializedViewStatus` type.
+/// `AvroOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaterializedViewStatus {
-    /// lastRefreshStatus property.
-    pub last_refresh_status: Option<ErrorProto>,
-    /// refreshWatermark property.
-    pub refresh_watermark: Option<String>,
+pub struct AvroOptions {
+    /// useAvroLogicalTypes property.
+    pub use_avro_logical_types: Option<bool>,
 }
 
 /// `TableList` type.
@@ -187,6 +179,13 @@ pub struct TableList {
     pub total_items: Option<i64>,
 }
 
+/// `RestrictionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RestrictionConfig {
+    /// type property.
+    pub r#type: Option<String>,
+}
+
 /// `PartitioningDefinition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartitioningDefinition {
@@ -194,24 +193,39 @@ pub struct PartitioningDefinition {
     pub partitioned_column: Option<Vec<PartitionedColumn>>,
 }
 
-/// `TableSchema` type.
+/// `TableReference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableSchema {
-    /// fields property.
-    pub fields: Option<Vec<TableFieldSchema>>,
-    /// foreignTypeInfo property.
-    pub foreign_type_info: Option<ForeignTypeInfo>,
+pub struct TableReference {
+    /// datasetId property.
+    pub dataset_id: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// tableId property.
+    pub table_id: Option<String>,
 }
 
-/// `Streamingbuffer` type.
+/// `TableReplicationInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Streamingbuffer {
-    /// estimatedBytes property.
-    pub estimated_bytes: Option<String>,
-    /// estimatedRows property.
-    pub estimated_rows: Option<String>,
-    /// oldestEntryTime property.
-    pub oldest_entry_time: Option<String>,
+pub struct TableReplicationInfo {
+    /// replicatedSourceLastRefreshTime property.
+    pub replicated_source_last_refresh_time: Option<String>,
+    /// replicationError property.
+    pub replication_error: Option<ErrorProto>,
+    /// replicationIntervalMs property.
+    pub replication_interval_ms: Option<String>,
+    /// replicationStatus property.
+    pub replication_status: Option<String>,
+    /// sourceTable property.
+    pub source_table: Option<TableReference>,
+}
+
+/// `JoinRestrictionPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JoinRestrictionPolicy {
+    /// joinAllowedColumns property.
+    pub join_allowed_columns: Option<Vec<String>>,
+    /// joinCondition property.
+    pub join_condition: Option<String>,
 }
 
 /// `TableConstraints` type.
@@ -223,69 +237,45 @@ pub struct TableConstraints {
     pub primary_key: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `ForeignViewDefinition` type.
+/// `TableFieldSchema` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ForeignViewDefinition {
-    /// dialect property.
-    pub dialect: Option<String>,
-    /// query property.
-    pub query: Option<String>,
-}
-
-/// `CloneDefinition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloneDefinition {
-    /// baseTableReference property.
-    pub base_table_reference: Option<TableReference>,
-    /// cloneTime property.
-    pub clone_time: Option<String>,
-}
-
-/// `UserDefinedFunctionResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserDefinedFunctionResource {
-    /// inlineCode property.
-    pub inline_code: Option<String>,
-    /// resourceUri property.
-    pub resource_uri: Option<String>,
-}
-
-/// `DataPolicyOption` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataPolicyOption {
+pub struct TableFieldSchema {
+    /// categories property.
+    pub categories: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// collation property.
+    pub collation: Option<String>,
+    /// dataPolicies property.
+    pub data_policies: Option<Vec<DataPolicyOption>>,
+    /// defaultValueExpression property.
+    pub default_value_expression: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// fields property.
+    pub fields: Option<Vec<Box<TableFieldSchema>>>,
+    /// foreignTypeDefinition property.
+    pub foreign_type_definition: Option<String>,
+    /// generatedColumn property.
+    pub generated_column: Option<GeneratedColumn>,
+    /// maxLength property.
+    pub max_length: Option<String>,
+    /// mode property.
+    pub mode: Option<String>,
     /// name property.
     pub name: Option<String>,
-}
-
-/// `SnapshotDefinition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SnapshotDefinition {
-    /// baseTableReference property.
-    pub base_table_reference: Option<TableReference>,
-    /// snapshotTime property.
-    pub snapshot_time: Option<String>,
-}
-
-/// `BigtableOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BigtableOptions {
-    /// columnFamilies property.
-    pub column_families: Option<Vec<BigtableColumnFamily>>,
-    /// ignoreUnspecifiedColumnFamilies property.
-    pub ignore_unspecified_column_families: Option<bool>,
-    /// outputColumnFamiliesAsJson property.
-    pub output_column_families_as_json: Option<bool>,
-    /// readRowkeyAsString property.
-    pub read_rowkey_as_string: Option<bool>,
-}
-
-/// `ModelDefinition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ModelDefinition {
-    /// modelOptions property.
-    pub model_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// trainingRuns property.
-    pub training_runs: Option<Vec<BqmlTrainingRun>>,
+    /// policyTags property.
+    pub policy_tags: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// precision property.
+    pub precision: Option<String>,
+    /// rangeElementType property.
+    pub range_element_type: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// roundingMode property.
+    pub rounding_mode: Option<String>,
+    /// scale property.
+    pub scale: Option<String>,
+    /// timestampPrecision property.
+    pub timestamp_precision: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `BqmlIterationResult` type.
@@ -303,29 +293,72 @@ pub struct BqmlIterationResult {
     pub training_loss: Option<f64>,
 }
 
-/// `CsvOptions` type.
+/// `ErrorProto` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CsvOptions {
-    /// allowJaggedRows property.
-    pub allow_jagged_rows: Option<bool>,
-    /// allowQuotedNewlines property.
-    pub allow_quoted_newlines: Option<bool>,
+pub struct ErrorProto {
+    /// debugInfo property.
+    pub debug_info: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `BigLakeConfiguration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BigLakeConfiguration {
+    /// connectionId property.
+    pub connection_id: Option<String>,
+    /// fileFormat property.
+    pub file_format: Option<String>,
+    /// storageUri property.
+    pub storage_uri: Option<String>,
+    /// tableFormat property.
+    pub table_format: Option<String>,
+}
+
+/// `TimePartitioning` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimePartitioning {
+    /// expirationMs property.
+    pub expiration_ms: Option<String>,
+    /// field property.
+    pub field: Option<String>,
+    /// requirePartitionFilter property.
+    pub require_partition_filter: Option<bool>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `JsonOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JsonOptions {
     /// encoding property.
     pub encoding: Option<String>,
-    /// fieldDelimiter property.
-    pub field_delimiter: Option<String>,
-    /// nullMarker property.
-    pub null_marker: Option<String>,
-    /// nullMarkers property.
-    pub null_markers: Option<Vec<String>>,
-    /// preserveAsciiControlCharacters property.
-    pub preserve_ascii_control_characters: Option<bool>,
-    /// quote property.
-    pub quote: Option<String>,
-    /// skipLeadingRows property.
-    pub skip_leading_rows: Option<String>,
-    /// sourceColumnMatch property.
-    pub source_column_match: Option<String>,
+}
+
+/// `SnapshotDefinition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SnapshotDefinition {
+    /// baseTableReference property.
+    pub base_table_reference: Option<TableReference>,
+    /// snapshotTime property.
+    pub snapshot_time: Option<String>,
+}
+
+/// `HivePartitioningOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HivePartitioningOptions {
+    /// fields property.
+    pub fields: Option<Vec<String>>,
+    /// mode property.
+    pub mode: Option<String>,
+    /// requirePartitionFilter property.
+    pub require_partition_filter: Option<bool>,
+    /// sourceUriPrefix property.
+    pub source_uri_prefix: Option<String>,
 }
 
 /// `ParquetOptions` type.
@@ -339,17 +372,104 @@ pub struct ParquetOptions {
     pub map_target_type: Option<String>,
 }
 
-/// `ErrorProto` type.
+/// `SerDeInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorProto {
-    /// debugInfo property.
-    pub debug_info: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
+pub struct SerDeInfo {
+    /// name property.
+    pub name: Option<String>,
+    /// parameters property.
+    pub parameters: Option<serde_json::Value>,
+    /// serializationLibrary property.
+    pub serialization_library: Option<String>,
+}
+
+/// `PrivacyPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrivacyPolicy {
+    /// aggregationThresholdPolicy property.
+    pub aggregation_threshold_policy: Option<AggregationThresholdPolicy>,
+    /// differentialPrivacyPolicy property.
+    pub differential_privacy_policy: Option<DifferentialPrivacyPolicy>,
+    /// joinRestrictionPolicy property.
+    pub join_restriction_policy: Option<JoinRestrictionPolicy>,
+}
+
+/// `ModelDefinition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ModelDefinition {
+    /// modelOptions property.
+    pub model_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// trainingRuns property.
+    pub training_runs: Option<Vec<BqmlTrainingRun>>,
+}
+
+/// `TableSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableSchema {
+    /// fields property.
+    pub fields: Option<Vec<Box<TableFieldSchema>>>,
+    /// foreignTypeInfo property.
+    pub foreign_type_info: Option<ForeignTypeInfo>,
+}
+
+/// `Clustering` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Clustering {
+    /// fields property.
+    pub fields: Option<Vec<String>>,
+}
+
+/// `GeneratedColumn` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GeneratedColumn {
+    /// generatedExpressionInfo property.
+    pub generated_expression_info: Option<GeneratedExpressionInfo>,
+    /// generatedMode property.
+    pub generated_mode: Option<String>,
+}
+
+/// `Streamingbuffer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Streamingbuffer {
+    /// estimatedBytes property.
+    pub estimated_bytes: Option<String>,
+    /// estimatedRows property.
+    pub estimated_rows: Option<String>,
+    /// oldestEntryTime property.
+    pub oldest_entry_time: Option<String>,
+}
+
+/// `DataPolicyOption` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataPolicyOption {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `StorageDescriptor` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StorageDescriptor {
+    /// inputFormat property.
+    pub input_format: Option<String>,
+    /// locationUri property.
+    pub location_uri: Option<String>,
+    /// outputFormat property.
+    pub output_format: Option<String>,
+    /// serdeInfo property.
+    pub serde_info: Option<SerDeInfo>,
+}
+
+/// `BqmlTrainingRun` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BqmlTrainingRun {
+    /// iterationResults property.
+    pub iteration_results: Option<Vec<BqmlIterationResult>>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// trainingOptions property.
+    pub training_options: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `GoogleSheetsOptions` type.
@@ -382,44 +502,21 @@ pub struct DifferentialPrivacyPolicy {
     pub privacy_unit_column: Option<String>,
 }
 
-/// `AggregationThresholdPolicy` type.
+/// `MaterializedViewDefinition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AggregationThresholdPolicy {
-    /// privacyUnitColumns property.
-    pub privacy_unit_columns: Option<Vec<String>>,
-    /// threshold property.
-    pub threshold: Option<String>,
-}
-
-/// `StorageDescriptor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StorageDescriptor {
-    /// inputFormat property.
-    pub input_format: Option<String>,
-    /// locationUri property.
-    pub location_uri: Option<String>,
-    /// outputFormat property.
-    pub output_format: Option<String>,
-    /// serdeInfo property.
-    pub serde_info: Option<SerDeInfo>,
-}
-
-/// `JsonOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JsonOptions {
-    /// encoding property.
-    pub encoding: Option<String>,
-}
-
-/// `SerDeInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SerDeInfo {
-    /// name property.
-    pub name: Option<String>,
-    /// parameters property.
-    pub parameters: Option<serde_json::Value>,
-    /// serializationLibrary property.
-    pub serialization_library: Option<String>,
+pub struct MaterializedViewDefinition {
+    /// allowNonIncrementalDefinition property.
+    pub allow_non_incremental_definition: Option<bool>,
+    /// enableRefresh property.
+    pub enable_refresh: Option<bool>,
+    /// lastRefreshTime property.
+    pub last_refresh_time: Option<String>,
+    /// maxStaleness property.
+    pub max_staleness: Option<String>,
+    /// query property.
+    pub query: Option<String>,
+    /// refreshIntervalMs property.
+    pub refresh_interval_ms: Option<String>,
 }
 
 /// `ViewDefinition` type.
@@ -439,69 +536,40 @@ pub struct ViewDefinition {
     pub user_defined_function_resources: Option<Vec<UserDefinedFunctionResource>>,
 }
 
-/// `HivePartitioningOptions` type.
+/// `RangePartitioning` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HivePartitioningOptions {
-    /// fields property.
-    pub fields: Option<Vec<String>>,
-    /// mode property.
-    pub mode: Option<String>,
-    /// requirePartitionFilter property.
-    pub require_partition_filter: Option<bool>,
-    /// sourceUriPrefix property.
-    pub source_uri_prefix: Option<String>,
-}
-
-/// `TimePartitioning` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimePartitioning {
-    /// expirationMs property.
-    pub expiration_ms: Option<String>,
+pub struct RangePartitioning {
     /// field property.
     pub field: Option<String>,
-    /// requirePartitionFilter property.
-    pub require_partition_filter: Option<bool>,
-    /// type property.
-    pub r#type: Option<String>,
+    /// range property.
+    pub range: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `Binding` type.
+/// `CloneDefinition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct CloneDefinition {
+    /// baseTableReference property.
+    pub base_table_reference: Option<TableReference>,
+    /// cloneTime property.
+    pub clone_time: Option<String>,
 }
 
-/// `Expr` type.
+/// `PartitionedColumn` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct PartitionedColumn {
+    /// field property.
+    pub field: Option<String>,
 }
 
-/// `TableReplicationInfo` type.
+/// `ExternalCatalogTableOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableReplicationInfo {
-    /// replicatedSourceLastRefreshTime property.
-    pub replicated_source_last_refresh_time: Option<String>,
-    /// replicationError property.
-    pub replication_error: Option<ErrorProto>,
-    /// replicationIntervalMs property.
-    pub replication_interval_ms: Option<String>,
-    /// replicationStatus property.
-    pub replication_status: Option<String>,
-    /// sourceTable property.
-    pub source_table: Option<TableReference>,
+pub struct ExternalCatalogTableOptions {
+    /// connectionId property.
+    pub connection_id: Option<String>,
+    /// parameters property.
+    pub parameters: Option<serde_json::Value>,
+    /// storageDescriptor property.
+    pub storage_descriptor: Option<StorageDescriptor>,
 }
 
 /// `BigtableColumn` type.
@@ -523,20 +591,48 @@ pub struct BigtableColumn {
     pub r#type: Option<String>,
 }
 
-/// `BigtableProtoConfig` type.
+/// `MaterializedViewStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BigtableProtoConfig {
-    /// protoMessageName property.
-    pub proto_message_name: Option<String>,
-    /// schemaBundleId property.
-    pub schema_bundle_id: Option<String>,
+pub struct MaterializedViewStatus {
+    /// lastRefreshStatus property.
+    pub last_refresh_status: Option<ErrorProto>,
+    /// refreshWatermark property.
+    pub refresh_watermark: Option<String>,
 }
 
-/// `AvroOptions` type.
+/// `AggregationThresholdPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AvroOptions {
-    /// useAvroLogicalTypes property.
-    pub use_avro_logical_types: Option<bool>,
+pub struct AggregationThresholdPolicy {
+    /// privacyUnitColumns property.
+    pub privacy_unit_columns: Option<Vec<String>>,
+    /// threshold property.
+    pub threshold: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `BigtableOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BigtableOptions {
+    /// columnFamilies property.
+    pub column_families: Option<Vec<BigtableColumnFamily>>,
+    /// ignoreUnspecifiedColumnFamilies property.
+    pub ignore_unspecified_column_families: Option<bool>,
+    /// outputColumnFamiliesAsJson property.
+    pub output_column_families_as_json: Option<bool>,
+    /// readRowkeyAsString property.
+    pub read_rowkey_as_string: Option<bool>,
 }
 
 /// `GeneratedExpressionInfo` type.
@@ -550,17 +646,15 @@ pub struct GeneratedExpressionInfo {
     pub stored: Option<bool>,
 }
 
-/// `BigLakeConfiguration` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BigLakeConfiguration {
-    /// connectionId property.
-    pub connection_id: Option<String>,
-    /// fileFormat property.
-    pub file_format: Option<String>,
-    /// storageUri property.
-    pub storage_uri: Option<String>,
-    /// tableFormat property.
-    pub table_format: Option<String>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `AuditConfig` type.
@@ -572,81 +666,27 @@ pub struct AuditConfig {
     pub service: Option<String>,
 }
 
-/// `PrivacyPolicy` type.
+/// `EncryptionConfiguration` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrivacyPolicy {
-    /// aggregationThresholdPolicy property.
-    pub aggregation_threshold_policy: Option<AggregationThresholdPolicy>,
-    /// differentialPrivacyPolicy property.
-    pub differential_privacy_policy: Option<DifferentialPrivacyPolicy>,
-    /// joinRestrictionPolicy property.
-    pub join_restriction_policy: Option<JoinRestrictionPolicy>,
+pub struct EncryptionConfiguration {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
 }
 
-/// `TableFieldSchema` type.
+/// `ForeignTypeInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableFieldSchema {
-    /// categories property.
-    pub categories: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// collation property.
-    pub collation: Option<String>,
-    /// dataPolicies property.
-    pub data_policies: Option<Vec<DataPolicyOption>>,
-    /// defaultValueExpression property.
-    pub default_value_expression: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// fields property.
-    pub fields: Option<Vec<TableFieldSchema>>,
-    /// foreignTypeDefinition property.
-    pub foreign_type_definition: Option<String>,
-    /// generatedColumn property.
-    pub generated_column: Option<GeneratedColumn>,
-    /// maxLength property.
-    pub max_length: Option<String>,
-    /// mode property.
-    pub mode: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// policyTags property.
-    pub policy_tags: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// precision property.
-    pub precision: Option<String>,
-    /// rangeElementType property.
-    pub range_element_type: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// roundingMode property.
-    pub rounding_mode: Option<String>,
-    /// scale property.
-    pub scale: Option<String>,
-    /// timestampPrecision property.
-    pub timestamp_precision: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct ForeignTypeInfo {
+    /// typeSystem property.
+    pub type_system: Option<String>,
 }
 
-/// `RestrictionConfig` type.
+/// `ForeignViewDefinition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RestrictionConfig {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `RangePartitioning` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RangePartitioning {
-    /// field property.
-    pub field: Option<String>,
-    /// range property.
-    pub range: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `GeneratedColumn` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeneratedColumn {
-    /// generatedExpressionInfo property.
-    pub generated_expression_info: Option<GeneratedExpressionInfo>,
-    /// generatedMode property.
-    pub generated_mode: Option<String>,
+pub struct ForeignViewDefinition {
+    /// dialect property.
+    pub dialect: Option<String>,
+    /// query property.
+    pub query: Option<String>,
 }
 
 /// `Table` type.
@@ -756,45 +796,6 @@ pub struct Table {
     pub r#type: Option<String>,
     /// view property.
     pub view: Option<ViewDefinition>,
-}
-
-/// `BqmlTrainingRun` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BqmlTrainingRun {
-    /// iterationResults property.
-    pub iteration_results: Option<Vec<BqmlIterationResult>>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// trainingOptions property.
-    pub training_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `BigtableColumnFamily` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BigtableColumnFamily {
-    /// columns property.
-    pub columns: Option<Vec<BigtableColumn>>,
-    /// encoding property.
-    pub encoding: Option<String>,
-    /// familyId property.
-    pub family_id: Option<String>,
-    /// onlyReadLatest property.
-    pub only_read_latest: Option<bool>,
-    /// protoConfig property.
-    pub proto_config: Option<BigtableProtoConfig>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
 }
 
 // =============================================================================

@@ -12,53 +12,35 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `PlayerAchievementListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlayerAchievementListResponse {
-    /// items property.
-    pub items: Option<Vec<PlayerAchievement>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `PlayerAchievement` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlayerAchievement {
-    /// achievementState property.
-    pub achievement_state: Option<String>,
-    /// currentSteps property.
-    pub current_steps: Option<i64>,
-    /// experiencePoints property.
-    pub experience_points: Option<String>,
-    /// formattedCurrentStepsString property.
-    pub formatted_current_steps_string: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// lastUpdatedTimestamp property.
-    pub last_updated_timestamp: Option<String>,
-}
 
 /// `AchievementDefinitionsListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AchievementDefinitionsListResponse {
     /// items property.
     pub items: Option<Vec<AchievementDefinition>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `PlayerAchievementListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlayerAchievementListResponse {
+    /// items property.
+    pub items: Option<Vec<PlayerAchievement>>,
     /// kind property.
     pub kind: Option<String>,
     /// nextPageToken property.
@@ -94,6 +76,25 @@ pub struct AchievementDefinition {
     pub total_steps: Option<i64>,
     /// unlockedIconUrl property.
     pub unlocked_icon_url: Option<String>,
+}
+
+/// `PlayerAchievement` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlayerAchievement {
+    /// achievementState property.
+    pub achievement_state: Option<String>,
+    /// currentSteps property.
+    pub current_steps: Option<i64>,
+    /// experiencePoints property.
+    pub experience_points: Option<String>,
+    /// formattedCurrentStepsString property.
+    pub formatted_current_steps_string: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// lastUpdatedTimestamp property.
+    pub last_updated_timestamp: Option<String>,
 }
 
 // =============================================================================

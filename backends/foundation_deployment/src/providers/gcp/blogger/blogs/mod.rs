@@ -12,20 +12,34 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
 use super::shared::Blog;
+use super::shared::Comment;
+use super::shared::Post;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `BlogUserInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BlogUserInfo {
+    /// blog property.
+    pub blog: Option<Blog>,
+    /// blog_user_info property.
+    pub blog_user_info: Option<BlogPerUserInfo>,
+    /// kind property.
+    pub kind: Option<String>,
+}
 
 /// `BlogList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -53,17 +67,6 @@ pub struct BlogPerUserInfo {
     pub role: Option<String>,
     /// userId property.
     pub user_id: Option<String>,
-}
-
-/// `BlogUserInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BlogUserInfo {
-    /// blog property.
-    pub blog: Option<Blog>,
-    /// blog_user_info property.
-    pub blog_user_info: Option<BlogPerUserInfo>,
-    /// kind property.
-    pub kind: Option<String>,
 }
 
 // =============================================================================

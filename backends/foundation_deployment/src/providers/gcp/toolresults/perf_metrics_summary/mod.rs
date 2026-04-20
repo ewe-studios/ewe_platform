@@ -12,34 +12,35 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GraphicsStatsBucket` type.
+/// `Duration` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GraphicsStatsBucket {
-    /// frameCount property.
-    pub frame_count: Option<String>,
-    /// renderMillis property.
-    pub render_millis: Option<String>,
+pub struct Duration {
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<String>,
 }
 
-/// `AppStartTime` type.
+/// `PerfEnvironment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppStartTime {
-    /// fullyDrawnTime property.
-    pub fully_drawn_time: Option<Duration>,
-    /// initialDisplayTime property.
-    pub initial_display_time: Option<Duration>,
+pub struct PerfEnvironment {
+    /// cpuInfo property.
+    pub cpu_info: Option<CPUInfo>,
+    /// memoryInfo property.
+    pub memory_info: Option<MemoryInfo>,
 }
 
 /// `GraphicsStats` type.
@@ -69,6 +70,33 @@ pub struct GraphicsStats {
     pub slow_ui_thread_count: Option<String>,
     /// totalFrames property.
     pub total_frames: Option<String>,
+}
+
+/// `MemoryInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MemoryInfo {
+    /// memoryCapInKibibyte property.
+    pub memory_cap_in_kibibyte: Option<String>,
+    /// memoryTotalInKibibyte property.
+    pub memory_total_in_kibibyte: Option<String>,
+}
+
+/// `AppStartTime` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppStartTime {
+    /// fullyDrawnTime property.
+    pub fully_drawn_time: Option<Duration>,
+    /// initialDisplayTime property.
+    pub initial_display_time: Option<Duration>,
+}
+
+/// `GraphicsStatsBucket` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GraphicsStatsBucket {
+    /// frameCount property.
+    pub frame_count: Option<String>,
+    /// renderMillis property.
+    pub render_millis: Option<String>,
 }
 
 /// `CPUInfo` type.
@@ -101,33 +129,6 @@ pub struct PerfMetricsSummary {
     pub project_id: Option<String>,
     /// stepId property.
     pub step_id: Option<String>,
-}
-
-/// `MemoryInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MemoryInfo {
-    /// memoryCapInKibibyte property.
-    pub memory_cap_in_kibibyte: Option<String>,
-    /// memoryTotalInKibibyte property.
-    pub memory_total_in_kibibyte: Option<String>,
-}
-
-/// `Duration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Duration {
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<String>,
-}
-
-/// `PerfEnvironment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PerfEnvironment {
-    /// cpuInfo property.
-    pub cpu_info: Option<CPUInfo>,
-    /// memoryInfo property.
-    pub memory_info: Option<MemoryInfo>,
 }
 
 // =============================================================================

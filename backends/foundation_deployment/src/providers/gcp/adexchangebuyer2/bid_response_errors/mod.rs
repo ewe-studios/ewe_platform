@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListBidResponseErrorsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListBidResponseErrorsResponse {
-    /// calloutStatusRows property.
-    pub callout_status_rows: Option<Vec<CalloutStatusRow>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `CalloutStatusRow` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -53,6 +45,15 @@ pub struct MetricValue {
     pub variance: Option<String>,
 }
 
+/// `RowDimensions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RowDimensions {
+    /// publisherIdentifier property.
+    pub publisher_identifier: Option<String>,
+    /// timeInterval property.
+    pub time_interval: Option<TimeInterval>,
+}
+
 /// `TimeInterval` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeInterval {
@@ -62,13 +63,13 @@ pub struct TimeInterval {
     pub start_time: Option<String>,
 }
 
-/// `RowDimensions` type.
+/// `ListBidResponseErrorsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RowDimensions {
-    /// publisherIdentifier property.
-    pub publisher_identifier: Option<String>,
-    /// timeInterval property.
-    pub time_interval: Option<TimeInterval>,
+pub struct ListBidResponseErrorsResponse {
+    /// calloutStatusRows property.
+    pub callout_status_rows: Option<Vec<CalloutStatusRow>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

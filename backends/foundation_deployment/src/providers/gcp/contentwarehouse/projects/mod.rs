@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,23 +23,19 @@ use serde::{Deserialize, Serialize};
 use super::shared::GoogleCloudContentwarehouseV1FetchAclResponse;
 use super::shared::GoogleCloudContentwarehouseV1SetAclResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleIamV1Policy` type.
+/// `GoogleIamV1AuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Policy {
-    /// auditConfigs property.
-    pub audit_configs: Option<Vec<GoogleIamV1AuditConfig>>,
-    /// bindings property.
-    pub bindings: Option<Vec<GoogleIamV1Binding>>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// version property.
-    pub version: Option<i64>,
+pub struct GoogleIamV1AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
 }
 
 /// `GoogleIamV1Binding` type.
@@ -52,13 +49,17 @@ pub struct GoogleIamV1Binding {
     pub role: Option<String>,
 }
 
-/// `GoogleIamV1AuditConfig` type.
+/// `GoogleIamV1Policy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
+pub struct GoogleIamV1Policy {
+    /// auditConfigs property.
+    pub audit_configs: Option<Vec<GoogleIamV1AuditConfig>>,
+    /// bindings property.
+    pub bindings: Option<Vec<GoogleIamV1Binding>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// version property.
+    pub version: Option<i64>,
 }
 
 /// `GoogleCloudContentwarehouseV1ResponseMetadata` type.

@@ -12,25 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListDbNodesResponse` type.
+/// `DbNode` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDbNodesResponse {
-    /// dbNodes property.
-    pub db_nodes: Option<Vec<DbNode>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct DbNode {
+    /// name property.
+    pub name: Option<String>,
+    /// properties property.
+    pub properties: Option<DbNodeProperties>,
 }
 
 /// `DbNodeProperties` type.
@@ -56,13 +57,13 @@ pub struct DbNodeProperties {
     pub total_cpu_core_count: Option<i64>,
 }
 
-/// `DbNode` type.
+/// `ListDbNodesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DbNode {
-    /// name property.
-    pub name: Option<String>,
-    /// properties property.
-    pub properties: Option<DbNodeProperties>,
+pub struct ListDbNodesResponse {
+    /// dbNodes property.
+    pub db_nodes: Option<Vec<DbNode>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

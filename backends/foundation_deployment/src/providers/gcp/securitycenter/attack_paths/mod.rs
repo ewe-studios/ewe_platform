@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -41,6 +42,26 @@ pub struct AttackPathNode {
     pub uuid: Option<String>,
 }
 
+/// `ListAttackPathsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAttackPathsResponse {
+    /// attackPaths property.
+    pub attack_paths: Option<Vec<AttackPath>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `PathNodeAssociatedFinding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PathNodeAssociatedFinding {
+    /// canonicalFinding property.
+    pub canonical_finding: Option<String>,
+    /// findingCategory property.
+    pub finding_category: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
 /// `AttackPath` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttackPath {
@@ -52,13 +73,13 @@ pub struct AttackPath {
     pub path_nodes: Option<Vec<AttackPathNode>>,
 }
 
-/// `ListAttackPathsResponse` type.
+/// `AttackPathEdge` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAttackPathsResponse {
-    /// attackPaths property.
-    pub attack_paths: Option<Vec<AttackPath>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct AttackPathEdge {
+    /// destination property.
+    pub destination: Option<String>,
+    /// source property.
+    pub source: Option<String>,
 }
 
 /// `AttackStepNode` type.
@@ -74,26 +95,6 @@ pub struct AttackStepNode {
     pub r#type: Option<String>,
     /// uuid property.
     pub uuid: Option<String>,
-}
-
-/// `AttackPathEdge` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AttackPathEdge {
-    /// destination property.
-    pub destination: Option<String>,
-    /// source property.
-    pub source: Option<String>,
-}
-
-/// `PathNodeAssociatedFinding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PathNodeAssociatedFinding {
-    /// canonicalFinding property.
-    pub canonical_finding: Option<String>,
-    /// findingCategory property.
-    pub finding_category: Option<String>,
-    /// name property.
-    pub name: Option<String>,
 }
 
 // =============================================================================

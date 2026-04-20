@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,19 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListCustomEmojisResponse` type.
+/// `CustomEmojiPayload` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCustomEmojisResponse {
-    /// customEmojis property.
-    pub custom_emojis: Option<Vec<CustomEmoji>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct CustomEmojiPayload {
+    /// fileContent property.
+    pub file_content: Option<String>,
+    /// filename property.
+    pub filename: Option<String>,
 }
 
 /// `CustomEmoji` type.
@@ -51,13 +52,13 @@ pub struct CustomEmoji {
     pub uid: Option<String>,
 }
 
-/// `CustomEmojiPayload` type.
+/// `ListCustomEmojisResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomEmojiPayload {
-    /// fileContent property.
-    pub file_content: Option<String>,
-    /// filename property.
-    pub filename: Option<String>,
+pub struct ListCustomEmojisResponse {
+    /// customEmojis property.
+    pub custom_emojis: Option<Vec<CustomEmoji>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

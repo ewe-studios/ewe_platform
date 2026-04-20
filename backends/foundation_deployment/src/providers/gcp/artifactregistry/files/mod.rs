@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -30,6 +31,15 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 /// `DownloadFileResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DownloadFileResponse {}
+
+/// `Hash` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Hash {
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
 
 /// `GoogleDevtoolsArtifactregistryV1File` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -52,15 +62,6 @@ pub struct GoogleDevtoolsArtifactregistryV1File {
     pub update_time: Option<String>,
 }
 
-/// `ListFilesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListFilesResponse {
-    /// files property.
-    pub files: Option<Vec<GoogleDevtoolsArtifactregistryV1File>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
@@ -72,13 +73,13 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `Hash` type.
+/// `ListFilesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Hash {
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct ListFilesResponse {
+    /// files property.
+    pub files: Option<Vec<GoogleDevtoolsArtifactregistryV1File>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

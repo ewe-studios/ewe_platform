@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,102 +24,11 @@ use super::shared::GoogleIamV1Policy;
 use super::shared::GoogleIamV1TestIamPermissionsResponse;
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudRunV2NetworkInterface` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2NetworkInterface {
-    /// network property.
-    pub network: Option<String>,
-    /// subnetwork property.
-    pub subnetwork: Option<String>,
-    /// tags property.
-    pub tags: Option<Vec<String>>,
-}
-
-/// `GoogleCloudRunV2RevisionScaling` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2RevisionScaling {
-    /// concurrencyUtilization property.
-    pub concurrency_utilization: Option<f64>,
-    /// cpuUtilization property.
-    pub cpu_utilization: Option<f64>,
-    /// maxInstanceCount property.
-    pub max_instance_count: Option<i64>,
-    /// minInstanceCount property.
-    pub min_instance_count: Option<i64>,
-}
-
-/// `GoogleCloudRunV2RevisionTemplate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2RevisionTemplate {
-    /// annotations property.
-    pub annotations: Option<serde_json::Value>,
-    /// client property.
-    pub client: Option<String>,
-    /// clientVersion property.
-    pub client_version: Option<String>,
-    /// containers property.
-    pub containers: Option<Vec<GoogleCloudRunV2Container>>,
-    /// encryptionKey property.
-    pub encryption_key: Option<String>,
-    /// encryptionKeyRevocationAction property.
-    pub encryption_key_revocation_action: Option<String>,
-    /// encryptionKeyShutdownDuration property.
-    pub encryption_key_shutdown_duration: Option<String>,
-    /// executionEnvironment property.
-    pub execution_environment: Option<String>,
-    /// gpuZonalRedundancyDisabled property.
-    pub gpu_zonal_redundancy_disabled: Option<bool>,
-    /// healthCheckDisabled property.
-    pub health_check_disabled: Option<bool>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// maxInstanceRequestConcurrency property.
-    pub max_instance_request_concurrency: Option<i64>,
-    /// nodeSelector property.
-    pub node_selector: Option<GoogleCloudRunV2NodeSelector>,
-    /// revision property.
-    pub revision: Option<String>,
-    /// scaling property.
-    pub scaling: Option<GoogleCloudRunV2RevisionScaling>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-    /// serviceMesh property.
-    pub service_mesh: Option<GoogleCloudRunV2ServiceMesh>,
-    /// sessionAffinity property.
-    pub session_affinity: Option<bool>,
-    /// timeout property.
-    pub timeout: Option<String>,
-    /// volumes property.
-    pub volumes: Option<Vec<GoogleCloudRunV2Volume>>,
-    /// vpcAccess property.
-    pub vpc_access: Option<GoogleCloudRunV2VpcAccess>,
-}
-
-/// `GoogleCloudRunV2VersionToPath` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2VersionToPath {
-    /// mode property.
-    pub mode: Option<i64>,
-    /// path property.
-    pub path: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `GoogleCloudRunV2BuildInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2BuildInfo {
-    /// functionTarget property.
-    pub function_target: Option<String>,
-    /// sourceLocation property.
-    pub source_location: Option<String>,
-}
 
 /// `GoogleCloudRunV2EmptyDirVolumeSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -127,6 +37,24 @@ pub struct GoogleCloudRunV2EmptyDirVolumeSource {
     pub medium: Option<String>,
     /// sizeLimit property.
     pub size_limit: Option<String>,
+}
+
+/// `GoogleCloudRunV2SecretKeySelector` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2SecretKeySelector {
+    /// secret property.
+    pub secret: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `GoogleIamV1AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
 /// `GoogleCloudRunV2TrafficTargetStatus` type.
@@ -144,342 +72,11 @@ pub struct GoogleCloudRunV2TrafficTargetStatus {
     pub uri: Option<String>,
 }
 
-/// `GoogleCloudRunV2CloudStorageSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2CloudStorageSource {
-    /// bucket property.
-    pub bucket: Option<String>,
-    /// generation property.
-    pub generation: Option<String>,
-    /// object property.
-    pub object: Option<String>,
-}
-
-/// `GoogleCloudRunV2GCSVolumeSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2GCSVolumeSource {
-    /// bucket property.
-    pub bucket: Option<String>,
-    /// mountOptions property.
-    pub mount_options: Option<Vec<String>>,
-    /// readOnly property.
-    pub read_only: Option<bool>,
-}
-
-/// `GoogleCloudRunV2ServiceScaling` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2ServiceScaling {
-    /// manualInstanceCount property.
-    pub manual_instance_count: Option<i64>,
-    /// maxInstanceCount property.
-    pub max_instance_count: Option<i64>,
-    /// minInstanceCount property.
-    pub min_instance_count: Option<i64>,
-    /// scalingMode property.
-    pub scaling_mode: Option<String>,
-}
-
-/// `GoogleCloudRunV2MultiRegionSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2MultiRegionSettings {
-    /// multiRegionId property.
-    pub multi_region_id: Option<String>,
-    /// regions property.
-    pub regions: Option<Vec<String>>,
-}
-
-/// `GoogleCloudRunV2NodeSelector` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2NodeSelector {
-    /// accelerator property.
-    pub accelerator: Option<String>,
-}
-
-/// `GoogleCloudRunV2Volume` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2Volume {
-    /// cloudSqlInstance property.
-    pub cloud_sql_instance: Option<GoogleCloudRunV2CloudSqlInstance>,
-    /// emptyDir property.
-    pub empty_dir: Option<GoogleCloudRunV2EmptyDirVolumeSource>,
-    /// gcs property.
-    pub gcs: Option<GoogleCloudRunV2GCSVolumeSource>,
-    /// name property.
-    pub name: Option<String>,
-    /// nfs property.
-    pub nfs: Option<GoogleCloudRunV2NFSVolumeSource>,
-    /// secret property.
-    pub secret: Option<GoogleCloudRunV2SecretVolumeSource>,
-}
-
-/// `GoogleCloudRunV2GRPCAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2GRPCAction {
-    /// port property.
-    pub port: Option<i64>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleIamV1Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Binding {
-    /// condition property.
-    pub condition: Option<GoogleTypeExpr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `GoogleCloudRunV2Container` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2Container {
-    /// args property.
-    pub args: Option<Vec<String>>,
-    /// baseImageUri property.
-    pub base_image_uri: Option<String>,
-    /// buildInfo property.
-    pub build_info: Option<GoogleCloudRunV2BuildInfo>,
-    /// command property.
-    pub command: Option<Vec<String>>,
-    /// dependsOn property.
-    pub depends_on: Option<Vec<String>>,
-    /// env property.
-    pub env: Option<Vec<GoogleCloudRunV2EnvVar>>,
-    /// image property.
-    pub image: Option<String>,
-    /// livenessProbe property.
-    pub liveness_probe: Option<GoogleCloudRunV2Probe>,
-    /// name property.
-    pub name: Option<String>,
-    /// ports property.
-    pub ports: Option<Vec<GoogleCloudRunV2ContainerPort>>,
-    /// readinessProbe property.
-    pub readiness_probe: Option<GoogleCloudRunV2Probe>,
-    /// resources property.
-    pub resources: Option<GoogleCloudRunV2ResourceRequirements>,
-    /// sourceCode property.
-    pub source_code: Option<GoogleCloudRunV2SourceCode>,
-    /// startupProbe property.
-    pub startup_probe: Option<GoogleCloudRunV2Probe>,
-    /// volumeMounts property.
-    pub volume_mounts: Option<Vec<GoogleCloudRunV2VolumeMount>>,
-    /// workingDir property.
-    pub working_dir: Option<String>,
-}
-
-/// `GoogleCloudRunV2TCPSocketAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2TCPSocketAction {
-    /// port property.
-    pub port: Option<i64>,
-}
-
-/// `GoogleCloudRunV2EnvVar` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2EnvVar {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-    /// valueSource property.
-    pub value_source: Option<GoogleCloudRunV2EnvVarSource>,
-}
-
-/// `GoogleCloudRunV2VolumeMount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2VolumeMount {
-    /// mountPath property.
-    pub mount_path: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// subPath property.
-    pub sub_path: Option<String>,
-}
-
-/// `GoogleCloudRunV2TrafficTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2TrafficTarget {
-    /// percent property.
-    pub percent: Option<i64>,
-    /// revision property.
-    pub revision: Option<String>,
-    /// tag property.
-    pub tag: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleCloudRunV2HTTPHeader` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2HTTPHeader {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `GoogleCloudRunV2ContainerPort` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2ContainerPort {
-    /// containerPort property.
-    pub container_port: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GoogleCloudRunV2BuildConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2BuildConfig {
-    /// baseImage property.
-    pub base_image: Option<String>,
-    /// enableAutomaticUpdates property.
-    pub enable_automatic_updates: Option<bool>,
-    /// environmentVariables property.
-    pub environment_variables: Option<serde_json::Value>,
-    /// functionTarget property.
-    pub function_target: Option<String>,
-    /// imageUri property.
-    pub image_uri: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-    /// sourceLocation property.
-    pub source_location: Option<String>,
-    /// workerPool property.
-    pub worker_pool: Option<String>,
-}
-
-/// `GoogleCloudRunV2SecretVolumeSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2SecretVolumeSource {
-    /// defaultMode property.
-    pub default_mode: Option<i64>,
-    /// items property.
-    pub items: Option<Vec<GoogleCloudRunV2VersionToPath>>,
-    /// secret property.
-    pub secret: Option<String>,
-}
-
-/// `GoogleCloudRunV2NFSVolumeSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2NFSVolumeSource {
-    /// path property.
-    pub path: Option<String>,
-    /// readOnly property.
-    pub read_only: Option<bool>,
-    /// server property.
-    pub server: Option<String>,
-}
-
-/// `GoogleCloudRunV2ResourceRequirements` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2ResourceRequirements {
-    /// cpuIdle property.
-    pub cpu_idle: Option<bool>,
-    /// limits property.
-    pub limits: Option<serde_json::Value>,
-    /// startupCpuBoost property.
-    pub startup_cpu_boost: Option<bool>,
-}
-
-/// `GoogleTypeExpr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeExpr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
 /// `GoogleCloudRunV2EnvVarSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2EnvVarSource {
     /// secretKeyRef property.
     pub secret_key_ref: Option<GoogleCloudRunV2SecretKeySelector>,
-}
-
-/// `GoogleCloudRunV2Condition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2Condition {
-    /// executionReason property.
-    pub execution_reason: Option<String>,
-    /// lastTransitionTime property.
-    pub last_transition_time: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
-    /// revisionReason property.
-    pub revision_reason: Option<String>,
-    /// severity property.
-    pub severity: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleCloudRunV2SourceCode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2SourceCode {
-    /// cloudStorageSource property.
-    pub cloud_storage_source: Option<GoogleCloudRunV2CloudStorageSource>,
-    /// inlinedSource property.
-    pub inlined_source: Option<GoogleCloudRunV2InlinedSource>,
-}
-
-/// `GoogleIamV1AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `GoogleIamV1AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `GoogleCloudRunV2BinaryAuthorization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2BinaryAuthorization {
-    /// breakglassJustification property.
-    pub breakglass_justification: Option<String>,
-    /// policy property.
-    pub policy: Option<String>,
-    /// useDefault property.
-    pub use_default: Option<bool>,
-}
-
-/// `GoogleCloudRunV2ServiceMesh` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2ServiceMesh {
-    /// mesh property.
-    pub mesh: Option<String>,
 }
 
 /// `GoogleCloudRunV2Service` type.
@@ -563,15 +160,105 @@ pub struct GoogleCloudRunV2Service {
     pub urls: Option<Vec<String>>,
 }
 
-/// `GoogleCloudRunV2VpcAccess` type.
+/// `GoogleCloudRunV2HTTPHeader` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2VpcAccess {
-    /// connector property.
-    pub connector: Option<String>,
-    /// egress property.
-    pub egress: Option<String>,
-    /// networkInterfaces property.
-    pub network_interfaces: Option<Vec<GoogleCloudRunV2NetworkInterface>>,
+pub struct GoogleCloudRunV2HTTPHeader {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GoogleCloudRunV2VersionToPath` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2VersionToPath {
+    /// mode property.
+    pub mode: Option<i64>,
+    /// path property.
+    pub path: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `GoogleCloudRunV2NodeSelector` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2NodeSelector {
+    /// accelerator property.
+    pub accelerator: Option<String>,
+}
+
+/// `GoogleCloudRunV2VolumeMount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2VolumeMount {
+    /// mountPath property.
+    pub mount_path: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// subPath property.
+    pub sub_path: Option<String>,
+}
+
+/// `GoogleCloudRunV2ResourceRequirements` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2ResourceRequirements {
+    /// cpuIdle property.
+    pub cpu_idle: Option<bool>,
+    /// limits property.
+    pub limits: Option<serde_json::Value>,
+    /// startupCpuBoost property.
+    pub startup_cpu_boost: Option<bool>,
+}
+
+/// `GoogleCloudRunV2MultiRegionSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2MultiRegionSettings {
+    /// multiRegionId property.
+    pub multi_region_id: Option<String>,
+    /// regions property.
+    pub regions: Option<Vec<String>>,
+}
+
+/// `GoogleCloudRunV2Condition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2Condition {
+    /// executionReason property.
+    pub execution_reason: Option<String>,
+    /// lastTransitionTime property.
+    pub last_transition_time: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+    /// revisionReason property.
+    pub revision_reason: Option<String>,
+    /// severity property.
+    pub severity: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudRunV2BuildInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2BuildInfo {
+    /// functionTarget property.
+    pub function_target: Option<String>,
+    /// sourceLocation property.
+    pub source_location: Option<String>,
+}
+
+/// `GoogleCloudRunV2ServiceScaling` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2ServiceScaling {
+    /// manualInstanceCount property.
+    pub manual_instance_count: Option<i64>,
+    /// maxInstanceCount property.
+    pub max_instance_count: Option<i64>,
+    /// minInstanceCount property.
+    pub min_instance_count: Option<i64>,
+    /// scalingMode property.
+    pub scaling_mode: Option<String>,
 }
 
 /// `GoogleCloudRunV2CloudSqlInstance` type.
@@ -581,43 +268,126 @@ pub struct GoogleCloudRunV2CloudSqlInstance {
     pub instances: Option<Vec<String>>,
 }
 
-/// `GoogleCloudRunV2Probe` type.
+/// `GoogleCloudRunV2InlinedSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2Probe {
-    /// failureThreshold property.
-    pub failure_threshold: Option<i64>,
-    /// grpc property.
-    pub grpc: Option<GoogleCloudRunV2GRPCAction>,
-    /// httpGet property.
-    pub http_get: Option<GoogleCloudRunV2HTTPGetAction>,
-    /// initialDelaySeconds property.
-    pub initial_delay_seconds: Option<i64>,
-    /// periodSeconds property.
-    pub period_seconds: Option<i64>,
-    /// tcpSocket property.
-    pub tcp_socket: Option<GoogleCloudRunV2TCPSocketAction>,
-    /// timeoutSeconds property.
-    pub timeout_seconds: Option<i64>,
+pub struct GoogleCloudRunV2InlinedSource {
+    /// sources property.
+    pub sources: Option<Vec<GoogleCloudRunV2SourceFile>>,
 }
 
-/// `GoogleCloudRunV2SecretKeySelector` type.
+/// `GoogleCloudRunV2Volume` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2SecretKeySelector {
+pub struct GoogleCloudRunV2Volume {
+    /// cloudSqlInstance property.
+    pub cloud_sql_instance: Option<GoogleCloudRunV2CloudSqlInstance>,
+    /// emptyDir property.
+    pub empty_dir: Option<GoogleCloudRunV2EmptyDirVolumeSource>,
+    /// gcs property.
+    pub gcs: Option<GoogleCloudRunV2GCSVolumeSource>,
+    /// name property.
+    pub name: Option<String>,
+    /// nfs property.
+    pub nfs: Option<GoogleCloudRunV2NFSVolumeSource>,
     /// secret property.
-    pub secret: Option<String>,
-    /// version property.
-    pub version: Option<String>,
+    pub secret: Option<GoogleCloudRunV2SecretVolumeSource>,
 }
 
-/// `GoogleCloudRunV2ListServicesResponse` type.
+/// `GoogleCloudRunV2TCPSocketAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2ListServicesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// services property.
-    pub services: Option<Vec<GoogleCloudRunV2Service>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct GoogleCloudRunV2TCPSocketAction {
+    /// port property.
+    pub port: Option<i64>,
+}
+
+/// `GoogleCloudRunV2BuildConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2BuildConfig {
+    /// baseImage property.
+    pub base_image: Option<String>,
+    /// enableAutomaticUpdates property.
+    pub enable_automatic_updates: Option<bool>,
+    /// environmentVariables property.
+    pub environment_variables: Option<serde_json::Value>,
+    /// functionTarget property.
+    pub function_target: Option<String>,
+    /// imageUri property.
+    pub image_uri: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// sourceLocation property.
+    pub source_location: Option<String>,
+    /// workerPool property.
+    pub worker_pool: Option<String>,
+}
+
+/// `GoogleCloudRunV2Container` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2Container {
+    /// args property.
+    pub args: Option<Vec<String>>,
+    /// baseImageUri property.
+    pub base_image_uri: Option<String>,
+    /// buildInfo property.
+    pub build_info: Option<GoogleCloudRunV2BuildInfo>,
+    /// command property.
+    pub command: Option<Vec<String>>,
+    /// dependsOn property.
+    pub depends_on: Option<Vec<String>>,
+    /// env property.
+    pub env: Option<Vec<GoogleCloudRunV2EnvVar>>,
+    /// image property.
+    pub image: Option<String>,
+    /// livenessProbe property.
+    pub liveness_probe: Option<GoogleCloudRunV2Probe>,
+    /// name property.
+    pub name: Option<String>,
+    /// ports property.
+    pub ports: Option<Vec<GoogleCloudRunV2ContainerPort>>,
+    /// readinessProbe property.
+    pub readiness_probe: Option<GoogleCloudRunV2Probe>,
+    /// resources property.
+    pub resources: Option<GoogleCloudRunV2ResourceRequirements>,
+    /// sourceCode property.
+    pub source_code: Option<GoogleCloudRunV2SourceCode>,
+    /// startupProbe property.
+    pub startup_probe: Option<GoogleCloudRunV2Probe>,
+    /// volumeMounts property.
+    pub volume_mounts: Option<Vec<GoogleCloudRunV2VolumeMount>>,
+    /// workingDir property.
+    pub working_dir: Option<String>,
+}
+
+/// `GoogleCloudRunV2ContainerPort` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2ContainerPort {
+    /// containerPort property.
+    pub container_port: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GoogleCloudRunV2GCSVolumeSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2GCSVolumeSource {
+    /// bucket property.
+    pub bucket: Option<String>,
+    /// mountOptions property.
+    pub mount_options: Option<Vec<String>>,
+    /// readOnly property.
+    pub read_only: Option<bool>,
+}
+
+/// `GoogleCloudRunV2VpcAccess` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2VpcAccess {
+    /// connector property.
+    pub connector: Option<String>,
+    /// egress property.
+    pub egress: Option<String>,
+    /// networkInterfaces property.
+    pub network_interfaces: Option<Vec<GoogleCloudRunV2NetworkInterface>>,
 }
 
 /// `GoogleCloudRunV2SourceFile` type.
@@ -640,11 +410,242 @@ pub struct GoogleCloudRunV2HTTPGetAction {
     pub port: Option<i64>,
 }
 
-/// `GoogleCloudRunV2InlinedSource` type.
+/// `GoogleIamV1AuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2InlinedSource {
-    /// sources property.
-    pub sources: Option<Vec<GoogleCloudRunV2SourceFile>>,
+pub struct GoogleIamV1AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `GoogleCloudRunV2ServiceMesh` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2ServiceMesh {
+    /// mesh property.
+    pub mesh: Option<String>,
+}
+
+/// `GoogleCloudRunV2TrafficTarget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2TrafficTarget {
+    /// percent property.
+    pub percent: Option<i64>,
+    /// revision property.
+    pub revision: Option<String>,
+    /// tag property.
+    pub tag: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudRunV2ListServicesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2ListServicesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// services property.
+    pub services: Option<Vec<GoogleCloudRunV2Service>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `GoogleCloudRunV2CloudStorageSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2CloudStorageSource {
+    /// bucket property.
+    pub bucket: Option<String>,
+    /// generation property.
+    pub generation: Option<String>,
+    /// object property.
+    pub object: Option<String>,
+}
+
+/// `GoogleIamV1Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1Binding {
+    /// condition property.
+    pub condition: Option<GoogleTypeExpr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `GoogleCloudRunV2BinaryAuthorization` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2BinaryAuthorization {
+    /// breakglassJustification property.
+    pub breakglass_justification: Option<String>,
+    /// policy property.
+    pub policy: Option<String>,
+    /// useDefault property.
+    pub use_default: Option<bool>,
+}
+
+/// `GoogleCloudRunV2RevisionTemplate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2RevisionTemplate {
+    /// annotations property.
+    pub annotations: Option<serde_json::Value>,
+    /// client property.
+    pub client: Option<String>,
+    /// clientVersion property.
+    pub client_version: Option<String>,
+    /// containers property.
+    pub containers: Option<Vec<GoogleCloudRunV2Container>>,
+    /// encryptionKey property.
+    pub encryption_key: Option<String>,
+    /// encryptionKeyRevocationAction property.
+    pub encryption_key_revocation_action: Option<String>,
+    /// encryptionKeyShutdownDuration property.
+    pub encryption_key_shutdown_duration: Option<String>,
+    /// executionEnvironment property.
+    pub execution_environment: Option<String>,
+    /// gpuZonalRedundancyDisabled property.
+    pub gpu_zonal_redundancy_disabled: Option<bool>,
+    /// healthCheckDisabled property.
+    pub health_check_disabled: Option<bool>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// maxInstanceRequestConcurrency property.
+    pub max_instance_request_concurrency: Option<i64>,
+    /// nodeSelector property.
+    pub node_selector: Option<GoogleCloudRunV2NodeSelector>,
+    /// revision property.
+    pub revision: Option<String>,
+    /// scaling property.
+    pub scaling: Option<GoogleCloudRunV2RevisionScaling>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// serviceMesh property.
+    pub service_mesh: Option<GoogleCloudRunV2ServiceMesh>,
+    /// sessionAffinity property.
+    pub session_affinity: Option<bool>,
+    /// timeout property.
+    pub timeout: Option<String>,
+    /// volumes property.
+    pub volumes: Option<Vec<GoogleCloudRunV2Volume>>,
+    /// vpcAccess property.
+    pub vpc_access: Option<GoogleCloudRunV2VpcAccess>,
+}
+
+/// `GoogleTypeExpr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeExpr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudRunV2RevisionScaling` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2RevisionScaling {
+    /// concurrencyUtilization property.
+    pub concurrency_utilization: Option<f64>,
+    /// cpuUtilization property.
+    pub cpu_utilization: Option<f64>,
+    /// maxInstanceCount property.
+    pub max_instance_count: Option<i64>,
+    /// minInstanceCount property.
+    pub min_instance_count: Option<i64>,
+}
+
+/// `GoogleCloudRunV2NFSVolumeSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2NFSVolumeSource {
+    /// path property.
+    pub path: Option<String>,
+    /// readOnly property.
+    pub read_only: Option<bool>,
+    /// server property.
+    pub server: Option<String>,
+}
+
+/// `GoogleCloudRunV2SecretVolumeSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2SecretVolumeSource {
+    /// defaultMode property.
+    pub default_mode: Option<i64>,
+    /// items property.
+    pub items: Option<Vec<GoogleCloudRunV2VersionToPath>>,
+    /// secret property.
+    pub secret: Option<String>,
+}
+
+/// `GoogleCloudRunV2Probe` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2Probe {
+    /// failureThreshold property.
+    pub failure_threshold: Option<i64>,
+    /// grpc property.
+    pub grpc: Option<GoogleCloudRunV2GRPCAction>,
+    /// httpGet property.
+    pub http_get: Option<GoogleCloudRunV2HTTPGetAction>,
+    /// initialDelaySeconds property.
+    pub initial_delay_seconds: Option<i64>,
+    /// periodSeconds property.
+    pub period_seconds: Option<i64>,
+    /// tcpSocket property.
+    pub tcp_socket: Option<GoogleCloudRunV2TCPSocketAction>,
+    /// timeoutSeconds property.
+    pub timeout_seconds: Option<i64>,
+}
+
+/// `GoogleCloudRunV2NetworkInterface` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2NetworkInterface {
+    /// network property.
+    pub network: Option<String>,
+    /// subnetwork property.
+    pub subnetwork: Option<String>,
+    /// tags property.
+    pub tags: Option<Vec<String>>,
+}
+
+/// `GoogleCloudRunV2EnvVar` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2EnvVar {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+    /// valueSource property.
+    pub value_source: Option<GoogleCloudRunV2EnvVarSource>,
+}
+
+/// `GoogleCloudRunV2SourceCode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2SourceCode {
+    /// cloudStorageSource property.
+    pub cloud_storage_source: Option<GoogleCloudRunV2CloudStorageSource>,
+    /// inlinedSource property.
+    pub inlined_source: Option<GoogleCloudRunV2InlinedSource>,
+}
+
+/// `GoogleCloudRunV2GRPCAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2GRPCAction {
+    /// port property.
+    pub port: Option<i64>,
+    /// service property.
+    pub service: Option<String>,
 }
 
 // =============================================================================

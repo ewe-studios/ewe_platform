@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,29 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Hash` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Hash {
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Tag` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Tag {
-    /// name property.
-    pub name: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
 
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -63,6 +46,24 @@ pub struct ListVersionsResponse {
     pub next_page_token: Option<String>,
     /// versions property.
     pub versions: Option<Vec<Version>>,
+}
+
+/// `Hash` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Hash {
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Tag` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Tag {
+    /// name property.
+    pub name: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
 /// `Version` type.

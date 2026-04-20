@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,24 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleChromeManagementVersionsV1DeviceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementVersionsV1DeviceInfo {
-    /// affiliatedDeviceId property.
-    pub affiliated_device_id: Option<String>,
-    /// deviceType property.
-    pub device_type: Option<String>,
-    /// hostname property.
-    pub hostname: Option<String>,
-    /// machine property.
-    pub machine: Option<String>,
-}
 
 /// `GoogleChromeManagementVersionsV1ChromeBrowserProfile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -99,6 +87,17 @@ pub struct GoogleChromeManagementVersionsV1ChromeBrowserProfile {
     pub user_id: Option<String>,
 }
 
+/// `GoogleChromeManagementVersionsV1ListChromeBrowserProfilesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementVersionsV1ListChromeBrowserProfilesResponse {
+    /// chromeBrowserProfiles property.
+    pub chrome_browser_profiles: Option<Vec<GoogleChromeManagementVersionsV1ChromeBrowserProfile>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// totalSize property.
+    pub total_size: Option<String>,
+}
+
 /// `GoogleChromeManagementVersionsV1AttestationCredential` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1AttestationCredential {
@@ -110,17 +109,6 @@ pub struct GoogleChromeManagementVersionsV1AttestationCredential {
     pub key_type: Option<String>,
     /// publicKey property.
     pub public_key: Option<String>,
-}
-
-/// `GoogleChromeManagementVersionsV1ReportingDataExtensionPolicyData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementVersionsV1ReportingDataExtensionPolicyData {
-    /// extensionId property.
-    pub extension_id: Option<String>,
-    /// extensionName property.
-    pub extension_name: Option<String>,
-    /// policyData property.
-    pub policy_data: Option<Vec<GoogleChromeManagementVersionsV1ReportingDataPolicyData>>,
 }
 
 /// `GoogleChromeManagementVersionsV1ReportingData` type.
@@ -183,6 +171,19 @@ pub struct GoogleChromeManagementVersionsV1ReportingDataPolicyData {
     pub value: Option<String>,
 }
 
+/// `GoogleChromeManagementVersionsV1DeviceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementVersionsV1DeviceInfo {
+    /// affiliatedDeviceId property.
+    pub affiliated_device_id: Option<String>,
+    /// deviceType property.
+    pub device_type: Option<String>,
+    /// hostname property.
+    pub hostname: Option<String>,
+    /// machine property.
+    pub machine: Option<String>,
+}
+
 /// `GoogleChromeManagementVersionsV1ReportingDataConflictingPolicyData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1ReportingDataConflictingPolicyData {
@@ -190,15 +191,15 @@ pub struct GoogleChromeManagementVersionsV1ReportingDataConflictingPolicyData {
     pub source: Option<String>,
 }
 
-/// `GoogleChromeManagementVersionsV1ListChromeBrowserProfilesResponse` type.
+/// `GoogleChromeManagementVersionsV1ReportingDataExtensionPolicyData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementVersionsV1ListChromeBrowserProfilesResponse {
-    /// chromeBrowserProfiles property.
-    pub chrome_browser_profiles: Option<Vec<GoogleChromeManagementVersionsV1ChromeBrowserProfile>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// totalSize property.
-    pub total_size: Option<String>,
+pub struct GoogleChromeManagementVersionsV1ReportingDataExtensionPolicyData {
+    /// extensionId property.
+    pub extension_id: Option<String>,
+    /// extensionName property.
+    pub extension_name: Option<String>,
+    /// policyData property.
+    pub policy_data: Option<Vec<GoogleChromeManagementVersionsV1ReportingDataPolicyData>>,
 }
 
 // =============================================================================

@@ -12,17 +12,31 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `RouterNatRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouterNatRule {
+    /// action property.
+    pub action: Option<RouterNatRuleAction>,
+    /// description property.
+    pub description: Option<String>,
+    /// match property.
+    pub r#match: Option<String>,
+    /// ruleNumber property.
+    pub rule_number: Option<i64>,
+}
 
 /// `RouterNatSubnetworkToNat` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -35,55 +49,6 @@ pub struct RouterNatSubnetworkToNat {
     pub source_ip_ranges_to_nat: Option<Vec<String>>,
 }
 
-/// `RouterNat` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterNat {
-    /// autoNetworkTier property.
-    pub auto_network_tier: Option<String>,
-    /// drainNatIps property.
-    pub drain_nat_ips: Option<Vec<String>>,
-    /// enableDynamicPortAllocation property.
-    pub enable_dynamic_port_allocation: Option<bool>,
-    /// enableEndpointIndependentMapping property.
-    pub enable_endpoint_independent_mapping: Option<bool>,
-    /// endpointTypes property.
-    pub endpoint_types: Option<Vec<String>>,
-    /// icmpIdleTimeoutSec property.
-    pub icmp_idle_timeout_sec: Option<i64>,
-    /// logConfig property.
-    pub log_config: Option<RouterNatLogConfig>,
-    /// maxPortsPerVm property.
-    pub max_ports_per_vm: Option<i64>,
-    /// minPortsPerVm property.
-    pub min_ports_per_vm: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-    /// nat64Subnetworks property.
-    pub nat64_subnetworks: Option<Vec<RouterNatSubnetworkToNat64>>,
-    /// natIpAllocateOption property.
-    pub nat_ip_allocate_option: Option<String>,
-    /// natIps property.
-    pub nat_ips: Option<Vec<String>>,
-    /// rules property.
-    pub rules: Option<Vec<RouterNatRule>>,
-    /// sourceSubnetworkIpRangesToNat property.
-    pub source_subnetwork_ip_ranges_to_nat: Option<String>,
-    /// sourceSubnetworkIpRangesToNat64 property.
-    pub source_subnetwork_ip_ranges_to_nat64: Option<String>,
-    /// subnetworks property.
-    pub subnetworks: Option<Vec<RouterNatSubnetworkToNat>>,
-    /// tcpEstablishedIdleTimeoutSec property.
-    pub tcp_established_idle_timeout_sec: Option<i64>,
-    /// tcpTimeWaitTimeoutSec property.
-    pub tcp_time_wait_timeout_sec: Option<i64>,
-    /// tcpTransitoryIdleTimeoutSec property.
-    pub tcp_transitory_idle_timeout_sec: Option<i64>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// udpIdleTimeoutSec property.
-    pub udp_idle_timeout_sec: Option<i64>,
-}
-
 /// `RouterMd5AuthenticationKey` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterMd5AuthenticationKey {
@@ -93,18 +58,21 @@ pub struct RouterMd5AuthenticationKey {
     pub name: Option<String>,
 }
 
-/// `RouterNatSubnetworkToNat64` type.
+/// `RouterBgp` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterNatSubnetworkToNat64 {
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `RouterParams` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterParams {
-    /// resourceManagerTags property.
-    pub resource_manager_tags: Option<serde_json::Value>,
+pub struct RouterBgp {
+    /// advertiseMode property.
+    pub advertise_mode: Option<String>,
+    /// advertisedGroups property.
+    pub advertised_groups: Option<Vec<String>>,
+    /// advertisedIpRanges property.
+    pub advertised_ip_ranges: Option<Vec<RouterAdvertisedIpRange>>,
+    /// asn property.
+    pub asn: Option<i64>,
+    /// identifierRange property.
+    pub identifier_range: Option<String>,
+    /// keepaliveInterval property.
+    pub keepalive_interval: Option<i64>,
 }
 
 /// `RouterAdvertisedIpRange` type.
@@ -112,13 +80,6 @@ pub struct RouterParams {
 pub struct RouterAdvertisedIpRange {
     /// description property.
     pub description: Option<String>,
-    /// range property.
-    pub range: Option<String>,
-}
-
-/// `RouterBgpPeerCustomLearnedIpRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterBgpPeerCustomLearnedIpRange {
     /// range property.
     pub range: Option<String>,
 }
@@ -136,17 +97,46 @@ pub struct RouterBgpPeerBfd {
     pub session_initialization_mode: Option<String>,
 }
 
-/// `RouterNatRuleAction` type.
+/// `Router` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterNatRuleAction {
-    /// sourceNatActiveIps property.
-    pub source_nat_active_ips: Option<Vec<String>>,
-    /// sourceNatActiveRanges property.
-    pub source_nat_active_ranges: Option<Vec<String>>,
-    /// sourceNatDrainIps property.
-    pub source_nat_drain_ips: Option<Vec<String>>,
-    /// sourceNatDrainRanges property.
-    pub source_nat_drain_ranges: Option<Vec<String>>,
+pub struct Router {
+    /// bgp property.
+    pub bgp: Option<RouterBgp>,
+    /// bgpPeers property.
+    pub bgp_peers: Option<Vec<RouterBgpPeer>>,
+    /// creationTimestamp property.
+    pub creation_timestamp: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// encryptedInterconnectRouter property.
+    pub encrypted_interconnect_router: Option<bool>,
+    /// id property.
+    pub id: Option<String>,
+    /// interfaces property.
+    pub interfaces: Option<Vec<RouterInterface>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// md5AuthenticationKeys property.
+    pub md5_authentication_keys: Option<Vec<RouterMd5AuthenticationKey>>,
+    /// name property.
+    pub name: Option<String>,
+    /// nats property.
+    pub nats: Option<Vec<RouterNat>>,
+    /// network property.
+    pub network: Option<String>,
+    /// params property.
+    pub params: Option<RouterParams>,
+    /// region property.
+    pub region: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+}
+
+/// `RoutersPreviewResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RoutersPreviewResponse {
+    /// resource property.
+    pub resource: Option<Router>,
 }
 
 /// `RouterBgpPeer` type.
@@ -202,6 +192,69 @@ pub struct RouterBgpPeer {
     pub router_appliance_instance: Option<String>,
 }
 
+/// `RouterNat` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouterNat {
+    /// autoNetworkTier property.
+    pub auto_network_tier: Option<String>,
+    /// drainNatIps property.
+    pub drain_nat_ips: Option<Vec<String>>,
+    /// enableDynamicPortAllocation property.
+    pub enable_dynamic_port_allocation: Option<bool>,
+    /// enableEndpointIndependentMapping property.
+    pub enable_endpoint_independent_mapping: Option<bool>,
+    /// endpointTypes property.
+    pub endpoint_types: Option<Vec<String>>,
+    /// icmpIdleTimeoutSec property.
+    pub icmp_idle_timeout_sec: Option<i64>,
+    /// logConfig property.
+    pub log_config: Option<RouterNatLogConfig>,
+    /// maxPortsPerVm property.
+    pub max_ports_per_vm: Option<i64>,
+    /// minPortsPerVm property.
+    pub min_ports_per_vm: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// nat64Subnetworks property.
+    pub nat64_subnetworks: Option<Vec<RouterNatSubnetworkToNat64>>,
+    /// natIpAllocateOption property.
+    pub nat_ip_allocate_option: Option<String>,
+    /// natIps property.
+    pub nat_ips: Option<Vec<String>>,
+    /// rules property.
+    pub rules: Option<Vec<RouterNatRule>>,
+    /// sourceSubnetworkIpRangesToNat property.
+    pub source_subnetwork_ip_ranges_to_nat: Option<String>,
+    /// sourceSubnetworkIpRangesToNat64 property.
+    pub source_subnetwork_ip_ranges_to_nat64: Option<String>,
+    /// subnetworks property.
+    pub subnetworks: Option<Vec<RouterNatSubnetworkToNat>>,
+    /// tcpEstablishedIdleTimeoutSec property.
+    pub tcp_established_idle_timeout_sec: Option<i64>,
+    /// tcpTimeWaitTimeoutSec property.
+    pub tcp_time_wait_timeout_sec: Option<i64>,
+    /// tcpTransitoryIdleTimeoutSec property.
+    pub tcp_transitory_idle_timeout_sec: Option<i64>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// udpIdleTimeoutSec property.
+    pub udp_idle_timeout_sec: Option<i64>,
+}
+
+/// `RouterNatSubnetworkToNat64` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouterNatSubnetworkToNat64 {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `RouterBgpPeerCustomLearnedIpRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouterBgpPeerCustomLearnedIpRange {
+    /// range property.
+    pub range: Option<String>,
+}
+
 /// `RouterInterface` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterInterface {
@@ -225,41 +278,6 @@ pub struct RouterInterface {
     pub subnetwork: Option<String>,
 }
 
-/// `Router` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Router {
-    /// bgp property.
-    pub bgp: Option<RouterBgp>,
-    /// bgpPeers property.
-    pub bgp_peers: Option<Vec<RouterBgpPeer>>,
-    /// creationTimestamp property.
-    pub creation_timestamp: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// encryptedInterconnectRouter property.
-    pub encrypted_interconnect_router: Option<bool>,
-    /// id property.
-    pub id: Option<String>,
-    /// interfaces property.
-    pub interfaces: Option<Vec<RouterInterface>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// md5AuthenticationKeys property.
-    pub md5_authentication_keys: Option<Vec<RouterMd5AuthenticationKey>>,
-    /// name property.
-    pub name: Option<String>,
-    /// nats property.
-    pub nats: Option<Vec<RouterNat>>,
-    /// network property.
-    pub network: Option<String>,
-    /// params property.
-    pub params: Option<RouterParams>,
-    /// region property.
-    pub region: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-}
-
 /// `RouterNatLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterNatLogConfig {
@@ -269,41 +287,24 @@ pub struct RouterNatLogConfig {
     pub filter: Option<String>,
 }
 
-/// `RouterNatRule` type.
+/// `RouterParams` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterNatRule {
-    /// action property.
-    pub action: Option<RouterNatRuleAction>,
-    /// description property.
-    pub description: Option<String>,
-    /// match property.
-    pub r#match: Option<String>,
-    /// ruleNumber property.
-    pub rule_number: Option<i64>,
+pub struct RouterParams {
+    /// resourceManagerTags property.
+    pub resource_manager_tags: Option<serde_json::Value>,
 }
 
-/// `RoutersPreviewResponse` type.
+/// `RouterNatRuleAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RoutersPreviewResponse {
-    /// resource property.
-    pub resource: Option<Router>,
-}
-
-/// `RouterBgp` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterBgp {
-    /// advertiseMode property.
-    pub advertise_mode: Option<String>,
-    /// advertisedGroups property.
-    pub advertised_groups: Option<Vec<String>>,
-    /// advertisedIpRanges property.
-    pub advertised_ip_ranges: Option<Vec<RouterAdvertisedIpRange>>,
-    /// asn property.
-    pub asn: Option<i64>,
-    /// identifierRange property.
-    pub identifier_range: Option<String>,
-    /// keepaliveInterval property.
-    pub keepalive_interval: Option<i64>,
+pub struct RouterNatRuleAction {
+    /// sourceNatActiveIps property.
+    pub source_nat_active_ips: Option<Vec<String>>,
+    /// sourceNatActiveRanges property.
+    pub source_nat_active_ranges: Option<Vec<String>>,
+    /// sourceNatDrainIps property.
+    pub source_nat_drain_ips: Option<Vec<String>>,
+    /// sourceNatDrainRanges property.
+    pub source_nat_drain_ranges: Option<Vec<String>>,
 }
 
 // =============================================================================

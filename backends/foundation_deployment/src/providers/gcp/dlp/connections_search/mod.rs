@@ -12,17 +12,42 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2SearchConnectionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2SearchConnectionsResponse {
+    /// connections property.
+    pub connections: Option<Vec<GooglePrivacyDlpV2Connection>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2CloudSqlIamCredential` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2CloudSqlIamCredential {}
 
 /// `GooglePrivacyDlpV2CloudSqlProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -38,41 +63,6 @@ pub struct GooglePrivacyDlpV2CloudSqlProperties {
     /// usernamePassword property.
     pub username_password: Option<GooglePrivacyDlpV2SecretManagerCredential>,
 }
-
-/// `GooglePrivacyDlpV2SearchConnectionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2SearchConnectionsResponse {
-    /// connections property.
-    pub connections: Option<Vec<GooglePrivacyDlpV2Connection>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2Error` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Error {
-    /// details property.
-    pub details: Option<GoogleRpcStatus>,
-    /// extraInfo property.
-    pub extra_info: Option<String>,
-    /// timestamps property.
-    pub timestamps: Option<Vec<String>>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2CloudSqlIamCredential` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2CloudSqlIamCredential {}
 
 /// `GooglePrivacyDlpV2SecretManagerCredential` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -94,6 +84,17 @@ pub struct GooglePrivacyDlpV2Connection {
     pub name: Option<String>,
     /// state property.
     pub state: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2Error` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Error {
+    /// details property.
+    pub details: Option<GoogleRpcStatus>,
+    /// extraInfo property.
+    pub extra_info: Option<String>,
+    /// timestamps property.
+    pub timestamps: Option<Vec<String>>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,39 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Execution;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Status` type.
+/// `StateError` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// currentSteps property.
-    pub current_steps: Option<Vec<Step>>,
-}
-
-/// `StackTraceElement` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StackTraceElement {
-    /// position property.
-    pub position: Option<Position>,
-    /// routine property.
-    pub routine: Option<String>,
-    /// step property.
-    pub step: Option<String>,
-}
-
-/// `Error` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Error {
-    /// context property.
-    pub context: Option<String>,
-    /// payload property.
-    pub payload: Option<String>,
-    /// stackTrace property.
-    pub stack_trace: Option<StackTrace>,
+pub struct StateError {
+    /// details property.
+    pub details: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `Step` type.
@@ -76,13 +57,11 @@ pub struct Position {
     pub line: Option<String>,
 }
 
-/// `StateError` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StateError {
-    /// details property.
-    pub details: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct Status {
+    /// currentSteps property.
+    pub current_steps: Option<Vec<Step>>,
 }
 
 /// `StackTrace` type.
@@ -90,6 +69,28 @@ pub struct StateError {
 pub struct StackTrace {
     /// elements property.
     pub elements: Option<Vec<StackTraceElement>>,
+}
+
+/// `Error` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Error {
+    /// context property.
+    pub context: Option<String>,
+    /// payload property.
+    pub payload: Option<String>,
+    /// stackTrace property.
+    pub stack_trace: Option<StackTrace>,
+}
+
+/// `StackTraceElement` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StackTraceElement {
+    /// position property.
+    pub position: Option<Position>,
+    /// routine property.
+    pub routine: Option<String>,
+    /// step property.
+    pub step: Option<String>,
 }
 
 // =============================================================================

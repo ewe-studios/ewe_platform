@@ -12,33 +12,41 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `BatchUpdateValuesByDataFilterResponse` type.
+/// `DimensionRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BatchUpdateValuesByDataFilterResponse {
-    /// responses property.
-    pub responses: Option<Vec<UpdateValuesByDataFilterResponse>>,
-    /// spreadsheetId property.
-    pub spreadsheet_id: Option<String>,
-    /// totalUpdatedCells property.
-    pub total_updated_cells: Option<i64>,
-    /// totalUpdatedColumns property.
-    pub total_updated_columns: Option<i64>,
-    /// totalUpdatedRows property.
-    pub total_updated_rows: Option<i64>,
-    /// totalUpdatedSheets property.
-    pub total_updated_sheets: Option<i64>,
+pub struct DimensionRange {
+    /// dimension property.
+    pub dimension: Option<String>,
+    /// endIndex property.
+    pub end_index: Option<i64>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+}
+
+/// `DataFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataFilter {
+    /// a1Range property.
+    pub a1_range: Option<String>,
+    /// developerMetadataLookup property.
+    pub developer_metadata_lookup: Option<DeveloperMetadataLookup>,
+    /// gridRange property.
+    pub grid_range: Option<GridRange>,
 }
 
 /// `DeveloperMetadataLookup` type.
@@ -60,45 +68,6 @@ pub struct DeveloperMetadataLookup {
     pub visibility: Option<String>,
 }
 
-/// `DimensionRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DimensionRange {
-    /// dimension property.
-    pub dimension: Option<String>,
-    /// endIndex property.
-    pub end_index: Option<i64>,
-    /// sheetId property.
-    pub sheet_id: Option<i64>,
-    /// startIndex property.
-    pub start_index: Option<i64>,
-}
-
-/// `GridRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GridRange {
-    /// endColumnIndex property.
-    pub end_column_index: Option<i64>,
-    /// endRowIndex property.
-    pub end_row_index: Option<i64>,
-    /// sheetId property.
-    pub sheet_id: Option<i64>,
-    /// startColumnIndex property.
-    pub start_column_index: Option<i64>,
-    /// startRowIndex property.
-    pub start_row_index: Option<i64>,
-}
-
-/// `ValueRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValueRange {
-    /// majorDimension property.
-    pub major_dimension: Option<String>,
-    /// range property.
-    pub range: Option<String>,
-    /// values property.
-    pub values: Option<Vec<Vec<serde_json::Value>>>,
-}
-
 /// `DeveloperMetadataLocation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeveloperMetadataLocation {
@@ -110,6 +79,34 @@ pub struct DeveloperMetadataLocation {
     pub sheet_id: Option<i64>,
     /// spreadsheet property.
     pub spreadsheet: Option<bool>,
+}
+
+/// `BatchUpdateValuesByDataFilterResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BatchUpdateValuesByDataFilterResponse {
+    /// responses property.
+    pub responses: Option<Vec<UpdateValuesByDataFilterResponse>>,
+    /// spreadsheetId property.
+    pub spreadsheet_id: Option<String>,
+    /// totalUpdatedCells property.
+    pub total_updated_cells: Option<i64>,
+    /// totalUpdatedColumns property.
+    pub total_updated_columns: Option<i64>,
+    /// totalUpdatedRows property.
+    pub total_updated_rows: Option<i64>,
+    /// totalUpdatedSheets property.
+    pub total_updated_sheets: Option<i64>,
+}
+
+/// `ValueRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ValueRange {
+    /// majorDimension property.
+    pub major_dimension: Option<String>,
+    /// range property.
+    pub range: Option<String>,
+    /// values property.
+    pub values: Option<Vec<Vec<serde_json::Value>>>,
 }
 
 /// `UpdateValuesByDataFilterResponse` type.
@@ -129,15 +126,19 @@ pub struct UpdateValuesByDataFilterResponse {
     pub updated_rows: Option<i64>,
 }
 
-/// `DataFilter` type.
+/// `GridRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataFilter {
-    /// a1Range property.
-    pub a1_range: Option<String>,
-    /// developerMetadataLookup property.
-    pub developer_metadata_lookup: Option<DeveloperMetadataLookup>,
-    /// gridRange property.
-    pub grid_range: Option<GridRange>,
+pub struct GridRange {
+    /// endColumnIndex property.
+    pub end_column_index: Option<i64>,
+    /// endRowIndex property.
+    pub end_row_index: Option<i64>,
+    /// sheetId property.
+    pub sheet_id: Option<i64>,
+    /// startColumnIndex property.
+    pub start_column_index: Option<i64>,
+    /// startRowIndex property.
+    pub start_row_index: Option<i64>,
 }
 
 // =============================================================================

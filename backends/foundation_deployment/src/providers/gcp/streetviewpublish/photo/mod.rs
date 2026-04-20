@@ -12,50 +12,30 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
 use super::shared::Empty;
+use super::shared::UploadRef;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Photo` type.
+/// `LatLng` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Photo {
-    /// captureTime property.
-    pub capture_time: Option<String>,
-    /// connections property.
-    pub connections: Option<Vec<Connection>>,
-    /// downloadUrl property.
-    pub download_url: Option<String>,
-    /// mapsPublishStatus property.
-    pub maps_publish_status: Option<String>,
-    /// photoId property.
-    pub photo_id: Option<PhotoId>,
-    /// places property.
-    pub places: Option<Vec<Place>>,
-    /// pose property.
-    pub pose: Option<Pose>,
-    /// shareLink property.
-    pub share_link: Option<String>,
-    /// thumbnailUrl property.
-    pub thumbnail_url: Option<String>,
-    /// transferStatus property.
-    pub transfer_status: Option<String>,
-    /// uploadReference property.
-    pub upload_reference: Option<UploadRef>,
-    /// uploadTime property.
-    pub upload_time: Option<String>,
-    /// viewCount property.
-    pub view_count: Option<String>,
+pub struct LatLng {
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
 }
 
 /// `Pose` type.
@@ -90,22 +70,6 @@ pub struct Place {
     pub place_id: Option<String>,
 }
 
-/// `LatLng` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LatLng {
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
-}
-
-/// `Connection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Connection {
-    /// target property.
-    pub target: Option<PhotoId>,
-}
-
 /// `Level` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Level {
@@ -113,6 +77,44 @@ pub struct Level {
     pub name: Option<String>,
     /// number property.
     pub number: Option<f64>,
+}
+
+/// `Photo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Photo {
+    /// captureTime property.
+    pub capture_time: Option<String>,
+    /// connections property.
+    pub connections: Option<Vec<Connection>>,
+    /// downloadUrl property.
+    pub download_url: Option<String>,
+    /// mapsPublishStatus property.
+    pub maps_publish_status: Option<String>,
+    /// photoId property.
+    pub photo_id: Option<PhotoId>,
+    /// places property.
+    pub places: Option<Vec<Place>>,
+    /// pose property.
+    pub pose: Option<Pose>,
+    /// shareLink property.
+    pub share_link: Option<String>,
+    /// thumbnailUrl property.
+    pub thumbnail_url: Option<String>,
+    /// transferStatus property.
+    pub transfer_status: Option<String>,
+    /// uploadReference property.
+    pub upload_reference: Option<UploadRef>,
+    /// uploadTime property.
+    pub upload_time: Option<String>,
+    /// viewCount property.
+    pub view_count: Option<String>,
+}
+
+/// `Connection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Connection {
+    /// target property.
+    pub target: Option<PhotoId>,
 }
 
 /// `PhotoId` type.

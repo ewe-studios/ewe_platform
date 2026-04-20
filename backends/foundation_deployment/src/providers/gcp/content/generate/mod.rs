@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -31,24 +32,6 @@ pub struct RecommendationCallToAction {
     pub intent: Option<String>,
     /// localizedText property.
     pub localized_text: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `RecommendationDescription` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RecommendationDescription {
-    /// text property.
-    pub text: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `RecommendationCreative` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RecommendationCreative {
-    /// type property.
-    pub r#type: Option<String>,
     /// uri property.
     pub uri: Option<String>,
 }
@@ -80,6 +63,15 @@ pub struct Recommendation {
     pub r#type: Option<String>,
 }
 
+/// `RecommendationCreative` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RecommendationCreative {
+    /// type property.
+    pub r#type: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
 /// `GenerateRecommendationsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateRecommendationsResponse {
@@ -87,6 +79,15 @@ pub struct GenerateRecommendationsResponse {
     pub recommendations: Option<Vec<Recommendation>>,
     /// responseToken property.
     pub response_token: Option<String>,
+}
+
+/// `RecommendationDescription` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RecommendationDescription {
+    /// text property.
+    pub text: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 // =============================================================================

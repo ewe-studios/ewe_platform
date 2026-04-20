@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -35,6 +36,28 @@ pub struct GoogleCloudAssuredworkloadsV1ViolationRemediation {
     pub remediation_type: Option<String>,
 }
 
+/// `GoogleCloudAssuredworkloadsV1ViolationRemediationInstructionsConsole` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAssuredworkloadsV1ViolationRemediationInstructionsConsole {
+    /// additionalLinks property.
+    pub additional_links: Option<Vec<String>>,
+    /// consoleUris property.
+    pub console_uris: Option<Vec<String>>,
+    /// steps property.
+    pub steps: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAssuredworkloadsV1ViolationRemediationInstructionsGcloud` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAssuredworkloadsV1ViolationRemediationInstructionsGcloud {
+    /// additionalLinks property.
+    pub additional_links: Option<Vec<String>>,
+    /// gcloudCommands property.
+    pub gcloud_commands: Option<Vec<String>>,
+    /// steps property.
+    pub steps: Option<Vec<String>>,
+}
+
 /// `GoogleCloudAssuredworkloadsV1ViolationExceptionContext` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1ViolationExceptionContext {
@@ -45,6 +68,19 @@ pub struct GoogleCloudAssuredworkloadsV1ViolationExceptionContext {
     /// userName property.
     pub user_name: Option<String>,
 }
+
+/// `GoogleCloudAssuredworkloadsV1ListViolationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAssuredworkloadsV1ListViolationsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// violations property.
+    pub violations: Option<Vec<GoogleCloudAssuredworkloadsV1Violation>>,
+}
+
+/// `GoogleCloudAssuredworkloadsV1AcknowledgeViolationResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAssuredworkloadsV1AcknowledgeViolationResponse {}
 
 /// `GoogleCloudAssuredworkloadsV1Violation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -89,41 +125,6 @@ pub struct GoogleCloudAssuredworkloadsV1Violation {
     pub update_time: Option<String>,
     /// violationType property.
     pub violation_type: Option<String>,
-}
-
-/// `GoogleCloudAssuredworkloadsV1ListViolationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1ListViolationsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// violations property.
-    pub violations: Option<Vec<GoogleCloudAssuredworkloadsV1Violation>>,
-}
-
-/// `GoogleCloudAssuredworkloadsV1ViolationRemediationInstructionsGcloud` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1ViolationRemediationInstructionsGcloud {
-    /// additionalLinks property.
-    pub additional_links: Option<Vec<String>>,
-    /// gcloudCommands property.
-    pub gcloud_commands: Option<Vec<String>>,
-    /// steps property.
-    pub steps: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAssuredworkloadsV1AcknowledgeViolationResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1AcknowledgeViolationResponse {}
-
-/// `GoogleCloudAssuredworkloadsV1ViolationRemediationInstructionsConsole` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1ViolationRemediationInstructionsConsole {
-    /// additionalLinks property.
-    pub additional_links: Option<Vec<String>>,
-    /// consoleUris property.
-    pub console_uris: Option<Vec<String>>,
-    /// steps property.
-    pub steps: Option<Vec<String>>,
 }
 
 /// `GoogleCloudAssuredworkloadsV1ViolationRemediationInstructions` type.

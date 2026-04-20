@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,118 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `RequestMirrorPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RequestMirrorPolicy {
-    /// backendService property.
-    pub backend_service: Option<String>,
-    /// mirrorPercent property.
-    pub mirror_percent: Option<f64>,
-}
-
-/// `HttpRetryPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRetryPolicy {
-    /// numRetries property.
-    pub num_retries: Option<i64>,
-    /// perTryTimeout property.
-    pub per_try_timeout: Option<Duration>,
-    /// retryConditions property.
-    pub retry_conditions: Option<Vec<String>>,
-}
-
-/// `HttpRouteAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRouteAction {
-    /// corsPolicy property.
-    pub cors_policy: Option<CorsPolicy>,
-    /// faultInjectionPolicy property.
-    pub fault_injection_policy: Option<HttpFaultInjection>,
-    /// maxStreamDuration property.
-    pub max_stream_duration: Option<Duration>,
-    /// requestMirrorPolicy property.
-    pub request_mirror_policy: Option<RequestMirrorPolicy>,
-    /// retryPolicy property.
-    pub retry_policy: Option<HttpRetryPolicy>,
-    /// timeout property.
-    pub timeout: Option<Duration>,
-    /// urlRewrite property.
-    pub url_rewrite: Option<UrlRewrite>,
-    /// weightedBackendServices property.
-    pub weighted_backend_services: Option<Vec<WeightedBackendService>>,
-}
-
-/// `MetadataFilterLabelMatch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetadataFilterLabelMatch {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `WeightedBackendService` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WeightedBackendService {
-    /// backendService property.
-    pub backend_service: Option<String>,
-    /// headerAction property.
-    pub header_action: Option<HttpHeaderAction>,
-    /// weight property.
-    pub weight: Option<i64>,
-}
-
-/// `HttpHeaderOption` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpHeaderOption {
-    /// headerName property.
-    pub header_name: Option<String>,
-    /// headerValue property.
-    pub header_value: Option<String>,
-    /// replace property.
-    pub replace: Option<bool>,
-}
-
-/// `QuotaExceededInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotaExceededInfo {
-    /// dimensions property.
-    pub dimensions: Option<serde_json::Value>,
-    /// futureLimit property.
-    pub future_limit: Option<f64>,
-    /// limit property.
-    pub limit: Option<f64>,
-    /// limitName property.
-    pub limit_name: Option<String>,
-    /// metricName property.
-    pub metric_name: Option<String>,
-    /// rolloutStatus property.
-    pub rollout_status: Option<String>,
-}
-
-/// `UrlMapTestHeader` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UrlMapTestHeader {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `SetCommonInstanceMetadataOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetCommonInstanceMetadataOperationMetadata {
-    /// clientOperationId property.
-    pub client_operation_id: Option<String>,
-    /// perLocationOperations property.
-    pub per_location_operations: Option<serde_json::Value>,
-}
 
 /// `UrlMapList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -149,35 +43,6 @@ pub struct UrlMapList {
     pub self_link: Option<String>,
     /// warning property.
     pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `HostRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HostRule {
-    /// description property.
-    pub description: Option<String>,
-    /// hosts property.
-    pub hosts: Option<Vec<String>>,
-    /// pathMatcher property.
-    pub path_matcher: Option<String>,
-}
-
-/// `HttpFaultAbort` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpFaultAbort {
-    /// httpStatus property.
-    pub http_status: Option<i64>,
-    /// percentage property.
-    pub percentage: Option<f64>,
-}
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 /// `HttpHeaderMatch` type.
@@ -199,314 +64,6 @@ pub struct HttpHeaderMatch {
     pub regex_match: Option<String>,
     /// suffixMatch property.
     pub suffix_match: Option<String>,
-}
-
-/// `HttpRedirectAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRedirectAction {
-    /// hostRedirect property.
-    pub host_redirect: Option<String>,
-    /// httpsRedirect property.
-    pub https_redirect: Option<bool>,
-    /// pathRedirect property.
-    pub path_redirect: Option<String>,
-    /// prefixRedirect property.
-    pub prefix_redirect: Option<String>,
-    /// redirectResponseCode property.
-    pub redirect_response_code: Option<String>,
-    /// stripQuery property.
-    pub strip_query: Option<bool>,
-}
-
-/// `GetVersionOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadata {
-    /// inlineSbomInfo property.
-    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
-}
-
-/// `UrlMapTest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UrlMapTest {
-    /// description property.
-    pub description: Option<String>,
-    /// expectedOutputUrl property.
-    pub expected_output_url: Option<String>,
-    /// expectedRedirectResponseCode property.
-    pub expected_redirect_response_code: Option<i64>,
-    /// headers property.
-    pub headers: Option<Vec<UrlMapTestHeader>>,
-    /// host property.
-    pub host: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `UrlRewrite` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UrlRewrite {
-    /// hostRewrite property.
-    pub host_rewrite: Option<String>,
-    /// pathPrefixRewrite property.
-    pub path_prefix_rewrite: Option<String>,
-    /// pathTemplateRewrite property.
-    pub path_template_rewrite: Option<String>,
-}
-
-/// `CustomErrorResponsePolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomErrorResponsePolicy {
-    /// errorResponseRules property.
-    pub error_response_rules: Option<Vec<CustomErrorResponsePolicyCustomErrorResponseRule>>,
-    /// errorService property.
-    pub error_service: Option<String>,
-}
-
-/// `CustomErrorResponsePolicyCustomErrorResponseRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomErrorResponsePolicyCustomErrorResponseRule {
-    /// matchResponseCodes property.
-    pub match_response_codes: Option<Vec<String>>,
-    /// overrideResponseCode property.
-    pub override_response_code: Option<i64>,
-    /// path property.
-    pub path: Option<String>,
-}
-
-/// `InstancesBulkInsertOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
-}
-
-/// `HelpLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `HttpRouteRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRouteRule {
-    /// customErrorResponsePolicy property.
-    pub custom_error_response_policy: Option<CustomErrorResponsePolicy>,
-    /// description property.
-    pub description: Option<String>,
-    /// headerAction property.
-    pub header_action: Option<HttpHeaderAction>,
-    /// matchRules property.
-    pub match_rules: Option<Vec<HttpRouteRuleMatch>>,
-    /// priority property.
-    pub priority: Option<i64>,
-    /// routeAction property.
-    pub route_action: Option<HttpRouteAction>,
-    /// service property.
-    pub service: Option<String>,
-    /// urlRedirect property.
-    pub url_redirect: Option<HttpRedirectAction>,
-}
-
-/// `HttpRouteRuleMatch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpRouteRuleMatch {
-    /// fullPathMatch property.
-    pub full_path_match: Option<String>,
-    /// headerMatches property.
-    pub header_matches: Option<Vec<HttpHeaderMatch>>,
-    /// ignoreCase property.
-    pub ignore_case: Option<bool>,
-    /// metadataFilters property.
-    pub metadata_filters: Option<Vec<MetadataFilter>>,
-    /// pathTemplateMatch property.
-    pub path_template_match: Option<String>,
-    /// prefixMatch property.
-    pub prefix_match: Option<String>,
-    /// queryParameterMatches property.
-    pub query_parameter_matches: Option<Vec<HttpQueryParameterMatch>>,
-    /// regexMatch property.
-    pub regex_match: Option<String>,
-}
-
-/// `ErrorInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadatas property.
-    pub metadatas: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `HttpQueryParameterMatch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpQueryParameterMatch {
-    /// exactMatch property.
-    pub exact_match: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// presentMatch property.
-    pub present_match: Option<bool>,
-    /// regexMatch property.
-    pub regex_match: Option<String>,
-}
-
-/// `Int64RangeMatch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Int64RangeMatch {
-    /// rangeEnd property.
-    pub range_end: Option<String>,
-    /// rangeStart property.
-    pub range_start: Option<String>,
-}
-
-/// `HttpFaultDelay` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpFaultDelay {
-    /// fixedDelay property.
-    pub fixed_delay: Option<Duration>,
-    /// percentage property.
-    pub percentage: Option<f64>,
-}
-
-/// `HttpHeaderAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpHeaderAction {
-    /// requestHeadersToAdd property.
-    pub request_headers_to_add: Option<Vec<HttpHeaderOption>>,
-    /// requestHeadersToRemove property.
-    pub request_headers_to_remove: Option<Vec<String>>,
-    /// responseHeadersToAdd property.
-    pub response_headers_to_add: Option<Vec<HttpHeaderOption>>,
-    /// responseHeadersToRemove property.
-    pub response_headers_to_remove: Option<Vec<String>>,
-}
-
-/// `UrlMapsAggregatedList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UrlMapsAggregatedList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<serde_json::Value>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// unreachables property.
-    pub unreachables: Option<Vec<String>>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `MetadataFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetadataFilter {
-    /// filterLabels property.
-    pub filter_labels: Option<Vec<MetadataFilterLabelMatch>>,
-    /// filterMatchCriteria property.
-    pub filter_match_criteria: Option<String>,
-}
-
-/// `GetVersionOperationMetadataSbomInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
-}
-
-/// `CorsPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CorsPolicy {
-    /// allowCredentials property.
-    pub allow_credentials: Option<bool>,
-    /// allowHeaders property.
-    pub allow_headers: Option<Vec<String>>,
-    /// allowMethods property.
-    pub allow_methods: Option<Vec<String>>,
-    /// allowOriginRegexes property.
-    pub allow_origin_regexes: Option<Vec<String>>,
-    /// allowOrigins property.
-    pub allow_origins: Option<Vec<String>>,
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// exposeHeaders property.
-    pub expose_headers: Option<Vec<String>>,
-    /// maxAge property.
-    pub max_age: Option<i64>,
-}
-
-/// `HttpFaultInjection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpFaultInjection {
-    /// abort property.
-    pub abort: Option<HttpFaultAbort>,
-    /// delay property.
-    pub delay: Option<HttpFaultDelay>,
-}
-
-/// `PathRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PathRule {
-    /// customErrorResponsePolicy property.
-    pub custom_error_response_policy: Option<CustomErrorResponsePolicy>,
-    /// paths property.
-    pub paths: Option<Vec<String>>,
-    /// routeAction property.
-    pub route_action: Option<HttpRouteAction>,
-    /// service property.
-    pub service: Option<String>,
-    /// urlRedirect property.
-    pub url_redirect: Option<HttpRedirectAction>,
-}
-
-/// `PathMatcher` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PathMatcher {
-    /// defaultCustomErrorResponsePolicy property.
-    pub default_custom_error_response_policy: Option<CustomErrorResponsePolicy>,
-    /// defaultRouteAction property.
-    pub default_route_action: Option<HttpRouteAction>,
-    /// defaultService property.
-    pub default_service: Option<String>,
-    /// defaultUrlRedirect property.
-    pub default_url_redirect: Option<HttpRedirectAction>,
-    /// description property.
-    pub description: Option<String>,
-    /// headerAction property.
-    pub header_action: Option<HttpHeaderAction>,
-    /// name property.
-    pub name: Option<String>,
-    /// pathRules property.
-    pub path_rules: Option<Vec<PathRule>>,
-    /// routeRules property.
-    pub route_rules: Option<Vec<HttpRouteRule>>,
-}
-
-/// `Duration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Duration {
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<String>,
-}
-
-/// `Help` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
 }
 
 /// `UrlMap` type.
@@ -544,6 +101,450 @@ pub struct UrlMap {
     pub self_link: Option<String>,
     /// tests property.
     pub tests: Option<Vec<UrlMapTest>>,
+}
+
+/// `HelpLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `QuotaExceededInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuotaExceededInfo {
+    /// dimensions property.
+    pub dimensions: Option<serde_json::Value>,
+    /// futureLimit property.
+    pub future_limit: Option<f64>,
+    /// limit property.
+    pub limit: Option<f64>,
+    /// limitName property.
+    pub limit_name: Option<String>,
+    /// metricName property.
+    pub metric_name: Option<String>,
+    /// rolloutStatus property.
+    pub rollout_status: Option<String>,
+}
+
+/// `PathRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PathRule {
+    /// customErrorResponsePolicy property.
+    pub custom_error_response_policy: Option<CustomErrorResponsePolicy>,
+    /// paths property.
+    pub paths: Option<Vec<String>>,
+    /// routeAction property.
+    pub route_action: Option<HttpRouteAction>,
+    /// service property.
+    pub service: Option<String>,
+    /// urlRedirect property.
+    pub url_redirect: Option<HttpRedirectAction>,
+}
+
+/// `HttpRouteRuleMatch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRouteRuleMatch {
+    /// fullPathMatch property.
+    pub full_path_match: Option<String>,
+    /// headerMatches property.
+    pub header_matches: Option<Vec<HttpHeaderMatch>>,
+    /// ignoreCase property.
+    pub ignore_case: Option<bool>,
+    /// metadataFilters property.
+    pub metadata_filters: Option<Vec<MetadataFilter>>,
+    /// pathTemplateMatch property.
+    pub path_template_match: Option<String>,
+    /// prefixMatch property.
+    pub prefix_match: Option<String>,
+    /// queryParameterMatches property.
+    pub query_parameter_matches: Option<Vec<HttpQueryParameterMatch>>,
+    /// regexMatch property.
+    pub regex_match: Option<String>,
+}
+
+/// `MetadataFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetadataFilter {
+    /// filterLabels property.
+    pub filter_labels: Option<Vec<MetadataFilterLabelMatch>>,
+    /// filterMatchCriteria property.
+    pub filter_match_criteria: Option<String>,
+}
+
+/// `HttpFaultInjection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpFaultInjection {
+    /// abort property.
+    pub abort: Option<HttpFaultAbort>,
+    /// delay property.
+    pub delay: Option<HttpFaultDelay>,
+}
+
+/// `HttpHeaderOption` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpHeaderOption {
+    /// headerName property.
+    pub header_name: Option<String>,
+    /// headerValue property.
+    pub header_value: Option<String>,
+    /// replace property.
+    pub replace: Option<bool>,
+}
+
+/// `UrlMapsAggregatedList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UrlMapsAggregatedList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<serde_json::Value>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// unreachables property.
+    pub unreachables: Option<Vec<String>>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `UrlMapTestHeader` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UrlMapTestHeader {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `HttpRouteRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRouteRule {
+    /// customErrorResponsePolicy property.
+    pub custom_error_response_policy: Option<CustomErrorResponsePolicy>,
+    /// description property.
+    pub description: Option<String>,
+    /// headerAction property.
+    pub header_action: Option<HttpHeaderAction>,
+    /// matchRules property.
+    pub match_rules: Option<Vec<HttpRouteRuleMatch>>,
+    /// priority property.
+    pub priority: Option<i64>,
+    /// routeAction property.
+    pub route_action: Option<HttpRouteAction>,
+    /// service property.
+    pub service: Option<String>,
+    /// urlRedirect property.
+    pub url_redirect: Option<HttpRedirectAction>,
+}
+
+/// `RequestMirrorPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RequestMirrorPolicy {
+    /// backendService property.
+    pub backend_service: Option<String>,
+    /// mirrorPercent property.
+    pub mirror_percent: Option<f64>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `GetVersionOperationMetadataSbomInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
+}
+
+/// `HttpRedirectAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRedirectAction {
+    /// hostRedirect property.
+    pub host_redirect: Option<String>,
+    /// httpsRedirect property.
+    pub https_redirect: Option<bool>,
+    /// pathRedirect property.
+    pub path_redirect: Option<String>,
+    /// prefixRedirect property.
+    pub prefix_redirect: Option<String>,
+    /// redirectResponseCode property.
+    pub redirect_response_code: Option<String>,
+    /// stripQuery property.
+    pub strip_query: Option<bool>,
+}
+
+/// `GetVersionOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadata {
+    /// inlineSbomInfo property.
+    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+}
+
+/// `HttpFaultAbort` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpFaultAbort {
+    /// httpStatus property.
+    pub http_status: Option<i64>,
+    /// percentage property.
+    pub percentage: Option<f64>,
+}
+
+/// `CustomErrorResponsePolicyCustomErrorResponseRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomErrorResponsePolicyCustomErrorResponseRule {
+    /// matchResponseCodes property.
+    pub match_response_codes: Option<Vec<String>>,
+    /// overrideResponseCode property.
+    pub override_response_code: Option<i64>,
+    /// path property.
+    pub path: Option<String>,
+}
+
+/// `Duration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Duration {
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<String>,
+}
+
+/// `Int64RangeMatch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Int64RangeMatch {
+    /// rangeEnd property.
+    pub range_end: Option<String>,
+    /// rangeStart property.
+    pub range_start: Option<String>,
+}
+
+/// `PathMatcher` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PathMatcher {
+    /// defaultCustomErrorResponsePolicy property.
+    pub default_custom_error_response_policy: Option<CustomErrorResponsePolicy>,
+    /// defaultRouteAction property.
+    pub default_route_action: Option<HttpRouteAction>,
+    /// defaultService property.
+    pub default_service: Option<String>,
+    /// defaultUrlRedirect property.
+    pub default_url_redirect: Option<HttpRedirectAction>,
+    /// description property.
+    pub description: Option<String>,
+    /// headerAction property.
+    pub header_action: Option<HttpHeaderAction>,
+    /// name property.
+    pub name: Option<String>,
+    /// pathRules property.
+    pub path_rules: Option<Vec<PathRule>>,
+    /// routeRules property.
+    pub route_rules: Option<Vec<HttpRouteRule>>,
+}
+
+/// `HttpFaultDelay` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpFaultDelay {
+    /// fixedDelay property.
+    pub fixed_delay: Option<Duration>,
+    /// percentage property.
+    pub percentage: Option<f64>,
+}
+
+/// `ErrorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadatas property.
+    pub metadatas: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `UrlMapTest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UrlMapTest {
+    /// description property.
+    pub description: Option<String>,
+    /// expectedOutputUrl property.
+    pub expected_output_url: Option<String>,
+    /// expectedRedirectResponseCode property.
+    pub expected_redirect_response_code: Option<i64>,
+    /// headers property.
+    pub headers: Option<Vec<UrlMapTestHeader>>,
+    /// host property.
+    pub host: Option<String>,
+    /// path property.
+    pub path: Option<String>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `MetadataFilterLabelMatch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetadataFilterLabelMatch {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `CorsPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CorsPolicy {
+    /// allowCredentials property.
+    pub allow_credentials: Option<bool>,
+    /// allowHeaders property.
+    pub allow_headers: Option<Vec<String>>,
+    /// allowMethods property.
+    pub allow_methods: Option<Vec<String>>,
+    /// allowOriginRegexes property.
+    pub allow_origin_regexes: Option<Vec<String>>,
+    /// allowOrigins property.
+    pub allow_origins: Option<Vec<String>>,
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// exposeHeaders property.
+    pub expose_headers: Option<Vec<String>>,
+    /// maxAge property.
+    pub max_age: Option<i64>,
+}
+
+/// `LocalizedMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `UrlRewrite` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UrlRewrite {
+    /// hostRewrite property.
+    pub host_rewrite: Option<String>,
+    /// pathPrefixRewrite property.
+    pub path_prefix_rewrite: Option<String>,
+    /// pathTemplateRewrite property.
+    pub path_template_rewrite: Option<String>,
+}
+
+/// `CustomErrorResponsePolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomErrorResponsePolicy {
+    /// errorResponseRules property.
+    pub error_response_rules: Option<Vec<CustomErrorResponsePolicyCustomErrorResponseRule>>,
+    /// errorService property.
+    pub error_service: Option<String>,
+}
+
+/// `HttpRetryPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRetryPolicy {
+    /// numRetries property.
+    pub num_retries: Option<i64>,
+    /// perTryTimeout property.
+    pub per_try_timeout: Option<Duration>,
+    /// retryConditions property.
+    pub retry_conditions: Option<Vec<String>>,
+}
+
+/// `HttpRouteAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpRouteAction {
+    /// corsPolicy property.
+    pub cors_policy: Option<CorsPolicy>,
+    /// faultInjectionPolicy property.
+    pub fault_injection_policy: Option<HttpFaultInjection>,
+    /// maxStreamDuration property.
+    pub max_stream_duration: Option<Duration>,
+    /// requestMirrorPolicy property.
+    pub request_mirror_policy: Option<RequestMirrorPolicy>,
+    /// retryPolicy property.
+    pub retry_policy: Option<HttpRetryPolicy>,
+    /// timeout property.
+    pub timeout: Option<Duration>,
+    /// urlRewrite property.
+    pub url_rewrite: Option<UrlRewrite>,
+    /// weightedBackendServices property.
+    pub weighted_backend_services: Option<Vec<WeightedBackendService>>,
+}
+
+/// `HttpQueryParameterMatch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpQueryParameterMatch {
+    /// exactMatch property.
+    pub exact_match: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// presentMatch property.
+    pub present_match: Option<bool>,
+    /// regexMatch property.
+    pub regex_match: Option<String>,
+}
+
+/// `HttpHeaderAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpHeaderAction {
+    /// requestHeadersToAdd property.
+    pub request_headers_to_add: Option<Vec<HttpHeaderOption>>,
+    /// requestHeadersToRemove property.
+    pub request_headers_to_remove: Option<Vec<String>>,
+    /// responseHeadersToAdd property.
+    pub response_headers_to_add: Option<Vec<HttpHeaderOption>>,
+    /// responseHeadersToRemove property.
+    pub response_headers_to_remove: Option<Vec<String>>,
+}
+
+/// `Help` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
+}
+
+/// `WeightedBackendService` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WeightedBackendService {
+    /// backendService property.
+    pub backend_service: Option<String>,
+    /// headerAction property.
+    pub header_action: Option<HttpHeaderAction>,
+    /// weight property.
+    pub weight: Option<i64>,
+}
+
+/// `SetCommonInstanceMetadataOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetCommonInstanceMetadataOperationMetadata {
+    /// clientOperationId property.
+    pub client_operation_id: Option<String>,
+    /// perLocationOperations property.
+    pub per_location_operations: Option<serde_json::Value>,
+}
+
+/// `HostRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HostRule {
+    /// description property.
+    pub description: Option<String>,
+    /// hosts property.
+    pub hosts: Option<Vec<String>>,
+    /// pathMatcher property.
+    pub path_matcher: Option<String>,
 }
 
 // =============================================================================

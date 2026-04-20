@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,29 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudDatacatalogLineageV1ListProcessesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogLineageV1ListProcessesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// processes property.
-    pub processes: Option<Vec<GoogleCloudDatacatalogLineageV1Process>>,
-}
-
-/// `GoogleCloudDatacatalogLineageV1Origin` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogLineageV1Origin {
-    /// name property.
-    pub name: Option<String>,
-    /// sourceType property.
-    pub source_type: Option<String>,
-}
 
 /// `GoogleCloudDatacatalogLineageV1Process` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -58,6 +41,15 @@ pub struct GoogleCloudDatacatalogLineageV1Process {
     pub origin: Option<GoogleCloudDatacatalogLineageV1Origin>,
 }
 
+/// `GoogleCloudDatacatalogLineageV1ListProcessesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogLineageV1ListProcessesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// processes property.
+    pub processes: Option<Vec<GoogleCloudDatacatalogLineageV1Process>>,
+}
+
 /// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
@@ -67,6 +59,15 @@ pub struct GoogleRpcStatus {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
+}
+
+/// `GoogleCloudDatacatalogLineageV1Origin` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogLineageV1Origin {
+    /// name property.
+    pub name: Option<String>,
+    /// sourceType property.
+    pub source_type: Option<String>,
 }
 
 // =============================================================================

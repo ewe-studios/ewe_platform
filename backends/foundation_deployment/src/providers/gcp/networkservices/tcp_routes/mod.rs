@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,22 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `TcpRouteRouteAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TcpRouteRouteAction {
-    /// destinations property.
-    pub destinations: Option<Vec<TcpRouteRouteDestination>>,
-    /// idleTimeout property.
-    pub idle_timeout: Option<String>,
-    /// originalDestination property.
-    pub original_destination: Option<bool>,
-}
 
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,33 +39,15 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `ListTcpRoutesResponse` type.
+/// `TcpRouteRouteAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListTcpRoutesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// tcpRoutes property.
-    pub tcp_routes: Option<Vec<TcpRoute>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `TcpRouteRouteMatch` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TcpRouteRouteMatch {
-    /// address property.
-    pub address: Option<String>,
-    /// port property.
-    pub port: Option<String>,
-}
-
-/// `TcpRouteRouteDestination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TcpRouteRouteDestination {
-    /// serviceName property.
-    pub service_name: Option<String>,
-    /// weight property.
-    pub weight: Option<i64>,
+pub struct TcpRouteRouteAction {
+    /// destinations property.
+    pub destinations: Option<Vec<TcpRouteRouteDestination>>,
+    /// idleTimeout property.
+    pub idle_timeout: Option<String>,
+    /// originalDestination property.
+    pub original_destination: Option<bool>,
 }
 
 /// `TcpRoute` type.
@@ -108,6 +80,35 @@ pub struct TcpRouteRouteRule {
     pub action: Option<TcpRouteRouteAction>,
     /// matches property.
     pub matches: Option<Vec<TcpRouteRouteMatch>>,
+}
+
+/// `TcpRouteRouteMatch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TcpRouteRouteMatch {
+    /// address property.
+    pub address: Option<String>,
+    /// port property.
+    pub port: Option<String>,
+}
+
+/// `ListTcpRoutesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListTcpRoutesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// tcpRoutes property.
+    pub tcp_routes: Option<Vec<TcpRoute>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `TcpRouteRouteDestination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TcpRouteRouteDestination {
+    /// serviceName property.
+    pub service_name: Option<String>,
+    /// weight property.
+    pub weight: Option<i64>,
 }
 
 // =============================================================================

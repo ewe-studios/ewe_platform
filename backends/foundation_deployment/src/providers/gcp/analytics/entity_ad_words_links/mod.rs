@@ -12,36 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `EntityAdWordsLinks` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EntityAdWordsLinks {
-    /// items property.
-    pub items: Option<Vec<EntityAdWordsLink>>,
-    /// itemsPerPage property.
-    pub items_per_page: Option<i64>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextLink property.
-    pub next_link: Option<String>,
-    /// previousLink property.
-    pub previous_link: Option<String>,
-    /// startIndex property.
-    pub start_index: Option<i64>,
-    /// totalResults property.
-    pub total_results: Option<i64>,
-}
 
 /// `EntityAdWordsLink` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -62,15 +44,23 @@ pub struct EntityAdWordsLink {
     pub self_link: Option<String>,
 }
 
-/// `AdWordsAccount` type.
+/// `EntityAdWordsLinks` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdWordsAccount {
-    /// autoTaggingEnabled property.
-    pub auto_tagging_enabled: Option<bool>,
-    /// customerId property.
-    pub customer_id: Option<String>,
+pub struct EntityAdWordsLinks {
+    /// items property.
+    pub items: Option<Vec<EntityAdWordsLink>>,
+    /// itemsPerPage property.
+    pub items_per_page: Option<i64>,
     /// kind property.
     pub kind: Option<String>,
+    /// nextLink property.
+    pub next_link: Option<String>,
+    /// previousLink property.
+    pub previous_link: Option<String>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+    /// totalResults property.
+    pub total_results: Option<i64>,
 }
 
 /// `WebPropertyRef` type.
@@ -88,6 +78,17 @@ pub struct WebPropertyRef {
     pub kind: Option<String>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `AdWordsAccount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdWordsAccount {
+    /// autoTaggingEnabled property.
+    pub auto_tagging_enabled: Option<bool>,
+    /// customerId property.
+    pub customer_id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
 }
 
 // =============================================================================

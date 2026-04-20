@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -38,46 +39,46 @@ pub struct GooglePrivacyDlpV2LargeCustomDictionaryConfig {
     pub output_path: Option<GooglePrivacyDlpV2CloudStoragePath>,
 }
 
-/// `GooglePrivacyDlpV2StoredInfoTypeVersion` type.
+/// `GooglePrivacyDlpV2BigQueryField` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2StoredInfoTypeVersion {
-    /// config property.
-    pub config: Option<GooglePrivacyDlpV2StoredInfoTypeConfig>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// errors property.
-    pub errors: Option<Vec<GooglePrivacyDlpV2Error>>,
-    /// state property.
-    pub state: Option<String>,
-    /// stats property.
-    pub stats: Option<GooglePrivacyDlpV2StoredInfoTypeStats>,
+pub struct GooglePrivacyDlpV2BigQueryField {
+    /// field property.
+    pub field: Option<GooglePrivacyDlpV2FieldId>,
+    /// table property.
+    pub table: Option<GooglePrivacyDlpV2BigQueryTable>,
 }
 
-/// `GooglePrivacyDlpV2Dictionary` type.
+/// `GooglePrivacyDlpV2CloudStoragePath` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Dictionary {
-    /// cloudStoragePath property.
-    pub cloud_storage_path: Option<GooglePrivacyDlpV2CloudStoragePath>,
-    /// wordList property.
-    pub word_list: Option<GooglePrivacyDlpV2WordList>,
+pub struct GooglePrivacyDlpV2CloudStoragePath {
+    /// path property.
+    pub path: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2WordList` type.
+/// `GooglePrivacyDlpV2StoredInfoType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2WordList {
-    /// words property.
-    pub words: Option<Vec<String>>,
+pub struct GooglePrivacyDlpV2StoredInfoType {
+    /// currentVersion property.
+    pub current_version: Option<GooglePrivacyDlpV2StoredInfoTypeVersion>,
+    /// name property.
+    pub name: Option<String>,
+    /// pendingVersions property.
+    pub pending_versions: Option<Vec<GooglePrivacyDlpV2StoredInfoTypeVersion>>,
 }
 
-/// `GooglePrivacyDlpV2Error` type.
+/// `GooglePrivacyDlpV2StoredInfoTypeConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Error {
-    /// details property.
-    pub details: Option<GoogleRpcStatus>,
-    /// extraInfo property.
-    pub extra_info: Option<String>,
-    /// timestamps property.
-    pub timestamps: Option<Vec<String>>,
+pub struct GooglePrivacyDlpV2StoredInfoTypeConfig {
+    /// description property.
+    pub description: Option<String>,
+    /// dictionary property.
+    pub dictionary: Option<GooglePrivacyDlpV2Dictionary>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// largeCustomDictionary property.
+    pub large_custom_dictionary: Option<GooglePrivacyDlpV2LargeCustomDictionaryConfig>,
+    /// regex property.
+    pub regex: Option<GooglePrivacyDlpV2Regex>,
 }
 
 /// `GoogleRpcStatus` type.
@@ -91,13 +92,36 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2BigQueryField` type.
+/// `GooglePrivacyDlpV2LargeCustomDictionaryStats` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2BigQueryField {
-    /// field property.
-    pub field: Option<GooglePrivacyDlpV2FieldId>,
-    /// table property.
-    pub table: Option<GooglePrivacyDlpV2BigQueryTable>,
+pub struct GooglePrivacyDlpV2LargeCustomDictionaryStats {
+    /// approxNumPhrases property.
+    pub approx_num_phrases: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2CloudStorageFileSet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2CloudStorageFileSet {
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2ListStoredInfoTypesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2ListStoredInfoTypesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// storedInfoTypes property.
+    pub stored_info_types: Option<Vec<GooglePrivacyDlpV2StoredInfoType>>,
+}
+
+/// `GooglePrivacyDlpV2Regex` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Regex {
+    /// groupIndexes property.
+    pub group_indexes: Option<Vec<i64>>,
+    /// pattern property.
+    pub pattern: Option<String>,
 }
 
 /// `GooglePrivacyDlpV2StoredInfoTypeStats` type.
@@ -107,11 +131,15 @@ pub struct GooglePrivacyDlpV2StoredInfoTypeStats {
     pub large_custom_dictionary: Option<GooglePrivacyDlpV2LargeCustomDictionaryStats>,
 }
 
-/// `GooglePrivacyDlpV2CloudStorageFileSet` type.
+/// `GooglePrivacyDlpV2Error` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2CloudStorageFileSet {
-    /// url property.
-    pub url: Option<String>,
+pub struct GooglePrivacyDlpV2Error {
+    /// details property.
+    pub details: Option<GoogleRpcStatus>,
+    /// extraInfo property.
+    pub extra_info: Option<String>,
+    /// timestamps property.
+    pub timestamps: Option<Vec<String>>,
 }
 
 /// `GooglePrivacyDlpV2BigQueryTable` type.
@@ -132,62 +160,35 @@ pub struct GooglePrivacyDlpV2FieldId {
     pub name: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2StoredInfoTypeConfig` type.
+/// `GooglePrivacyDlpV2WordList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2StoredInfoTypeConfig {
-    /// description property.
-    pub description: Option<String>,
-    /// dictionary property.
-    pub dictionary: Option<GooglePrivacyDlpV2Dictionary>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// largeCustomDictionary property.
-    pub large_custom_dictionary: Option<GooglePrivacyDlpV2LargeCustomDictionaryConfig>,
-    /// regex property.
-    pub regex: Option<GooglePrivacyDlpV2Regex>,
+pub struct GooglePrivacyDlpV2WordList {
+    /// words property.
+    pub words: Option<Vec<String>>,
 }
 
-/// `GooglePrivacyDlpV2Regex` type.
+/// `GooglePrivacyDlpV2Dictionary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Regex {
-    /// groupIndexes property.
-    pub group_indexes: Option<Vec<i64>>,
-    /// pattern property.
-    pub pattern: Option<String>,
+pub struct GooglePrivacyDlpV2Dictionary {
+    /// cloudStoragePath property.
+    pub cloud_storage_path: Option<GooglePrivacyDlpV2CloudStoragePath>,
+    /// wordList property.
+    pub word_list: Option<GooglePrivacyDlpV2WordList>,
 }
 
-/// `GooglePrivacyDlpV2LargeCustomDictionaryStats` type.
+/// `GooglePrivacyDlpV2StoredInfoTypeVersion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2LargeCustomDictionaryStats {
-    /// approxNumPhrases property.
-    pub approx_num_phrases: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2ListStoredInfoTypesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ListStoredInfoTypesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// storedInfoTypes property.
-    pub stored_info_types: Option<Vec<GooglePrivacyDlpV2StoredInfoType>>,
-}
-
-/// `GooglePrivacyDlpV2StoredInfoType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2StoredInfoType {
-    /// currentVersion property.
-    pub current_version: Option<GooglePrivacyDlpV2StoredInfoTypeVersion>,
-    /// name property.
-    pub name: Option<String>,
-    /// pendingVersions property.
-    pub pending_versions: Option<Vec<GooglePrivacyDlpV2StoredInfoTypeVersion>>,
-}
-
-/// `GooglePrivacyDlpV2CloudStoragePath` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2CloudStoragePath {
-    /// path property.
-    pub path: Option<String>,
+pub struct GooglePrivacyDlpV2StoredInfoTypeVersion {
+    /// config property.
+    pub config: Option<GooglePrivacyDlpV2StoredInfoTypeConfig>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// errors property.
+    pub errors: Option<Vec<GooglePrivacyDlpV2Error>>,
+    /// state property.
+    pub state: Option<String>,
+    /// stats property.
+    pub stats: Option<GooglePrivacyDlpV2StoredInfoTypeStats>,
 }
 
 // =============================================================================

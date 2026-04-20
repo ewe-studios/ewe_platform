@@ -12,130 +12,37 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DynamicRouteConfig` type.
+/// `Address` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DynamicRouteConfig {
-    /// clientStatus property.
-    pub client_status: Option<String>,
-    /// errorState property.
-    pub error_state: Option<UpdateFailureState>,
-    /// lastUpdated property.
-    pub last_updated: Option<String>,
-    /// routeConfig property.
-    pub route_config: Option<serde_json::Value>,
-    /// versionInfo property.
-    pub version_info: Option<String>,
+pub struct Address {
+    /// envoyInternalAddress property.
+    pub envoy_internal_address: Option<EnvoyInternalAddress>,
+    /// pipe property.
+    pub pipe: Option<Pipe>,
+    /// socketAddress property.
+    pub socket_address: Option<SocketAddress>,
 }
 
-/// `StaticListener` type.
+/// `RoutesConfigDump` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StaticListener {
-    /// lastUpdated property.
-    pub last_updated: Option<String>,
-    /// listener property.
-    pub listener: Option<serde_json::Value>,
-}
-
-/// `ClientConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClientConfig {
-    /// clientScope property.
-    pub client_scope: Option<String>,
-    /// genericXdsConfigs property.
-    pub generic_xds_configs: Option<Vec<GenericXdsConfig>>,
-    /// node property.
-    pub node: Option<Node>,
-    /// xdsConfig property.
-    pub xds_config: Option<Vec<PerXdsConfig>>,
-}
-
-/// `ScopedRoutesConfigDump` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScopedRoutesConfigDump {
-    /// dynamicScopedRouteConfigs property.
-    pub dynamic_scoped_route_configs: Option<Vec<DynamicScopedRouteConfigs>>,
-    /// inlineScopedRouteConfigs property.
-    pub inline_scoped_route_configs: Option<Vec<InlineScopedRouteConfigs>>,
-}
-
-/// `SocketAddress` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SocketAddress {
-    /// address property.
-    pub address: Option<String>,
-    /// ipv4Compat property.
-    pub ipv4_compat: Option<bool>,
-    /// namedPort property.
-    pub named_port: Option<String>,
-    /// networkNamespaceFilepath property.
-    pub network_namespace_filepath: Option<String>,
-    /// portValue property.
-    pub port_value: Option<i64>,
-    /// protocol property.
-    pub protocol: Option<String>,
-    /// resolverName property.
-    pub resolver_name: Option<String>,
-}
-
-/// `UpdateFailureState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateFailureState {
-    /// details property.
-    pub details: Option<String>,
-    /// failedConfiguration property.
-    pub failed_configuration: Option<serde_json::Value>,
-    /// lastUpdateAttempt property.
-    pub last_update_attempt: Option<String>,
-    /// versionInfo property.
-    pub version_info: Option<String>,
-}
-
-/// `StaticEndpointConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StaticEndpointConfig {
-    /// endpointConfig property.
-    pub endpoint_config: Option<serde_json::Value>,
-    /// lastUpdated property.
-    pub last_updated: Option<String>,
-}
-
-/// `InlineScopedRouteConfigs` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InlineScopedRouteConfigs {
-    /// lastUpdated property.
-    pub last_updated: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// scopedRouteConfigs property.
-    pub scoped_route_configs: Option<Vec<serde_json::Value>>,
-}
-
-/// `StaticRouteConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StaticRouteConfig {
-    /// lastUpdated property.
-    pub last_updated: Option<String>,
-    /// routeConfig property.
-    pub route_config: Option<serde_json::Value>,
-}
-
-/// `ClientStatusResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClientStatusResponse {
-    /// config property.
-    pub config: Option<Vec<ClientConfig>>,
+pub struct RoutesConfigDump {
+    /// dynamicRouteConfigs property.
+    pub dynamic_route_configs: Option<Vec<DynamicRouteConfig>>,
+    /// staticRouteConfigs property.
+    pub static_route_configs: Option<Vec<StaticRouteConfig>>,
 }
 
 /// `DynamicListener` type.
@@ -155,13 +62,13 @@ pub struct DynamicListener {
     pub warming_state: Option<DynamicListenerState>,
 }
 
-/// `RoutesConfigDump` type.
+/// `ScopedRoutesConfigDump` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RoutesConfigDump {
-    /// dynamicRouteConfigs property.
-    pub dynamic_route_configs: Option<Vec<DynamicRouteConfig>>,
-    /// staticRouteConfigs property.
-    pub static_route_configs: Option<Vec<StaticRouteConfig>>,
+pub struct ScopedRoutesConfigDump {
+    /// dynamicScopedRouteConfigs property.
+    pub dynamic_scoped_route_configs: Option<Vec<DynamicScopedRouteConfigs>>,
+    /// inlineScopedRouteConfigs property.
+    pub inline_scoped_route_configs: Option<Vec<InlineScopedRouteConfigs>>,
 }
 
 /// `StaticCluster` type.
@@ -171,6 +78,15 @@ pub struct StaticCluster {
     pub cluster: Option<serde_json::Value>,
     /// lastUpdated property.
     pub last_updated: Option<String>,
+}
+
+/// `EnvoyInternalAddress` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnvoyInternalAddress {
+    /// endpointId property.
+    pub endpoint_id: Option<String>,
+    /// serverListenerName property.
+    pub server_listener_name: Option<String>,
 }
 
 /// `Node` type.
@@ -200,104 +116,15 @@ pub struct Node {
     pub user_agent_version: Option<String>,
 }
 
-/// `DynamicEndpointConfig` type.
+/// `Locality` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DynamicEndpointConfig {
-    /// clientStatus property.
-    pub client_status: Option<String>,
-    /// endpointConfig property.
-    pub endpoint_config: Option<serde_json::Value>,
-    /// errorState property.
-    pub error_state: Option<UpdateFailureState>,
-    /// lastUpdated property.
-    pub last_updated: Option<String>,
-    /// versionInfo property.
-    pub version_info: Option<String>,
-}
-
-/// `EndpointsConfigDump` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndpointsConfigDump {
-    /// dynamicEndpointConfigs property.
-    pub dynamic_endpoint_configs: Option<Vec<DynamicEndpointConfig>>,
-    /// staticEndpointConfigs property.
-    pub static_endpoint_configs: Option<Vec<StaticEndpointConfig>>,
-}
-
-/// `ClustersConfigDump` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClustersConfigDump {
-    /// dynamicActiveClusters property.
-    pub dynamic_active_clusters: Option<Vec<DynamicCluster>>,
-    /// dynamicWarmingClusters property.
-    pub dynamic_warming_clusters: Option<Vec<DynamicCluster>>,
-    /// staticClusters property.
-    pub static_clusters: Option<Vec<StaticCluster>>,
-    /// versionInfo property.
-    pub version_info: Option<String>,
-}
-
-/// `DynamicScopedRouteConfigs` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DynamicScopedRouteConfigs {
-    /// clientStatus property.
-    pub client_status: Option<String>,
-    /// errorState property.
-    pub error_state: Option<UpdateFailureState>,
-    /// lastUpdated property.
-    pub last_updated: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// scopedRouteConfigs property.
-    pub scoped_route_configs: Option<Vec<serde_json::Value>>,
-    /// versionInfo property.
-    pub version_info: Option<String>,
-}
-
-/// `EnvoyInternalAddress` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnvoyInternalAddress {
-    /// endpointId property.
-    pub endpoint_id: Option<String>,
-    /// serverListenerName property.
-    pub server_listener_name: Option<String>,
-}
-
-/// `DynamicListenerState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DynamicListenerState {
-    /// lastUpdated property.
-    pub last_updated: Option<String>,
-    /// listener property.
-    pub listener: Option<serde_json::Value>,
-    /// versionInfo property.
-    pub version_info: Option<String>,
-}
-
-/// `DynamicCluster` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DynamicCluster {
-    /// clientStatus property.
-    pub client_status: Option<String>,
-    /// cluster property.
-    pub cluster: Option<serde_json::Value>,
-    /// errorState property.
-    pub error_state: Option<UpdateFailureState>,
-    /// lastUpdated property.
-    pub last_updated: Option<String>,
-    /// versionInfo property.
-    pub version_info: Option<String>,
-}
-
-/// `Address` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Address {
-    /// envoyInternalAddress property.
-    pub envoy_internal_address: Option<EnvoyInternalAddress>,
-    /// pipe property.
-    pub pipe: Option<Pipe>,
-    /// socketAddress property.
-    pub socket_address: Option<SocketAddress>,
+pub struct Locality {
+    /// region property.
+    pub region: Option<String>,
+    /// subZone property.
+    pub sub_zone: Option<String>,
+    /// zone property.
+    pub zone: Option<String>,
 }
 
 /// `PerXdsConfig` type.
@@ -317,6 +144,23 @@ pub struct PerXdsConfig {
     pub scoped_route_config: Option<ScopedRoutesConfigDump>,
     /// status property.
     pub status: Option<String>,
+}
+
+/// `DynamicScopedRouteConfigs` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DynamicScopedRouteConfigs {
+    /// clientStatus property.
+    pub client_status: Option<String>,
+    /// errorState property.
+    pub error_state: Option<UpdateFailureState>,
+    /// lastUpdated property.
+    pub last_updated: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// scopedRouteConfigs property.
+    pub scoped_route_configs: Option<Vec<serde_json::Value>>,
+    /// versionInfo property.
+    pub version_info: Option<String>,
 }
 
 /// `GenericXdsConfig` type.
@@ -342,6 +186,153 @@ pub struct GenericXdsConfig {
     pub xds_config: Option<serde_json::Value>,
 }
 
+/// `SemanticVersion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SemanticVersion {
+    /// majorNumber property.
+    pub major_number: Option<i64>,
+    /// minorNumber property.
+    pub minor_number: Option<i64>,
+    /// patch property.
+    pub patch: Option<i64>,
+}
+
+/// `UpdateFailureState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateFailureState {
+    /// details property.
+    pub details: Option<String>,
+    /// failedConfiguration property.
+    pub failed_configuration: Option<serde_json::Value>,
+    /// lastUpdateAttempt property.
+    pub last_update_attempt: Option<String>,
+    /// versionInfo property.
+    pub version_info: Option<String>,
+}
+
+/// `BuildVersion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BuildVersion {
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// version property.
+    pub version: Option<SemanticVersion>,
+}
+
+/// `InlineScopedRouteConfigs` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InlineScopedRouteConfigs {
+    /// lastUpdated property.
+    pub last_updated: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// scopedRouteConfigs property.
+    pub scoped_route_configs: Option<Vec<serde_json::Value>>,
+}
+
+/// `DynamicCluster` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DynamicCluster {
+    /// clientStatus property.
+    pub client_status: Option<String>,
+    /// cluster property.
+    pub cluster: Option<serde_json::Value>,
+    /// errorState property.
+    pub error_state: Option<UpdateFailureState>,
+    /// lastUpdated property.
+    pub last_updated: Option<String>,
+    /// versionInfo property.
+    pub version_info: Option<String>,
+}
+
+/// `Pipe` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Pipe {
+    /// mode property.
+    pub mode: Option<i64>,
+    /// path property.
+    pub path: Option<String>,
+}
+
+/// `SocketAddress` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SocketAddress {
+    /// address property.
+    pub address: Option<String>,
+    /// ipv4Compat property.
+    pub ipv4_compat: Option<bool>,
+    /// namedPort property.
+    pub named_port: Option<String>,
+    /// networkNamespaceFilepath property.
+    pub network_namespace_filepath: Option<String>,
+    /// portValue property.
+    pub port_value: Option<i64>,
+    /// protocol property.
+    pub protocol: Option<String>,
+    /// resolverName property.
+    pub resolver_name: Option<String>,
+}
+
+/// `DynamicListenerState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DynamicListenerState {
+    /// lastUpdated property.
+    pub last_updated: Option<String>,
+    /// listener property.
+    pub listener: Option<serde_json::Value>,
+    /// versionInfo property.
+    pub version_info: Option<String>,
+}
+
+/// `EndpointsConfigDump` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EndpointsConfigDump {
+    /// dynamicEndpointConfigs property.
+    pub dynamic_endpoint_configs: Option<Vec<DynamicEndpointConfig>>,
+    /// staticEndpointConfigs property.
+    pub static_endpoint_configs: Option<Vec<StaticEndpointConfig>>,
+}
+
+/// `ClientConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClientConfig {
+    /// clientScope property.
+    pub client_scope: Option<String>,
+    /// genericXdsConfigs property.
+    pub generic_xds_configs: Option<Vec<GenericXdsConfig>>,
+    /// node property.
+    pub node: Option<Node>,
+    /// xdsConfig property.
+    pub xds_config: Option<Vec<PerXdsConfig>>,
+}
+
+/// `StaticRouteConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StaticRouteConfig {
+    /// lastUpdated property.
+    pub last_updated: Option<String>,
+    /// routeConfig property.
+    pub route_config: Option<serde_json::Value>,
+}
+
+/// `ListenersConfigDump` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListenersConfigDump {
+    /// dynamicListeners property.
+    pub dynamic_listeners: Option<Vec<DynamicListener>>,
+    /// staticListeners property.
+    pub static_listeners: Option<Vec<StaticListener>>,
+    /// versionInfo property.
+    pub version_info: Option<String>,
+}
+
+/// `ClientStatusResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClientStatusResponse {
+    /// config property.
+    pub config: Option<Vec<ClientConfig>>,
+}
+
 /// `Extension` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Extension {
@@ -359,55 +350,65 @@ pub struct Extension {
     pub version: Option<BuildVersion>,
 }
 
-/// `ListenersConfigDump` type.
+/// `DynamicEndpointConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListenersConfigDump {
-    /// dynamicListeners property.
-    pub dynamic_listeners: Option<Vec<DynamicListener>>,
-    /// staticListeners property.
-    pub static_listeners: Option<Vec<StaticListener>>,
+pub struct DynamicEndpointConfig {
+    /// clientStatus property.
+    pub client_status: Option<String>,
+    /// endpointConfig property.
+    pub endpoint_config: Option<serde_json::Value>,
+    /// errorState property.
+    pub error_state: Option<UpdateFailureState>,
+    /// lastUpdated property.
+    pub last_updated: Option<String>,
     /// versionInfo property.
     pub version_info: Option<String>,
 }
 
-/// `BuildVersion` type.
+/// `ClustersConfigDump` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BuildVersion {
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// version property.
-    pub version: Option<SemanticVersion>,
+pub struct ClustersConfigDump {
+    /// dynamicActiveClusters property.
+    pub dynamic_active_clusters: Option<Vec<DynamicCluster>>,
+    /// dynamicWarmingClusters property.
+    pub dynamic_warming_clusters: Option<Vec<DynamicCluster>>,
+    /// staticClusters property.
+    pub static_clusters: Option<Vec<StaticCluster>>,
+    /// versionInfo property.
+    pub version_info: Option<String>,
 }
 
-/// `SemanticVersion` type.
+/// `StaticListener` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SemanticVersion {
-    /// majorNumber property.
-    pub major_number: Option<i64>,
-    /// minorNumber property.
-    pub minor_number: Option<i64>,
-    /// patch property.
-    pub patch: Option<i64>,
+pub struct StaticListener {
+    /// lastUpdated property.
+    pub last_updated: Option<String>,
+    /// listener property.
+    pub listener: Option<serde_json::Value>,
 }
 
-/// `Pipe` type.
+/// `StaticEndpointConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Pipe {
-    /// mode property.
-    pub mode: Option<i64>,
-    /// path property.
-    pub path: Option<String>,
+pub struct StaticEndpointConfig {
+    /// endpointConfig property.
+    pub endpoint_config: Option<serde_json::Value>,
+    /// lastUpdated property.
+    pub last_updated: Option<String>,
 }
 
-/// `Locality` type.
+/// `DynamicRouteConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Locality {
-    /// region property.
-    pub region: Option<String>,
-    /// subZone property.
-    pub sub_zone: Option<String>,
-    /// zone property.
-    pub zone: Option<String>,
+pub struct DynamicRouteConfig {
+    /// clientStatus property.
+    pub client_status: Option<String>,
+    /// errorState property.
+    pub error_state: Option<UpdateFailureState>,
+    /// lastUpdated property.
+    pub last_updated: Option<String>,
+    /// routeConfig property.
+    pub route_config: Option<serde_json::Value>,
+    /// versionInfo property.
+    pub version_info: Option<String>,
 }
 
 // =============================================================================

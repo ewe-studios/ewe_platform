@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,30 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `SqlServerUserDetails` type.
+/// `PasswordStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerUserDetails {
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// serverRoles property.
-    pub server_roles: Option<Vec<String>>,
-}
-
-/// `UsersListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UsersListResponse {
-    /// items property.
-    pub items: Option<Vec<User>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct PasswordStatus {
+    /// locked property.
+    pub locked: Option<bool>,
+    /// passwordExpirationTime property.
+    pub password_expiration_time: Option<String>,
 }
 
 /// `ExportContext` type.
@@ -68,6 +58,70 @@ pub struct ExportContext {
     pub tde_export_options: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// uri property.
     pub uri: Option<String>,
+}
+
+/// `ApiWarning` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiWarning {
+    /// code property.
+    pub code: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+}
+
+/// `AcquireSsrsLeaseContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AcquireSsrsLeaseContext {
+    /// duration property.
+    pub duration: Option<String>,
+    /// reportDatabase property.
+    pub report_database: Option<String>,
+    /// serviceLogin property.
+    pub service_login: Option<String>,
+    /// setupLogin property.
+    pub setup_login: Option<String>,
+}
+
+/// `UsersListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UsersListResponse {
+    /// items property.
+    pub items: Option<Vec<User>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `OperationError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OperationError {
+    /// code property.
+    pub code: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `SqlSubOperationType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlSubOperationType {
+    /// maintenanceType property.
+    pub maintenance_type: Option<String>,
+}
+
+/// `BackupContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupContext {
+    /// backupId property.
+    pub backup_id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 /// `ImportContext` type.
@@ -104,63 +158,6 @@ pub struct PreCheckResponse {
     pub message_type: Option<String>,
 }
 
-/// `AcquireSsrsLeaseContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcquireSsrsLeaseContext {
-    /// duration property.
-    pub duration: Option<String>,
-    /// reportDatabase property.
-    pub report_database: Option<String>,
-    /// serviceLogin property.
-    pub service_login: Option<String>,
-    /// setupLogin property.
-    pub setup_login: Option<String>,
-}
-
-/// `PreCheckMajorVersionUpgradeContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreCheckMajorVersionUpgradeContext {
-    /// kind property.
-    pub kind: Option<String>,
-    /// preCheckResponse property.
-    pub pre_check_response: Option<Vec<PreCheckResponse>>,
-    /// targetDatabaseVersion property.
-    pub target_database_version: Option<String>,
-}
-
-/// `BackupContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupContext {
-    /// backupId property.
-    pub backup_id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `OperationError` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperationError {
-    /// code property.
-    pub code: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `ApiWarning` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApiWarning {
-    /// code property.
-    pub code: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-}
-
 /// `User` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct User {
@@ -194,13 +191,24 @@ pub struct User {
     pub r#type: Option<String>,
 }
 
-/// `PasswordStatus` type.
+/// `PreCheckMajorVersionUpgradeContext` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PasswordStatus {
-    /// locked property.
-    pub locked: Option<bool>,
-    /// passwordExpirationTime property.
-    pub password_expiration_time: Option<String>,
+pub struct PreCheckMajorVersionUpgradeContext {
+    /// kind property.
+    pub kind: Option<String>,
+    /// preCheckResponse property.
+    pub pre_check_response: Option<Vec<PreCheckResponse>>,
+    /// targetDatabaseVersion property.
+    pub target_database_version: Option<String>,
+}
+
+/// `OperationErrors` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OperationErrors {
+    /// errors property.
+    pub errors: Option<Vec<OperationError>>,
+    /// kind property.
+    pub kind: Option<String>,
 }
 
 /// `UserPasswordValidationPolicy` type.
@@ -218,20 +226,13 @@ pub struct UserPasswordValidationPolicy {
     pub status: Option<PasswordStatus>,
 }
 
-/// `OperationErrors` type.
+/// `SqlServerUserDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperationErrors {
-    /// errors property.
-    pub errors: Option<Vec<OperationError>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `SqlSubOperationType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlSubOperationType {
-    /// maintenanceType property.
-    pub maintenance_type: Option<String>,
+pub struct SqlServerUserDetails {
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// serverRoles property.
+    pub server_roles: Option<Vec<String>>,
 }
 
 // =============================================================================

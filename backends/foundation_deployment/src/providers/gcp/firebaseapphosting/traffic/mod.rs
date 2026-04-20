@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -36,20 +37,30 @@ pub struct Path {
     pub r#type: Option<String>,
 }
 
-/// `TrafficSplit` type.
+/// `RolloutPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TrafficSplit {
-    /// build property.
-    pub build: Option<String>,
-    /// percent property.
-    pub percent: Option<i64>,
+pub struct RolloutPolicy {
+    /// codebaseBranch property.
+    pub codebase_branch: Option<String>,
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// disabledTime property.
+    pub disabled_time: Option<String>,
+    /// ignoredPaths property.
+    pub ignored_paths: Option<Vec<Path>>,
+    /// requiredPaths property.
+    pub required_paths: Option<Vec<Path>>,
 }
 
-/// `TrafficSet` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TrafficSet {
-    /// splits property.
-    pub splits: Option<Vec<TrafficSplit>>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `Traffic` type.
@@ -79,30 +90,20 @@ pub struct Traffic {
     pub update_time: Option<String>,
 }
 
-/// `RolloutPolicy` type.
+/// `TrafficSplit` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RolloutPolicy {
-    /// codebaseBranch property.
-    pub codebase_branch: Option<String>,
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// disabledTime property.
-    pub disabled_time: Option<String>,
-    /// ignoredPaths property.
-    pub ignored_paths: Option<Vec<Path>>,
-    /// requiredPaths property.
-    pub required_paths: Option<Vec<Path>>,
+pub struct TrafficSplit {
+    /// build property.
+    pub build: Option<String>,
+    /// percent property.
+    pub percent: Option<i64>,
 }
 
-/// `Status` type.
+/// `TrafficSet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct TrafficSet {
+    /// splits property.
+    pub splits: Option<Vec<TrafficSplit>>,
 }
 
 // =============================================================================

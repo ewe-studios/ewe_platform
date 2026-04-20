@@ -12,62 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `UsesPermissionTag` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UsesPermissionTag {
-    /// maxSdkVersion property.
-    pub max_sdk_version: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `UsesFeature` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UsesFeature {
-    /// isRequired property.
-    pub is_required: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `IntentFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntentFilter {
-    /// actionNames property.
-    pub action_names: Option<Vec<String>>,
-    /// categoryNames property.
-    pub category_names: Option<Vec<String>>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-}
-
-/// `Metadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Metadata {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `GetApkDetailsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetApkDetailsResponse {
-    /// apkDetail property.
-    pub apk_detail: Option<ApkDetail>,
-}
 
 /// `ApkManifest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -100,11 +56,49 @@ pub struct ApkManifest {
     pub version_name: Option<String>,
 }
 
-/// `ApkDetail` type.
+/// `UsesFeature` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApkDetail {
-    /// apkManifest property.
-    pub apk_manifest: Option<ApkManifest>,
+pub struct UsesFeature {
+    /// isRequired property.
+    pub is_required: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `Metadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Metadata {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `UsesPermissionTag` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UsesPermissionTag {
+    /// maxSdkVersion property.
+    pub max_sdk_version: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `IntentFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntentFilter {
+    /// actionNames property.
+    pub action_names: Option<Vec<String>>,
+    /// categoryNames property.
+    pub category_names: Option<Vec<String>>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+}
+
+/// `GetApkDetailsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetApkDetailsResponse {
+    /// apkDetail property.
+    pub apk_detail: Option<ApkDetail>,
 }
 
 /// `Service` type.
@@ -114,6 +108,13 @@ pub struct Service {
     pub intent_filter: Option<Vec<IntentFilter>>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `ApkDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApkDetail {
+    /// apkManifest property.
+    pub apk_manifest: Option<ApkManifest>,
 }
 
 // =============================================================================

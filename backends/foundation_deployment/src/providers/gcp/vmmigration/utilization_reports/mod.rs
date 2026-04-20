@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,33 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `VmUtilizationInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmUtilizationInfo {
+    /// utilization property.
+    pub utilization: Option<VmUtilizationMetrics>,
+    /// vmId property.
+    pub vm_id: Option<String>,
+    /// vmwareVmDetails property.
+    pub vmware_vm_details: Option<VmwareVmDetails>,
+}
+
+/// `ListUtilizationReportsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListUtilizationReportsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+    /// utilizationReports property.
+    pub utilization_reports: Option<Vec<UtilizationReport>>,
+}
 
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -63,17 +86,6 @@ pub struct UtilizationReport {
     pub vms: Option<Vec<VmUtilizationInfo>>,
 }
 
-/// `VmUtilizationInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VmUtilizationInfo {
-    /// utilization property.
-    pub utilization: Option<VmUtilizationMetrics>,
-    /// vmId property.
-    pub vm_id: Option<String>,
-    /// vmwareVmDetails property.
-    pub vmware_vm_details: Option<VmwareVmDetails>,
-}
-
 /// `VmwareVmDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareVmDetails {
@@ -103,17 +115,6 @@ pub struct VmwareVmDetails {
     pub uuid: Option<String>,
     /// vmId property.
     pub vm_id: Option<String>,
-}
-
-/// `ListUtilizationReportsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListUtilizationReportsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-    /// utilizationReports property.
-    pub utilization_reports: Option<Vec<UtilizationReport>>,
 }
 
 /// `VmUtilizationMetrics` type.

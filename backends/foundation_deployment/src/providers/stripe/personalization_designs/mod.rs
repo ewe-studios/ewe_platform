@@ -12,11 +12,12 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
 use super::shared::IssuingPersonalizationDesign;

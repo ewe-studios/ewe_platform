@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,20 +24,11 @@ use super::shared::SasPortalDevice;
 use super::shared::SasPortalEmpty;
 use super::shared::SasPortalOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `SasPortalDpaMoveList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalDpaMoveList {
-    /// dpaId property.
-    pub dpa_id: Option<String>,
-    /// frequencyRange property.
-    pub frequency_range: Option<SasPortalFrequencyRange>,
-}
 
 /// `SasPortalDeviceConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -61,6 +53,17 @@ pub struct SasPortalDeviceConfig {
     pub update_time: Option<String>,
     /// userId property.
     pub user_id: Option<String>,
+}
+
+/// `SasPortalStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SasPortalStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `SasPortalListDevicesResponse` type.
@@ -105,19 +108,28 @@ pub struct SasPortalInstallationParams {
     pub vertical_accuracy: Option<f64>,
 }
 
-/// `SasPortalNrqzValidation` type.
+/// `SasPortalDeviceMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalNrqzValidation {
-    /// caseId property.
-    pub case_id: Option<String>,
-    /// cpiId property.
-    pub cpi_id: Option<String>,
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
-    /// state property.
-    pub state: Option<String>,
+pub struct SasPortalDeviceMetadata {
+    /// antennaModel property.
+    pub antenna_model: Option<String>,
+    /// commonChannelGroup property.
+    pub common_channel_group: Option<String>,
+    /// interferenceCoordinationGroup property.
+    pub interference_coordination_group: Option<String>,
+    /// nrqzValidated property.
+    pub nrqz_validated: Option<bool>,
+    /// nrqzValidation property.
+    pub nrqz_validation: Option<SasPortalNrqzValidation>,
+}
+
+/// `SasPortalFrequencyRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SasPortalFrequencyRange {
+    /// highFrequencyMhz property.
+    pub high_frequency_mhz: Option<f64>,
+    /// lowFrequencyMhz property.
+    pub low_frequency_mhz: Option<f64>,
 }
 
 /// `SasPortalDeviceGrant` type.
@@ -143,6 +155,30 @@ pub struct SasPortalDeviceGrant {
     pub suspension_reason: Option<Vec<String>>,
 }
 
+/// `SasPortalNrqzValidation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SasPortalNrqzValidation {
+    /// caseId property.
+    pub case_id: Option<String>,
+    /// cpiId property.
+    pub cpi_id: Option<String>,
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `SasPortalDeviceAirInterface` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SasPortalDeviceAirInterface {
+    /// radioTechnology property.
+    pub radio_technology: Option<String>,
+    /// supportedSpec property.
+    pub supported_spec: Option<String>,
+}
+
 /// `SasPortalDeviceModel` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SasPortalDeviceModel {
@@ -158,30 +194,6 @@ pub struct SasPortalDeviceModel {
     pub vendor: Option<String>,
 }
 
-/// `SasPortalFrequencyRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalFrequencyRange {
-    /// highFrequencyMhz property.
-    pub high_frequency_mhz: Option<f64>,
-    /// lowFrequencyMhz property.
-    pub low_frequency_mhz: Option<f64>,
-}
-
-/// `SasPortalDeviceMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalDeviceMetadata {
-    /// antennaModel property.
-    pub antenna_model: Option<String>,
-    /// commonChannelGroup property.
-    pub common_channel_group: Option<String>,
-    /// interferenceCoordinationGroup property.
-    pub interference_coordination_group: Option<String>,
-    /// nrqzValidated property.
-    pub nrqz_validated: Option<bool>,
-    /// nrqzValidation property.
-    pub nrqz_validation: Option<SasPortalNrqzValidation>,
-}
-
 /// `SasPortalChannelWithScore` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SasPortalChannelWithScore {
@@ -191,24 +203,13 @@ pub struct SasPortalChannelWithScore {
     pub score: Option<f64>,
 }
 
-/// `SasPortalDeviceAirInterface` type.
+/// `SasPortalDpaMoveList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalDeviceAirInterface {
-    /// radioTechnology property.
-    pub radio_technology: Option<String>,
-    /// supportedSpec property.
-    pub supported_spec: Option<String>,
-}
-
-/// `SasPortalStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct SasPortalDpaMoveList {
+    /// dpaId property.
+    pub dpa_id: Option<String>,
+    /// frequencyRange property.
+    pub frequency_range: Option<SasPortalFrequencyRange>,
 }
 
 // =============================================================================

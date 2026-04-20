@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,19 +23,194 @@ use serde::{Deserialize, Serialize};
 use super::shared::Empty;
 use super::shared::GoogleCloudDataplexV1GenerateDataQualityRulesResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudDataplexV1DataDiscoverySpecStorageConfigJsonOptions` type.
+/// `GoogleCloudDataplexV1DataQualityRuleRangeExpectation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfigJsonOptions {
-    /// encoding property.
-    pub encoding: Option<String>,
-    /// typeInferenceDisabled property.
-    pub type_inference_disabled: Option<bool>,
+pub struct GoogleCloudDataplexV1DataQualityRuleRangeExpectation {
+    /// maxValue property.
+    pub max_value: Option<String>,
+    /// minValue property.
+    pub min_value: Option<String>,
+    /// strictMaxEnabled property.
+    pub strict_max_enabled: Option<bool>,
+    /// strictMinEnabled property.
+    pub strict_min_enabled: Option<bool>,
+}
+
+/// `GoogleCloudDataplexV1DataQualityResultPostScanActionsResultBigQueryExportResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataQualityResultPostScanActionsResultBigQueryExportResult {
+    /// message property.
+    pub message: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1DataQualityRuleSetExpectation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataQualityRuleSetExpectation {
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `GoogleCloudDataplexV1DataQualityColumnResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataQualityColumnResult {
+    /// column property.
+    pub column: Option<String>,
+    /// dimensions property.
+    pub dimensions: Option<Vec<GoogleCloudDataplexV1DataQualityDimensionResult>>,
+    /// passed property.
+    pub passed: Option<bool>,
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudDataplexV1ScannedDataIncrementalField` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1ScannedDataIncrementalField {
+    /// end property.
+    pub end: Option<String>,
+    /// field property.
+    pub field: Option<String>,
+    /// start property.
+    pub start: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1DataQualitySpecPostScanActionsJobEndTrigger` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsJobEndTrigger {}
+
+/// `GoogleCloudDataplexV1DataProfileSpecPostScanActionsBigQueryExport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataProfileSpecPostScanActionsBigQueryExport {
+    /// resultsTable property.
+    pub results_table: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1TaskExecutionSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1TaskExecutionSpec {
+    /// args property.
+    pub args: Option<serde_json::Value>,
+    /// kmsKey property.
+    pub kms_key: Option<String>,
+    /// maxJobExecutionLifetime property.
+    pub max_job_execution_lifetime: Option<String>,
+    /// project property.
+    pub project: Option<String>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1DataQualitySpecPostScanActionsJobFailureTrigger` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsJobFailureTrigger {}
+
+/// `GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoIntegerFieldInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoIntegerFieldInfo {
+    /// average property.
+    pub average: Option<f64>,
+    /// max property.
+    pub max: Option<String>,
+    /// min property.
+    pub min: Option<String>,
+    /// quartiles property.
+    pub quartiles: Option<Vec<String>>,
+    /// standardDeviation property.
+    pub standard_deviation: Option<f64>,
+}
+
+/// `GoogleCloudDataplexV1DataQualityRuleStatisticRangeExpectation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataQualityRuleStatisticRangeExpectation {
+    /// maxValue property.
+    pub max_value: Option<String>,
+    /// minValue property.
+    pub min_value: Option<String>,
+    /// statistic property.
+    pub statistic: Option<String>,
+    /// strictMaxEnabled property.
+    pub strict_max_enabled: Option<bool>,
+    /// strictMinEnabled property.
+    pub strict_min_enabled: Option<bool>,
+}
+
+/// `GoogleCloudDataplexV1ListJobsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1ListJobsResponse {
+    /// jobs property.
+    pub jobs: Option<Vec<GoogleCloudDataplexV1Job>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1DataQualityResultPostScanActionsResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataQualityResultPostScanActionsResult {
+    /// bigqueryExportResult property.
+    pub bigquery_export_result:
+        Option<GoogleCloudDataplexV1DataQualityResultPostScanActionsResultBigQueryExportResult>,
+}
+
+/// `GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfo {
+    /// distinctRatio property.
+    pub distinct_ratio: Option<f64>,
+    /// doubleProfile property.
+    pub double_profile:
+        Option<GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoDoubleFieldInfo>,
+    /// integerProfile property.
+    pub integer_profile:
+        Option<GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoIntegerFieldInfo>,
+    /// nullRatio property.
+    pub null_ratio: Option<f64>,
+    /// stringProfile property.
+    pub string_profile:
+        Option<GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoStringFieldInfo>,
+    /// topNValues property.
+    pub top_n_values:
+        Option<Vec<GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoTopNValue>>,
+}
+
+/// `GoogleCloudDataplexV1DataQualityDimensionResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataQualityDimensionResult {
+    /// dimension property.
+    pub dimension: Option<GoogleCloudDataplexV1DataQualityDimension>,
+    /// passed property.
+    pub passed: Option<bool>,
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudDataplexV1DataQualitySpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataQualitySpec {
+    /// catalogPublishingEnabled property.
+    pub catalog_publishing_enabled: Option<bool>,
+    /// postScanActions property.
+    pub post_scan_actions: Option<GoogleCloudDataplexV1DataQualitySpecPostScanActions>,
+    /// rowFilter property.
+    pub row_filter: Option<String>,
+    /// rules property.
+    pub rules: Option<Vec<GoogleCloudDataplexV1DataQualityRule>>,
+    /// samplingPercent property.
+    pub sampling_percent: Option<f64>,
+}
+
+/// `GoogleCloudDataplexV1DataQualitySpecPostScanActionsRecipients` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsRecipients {
+    /// emails property.
+    pub emails: Option<Vec<String>>,
 }
 
 /// `GoogleCloudDataplexV1DataProfileResultPostScanActionsResultBigQueryExportResult` type.
@@ -46,19 +222,75 @@ pub struct GoogleCloudDataplexV1DataProfileResultPostScanActionsResultBigQueryEx
     pub state: Option<String>,
 }
 
-/// `GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoDoubleFieldInfo` type.
+/// `GoogleCloudDataplexV1DataDocumentationResultSchemaRelationshipSchemaPaths` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoDoubleFieldInfo {
-    /// average property.
-    pub average: Option<f64>,
-    /// max property.
-    pub max: Option<f64>,
-    /// min property.
-    pub min: Option<f64>,
-    /// quartiles property.
-    pub quartiles: Option<Vec<f64>>,
-    /// standardDeviation property.
-    pub standard_deviation: Option<f64>,
+pub struct GoogleCloudDataplexV1DataDocumentationResultSchemaRelationshipSchemaPaths {
+    /// paths property.
+    pub paths: Option<Vec<String>>,
+    /// tableFqn property.
+    pub table_fqn: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1DataDiscoveryResultBigQueryPublishing` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataDiscoveryResultBigQueryPublishing {
+    /// dataset property.
+    pub dataset: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1DataQualityRuleNonNullExpectation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataQualityRuleNonNullExpectation {}
+
+/// `GoogleCloudDataplexV1DataDiscoverySpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataDiscoverySpec {
+    /// bigqueryPublishingConfig property.
+    pub bigquery_publishing_config:
+        Option<GoogleCloudDataplexV1DataDiscoverySpecBigQueryPublishingConfig>,
+    /// storageConfig property.
+    pub storage_config: Option<GoogleCloudDataplexV1DataDiscoverySpecStorageConfig>,
+}
+
+/// `GoogleCloudDataplexV1DataScanJob` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataScanJob {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// dataDiscoveryResult property.
+    pub data_discovery_result: Option<GoogleCloudDataplexV1DataDiscoveryResult>,
+    /// dataDiscoverySpec property.
+    pub data_discovery_spec: Option<GoogleCloudDataplexV1DataDiscoverySpec>,
+    /// dataDocumentationResult property.
+    pub data_documentation_result: Option<GoogleCloudDataplexV1DataDocumentationResult>,
+    /// dataDocumentationSpec property.
+    pub data_documentation_spec: Option<GoogleCloudDataplexV1DataDocumentationSpec>,
+    /// dataProfileResult property.
+    pub data_profile_result: Option<GoogleCloudDataplexV1DataProfileResult>,
+    /// dataProfileSpec property.
+    pub data_profile_spec: Option<GoogleCloudDataplexV1DataProfileSpec>,
+    /// dataQualityResult property.
+    pub data_quality_result: Option<GoogleCloudDataplexV1DataQualityResult>,
+    /// dataQualitySpec property.
+    pub data_quality_spec: Option<GoogleCloudDataplexV1DataQualitySpec>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// partialFailureMessage property.
+    pub partial_failure_message: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// uid property.
+    pub uid: Option<String>,
 }
 
 /// `GoogleCloudDataplexV1DataProfileSpec` type.
@@ -79,86 +311,6 @@ pub struct GoogleCloudDataplexV1DataProfileSpec {
     /// samplingPercent property.
     pub sampling_percent: Option<f64>,
 }
-
-/// `GoogleCloudDataplexV1DataQualityDimension` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualityDimension {
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1DataQualityResultPostScanActionsResultBigQueryExportResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualityResultPostScanActionsResultBigQueryExportResult {
-    /// message property.
-    pub message: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1DataQualitySpecPostScanActionsRecipients` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsRecipients {
-    /// emails property.
-    pub emails: Option<Vec<String>>,
-}
-
-/// `GoogleCloudDataplexV1DataDiscoverySpecStorageConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfig {
-    /// csvOptions property.
-    pub csv_options: Option<GoogleCloudDataplexV1DataDiscoverySpecStorageConfigCsvOptions>,
-    /// excludePatterns property.
-    pub exclude_patterns: Option<Vec<String>>,
-    /// includePatterns property.
-    pub include_patterns: Option<Vec<String>>,
-    /// jsonOptions property.
-    pub json_options: Option<GoogleCloudDataplexV1DataDiscoverySpecStorageConfigJsonOptions>,
-    /// unstructuredDataOptions property.
-    pub unstructured_data_options:
-        Option<GoogleCloudDataplexV1DataDiscoverySpecStorageConfigUnstructuredDataOptions>,
-}
-
-/// `GoogleCloudDataplexV1ListDataScanJobsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1ListDataScanJobsResponse {
-    /// dataScanJobs property.
-    pub data_scan_jobs: Option<Vec<GoogleCloudDataplexV1DataScanJob>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1DataQualityRuleStatisticRangeExpectation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualityRuleStatisticRangeExpectation {
-    /// maxValue property.
-    pub max_value: Option<String>,
-    /// minValue property.
-    pub min_value: Option<String>,
-    /// statistic property.
-    pub statistic: Option<String>,
-    /// strictMaxEnabled property.
-    pub strict_max_enabled: Option<bool>,
-    /// strictMinEnabled property.
-    pub strict_min_enabled: Option<bool>,
-}
-
-/// `GoogleCloudDataplexV1DataQualityRuleRangeExpectation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualityRuleRangeExpectation {
-    /// maxValue property.
-    pub max_value: Option<String>,
-    /// minValue property.
-    pub min_value: Option<String>,
-    /// strictMaxEnabled property.
-    pub strict_max_enabled: Option<bool>,
-    /// strictMinEnabled property.
-    pub strict_min_enabled: Option<bool>,
-}
-
-/// `GoogleCloudDataplexV1DataQualitySpecPostScanActionsJobFailureTrigger` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsJobFailureTrigger {}
 
 /// `GoogleCloudDataplexV1DataQualityRuleResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -184,135 +336,27 @@ pub struct GoogleCloudDataplexV1DataQualityRuleResult {
     pub rule: Option<GoogleCloudDataplexV1DataQualityRule>,
 }
 
-/// `GoogleCloudDataplexV1ScannedDataIncrementalField` type.
+/// `GoogleCloudDataplexV1ListDataScanJobsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1ScannedDataIncrementalField {
-    /// end property.
-    pub end: Option<String>,
-    /// field property.
-    pub field: Option<String>,
-    /// start property.
-    pub start: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResult {
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1DataQualitySpecPostScanActionsScoreThresholdTrigger` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsScoreThresholdTrigger {
-    /// scoreThreshold property.
-    pub score_threshold: Option<f64>,
-}
-
-/// `GoogleCloudDataplexV1DataProfileSpecPostScanActionsBigQueryExport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataProfileSpecPostScanActionsBigQueryExport {
-    /// resultsTable property.
-    pub results_table: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1DataDocumentationResultSchemaRelationship` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDocumentationResultSchemaRelationship {
-    /// leftSchemaPaths property.
-    pub left_schema_paths:
-        Option<GoogleCloudDataplexV1DataDocumentationResultSchemaRelationshipSchemaPaths>,
-    /// rightSchemaPaths property.
-    pub right_schema_paths:
-        Option<GoogleCloudDataplexV1DataDocumentationResultSchemaRelationshipSchemaPaths>,
-    /// sources property.
-    pub sources: Option<Vec<String>>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1DataDocumentationSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDocumentationSpec {
-    /// catalogPublishingEnabled property.
-    pub catalog_publishing_enabled: Option<bool>,
-    /// generationScopes property.
-    pub generation_scopes: Option<Vec<String>>,
-}
-
-/// `GoogleCloudDataplexV1DataProfileResultProfileField` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataProfileResultProfileField {
-    /// mode property.
-    pub mode: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// profile property.
-    pub profile: Option<GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfo>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1DataDocumentationResultTableResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDocumentationResultTableResult {
-    /// name property.
-    pub name: Option<String>,
-    /// overview property.
-    pub overview: Option<String>,
-    /// queries property.
-    pub queries: Option<Vec<GoogleCloudDataplexV1DataDocumentationResultQuery>>,
-    /// schema property.
-    pub schema: Option<GoogleCloudDataplexV1DataDocumentationResultSchema>,
-}
-
-/// `GoogleCloudDataplexV1DataDocumentationResultSchema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDocumentationResultSchema {
-    /// fields property.
-    pub fields: Option<Vec<GoogleCloudDataplexV1DataDocumentationResultField>>,
-}
-
-/// `GoogleCloudDataplexV1ListJobsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1ListJobsResponse {
-    /// jobs property.
-    pub jobs: Option<Vec<GoogleCloudDataplexV1Job>>,
+pub struct GoogleCloudDataplexV1ListDataScanJobsResponse {
+    /// dataScanJobs property.
+    pub data_scan_jobs: Option<Vec<GoogleCloudDataplexV1DataScanJob>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
 }
 
-/// `GoogleCloudDataplexV1DataProfileSpecSelectedFields` type.
+/// `GoogleCloudDataplexV1DataProfileResultProfile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataProfileSpecSelectedFields {
-    /// fieldNames property.
-    pub field_names: Option<Vec<String>>,
+pub struct GoogleCloudDataplexV1DataProfileResultProfile {
+    /// fields property.
+    pub fields: Option<Vec<GoogleCloudDataplexV1DataProfileResultProfileField>>,
 }
 
-/// `GoogleCloudDataplexV1DataDiscoveryResultBigQueryPublishing` type.
+/// `GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResultSet` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDiscoveryResultBigQueryPublishing {
-    /// dataset property.
-    pub dataset: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1DataQualityResultAnomalyDetectionGeneratedAssets` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualityResultAnomalyDetectionGeneratedAssets {
-    /// dataIntermediateTable property.
-    pub data_intermediate_table: Option<String>,
-    /// freshnessIntermediateTable property.
-    pub freshness_intermediate_table: Option<String>,
-    /// resultTable property.
-    pub result_table: Option<String>,
-    /// volumeIntermediateTable property.
-    pub volume_intermediate_table: Option<String>,
+pub struct GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResultSet {
+    /// results property.
+    pub results: Option<Vec<GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResult>>,
 }
 
 /// `GoogleCloudDataplexV1DataQualityRule` type.
@@ -357,15 +401,6 @@ pub struct GoogleCloudDataplexV1DataQualityRule {
     pub uniqueness_expectation: Option<GoogleCloudDataplexV1DataQualityRuleUniquenessExpectation>,
 }
 
-/// `GoogleCloudDataplexV1DataDocumentationResultQuery` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDocumentationResultQuery {
-    /// description property.
-    pub description: Option<String>,
-    /// sql property.
-    pub sql: Option<String>,
-}
-
 /// `GoogleCloudDataplexV1DataQualityRuleDebugQuery` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityRuleDebugQuery {
@@ -382,370 +417,27 @@ pub struct GoogleCloudDataplexV1DataQualityRuleTableConditionExpectation {
     pub sql_expression: Option<String>,
 }
 
-/// `GoogleCloudDataplexV1DataScanCatalogPublishingStatus` type.
+/// `GoogleCloudDataplexV1DataDocumentationResultQuery` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataScanCatalogPublishingStatus {
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1DataQualitySpecPostScanActionsBigQueryExport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsBigQueryExport {
-    /// resultsTable property.
-    pub results_table: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1DataQualityRuleNonNullExpectation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualityRuleNonNullExpectation {}
-
-/// `GoogleCloudDataplexV1DataDocumentationResultField` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDocumentationResultField {
+pub struct GoogleCloudDataplexV1DataDocumentationResultQuery {
     /// description property.
     pub description: Option<String>,
-    /// fields property.
-    pub fields: Option<Vec<GoogleCloudDataplexV1DataDocumentationResultField>>,
-    /// name property.
-    pub name: Option<String>,
+    /// sql property.
+    pub sql: Option<String>,
 }
 
-/// `GoogleCloudDataplexV1DataDiscoverySpecStorageConfigCsvOptions` type.
+/// `GoogleCloudDataplexV1DataDiscoverySpecStorageConfigJsonOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfigCsvOptions {
-    /// delimiter property.
-    pub delimiter: Option<String>,
+pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfigJsonOptions {
     /// encoding property.
     pub encoding: Option<String>,
-    /// headerRows property.
-    pub header_rows: Option<i64>,
-    /// quote property.
-    pub quote: Option<String>,
     /// typeInferenceDisabled property.
     pub type_inference_disabled: Option<bool>,
-}
-
-/// `GoogleCloudDataplexV1DataQualitySpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualitySpec {
-    /// catalogPublishingEnabled property.
-    pub catalog_publishing_enabled: Option<bool>,
-    /// postScanActions property.
-    pub post_scan_actions: Option<GoogleCloudDataplexV1DataQualitySpecPostScanActions>,
-    /// rowFilter property.
-    pub row_filter: Option<String>,
-    /// rules property.
-    pub rules: Option<Vec<GoogleCloudDataplexV1DataQualityRule>>,
-    /// samplingPercent property.
-    pub sampling_percent: Option<f64>,
-}
-
-/// `GoogleCloudDataplexV1DataQualitySpecPostScanActionsJobEndTrigger` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsJobEndTrigger {}
-
-/// `GoogleCloudDataplexV1TaskExecutionSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1TaskExecutionSpec {
-    /// args property.
-    pub args: Option<serde_json::Value>,
-    /// kmsKey property.
-    pub kms_key: Option<String>,
-    /// maxJobExecutionLifetime property.
-    pub max_job_execution_lifetime: Option<String>,
-    /// project property.
-    pub project: Option<String>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1DataQualityColumnResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualityColumnResult {
-    /// column property.
-    pub column: Option<String>,
-    /// dimensions property.
-    pub dimensions: Option<Vec<GoogleCloudDataplexV1DataQualityDimensionResult>>,
-    /// passed property.
-    pub passed: Option<bool>,
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudDataplexV1DataDiscoveryResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDiscoveryResult {
-    /// bigqueryPublishing property.
-    pub bigquery_publishing: Option<GoogleCloudDataplexV1DataDiscoveryResultBigQueryPublishing>,
-    /// scanStatistics property.
-    pub scan_statistics: Option<GoogleCloudDataplexV1DataDiscoveryResultScanStatistics>,
-}
-
-/// `GoogleCloudDataplexV1DataDiscoverySpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDiscoverySpec {
-    /// bigqueryPublishingConfig property.
-    pub bigquery_publishing_config:
-        Option<GoogleCloudDataplexV1DataDiscoverySpecBigQueryPublishingConfig>,
-    /// storageConfig property.
-    pub storage_config: Option<GoogleCloudDataplexV1DataDiscoverySpecStorageConfig>,
-}
-
-/// `GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResultSet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResultSet {
-    /// results property.
-    pub results: Option<Vec<GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResult>>,
-}
-
-/// `GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoIntegerFieldInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoIntegerFieldInfo {
-    /// average property.
-    pub average: Option<f64>,
-    /// max property.
-    pub max: Option<String>,
-    /// min property.
-    pub min: Option<String>,
-    /// quartiles property.
-    pub quartiles: Option<Vec<String>>,
-    /// standardDeviation property.
-    pub standard_deviation: Option<f64>,
-}
-
-/// `GoogleCloudDataplexV1DataDocumentationResultDatasetResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDocumentationResultDatasetResult {
-    /// overview property.
-    pub overview: Option<String>,
-    /// queries property.
-    pub queries: Option<Vec<GoogleCloudDataplexV1DataDocumentationResultQuery>>,
-    /// schemaRelationships property.
-    pub schema_relationships:
-        Option<Vec<GoogleCloudDataplexV1DataDocumentationResultSchemaRelationship>>,
-}
-
-/// `GoogleCloudDataplexV1DataProfileSpecPostScanActions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataProfileSpecPostScanActions {
-    /// bigqueryExport property.
-    pub bigquery_export: Option<GoogleCloudDataplexV1DataProfileSpecPostScanActionsBigQueryExport>,
-}
-
-/// `GoogleCloudDataplexV1DataDiscoverySpecStorageConfigUnstructuredDataOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfigUnstructuredDataOptions {
-    /// entityInferenceEnabled property.
-    pub entity_inference_enabled: Option<bool>,
-    /// semanticInferenceEnabled property.
-    pub semantic_inference_enabled: Option<bool>,
-}
-
-/// `GoogleCloudDataplexV1DataQualityResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualityResult {
-    /// anomalyDetectionGeneratedAssets property.
-    pub anomaly_detection_generated_assets:
-        Option<GoogleCloudDataplexV1DataQualityResultAnomalyDetectionGeneratedAssets>,
-    /// catalogPublishingStatus property.
-    pub catalog_publishing_status: Option<GoogleCloudDataplexV1DataScanCatalogPublishingStatus>,
-    /// columns property.
-    pub columns: Option<Vec<GoogleCloudDataplexV1DataQualityColumnResult>>,
-    /// dimensions property.
-    pub dimensions: Option<Vec<GoogleCloudDataplexV1DataQualityDimensionResult>>,
-    /// passed property.
-    pub passed: Option<bool>,
-    /// postScanActionsResult property.
-    pub post_scan_actions_result:
-        Option<GoogleCloudDataplexV1DataQualityResultPostScanActionsResult>,
-    /// rowCount property.
-    pub row_count: Option<String>,
-    /// rules property.
-    pub rules: Option<Vec<GoogleCloudDataplexV1DataQualityRuleResult>>,
-    /// scannedData property.
-    pub scanned_data: Option<GoogleCloudDataplexV1ScannedData>,
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoStringFieldInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoStringFieldInfo {
-    /// averageLength property.
-    pub average_length: Option<f64>,
-    /// maxLength property.
-    pub max_length: Option<String>,
-    /// minLength property.
-    pub min_length: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1DataProfileResultPostScanActionsResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataProfileResultPostScanActionsResult {
-    /// bigqueryExportResult property.
-    pub bigquery_export_result:
-        Option<GoogleCloudDataplexV1DataProfileResultPostScanActionsResultBigQueryExportResult>,
-}
-
-/// `GoogleCloudDataplexV1DataQualityDimensionResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualityDimensionResult {
-    /// dimension property.
-    pub dimension: Option<GoogleCloudDataplexV1DataQualityDimension>,
-    /// passed property.
-    pub passed: Option<bool>,
-    /// score property.
-    pub score: Option<f64>,
-}
-
-/// `GoogleCloudDataplexV1ScannedData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1ScannedData {
-    /// incrementalField property.
-    pub incremental_field: Option<GoogleCloudDataplexV1ScannedDataIncrementalField>,
-}
-
-/// `GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfo {
-    /// distinctRatio property.
-    pub distinct_ratio: Option<f64>,
-    /// doubleProfile property.
-    pub double_profile:
-        Option<GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoDoubleFieldInfo>,
-    /// integerProfile property.
-    pub integer_profile:
-        Option<GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoIntegerFieldInfo>,
-    /// nullRatio property.
-    pub null_ratio: Option<f64>,
-    /// stringProfile property.
-    pub string_profile:
-        Option<GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoStringFieldInfo>,
-    /// topNValues property.
-    pub top_n_values:
-        Option<Vec<GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoTopNValue>>,
-}
-
-/// `GoogleCloudDataplexV1DataQualitySpecPostScanActionsNotificationReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsNotificationReport {
-    /// jobEndTrigger property.
-    pub job_end_trigger: Option<GoogleCloudDataplexV1DataQualitySpecPostScanActionsJobEndTrigger>,
-    /// jobFailureTrigger property.
-    pub job_failure_trigger:
-        Option<GoogleCloudDataplexV1DataQualitySpecPostScanActionsJobFailureTrigger>,
-    /// recipients property.
-    pub recipients: Option<GoogleCloudDataplexV1DataQualitySpecPostScanActionsRecipients>,
-    /// scoreThresholdTrigger property.
-    pub score_threshold_trigger:
-        Option<GoogleCloudDataplexV1DataQualitySpecPostScanActionsScoreThresholdTrigger>,
-}
-
-/// `GoogleCloudDataplexV1DataQualityRuleRegexExpectation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualityRuleRegexExpectation {
-    /// regex property.
-    pub regex: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1DataQualityRuleSetExpectation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualityRuleSetExpectation {
-    /// values property.
-    pub values: Option<Vec<String>>,
 }
 
 /// `GoogleCloudDataplexV1DataQualityRuleUniquenessExpectation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityRuleUniquenessExpectation {}
-
-/// `GoogleCloudDataplexV1DataQualitySpecPostScanActions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActions {
-    /// bigqueryExport property.
-    pub bigquery_export: Option<GoogleCloudDataplexV1DataQualitySpecPostScanActionsBigQueryExport>,
-    /// notificationReport property.
-    pub notification_report:
-        Option<GoogleCloudDataplexV1DataQualitySpecPostScanActionsNotificationReport>,
-}
-
-/// `GoogleCloudDataplexV1DataQualityResultPostScanActionsResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualityResultPostScanActionsResult {
-    /// bigqueryExportResult property.
-    pub bigquery_export_result:
-        Option<GoogleCloudDataplexV1DataQualityResultPostScanActionsResultBigQueryExportResult>,
-}
-
-/// `GoogleCloudDataplexV1DataProfileResultProfile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataProfileResultProfile {
-    /// fields property.
-    pub fields: Option<Vec<GoogleCloudDataplexV1DataProfileResultProfileField>>,
-}
-
-/// `GoogleCloudDataplexV1DataDiscoveryResultScanStatistics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDiscoveryResultScanStatistics {
-    /// dataProcessedBytes property.
-    pub data_processed_bytes: Option<String>,
-    /// filesExcluded property.
-    pub files_excluded: Option<i64>,
-    /// filesetsCreated property.
-    pub filesets_created: Option<i64>,
-    /// filesetsDeleted property.
-    pub filesets_deleted: Option<i64>,
-    /// filesetsUpdated property.
-    pub filesets_updated: Option<i64>,
-    /// scannedFileCount property.
-    pub scanned_file_count: Option<i64>,
-    /// tablesCreated property.
-    pub tables_created: Option<i64>,
-    /// tablesDeleted property.
-    pub tables_deleted: Option<i64>,
-    /// tablesUpdated property.
-    pub tables_updated: Option<i64>,
-}
-
-/// `GoogleCloudDataplexV1DataScanJob` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataScanJob {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// dataDiscoveryResult property.
-    pub data_discovery_result: Option<GoogleCloudDataplexV1DataDiscoveryResult>,
-    /// dataDiscoverySpec property.
-    pub data_discovery_spec: Option<GoogleCloudDataplexV1DataDiscoverySpec>,
-    /// dataDocumentationResult property.
-    pub data_documentation_result: Option<GoogleCloudDataplexV1DataDocumentationResult>,
-    /// dataDocumentationSpec property.
-    pub data_documentation_spec: Option<GoogleCloudDataplexV1DataDocumentationSpec>,
-    /// dataProfileResult property.
-    pub data_profile_result: Option<GoogleCloudDataplexV1DataProfileResult>,
-    /// dataProfileSpec property.
-    pub data_profile_spec: Option<GoogleCloudDataplexV1DataProfileSpec>,
-    /// dataQualityResult property.
-    pub data_quality_result: Option<GoogleCloudDataplexV1DataQualityResult>,
-    /// dataQualitySpec property.
-    pub data_quality_spec: Option<GoogleCloudDataplexV1DataQualitySpec>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// partialFailureMessage property.
-    pub partial_failure_message: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// uid property.
-    pub uid: Option<String>,
-}
 
 /// `GoogleCloudDataplexV1Job` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -776,11 +468,290 @@ pub struct GoogleCloudDataplexV1Job {
     pub uid: Option<String>,
 }
 
+/// `GoogleCloudDataplexV1DataQualitySpecPostScanActionsScoreThresholdTrigger` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsScoreThresholdTrigger {
+    /// scoreThreshold property.
+    pub score_threshold: Option<f64>,
+}
+
+/// `GoogleCloudDataplexV1DataDocumentationResultSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataDocumentationResultSchema {
+    /// fields property.
+    pub fields: Option<Vec<Box<GoogleCloudDataplexV1DataDocumentationResultField>>>,
+}
+
 /// `GoogleCloudDataplexV1DataQualityRuleSqlAssertion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityRuleSqlAssertion {
     /// sqlStatement property.
     pub sql_statement: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1DataQualityRuleRegexExpectation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataQualityRuleRegexExpectation {
+    /// regex property.
+    pub regex: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1DataQualityRuleRowConditionExpectation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataQualityRuleRowConditionExpectation {
+    /// sqlExpression property.
+    pub sql_expression: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1DataDocumentationResultDatasetResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataDocumentationResultDatasetResult {
+    /// overview property.
+    pub overview: Option<String>,
+    /// queries property.
+    pub queries: Option<Vec<GoogleCloudDataplexV1DataDocumentationResultQuery>>,
+    /// schemaRelationships property.
+    pub schema_relationships:
+        Option<Vec<GoogleCloudDataplexV1DataDocumentationResultSchemaRelationship>>,
+}
+
+/// `GoogleCloudDataplexV1DataProfileResultPostScanActionsResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataProfileResultPostScanActionsResult {
+    /// bigqueryExportResult property.
+    pub bigquery_export_result:
+        Option<GoogleCloudDataplexV1DataProfileResultPostScanActionsResultBigQueryExportResult>,
+}
+
+/// `GoogleCloudDataplexV1DataDiscoverySpecStorageConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfig {
+    /// csvOptions property.
+    pub csv_options: Option<GoogleCloudDataplexV1DataDiscoverySpecStorageConfigCsvOptions>,
+    /// excludePatterns property.
+    pub exclude_patterns: Option<Vec<String>>,
+    /// includePatterns property.
+    pub include_patterns: Option<Vec<String>>,
+    /// jsonOptions property.
+    pub json_options: Option<GoogleCloudDataplexV1DataDiscoverySpecStorageConfigJsonOptions>,
+    /// unstructuredDataOptions property.
+    pub unstructured_data_options:
+        Option<GoogleCloudDataplexV1DataDiscoverySpecStorageConfigUnstructuredDataOptions>,
+}
+
+/// `GoogleCloudDataplexV1DataQualityResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataQualityResult {
+    /// anomalyDetectionGeneratedAssets property.
+    pub anomaly_detection_generated_assets:
+        Option<GoogleCloudDataplexV1DataQualityResultAnomalyDetectionGeneratedAssets>,
+    /// catalogPublishingStatus property.
+    pub catalog_publishing_status: Option<GoogleCloudDataplexV1DataScanCatalogPublishingStatus>,
+    /// columns property.
+    pub columns: Option<Vec<GoogleCloudDataplexV1DataQualityColumnResult>>,
+    /// dimensions property.
+    pub dimensions: Option<Vec<GoogleCloudDataplexV1DataQualityDimensionResult>>,
+    /// passed property.
+    pub passed: Option<bool>,
+    /// postScanActionsResult property.
+    pub post_scan_actions_result:
+        Option<GoogleCloudDataplexV1DataQualityResultPostScanActionsResult>,
+    /// rowCount property.
+    pub row_count: Option<String>,
+    /// rules property.
+    pub rules: Option<Vec<GoogleCloudDataplexV1DataQualityRuleResult>>,
+    /// scannedData property.
+    pub scanned_data: Option<GoogleCloudDataplexV1ScannedData>,
+    /// score property.
+    pub score: Option<f64>,
+}
+
+/// `GoogleCloudDataplexV1DataProfileSpecPostScanActions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataProfileSpecPostScanActions {
+    /// bigqueryExport property.
+    pub bigquery_export: Option<GoogleCloudDataplexV1DataProfileSpecPostScanActionsBigQueryExport>,
+}
+
+/// `GoogleCloudDataplexV1DataDocumentationResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataDocumentationResult {
+    /// datasetResult property.
+    pub dataset_result: Option<GoogleCloudDataplexV1DataDocumentationResultDatasetResult>,
+    /// tableResult property.
+    pub table_result: Option<GoogleCloudDataplexV1DataDocumentationResultTableResult>,
+}
+
+/// `GoogleCloudDataplexV1DataQualitySpecPostScanActionsBigQueryExport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsBigQueryExport {
+    /// resultsTable property.
+    pub results_table: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1DataDocumentationSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataDocumentationSpec {
+    /// catalogPublishingEnabled property.
+    pub catalog_publishing_enabled: Option<bool>,
+    /// generationScopes property.
+    pub generation_scopes: Option<Vec<String>>,
+}
+
+/// `GoogleCloudDataplexV1ScannedData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1ScannedData {
+    /// incrementalField property.
+    pub incremental_field: Option<GoogleCloudDataplexV1ScannedDataIncrementalField>,
+}
+
+/// `GoogleCloudDataplexV1DataDiscoverySpecStorageConfigUnstructuredDataOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfigUnstructuredDataOptions {
+    /// entityInferenceEnabled property.
+    pub entity_inference_enabled: Option<bool>,
+    /// semanticInferenceEnabled property.
+    pub semantic_inference_enabled: Option<bool>,
+}
+
+/// `GoogleCloudDataplexV1DataProfileSpecSelectedFields` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataProfileSpecSelectedFields {
+    /// fieldNames property.
+    pub field_names: Option<Vec<String>>,
+}
+
+/// `GoogleCloudDataplexV1DataDocumentationResultField` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataDocumentationResultField {
+    /// description property.
+    pub description: Option<String>,
+    /// fields property.
+    pub fields: Option<Vec<Box<GoogleCloudDataplexV1DataDocumentationResultField>>>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1DataQualityResultAnomalyDetectionGeneratedAssets` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataQualityResultAnomalyDetectionGeneratedAssets {
+    /// dataIntermediateTable property.
+    pub data_intermediate_table: Option<String>,
+    /// freshnessIntermediateTable property.
+    pub freshness_intermediate_table: Option<String>,
+    /// resultTable property.
+    pub result_table: Option<String>,
+    /// volumeIntermediateTable property.
+    pub volume_intermediate_table: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1DataDiscoverySpecBigQueryPublishingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataDiscoverySpecBigQueryPublishingConfig {
+    /// connection property.
+    pub connection: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// project property.
+    pub project: Option<String>,
+    /// tableType property.
+    pub table_type: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1DataDiscoveryResultScanStatistics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataDiscoveryResultScanStatistics {
+    /// dataProcessedBytes property.
+    pub data_processed_bytes: Option<String>,
+    /// filesExcluded property.
+    pub files_excluded: Option<i64>,
+    /// filesetsCreated property.
+    pub filesets_created: Option<i64>,
+    /// filesetsDeleted property.
+    pub filesets_deleted: Option<i64>,
+    /// filesetsUpdated property.
+    pub filesets_updated: Option<i64>,
+    /// scannedFileCount property.
+    pub scanned_file_count: Option<i64>,
+    /// tablesCreated property.
+    pub tables_created: Option<i64>,
+    /// tablesDeleted property.
+    pub tables_deleted: Option<i64>,
+    /// tablesUpdated property.
+    pub tables_updated: Option<i64>,
+}
+
+/// `GoogleCloudDataplexV1DataScanCatalogPublishingStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataScanCatalogPublishingStatus {
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResult {
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1DataQualityDimension` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataQualityDimension {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoTopNValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoTopNValue {
+    /// count property.
+    pub count: Option<String>,
+    /// ratio property.
+    pub ratio: Option<f64>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1DataDocumentationResultTableResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataDocumentationResultTableResult {
+    /// name property.
+    pub name: Option<String>,
+    /// overview property.
+    pub overview: Option<String>,
+    /// queries property.
+    pub queries: Option<Vec<GoogleCloudDataplexV1DataDocumentationResultQuery>>,
+    /// schema property.
+    pub schema: Option<GoogleCloudDataplexV1DataDocumentationResultSchema>,
+}
+
+/// `GoogleCloudDataplexV1DataDocumentationResultSchemaRelationship` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataDocumentationResultSchemaRelationship {
+    /// leftSchemaPaths property.
+    pub left_schema_paths:
+        Option<GoogleCloudDataplexV1DataDocumentationResultSchemaRelationshipSchemaPaths>,
+    /// rightSchemaPaths property.
+    pub right_schema_paths:
+        Option<GoogleCloudDataplexV1DataDocumentationResultSchemaRelationshipSchemaPaths>,
+    /// sources property.
+    pub sources: Option<Vec<String>>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1DataDiscoveryResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataDiscoveryResult {
+    /// bigqueryPublishing property.
+    pub bigquery_publishing: Option<GoogleCloudDataplexV1DataDiscoveryResultBigQueryPublishing>,
+    /// scanStatistics property.
+    pub scan_statistics: Option<GoogleCloudDataplexV1DataDiscoveryResultScanStatistics>,
 }
 
 /// `GoogleCloudDataplexV1DataProfileResult` type.
@@ -799,53 +770,83 @@ pub struct GoogleCloudDataplexV1DataProfileResult {
     pub scanned_data: Option<GoogleCloudDataplexV1ScannedData>,
 }
 
-/// `GoogleCloudDataplexV1DataQualityRuleRowConditionExpectation` type.
+/// `GoogleCloudDataplexV1DataQualitySpecPostScanActions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataQualityRuleRowConditionExpectation {
-    /// sqlExpression property.
-    pub sql_expression: Option<String>,
+pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActions {
+    /// bigqueryExport property.
+    pub bigquery_export: Option<GoogleCloudDataplexV1DataQualitySpecPostScanActionsBigQueryExport>,
+    /// notificationReport property.
+    pub notification_report:
+        Option<GoogleCloudDataplexV1DataQualitySpecPostScanActionsNotificationReport>,
 }
 
-/// `GoogleCloudDataplexV1DataDocumentationResultSchemaRelationshipSchemaPaths` type.
+/// `GoogleCloudDataplexV1DataQualitySpecPostScanActionsNotificationReport` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDocumentationResultSchemaRelationshipSchemaPaths {
-    /// paths property.
-    pub paths: Option<Vec<String>>,
-    /// tableFqn property.
-    pub table_fqn: Option<String>,
+pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsNotificationReport {
+    /// jobEndTrigger property.
+    pub job_end_trigger: Option<GoogleCloudDataplexV1DataQualitySpecPostScanActionsJobEndTrigger>,
+    /// jobFailureTrigger property.
+    pub job_failure_trigger:
+        Option<GoogleCloudDataplexV1DataQualitySpecPostScanActionsJobFailureTrigger>,
+    /// recipients property.
+    pub recipients: Option<GoogleCloudDataplexV1DataQualitySpecPostScanActionsRecipients>,
+    /// scoreThresholdTrigger property.
+    pub score_threshold_trigger:
+        Option<GoogleCloudDataplexV1DataQualitySpecPostScanActionsScoreThresholdTrigger>,
 }
 
-/// `GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoTopNValue` type.
+/// `GoogleCloudDataplexV1DataProfileResultProfileField` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoTopNValue {
-    /// count property.
-    pub count: Option<String>,
-    /// ratio property.
-    pub ratio: Option<f64>,
-    /// value property.
-    pub value: Option<String>,
+pub struct GoogleCloudDataplexV1DataProfileResultProfileField {
+    /// mode property.
+    pub mode: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// profile property.
+    pub profile: Option<GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfo>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
-/// `GoogleCloudDataplexV1DataDiscoverySpecBigQueryPublishingConfig` type.
+/// `GoogleCloudDataplexV1DataDiscoverySpecStorageConfigCsvOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDiscoverySpecBigQueryPublishingConfig {
-    /// connection property.
-    pub connection: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// project property.
-    pub project: Option<String>,
-    /// tableType property.
-    pub table_type: Option<String>,
+pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfigCsvOptions {
+    /// delimiter property.
+    pub delimiter: Option<String>,
+    /// encoding property.
+    pub encoding: Option<String>,
+    /// headerRows property.
+    pub header_rows: Option<i64>,
+    /// quote property.
+    pub quote: Option<String>,
+    /// typeInferenceDisabled property.
+    pub type_inference_disabled: Option<bool>,
 }
 
-/// `GoogleCloudDataplexV1DataDocumentationResult` type.
+/// `GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoDoubleFieldInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDocumentationResult {
-    /// datasetResult property.
-    pub dataset_result: Option<GoogleCloudDataplexV1DataDocumentationResultDatasetResult>,
-    /// tableResult property.
-    pub table_result: Option<GoogleCloudDataplexV1DataDocumentationResultTableResult>,
+pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoDoubleFieldInfo {
+    /// average property.
+    pub average: Option<f64>,
+    /// max property.
+    pub max: Option<f64>,
+    /// min property.
+    pub min: Option<f64>,
+    /// quartiles property.
+    pub quartiles: Option<Vec<f64>>,
+    /// standardDeviation property.
+    pub standard_deviation: Option<f64>,
+}
+
+/// `GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoStringFieldInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoStringFieldInfo {
+    /// averageLength property.
+    pub average_length: Option<f64>,
+    /// maxLength property.
+    pub max_length: Option<String>,
+    /// minLength property.
+    pub min_length: Option<String>,
 }
 
 // =============================================================================

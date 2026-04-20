@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,11 +24,18 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ObjectId` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ObjectId {
+    /// objectIdPath property.
+    pub object_id_path: Option<Vec<i64>>,
+}
 
 /// `AuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -36,57 +44,6 @@ pub struct AuditConfig {
     pub audit_log_configs: Option<Vec<AuditLogConfig>>,
     /// service property.
     pub service: Option<String>,
-}
-
-/// `KeyUsage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KeyUsage {
-    /// baseKeyUsage property.
-    pub base_key_usage: Option<KeyUsageOptions>,
-    /// extendedKeyUsage property.
-    pub extended_key_usage: Option<ExtendedKeyUsageOptions>,
-    /// unknownExtendedKeyUsages property.
-    pub unknown_extended_key_usages: Option<Vec<ObjectId>>,
-}
-
-/// `NameConstraints` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NameConstraints {
-    /// critical property.
-    pub critical: Option<bool>,
-    /// excludedDnsNames property.
-    pub excluded_dns_names: Option<Vec<String>>,
-    /// excludedEmailAddresses property.
-    pub excluded_email_addresses: Option<Vec<String>>,
-    /// excludedIpRanges property.
-    pub excluded_ip_ranges: Option<Vec<String>>,
-    /// excludedUris property.
-    pub excluded_uris: Option<Vec<String>>,
-    /// permittedDnsNames property.
-    pub permitted_dns_names: Option<Vec<String>>,
-    /// permittedEmailAddresses property.
-    pub permitted_email_addresses: Option<Vec<String>>,
-    /// permittedIpRanges property.
-    pub permitted_ip_ranges: Option<Vec<String>>,
-    /// permittedUris property.
-    pub permitted_uris: Option<Vec<String>>,
-}
-
-/// `X509Parameters` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct X509Parameters {
-    /// additionalExtensions property.
-    pub additional_extensions: Option<Vec<X509Extension>>,
-    /// aiaOcspServers property.
-    pub aia_ocsp_servers: Option<Vec<String>>,
-    /// caOptions property.
-    pub ca_options: Option<CaOptions>,
-    /// keyUsage property.
-    pub key_usage: Option<KeyUsage>,
-    /// nameConstraints property.
-    pub name_constraints: Option<NameConstraints>,
-    /// policyIds property.
-    pub policy_ids: Option<Vec<ObjectId>>,
 }
 
 /// `Status` type.
@@ -100,15 +57,44 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `ListCertificateTemplatesResponse` type.
+/// `CertificateExtensionConstraints` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCertificateTemplatesResponse {
-    /// certificateTemplates property.
-    pub certificate_templates: Option<Vec<CertificateTemplate>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct CertificateExtensionConstraints {
+    /// additionalExtensions property.
+    pub additional_extensions: Option<Vec<ObjectId>>,
+    /// knownExtensions property.
+    pub known_extensions: Option<Vec<String>>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `CertificateIdentityConstraints` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CertificateIdentityConstraints {
+    /// allowSubjectAltNamesPassthrough property.
+    pub allow_subject_alt_names_passthrough: Option<bool>,
+    /// allowSubjectPassthrough property.
+    pub allow_subject_passthrough: Option<bool>,
+    /// celExpression property.
+    pub cel_expression: Option<Expr>,
+}
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
 /// `CertificateTemplate` type.
@@ -134,33 +120,17 @@ pub struct CertificateTemplate {
     pub update_time: Option<String>,
 }
 
-/// `AuditLogConfig` type.
+/// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `CertificateExtensionConstraints` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CertificateExtensionConstraints {
-    /// additionalExtensions property.
-    pub additional_extensions: Option<Vec<ObjectId>>,
-    /// knownExtensions property.
-    pub known_extensions: Option<Vec<String>>,
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 /// `X509Extension` type.
@@ -174,11 +144,36 @@ pub struct X509Extension {
     pub value: Option<String>,
 }
 
-/// `ObjectId` type.
+/// `CaOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObjectId {
-    /// objectIdPath property.
-    pub object_id_path: Option<Vec<i64>>,
+pub struct CaOptions {
+    /// isCa property.
+    pub is_ca: Option<bool>,
+    /// maxIssuerPathLength property.
+    pub max_issuer_path_length: Option<i64>,
+}
+
+/// `NameConstraints` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NameConstraints {
+    /// critical property.
+    pub critical: Option<bool>,
+    /// excludedDnsNames property.
+    pub excluded_dns_names: Option<Vec<String>>,
+    /// excludedEmailAddresses property.
+    pub excluded_email_addresses: Option<Vec<String>>,
+    /// excludedIpRanges property.
+    pub excluded_ip_ranges: Option<Vec<String>>,
+    /// excludedUris property.
+    pub excluded_uris: Option<Vec<String>>,
+    /// permittedDnsNames property.
+    pub permitted_dns_names: Option<Vec<String>>,
+    /// permittedEmailAddresses property.
+    pub permitted_email_addresses: Option<Vec<String>>,
+    /// permittedIpRanges property.
+    pub permitted_ip_ranges: Option<Vec<String>>,
+    /// permittedUris property.
+    pub permitted_uris: Option<Vec<String>>,
 }
 
 /// `KeyUsageOptions` type.
@@ -221,37 +216,43 @@ pub struct ExtendedKeyUsageOptions {
     pub time_stamping: Option<bool>,
 }
 
-/// `CertificateIdentityConstraints` type.
+/// `ListCertificateTemplatesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CertificateIdentityConstraints {
-    /// allowSubjectAltNamesPassthrough property.
-    pub allow_subject_alt_names_passthrough: Option<bool>,
-    /// allowSubjectPassthrough property.
-    pub allow_subject_passthrough: Option<bool>,
-    /// celExpression property.
-    pub cel_expression: Option<Expr>,
+pub struct ListCertificateTemplatesResponse {
+    /// certificateTemplates property.
+    pub certificate_templates: Option<Vec<CertificateTemplate>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
-/// `CaOptions` type.
+/// `X509Parameters` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CaOptions {
-    /// isCa property.
-    pub is_ca: Option<bool>,
-    /// maxIssuerPathLength property.
-    pub max_issuer_path_length: Option<i64>,
+pub struct X509Parameters {
+    /// additionalExtensions property.
+    pub additional_extensions: Option<Vec<X509Extension>>,
+    /// aiaOcspServers property.
+    pub aia_ocsp_servers: Option<Vec<String>>,
+    /// caOptions property.
+    pub ca_options: Option<CaOptions>,
+    /// keyUsage property.
+    pub key_usage: Option<KeyUsage>,
+    /// nameConstraints property.
+    pub name_constraints: Option<NameConstraints>,
+    /// policyIds property.
+    pub policy_ids: Option<Vec<ObjectId>>,
 }
 
-/// `Expr` type.
+/// `KeyUsage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct KeyUsage {
+    /// baseKeyUsage property.
+    pub base_key_usage: Option<KeyUsageOptions>,
+    /// extendedKeyUsage property.
+    pub extended_key_usage: Option<ExtendedKeyUsageOptions>,
+    /// unknownExtendedKeyUsages property.
+    pub unknown_extended_key_usages: Option<Vec<ObjectId>>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,43 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudContactcenterinsightsV1ScheduleInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1ScheduleInfo {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// schedule property.
-    pub schedule: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// timeZone property.
-    pub time_zone: Option<String>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1AssessmentRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1AssessmentRule {
-    /// active property.
-    pub active: Option<bool>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// sampleRule property.
-    pub sample_rule: Option<GoogleCloudContactcenterinsightsV1SampleRule>,
-    /// scheduleInfo property.
-    pub schedule_info: Option<GoogleCloudContactcenterinsightsV1ScheduleInfo>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
 
 /// `GoogleCloudContactcenterinsightsV1SampleRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -79,6 +48,38 @@ pub struct GoogleCloudContactcenterinsightsV1ListAssessmentRulesResponse {
     pub assessment_rules: Option<Vec<GoogleCloudContactcenterinsightsV1AssessmentRule>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1AssessmentRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1AssessmentRule {
+    /// active property.
+    pub active: Option<bool>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// sampleRule property.
+    pub sample_rule: Option<GoogleCloudContactcenterinsightsV1SampleRule>,
+    /// scheduleInfo property.
+    pub schedule_info: Option<GoogleCloudContactcenterinsightsV1ScheduleInfo>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1ScheduleInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1ScheduleInfo {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// schedule property.
+    pub schedule: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// timeZone property.
+    pub time_zone: Option<String>,
 }
 
 // =============================================================================

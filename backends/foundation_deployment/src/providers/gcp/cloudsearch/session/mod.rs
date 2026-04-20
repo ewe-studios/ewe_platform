@@ -12,24 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GetCustomerSessionStatsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetCustomerSessionStatsResponse {
-    /// stats property.
-    pub stats: Option<Vec<CustomerSessionStats>>,
-}
 
 /// `Date` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,6 +34,13 @@ pub struct Date {
     pub month: Option<i64>,
     /// year property.
     pub year: Option<i64>,
+}
+
+/// `GetCustomerSessionStatsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetCustomerSessionStatsResponse {
+    /// stats property.
+    pub stats: Option<Vec<CustomerSessionStats>>,
 }
 
 /// `CustomerSessionStats` type.

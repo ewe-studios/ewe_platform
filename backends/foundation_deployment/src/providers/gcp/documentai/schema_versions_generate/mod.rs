@@ -12,17 +12,46 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudDocumentaiV1DocumentSchemaEntityType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentSchemaEntityType {
+    /// baseTypes property.
+    pub base_types: Option<Vec<String>>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// enumValues property.
+    pub enum_values: Option<GoogleCloudDocumentaiV1DocumentSchemaEntityTypeEnumValues>,
+    /// name property.
+    pub name: Option<String>,
+    /// properties property.
+    pub properties: Option<Vec<GoogleCloudDocumentaiV1DocumentSchemaEntityTypeProperty>>,
+}
+
+/// `GoogleCloudDocumentaiV1DocumentSchemaMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1DocumentSchemaMetadata {
+    /// documentAllowMultipleLabels property.
+    pub document_allow_multiple_labels: Option<bool>,
+    /// documentSplitter property.
+    pub document_splitter: Option<bool>,
+    /// prefixedNamingOnProperties property.
+    pub prefixed_naming_on_properties: Option<bool>,
+    /// skipNamingValidation property.
+    pub skip_naming_validation: Option<bool>,
+}
 
 /// `GoogleCloudDocumentaiV1DocumentSchemaEntityTypeEnumValues` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,13 +73,6 @@ pub struct GoogleCloudDocumentaiV1DocumentSchemaEntityTypeProperty {
     pub occurrence_type: Option<String>,
     /// valueType property.
     pub value_type: Option<String>,
-}
-
-/// `GoogleCloudDocumentaiV1GenerateSchemaVersionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1GenerateSchemaVersionResponse {
-    /// schemaVersion property.
-    pub schema_version: Option<GoogleCloudDocumentaiV1SchemaVersion>,
 }
 
 /// `GoogleCloudDocumentaiV1SchemaVersion` type.
@@ -83,32 +105,11 @@ pub struct GoogleCloudDocumentaiV1DocumentSchema {
     pub metadata: Option<GoogleCloudDocumentaiV1DocumentSchemaMetadata>,
 }
 
-/// `GoogleCloudDocumentaiV1DocumentSchemaEntityType` type.
+/// `GoogleCloudDocumentaiV1GenerateSchemaVersionResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentSchemaEntityType {
-    /// baseTypes property.
-    pub base_types: Option<Vec<String>>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// enumValues property.
-    pub enum_values: Option<GoogleCloudDocumentaiV1DocumentSchemaEntityTypeEnumValues>,
-    /// name property.
-    pub name: Option<String>,
-    /// properties property.
-    pub properties: Option<Vec<GoogleCloudDocumentaiV1DocumentSchemaEntityTypeProperty>>,
-}
-
-/// `GoogleCloudDocumentaiV1DocumentSchemaMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DocumentSchemaMetadata {
-    /// documentAllowMultipleLabels property.
-    pub document_allow_multiple_labels: Option<bool>,
-    /// documentSplitter property.
-    pub document_splitter: Option<bool>,
-    /// prefixedNamingOnProperties property.
-    pub prefixed_naming_on_properties: Option<bool>,
-    /// skipNamingValidation property.
-    pub skip_naming_validation: Option<bool>,
+pub struct GoogleCloudDocumentaiV1GenerateSchemaVersionResponse {
+    /// schemaVersion property.
+    pub schema_version: Option<GoogleCloudDocumentaiV1SchemaVersion>,
 }
 
 // =============================================================================

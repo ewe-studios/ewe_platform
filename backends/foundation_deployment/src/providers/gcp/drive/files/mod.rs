@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,36 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::File;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DownloadRestrictionsMetadata` type.
+/// `ClientEncryptionDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DownloadRestrictionsMetadata {
-    /// effectiveDownloadRestrictionWithContext property.
-    pub effective_download_restriction_with_context: Option<DownloadRestriction>,
-    /// itemDownloadRestriction property.
-    pub item_download_restriction: Option<DownloadRestriction>,
-}
-
-/// `User` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct User {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// emailAddress property.
-    pub email_address: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// me property.
-    pub me: Option<bool>,
-    /// permissionId property.
-    pub permission_id: Option<String>,
-    /// photoLink property.
-    pub photo_link: Option<String>,
+pub struct ClientEncryptionDetails {
+    /// decryptionMetadata property.
+    pub decryption_metadata: Option<DecryptionMetadata>,
+    /// encryptionState property.
+    pub encryption_state: Option<String>,
 }
 
 /// `Permission` type.
@@ -91,25 +75,6 @@ pub struct Permission {
     pub view: Option<String>,
 }
 
-/// `ContentRestriction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContentRestriction {
-    /// ownerRestricted property.
-    pub owner_restricted: Option<bool>,
-    /// readOnly property.
-    pub read_only: Option<bool>,
-    /// reason property.
-    pub reason: Option<String>,
-    /// restrictingUser property.
-    pub restricting_user: Option<User>,
-    /// restrictionTime property.
-    pub restriction_time: Option<String>,
-    /// systemRestricted property.
-    pub system_restricted: Option<bool>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
 /// `DecryptionMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DecryptionMetadata {
@@ -129,26 +94,30 @@ pub struct DecryptionMetadata {
     pub wrapped_key: Option<String>,
 }
 
-/// `ClientEncryptionDetails` type.
+/// `DownloadRestrictionsMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClientEncryptionDetails {
-    /// decryptionMetadata property.
-    pub decryption_metadata: Option<DecryptionMetadata>,
-    /// encryptionState property.
-    pub encryption_state: Option<String>,
+pub struct DownloadRestrictionsMetadata {
+    /// effectiveDownloadRestrictionWithContext property.
+    pub effective_download_restriction_with_context: Option<DownloadRestriction>,
+    /// itemDownloadRestriction property.
+    pub item_download_restriction: Option<DownloadRestriction>,
 }
 
-/// `Label` type.
+/// `User` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Label {
-    /// fields property.
-    pub fields: Option<serde_json::Value>,
-    /// id property.
-    pub id: Option<String>,
+pub struct User {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// emailAddress property.
+    pub email_address: Option<String>,
     /// kind property.
     pub kind: Option<String>,
-    /// revisionId property.
-    pub revision_id: Option<String>,
+    /// me property.
+    pub me: Option<bool>,
+    /// permissionId property.
+    pub permission_id: Option<String>,
+    /// photoLink property.
+    pub photo_link: Option<String>,
 }
 
 /// `FileList` type.
@@ -162,6 +131,38 @@ pub struct FileList {
     pub kind: Option<String>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `ContentRestriction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContentRestriction {
+    /// ownerRestricted property.
+    pub owner_restricted: Option<bool>,
+    /// readOnly property.
+    pub read_only: Option<bool>,
+    /// reason property.
+    pub reason: Option<String>,
+    /// restrictingUser property.
+    pub restricting_user: Option<User>,
+    /// restrictionTime property.
+    pub restriction_time: Option<String>,
+    /// systemRestricted property.
+    pub system_restricted: Option<bool>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `Label` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Label {
+    /// fields property.
+    pub fields: Option<serde_json::Value>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// revisionId property.
+    pub revision_id: Option<String>,
 }
 
 /// `DownloadRestriction` type.

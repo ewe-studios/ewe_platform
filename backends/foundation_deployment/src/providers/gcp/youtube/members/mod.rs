@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -33,6 +34,15 @@ pub struct MemberSnippet {
     pub member_details: Option<ChannelProfileDetails>,
     /// membershipsDetails property.
     pub memberships_details: Option<MembershipsDetails>,
+}
+
+/// `MembershipsDuration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MembershipsDuration {
+    /// memberSince property.
+    pub member_since: Option<String>,
+    /// memberTotalDurationMonths property.
+    pub member_total_duration_months: Option<i64>,
 }
 
 /// `MembershipsDetails` type.
@@ -54,26 +64,24 @@ pub struct MembershipsDetails {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TokenPagination {}
 
-/// `MembershipsDuration` type.
+/// `PageInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MembershipsDuration {
+pub struct PageInfo {
+    /// resultsPerPage property.
+    pub results_per_page: Option<i64>,
+    /// totalResults property.
+    pub total_results: Option<i64>,
+}
+
+/// `MembershipsDurationAtLevel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MembershipsDurationAtLevel {
+    /// level property.
+    pub level: Option<String>,
     /// memberSince property.
     pub member_since: Option<String>,
     /// memberTotalDurationMonths property.
     pub member_total_duration_months: Option<i64>,
-}
-
-/// `ChannelProfileDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelProfileDetails {
-    /// channelId property.
-    pub channel_id: Option<String>,
-    /// channelUrl property.
-    pub channel_url: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// profileImageUrl property.
-    pub profile_image_url: Option<String>,
 }
 
 /// `Member` type.
@@ -85,15 +93,6 @@ pub struct Member {
     pub kind: Option<String>,
     /// snippet property.
     pub snippet: Option<MemberSnippet>,
-}
-
-/// `PageInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PageInfo {
-    /// resultsPerPage property.
-    pub results_per_page: Option<i64>,
-    /// totalResults property.
-    pub total_results: Option<i64>,
 }
 
 /// `MemberListResponse` type.
@@ -117,15 +116,17 @@ pub struct MemberListResponse {
     pub visitor_id: Option<String>,
 }
 
-/// `MembershipsDurationAtLevel` type.
+/// `ChannelProfileDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MembershipsDurationAtLevel {
-    /// level property.
-    pub level: Option<String>,
-    /// memberSince property.
-    pub member_since: Option<String>,
-    /// memberTotalDurationMonths property.
-    pub member_total_duration_months: Option<i64>,
+pub struct ChannelProfileDetails {
+    /// channelId property.
+    pub channel_id: Option<String>,
+    /// channelUrl property.
+    pub channel_url: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// profileImageUrl property.
+    pub profile_image_url: Option<String>,
 }
 
 // =============================================================================

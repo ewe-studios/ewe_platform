@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `PriceAmount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PriceAmount {
-    /// currency property.
-    pub currency: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
 
 /// `PromotionPromotionStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -46,6 +38,15 @@ pub struct PromotionPromotionStatus {
     pub promotion_issue: Option<Vec<PromotionPromotionStatusPromotionIssue>>,
 }
 
+/// `TimePeriod` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimePeriod {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
 /// `ListPromotionResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPromotionResponse {
@@ -53,6 +54,24 @@ pub struct ListPromotionResponse {
     pub next_page_token: Option<String>,
     /// promotions property.
     pub promotions: Option<Vec<Promotion>>,
+}
+
+/// `PromotionPromotionStatusPromotionIssue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PromotionPromotionStatusPromotionIssue {
+    /// code property.
+    pub code: Option<String>,
+    /// detail property.
+    pub detail: Option<String>,
+}
+
+/// `PromotionPromotionStatusDestinationStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PromotionPromotionStatusDestinationStatus {
+    /// destination property.
+    pub destination: Option<String>,
+    /// status property.
+    pub status: Option<String>,
 }
 
 /// `Promotion` type.
@@ -148,31 +167,13 @@ pub struct Promotion {
     pub target_country: Option<String>,
 }
 
-/// `TimePeriod` type.
+/// `PriceAmount` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimePeriod {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `PromotionPromotionStatusDestinationStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PromotionPromotionStatusDestinationStatus {
-    /// destination property.
-    pub destination: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-}
-
-/// `PromotionPromotionStatusPromotionIssue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PromotionPromotionStatusPromotionIssue {
-    /// code property.
-    pub code: Option<String>,
-    /// detail property.
-    pub detail: Option<String>,
+pub struct PriceAmount {
+    /// currency property.
+    pub currency: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
 // =============================================================================

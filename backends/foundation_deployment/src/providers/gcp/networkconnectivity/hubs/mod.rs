@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,7 +24,7 @@ use super::shared::GoogleLongrunningOperation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -46,6 +47,139 @@ pub struct LinkedVpnTunnels {
     pub uris: Option<Vec<String>>,
     /// vpcNetwork property.
     pub vpc_network: Option<String>,
+}
+
+/// `SpokeStateReasonCount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpokeStateReasonCount {
+    /// count property.
+    pub count: Option<String>,
+    /// stateReasonCode property.
+    pub state_reason_code: Option<String>,
+}
+
+/// `SpokeSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpokeSummary {
+    /// spokeStateCounts property.
+    pub spoke_state_counts: Option<Vec<SpokeStateCount>>,
+    /// spokeStateReasonCounts property.
+    pub spoke_state_reason_counts: Option<Vec<SpokeStateReasonCount>>,
+    /// spokeTypeCounts property.
+    pub spoke_type_counts: Option<Vec<SpokeTypeCount>>,
+}
+
+/// `Spoke` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Spoke {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// fieldPathsPendingUpdate property.
+    pub field_paths_pending_update: Option<Vec<String>>,
+    /// group property.
+    pub group: Option<String>,
+    /// hub property.
+    pub hub: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// linkedInterconnectAttachments property.
+    pub linked_interconnect_attachments: Option<LinkedInterconnectAttachments>,
+    /// linkedProducerVpcNetwork property.
+    pub linked_producer_vpc_network: Option<LinkedProducerVpcNetwork>,
+    /// linkedRouterApplianceInstances property.
+    pub linked_router_appliance_instances: Option<LinkedRouterApplianceInstances>,
+    /// linkedVpcNetwork property.
+    pub linked_vpc_network: Option<LinkedVpcNetwork>,
+    /// linkedVpnTunnels property.
+    pub linked_vpn_tunnels: Option<LinkedVpnTunnels>,
+    /// name property.
+    pub name: Option<String>,
+    /// reasons property.
+    pub reasons: Option<Vec<StateReason>>,
+    /// spokeType property.
+    pub spoke_type: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// uniqueId property.
+    pub unique_id: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `RouterApplianceInstance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RouterApplianceInstance {
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// virtualMachine property.
+    pub virtual_machine: Option<String>,
+}
+
+/// `ListHubSpokesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListHubSpokesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// spokes property.
+    pub spokes: Option<Vec<Spoke>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `HubStatusEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HubStatusEntry {
+    /// count property.
+    pub count: Option<i64>,
+    /// groupBy property.
+    pub group_by: Option<String>,
+    /// pscPropagationStatus property.
+    pub psc_propagation_status: Option<PscPropagationStatus>,
+}
+
+/// `LinkedProducerVpcNetwork` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LinkedProducerVpcNetwork {
+    /// excludeExportRanges property.
+    pub exclude_export_ranges: Option<Vec<String>>,
+    /// includeExportRanges property.
+    pub include_export_ranges: Option<Vec<String>>,
+    /// network property.
+    pub network: Option<String>,
+    /// peering property.
+    pub peering: Option<String>,
+    /// producerNetwork property.
+    pub producer_network: Option<String>,
+    /// proposedExcludeExportRanges property.
+    pub proposed_exclude_export_ranges: Option<Vec<String>>,
+    /// proposedIncludeExportRanges property.
+    pub proposed_include_export_ranges: Option<Vec<String>>,
+    /// serviceConsumerVpcSpoke property.
+    pub service_consumer_vpc_spoke: Option<String>,
+}
+
+/// `StateReason` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StateReason {
+    /// code property.
+    pub code: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// userDetails property.
+    pub user_details: Option<String>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
 }
 
 /// `LinkedInterconnectAttachments` type.
@@ -98,35 +232,6 @@ pub struct Hub {
     pub update_time: Option<String>,
 }
 
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `RouterApplianceInstance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RouterApplianceInstance {
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// virtualMachine property.
-    pub virtual_machine: Option<String>,
-}
-
-/// `ListHubSpokesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListHubSpokesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// spokes property.
-    pub spokes: Option<Vec<Spoke>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
 /// `ListHubsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListHubsResponse {
@@ -136,68 +241,6 @@ pub struct ListHubsResponse {
     pub next_page_token: Option<String>,
     /// unreachable property.
     pub unreachable: Option<Vec<String>>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `StateReason` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StateReason {
-    /// code property.
-    pub code: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// userDetails property.
-    pub user_details: Option<String>,
-}
-
-/// `SpokeSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpokeSummary {
-    /// spokeStateCounts property.
-    pub spoke_state_counts: Option<Vec<SpokeStateCount>>,
-    /// spokeStateReasonCounts property.
-    pub spoke_state_reason_counts: Option<Vec<SpokeStateReasonCount>>,
-    /// spokeTypeCounts property.
-    pub spoke_type_counts: Option<Vec<SpokeTypeCount>>,
-}
-
-/// `SpokeStateReasonCount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpokeStateReasonCount {
-    /// count property.
-    pub count: Option<String>,
-    /// stateReasonCode property.
-    pub state_reason_code: Option<String>,
-}
-
-/// `SpokeTypeCount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpokeTypeCount {
-    /// count property.
-    pub count: Option<String>,
-    /// spokeType property.
-    pub spoke_type: Option<String>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
 }
 
 /// `GoogleRpcStatus` type.
@@ -211,67 +254,68 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `Spoke` type.
+/// `AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Spoke {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// fieldPathsPendingUpdate property.
-    pub field_paths_pending_update: Option<Vec<String>>,
-    /// group property.
-    pub group: Option<String>,
-    /// hub property.
-    pub hub: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// linkedInterconnectAttachments property.
-    pub linked_interconnect_attachments: Option<LinkedInterconnectAttachments>,
-    /// linkedProducerVpcNetwork property.
-    pub linked_producer_vpc_network: Option<LinkedProducerVpcNetwork>,
-    /// linkedRouterApplianceInstances property.
-    pub linked_router_appliance_instances: Option<LinkedRouterApplianceInstances>,
-    /// linkedVpcNetwork property.
-    pub linked_vpc_network: Option<LinkedVpcNetwork>,
-    /// linkedVpnTunnels property.
-    pub linked_vpn_tunnels: Option<LinkedVpnTunnels>,
-    /// name property.
-    pub name: Option<String>,
-    /// reasons property.
-    pub reasons: Option<Vec<StateReason>>,
-    /// spokeType property.
-    pub spoke_type: Option<String>,
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `SpokeStateCount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpokeStateCount {
+    /// count property.
+    pub count: Option<String>,
     /// state property.
     pub state: Option<String>,
-    /// uniqueId property.
-    pub unique_id: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
 }
 
-/// `Binding` type.
+/// `QueryHubStatusResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct QueryHubStatusResponse {
+    /// hubStatusEntries property.
+    pub hub_status_entries: Option<Vec<HubStatusEntry>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
-/// `HubStatusEntry` type.
+/// `LinkedRouterApplianceInstances` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HubStatusEntry {
+pub struct LinkedRouterApplianceInstances {
+    /// excludeExportRanges property.
+    pub exclude_export_ranges: Option<Vec<String>>,
+    /// excludeImportRanges property.
+    pub exclude_import_ranges: Option<Vec<String>>,
+    /// includeExportRanges property.
+    pub include_export_ranges: Option<Vec<String>>,
+    /// includeImportRanges property.
+    pub include_import_ranges: Option<Vec<String>>,
+    /// instances property.
+    pub instances: Option<Vec<RouterApplianceInstance>>,
+    /// siteToSiteDataTransfer property.
+    pub site_to_site_data_transfer: Option<bool>,
+    /// vpcNetwork property.
+    pub vpc_network: Option<String>,
+}
+
+/// `RoutingVPC` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RoutingVPC {
+    /// requiredForNewSiteToSiteDataTransferSpokes property.
+    pub required_for_new_site_to_site_data_transfer_spokes: Option<bool>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `SpokeTypeCount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpokeTypeCount {
     /// count property.
-    pub count: Option<i64>,
-    /// groupBy property.
-    pub group_by: Option<String>,
-    /// pscPropagationStatus property.
-    pub psc_propagation_status: Option<PscPropagationStatus>,
+    pub count: Option<String>,
+    /// spokeType property.
+    pub spoke_type: Option<String>,
 }
 
 /// `LinkedVpcNetwork` type.
@@ -310,71 +354,28 @@ pub struct PscPropagationStatus {
     pub target_spoke: Option<String>,
 }
 
-/// `LinkedRouterApplianceInstances` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LinkedRouterApplianceInstances {
-    /// excludeExportRanges property.
-    pub exclude_export_ranges: Option<Vec<String>>,
-    /// excludeImportRanges property.
-    pub exclude_import_ranges: Option<Vec<String>>,
-    /// includeExportRanges property.
-    pub include_export_ranges: Option<Vec<String>>,
-    /// includeImportRanges property.
-    pub include_import_ranges: Option<Vec<String>>,
-    /// instances property.
-    pub instances: Option<Vec<RouterApplianceInstance>>,
-    /// siteToSiteDataTransfer property.
-    pub site_to_site_data_transfer: Option<bool>,
-    /// vpcNetwork property.
-    pub vpc_network: Option<String>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
-/// `SpokeStateCount` type.
+/// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpokeStateCount {
-    /// count property.
-    pub count: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `LinkedProducerVpcNetwork` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LinkedProducerVpcNetwork {
-    /// excludeExportRanges property.
-    pub exclude_export_ranges: Option<Vec<String>>,
-    /// includeExportRanges property.
-    pub include_export_ranges: Option<Vec<String>>,
-    /// network property.
-    pub network: Option<String>,
-    /// peering property.
-    pub peering: Option<String>,
-    /// producerNetwork property.
-    pub producer_network: Option<String>,
-    /// proposedExcludeExportRanges property.
-    pub proposed_exclude_export_ranges: Option<Vec<String>>,
-    /// proposedIncludeExportRanges property.
-    pub proposed_include_export_ranges: Option<Vec<String>>,
-    /// serviceConsumerVpcSpoke property.
-    pub service_consumer_vpc_spoke: Option<String>,
-}
-
-/// `QueryHubStatusResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryHubStatusResponse {
-    /// hubStatusEntries property.
-    pub hub_status_entries: Option<Vec<HubStatusEntry>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `RoutingVPC` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RoutingVPC {
-    /// requiredForNewSiteToSiteDataTransferSpokes property.
-    pub required_for_new_site_to_site_data_transfer_spokes: Option<bool>,
-    /// uri property.
-    pub uri: Option<String>,
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 // =============================================================================

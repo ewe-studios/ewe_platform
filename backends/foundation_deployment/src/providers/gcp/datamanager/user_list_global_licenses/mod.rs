@@ -12,25 +12,32 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListUserListGlobalLicensesResponse` type.
+/// `UserListLicenseMetrics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListUserListGlobalLicensesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// userListGlobalLicenses property.
-    pub user_list_global_licenses: Option<Vec<UserListGlobalLicense>>,
+pub struct UserListLicenseMetrics {
+    /// clickCount property.
+    pub click_count: Option<String>,
+    /// endDate property.
+    pub end_date: Option<String>,
+    /// impressionCount property.
+    pub impression_count: Option<String>,
+    /// revenueUsdMicros property.
+    pub revenue_usd_micros: Option<String>,
+    /// startDate property.
+    pub start_date: Option<String>,
 }
 
 /// `UserListGlobalLicense` type.
@@ -54,19 +61,13 @@ pub struct UserListGlobalLicense {
     pub user_list_id: Option<String>,
 }
 
-/// `UserListLicenseMetrics` type.
+/// `ListUserListGlobalLicensesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserListLicenseMetrics {
-    /// clickCount property.
-    pub click_count: Option<String>,
-    /// endDate property.
-    pub end_date: Option<String>,
-    /// impressionCount property.
-    pub impression_count: Option<String>,
-    /// revenueUsdMicros property.
-    pub revenue_usd_micros: Option<String>,
-    /// startDate property.
-    pub start_date: Option<String>,
+pub struct ListUserListGlobalLicensesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// userListGlobalLicenses property.
+    pub user_list_global_licenses: Option<Vec<UserListGlobalLicense>>,
 }
 
 /// `UserListLicensePricing` type.

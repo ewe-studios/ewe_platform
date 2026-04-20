@@ -12,23 +12,60 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudDatapipelinesV1RunPipelineResponse` type.
+/// `GoogleCloudDatapipelinesV1LaunchFlexTemplateParameter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatapipelinesV1RunPipelineResponse {
-    /// job property.
-    pub job: Option<GoogleCloudDatapipelinesV1Job>,
+pub struct GoogleCloudDatapipelinesV1LaunchFlexTemplateParameter {
+    /// containerSpecGcsPath property.
+    pub container_spec_gcs_path: Option<String>,
+    /// environment property.
+    pub environment: Option<GoogleCloudDatapipelinesV1FlexTemplateRuntimeEnvironment>,
+    /// jobName property.
+    pub job_name: Option<String>,
+    /// launchOptions property.
+    pub launch_options: Option<serde_json::Value>,
+    /// parameters property.
+    pub parameters: Option<serde_json::Value>,
+    /// transformNameMappings property.
+    pub transform_name_mappings: Option<serde_json::Value>,
+    /// update property.
+    pub update: Option<bool>,
+}
+
+/// `GoogleCloudDatapipelinesV1LaunchFlexTemplateRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatapipelinesV1LaunchFlexTemplateRequest {
+    /// launchParameter property.
+    pub launch_parameter: Option<GoogleCloudDatapipelinesV1LaunchFlexTemplateParameter>,
+    /// location property.
+    pub location: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// validateOnly property.
+    pub validate_only: Option<bool>,
+}
+
+/// `GoogleCloudDatapipelinesV1ScheduleSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatapipelinesV1ScheduleSpec {
+    /// nextJobTime property.
+    pub next_job_time: Option<String>,
+    /// schedule property.
+    pub schedule: Option<String>,
+    /// timeZone property.
+    pub time_zone: Option<String>,
 }
 
 /// `GoogleCloudDatapipelinesV1RuntimeEnvironment` type.
@@ -66,6 +103,133 @@ pub struct GoogleCloudDatapipelinesV1RuntimeEnvironment {
     pub worker_zone: Option<String>,
     /// zone property.
     pub zone: Option<String>,
+}
+
+/// `GoogleProtobufEmpty` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleProtobufEmpty {}
+
+/// `GoogleCloudDatapipelinesV1Workload` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatapipelinesV1Workload {
+    /// dataflowFlexTemplateRequest property.
+    pub dataflow_flex_template_request: Option<GoogleCloudDatapipelinesV1LaunchFlexTemplateRequest>,
+    /// dataflowLaunchTemplateRequest property.
+    pub dataflow_launch_template_request: Option<GoogleCloudDatapipelinesV1LaunchTemplateRequest>,
+}
+
+/// `GoogleCloudDatapipelinesV1LaunchTemplateRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatapipelinesV1LaunchTemplateRequest {
+    /// gcsPath property.
+    pub gcs_path: Option<String>,
+    /// launchParameters property.
+    pub launch_parameters: Option<GoogleCloudDatapipelinesV1LaunchTemplateParameters>,
+    /// location property.
+    pub location: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// validateOnly property.
+    pub validate_only: Option<bool>,
+}
+
+/// `GoogleCloudDatapipelinesV1RunPipelineResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatapipelinesV1RunPipelineResponse {
+    /// job property.
+    pub job: Option<GoogleCloudDatapipelinesV1Job>,
+}
+
+/// `GoogleCloudDatapipelinesV1Job` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatapipelinesV1Job {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// dataflowJobDetails property.
+    pub dataflow_job_details: Option<GoogleCloudDatapipelinesV1DataflowJobDetails>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// status property.
+    pub status: Option<GoogleRpcStatus>,
+}
+
+/// `GoogleCloudDatapipelinesV1LaunchTemplateParameters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatapipelinesV1LaunchTemplateParameters {
+    /// environment property.
+    pub environment: Option<GoogleCloudDatapipelinesV1RuntimeEnvironment>,
+    /// jobName property.
+    pub job_name: Option<String>,
+    /// parameters property.
+    pub parameters: Option<serde_json::Value>,
+    /// transformNameMapping property.
+    pub transform_name_mapping: Option<serde_json::Value>,
+    /// update property.
+    pub update: Option<bool>,
+}
+
+/// `GoogleCloudDatapipelinesV1ListPipelinesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatapipelinesV1ListPipelinesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// pipelines property.
+    pub pipelines: Option<Vec<GoogleCloudDatapipelinesV1Pipeline>>,
+}
+
+/// `GoogleCloudDatapipelinesV1Pipeline` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatapipelinesV1Pipeline {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// jobCount property.
+    pub job_count: Option<i64>,
+    /// lastUpdateTime property.
+    pub last_update_time: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// pipelineSources property.
+    pub pipeline_sources: Option<serde_json::Value>,
+    /// scheduleInfo property.
+    pub schedule_info: Option<GoogleCloudDatapipelinesV1ScheduleSpec>,
+    /// schedulerServiceAccountEmail property.
+    pub scheduler_service_account_email: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// workload property.
+    pub workload: Option<GoogleCloudDatapipelinesV1Workload>,
+}
+
+/// `GoogleCloudDatapipelinesV1SdkVersion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatapipelinesV1SdkVersion {
+    /// sdkSupportStatus property.
+    pub sdk_support_status: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+    /// versionDisplayName property.
+    pub version_display_name: Option<String>,
+}
+
+/// `GoogleCloudDatapipelinesV1DataflowJobDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatapipelinesV1DataflowJobDetails {
+    /// currentWorkers property.
+    pub current_workers: Option<i64>,
+    /// resourceInfo property.
+    pub resource_info: Option<serde_json::Value>,
+    /// sdkVersion property.
+    pub sdk_version: Option<GoogleCloudDatapipelinesV1SdkVersion>,
 }
 
 /// `GoogleCloudDatapipelinesV1FlexTemplateRuntimeEnvironment` type.
@@ -114,169 +278,6 @@ pub struct GoogleRpcStatus {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
-}
-
-/// `GoogleCloudDatapipelinesV1LaunchTemplateRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatapipelinesV1LaunchTemplateRequest {
-    /// gcsPath property.
-    pub gcs_path: Option<String>,
-    /// launchParameters property.
-    pub launch_parameters: Option<GoogleCloudDatapipelinesV1LaunchTemplateParameters>,
-    /// location property.
-    pub location: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// validateOnly property.
-    pub validate_only: Option<bool>,
-}
-
-/// `GoogleProtobufEmpty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
-
-/// `GoogleCloudDatapipelinesV1Workload` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatapipelinesV1Workload {
-    /// dataflowFlexTemplateRequest property.
-    pub dataflow_flex_template_request: Option<GoogleCloudDatapipelinesV1LaunchFlexTemplateRequest>,
-    /// dataflowLaunchTemplateRequest property.
-    pub dataflow_launch_template_request: Option<GoogleCloudDatapipelinesV1LaunchTemplateRequest>,
-}
-
-/// `GoogleCloudDatapipelinesV1LaunchFlexTemplateRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatapipelinesV1LaunchFlexTemplateRequest {
-    /// launchParameter property.
-    pub launch_parameter: Option<GoogleCloudDatapipelinesV1LaunchFlexTemplateParameter>,
-    /// location property.
-    pub location: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// validateOnly property.
-    pub validate_only: Option<bool>,
-}
-
-/// `GoogleCloudDatapipelinesV1LaunchTemplateParameters` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatapipelinesV1LaunchTemplateParameters {
-    /// environment property.
-    pub environment: Option<GoogleCloudDatapipelinesV1RuntimeEnvironment>,
-    /// jobName property.
-    pub job_name: Option<String>,
-    /// parameters property.
-    pub parameters: Option<serde_json::Value>,
-    /// transformNameMapping property.
-    pub transform_name_mapping: Option<serde_json::Value>,
-    /// update property.
-    pub update: Option<bool>,
-}
-
-/// `GoogleCloudDatapipelinesV1DataflowJobDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatapipelinesV1DataflowJobDetails {
-    /// currentWorkers property.
-    pub current_workers: Option<i64>,
-    /// resourceInfo property.
-    pub resource_info: Option<serde_json::Value>,
-    /// sdkVersion property.
-    pub sdk_version: Option<GoogleCloudDatapipelinesV1SdkVersion>,
-}
-
-/// `GoogleCloudDatapipelinesV1ListPipelinesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatapipelinesV1ListPipelinesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// pipelines property.
-    pub pipelines: Option<Vec<GoogleCloudDatapipelinesV1Pipeline>>,
-}
-
-/// `GoogleCloudDatapipelinesV1ScheduleSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatapipelinesV1ScheduleSpec {
-    /// nextJobTime property.
-    pub next_job_time: Option<String>,
-    /// schedule property.
-    pub schedule: Option<String>,
-    /// timeZone property.
-    pub time_zone: Option<String>,
-}
-
-/// `GoogleCloudDatapipelinesV1Job` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatapipelinesV1Job {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// dataflowJobDetails property.
-    pub dataflow_job_details: Option<GoogleCloudDatapipelinesV1DataflowJobDetails>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// status property.
-    pub status: Option<GoogleRpcStatus>,
-}
-
-/// `GoogleCloudDatapipelinesV1LaunchFlexTemplateParameter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatapipelinesV1LaunchFlexTemplateParameter {
-    /// containerSpecGcsPath property.
-    pub container_spec_gcs_path: Option<String>,
-    /// environment property.
-    pub environment: Option<GoogleCloudDatapipelinesV1FlexTemplateRuntimeEnvironment>,
-    /// jobName property.
-    pub job_name: Option<String>,
-    /// launchOptions property.
-    pub launch_options: Option<serde_json::Value>,
-    /// parameters property.
-    pub parameters: Option<serde_json::Value>,
-    /// transformNameMappings property.
-    pub transform_name_mappings: Option<serde_json::Value>,
-    /// update property.
-    pub update: Option<bool>,
-}
-
-/// `GoogleCloudDatapipelinesV1Pipeline` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatapipelinesV1Pipeline {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// jobCount property.
-    pub job_count: Option<i64>,
-    /// lastUpdateTime property.
-    pub last_update_time: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// pipelineSources property.
-    pub pipeline_sources: Option<serde_json::Value>,
-    /// scheduleInfo property.
-    pub schedule_info: Option<GoogleCloudDatapipelinesV1ScheduleSpec>,
-    /// schedulerServiceAccountEmail property.
-    pub scheduler_service_account_email: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// workload property.
-    pub workload: Option<GoogleCloudDatapipelinesV1Workload>,
-}
-
-/// `GoogleCloudDatapipelinesV1SdkVersion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatapipelinesV1SdkVersion {
-    /// sdkSupportStatus property.
-    pub sdk_support_status: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-    /// versionDisplayName property.
-    pub version_display_name: Option<String>,
 }
 
 // =============================================================================

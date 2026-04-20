@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,20 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Message;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ClassificationLabelFieldValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClassificationLabelFieldValue {
+    /// fieldId property.
+    pub field_id: Option<String>,
+    /// selection property.
+    pub selection: Option<String>,
+}
 
 /// `MessagePartBody` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -52,16 +62,7 @@ pub struct MessagePart {
     /// partId property.
     pub part_id: Option<String>,
     /// parts property.
-    pub parts: Option<Vec<MessagePart>>,
-}
-
-/// `ClassificationLabelValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClassificationLabelValue {
-    /// fields property.
-    pub fields: Option<Vec<ClassificationLabelFieldValue>>,
-    /// labelId property.
-    pub label_id: Option<String>,
+    pub parts: Option<Vec<Box<MessagePart>>>,
 }
 
 /// `MessagePartHeader` type.
@@ -73,13 +74,13 @@ pub struct MessagePartHeader {
     pub value: Option<String>,
 }
 
-/// `ClassificationLabelFieldValue` type.
+/// `ClassificationLabelValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClassificationLabelFieldValue {
-    /// fieldId property.
-    pub field_id: Option<String>,
-    /// selection property.
-    pub selection: Option<String>,
+pub struct ClassificationLabelValue {
+    /// fields property.
+    pub fields: Option<Vec<ClassificationLabelFieldValue>>,
+    /// labelId property.
+    pub label_id: Option<String>,
 }
 
 // =============================================================================

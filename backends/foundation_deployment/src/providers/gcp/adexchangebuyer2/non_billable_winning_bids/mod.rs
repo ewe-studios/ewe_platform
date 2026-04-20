@@ -12,25 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `TimeInterval` type.
+/// `ListNonBillableWinningBidsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeInterval {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
+pub struct ListNonBillableWinningBidsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// nonBillableWinningBidStatusRows property.
+    pub non_billable_winning_bid_status_rows: Option<Vec<NonBillableWinningBidStatusRow>>,
 }
 
 /// `NonBillableWinningBidStatusRow` type.
@@ -62,13 +63,13 @@ pub struct MetricValue {
     pub variance: Option<String>,
 }
 
-/// `ListNonBillableWinningBidsResponse` type.
+/// `TimeInterval` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListNonBillableWinningBidsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// nonBillableWinningBidStatusRows property.
-    pub non_billable_winning_bid_status_rows: Option<Vec<NonBillableWinningBidStatusRow>>,
+pub struct TimeInterval {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
 }
 
 // =============================================================================

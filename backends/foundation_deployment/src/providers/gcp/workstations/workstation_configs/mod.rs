@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,11 +24,36 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `Host` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Host {
+    /// gceInstance property.
+    pub gce_instance: Option<GceInstance>,
+}
+
+/// `CustomerEncryptionKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomerEncryptionKey {
+    /// kmsKey property.
+    pub kms_key: Option<String>,
+    /// kmsKeyServiceAccount property.
+    pub kms_key_service_account: Option<String>,
+}
 
 /// `GceInstance` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -68,107 +94,6 @@ pub struct GceInstance {
     pub vm_tags: Option<serde_json::Value>,
 }
 
-/// `GceRegionalPersistentDisk` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GceRegionalPersistentDisk {
-    /// diskType property.
-    pub disk_type: Option<String>,
-    /// fsType property.
-    pub fs_type: Option<String>,
-    /// reclaimPolicy property.
-    pub reclaim_policy: Option<String>,
-    /// sizeGb property.
-    pub size_gb: Option<i64>,
-    /// sourceSnapshot property.
-    pub source_snapshot: Option<String>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `PortRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PortRange {
-    /// first property.
-    pub first: Option<i64>,
-    /// last property.
-    pub last: Option<i64>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `ListWorkstationConfigsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListWorkstationConfigsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-    /// workstationConfigs property.
-    pub workstation_configs: Option<Vec<WorkstationConfig>>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `EphemeralDirectory` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EphemeralDirectory {
-    /// gcePd property.
-    pub gce_pd: Option<GcePersistentDisk>,
-    /// mountPath property.
-    pub mount_path: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `GceHyperdiskBalancedHighAvailability` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GceHyperdiskBalancedHighAvailability {
-    /// archiveTimeout property.
-    pub archive_timeout: Option<String>,
-    /// reclaimPolicy property.
-    pub reclaim_policy: Option<String>,
-    /// sizeGb property.
-    pub size_gb: Option<i64>,
-    /// sourceSnapshot property.
-    pub source_snapshot: Option<String>,
-}
-
 /// `BoostConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BoostConfig {
@@ -186,70 +111,6 @@ pub struct BoostConfig {
     pub pool_size: Option<i64>,
 }
 
-/// `GceShieldedInstanceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GceShieldedInstanceConfig {
-    /// enableIntegrityMonitoring property.
-    pub enable_integrity_monitoring: Option<bool>,
-    /// enableSecureBoot property.
-    pub enable_secure_boot: Option<bool>,
-    /// enableVtpm property.
-    pub enable_vtpm: Option<bool>,
-}
-
-/// `Container` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Container {
-    /// args property.
-    pub args: Option<Vec<String>>,
-    /// command property.
-    pub command: Option<Vec<String>>,
-    /// env property.
-    pub env: Option<serde_json::Value>,
-    /// image property.
-    pub image: Option<String>,
-    /// runAsUser property.
-    pub run_as_user: Option<i64>,
-    /// workingDir property.
-    pub working_dir: Option<String>,
-}
-
-/// `CustomerEncryptionKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerEncryptionKey {
-    /// kmsKey property.
-    pub kms_key: Option<String>,
-    /// kmsKeyServiceAccount property.
-    pub kms_key_service_account: Option<String>,
-}
-
-/// `Host` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Host {
-    /// gceInstance property.
-    pub gce_instance: Option<GceInstance>,
-}
-
-/// `PersistentDirectory` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PersistentDirectory {
-    /// gceHd property.
-    pub gce_hd: Option<GceHyperdiskBalancedHighAvailability>,
-    /// gcePd property.
-    pub gce_pd: Option<GceRegionalPersistentDisk>,
-    /// mountPath property.
-    pub mount_path: Option<String>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
 /// `ReadinessCheck` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReadinessCheck {
@@ -259,11 +120,17 @@ pub struct ReadinessCheck {
     pub port: Option<i64>,
 }
 
-/// `GceConfidentialInstanceConfig` type.
+/// `GcePersistentDisk` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GceConfidentialInstanceConfig {
-    /// enableConfidentialCompute property.
-    pub enable_confidential_compute: Option<bool>,
+pub struct GcePersistentDisk {
+    /// diskType property.
+    pub disk_type: Option<String>,
+    /// readOnly property.
+    pub read_only: Option<bool>,
+    /// sourceImage property.
+    pub source_image: Option<String>,
+    /// sourceSnapshot property.
+    pub source_snapshot: Option<String>,
 }
 
 /// `WorkstationConfig` type.
@@ -323,6 +190,100 @@ pub struct WorkstationConfig {
     pub update_time: Option<String>,
 }
 
+/// `ListWorkstationConfigsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListWorkstationConfigsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+    /// workstationConfigs property.
+    pub workstation_configs: Option<Vec<WorkstationConfig>>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `EphemeralDirectory` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EphemeralDirectory {
+    /// gcePd property.
+    pub gce_pd: Option<GcePersistentDisk>,
+    /// mountPath property.
+    pub mount_path: Option<String>,
+}
+
+/// `GceRegionalPersistentDisk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GceRegionalPersistentDisk {
+    /// diskType property.
+    pub disk_type: Option<String>,
+    /// fsType property.
+    pub fs_type: Option<String>,
+    /// reclaimPolicy property.
+    pub reclaim_policy: Option<String>,
+    /// sizeGb property.
+    pub size_gb: Option<i64>,
+    /// sourceSnapshot property.
+    pub source_snapshot: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GceShieldedInstanceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GceShieldedInstanceConfig {
+    /// enableIntegrityMonitoring property.
+    pub enable_integrity_monitoring: Option<bool>,
+    /// enableSecureBoot property.
+    pub enable_secure_boot: Option<bool>,
+    /// enableVtpm property.
+    pub enable_vtpm: Option<bool>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GceHyperdiskBalancedHighAvailability` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GceHyperdiskBalancedHighAvailability {
+    /// archiveTimeout property.
+    pub archive_timeout: Option<String>,
+    /// reclaimPolicy property.
+    pub reclaim_policy: Option<String>,
+    /// sizeGb property.
+    pub size_gb: Option<i64>,
+    /// sourceSnapshot property.
+    pub source_snapshot: Option<String>,
+}
+
 /// `Accelerator` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Accelerator {
@@ -332,17 +293,57 @@ pub struct Accelerator {
     pub r#type: Option<String>,
 }
 
-/// `GcePersistentDisk` type.
+/// `GceConfidentialInstanceConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GcePersistentDisk {
-    /// diskType property.
-    pub disk_type: Option<String>,
-    /// readOnly property.
-    pub read_only: Option<bool>,
-    /// sourceImage property.
-    pub source_image: Option<String>,
-    /// sourceSnapshot property.
-    pub source_snapshot: Option<String>,
+pub struct GceConfidentialInstanceConfig {
+    /// enableConfidentialCompute property.
+    pub enable_confidential_compute: Option<bool>,
+}
+
+/// `PersistentDirectory` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PersistentDirectory {
+    /// gceHd property.
+    pub gce_hd: Option<GceHyperdiskBalancedHighAvailability>,
+    /// gcePd property.
+    pub gce_pd: Option<GceRegionalPersistentDisk>,
+    /// mountPath property.
+    pub mount_path: Option<String>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `PortRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PortRange {
+    /// first property.
+    pub first: Option<i64>,
+    /// last property.
+    pub last: Option<i64>,
+}
+
+/// `Container` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Container {
+    /// args property.
+    pub args: Option<Vec<String>>,
+    /// command property.
+    pub command: Option<Vec<String>>,
+    /// env property.
+    pub env: Option<serde_json::Value>,
+    /// image property.
+    pub image: Option<String>,
+    /// runAsUser property.
+    pub run_as_user: Option<i64>,
+    /// workingDir property.
+    pub working_dir: Option<String>,
 }
 
 // =============================================================================

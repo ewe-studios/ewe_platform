@@ -12,49 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Category` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Category {
-    /// resourceFamily property.
-    pub resource_family: Option<String>,
-    /// resourceGroup property.
-    pub resource_group: Option<String>,
-    /// serviceDisplayName property.
-    pub service_display_name: Option<String>,
-    /// usageType property.
-    pub usage_type: Option<String>,
-}
-
-/// `PricingExpression` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PricingExpression {
-    /// baseUnit property.
-    pub base_unit: Option<String>,
-    /// baseUnitConversionFactor property.
-    pub base_unit_conversion_factor: Option<f64>,
-    /// baseUnitDescription property.
-    pub base_unit_description: Option<String>,
-    /// displayQuantity property.
-    pub display_quantity: Option<f64>,
-    /// tieredRates property.
-    pub tiered_rates: Option<Vec<TierRate>>,
-    /// usageUnit property.
-    pub usage_unit: Option<String>,
-    /// usageUnitDescription property.
-    pub usage_unit_description: Option<String>,
-}
 
 /// `Sku` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -77,6 +46,58 @@ pub struct Sku {
     pub sku_id: Option<String>,
 }
 
+/// `ListSkusResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListSkusResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// skus property.
+    pub skus: Option<Vec<Sku>>,
+}
+
+/// `AggregationInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AggregationInfo {
+    /// aggregationCount property.
+    pub aggregation_count: Option<i64>,
+    /// aggregationInterval property.
+    pub aggregation_interval: Option<String>,
+    /// aggregationLevel property.
+    pub aggregation_level: Option<String>,
+}
+
+/// `PricingExpression` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PricingExpression {
+    /// baseUnit property.
+    pub base_unit: Option<String>,
+    /// baseUnitConversionFactor property.
+    pub base_unit_conversion_factor: Option<f64>,
+    /// baseUnitDescription property.
+    pub base_unit_description: Option<String>,
+    /// displayQuantity property.
+    pub display_quantity: Option<f64>,
+    /// tieredRates property.
+    pub tiered_rates: Option<Vec<TierRate>>,
+    /// usageUnit property.
+    pub usage_unit: Option<String>,
+    /// usageUnitDescription property.
+    pub usage_unit_description: Option<String>,
+}
+
+/// `Category` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Category {
+    /// resourceFamily property.
+    pub resource_family: Option<String>,
+    /// resourceGroup property.
+    pub resource_group: Option<String>,
+    /// serviceDisplayName property.
+    pub service_display_name: Option<String>,
+    /// usageType property.
+    pub usage_type: Option<String>,
+}
+
 /// `TierRate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TierRate {
@@ -84,6 +105,26 @@ pub struct TierRate {
     pub start_usage_amount: Option<f64>,
     /// unitPrice property.
     pub unit_price: Option<Money>,
+}
+
+/// `Money` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Money {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// units property.
+    pub units: Option<String>,
+}
+
+/// `GeoTaxonomy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GeoTaxonomy {
+    /// regions property.
+    pub regions: Option<Vec<String>>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `PricingInfo` type.
@@ -99,46 +140,6 @@ pub struct PricingInfo {
     pub pricing_expression: Option<PricingExpression>,
     /// summary property.
     pub summary: Option<String>,
-}
-
-/// `ListSkusResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSkusResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// skus property.
-    pub skus: Option<Vec<Sku>>,
-}
-
-/// `GeoTaxonomy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeoTaxonomy {
-    /// regions property.
-    pub regions: Option<Vec<String>>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `AggregationInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AggregationInfo {
-    /// aggregationCount property.
-    pub aggregation_count: Option<i64>,
-    /// aggregationInterval property.
-    pub aggregation_interval: Option<String>,
-    /// aggregationLevel property.
-    pub aggregation_level: Option<String>,
-}
-
-/// `Money` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Money {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// units property.
-    pub units: Option<String>,
 }
 
 // =============================================================================

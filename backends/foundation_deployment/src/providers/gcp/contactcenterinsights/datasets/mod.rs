@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,38 +23,27 @@ use serde::{Deserialize, Serialize};
 use super::shared::GoogleCloudContactcenterinsightsV1ListAllFeedbackLabelsResponse;
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudContactcenterinsightsV1Dataset` type.
+/// `GoogleCloudContactcenterinsightsV1FeedbackLabel` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1Dataset {
+pub struct GoogleCloudContactcenterinsightsV1FeedbackLabel {
     /// createTime property.
     pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
+    /// label property.
+    pub label: Option<String>,
+    /// labeledResource property.
+    pub labeled_resource: Option<String>,
     /// name property.
     pub name: Option<String>,
-    /// ttl property.
-    pub ttl: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+    /// qaAnswerLabel property.
+    pub qa_answer_label: Option<GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1ListDatasetsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1ListDatasetsResponse {
-    /// datasets property.
-    pub datasets: Option<Vec<GoogleCloudContactcenterinsightsV1Dataset>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 /// `GoogleRpcStatus` type.
@@ -90,19 +80,30 @@ pub struct GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue {
     pub str_value: Option<String>,
 }
 
-/// `GoogleCloudContactcenterinsightsV1FeedbackLabel` type.
+/// `GoogleCloudContactcenterinsightsV1ListDatasetsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1FeedbackLabel {
+pub struct GoogleCloudContactcenterinsightsV1ListDatasetsResponse {
+    /// datasets property.
+    pub datasets: Option<Vec<GoogleCloudContactcenterinsightsV1Dataset>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1Dataset` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1Dataset {
     /// createTime property.
     pub create_time: Option<String>,
-    /// label property.
-    pub label: Option<String>,
-    /// labeledResource property.
-    pub labeled_resource: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
     /// name property.
     pub name: Option<String>,
-    /// qaAnswerLabel property.
-    pub qa_answer_label: Option<GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue>,
+    /// ttl property.
+    pub ttl: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
 }

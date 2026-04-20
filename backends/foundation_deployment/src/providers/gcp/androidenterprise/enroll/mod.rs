@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,18 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Enterprise;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Administrator` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Administrator {
+    /// email property.
+    pub email: Option<String>,
+}
 
 /// `GoogleAuthenticationSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -34,13 +42,6 @@ pub struct GoogleAuthenticationSettings {
     pub dedicated_devices_allowed: Option<String>,
     /// googleAuthenticationRequired property.
     pub google_authentication_required: Option<String>,
-}
-
-/// `Administrator` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Administrator {
-    /// email property.
-    pub email: Option<String>,
 }
 
 // =============================================================================

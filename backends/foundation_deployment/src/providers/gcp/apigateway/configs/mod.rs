@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,11 +24,40 @@ use super::shared::ApigatewayOperation;
 use super::shared::ApigatewayPolicy;
 use super::shared::ApigatewayTestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ApigatewayAuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApigatewayAuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `ApigatewayListApiConfigsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApigatewayListApiConfigsResponse {
+    /// apiConfigs property.
+    pub api_configs: Option<Vec<ApigatewayApiConfig>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachableLocations property.
+    pub unreachable_locations: Option<Vec<String>>,
+}
+
+/// `ApigatewayApiConfigGrpcServiceDefinition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApigatewayApiConfigGrpcServiceDefinition {
+    /// fileDescriptorSet property.
+    pub file_descriptor_set: Option<ApigatewayApiConfigFile>,
+    /// source property.
+    pub source: Option<Vec<ApigatewayApiConfigFile>>,
+}
 
 /// `ApigatewayApiConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -56,53 +86,6 @@ pub struct ApigatewayApiConfig {
     pub update_time: Option<String>,
 }
 
-/// `ApigatewayApiConfigFile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApigatewayApiConfigFile {
-    /// contents property.
-    pub contents: Option<String>,
-    /// path property.
-    pub path: Option<String>,
-}
-
-/// `ApigatewayAuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApigatewayAuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<ApigatewayAuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `ApigatewayApiConfigOpenApiDocument` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApigatewayApiConfigOpenApiDocument {
-    /// document property.
-    pub document: Option<ApigatewayApiConfigFile>,
-}
-
-/// `ApigatewayListApiConfigsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApigatewayListApiConfigsResponse {
-    /// apiConfigs property.
-    pub api_configs: Option<Vec<ApigatewayApiConfig>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachableLocations property.
-    pub unreachable_locations: Option<Vec<String>>,
-}
-
-/// `ApigatewayStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApigatewayStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
 /// `ApigatewayBinding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApigatewayBinding {
@@ -127,22 +110,40 @@ pub struct ApigatewayExpr {
     pub title: Option<String>,
 }
 
-/// `ApigatewayAuditLogConfig` type.
+/// `ApigatewayApiConfigOpenApiDocument` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApigatewayAuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
+pub struct ApigatewayApiConfigOpenApiDocument {
+    /// document property.
+    pub document: Option<ApigatewayApiConfigFile>,
 }
 
-/// `ApigatewayApiConfigGrpcServiceDefinition` type.
+/// `ApigatewayAuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApigatewayApiConfigGrpcServiceDefinition {
-    /// fileDescriptorSet property.
-    pub file_descriptor_set: Option<ApigatewayApiConfigFile>,
-    /// source property.
-    pub source: Option<Vec<ApigatewayApiConfigFile>>,
+pub struct ApigatewayAuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<ApigatewayAuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `ApigatewayStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApigatewayStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ApigatewayApiConfigFile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApigatewayApiConfigFile {
+    /// contents property.
+    pub contents: Option<String>,
+    /// path property.
+    pub path: Option<String>,
 }
 
 // =============================================================================

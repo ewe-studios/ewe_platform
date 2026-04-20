@@ -12,27 +12,24 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ThirdPartyLinkListResponse` type.
+/// `ChannelToStoreLinkDetailsBillingDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ThirdPartyLinkListResponse {
-    /// etag property.
-    pub etag: Option<String>,
-    /// items property.
-    pub items: Option<Vec<ThirdPartyLink>>,
-    /// kind property.
-    pub kind: Option<String>,
+pub struct ChannelToStoreLinkDetailsBillingDetails {
+    /// billingStatus property.
+    pub billing_status: Option<String>,
 }
 
 /// `ThirdPartyLinkSnippet` type.
@@ -44,27 +41,18 @@ pub struct ThirdPartyLinkSnippet {
     pub r#type: Option<String>,
 }
 
-/// `ChannelToStoreLinkDetails` type.
+/// `ThirdPartyLinkStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelToStoreLinkDetails {
-    /// billingDetails property.
-    pub billing_details: Option<ChannelToStoreLinkDetailsBillingDetails>,
-    /// merchantAffiliateProgramDetails property.
-    pub merchant_affiliate_program_details:
-        Option<ChannelToStoreLinkDetailsMerchantAffiliateProgramDetails>,
-    /// merchantId property.
-    pub merchant_id: Option<String>,
-    /// storeName property.
-    pub store_name: Option<String>,
-    /// storeUrl property.
-    pub store_url: Option<String>,
+pub struct ThirdPartyLinkStatus {
+    /// linkStatus property.
+    pub link_status: Option<String>,
 }
 
-/// `ChannelToStoreLinkDetailsBillingDetails` type.
+/// `ChannelToStoreLinkDetailsMerchantAffiliateProgramDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelToStoreLinkDetailsBillingDetails {
-    /// billingStatus property.
-    pub billing_status: Option<String>,
+pub struct ChannelToStoreLinkDetailsMerchantAffiliateProgramDetails {
+    /// status property.
+    pub status: Option<String>,
 }
 
 /// `ThirdPartyLink` type.
@@ -82,18 +70,31 @@ pub struct ThirdPartyLink {
     pub status: Option<ThirdPartyLinkStatus>,
 }
 
-/// `ThirdPartyLinkStatus` type.
+/// `ThirdPartyLinkListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ThirdPartyLinkStatus {
-    /// linkStatus property.
-    pub link_status: Option<String>,
+pub struct ThirdPartyLinkListResponse {
+    /// etag property.
+    pub etag: Option<String>,
+    /// items property.
+    pub items: Option<Vec<ThirdPartyLink>>,
+    /// kind property.
+    pub kind: Option<String>,
 }
 
-/// `ChannelToStoreLinkDetailsMerchantAffiliateProgramDetails` type.
+/// `ChannelToStoreLinkDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelToStoreLinkDetailsMerchantAffiliateProgramDetails {
-    /// status property.
-    pub status: Option<String>,
+pub struct ChannelToStoreLinkDetails {
+    /// billingDetails property.
+    pub billing_details: Option<ChannelToStoreLinkDetailsBillingDetails>,
+    /// merchantAffiliateProgramDetails property.
+    pub merchant_affiliate_program_details:
+        Option<ChannelToStoreLinkDetailsMerchantAffiliateProgramDetails>,
+    /// merchantId property.
+    pub merchant_id: Option<String>,
+    /// storeName property.
+    pub store_name: Option<String>,
+    /// storeUrl property.
+    pub store_url: Option<String>,
 }
 
 // =============================================================================

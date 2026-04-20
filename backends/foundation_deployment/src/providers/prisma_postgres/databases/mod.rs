@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -23,6 +24,214 @@ use super::shared::ApiResponse;
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ProjectsDatabasesConnectionsItemEndpointsDirect` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsDatabasesConnectionsItemEndpointsDirect {
+    /// connectionString property.
+    pub connection_string: Option<String>,
+    /// host property.
+    pub host: String,
+    /// port property.
+    pub port: f64,
+}
+
+/// `DatabasesConnectionsItem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesConnectionsItem {
+    /// createdAt property.
+    pub created_at: String,
+    /// database property.
+    pub database: DatabasesConnectionsItemDatabase,
+    /// directConnection property.
+    pub direct_connection: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// endpoints property.
+    pub endpoints: DatabasesConnectionsItemEndpoints,
+    /// id property.
+    pub id: String,
+    /// kind property.
+    pub kind: String,
+    /// name property.
+    pub name: String,
+    /// type property.
+    pub r#type: String,
+    /// url property.
+    pub url: String,
+}
+
+/// `DatabasesProject` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesProject {
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+    /// url property.
+    pub url: String,
+}
+
+/// `ProjectsDatabasesPostRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsDatabasesPostRequest {
+    /// fromDatabase property.
+    pub from_database: Option<ProjectsDatabasesPostRequestFromDatabase>,
+    /// isDefault property.
+    pub is_default: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// source property.
+    pub source: Option<serde_json::Value>,
+}
+
+/// `ProjectsDatabasesApiKeysItemEndpoints` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsDatabasesApiKeysItemEndpoints {
+    /// accelerate property.
+    pub accelerate: Option<ProjectsDatabasesApiKeysItemEndpointsAccelerate>,
+    /// direct property.
+    pub direct: Option<ProjectsDatabasesApiKeysItemEndpointsDirect>,
+    /// pooled property.
+    pub pooled: Option<ProjectsDatabasesApiKeysItemEndpointsPooled>,
+}
+
+/// `DatabasesConnectionsItemDatabase` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesConnectionsItemDatabase {
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+    /// url property.
+    pub url: String,
+}
+
+/// `DatabasesPatchResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesPatchResponse {
+    /// data property.
+    pub data: Databases,
+}
+
+/// `ProjectsDatabasesRegion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsDatabasesRegion {
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+}
+
+/// `DatabasesPatchRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesPatchRequest {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `DatabasesConnectionsItemEndpointsPooled` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesConnectionsItemEndpointsPooled {
+    /// host property.
+    pub host: String,
+    /// port property.
+    pub port: f64,
+}
+
+/// `ProjectsDatabasesProject` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsDatabasesProject {
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+    /// url property.
+    pub url: String,
+}
+
+/// `ProjectsDatabasesApiKeysItemEndpointsAccelerate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsDatabasesApiKeysItemEndpointsAccelerate {
+    /// host property.
+    pub host: String,
+    /// port property.
+    pub port: f64,
+}
+
+/// `ProjectsDatabasesConnectionsItemEndpoints` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsDatabasesConnectionsItemEndpoints {
+    /// accelerate property.
+    pub accelerate: Option<ProjectsDatabasesConnectionsItemEndpointsAccelerate>,
+    /// direct property.
+    pub direct: Option<ProjectsDatabasesConnectionsItemEndpointsDirect>,
+    /// pooled property.
+    pub pooled: Option<ProjectsDatabasesConnectionsItemEndpointsPooled>,
+}
+
+/// `DatabasesConnectionsItemEndpointsAccelerate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesConnectionsItemEndpointsAccelerate {
+    /// host property.
+    pub host: String,
+    /// port property.
+    pub port: f64,
+}
+
+/// `ProjectsDatabasesPostRequestFromDatabase` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsDatabasesPostRequestFromDatabase {
+    /// backupId property.
+    pub backup_id: Option<String>,
+    /// id property.
+    pub id: String,
+}
+
+/// `DatabasesPostResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesPostResponse {
+    /// data property.
+    pub data: Databases,
+}
+
+/// `Databases` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Databases {
+    /// connections property.
+    pub connections: Vec<DatabasesConnectionsItem>,
+    /// createdAt property.
+    pub created_at: String,
+    /// defaultConnectionId property.
+    pub default_connection_id: String,
+    /// id property.
+    pub id: String,
+    /// isDefault property.
+    pub is_default: bool,
+    /// name property.
+    pub name: String,
+    /// project property.
+    pub project: DatabasesProject,
+    /// region property.
+    pub region: std::collections::HashMap<String, serde_json::Value>,
+    /// source property.
+    pub source: serde_json::Value,
+    /// status property.
+    pub status: String,
+    /// type property.
+    pub r#type: String,
+    /// url property.
+    pub url: String,
+}
+
+/// `DatabasesConnectionsItemEndpointsDirect` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesConnectionsItemEndpointsDirect {
+    /// host property.
+    pub host: String,
+    /// port property.
+    pub port: f64,
+}
 
 /// `ProjectsDatabases` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -59,122 +268,27 @@ pub struct ProjectsDatabases {
     pub url: String,
 }
 
-/// `ProjectsDatabasesApiKeysItemEndpointsPooled` type.
+/// `ProjectsDatabasesApiKeysItem` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsDatabasesApiKeysItemEndpointsPooled {
-    /// host property.
-    pub host: String,
-    /// port property.
-    pub port: f64,
-}
-
-/// `Databases` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Databases {
-    /// connections property.
-    pub connections: Vec<DatabasesConnectionsItem>,
+pub struct ProjectsDatabasesApiKeysItem {
+    /// connectionString property.
+    pub connection_string: String,
     /// createdAt property.
     pub created_at: String,
-    /// defaultConnectionId property.
-    pub default_connection_id: String,
+    /// directConnection property.
+    pub direct_connection: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// endpoints property.
+    pub endpoints: ProjectsDatabasesApiKeysItemEndpoints,
     /// id property.
     pub id: String,
-    /// isDefault property.
-    pub is_default: bool,
+    /// kind property.
+    pub kind: String,
     /// name property.
     pub name: String,
-    /// project property.
-    pub project: DatabasesProject,
-    /// region property.
-    pub region: std::collections::HashMap<String, serde_json::Value>,
-    /// source property.
-    pub source: serde_json::Value,
-    /// status property.
-    pub status: String,
     /// type property.
     pub r#type: String,
     /// url property.
     pub url: String,
-}
-
-/// `DatabasesPostRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesPostRequest {
-    /// isDefault property.
-    pub is_default: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-    /// projectId property.
-    pub project_id: String,
-    /// region property.
-    pub region: Option<String>,
-    /// source property.
-    pub source: Option<serde_json::Value>,
-}
-
-/// `ProjectsDatabasesPostRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsDatabasesPostRequest {
-    /// fromDatabase property.
-    pub from_database: Option<ProjectsDatabasesPostRequestFromDatabase>,
-    /// isDefault property.
-    pub is_default: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-    /// source property.
-    pub source: Option<serde_json::Value>,
-}
-
-/// `ProjectsDatabasesGetResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsDatabasesGetResponse {
-    /// data property.
-    pub data: Vec<ProjectsDatabases>,
-    /// pagination property.
-    pub pagination: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DatabasesConnectionsItemEndpointsAccelerate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesConnectionsItemEndpointsAccelerate {
-    /// host property.
-    pub host: String,
-    /// port property.
-    pub port: f64,
-}
-
-/// `ProjectsDatabasesApiKeysItemEndpointsAccelerate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsDatabasesApiKeysItemEndpointsAccelerate {
-    /// host property.
-    pub host: String,
-    /// port property.
-    pub port: f64,
-}
-
-/// `DatabasesPatchRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesPatchRequest {
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `ProjectsDatabasesRegion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsDatabasesRegion {
-    /// id property.
-    pub id: String,
-    /// name property.
-    pub name: String,
-}
-
-/// `DatabasesPostResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesPostResponse {
-    /// data property.
-    pub data: Databases,
 }
 
 /// `ProjectsDatabasesConnectionsItemEndpointsAccelerate` type.
@@ -186,87 +300,6 @@ pub struct ProjectsDatabasesConnectionsItemEndpointsAccelerate {
     pub host: String,
     /// port property.
     pub port: f64,
-}
-
-/// `ProjectsDatabasesPostRequestFromDatabase` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsDatabasesPostRequestFromDatabase {
-    /// backupId property.
-    pub backup_id: Option<String>,
-    /// id property.
-    pub id: String,
-}
-
-/// `DatabasesGetResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesGetResponse {
-    /// data property.
-    pub data: Databases,
-}
-
-/// `ProjectsDatabasesApiKeysItemEndpointsDirect` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsDatabasesApiKeysItemEndpointsDirect {
-    /// host property.
-    pub host: String,
-    /// port property.
-    pub port: f64,
-}
-
-/// `ProjectsDatabasesPostResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsDatabasesPostResponse {
-    /// data property.
-    pub data: ProjectsDatabases,
-}
-
-/// `ProjectsDatabasesProject` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsDatabasesProject {
-    /// id property.
-    pub id: String,
-    /// name property.
-    pub name: String,
-    /// url property.
-    pub url: String,
-}
-
-/// `DatabasesConnectionsItemEndpoints` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesConnectionsItemEndpoints {
-    /// accelerate property.
-    pub accelerate: Option<DatabasesConnectionsItemEndpointsAccelerate>,
-    /// direct property.
-    pub direct: Option<DatabasesConnectionsItemEndpointsDirect>,
-    /// pooled property.
-    pub pooled: Option<DatabasesConnectionsItemEndpointsPooled>,
-}
-
-/// `DatabasesConnectionsItemEndpointsPooled` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesConnectionsItemEndpointsPooled {
-    /// host property.
-    pub host: String,
-    /// port property.
-    pub port: f64,
-}
-
-/// `DatabasesPatchResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesPatchResponse {
-    /// data property.
-    pub data: Databases,
-}
-
-/// `ProjectsDatabasesConnectionsItemEndpoints` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsDatabasesConnectionsItemEndpoints {
-    /// accelerate property.
-    pub accelerate: Option<ProjectsDatabasesConnectionsItemEndpointsAccelerate>,
-    /// direct property.
-    pub direct: Option<ProjectsDatabasesConnectionsItemEndpointsDirect>,
-    /// pooled property.
-    pub pooled: Option<ProjectsDatabasesConnectionsItemEndpointsPooled>,
 }
 
 /// `ProjectsDatabasesConnectionsItem` type.
@@ -292,68 +325,13 @@ pub struct ProjectsDatabasesConnectionsItem {
     pub url: String,
 }
 
-/// `ProjectsDatabasesConnectionsItemEndpointsDirect` type.
+/// `ProjectsDatabasesConnectionsItemDatabase` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsDatabasesConnectionsItemEndpointsDirect {
-    /// connectionString property.
-    pub connection_string: Option<String>,
-    /// host property.
-    pub host: String,
-    /// port property.
-    pub port: f64,
-}
-
-/// `DatabasesConnectionsItemEndpointsDirect` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesConnectionsItemEndpointsDirect {
-    /// host property.
-    pub host: String,
-    /// port property.
-    pub port: f64,
-}
-
-/// `DatabasesConnectionsItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesConnectionsItem {
-    /// createdAt property.
-    pub created_at: String,
-    /// database property.
-    pub database: DatabasesConnectionsItemDatabase,
-    /// directConnection property.
-    pub direct_connection: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// endpoints property.
-    pub endpoints: DatabasesConnectionsItemEndpoints,
+pub struct ProjectsDatabasesConnectionsItemDatabase {
     /// id property.
     pub id: String,
-    /// kind property.
-    pub kind: String,
     /// name property.
     pub name: String,
-    /// type property.
-    pub r#type: String,
-    /// url property.
-    pub url: String,
-}
-
-/// `ProjectsDatabasesApiKeysItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsDatabasesApiKeysItem {
-    /// connectionString property.
-    pub connection_string: String,
-    /// createdAt property.
-    pub created_at: String,
-    /// directConnection property.
-    pub direct_connection: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// endpoints property.
-    pub endpoints: ProjectsDatabasesApiKeysItemEndpoints,
-    /// id property.
-    pub id: String,
-    /// kind property.
-    pub kind: String,
-    /// name property.
-    pub name: String,
-    /// type property.
-    pub r#type: String,
     /// url property.
     pub url: String,
 }
@@ -369,48 +347,71 @@ pub struct ProjectsDatabasesConnectionsItemEndpointsPooled {
     pub port: f64,
 }
 
-/// `DatabasesConnectionsItemDatabase` type.
+/// `ProjectsDatabasesApiKeysItemEndpointsPooled` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesConnectionsItemDatabase {
-    /// id property.
-    pub id: String,
-    /// name property.
-    pub name: String,
-    /// url property.
-    pub url: String,
+pub struct ProjectsDatabasesApiKeysItemEndpointsPooled {
+    /// host property.
+    pub host: String,
+    /// port property.
+    pub port: f64,
 }
 
-/// `DatabasesProject` type.
+/// `ProjectsDatabasesApiKeysItemEndpointsDirect` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesProject {
-    /// id property.
-    pub id: String,
-    /// name property.
-    pub name: String,
-    /// url property.
-    pub url: String,
+pub struct ProjectsDatabasesApiKeysItemEndpointsDirect {
+    /// host property.
+    pub host: String,
+    /// port property.
+    pub port: f64,
 }
 
-/// `ProjectsDatabasesConnectionsItemDatabase` type.
+/// `ProjectsDatabasesPostResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsDatabasesConnectionsItemDatabase {
-    /// id property.
-    pub id: String,
-    /// name property.
-    pub name: String,
-    /// url property.
-    pub url: String,
+pub struct ProjectsDatabasesPostResponse {
+    /// data property.
+    pub data: ProjectsDatabases,
 }
 
-/// `ProjectsDatabasesApiKeysItemEndpoints` type.
+/// `DatabasesGetResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsDatabasesApiKeysItemEndpoints {
+pub struct DatabasesGetResponse {
+    /// data property.
+    pub data: Databases,
+}
+
+/// `ProjectsDatabasesGetResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsDatabasesGetResponse {
+    /// data property.
+    pub data: Vec<ProjectsDatabases>,
+    /// pagination property.
+    pub pagination: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DatabasesPostRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesPostRequest {
+    /// isDefault property.
+    pub is_default: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+    /// projectId property.
+    pub project_id: String,
+    /// region property.
+    pub region: Option<String>,
+    /// source property.
+    pub source: Option<serde_json::Value>,
+}
+
+/// `DatabasesConnectionsItemEndpoints` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesConnectionsItemEndpoints {
     /// accelerate property.
-    pub accelerate: Option<ProjectsDatabasesApiKeysItemEndpointsAccelerate>,
+    pub accelerate: Option<DatabasesConnectionsItemEndpointsAccelerate>,
     /// direct property.
-    pub direct: Option<ProjectsDatabasesApiKeysItemEndpointsDirect>,
+    pub direct: Option<DatabasesConnectionsItemEndpointsDirect>,
     /// pooled property.
-    pub pooled: Option<ProjectsDatabasesApiKeysItemEndpointsPooled>,
+    pub pooled: Option<DatabasesConnectionsItemEndpointsPooled>,
 }
 
 // =============================================================================

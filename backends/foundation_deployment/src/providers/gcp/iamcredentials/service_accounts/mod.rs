@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -33,15 +34,6 @@ pub struct GenerateAccessTokenResponse {
     pub expire_time: Option<String>,
 }
 
-/// `SignBlobResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SignBlobResponse {
-    /// keyId property.
-    pub key_id: Option<String>,
-    /// signedBlob property.
-    pub signed_blob: Option<String>,
-}
-
 /// `SignJwtResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignJwtResponse {
@@ -49,6 +41,15 @@ pub struct SignJwtResponse {
     pub key_id: Option<String>,
     /// signedJwt property.
     pub signed_jwt: Option<String>,
+}
+
+/// `SignBlobResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SignBlobResponse {
+    /// keyId property.
+    pub key_id: Option<String>,
+    /// signedBlob property.
+    pub signed_blob: Option<String>,
 }
 
 /// `GenerateIdTokenResponse` type.

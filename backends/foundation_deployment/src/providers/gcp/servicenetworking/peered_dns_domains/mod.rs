@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,20 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `PeeredDnsDomain` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PeeredDnsDomain {
+    /// dnsSuffix property.
+    pub dns_suffix: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
 
 /// `ListPeeredDnsDomainsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -43,15 +53,6 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
-}
-
-/// `PeeredDnsDomain` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PeeredDnsDomain {
-    /// dnsSuffix property.
-    pub dns_suffix: Option<String>,
-    /// name property.
-    pub name: Option<String>,
 }
 
 // =============================================================================

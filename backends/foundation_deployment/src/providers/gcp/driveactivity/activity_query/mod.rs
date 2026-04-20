@@ -12,47 +12,68 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Actor` type.
+/// `DataLeakPreventionChange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Actor {
-    /// administrator property.
-    pub administrator: Option<Administrator>,
-    /// anonymous property.
-    pub anonymous: Option<AnonymousUser>,
-    /// impersonation property.
-    pub impersonation: Option<Impersonation>,
-    /// system property.
-    pub system: Option<SystemEvent>,
-    /// user property.
-    pub user: Option<User>,
+pub struct DataLeakPreventionChange {
+    /// type property.
+    pub r#type: Option<String>,
 }
 
-/// `File` type.
+/// `SingleUser` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct File {}
-
-/// `TargetReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TargetReference {
-    /// drive property.
-    pub drive: Option<DriveReference>,
-    /// driveItem property.
-    pub drive_item: Option<DriveItemReference>,
-    /// teamDrive property.
-    pub team_drive: Option<TeamDriveReference>,
+pub struct SingleUser {
+    /// value property.
+    pub value: Option<String>,
 }
+
+/// `DriveActivity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DriveActivity {
+    /// actions property.
+    pub actions: Option<Vec<Action>>,
+    /// actors property.
+    pub actors: Option<Vec<Actor>>,
+    /// primaryActionDetail property.
+    pub primary_action_detail: Option<ActionDetail>,
+    /// targets property.
+    pub targets: Option<Vec<Target>>,
+    /// timeRange property.
+    pub time_range: Option<TimeRange>,
+    /// timestamp property.
+    pub timestamp: Option<String>,
+}
+
+/// `Drive` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Drive {
+    /// name property.
+    pub name: Option<String>,
+    /// root property.
+    pub root: Option<DriveItem>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `AnonymousUser` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AnonymousUser {}
+
+/// `Anyone` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Anyone {}
 
 /// `DriveItem` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -75,176 +96,59 @@ pub struct DriveItem {
     pub title: Option<String>,
 }
 
-/// `Action` type.
+/// `Suggestion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Action {
-    /// actor property.
-    pub actor: Option<Actor>,
-    /// detail property.
-    pub detail: Option<ActionDetail>,
-    /// target property.
-    pub target: Option<Target>,
-    /// timeRange property.
-    pub time_range: Option<TimeRange>,
-    /// timestamp property.
-    pub timestamp: Option<String>,
-}
-
-/// `DeletedUser` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeletedUser {}
-
-/// `Owner` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Owner {
-    /// domain property.
-    pub domain: Option<Domain>,
-    /// drive property.
-    pub drive: Option<DriveReference>,
-    /// teamDrive property.
-    pub team_drive: Option<TeamDriveReference>,
-    /// user property.
-    pub user: Option<User>,
-}
-
-/// `SystemEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SystemEvent {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `PermissionChange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PermissionChange {
-    /// addedPermissions property.
-    pub added_permissions: Option<Vec<Permission>>,
-    /// removedPermissions property.
-    pub removed_permissions: Option<Vec<Permission>>,
-}
-
-/// `RestrictionChange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RestrictionChange {
-    /// feature property.
-    pub feature: Option<String>,
-    /// newRestriction property.
-    pub new_restriction: Option<String>,
-}
-
-/// `DriveFolder` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DriveFolder {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `Selection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Selection {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Anyone` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Anyone {}
-
-/// `TextList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextList {
-    /// values property.
-    pub values: Option<Vec<Text>>,
-}
-
-/// `AppliedLabelChange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppliedLabelChange {
-    /// changes property.
-    pub changes: Option<Vec<AppliedLabelChangeDetail>>,
-}
-
-/// `Post` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Post {
+pub struct Suggestion {
     /// subtype property.
     pub subtype: Option<String>,
 }
 
-/// `DriveReference` type.
+/// `TimeRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DriveReference {
-    /// name property.
-    pub name: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct TimeRange {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
 }
 
-/// `Edit` type.
+/// `TargetReference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Edit {}
-
-/// `Move` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Move {
-    /// addedParents property.
-    pub added_parents: Option<Vec<TargetReference>>,
-    /// removedParents property.
-    pub removed_parents: Option<Vec<TargetReference>>,
+pub struct TargetReference {
+    /// drive property.
+    pub drive: Option<DriveReference>,
+    /// driveItem property.
+    pub drive_item: Option<DriveItemReference>,
+    /// teamDrive property.
+    pub team_drive: Option<TeamDriveReference>,
 }
 
-/// `Restore` type.
+/// `ApplicationReference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Restore {
+pub struct ApplicationReference {
     /// type property.
     pub r#type: Option<String>,
 }
 
-/// `DriveActivity` type.
+/// `FieldValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DriveActivity {
-    /// actions property.
-    pub actions: Option<Vec<Action>>,
-    /// actors property.
-    pub actors: Option<Vec<Actor>>,
-    /// primaryActionDetail property.
-    pub primary_action_detail: Option<ActionDetail>,
-    /// targets property.
-    pub targets: Option<Vec<Target>>,
-    /// timeRange property.
-    pub time_range: Option<TimeRange>,
-    /// timestamp property.
-    pub timestamp: Option<String>,
-}
-
-/// `TeamDrive` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TeamDrive {
-    /// name property.
-    pub name: Option<String>,
-    /// root property.
-    pub root: Option<DriveItem>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `Permission` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Permission {
-    /// allowDiscovery property.
-    pub allow_discovery: Option<bool>,
-    /// anyone property.
-    pub anyone: Option<Anyone>,
-    /// domain property.
-    pub domain: Option<Domain>,
-    /// group property.
-    pub group: Option<Group>,
-    /// role property.
-    pub role: Option<String>,
+pub struct FieldValue {
+    /// date property.
+    pub date: Option<Date>,
+    /// integer property.
+    pub integer: Option<Integer>,
+    /// selection property.
+    pub selection: Option<Selection>,
+    /// selectionList property.
+    pub selection_list: Option<SelectionList>,
+    /// text property.
+    pub text: Option<Text>,
+    /// textList property.
+    pub text_list: Option<TextList>,
     /// user property.
-    pub user: Option<User>,
+    pub user: Option<SingleUser>,
+    /// userList property.
+    pub user_list: Option<UserList>,
 }
 
 /// `ActionDetail` type.
@@ -283,11 +187,150 @@ pub struct SelectionList {
     pub values: Option<Vec<Selection>>,
 }
 
-/// `SingleUser` type.
+/// `Target` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SingleUser {
+pub struct Target {
+    /// drive property.
+    pub drive: Option<Drive>,
+    /// driveItem property.
+    pub drive_item: Option<DriveItem>,
+    /// fileComment property.
+    pub file_comment: Option<FileComment>,
+    /// teamDrive property.
+    pub team_drive: Option<TeamDrive>,
+}
+
+/// `DriveReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DriveReference {
+    /// name property.
+    pub name: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `Assignment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Assignment {
+    /// assignedUser property.
+    pub assigned_user: Option<User>,
+    /// subtype property.
+    pub subtype: Option<String>,
+}
+
+/// `Post` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Post {
+    /// subtype property.
+    pub subtype: Option<String>,
+}
+
+/// `AppliedLabelChangeDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppliedLabelChangeDetail {
+    /// fieldChanges property.
+    pub field_changes: Option<Vec<FieldValueChange>>,
+    /// label property.
+    pub label: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// types property.
+    pub types: Option<Vec<String>>,
+}
+
+/// `Create` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Create {
+    /// copy property.
+    pub copy: Option<Copy>,
+    /// new property.
+    pub new: Option<New>,
+    /// upload property.
+    pub upload: Option<Upload>,
+}
+
+/// `Actor` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Actor {
+    /// administrator property.
+    pub administrator: Option<Administrator>,
+    /// anonymous property.
+    pub anonymous: Option<AnonymousUser>,
+    /// impersonation property.
+    pub impersonation: Option<Impersonation>,
+    /// system property.
+    pub system: Option<SystemEvent>,
+    /// user property.
+    pub user: Option<User>,
+}
+
+/// `UnknownUser` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UnknownUser {}
+
+/// `Selection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Selection {
+    /// displayName property.
+    pub display_name: Option<String>,
     /// value property.
     pub value: Option<String>,
+}
+
+/// `DeletedUser` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeletedUser {}
+
+/// `Folder` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Folder {
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `TextList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextList {
+    /// values property.
+    pub values: Option<Vec<Text>>,
+}
+
+/// `RestrictionChange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RestrictionChange {
+    /// feature property.
+    pub feature: Option<String>,
+    /// newRestriction property.
+    pub new_restriction: Option<String>,
+}
+
+/// `Administrator` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Administrator {}
+
+/// `QueryDriveActivityResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueryDriveActivityResponse {
+    /// activities property.
+    pub activities: Option<Vec<DriveActivity>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `KnownUser` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KnownUser {
+    /// isCurrentUser property.
+    pub is_current_user: Option<bool>,
+    /// personName property.
+    pub person_name: Option<String>,
+}
+
+/// `Restore` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Restore {
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `Delete` type.
@@ -297,27 +340,27 @@ pub struct Delete {
     pub r#type: Option<String>,
 }
 
-/// `Text` type.
+/// `Date` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Text {
+pub struct Date {
     /// value property.
     pub value: Option<String>,
 }
 
-/// `Administrator` type.
+/// `Copy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Administrator {}
-
-/// `Drive` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Drive {
-    /// name property.
-    pub name: Option<String>,
-    /// root property.
-    pub root: Option<DriveItem>,
-    /// title property.
-    pub title: Option<String>,
+pub struct Copy {
+    /// originalObject property.
+    pub original_object: Option<TargetReference>,
 }
+
+/// `New` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct New {}
+
+/// `File` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct File {}
 
 /// `User` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -328,6 +371,49 @@ pub struct User {
     pub known_user: Option<KnownUser>,
     /// unknownUser property.
     pub unknown_user: Option<UnknownUser>,
+}
+
+/// `Impersonation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Impersonation {
+    /// impersonatedUser property.
+    pub impersonated_user: Option<User>,
+}
+
+/// `TeamDrive` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TeamDrive {
+    /// name property.
+    pub name: Option<String>,
+    /// root property.
+    pub root: Option<DriveItem>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `Move` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Move {
+    /// addedParents property.
+    pub added_parents: Option<Vec<TargetReference>>,
+    /// removedParents property.
+    pub removed_parents: Option<Vec<TargetReference>>,
+}
+
+/// `Rename` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Rename {
+    /// newTitle property.
+    pub new_title: Option<String>,
+    /// oldTitle property.
+    pub old_title: Option<String>,
+}
+
+/// `UserList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UserList {
+    /// values property.
+    pub values: Option<Vec<SingleUser>>,
 }
 
 /// `Comment` type.
@@ -343,6 +429,37 @@ pub struct Comment {
     pub suggestion: Option<Suggestion>,
 }
 
+/// `DriveFile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DriveFile {}
+
+/// `Integer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Integer {
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `FileComment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FileComment {
+    /// legacyCommentId property.
+    pub legacy_comment_id: Option<String>,
+    /// legacyDiscussionId property.
+    pub legacy_discussion_id: Option<String>,
+    /// linkToDiscussion property.
+    pub link_to_discussion: Option<String>,
+    /// parent property.
+    pub parent: Option<DriveItem>,
+}
+
+/// `SettingsChange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SettingsChange {
+    /// restrictionChanges property.
+    pub restriction_changes: Option<Vec<RestrictionChange>>,
+}
+
 /// `Domain` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Domain {
@@ -352,29 +469,118 @@ pub struct Domain {
     pub name: Option<String>,
 }
 
-/// `DriveFile` type.
+/// `Group` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DriveFile {}
-
-/// `UserList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserList {
-    /// values property.
-    pub values: Option<Vec<SingleUser>>,
+pub struct Group {
+    /// email property.
+    pub email: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
-/// `Folder` type.
+/// `Action` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Folder {
+pub struct Action {
+    /// actor property.
+    pub actor: Option<Actor>,
+    /// detail property.
+    pub detail: Option<ActionDetail>,
+    /// target property.
+    pub target: Option<Target>,
+    /// timeRange property.
+    pub time_range: Option<TimeRange>,
+    /// timestamp property.
+    pub timestamp: Option<String>,
+}
+
+/// `Owner` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Owner {
+    /// domain property.
+    pub domain: Option<Domain>,
+    /// drive property.
+    pub drive: Option<DriveReference>,
+    /// teamDrive property.
+    pub team_drive: Option<TeamDriveReference>,
+    /// user property.
+    pub user: Option<User>,
+}
+
+/// `Edit` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Edit {}
+
+/// `FieldValueChange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FieldValueChange {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// fieldId property.
+    pub field_id: Option<String>,
+    /// newValue property.
+    pub new_value: Option<FieldValue>,
+    /// oldValue property.
+    pub old_value: Option<FieldValue>,
+}
+
+/// `AppliedLabelChange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppliedLabelChange {
+    /// changes property.
+    pub changes: Option<Vec<AppliedLabelChangeDetail>>,
+}
+
+/// `Text` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Text {
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `Permission` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Permission {
+    /// allowDiscovery property.
+    pub allow_discovery: Option<bool>,
+    /// anyone property.
+    pub anyone: Option<Anyone>,
+    /// domain property.
+    pub domain: Option<Domain>,
+    /// group property.
+    pub group: Option<Group>,
+    /// role property.
+    pub role: Option<String>,
+    /// user property.
+    pub user: Option<User>,
+}
+
+/// `TeamDriveReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TeamDriveReference {
+    /// name property.
+    pub name: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `Upload` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Upload {}
+
+/// `SystemEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SystemEvent {
     /// type property.
     pub r#type: Option<String>,
 }
 
-/// `Impersonation` type.
+/// `PermissionChange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Impersonation {
-    /// impersonatedUser property.
-    pub impersonated_user: Option<User>,
+pub struct PermissionChange {
+    /// addedPermissions property.
+    pub added_permissions: Option<Vec<Permission>>,
+    /// removedPermissions property.
+    pub removed_permissions: Option<Vec<Permission>>,
 }
 
 /// `DriveItemReference` type.
@@ -394,216 +600,11 @@ pub struct DriveItemReference {
     pub title: Option<String>,
 }
 
-/// `Rename` type.
+/// `DriveFolder` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Rename {
-    /// newTitle property.
-    pub new_title: Option<String>,
-    /// oldTitle property.
-    pub old_title: Option<String>,
-}
-
-/// `Upload` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Upload {}
-
-/// `AppliedLabelChangeDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppliedLabelChangeDetail {
-    /// fieldChanges property.
-    pub field_changes: Option<Vec<FieldValueChange>>,
-    /// label property.
-    pub label: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-    /// types property.
-    pub types: Option<Vec<String>>,
-}
-
-/// `KnownUser` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KnownUser {
-    /// isCurrentUser property.
-    pub is_current_user: Option<bool>,
-    /// personName property.
-    pub person_name: Option<String>,
-}
-
-/// `Date` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `AnonymousUser` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AnonymousUser {}
-
-/// `Assignment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Assignment {
-    /// assignedUser property.
-    pub assigned_user: Option<User>,
-    /// subtype property.
-    pub subtype: Option<String>,
-}
-
-/// `Suggestion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Suggestion {
-    /// subtype property.
-    pub subtype: Option<String>,
-}
-
-/// `QueryDriveActivityResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryDriveActivityResponse {
-    /// activities property.
-    pub activities: Option<Vec<DriveActivity>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `Group` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Group {
-    /// email property.
-    pub email: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `UnknownUser` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UnknownUser {}
-
-/// `FieldValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FieldValue {
-    /// date property.
-    pub date: Option<Date>,
-    /// integer property.
-    pub integer: Option<Integer>,
-    /// selection property.
-    pub selection: Option<Selection>,
-    /// selectionList property.
-    pub selection_list: Option<SelectionList>,
-    /// text property.
-    pub text: Option<Text>,
-    /// textList property.
-    pub text_list: Option<TextList>,
-    /// user property.
-    pub user: Option<SingleUser>,
-    /// userList property.
-    pub user_list: Option<UserList>,
-}
-
-/// `TeamDriveReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TeamDriveReference {
-    /// name property.
-    pub name: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `New` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct New {}
-
-/// `DataLeakPreventionChange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataLeakPreventionChange {
+pub struct DriveFolder {
     /// type property.
     pub r#type: Option<String>,
-}
-
-/// `SettingsChange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SettingsChange {
-    /// restrictionChanges property.
-    pub restriction_changes: Option<Vec<RestrictionChange>>,
-}
-
-/// `Integer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Integer {
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `FieldValueChange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FieldValueChange {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// fieldId property.
-    pub field_id: Option<String>,
-    /// newValue property.
-    pub new_value: Option<FieldValue>,
-    /// oldValue property.
-    pub old_value: Option<FieldValue>,
-}
-
-/// `TimeRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeRange {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `Target` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Target {
-    /// drive property.
-    pub drive: Option<Drive>,
-    /// driveItem property.
-    pub drive_item: Option<DriveItem>,
-    /// fileComment property.
-    pub file_comment: Option<FileComment>,
-    /// teamDrive property.
-    pub team_drive: Option<TeamDrive>,
-}
-
-/// `Create` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Create {
-    /// copy property.
-    pub copy: Option<Copy>,
-    /// new property.
-    pub new: Option<New>,
-    /// upload property.
-    pub upload: Option<Upload>,
-}
-
-/// `ApplicationReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApplicationReference {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `FileComment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FileComment {
-    /// legacyCommentId property.
-    pub legacy_comment_id: Option<String>,
-    /// legacyDiscussionId property.
-    pub legacy_discussion_id: Option<String>,
-    /// linkToDiscussion property.
-    pub link_to_discussion: Option<String>,
-    /// parent property.
-    pub parent: Option<DriveItem>,
-}
-
-/// `Copy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Copy {
-    /// originalObject property.
-    pub original_object: Option<TargetReference>,
 }
 
 // =============================================================================

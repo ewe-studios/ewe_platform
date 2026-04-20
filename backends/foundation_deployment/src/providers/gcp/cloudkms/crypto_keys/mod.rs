@@ -12,41 +12,56 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
+use super::shared::CryptoKeyVersion;
 use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Status` type.
+/// `ExternalProtectionLevelOptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct ExternalProtectionLevelOptions {
+    /// ekmConnectionKeyPath property.
+    pub ekm_connection_key_path: Option<String>,
+    /// externalKeyUri property.
+    pub external_key_uri: Option<String>,
 }
 
-/// `AuditConfig` type.
+/// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `CertificateChains` type.
@@ -58,24 +73,6 @@ pub struct CertificateChains {
     pub google_card_certs: Option<Vec<String>>,
     /// googlePartitionCerts property.
     pub google_partition_certs: Option<Vec<String>>,
-}
-
-/// `KeyAccessJustificationsPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KeyAccessJustificationsPolicy {
-    /// allowedAccessReasons property.
-    pub allowed_access_reasons: Option<Vec<String>>,
-}
-
-/// `ListCryptoKeysResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCryptoKeysResponse {
-    /// cryptoKeys property.
-    pub crypto_keys: Option<Vec<CryptoKey>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// totalSize property.
-    pub total_size: Option<i64>,
 }
 
 /// `CryptoKey` type.
@@ -107,19 +104,6 @@ pub struct CryptoKey {
     pub version_template: Option<CryptoKeyVersionTemplate>,
 }
 
-/// `DecryptResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DecryptResponse {
-    /// plaintext property.
-    pub plaintext: Option<String>,
-    /// plaintextCrc32c property.
-    pub plaintext_crc32c: Option<String>,
-    /// protectionLevel property.
-    pub protection_level: Option<String>,
-    /// usedPrimary property.
-    pub used_primary: Option<bool>,
-}
-
 /// `KeyOperationAttestation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyOperationAttestation {
@@ -129,6 +113,13 @@ pub struct KeyOperationAttestation {
     pub content: Option<String>,
     /// format property.
     pub format: Option<String>,
+}
+
+/// `KeyAccessJustificationsPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KeyAccessJustificationsPolicy {
+    /// allowedAccessReasons property.
+    pub allowed_access_reasons: Option<Vec<String>>,
 }
 
 /// `EncryptResponse` type.
@@ -148,33 +139,13 @@ pub struct EncryptResponse {
     pub verified_plaintext_crc32c: Option<bool>,
 }
 
-/// `ExternalProtectionLevelOptions` type.
+/// `AuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExternalProtectionLevelOptions {
-    /// ekmConnectionKeyPath property.
-    pub ekm_connection_key_path: Option<String>,
-    /// externalKeyUri property.
-    pub external_key_uri: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `CryptoKeyVersionTemplate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CryptoKeyVersionTemplate {
-    /// algorithm property.
-    pub algorithm: Option<String>,
-    /// protectionLevel property.
-    pub protection_level: Option<String>,
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
 }
 
 /// `AuditLogConfig` type.
@@ -186,17 +157,48 @@ pub struct AuditLogConfig {
     pub log_type: Option<String>,
 }
 
-/// `Expr` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ListCryptoKeysResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListCryptoKeysResponse {
+    /// cryptoKeys property.
+    pub crypto_keys: Option<Vec<CryptoKey>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// totalSize property.
+    pub total_size: Option<i64>,
+}
+
+/// `DecryptResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DecryptResponse {
+    /// plaintext property.
+    pub plaintext: Option<String>,
+    /// plaintextCrc32c property.
+    pub plaintext_crc32c: Option<String>,
+    /// protectionLevel property.
+    pub protection_level: Option<String>,
+    /// usedPrimary property.
+    pub used_primary: Option<bool>,
+}
+
+/// `CryptoKeyVersionTemplate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CryptoKeyVersionTemplate {
+    /// algorithm property.
+    pub algorithm: Option<String>,
+    /// protectionLevel property.
+    pub protection_level: Option<String>,
 }
 
 // =============================================================================

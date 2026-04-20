@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,57 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `DataDiskImageImport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataDiskImageImport {
-    /// guestOsFeatures property.
-    pub guest_os_features: Option<Vec<String>>,
-}
-
-/// `CreatingImageStep` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreatingImageStep {}
-
-/// `ImageImport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImageImport {
-    /// cloudStorageUri property.
-    pub cloud_storage_uri: Option<String>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// diskImageTargetDefaults property.
-    pub disk_image_target_defaults: Option<DiskImageTargetDetails>,
-    /// encryption property.
-    pub encryption: Option<Encryption>,
-    /// machineImageTargetDefaults property.
-    pub machine_image_target_defaults: Option<MachineImageTargetDetails>,
-    /// name property.
-    pub name: Option<String>,
-    /// recentImageImportJobs property.
-    pub recent_image_import_jobs: Option<Vec<ImageImportJob>>,
-}
-
-/// `Encryption` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Encryption {
-    /// kmsKey property.
-    pub kms_key: Option<String>,
-}
-
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
 
 /// `ImageImportJob` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -111,6 +66,72 @@ pub struct Status {
     pub message: Option<String>,
 }
 
+/// `DataDiskImageImport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataDiskImageImport {
+    /// guestOsFeatures property.
+    pub guest_os_features: Option<Vec<String>>,
+}
+
+/// `CreatingImageStep` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreatingImageStep {}
+
+/// `SkipOsAdaptation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SkipOsAdaptation {}
+
+/// `ListImageImportsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListImageImportsResponse {
+    /// imageImports property.
+    pub image_imports: Option<Vec<ImageImport>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `AdaptingOSStep` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdaptingOSStep {}
+
+/// `MigrationWarning` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MigrationWarning {
+    /// actionItem property.
+    pub action_item: Option<LocalizedMessage>,
+    /// code property.
+    pub code: Option<String>,
+    /// helpLinks property.
+    pub help_links: Option<Vec<Link>>,
+    /// warningMessage property.
+    pub warning_message: Option<LocalizedMessage>,
+    /// warningTime property.
+    pub warning_time: Option<String>,
+}
+
+/// `ImageImportStep` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImageImportStep {
+    /// adaptingOs property.
+    pub adapting_os: Option<AdaptingOSStep>,
+    /// creatingImage property.
+    pub creating_image: Option<CreatingImageStep>,
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// initializing property.
+    pub initializing: Option<InitializingImageImportStep>,
+    /// loadingSourceFiles property.
+    pub loading_source_files: Option<LoadingImageSourceFilesStep>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `LoadingImageSourceFilesStep` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoadingImageSourceFilesStep {}
+
 /// `ShieldedInstanceConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShieldedInstanceConfig {
@@ -121,6 +142,90 @@ pub struct ShieldedInstanceConfig {
     /// secureBoot property.
     pub secure_boot: Option<String>,
 }
+
+/// `DiskImageTargetDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskImageTargetDetails {
+    /// additionalLicenses property.
+    pub additional_licenses: Option<Vec<String>>,
+    /// dataDiskImageImport property.
+    pub data_disk_image_import: Option<DataDiskImageImport>,
+    /// description property.
+    pub description: Option<String>,
+    /// encryption property.
+    pub encryption: Option<Encryption>,
+    /// familyName property.
+    pub family_name: Option<String>,
+    /// imageName property.
+    pub image_name: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// osAdaptationParameters property.
+    pub os_adaptation_parameters: Option<ImageImportOsAdaptationParameters>,
+    /// singleRegionStorage property.
+    pub single_region_storage: Option<bool>,
+    /// targetProject property.
+    pub target_project: Option<String>,
+}
+
+/// `LocalizedMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ServiceAccount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceAccount {
+    /// email property.
+    pub email: Option<String>,
+    /// scopes property.
+    pub scopes: Option<Vec<String>>,
+}
+
+/// `AdaptationModifier` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdaptationModifier {
+    /// modifier property.
+    pub modifier: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `ImageImport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImageImport {
+    /// cloudStorageUri property.
+    pub cloud_storage_uri: Option<String>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// diskImageTargetDefaults property.
+    pub disk_image_target_defaults: Option<DiskImageTargetDetails>,
+    /// encryption property.
+    pub encryption: Option<Encryption>,
+    /// machineImageTargetDefaults property.
+    pub machine_image_target_defaults: Option<MachineImageTargetDetails>,
+    /// name property.
+    pub name: Option<String>,
+    /// recentImageImportJobs property.
+    pub recent_image_import_jobs: Option<Vec<ImageImportJob>>,
+}
+
+/// `Link` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Link {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `InitializingImageImportStep` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InitializingImageImportStep {}
 
 /// `MachineImageTargetDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -155,57 +260,12 @@ pub struct MachineImageTargetDetails {
     pub target_project: Option<String>,
 }
 
-/// `Link` type.
+/// `MachineImageParametersOverrides` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Link {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
+pub struct MachineImageParametersOverrides {
+    /// machineType property.
+    pub machine_type: Option<String>,
 }
-
-/// `SkipOsAdaptation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SkipOsAdaptation {}
-
-/// `ServiceAccount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceAccount {
-    /// email property.
-    pub email: Option<String>,
-    /// scopes property.
-    pub scopes: Option<Vec<String>>,
-}
-
-/// `ListImageImportsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListImageImportsResponse {
-    /// imageImports property.
-    pub image_imports: Option<Vec<ImageImport>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `MigrationWarning` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MigrationWarning {
-    /// actionItem property.
-    pub action_item: Option<LocalizedMessage>,
-    /// code property.
-    pub code: Option<String>,
-    /// helpLinks property.
-    pub help_links: Option<Vec<Link>>,
-    /// warningMessage property.
-    pub warning_message: Option<LocalizedMessage>,
-    /// warningTime property.
-    pub warning_time: Option<String>,
-}
-
-/// `InitializingImageImportStep` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InitializingImageImportStep {}
 
 /// `ImageImportOsAdaptationParameters` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -220,9 +280,12 @@ pub struct ImageImportOsAdaptationParameters {
     pub license_type: Option<String>,
 }
 
-/// `AdaptingOSStep` type.
+/// `Encryption` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdaptingOSStep {}
+pub struct Encryption {
+    /// kmsKey property.
+    pub kms_key: Option<String>,
+}
 
 /// `NetworkInterface` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -238,68 +301,6 @@ pub struct NetworkInterface {
     /// subnetwork property.
     pub subnetwork: Option<String>,
 }
-
-/// `DiskImageTargetDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskImageTargetDetails {
-    /// additionalLicenses property.
-    pub additional_licenses: Option<Vec<String>>,
-    /// dataDiskImageImport property.
-    pub data_disk_image_import: Option<DataDiskImageImport>,
-    /// description property.
-    pub description: Option<String>,
-    /// encryption property.
-    pub encryption: Option<Encryption>,
-    /// familyName property.
-    pub family_name: Option<String>,
-    /// imageName property.
-    pub image_name: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// osAdaptationParameters property.
-    pub os_adaptation_parameters: Option<ImageImportOsAdaptationParameters>,
-    /// singleRegionStorage property.
-    pub single_region_storage: Option<bool>,
-    /// targetProject property.
-    pub target_project: Option<String>,
-}
-
-/// `MachineImageParametersOverrides` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MachineImageParametersOverrides {
-    /// machineType property.
-    pub machine_type: Option<String>,
-}
-
-/// `AdaptationModifier` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdaptationModifier {
-    /// modifier property.
-    pub modifier: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `ImageImportStep` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImageImportStep {
-    /// adaptingOs property.
-    pub adapting_os: Option<AdaptingOSStep>,
-    /// creatingImage property.
-    pub creating_image: Option<CreatingImageStep>,
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// initializing property.
-    pub initializing: Option<InitializingImageImportStep>,
-    /// loadingSourceFiles property.
-    pub loading_source_files: Option<LoadingImageSourceFilesStep>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `LoadingImageSourceFilesStep` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoadingImageSourceFilesStep {}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

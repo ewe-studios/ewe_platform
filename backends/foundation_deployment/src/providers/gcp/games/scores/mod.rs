@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,34 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::LeaderboardScores;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `LeaderboardEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LeaderboardEntry {
-    /// formattedScore property.
-    pub formatted_score: Option<String>,
-    /// formattedScoreRank property.
-    pub formatted_score_rank: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// player property.
-    pub player: Option<Player>,
-    /// scoreRank property.
-    pub score_rank: Option<String>,
-    /// scoreTag property.
-    pub score_tag: Option<String>,
-    /// scoreValue property.
-    pub score_value: Option<String>,
-    /// timeSpan property.
-    pub time_span: Option<String>,
-    /// writeTimestampMillis property.
-    pub write_timestamp_millis: Option<String>,
-}
 
 /// `PlayerLeaderboardScoreListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -61,6 +39,39 @@ pub struct PlayerLeaderboardScoreListResponse {
     pub next_page_token: Option<String>,
     /// player property.
     pub player: Option<Player>,
+}
+
+/// `PlayerScoreListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlayerScoreListResponse {
+    /// kind property.
+    pub kind: Option<String>,
+    /// submittedScores property.
+    pub submitted_scores: Option<Vec<PlayerScoreResponse>>,
+}
+
+/// `ProfileSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProfileSettings {
+    /// friendsListVisibility property.
+    pub friends_list_visibility: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// profileVisible property.
+    pub profile_visible: Option<bool>,
+}
+
+/// `PlayerLevel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlayerLevel {
+    /// kind property.
+    pub kind: Option<String>,
+    /// level property.
+    pub level: Option<i64>,
+    /// maxExperiencePoints property.
+    pub max_experience_points: Option<String>,
+    /// minExperiencePoints property.
+    pub min_experience_points: Option<String>,
 }
 
 /// `Player` type.
@@ -94,17 +105,84 @@ pub struct Player {
     pub title: Option<String>,
 }
 
-/// `PlayerLevel` type.
+/// `PlayerScoreResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlayerLevel {
+pub struct PlayerScoreResponse {
+    /// beatenScoreTimeSpans property.
+    pub beaten_score_time_spans: Option<Vec<String>>,
+    /// formattedScore property.
+    pub formatted_score: Option<String>,
     /// kind property.
     pub kind: Option<String>,
-    /// level property.
-    pub level: Option<i64>,
-    /// maxExperiencePoints property.
-    pub max_experience_points: Option<String>,
-    /// minExperiencePoints property.
-    pub min_experience_points: Option<String>,
+    /// leaderboardId property.
+    pub leaderboard_id: Option<String>,
+    /// scoreTag property.
+    pub score_tag: Option<String>,
+    /// unbeatenScores property.
+    pub unbeaten_scores: Option<Vec<PlayerScore>>,
+}
+
+/// `PlayerLeaderboardScore` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlayerLeaderboardScore {
+    /// friendsRank property.
+    pub friends_rank: Option<LeaderboardScoreRank>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// leaderboard_id property.
+    pub leaderboard_id: Option<String>,
+    /// publicRank property.
+    pub public_rank: Option<LeaderboardScoreRank>,
+    /// scoreString property.
+    pub score_string: Option<String>,
+    /// scoreTag property.
+    pub score_tag: Option<String>,
+    /// scoreValue property.
+    pub score_value: Option<String>,
+    /// socialRank property.
+    pub social_rank: Option<LeaderboardScoreRank>,
+    /// timeSpan property.
+    pub time_span: Option<String>,
+    /// writeTimestamp property.
+    pub write_timestamp: Option<String>,
+}
+
+/// `LeaderboardEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LeaderboardEntry {
+    /// formattedScore property.
+    pub formatted_score: Option<String>,
+    /// formattedScoreRank property.
+    pub formatted_score_rank: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// player property.
+    pub player: Option<Player>,
+    /// scoreRank property.
+    pub score_rank: Option<String>,
+    /// scoreTag property.
+    pub score_tag: Option<String>,
+    /// scoreValue property.
+    pub score_value: Option<String>,
+    /// timeSpan property.
+    pub time_span: Option<String>,
+    /// writeTimestampMillis property.
+    pub write_timestamp_millis: Option<String>,
+}
+
+/// `PlayerExperienceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlayerExperienceInfo {
+    /// currentExperiencePoints property.
+    pub current_experience_points: Option<String>,
+    /// currentLevel property.
+    pub current_level: Option<PlayerLevel>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// lastLevelUpTimestampMillis property.
+    pub last_level_up_timestamp_millis: Option<String>,
+    /// nextLevel property.
+    pub next_level: Option<PlayerLevel>,
 }
 
 /// `PlayerScore` type.
@@ -135,83 +213,6 @@ pub struct LeaderboardScoreRank {
     pub num_scores: Option<String>,
     /// rank property.
     pub rank: Option<String>,
-}
-
-/// `ProfileSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProfileSettings {
-    /// friendsListVisibility property.
-    pub friends_list_visibility: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// profileVisible property.
-    pub profile_visible: Option<bool>,
-}
-
-/// `PlayerLeaderboardScore` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlayerLeaderboardScore {
-    /// friendsRank property.
-    pub friends_rank: Option<LeaderboardScoreRank>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// leaderboard_id property.
-    pub leaderboard_id: Option<String>,
-    /// publicRank property.
-    pub public_rank: Option<LeaderboardScoreRank>,
-    /// scoreString property.
-    pub score_string: Option<String>,
-    /// scoreTag property.
-    pub score_tag: Option<String>,
-    /// scoreValue property.
-    pub score_value: Option<String>,
-    /// socialRank property.
-    pub social_rank: Option<LeaderboardScoreRank>,
-    /// timeSpan property.
-    pub time_span: Option<String>,
-    /// writeTimestamp property.
-    pub write_timestamp: Option<String>,
-}
-
-/// `PlayerExperienceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlayerExperienceInfo {
-    /// currentExperiencePoints property.
-    pub current_experience_points: Option<String>,
-    /// currentLevel property.
-    pub current_level: Option<PlayerLevel>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// lastLevelUpTimestampMillis property.
-    pub last_level_up_timestamp_millis: Option<String>,
-    /// nextLevel property.
-    pub next_level: Option<PlayerLevel>,
-}
-
-/// `PlayerScoreListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlayerScoreListResponse {
-    /// kind property.
-    pub kind: Option<String>,
-    /// submittedScores property.
-    pub submitted_scores: Option<Vec<PlayerScoreResponse>>,
-}
-
-/// `PlayerScoreResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlayerScoreResponse {
-    /// beatenScoreTimeSpans property.
-    pub beaten_score_time_spans: Option<Vec<String>>,
-    /// formattedScore property.
-    pub formatted_score: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// leaderboardId property.
-    pub leaderboard_id: Option<String>,
-    /// scoreTag property.
-    pub score_tag: Option<String>,
-    /// unbeatenScores property.
-    pub unbeaten_scores: Option<Vec<PlayerScore>>,
 }
 
 // =============================================================================

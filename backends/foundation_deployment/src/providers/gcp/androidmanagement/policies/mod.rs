@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,141 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `KioskCustomization` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KioskCustomization {
+    /// deviceSettings property.
+    pub device_settings: Option<String>,
+    /// powerButtonActions property.
+    pub power_button_actions: Option<String>,
+    /// statusBar property.
+    pub status_bar: Option<String>,
+    /// systemErrorWarnings property.
+    pub system_error_warnings: Option<String>,
+    /// systemNavigation property.
+    pub system_navigation: Option<String>,
+}
+
+/// `PolicyEnforcementRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PolicyEnforcementRule {
+    /// blockAction property.
+    pub block_action: Option<BlockAction>,
+    /// settingName property.
+    pub setting_name: Option<String>,
+    /// wipeAction property.
+    pub wipe_action: Option<WipeAction>,
+}
+
+/// `WipeAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WipeAction {
+    /// preserveFrp property.
+    pub preserve_frp: Option<bool>,
+    /// wipeAfterDays property.
+    pub wipe_after_days: Option<i64>,
+}
+
+/// `ApiLevelCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiLevelCondition {
+    /// minApiLevel property.
+    pub min_api_level: Option<i64>,
+}
+
+/// `ApplicationSigningKeyCert` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApplicationSigningKeyCert {
+    /// signingKeyCertFingerprintSha256 property.
+    pub signing_key_cert_fingerprint_sha256: Option<String>,
+}
+
+/// `PreferentialNetworkServiceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PreferentialNetworkServiceConfig {
+    /// fallbackToDefaultConnection property.
+    pub fallback_to_default_connection: Option<String>,
+    /// nonMatchingNetworks property.
+    pub non_matching_networks: Option<String>,
+    /// preferentialNetworkId property.
+    pub preferential_network_id: Option<String>,
+}
+
+/// `WifiRoamingSetting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WifiRoamingSetting {
+    /// wifiRoamingMode property.
+    pub wifi_roaming_mode: Option<String>,
+    /// wifiSsid property.
+    pub wifi_ssid: Option<String>,
+}
+
+/// `PermissionGrant` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PermissionGrant {
+    /// permission property.
+    pub permission: Option<String>,
+    /// policy property.
+    pub policy: Option<String>,
+}
+
+/// `DeviceConnectivityManagement` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceConnectivityManagement {
+    /// apnPolicy property.
+    pub apn_policy: Option<ApnPolicy>,
+    /// bluetoothSharing property.
+    pub bluetooth_sharing: Option<String>,
+    /// configureWifi property.
+    pub configure_wifi: Option<String>,
+    /// preferentialNetworkServiceSettings property.
+    pub preferential_network_service_settings: Option<PreferentialNetworkServiceSettings>,
+    /// privateDnsSettings property.
+    pub private_dns_settings: Option<PrivateDnsSettings>,
+    /// tetheringSettings property.
+    pub tethering_settings: Option<String>,
+    /// usbDataAccess property.
+    pub usb_data_access: Option<String>,
+    /// wifiDirectSettings property.
+    pub wifi_direct_settings: Option<String>,
+    /// wifiRoamingPolicy property.
+    pub wifi_roaming_policy: Option<WifiRoamingPolicy>,
+    /// wifiSsidPolicy property.
+    pub wifi_ssid_policy: Option<WifiSsidPolicy>,
+}
+
+/// `ListPoliciesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListPoliciesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// policies property.
+    pub policies: Option<Vec<Policy>>,
+}
+
+/// `ScreenTimeoutSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ScreenTimeoutSettings {
+    /// screenTimeout property.
+    pub screen_timeout: Option<String>,
+    /// screenTimeoutMode property.
+    pub screen_timeout_mode: Option<String>,
+}
+
+/// `WifiSsidPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WifiSsidPolicy {
+    /// wifiSsidPolicyType property.
+    pub wifi_ssid_policy_type: Option<String>,
+    /// wifiSsids property.
+    pub wifi_ssids: Option<Vec<WifiSsid>>,
+}
 
 /// `PasswordRequirements` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -60,65 +191,40 @@ pub struct PasswordRequirements {
     pub unified_lock_settings: Option<String>,
 }
 
-/// `PersistentPreferredActivity` type.
+/// `LaunchAppAction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PersistentPreferredActivity {
-    /// actions property.
-    pub actions: Option<Vec<String>>,
-    /// categories property.
-    pub categories: Option<Vec<String>>,
-    /// receiverActivity property.
-    pub receiver_activity: Option<String>,
+pub struct LaunchAppAction {
+    /// packageName property.
+    pub package_name: Option<String>,
 }
 
-/// `PersonalUsagePolicies` type.
+/// `UserFacingMessage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PersonalUsagePolicies {
-    /// accountTypesWithManagementDisabled property.
-    pub account_types_with_management_disabled: Option<Vec<String>>,
-    /// bluetoothSharing property.
-    pub bluetooth_sharing: Option<String>,
-    /// cameraDisabled property.
-    pub camera_disabled: Option<bool>,
-    /// maxDaysWithWorkOff property.
-    pub max_days_with_work_off: Option<i64>,
-    /// personalApplications property.
-    pub personal_applications: Option<Vec<PersonalApplicationPolicy>>,
-    /// personalPlayStoreMode property.
-    pub personal_play_store_mode: Option<String>,
-    /// privateSpacePolicy property.
-    pub private_space_policy: Option<String>,
-    /// screenCaptureDisabled property.
-    pub screen_capture_disabled: Option<bool>,
+pub struct UserFacingMessage {
+    /// defaultMessage property.
+    pub default_message: Option<String>,
+    /// localizedMessages property.
+    pub localized_messages: Option<serde_json::Value>,
 }
 
-/// `WifiSsidPolicy` type.
+/// `ContentProviderEndpoint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WifiSsidPolicy {
-    /// wifiSsidPolicyType property.
-    pub wifi_ssid_policy_type: Option<String>,
-    /// wifiSsids property.
-    pub wifi_ssids: Option<Vec<WifiSsid>>,
+pub struct ContentProviderEndpoint {
+    /// packageName property.
+    pub package_name: Option<String>,
+    /// signingCertsSha256 property.
+    pub signing_certs_sha256: Option<Vec<String>>,
+    /// uri property.
+    pub uri: Option<String>,
 }
 
-/// `PermissionGrant` type.
+/// `ApnPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PermissionGrant {
-    /// permission property.
-    pub permission: Option<String>,
-    /// policy property.
-    pub policy: Option<String>,
-}
-
-/// `PreferentialNetworkServiceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreferentialNetworkServiceConfig {
-    /// fallbackToDefaultConnection property.
-    pub fallback_to_default_connection: Option<String>,
-    /// nonMatchingNetworks property.
-    pub non_matching_networks: Option<String>,
-    /// preferentialNetworkId property.
-    pub preferential_network_id: Option<String>,
+pub struct ApnPolicy {
+    /// apnSettings property.
+    pub apn_settings: Option<Vec<ApnSetting>>,
+    /// overrideApns property.
+    pub override_apns: Option<String>,
 }
 
 /// `DeviceRadioState` type.
@@ -138,6 +244,62 @@ pub struct DeviceRadioState {
     pub wifi_state: Option<String>,
 }
 
+/// `FreezePeriod` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FreezePeriod {
+    /// endDate property.
+    pub end_date: Option<Date>,
+    /// startDate property.
+    pub start_date: Option<Date>,
+}
+
+/// `DisplaySettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DisplaySettings {
+    /// screenBrightnessSettings property.
+    pub screen_brightness_settings: Option<ScreenBrightnessSettings>,
+    /// screenTimeoutSettings property.
+    pub screen_timeout_settings: Option<ScreenTimeoutSettings>,
+}
+
+/// `AlwaysOnVpnPackage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AlwaysOnVpnPackage {
+    /// lockdownEnabled property.
+    pub lockdown_enabled: Option<bool>,
+    /// packageName property.
+    pub package_name: Option<String>,
+}
+
+/// `Date` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `DefaultApplicationSetting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DefaultApplicationSetting {
+    /// defaultApplicationScopes property.
+    pub default_application_scopes: Option<Vec<String>>,
+    /// defaultApplicationType property.
+    pub default_application_type: Option<String>,
+    /// defaultApplications property.
+    pub default_applications: Option<Vec<DefaultApplication>>,
+}
+
+/// `PackageNameList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PackageNameList {
+    /// packageNames property.
+    pub package_names: Option<Vec<String>>,
+}
+
 /// `CrossProfilePolicies` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CrossProfilePolicies {
@@ -155,113 +317,15 @@ pub struct CrossProfilePolicies {
     pub work_profile_widgets_default: Option<String>,
 }
 
-/// `InstallConstraint` type.
+/// `PersistentPreferredActivity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstallConstraint {
-    /// chargingConstraint property.
-    pub charging_constraint: Option<String>,
-    /// deviceIdleConstraint property.
-    pub device_idle_constraint: Option<String>,
-    /// networkTypeConstraint property.
-    pub network_type_constraint: Option<String>,
-}
-
-/// `BlockAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BlockAction {
-    /// blockAfterDays property.
-    pub block_after_days: Option<i64>,
-    /// blockScope property.
-    pub block_scope: Option<String>,
-}
-
-/// `ComplianceRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComplianceRule {
-    /// apiLevelCondition property.
-    pub api_level_condition: Option<ApiLevelCondition>,
-    /// disableApps property.
-    pub disable_apps: Option<bool>,
-    /// nonComplianceDetailCondition property.
-    pub non_compliance_detail_condition: Option<NonComplianceDetailCondition>,
-    /// packageNamesToDisable property.
-    pub package_names_to_disable: Option<Vec<String>>,
-}
-
-/// `KioskCustomization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KioskCustomization {
-    /// deviceSettings property.
-    pub device_settings: Option<String>,
-    /// powerButtonActions property.
-    pub power_button_actions: Option<String>,
-    /// statusBar property.
-    pub status_bar: Option<String>,
-    /// systemErrorWarnings property.
-    pub system_error_warnings: Option<String>,
-    /// systemNavigation property.
-    pub system_navigation: Option<String>,
-}
-
-/// `DefaultApplication` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DefaultApplication {
-    /// packageName property.
-    pub package_name: Option<String>,
-}
-
-/// `ApplicationSigningKeyCert` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApplicationSigningKeyCert {
-    /// signingKeyCertFingerprintSha256 property.
-    pub signing_key_cert_fingerprint_sha256: Option<String>,
-}
-
-/// `ApplicationReportingSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApplicationReportingSettings {
-    /// includeRemovedApps property.
-    pub include_removed_apps: Option<bool>,
-}
-
-/// `AlwaysOnVpnPackage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AlwaysOnVpnPackage {
-    /// lockdownEnabled property.
-    pub lockdown_enabled: Option<bool>,
-    /// packageName property.
-    pub package_name: Option<String>,
-}
-
-/// `SystemUpdate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SystemUpdate {
-    /// endMinutes property.
-    pub end_minutes: Option<i64>,
-    /// freezePeriods property.
-    pub freeze_periods: Option<Vec<FreezePeriod>>,
-    /// startMinutes property.
-    pub start_minutes: Option<i64>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `PersonalApplicationPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PersonalApplicationPolicy {
-    /// installType property.
-    pub install_type: Option<String>,
-    /// packageName property.
-    pub package_name: Option<String>,
-}
-
-/// `UsageLog` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UsageLog {
-    /// enabledLogTypes property.
-    pub enabled_log_types: Option<Vec<String>>,
-    /// uploadOnCellularAllowed property.
-    pub upload_on_cellular_allowed: Option<Vec<String>>,
+pub struct PersistentPreferredActivity {
+    /// actions property.
+    pub actions: Option<Vec<String>>,
+    /// categories property.
+    pub categories: Option<Vec<String>>,
+    /// receiverActivity property.
+    pub receiver_activity: Option<String>,
 }
 
 /// `WorkAccountSetupConfig` type.
@@ -273,77 +337,80 @@ pub struct WorkAccountSetupConfig {
     pub required_account_email: Option<String>,
 }
 
-/// `ScreenTimeoutSettings` type.
+/// `Role` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScreenTimeoutSettings {
-    /// screenTimeout property.
-    pub screen_timeout: Option<String>,
-    /// screenTimeoutMode property.
-    pub screen_timeout_mode: Option<String>,
+pub struct Role {
+    /// roleType property.
+    pub role_type: Option<String>,
 }
 
-/// `WifiRoamingSetting` type.
+/// `ApplicationReportingSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WifiRoamingSetting {
-    /// wifiRoamingMode property.
-    pub wifi_roaming_mode: Option<String>,
-    /// wifiSsid property.
-    pub wifi_ssid: Option<String>,
+pub struct ApplicationReportingSettings {
+    /// includeRemovedApps property.
+    pub include_removed_apps: Option<bool>,
 }
 
-/// `NonComplianceDetailCondition` type.
+/// `ExtensionConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NonComplianceDetailCondition {
-    /// nonComplianceReason property.
-    pub non_compliance_reason: Option<String>,
+pub struct ExtensionConfig {
+    /// notificationReceiver property.
+    pub notification_receiver: Option<String>,
+    /// signingKeyFingerprintsSha256 property.
+    pub signing_key_fingerprints_sha256: Option<Vec<String>>,
+}
+
+/// `ApplicationPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApplicationPolicy {
+    /// accessibleTrackIds property.
+    pub accessible_track_ids: Option<Vec<String>>,
+    /// alwaysOnVpnLockdownExemption property.
+    pub always_on_vpn_lockdown_exemption: Option<String>,
+    /// autoUpdateMode property.
+    pub auto_update_mode: Option<String>,
+    /// connectedWorkAndPersonalApp property.
+    pub connected_work_and_personal_app: Option<String>,
+    /// credentialProviderPolicy property.
+    pub credential_provider_policy: Option<String>,
+    /// customAppConfig property.
+    pub custom_app_config: Option<CustomAppConfig>,
+    /// defaultPermissionPolicy property.
+    pub default_permission_policy: Option<String>,
+    /// delegatedScopes property.
+    pub delegated_scopes: Option<Vec<String>>,
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// extensionConfig property.
+    pub extension_config: Option<ExtensionConfig>,
+    /// installConstraint property.
+    pub install_constraint: Option<Vec<InstallConstraint>>,
+    /// installPriority property.
+    pub install_priority: Option<i64>,
+    /// installType property.
+    pub install_type: Option<String>,
+    /// lockTaskAllowed property.
+    pub lock_task_allowed: Option<bool>,
+    /// managedConfiguration property.
+    pub managed_configuration: Option<serde_json::Value>,
+    /// managedConfigurationTemplate property.
+    pub managed_configuration_template: Option<ManagedConfigurationTemplate>,
+    /// minimumVersionCode property.
+    pub minimum_version_code: Option<i64>,
     /// packageName property.
     pub package_name: Option<String>,
-    /// settingName property.
-    pub setting_name: Option<String>,
-}
-
-/// `AdvancedSecurityOverrides` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdvancedSecurityOverrides {
-    /// commonCriteriaMode property.
-    pub common_criteria_mode: Option<String>,
-    /// contentProtectionPolicy property.
-    pub content_protection_policy: Option<String>,
-    /// developerSettings property.
-    pub developer_settings: Option<String>,
-    /// googlePlayProtectVerifyApps property.
-    pub google_play_protect_verify_apps: Option<String>,
-    /// mtePolicy property.
-    pub mte_policy: Option<String>,
-    /// personalAppsThatCanReadWorkNotifications property.
-    pub personal_apps_that_can_read_work_notifications: Option<Vec<String>>,
-    /// untrustedAppsPolicy property.
-    pub untrusted_apps_policy: Option<String>,
-}
-
-/// `ListPoliciesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListPoliciesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// policies property.
-    pub policies: Option<Vec<Policy>>,
-}
-
-/// `RemovePolicyApplicationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemovePolicyApplicationsResponse {
-    /// policy property.
-    pub policy: Option<Policy>,
-}
-
-/// `ApnPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApnPolicy {
-    /// apnSettings property.
-    pub apn_settings: Option<Vec<ApnSetting>>,
-    /// overrideApns property.
-    pub override_apns: Option<String>,
+    /// permissionGrants property.
+    pub permission_grants: Option<Vec<PermissionGrant>>,
+    /// preferentialNetworkId property.
+    pub preferential_network_id: Option<String>,
+    /// roles property.
+    pub roles: Option<Vec<Role>>,
+    /// signingKeyCerts property.
+    pub signing_key_certs: Option<Vec<ApplicationSigningKeyCert>>,
+    /// userControlSettings property.
+    pub user_control_settings: Option<String>,
+    /// workProfileWidgets property.
+    pub work_profile_widgets: Option<String>,
 }
 
 /// `Policy` type.
@@ -549,75 +616,63 @@ pub struct Policy {
     pub work_account_setup_config: Option<WorkAccountSetupConfig>,
 }
 
-/// `ManagedConfigurationTemplate` type.
+/// `SystemUpdate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedConfigurationTemplate {
-    /// configurationVariables property.
-    pub configuration_variables: Option<serde_json::Value>,
-    /// templateId property.
-    pub template_id: Option<String>,
+pub struct SystemUpdate {
+    /// endMinutes property.
+    pub end_minutes: Option<i64>,
+    /// freezePeriods property.
+    pub freeze_periods: Option<Vec<FreezePeriod>>,
+    /// startMinutes property.
+    pub start_minutes: Option<i64>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
-/// `FreezePeriod` type.
+/// `PrivateDnsSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FreezePeriod {
-    /// endDate property.
-    pub end_date: Option<Date>,
-    /// startDate property.
-    pub start_date: Option<Date>,
+pub struct PrivateDnsSettings {
+    /// privateDnsHost property.
+    pub private_dns_host: Option<String>,
+    /// privateDnsMode property.
+    pub private_dns_mode: Option<String>,
 }
 
-/// `ApplicationPolicy` type.
+/// `UsageLog` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApplicationPolicy {
-    /// accessibleTrackIds property.
-    pub accessible_track_ids: Option<Vec<String>>,
-    /// alwaysOnVpnLockdownExemption property.
-    pub always_on_vpn_lockdown_exemption: Option<String>,
-    /// autoUpdateMode property.
-    pub auto_update_mode: Option<String>,
-    /// connectedWorkAndPersonalApp property.
-    pub connected_work_and_personal_app: Option<String>,
-    /// credentialProviderPolicy property.
-    pub credential_provider_policy: Option<String>,
-    /// customAppConfig property.
-    pub custom_app_config: Option<CustomAppConfig>,
-    /// defaultPermissionPolicy property.
-    pub default_permission_policy: Option<String>,
-    /// delegatedScopes property.
-    pub delegated_scopes: Option<Vec<String>>,
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// extensionConfig property.
-    pub extension_config: Option<ExtensionConfig>,
-    /// installConstraint property.
-    pub install_constraint: Option<Vec<InstallConstraint>>,
-    /// installPriority property.
-    pub install_priority: Option<i64>,
-    /// installType property.
-    pub install_type: Option<String>,
-    /// lockTaskAllowed property.
-    pub lock_task_allowed: Option<bool>,
-    /// managedConfiguration property.
-    pub managed_configuration: Option<serde_json::Value>,
-    /// managedConfigurationTemplate property.
-    pub managed_configuration_template: Option<ManagedConfigurationTemplate>,
-    /// minimumVersionCode property.
-    pub minimum_version_code: Option<i64>,
-    /// packageName property.
-    pub package_name: Option<String>,
-    /// permissionGrants property.
-    pub permission_grants: Option<Vec<PermissionGrant>>,
-    /// preferentialNetworkId property.
-    pub preferential_network_id: Option<String>,
-    /// roles property.
-    pub roles: Option<Vec<Role>>,
-    /// signingKeyCerts property.
-    pub signing_key_certs: Option<Vec<ApplicationSigningKeyCert>>,
-    /// userControlSettings property.
-    pub user_control_settings: Option<String>,
-    /// workProfileWidgets property.
-    pub work_profile_widgets: Option<String>,
+pub struct UsageLog {
+    /// enabledLogTypes property.
+    pub enabled_log_types: Option<Vec<String>>,
+    /// uploadOnCellularAllowed property.
+    pub upload_on_cellular_allowed: Option<Vec<String>>,
+}
+
+/// `WifiRoamingPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WifiRoamingPolicy {
+    /// wifiRoamingSettings property.
+    pub wifi_roaming_settings: Option<Vec<WifiRoamingSetting>>,
+}
+
+/// `PersonalUsagePolicies` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PersonalUsagePolicies {
+    /// accountTypesWithManagementDisabled property.
+    pub account_types_with_management_disabled: Option<Vec<String>>,
+    /// bluetoothSharing property.
+    pub bluetooth_sharing: Option<String>,
+    /// cameraDisabled property.
+    pub camera_disabled: Option<bool>,
+    /// maxDaysWithWorkOff property.
+    pub max_days_with_work_off: Option<i64>,
+    /// personalApplications property.
+    pub personal_applications: Option<Vec<PersonalApplicationPolicy>>,
+    /// personalPlayStoreMode property.
+    pub personal_play_store_mode: Option<String>,
+    /// privateSpacePolicy property.
+    pub private_space_policy: Option<String>,
+    /// screenCaptureDisabled property.
+    pub screen_capture_disabled: Option<bool>,
 }
 
 /// `OncCertificateProvider` type.
@@ -627,6 +682,46 @@ pub struct OncCertificateProvider {
     pub certificate_references: Option<Vec<String>>,
     /// contentProviderEndpoint property.
     pub content_provider_endpoint: Option<ContentProviderEndpoint>,
+}
+
+/// `ChoosePrivateKeyRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChoosePrivateKeyRule {
+    /// packageNames property.
+    pub package_names: Option<Vec<String>>,
+    /// privateKeyAlias property.
+    pub private_key_alias: Option<String>,
+    /// urlPattern property.
+    pub url_pattern: Option<String>,
+}
+
+/// `ScreenBrightnessSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ScreenBrightnessSettings {
+    /// screenBrightness property.
+    pub screen_brightness: Option<i64>,
+    /// screenBrightnessMode property.
+    pub screen_brightness_mode: Option<String>,
+}
+
+/// `ComplianceRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComplianceRule {
+    /// apiLevelCondition property.
+    pub api_level_condition: Option<ApiLevelCondition>,
+    /// disableApps property.
+    pub disable_apps: Option<bool>,
+    /// nonComplianceDetailCondition property.
+    pub non_compliance_detail_condition: Option<NonComplianceDetailCondition>,
+    /// packageNamesToDisable property.
+    pub package_names_to_disable: Option<Vec<String>>,
+}
+
+/// `RemovePolicyApplicationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RemovePolicyApplicationsResponse {
+    /// policy property.
+    pub policy: Option<Policy>,
 }
 
 /// `SetupAction` type.
@@ -649,110 +744,20 @@ pub struct PreferentialNetworkServiceSettings {
     pub preferential_network_service_configs: Option<Vec<PreferentialNetworkServiceConfig>>,
 }
 
-/// `ExtensionConfig` type.
+/// `ManagedConfigurationTemplate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExtensionConfig {
-    /// notificationReceiver property.
-    pub notification_receiver: Option<String>,
-    /// signingKeyFingerprintsSha256 property.
-    pub signing_key_fingerprints_sha256: Option<Vec<String>>,
+pub struct ManagedConfigurationTemplate {
+    /// configurationVariables property.
+    pub configuration_variables: Option<serde_json::Value>,
+    /// templateId property.
+    pub template_id: Option<String>,
 }
 
-/// `Role` type.
+/// `DefaultApplication` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Role {
-    /// roleType property.
-    pub role_type: Option<String>,
-}
-
-/// `DeviceConnectivityManagement` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceConnectivityManagement {
-    /// apnPolicy property.
-    pub apn_policy: Option<ApnPolicy>,
-    /// bluetoothSharing property.
-    pub bluetooth_sharing: Option<String>,
-    /// configureWifi property.
-    pub configure_wifi: Option<String>,
-    /// preferentialNetworkServiceSettings property.
-    pub preferential_network_service_settings: Option<PreferentialNetworkServiceSettings>,
-    /// privateDnsSettings property.
-    pub private_dns_settings: Option<PrivateDnsSettings>,
-    /// tetheringSettings property.
-    pub tethering_settings: Option<String>,
-    /// usbDataAccess property.
-    pub usb_data_access: Option<String>,
-    /// wifiDirectSettings property.
-    pub wifi_direct_settings: Option<String>,
-    /// wifiRoamingPolicy property.
-    pub wifi_roaming_policy: Option<WifiRoamingPolicy>,
-    /// wifiSsidPolicy property.
-    pub wifi_ssid_policy: Option<WifiSsidPolicy>,
-}
-
-/// `Date` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `WipeAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WipeAction {
-    /// preserveFrp property.
-    pub preserve_frp: Option<bool>,
-    /// wipeAfterDays property.
-    pub wipe_after_days: Option<i64>,
-}
-
-/// `PackageNameList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PackageNameList {
-    /// packageNames property.
-    pub package_names: Option<Vec<String>>,
-}
-
-/// `PrivateDnsSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrivateDnsSettings {
-    /// privateDnsHost property.
-    pub private_dns_host: Option<String>,
-    /// privateDnsMode property.
-    pub private_dns_mode: Option<String>,
-}
-
-/// `ScreenBrightnessSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ScreenBrightnessSettings {
-    /// screenBrightness property.
-    pub screen_brightness: Option<i64>,
-    /// screenBrightnessMode property.
-    pub screen_brightness_mode: Option<String>,
-}
-
-/// `UserFacingMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserFacingMessage {
-    /// defaultMessage property.
-    pub default_message: Option<String>,
-    /// localizedMessages property.
-    pub localized_messages: Option<serde_json::Value>,
-}
-
-/// `ChoosePrivateKeyRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChoosePrivateKeyRule {
-    /// packageNames property.
-    pub package_names: Option<Vec<String>>,
-    /// privateKeyAlias property.
-    pub private_key_alias: Option<String>,
-    /// urlPattern property.
-    pub url_pattern: Option<String>,
+pub struct DefaultApplication {
+    /// packageName property.
+    pub package_name: Option<String>,
 }
 
 /// `CustomAppConfig` type.
@@ -762,11 +767,62 @@ pub struct CustomAppConfig {
     pub user_uninstall_settings: Option<String>,
 }
 
+/// `StatusReportingSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StatusReportingSettings {
+    /// applicationReportingSettings property.
+    pub application_reporting_settings: Option<ApplicationReportingSettings>,
+    /// applicationReportsEnabled property.
+    pub application_reports_enabled: Option<bool>,
+    /// commonCriteriaModeEnabled property.
+    pub common_criteria_mode_enabled: Option<bool>,
+    /// defaultApplicationInfoReportingEnabled property.
+    pub default_application_info_reporting_enabled: Option<bool>,
+    /// deviceSettingsEnabled property.
+    pub device_settings_enabled: Option<bool>,
+    /// displayInfoEnabled property.
+    pub display_info_enabled: Option<bool>,
+    /// hardwareStatusEnabled property.
+    pub hardware_status_enabled: Option<bool>,
+    /// memoryInfoEnabled property.
+    pub memory_info_enabled: Option<bool>,
+    /// networkInfoEnabled property.
+    pub network_info_enabled: Option<bool>,
+    /// powerManagementEventsEnabled property.
+    pub power_management_events_enabled: Option<bool>,
+    /// softwareInfoEnabled property.
+    pub software_info_enabled: Option<bool>,
+    /// systemPropertiesEnabled property.
+    pub system_properties_enabled: Option<bool>,
+}
+
+/// `InstallConstraint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstallConstraint {
+    /// chargingConstraint property.
+    pub charging_constraint: Option<String>,
+    /// deviceIdleConstraint property.
+    pub device_idle_constraint: Option<String>,
+    /// networkTypeConstraint property.
+    pub network_type_constraint: Option<String>,
+}
+
 /// `WifiSsid` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WifiSsid {
     /// wifiSsid property.
     pub wifi_ssid: Option<String>,
+}
+
+/// `NonComplianceDetailCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NonComplianceDetailCondition {
+    /// nonComplianceReason property.
+    pub non_compliance_reason: Option<String>,
+    /// packageName property.
+    pub package_name: Option<String>,
+    /// settingName property.
+    pub setting_name: Option<String>,
 }
 
 /// `ProxyInfo` type.
@@ -782,33 +838,23 @@ pub struct ProxyInfo {
     pub port: Option<i64>,
 }
 
-/// `ContentProviderEndpoint` type.
+/// `AdvancedSecurityOverrides` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContentProviderEndpoint {
-    /// packageName property.
-    pub package_name: Option<String>,
-    /// signingCertsSha256 property.
-    pub signing_certs_sha256: Option<Vec<String>>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `DefaultApplicationSetting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DefaultApplicationSetting {
-    /// defaultApplicationScopes property.
-    pub default_application_scopes: Option<Vec<String>>,
-    /// defaultApplicationType property.
-    pub default_application_type: Option<String>,
-    /// defaultApplications property.
-    pub default_applications: Option<Vec<DefaultApplication>>,
-}
-
-/// `ApiLevelCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApiLevelCondition {
-    /// minApiLevel property.
-    pub min_api_level: Option<i64>,
+pub struct AdvancedSecurityOverrides {
+    /// commonCriteriaMode property.
+    pub common_criteria_mode: Option<String>,
+    /// contentProtectionPolicy property.
+    pub content_protection_policy: Option<String>,
+    /// developerSettings property.
+    pub developer_settings: Option<String>,
+    /// googlePlayProtectVerifyApps property.
+    pub google_play_protect_verify_apps: Option<String>,
+    /// mtePolicy property.
+    pub mte_policy: Option<String>,
+    /// personalAppsThatCanReadWorkNotifications property.
+    pub personal_apps_that_can_read_work_notifications: Option<Vec<String>>,
+    /// untrustedAppsPolicy property.
+    pub untrusted_apps_policy: Option<String>,
 }
 
 /// `ModifyPolicyApplicationsResponse` type.
@@ -816,6 +862,15 @@ pub struct ApiLevelCondition {
 pub struct ModifyPolicyApplicationsResponse {
     /// policy property.
     pub policy: Option<Policy>,
+}
+
+/// `BlockAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BlockAction {
+    /// blockAfterDays property.
+    pub block_after_days: Option<i64>,
+    /// blockScope property.
+    pub block_scope: Option<String>,
 }
 
 /// `ApnSetting` type.
@@ -863,67 +918,13 @@ pub struct ApnSetting {
     pub username: Option<String>,
 }
 
-/// `PolicyEnforcementRule` type.
+/// `PersonalApplicationPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PolicyEnforcementRule {
-    /// blockAction property.
-    pub block_action: Option<BlockAction>,
-    /// settingName property.
-    pub setting_name: Option<String>,
-    /// wipeAction property.
-    pub wipe_action: Option<WipeAction>,
-}
-
-/// `DisplaySettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DisplaySettings {
-    /// screenBrightnessSettings property.
-    pub screen_brightness_settings: Option<ScreenBrightnessSettings>,
-    /// screenTimeoutSettings property.
-    pub screen_timeout_settings: Option<ScreenTimeoutSettings>,
-}
-
-/// `LaunchAppAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LaunchAppAction {
+pub struct PersonalApplicationPolicy {
+    /// installType property.
+    pub install_type: Option<String>,
     /// packageName property.
     pub package_name: Option<String>,
-}
-
-/// `WifiRoamingPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WifiRoamingPolicy {
-    /// wifiRoamingSettings property.
-    pub wifi_roaming_settings: Option<Vec<WifiRoamingSetting>>,
-}
-
-/// `StatusReportingSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StatusReportingSettings {
-    /// applicationReportingSettings property.
-    pub application_reporting_settings: Option<ApplicationReportingSettings>,
-    /// applicationReportsEnabled property.
-    pub application_reports_enabled: Option<bool>,
-    /// commonCriteriaModeEnabled property.
-    pub common_criteria_mode_enabled: Option<bool>,
-    /// defaultApplicationInfoReportingEnabled property.
-    pub default_application_info_reporting_enabled: Option<bool>,
-    /// deviceSettingsEnabled property.
-    pub device_settings_enabled: Option<bool>,
-    /// displayInfoEnabled property.
-    pub display_info_enabled: Option<bool>,
-    /// hardwareStatusEnabled property.
-    pub hardware_status_enabled: Option<bool>,
-    /// memoryInfoEnabled property.
-    pub memory_info_enabled: Option<bool>,
-    /// networkInfoEnabled property.
-    pub network_info_enabled: Option<bool>,
-    /// powerManagementEventsEnabled property.
-    pub power_management_events_enabled: Option<bool>,
-    /// softwareInfoEnabled property.
-    pub software_info_enabled: Option<bool>,
-    /// systemPropertiesEnabled property.
-    pub system_properties_enabled: Option<bool>,
 }
 
 // =============================================================================

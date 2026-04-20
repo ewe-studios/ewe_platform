@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,11 +23,253 @@ use serde::{Deserialize, Serialize};
 use super::shared::Empty;
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `DefaultApplicationInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DefaultApplicationInfo {
+    /// defaultApplicationSettingAttempts property.
+    pub default_application_setting_attempts: Option<Vec<DefaultApplicationSettingAttempt>>,
+    /// defaultApplicationType property.
+    pub default_application_type: Option<String>,
+    /// packageName property.
+    pub package_name: Option<String>,
+}
+
+/// `SoftwareInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SoftwareInfo {
+    /// androidBuildNumber property.
+    pub android_build_number: Option<String>,
+    /// androidBuildTime property.
+    pub android_build_time: Option<String>,
+    /// androidDevicePolicyVersionCode property.
+    pub android_device_policy_version_code: Option<i64>,
+    /// androidDevicePolicyVersionName property.
+    pub android_device_policy_version_name: Option<String>,
+    /// androidVersion property.
+    pub android_version: Option<String>,
+    /// bootloaderVersion property.
+    pub bootloader_version: Option<String>,
+    /// deviceBuildSignature property.
+    pub device_build_signature: Option<String>,
+    /// deviceKernelVersion property.
+    pub device_kernel_version: Option<String>,
+    /// primaryLanguageCode property.
+    pub primary_language_code: Option<String>,
+    /// securityPatchLevel property.
+    pub security_patch_level: Option<String>,
+    /// systemUpdateInfo property.
+    pub system_update_info: Option<SystemUpdateInfo>,
+}
+
+/// `DpcMigrationInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DpcMigrationInfo {
+    /// additionalData property.
+    pub additional_data: Option<String>,
+    /// previousDpc property.
+    pub previous_dpc: Option<String>,
+}
+
+/// `ApplicationEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApplicationEvent {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// eventType property.
+    pub event_type: Option<String>,
+}
+
+/// `MemoryInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MemoryInfo {
+    /// totalInternalStorage property.
+    pub total_internal_storage: Option<String>,
+    /// totalRam property.
+    pub total_ram: Option<String>,
+}
+
+/// `ListDevicesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDevicesResponse {
+    /// devices property.
+    pub devices: Option<Vec<Device>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `DefaultApplicationSettingAttempt` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DefaultApplicationSettingAttempt {
+    /// attemptOutcome property.
+    pub attempt_outcome: Option<String>,
+    /// packageName property.
+    pub package_name: Option<String>,
+}
+
+/// `MemoryEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MemoryEvent {
+    /// byteCount property.
+    pub byte_count: Option<String>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// eventType property.
+    pub event_type: Option<String>,
+}
+
+/// `User` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct User {
+    /// accountIdentifier property.
+    pub account_identifier: Option<String>,
+}
+
+/// `PowerManagementEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PowerManagementEvent {
+    /// batteryLevel property.
+    pub battery_level: Option<f64>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// eventType property.
+    pub event_type: Option<String>,
+}
+
+/// `PasswordRequirements` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PasswordRequirements {
+    /// maximumFailedPasswordsForWipe property.
+    pub maximum_failed_passwords_for_wipe: Option<i64>,
+    /// passwordExpirationTimeout property.
+    pub password_expiration_timeout: Option<String>,
+    /// passwordHistoryLength property.
+    pub password_history_length: Option<i64>,
+    /// passwordMinimumLength property.
+    pub password_minimum_length: Option<i64>,
+    /// passwordMinimumLetters property.
+    pub password_minimum_letters: Option<i64>,
+    /// passwordMinimumLowerCase property.
+    pub password_minimum_lower_case: Option<i64>,
+    /// passwordMinimumNonLetter property.
+    pub password_minimum_non_letter: Option<i64>,
+    /// passwordMinimumNumeric property.
+    pub password_minimum_numeric: Option<i64>,
+    /// passwordMinimumSymbols property.
+    pub password_minimum_symbols: Option<i64>,
+    /// passwordMinimumUpperCase property.
+    pub password_minimum_upper_case: Option<i64>,
+    /// passwordQuality property.
+    pub password_quality: Option<String>,
+    /// passwordScope property.
+    pub password_scope: Option<String>,
+    /// requirePasswordUnlock property.
+    pub require_password_unlock: Option<String>,
+    /// unifiedLockSettings property.
+    pub unified_lock_settings: Option<String>,
+}
+
+/// `SpecificNonComplianceContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpecificNonComplianceContext {
+    /// defaultApplicationContext property.
+    pub default_application_context: Option<DefaultApplicationContext>,
+    /// oncWifiContext property.
+    pub onc_wifi_context: Option<OncWifiContext>,
+    /// passwordPoliciesContext property.
+    pub password_policies_context: Option<PasswordPoliciesContext>,
+}
+
+/// `DeviceSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceSettings {
+    /// adbEnabled property.
+    pub adb_enabled: Option<bool>,
+    /// developmentSettingsEnabled property.
+    pub development_settings_enabled: Option<bool>,
+    /// encryptionStatus property.
+    pub encryption_status: Option<String>,
+    /// isDeviceSecure property.
+    pub is_device_secure: Option<bool>,
+    /// isEncrypted property.
+    pub is_encrypted: Option<bool>,
+    /// unknownSourcesEnabled property.
+    pub unknown_sources_enabled: Option<bool>,
+    /// verifyAppsEnabled property.
+    pub verify_apps_enabled: Option<bool>,
+}
+
+/// `DefaultApplicationContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DefaultApplicationContext {
+    /// defaultApplicationScope property.
+    pub default_application_scope: Option<String>,
+}
+
+/// `PasswordPoliciesContext` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PasswordPoliciesContext {
+    /// passwordPolicyScope property.
+    pub password_policy_scope: Option<String>,
+}
+
+/// `ApplicationReport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApplicationReport {
+    /// applicationSource property.
+    pub application_source: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// events property.
+    pub events: Option<Vec<ApplicationEvent>>,
+    /// installerPackageName property.
+    pub installer_package_name: Option<String>,
+    /// keyedAppStates property.
+    pub keyed_app_states: Option<Vec<KeyedAppState>>,
+    /// packageName property.
+    pub package_name: Option<String>,
+    /// packageSha256Hash property.
+    pub package_sha256_hash: Option<String>,
+    /// signingKeyCertFingerprints property.
+    pub signing_key_cert_fingerprints: Option<Vec<String>>,
+    /// state property.
+    pub state: Option<String>,
+    /// userFacingType property.
+    pub user_facing_type: Option<String>,
+    /// versionCode property.
+    pub version_code: Option<i64>,
+    /// versionName property.
+    pub version_name: Option<String>,
+}
+
+/// `NetworkInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkInfo {
+    /// imei property.
+    pub imei: Option<String>,
+    /// meid property.
+    pub meid: Option<String>,
+    /// networkOperatorName property.
+    pub network_operator_name: Option<String>,
+    /// telephonyInfos property.
+    pub telephony_infos: Option<Vec<TelephonyInfo>>,
+    /// wifiMacAddress property.
+    pub wifi_mac_address: Option<String>,
+}
+
+/// `SecurityPosture` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityPosture {
+    /// devicePosture property.
+    pub device_posture: Option<String>,
+    /// postureDetails property.
+    pub posture_details: Option<Vec<PostureDetail>>,
+}
 
 /// `Device` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -107,6 +350,41 @@ pub struct Device {
     pub user_name: Option<String>,
 }
 
+/// `SystemUpdateInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SystemUpdateInfo {
+    /// updateReceivedTime property.
+    pub update_received_time: Option<String>,
+    /// updateStatus property.
+    pub update_status: Option<String>,
+}
+
+/// `KeyedAppState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KeyedAppState {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// data property.
+    pub data: Option<String>,
+    /// key property.
+    pub key: Option<String>,
+    /// lastUpdateTime property.
+    pub last_update_time: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// severity property.
+    pub severity: Option<String>,
+}
+
+/// `CommonCriteriaModeInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CommonCriteriaModeInfo {
+    /// commonCriteriaModeStatus property.
+    pub common_criteria_mode_status: Option<String>,
+    /// policySignatureVerificationStatus property.
+    pub policy_signature_verification_status: Option<String>,
+}
+
 /// `NonComplianceDetail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NonComplianceDetail {
@@ -128,99 +406,23 @@ pub struct NonComplianceDetail {
     pub specific_non_compliance_reason: Option<String>,
 }
 
-/// `SystemUpdateInfo` type.
+/// `Display` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SystemUpdateInfo {
-    /// updateReceivedTime property.
-    pub update_received_time: Option<String>,
-    /// updateStatus property.
-    pub update_status: Option<String>,
-}
-
-/// `UserFacingMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserFacingMessage {
-    /// defaultMessage property.
-    pub default_message: Option<String>,
-    /// localizedMessages property.
-    pub localized_messages: Option<serde_json::Value>,
-}
-
-/// `DpcMigrationInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DpcMigrationInfo {
-    /// additionalData property.
-    pub additional_data: Option<String>,
-    /// previousDpc property.
-    pub previous_dpc: Option<String>,
-}
-
-/// `SecurityPosture` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityPosture {
-    /// devicePosture property.
-    pub device_posture: Option<String>,
-    /// postureDetails property.
-    pub posture_details: Option<Vec<PostureDetail>>,
-}
-
-/// `PostureDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostureDetail {
-    /// advice property.
-    pub advice: Option<Vec<UserFacingMessage>>,
-    /// securityRisk property.
-    pub security_risk: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `MemoryEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MemoryEvent {
-    /// byteCount property.
-    pub byte_count: Option<String>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// eventType property.
-    pub event_type: Option<String>,
-}
-
-/// `HardwareStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HardwareStatus {
-    /// batteryTemperatures property.
-    pub battery_temperatures: Option<Vec<f64>>,
-    /// cpuTemperatures property.
-    pub cpu_temperatures: Option<Vec<f64>>,
-    /// cpuUsages property.
-    pub cpu_usages: Option<Vec<f64>>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// fanSpeeds property.
-    pub fan_speeds: Option<Vec<f64>>,
-    /// gpuTemperatures property.
-    pub gpu_temperatures: Option<Vec<f64>>,
-    /// skinTemperatures property.
-    pub skin_temperatures: Option<Vec<f64>>,
-}
-
-/// `CommonCriteriaModeInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CommonCriteriaModeInfo {
-    /// commonCriteriaModeStatus property.
-    pub common_criteria_mode_status: Option<String>,
-    /// policySignatureVerificationStatus property.
-    pub policy_signature_verification_status: Option<String>,
+pub struct Display {
+    /// density property.
+    pub density: Option<i64>,
+    /// displayId property.
+    pub display_id: Option<i64>,
+    /// height property.
+    pub height: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// refreshRate property.
+    pub refresh_rate: Option<i64>,
+    /// state property.
+    pub state: Option<String>,
+    /// width property.
+    pub width: Option<i64>,
 }
 
 /// `HardwareInfo` type.
@@ -260,130 +462,11 @@ pub struct HardwareInfo {
     pub skin_throttling_temperatures: Option<Vec<f64>>,
 }
 
-/// `PowerManagementEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PowerManagementEvent {
-    /// batteryLevel property.
-    pub battery_level: Option<f64>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// eventType property.
-    pub event_type: Option<String>,
-}
-
-/// `User` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct User {
-    /// accountIdentifier property.
-    pub account_identifier: Option<String>,
-}
-
-/// `SoftwareInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SoftwareInfo {
-    /// androidBuildNumber property.
-    pub android_build_number: Option<String>,
-    /// androidBuildTime property.
-    pub android_build_time: Option<String>,
-    /// androidDevicePolicyVersionCode property.
-    pub android_device_policy_version_code: Option<i64>,
-    /// androidDevicePolicyVersionName property.
-    pub android_device_policy_version_name: Option<String>,
-    /// androidVersion property.
-    pub android_version: Option<String>,
-    /// bootloaderVersion property.
-    pub bootloader_version: Option<String>,
-    /// deviceBuildSignature property.
-    pub device_build_signature: Option<String>,
-    /// deviceKernelVersion property.
-    pub device_kernel_version: Option<String>,
-    /// primaryLanguageCode property.
-    pub primary_language_code: Option<String>,
-    /// securityPatchLevel property.
-    pub security_patch_level: Option<String>,
-    /// systemUpdateInfo property.
-    pub system_update_info: Option<SystemUpdateInfo>,
-}
-
-/// `Display` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Display {
-    /// density property.
-    pub density: Option<i64>,
-    /// displayId property.
-    pub display_id: Option<i64>,
-    /// height property.
-    pub height: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-    /// refreshRate property.
-    pub refresh_rate: Option<i64>,
-    /// state property.
-    pub state: Option<String>,
-    /// width property.
-    pub width: Option<i64>,
-}
-
 /// `EuiccChipInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EuiccChipInfo {
     /// eid property.
     pub eid: Option<String>,
-}
-
-/// `DeviceSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceSettings {
-    /// adbEnabled property.
-    pub adb_enabled: Option<bool>,
-    /// developmentSettingsEnabled property.
-    pub development_settings_enabled: Option<bool>,
-    /// encryptionStatus property.
-    pub encryption_status: Option<String>,
-    /// isDeviceSecure property.
-    pub is_device_secure: Option<bool>,
-    /// isEncrypted property.
-    pub is_encrypted: Option<bool>,
-    /// unknownSourcesEnabled property.
-    pub unknown_sources_enabled: Option<bool>,
-    /// verifyAppsEnabled property.
-    pub verify_apps_enabled: Option<bool>,
-}
-
-/// `ApplicationReport` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApplicationReport {
-    /// applicationSource property.
-    pub application_source: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// events property.
-    pub events: Option<Vec<ApplicationEvent>>,
-    /// installerPackageName property.
-    pub installer_package_name: Option<String>,
-    /// keyedAppStates property.
-    pub keyed_app_states: Option<Vec<KeyedAppState>>,
-    /// packageName property.
-    pub package_name: Option<String>,
-    /// packageSha256Hash property.
-    pub package_sha256_hash: Option<String>,
-    /// signingKeyCertFingerprints property.
-    pub signing_key_cert_fingerprints: Option<Vec<String>>,
-    /// state property.
-    pub state: Option<String>,
-    /// userFacingType property.
-    pub user_facing_type: Option<String>,
-    /// versionCode property.
-    pub version_code: Option<i64>,
-    /// versionName property.
-    pub version_name: Option<String>,
-}
-
-/// `DefaultApplicationContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DefaultApplicationContext {
-    /// defaultApplicationScope property.
-    pub default_application_scope: Option<String>,
 }
 
 /// `OncWifiContext` type.
@@ -393,74 +476,33 @@ pub struct OncWifiContext {
     pub wifi_guid: Option<String>,
 }
 
-/// `DefaultApplicationInfo` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DefaultApplicationInfo {
-    /// defaultApplicationSettingAttempts property.
-    pub default_application_setting_attempts: Option<Vec<DefaultApplicationSettingAttempt>>,
-    /// defaultApplicationType property.
-    pub default_application_type: Option<String>,
-    /// packageName property.
-    pub package_name: Option<String>,
-}
-
-/// `PasswordPoliciesContext` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PasswordPoliciesContext {
-    /// passwordPolicyScope property.
-    pub password_policy_scope: Option<String>,
-}
-
-/// `MemoryInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MemoryInfo {
-    /// totalInternalStorage property.
-    pub total_internal_storage: Option<String>,
-    /// totalRam property.
-    pub total_ram: Option<String>,
-}
-
-/// `KeyedAppState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KeyedAppState {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// data property.
-    pub data: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// lastUpdateTime property.
-    pub last_update_time: Option<String>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
-    /// severity property.
-    pub severity: Option<String>,
 }
 
-/// `NetworkInfo` type.
+/// `UserFacingMessage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkInfo {
-    /// imei property.
-    pub imei: Option<String>,
-    /// meid property.
-    pub meid: Option<String>,
-    /// networkOperatorName property.
-    pub network_operator_name: Option<String>,
-    /// telephonyInfos property.
-    pub telephony_infos: Option<Vec<TelephonyInfo>>,
-    /// wifiMacAddress property.
-    pub wifi_mac_address: Option<String>,
+pub struct UserFacingMessage {
+    /// defaultMessage property.
+    pub default_message: Option<String>,
+    /// localizedMessages property.
+    pub localized_messages: Option<serde_json::Value>,
 }
 
-/// `SpecificNonComplianceContext` type.
+/// `PostureDetail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpecificNonComplianceContext {
-    /// defaultApplicationContext property.
-    pub default_application_context: Option<DefaultApplicationContext>,
-    /// oncWifiContext property.
-    pub onc_wifi_context: Option<OncWifiContext>,
-    /// passwordPoliciesContext property.
-    pub password_policies_context: Option<PasswordPoliciesContext>,
+pub struct PostureDetail {
+    /// advice property.
+    pub advice: Option<Vec<UserFacingMessage>>,
+    /// securityRisk property.
+    pub security_risk: Option<String>,
 }
 
 /// `TelephonyInfo` type.
@@ -478,64 +520,23 @@ pub struct TelephonyInfo {
     pub phone_number: Option<String>,
 }
 
-/// `DefaultApplicationSettingAttempt` type.
+/// `HardwareStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DefaultApplicationSettingAttempt {
-    /// attemptOutcome property.
-    pub attempt_outcome: Option<String>,
-    /// packageName property.
-    pub package_name: Option<String>,
-}
-
-/// `PasswordRequirements` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PasswordRequirements {
-    /// maximumFailedPasswordsForWipe property.
-    pub maximum_failed_passwords_for_wipe: Option<i64>,
-    /// passwordExpirationTimeout property.
-    pub password_expiration_timeout: Option<String>,
-    /// passwordHistoryLength property.
-    pub password_history_length: Option<i64>,
-    /// passwordMinimumLength property.
-    pub password_minimum_length: Option<i64>,
-    /// passwordMinimumLetters property.
-    pub password_minimum_letters: Option<i64>,
-    /// passwordMinimumLowerCase property.
-    pub password_minimum_lower_case: Option<i64>,
-    /// passwordMinimumNonLetter property.
-    pub password_minimum_non_letter: Option<i64>,
-    /// passwordMinimumNumeric property.
-    pub password_minimum_numeric: Option<i64>,
-    /// passwordMinimumSymbols property.
-    pub password_minimum_symbols: Option<i64>,
-    /// passwordMinimumUpperCase property.
-    pub password_minimum_upper_case: Option<i64>,
-    /// passwordQuality property.
-    pub password_quality: Option<String>,
-    /// passwordScope property.
-    pub password_scope: Option<String>,
-    /// requirePasswordUnlock property.
-    pub require_password_unlock: Option<String>,
-    /// unifiedLockSettings property.
-    pub unified_lock_settings: Option<String>,
-}
-
-/// `ListDevicesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDevicesResponse {
-    /// devices property.
-    pub devices: Option<Vec<Device>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `ApplicationEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApplicationEvent {
+pub struct HardwareStatus {
+    /// batteryTemperatures property.
+    pub battery_temperatures: Option<Vec<f64>>,
+    /// cpuTemperatures property.
+    pub cpu_temperatures: Option<Vec<f64>>,
+    /// cpuUsages property.
+    pub cpu_usages: Option<Vec<f64>>,
     /// createTime property.
     pub create_time: Option<String>,
-    /// eventType property.
-    pub event_type: Option<String>,
+    /// fanSpeeds property.
+    pub fan_speeds: Option<Vec<f64>>,
+    /// gpuTemperatures property.
+    pub gpu_temperatures: Option<Vec<f64>>,
+    /// skinTemperatures property.
+    pub skin_temperatures: Option<Vec<f64>>,
 }
 
 // =============================================================================

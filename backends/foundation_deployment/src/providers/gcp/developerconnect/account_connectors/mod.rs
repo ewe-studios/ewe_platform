@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,20 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ProxyConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProxyConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// httpProxyBaseUri property.
-    pub http_proxy_base_uri: Option<String>,
-}
 
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,51 +37,6 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
-}
-
-/// `ProviderOAuthConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProviderOAuthConfig {
-    /// scopes property.
-    pub scopes: Option<Vec<String>>,
-    /// systemProviderId property.
-    pub system_provider_id: Option<String>,
-}
-
-/// `AccountConnector` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountConnector {
-    /// annotations property.
-    pub annotations: Option<serde_json::Value>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// customOauthConfig property.
-    pub custom_oauth_config: Option<CustomOAuthConfig>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// oauthStartUri property.
-    pub oauth_start_uri: Option<String>,
-    /// providerOauthConfig property.
-    pub provider_oauth_config: Option<ProviderOAuthConfig>,
-    /// proxyConfig property.
-    pub proxy_config: Option<ProxyConfig>,
-    /// uid property.
-    pub uid: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `FetchUserRepositoriesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FetchUserRepositoriesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// userRepos property.
-    pub user_repos: Option<Vec<UserRepository>>,
 }
 
 /// `CustomOAuthConfig` type.
@@ -119,6 +66,60 @@ pub struct CustomOAuthConfig {
     pub token_uri: Option<String>,
 }
 
+/// `ProxyConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProxyConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// httpProxyBaseUri property.
+    pub http_proxy_base_uri: Option<String>,
+}
+
+/// `FetchUserRepositoriesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FetchUserRepositoriesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// userRepos property.
+    pub user_repos: Option<Vec<UserRepository>>,
+}
+
+/// `AccountConnector` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountConnector {
+    /// annotations property.
+    pub annotations: Option<serde_json::Value>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// customOauthConfig property.
+    pub custom_oauth_config: Option<CustomOAuthConfig>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// oauthStartUri property.
+    pub oauth_start_uri: Option<String>,
+    /// providerOauthConfig property.
+    pub provider_oauth_config: Option<ProviderOAuthConfig>,
+    /// proxyConfig property.
+    pub proxy_config: Option<ProxyConfig>,
+    /// uid property.
+    pub uid: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `ProviderOAuthConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProviderOAuthConfig {
+    /// scopes property.
+    pub scopes: Option<Vec<String>>,
+    /// systemProviderId property.
+    pub system_provider_id: Option<String>,
+}
+
 /// `ListAccountConnectorsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAccountConnectorsResponse {
@@ -130,6 +131,13 @@ pub struct ListAccountConnectorsResponse {
     pub unreachable: Option<Vec<String>>,
 }
 
+/// `ServiceDirectoryConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceDirectoryConfig {
+    /// service property.
+    pub service: Option<String>,
+}
+
 /// `UserRepository` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserRepository {
@@ -139,13 +147,6 @@ pub struct UserRepository {
     pub display_name: Option<String>,
     /// gitProxyUri property.
     pub git_proxy_uri: Option<String>,
-}
-
-/// `ServiceDirectoryConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceDirectoryConfig {
-    /// service property.
-    pub service: Option<String>,
 }
 
 // =============================================================================

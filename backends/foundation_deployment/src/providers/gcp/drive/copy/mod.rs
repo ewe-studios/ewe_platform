@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,30 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::File;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `DecryptionMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DecryptionMetadata {
-    /// aes256GcmChunkSize property.
-    pub aes256_gcm_chunk_size: Option<String>,
-    /// encryptionResourceKeyHash property.
-    pub encryption_resource_key_hash: Option<String>,
-    /// jwt property.
-    pub jwt: Option<String>,
-    /// kaclsId property.
-    pub kacls_id: Option<String>,
-    /// kaclsName property.
-    pub kacls_name: Option<String>,
-    /// keyFormat property.
-    pub key_format: Option<String>,
-    /// wrappedKey property.
-    pub wrapped_key: Option<String>,
-}
 
 /// `ContentRestriction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -65,6 +47,19 @@ pub struct ContentRestriction {
     pub r#type: Option<String>,
 }
 
+/// `Label` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Label {
+    /// fields property.
+    pub fields: Option<serde_json::Value>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// revisionId property.
+    pub revision_id: Option<String>,
+}
+
 /// `User` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct User {
@@ -82,6 +77,25 @@ pub struct User {
     pub photo_link: Option<String>,
 }
 
+/// `DecryptionMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DecryptionMetadata {
+    /// aes256GcmChunkSize property.
+    pub aes256_gcm_chunk_size: Option<String>,
+    /// encryptionResourceKeyHash property.
+    pub encryption_resource_key_hash: Option<String>,
+    /// jwt property.
+    pub jwt: Option<String>,
+    /// kaclsId property.
+    pub kacls_id: Option<String>,
+    /// kaclsName property.
+    pub kacls_name: Option<String>,
+    /// keyFormat property.
+    pub key_format: Option<String>,
+    /// wrappedKey property.
+    pub wrapped_key: Option<String>,
+}
+
 /// `ClientEncryptionDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClientEncryptionDetails {
@@ -89,6 +103,24 @@ pub struct ClientEncryptionDetails {
     pub decryption_metadata: Option<DecryptionMetadata>,
     /// encryptionState property.
     pub encryption_state: Option<String>,
+}
+
+/// `DownloadRestrictionsMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DownloadRestrictionsMetadata {
+    /// effectiveDownloadRestrictionWithContext property.
+    pub effective_download_restriction_with_context: Option<DownloadRestriction>,
+    /// itemDownloadRestriction property.
+    pub item_download_restriction: Option<DownloadRestriction>,
+}
+
+/// `DownloadRestriction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DownloadRestriction {
+    /// restrictedForReaders property.
+    pub restricted_for_readers: Option<bool>,
+    /// restrictedForWriters property.
+    pub restricted_for_writers: Option<bool>,
 }
 
 /// `Permission` type.
@@ -127,37 +159,6 @@ pub struct Permission {
     pub r#type: Option<String>,
     /// view property.
     pub view: Option<String>,
-}
-
-/// `DownloadRestrictionsMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DownloadRestrictionsMetadata {
-    /// effectiveDownloadRestrictionWithContext property.
-    pub effective_download_restriction_with_context: Option<DownloadRestriction>,
-    /// itemDownloadRestriction property.
-    pub item_download_restriction: Option<DownloadRestriction>,
-}
-
-/// `DownloadRestriction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DownloadRestriction {
-    /// restrictedForReaders property.
-    pub restricted_for_readers: Option<bool>,
-    /// restrictedForWriters property.
-    pub restricted_for_writers: Option<bool>,
-}
-
-/// `Label` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Label {
-    /// fields property.
-    pub fields: Option<serde_json::Value>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// revisionId property.
-    pub revision_id: Option<String>,
 }
 
 // =============================================================================

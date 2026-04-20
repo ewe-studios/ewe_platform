@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,93 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `InstancesBulkInsertOperationMetadata` type.
+/// `GetVersionOperationMetadataSbomInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
-}
-
-/// `NodeTemplateList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeTemplateList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<NodeTemplate>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `HelpLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HelpLink {
-    /// description property.
-    pub description: Option<String>,
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `ServerBinding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServerBinding {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `Help` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
-}
-
-/// `SetCommonInstanceMetadataOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetCommonInstanceMetadataOperationMetadata {
-    /// clientOperationId property.
-    pub client_operation_id: Option<String>,
-    /// perLocationOperations property.
-    pub per_location_operations: Option<serde_json::Value>,
-}
-
-/// `NodeTemplateNodeTypeFlexibility` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NodeTemplateNodeTypeFlexibility {
-    /// cpus property.
-    pub cpus: Option<String>,
-    /// localSsd property.
-    pub local_ssd: Option<String>,
-    /// memory property.
-    pub memory: Option<String>,
-}
-
-/// `AcceleratorConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcceleratorConfig {
-    /// acceleratorCount property.
-    pub accelerator_count: Option<i64>,
-    /// acceleratorType property.
-    pub accelerator_type: Option<String>,
-}
-
-/// `GetVersionOperationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadata {
-    /// inlineSbomInfo property.
-    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
 }
 
 /// `NodeTemplate` type.
@@ -147,15 +74,31 @@ pub struct NodeTemplate {
     pub status_message: Option<String>,
 }
 
-/// `LocalDisk` type.
+/// `LocalizedMessage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalDisk {
-    /// diskCount property.
-    pub disk_count: Option<i64>,
-    /// diskSizeGb property.
-    pub disk_size_gb: Option<i64>,
-    /// diskType property.
-    pub disk_type: Option<String>,
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `SetCommonInstanceMetadataOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetCommonInstanceMetadataOperationMetadata {
+    /// clientOperationId property.
+    pub client_operation_id: Option<String>,
+    /// perLocationOperations property.
+    pub per_location_operations: Option<serde_json::Value>,
+}
+
+/// `HelpLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HelpLink {
+    /// description property.
+    pub description: Option<String>,
+    /// url property.
+    pub url: Option<String>,
 }
 
 /// `QuotaExceededInfo` type.
@@ -173,6 +116,47 @@ pub struct QuotaExceededInfo {
     pub metric_name: Option<String>,
     /// rolloutStatus property.
     pub rollout_status: Option<String>,
+}
+
+/// `ServerBinding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServerBinding {
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GetVersionOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GetVersionOperationMetadata {
+    /// inlineSbomInfo property.
+    pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+}
+
+/// `AcceleratorConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AcceleratorConfig {
+    /// acceleratorCount property.
+    pub accelerator_count: Option<i64>,
+    /// acceleratorType property.
+    pub accelerator_type: Option<String>,
+}
+
+/// `NodeTemplateNodeTypeFlexibility` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NodeTemplateNodeTypeFlexibility {
+    /// cpus property.
+    pub cpus: Option<String>,
+    /// localSsd property.
+    pub local_ssd: Option<String>,
+    /// memory property.
+    pub memory: Option<String>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
 }
 
 /// `NodeTemplateAggregatedList` type.
@@ -194,13 +178,32 @@ pub struct NodeTemplateAggregatedList {
     pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `LocalizedMessage` type.
+/// `NodeTemplateList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
+pub struct NodeTemplateList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<NodeTemplate>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `LocalDisk` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalDisk {
+    /// diskCount property.
+    pub disk_count: Option<i64>,
+    /// diskSizeGb property.
+    pub disk_size_gb: Option<i64>,
+    /// diskType property.
+    pub disk_type: Option<String>,
 }
 
 /// `ErrorInfo` type.
@@ -214,13 +217,11 @@ pub struct ErrorInfo {
     pub reason: Option<String>,
 }
 
-/// `GetVersionOperationMetadataSbomInfo` type.
+/// `Help` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
 }
 
 // =============================================================================

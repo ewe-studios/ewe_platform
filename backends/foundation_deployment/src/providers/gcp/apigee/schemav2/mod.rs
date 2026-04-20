@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -35,6 +36,15 @@ pub struct GoogleCloudApigeeV1Schema {
     pub metrics: Option<Vec<GoogleCloudApigeeV1SchemaSchemaElement>>,
 }
 
+/// `GoogleCloudApigeeV1SchemaSchemaElement` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1SchemaSchemaElement {
+    /// name property.
+    pub name: Option<String>,
+    /// properties property.
+    pub properties: Option<GoogleCloudApigeeV1SchemaSchemaProperty>,
+}
+
 /// `GoogleCloudApigeeV1SchemaSchemaProperty` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SchemaSchemaProperty {
@@ -44,15 +54,6 @@ pub struct GoogleCloudApigeeV1SchemaSchemaProperty {
     pub custom: Option<String>,
     /// type property.
     pub r#type: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1SchemaSchemaElement` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1SchemaSchemaElement {
-    /// name property.
-    pub name: Option<String>,
-    /// properties property.
-    pub properties: Option<GoogleCloudApigeeV1SchemaSchemaProperty>,
 }
 
 // =============================================================================

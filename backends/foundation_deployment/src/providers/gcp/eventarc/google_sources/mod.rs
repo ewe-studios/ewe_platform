@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,17 +24,43 @@ use super::shared::GoogleLongrunningOperation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ProjectSubscriptions` type.
+/// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectSubscriptions {
-    /// list property.
-    pub list: Option<Vec<String>>,
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `ListGoogleApiSourcesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListGoogleApiSourcesResponse {
+    /// googleApiSources property.
+    pub google_api_sources: Option<Vec<GoogleApiSource>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `GoogleApiSource` type.
@@ -67,6 +94,20 @@ pub struct GoogleApiSource {
     pub update_time: Option<String>,
 }
 
+/// `LoggingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoggingConfig {
+    /// logSeverity property.
+    pub log_severity: Option<String>,
+}
+
+/// `OrganizationSubscription` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OrganizationSubscription {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
 /// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
@@ -78,28 +119,11 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `Expr` type.
+/// `ProjectSubscriptions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `ListGoogleApiSourcesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListGoogleApiSourcesResponse {
-    /// googleApiSources property.
-    pub google_api_sources: Option<Vec<GoogleApiSource>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct ProjectSubscriptions {
+    /// list property.
+    pub list: Option<Vec<String>>,
 }
 
 /// `AuditLogConfig` type.
@@ -111,20 +135,6 @@ pub struct AuditLogConfig {
     pub log_type: Option<String>,
 }
 
-/// `OrganizationSubscription` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OrganizationSubscription {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `LoggingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoggingConfig {
-    /// logSeverity property.
-    pub log_severity: Option<String>,
-}
-
 /// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
@@ -134,15 +144,6 @@ pub struct Binding {
     pub members: Option<Vec<String>>,
     /// role property.
     pub role: Option<String>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
 }
 
 // =============================================================================

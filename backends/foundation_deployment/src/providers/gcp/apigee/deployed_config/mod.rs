@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -33,29 +34,20 @@ pub struct GoogleCloudApigeeV1ReferenceConfig {
     pub resource_name: Option<String>,
 }
 
-/// `GoogleCloudApigeeV1TlsInfoConfig` type.
+/// `GoogleCloudApigeeV1CommonNameConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1TlsInfoConfig {
-    /// ciphers property.
-    pub ciphers: Option<Vec<String>>,
-    /// clientAuthEnabled property.
-    pub client_auth_enabled: Option<bool>,
-    /// commonName property.
-    pub common_name: Option<GoogleCloudApigeeV1CommonNameConfig>,
+pub struct GoogleCloudApigeeV1CommonNameConfig {
+    /// matchWildCards property.
+    pub match_wild_cards: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1RuntimeApiSecurityConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1RuntimeApiSecurityConfig {
     /// enabled property.
     pub enabled: Option<bool>,
-    /// enforce property.
-    pub enforce: Option<bool>,
-    /// ignoreValidationErrors property.
-    pub ignore_validation_errors: Option<bool>,
-    /// keyAlias property.
-    pub key_alias: Option<String>,
-    /// keyAliasReference property.
-    pub key_alias_reference: Option<GoogleCloudApigeeV1KeyAliasReference>,
-    /// protocols property.
-    pub protocols: Option<Vec<String>>,
-    /// trustStore property.
-    pub trust_store: Option<String>,
 }
 
 /// `GoogleCloudApigeeV1FlowHookConfig` type.
@@ -90,88 +82,27 @@ pub struct GoogleCloudApigeeV1RuntimeTraceConfigOverride {
     pub uid: Option<String>,
 }
 
-/// `GoogleCloudApigeeV1RuntimeTraceSamplingConfig` type.
+/// `GoogleCloudApigeeV1RuntimeTraceConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1RuntimeTraceSamplingConfig {
-    /// sampler property.
-    pub sampler: Option<String>,
-    /// samplingRate property.
-    pub sampling_rate: Option<f64>,
-}
-
-/// `GoogleCloudApigeeV1TargetServerConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1TargetServerConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// host property.
-    pub host: Option<String>,
+pub struct GoogleCloudApigeeV1RuntimeTraceConfig {
+    /// endpoint property.
+    pub endpoint: Option<String>,
+    /// exporter property.
+    pub exporter: Option<String>,
     /// name property.
     pub name: Option<String>,
-    /// port property.
-    pub port: Option<i64>,
-    /// protocol property.
-    pub protocol: Option<String>,
-    /// tlsInfo property.
-    pub tls_info: Option<GoogleCloudApigeeV1TlsInfoConfig>,
-}
-
-/// `GoogleCloudApigeeV1DeploymentGroupConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1DeploymentGroupConfig {
-    /// deploymentGroupType property.
-    pub deployment_group_type: Option<String>,
-    /// name property.
-    pub name: Option<String>,
+    /// openTelemetryProtocolEnabled property.
+    pub open_telemetry_protocol_enabled: Option<bool>,
+    /// overrides property.
+    pub overrides: Option<Vec<GoogleCloudApigeeV1RuntimeTraceConfigOverride>>,
+    /// revisionCreateTime property.
+    pub revision_create_time: Option<String>,
     /// revisionId property.
     pub revision_id: Option<String>,
-    /// uid property.
-    pub uid: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1KeystoreConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1KeystoreConfig {
-    /// aliases property.
-    pub aliases: Option<Vec<GoogleCloudApigeeV1AliasRevisionConfig>>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1ResourceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ResourceConfig {
-    /// location property.
-    pub location: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1DataCollectorConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1DataCollectorConfig {
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1CommonNameConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1CommonNameConfig {
-    /// matchWildCards property.
-    pub match_wild_cards: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1KeyAliasReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1KeyAliasReference {
-    /// aliasId property.
-    pub alias_id: Option<String>,
-    /// reference property.
-    pub reference: Option<String>,
+    /// samplingConfig property.
+    pub sampling_config: Option<GoogleCloudApigeeV1RuntimeTraceSamplingConfig>,
+    /// traceProtocol property.
+    pub trace_protocol: Option<String>,
 }
 
 /// `GoogleCloudApigeeV1EnvironmentConfigClientIPResolutionConfig` type.
@@ -182,15 +113,47 @@ pub struct GoogleCloudApigeeV1EnvironmentConfigClientIPResolutionConfig {
         Option<GoogleCloudApigeeV1EnvironmentConfigClientIPResolutionConfigHeaderIndexAlgorithm>,
 }
 
-/// `GoogleCloudApigeeV1AliasRevisionConfig` type.
+/// `GoogleCloudApigeeV1RuntimeTraceSamplingConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1AliasRevisionConfig {
-    /// location property.
-    pub location: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct GoogleCloudApigeeV1RuntimeTraceSamplingConfig {
+    /// sampler property.
+    pub sampler: Option<String>,
+    /// samplingRate property.
+    pub sampling_rate: Option<f64>,
+}
+
+/// `GoogleCloudApigeeV1TlsInfoConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1TlsInfoConfig {
+    /// ciphers property.
+    pub ciphers: Option<Vec<String>>,
+    /// clientAuthEnabled property.
+    pub client_auth_enabled: Option<bool>,
+    /// commonName property.
+    pub common_name: Option<GoogleCloudApigeeV1CommonNameConfig>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// enforce property.
+    pub enforce: Option<bool>,
+    /// ignoreValidationErrors property.
+    pub ignore_validation_errors: Option<bool>,
+    /// keyAlias property.
+    pub key_alias: Option<String>,
+    /// keyAliasReference property.
+    pub key_alias_reference: Option<GoogleCloudApigeeV1KeyAliasReference>,
+    /// protocols property.
+    pub protocols: Option<Vec<String>>,
+    /// trustStore property.
+    pub trust_store: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1KeyAliasReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1KeyAliasReference {
+    /// aliasId property.
+    pub alias_id: Option<String>,
+    /// reference property.
+    pub reference: Option<String>,
 }
 
 /// `GoogleCloudApigeeV1EnvironmentConfig` type.
@@ -247,27 +210,50 @@ pub struct GoogleCloudApigeeV1EnvironmentConfig {
     pub uid: Option<String>,
 }
 
-/// `GoogleCloudApigeeV1DebugMask` type.
+/// `GoogleCloudApigeeV1RuntimeAnalyticsConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1DebugMask {
-    /// faultJSONPaths property.
-    pub fault_json_paths: Option<Vec<String>>,
-    /// faultXPaths property.
-    pub fault_x_paths: Option<Vec<String>>,
+pub struct GoogleCloudApigeeV1RuntimeAnalyticsConfig {
+    /// billingPipelineEnabled property.
+    pub billing_pipeline_enabled: Option<bool>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `GoogleCloudApigeeV1TargetServerConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1TargetServerConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// host property.
+    pub host: Option<String>,
     /// name property.
     pub name: Option<String>,
-    /// namespaces property.
-    pub namespaces: Option<serde_json::Value>,
-    /// requestJSONPaths property.
-    pub request_json_paths: Option<Vec<String>>,
-    /// requestXPaths property.
-    pub request_x_paths: Option<Vec<String>>,
-    /// responseJSONPaths property.
-    pub response_json_paths: Option<Vec<String>>,
-    /// responseXPaths property.
-    pub response_x_paths: Option<Vec<String>>,
-    /// variables property.
-    pub variables: Option<Vec<String>>,
+    /// port property.
+    pub port: Option<i64>,
+    /// protocol property.
+    pub protocol: Option<String>,
+    /// tlsInfo property.
+    pub tls_info: Option<GoogleCloudApigeeV1TlsInfoConfig>,
+}
+
+/// `GoogleCloudApigeeV1EnvironmentConfigClientIPResolutionConfigHeaderIndexAlgorithm` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1EnvironmentConfigClientIPResolutionConfigHeaderIndexAlgorithm {
+    /// ipHeaderIndex property.
+    pub ip_header_index: Option<i64>,
+    /// ipHeaderName property.
+    pub ip_header_name: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1AliasRevisionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1AliasRevisionConfig {
+    /// location property.
+    pub location: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `GoogleCloudApigeeV1DeploymentConfig` type.
@@ -293,29 +279,6 @@ pub struct GoogleCloudApigeeV1DeploymentConfig {
     pub uid: Option<String>,
 }
 
-/// `GoogleCloudApigeeV1RuntimeTraceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1RuntimeTraceConfig {
-    /// endpoint property.
-    pub endpoint: Option<String>,
-    /// exporter property.
-    pub exporter: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// openTelemetryProtocolEnabled property.
-    pub open_telemetry_protocol_enabled: Option<bool>,
-    /// overrides property.
-    pub overrides: Option<Vec<GoogleCloudApigeeV1RuntimeTraceConfigOverride>>,
-    /// revisionCreateTime property.
-    pub revision_create_time: Option<String>,
-    /// revisionId property.
-    pub revision_id: Option<String>,
-    /// samplingConfig property.
-    pub sampling_config: Option<GoogleCloudApigeeV1RuntimeTraceSamplingConfig>,
-    /// traceProtocol property.
-    pub trace_protocol: Option<String>,
-}
-
 /// `GoogleCloudApigeeV1RuntimeAddonsConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1RuntimeAddonsConfig {
@@ -331,29 +294,67 @@ pub struct GoogleCloudApigeeV1RuntimeAddonsConfig {
     pub uid: Option<String>,
 }
 
-/// `GoogleCloudApigeeV1EnvironmentConfigClientIPResolutionConfigHeaderIndexAlgorithm` type.
+/// `GoogleCloudApigeeV1KeystoreConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1EnvironmentConfigClientIPResolutionConfigHeaderIndexAlgorithm {
-    /// ipHeaderIndex property.
-    pub ip_header_index: Option<i64>,
-    /// ipHeaderName property.
-    pub ip_header_name: Option<String>,
+pub struct GoogleCloudApigeeV1KeystoreConfig {
+    /// aliases property.
+    pub aliases: Option<Vec<GoogleCloudApigeeV1AliasRevisionConfig>>,
+    /// name property.
+    pub name: Option<String>,
 }
 
-/// `GoogleCloudApigeeV1RuntimeAnalyticsConfig` type.
+/// `GoogleCloudApigeeV1DebugMask` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1RuntimeAnalyticsConfig {
-    /// billingPipelineEnabled property.
-    pub billing_pipeline_enabled: Option<bool>,
-    /// enabled property.
-    pub enabled: Option<bool>,
+pub struct GoogleCloudApigeeV1DebugMask {
+    /// faultJSONPaths property.
+    pub fault_json_paths: Option<Vec<String>>,
+    /// faultXPaths property.
+    pub fault_x_paths: Option<Vec<String>>,
+    /// name property.
+    pub name: Option<String>,
+    /// namespaces property.
+    pub namespaces: Option<serde_json::Value>,
+    /// requestJSONPaths property.
+    pub request_json_paths: Option<Vec<String>>,
+    /// requestXPaths property.
+    pub request_x_paths: Option<Vec<String>>,
+    /// responseJSONPaths property.
+    pub response_json_paths: Option<Vec<String>>,
+    /// responseXPaths property.
+    pub response_x_paths: Option<Vec<String>>,
+    /// variables property.
+    pub variables: Option<Vec<String>>,
 }
 
-/// `GoogleCloudApigeeV1RuntimeApiSecurityConfig` type.
+/// `GoogleCloudApigeeV1DataCollectorConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1RuntimeApiSecurityConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
+pub struct GoogleCloudApigeeV1DataCollectorConfig {
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1DeploymentGroupConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1DeploymentGroupConfig {
+    /// deploymentGroupType property.
+    pub deployment_group_type: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// revisionId property.
+    pub revision_id: Option<String>,
+    /// uid property.
+    pub uid: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1ResourceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ResourceConfig {
+    /// location property.
+    pub location: Option<String>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 // =============================================================================

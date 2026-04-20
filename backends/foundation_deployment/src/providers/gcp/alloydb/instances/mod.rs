@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,118 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `ListInstancesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListInstancesResponse {
-    /// instances property.
-    pub instances: Option<Vec<Instance>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `QueryInsightsInstanceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryInsightsInstanceConfig {
-    /// queryPlansPerMinute property.
-    pub query_plans_per_minute: Option<i64>,
-    /// queryStringLength property.
-    pub query_string_length: Option<i64>,
-    /// recordApplicationTags property.
-    pub record_application_tags: Option<bool>,
-    /// recordClientAddress property.
-    pub record_client_address: Option<bool>,
-}
-
-/// `ObservabilityInstanceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObservabilityInstanceConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// maxQueryStringLength property.
-    pub max_query_string_length: Option<i64>,
-    /// preserveComments property.
-    pub preserve_comments: Option<bool>,
-    /// queryPlansPerMinute property.
-    pub query_plans_per_minute: Option<i64>,
-    /// recordApplicationTags property.
-    pub record_application_tags: Option<bool>,
-    /// trackActiveQueries property.
-    pub track_active_queries: Option<bool>,
-    /// trackWaitEventTypes property.
-    pub track_wait_event_types: Option<bool>,
-    /// trackWaitEvents property.
-    pub track_wait_events: Option<bool>,
-}
-
-/// `PscInterfaceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PscInterfaceConfig {
-    /// networkAttachmentResource property.
-    pub network_attachment_resource: Option<String>,
-}
-
-/// `SslConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SslConfig {
-    /// caSource property.
-    pub ca_source: Option<String>,
-    /// sslMode property.
-    pub ssl_mode: Option<String>,
-}
-
-/// `ConnectionPoolConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionPoolConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// flags property.
-    pub flags: Option<serde_json::Value>,
-    /// poolerCount property.
-    pub pooler_count: Option<i64>,
-}
-
-/// `MachineConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MachineConfig {
-    /// cpuCount property.
-    pub cpu_count: Option<i64>,
-    /// machineType property.
-    pub machine_type: Option<String>,
-}
-
-/// `Node` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Node {
-    /// id property.
-    pub id: Option<String>,
-    /// ip property.
-    pub ip: Option<String>,
-    /// isHotStandby property.
-    pub is_hot_standby: Option<bool>,
-    /// state property.
-    pub state: Option<String>,
-    /// zoneId property.
-    pub zone_id: Option<String>,
-}
 
 /// `InstanceNetworkConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -149,33 +43,13 @@ pub struct InstanceNetworkConfig {
     pub network: Option<String>,
 }
 
-/// `PscAutoConnectionConfig` type.
+/// `MachineConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PscAutoConnectionConfig {
-    /// consumerNetwork property.
-    pub consumer_network: Option<String>,
-    /// consumerNetworkStatus property.
-    pub consumer_network_status: Option<String>,
-    /// consumerProject property.
-    pub consumer_project: Option<String>,
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-}
-
-/// `AuthorizedNetwork` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthorizedNetwork {
-    /// cidrRange property.
-    pub cidr_range: Option<String>,
-}
-
-/// `ReadPoolConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReadPoolConfig {
-    /// nodeCount property.
-    pub node_count: Option<i64>,
+pub struct MachineConfig {
+    /// cpuCount property.
+    pub cpu_count: Option<i64>,
+    /// machineType property.
+    pub machine_type: Option<String>,
 }
 
 /// `Instance` type.
@@ -247,6 +121,102 @@ pub struct Instance {
     pub writable_node: Option<Node>,
 }
 
+/// `ClientConnectionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClientConnectionConfig {
+    /// requireConnectors property.
+    pub require_connectors: Option<bool>,
+    /// sslConfig property.
+    pub ssl_config: Option<SslConfig>,
+}
+
+/// `QueryInsightsInstanceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueryInsightsInstanceConfig {
+    /// queryPlansPerMinute property.
+    pub query_plans_per_minute: Option<i64>,
+    /// queryStringLength property.
+    pub query_string_length: Option<i64>,
+    /// recordApplicationTags property.
+    pub record_application_tags: Option<bool>,
+    /// recordClientAddress property.
+    pub record_client_address: Option<bool>,
+}
+
+/// `ListInstancesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListInstancesResponse {
+    /// instances property.
+    pub instances: Option<Vec<Instance>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `SslConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SslConfig {
+    /// caSource property.
+    pub ca_source: Option<String>,
+    /// sslMode property.
+    pub ssl_mode: Option<String>,
+}
+
+/// `ObservabilityInstanceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ObservabilityInstanceConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// maxQueryStringLength property.
+    pub max_query_string_length: Option<i64>,
+    /// preserveComments property.
+    pub preserve_comments: Option<bool>,
+    /// queryPlansPerMinute property.
+    pub query_plans_per_minute: Option<i64>,
+    /// recordApplicationTags property.
+    pub record_application_tags: Option<bool>,
+    /// trackActiveQueries property.
+    pub track_active_queries: Option<bool>,
+    /// trackWaitEventTypes property.
+    pub track_wait_event_types: Option<bool>,
+    /// trackWaitEvents property.
+    pub track_wait_events: Option<bool>,
+}
+
+/// `ConnectionPoolConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectionPoolConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// flags property.
+    pub flags: Option<serde_json::Value>,
+    /// poolerCount property.
+    pub pooler_count: Option<i64>,
+}
+
+/// `ReadPoolConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReadPoolConfig {
+    /// nodeCount property.
+    pub node_count: Option<i64>,
+}
+
+/// `Node` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Node {
+    /// id property.
+    pub id: Option<String>,
+    /// ip property.
+    pub ip: Option<String>,
+    /// isHotStandby property.
+    pub is_hot_standby: Option<bool>,
+    /// state property.
+    pub state: Option<String>,
+    /// zoneId property.
+    pub zone_id: Option<String>,
+}
+
 /// `PscInstanceConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PscInstanceConfig {
@@ -262,13 +232,44 @@ pub struct PscInstanceConfig {
     pub service_attachment_link: Option<String>,
 }
 
-/// `ClientConnectionConfig` type.
+/// `PscAutoConnectionConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClientConnectionConfig {
-    /// requireConnectors property.
-    pub require_connectors: Option<bool>,
-    /// sslConfig property.
-    pub ssl_config: Option<SslConfig>,
+pub struct PscAutoConnectionConfig {
+    /// consumerNetwork property.
+    pub consumer_network: Option<String>,
+    /// consumerNetworkStatus property.
+    pub consumer_network_status: Option<String>,
+    /// consumerProject property.
+    pub consumer_project: Option<String>,
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `PscInterfaceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PscInterfaceConfig {
+    /// networkAttachmentResource property.
+    pub network_attachment_resource: Option<String>,
+}
+
+/// `AuthorizedNetwork` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthorizedNetwork {
+    /// cidrRange property.
+    pub cidr_range: Option<String>,
 }
 
 // =============================================================================

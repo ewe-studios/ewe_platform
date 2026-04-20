@@ -12,23 +12,138 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudPolicysimulatorV1AccessStateDiff` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicysimulatorV1AccessStateDiff {
+    /// accessChange property.
+    pub access_change: Option<String>,
+    /// baseline property.
+    pub baseline: Option<GoogleCloudPolicysimulatorV1ExplainedAccess>,
+    /// simulated property.
+    pub simulated: Option<GoogleCloudPolicysimulatorV1ExplainedAccess>,
+}
+
+/// `GoogleIamV1Policy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1Policy {
+    /// auditConfigs property.
+    pub audit_configs: Option<Vec<GoogleIamV1AuditConfig>>,
+    /// bindings property.
+    pub bindings: Option<Vec<GoogleIamV1Binding>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// version property.
+    pub version: Option<i64>,
+}
 
 /// `GoogleCloudPolicysimulatorV1ReplayDiff` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1ReplayDiff {
     /// accessDiff property.
     pub access_diff: Option<GoogleCloudPolicysimulatorV1AccessStateDiff>,
+}
+
+/// `GoogleTypeDate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeDate {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `GoogleCloudPolicysimulatorV1ListReplayResultsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicysimulatorV1ListReplayResultsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// replayResults property.
+    pub replay_results: Option<Vec<GoogleCloudPolicysimulatorV1ReplayResult>>,
+}
+
+/// `GoogleIamV1AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `GoogleIamV1Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1Binding {
+    /// condition property.
+    pub condition: Option<GoogleTypeExpr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `GoogleCloudPolicysimulatorV1AccessTuple` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicysimulatorV1AccessTuple {
+    /// fullResourceName property.
+    pub full_resource_name: Option<String>,
+    /// permission property.
+    pub permission: Option<String>,
+    /// principal property.
+    pub principal: Option<String>,
+}
+
+/// `GoogleCloudPolicysimulatorV1ExplainedAccess` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicysimulatorV1ExplainedAccess {
+    /// accessState property.
+    pub access_state: Option<String>,
+    /// errors property.
+    pub errors: Option<Vec<GoogleRpcStatus>>,
+    /// policies property.
+    pub policies: Option<Vec<GoogleCloudPolicysimulatorV1ExplainedPolicy>>,
+}
+
+/// `GoogleTypeExpr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeExpr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleCloudPolicysimulatorV1ExplainedPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudPolicysimulatorV1ExplainedPolicy {
+    /// access property.
+    pub access: Option<String>,
+    /// bindingExplanations property.
+    pub binding_explanations: Option<Vec<GoogleCloudPolicysimulatorV1BindingExplanation>>,
+    /// fullResourceName property.
+    pub full_resource_name: Option<String>,
+    /// policy property.
+    pub policy: Option<GoogleIamV1Policy>,
+    /// relevance property.
+    pub relevance: Option<String>,
 }
 
 /// `GoogleCloudPolicysimulatorV1ReplayResult` type.
@@ -48,50 +163,6 @@ pub struct GoogleCloudPolicysimulatorV1ReplayResult {
     pub parent: Option<String>,
 }
 
-/// `GoogleTypeDate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeDate {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `GoogleTypeExpr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeExpr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleCloudPolicysimulatorV1ExplainedAccess` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicysimulatorV1ExplainedAccess {
-    /// accessState property.
-    pub access_state: Option<String>,
-    /// errors property.
-    pub errors: Option<Vec<GoogleRpcStatus>>,
-    /// policies property.
-    pub policies: Option<Vec<GoogleCloudPolicysimulatorV1ExplainedPolicy>>,
-}
-
-/// `GoogleIamV1AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
 /// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
@@ -103,72 +174,13 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `GoogleIamV1AuditConfig` type.
+/// `GoogleIamV1AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `GoogleIamV1Policy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Policy {
-    /// auditConfigs property.
-    pub audit_configs: Option<Vec<GoogleIamV1AuditConfig>>,
-    /// bindings property.
-    pub bindings: Option<Vec<GoogleIamV1Binding>>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// version property.
-    pub version: Option<i64>,
-}
-
-/// `GoogleCloudPolicysimulatorV1ListReplayResultsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicysimulatorV1ListReplayResultsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// replayResults property.
-    pub replay_results: Option<Vec<GoogleCloudPolicysimulatorV1ReplayResult>>,
-}
-
-/// `GoogleCloudPolicysimulatorV1AccessStateDiff` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicysimulatorV1AccessStateDiff {
-    /// accessChange property.
-    pub access_change: Option<String>,
-    /// baseline property.
-    pub baseline: Option<GoogleCloudPolicysimulatorV1ExplainedAccess>,
-    /// simulated property.
-    pub simulated: Option<GoogleCloudPolicysimulatorV1ExplainedAccess>,
-}
-
-/// `GoogleCloudPolicysimulatorV1ExplainedPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicysimulatorV1ExplainedPolicy {
-    /// access property.
-    pub access: Option<String>,
-    /// bindingExplanations property.
-    pub binding_explanations: Option<Vec<GoogleCloudPolicysimulatorV1BindingExplanation>>,
-    /// fullResourceName property.
-    pub full_resource_name: Option<String>,
-    /// policy property.
-    pub policy: Option<GoogleIamV1Policy>,
-    /// relevance property.
-    pub relevance: Option<String>,
-}
-
-/// `GoogleIamV1Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Binding {
-    /// condition property.
-    pub condition: Option<GoogleTypeExpr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct GoogleIamV1AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
 /// `GoogleCloudPolicysimulatorV1BindingExplanation` type.
@@ -188,17 +200,6 @@ pub struct GoogleCloudPolicysimulatorV1BindingExplanation {
     pub role_permission: Option<String>,
     /// rolePermissionRelevance property.
     pub role_permission_relevance: Option<String>,
-}
-
-/// `GoogleCloudPolicysimulatorV1AccessTuple` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudPolicysimulatorV1AccessTuple {
-    /// fullResourceName property.
-    pub full_resource_name: Option<String>,
-    /// permission property.
-    pub permission: Option<String>,
-    /// principal property.
-    pub principal: Option<String>,
 }
 
 // =============================================================================

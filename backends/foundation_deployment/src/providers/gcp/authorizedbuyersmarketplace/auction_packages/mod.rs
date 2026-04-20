@@ -12,17 +12,40 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `MediaPlanner` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MediaPlanner {
+    /// accountId property.
+    pub account_id: Option<String>,
+    /// ancestorNames property.
+    pub ancestor_names: Option<Vec<String>>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `ListAuctionPackagesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAuctionPackagesResponse {
+    /// auctionPackages property.
+    pub auction_packages: Option<Vec<AuctionPackage>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `AuctionPackage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -62,28 +85,6 @@ pub struct Money {
     pub nanos: Option<i64>,
     /// units property.
     pub units: Option<String>,
-}
-
-/// `ListAuctionPackagesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAuctionPackagesResponse {
-    /// auctionPackages property.
-    pub auction_packages: Option<Vec<AuctionPackage>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `MediaPlanner` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MediaPlanner {
-    /// accountId property.
-    pub account_id: Option<String>,
-    /// ancestorNames property.
-    pub ancestor_names: Option<Vec<String>>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
 }
 
 // =============================================================================

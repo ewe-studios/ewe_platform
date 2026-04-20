@@ -12,23 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::UploadRef;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `BatchUpdatePhotosResponse` type.
+/// `Connection` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BatchUpdatePhotosResponse {
-    /// results property.
-    pub results: Option<Vec<PhotoResponse>>,
+pub struct Connection {
+    /// target property.
+    pub target: Option<PhotoId>,
 }
 
 /// `PhotoId` type.
@@ -38,11 +42,72 @@ pub struct PhotoId {
     pub id: Option<String>,
 }
 
-/// `Connection` type.
+/// `Place` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Connection {
-    /// target property.
-    pub target: Option<PhotoId>,
+pub struct Place {
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// placeId property.
+    pub place_id: Option<String>,
+}
+
+/// `LatLng` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LatLng {
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `PhotoResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PhotoResponse {
+    /// photo property.
+    pub photo: Option<Photo>,
+    /// status property.
+    pub status: Option<Status>,
+}
+
+/// `Pose` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Pose {
+    /// accuracyMeters property.
+    pub accuracy_meters: Option<f64>,
+    /// altitude property.
+    pub altitude: Option<f64>,
+    /// gpsRecordTimestampUnixEpoch property.
+    pub gps_record_timestamp_unix_epoch: Option<String>,
+    /// heading property.
+    pub heading: Option<f64>,
+    /// latLngPair property.
+    pub lat_lng_pair: Option<LatLng>,
+    /// level property.
+    pub level: Option<Level>,
+    /// pitch property.
+    pub pitch: Option<f64>,
+    /// roll property.
+    pub roll: Option<f64>,
+}
+
+/// `BatchUpdatePhotosResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BatchUpdatePhotosResponse {
+    /// results property.
+    pub results: Option<Vec<PhotoResponse>>,
 }
 
 /// `Photo` type.
@@ -76,56 +141,6 @@ pub struct Photo {
     pub view_count: Option<String>,
 }
 
-/// `Pose` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Pose {
-    /// accuracyMeters property.
-    pub accuracy_meters: Option<f64>,
-    /// altitude property.
-    pub altitude: Option<f64>,
-    /// gpsRecordTimestampUnixEpoch property.
-    pub gps_record_timestamp_unix_epoch: Option<String>,
-    /// heading property.
-    pub heading: Option<f64>,
-    /// latLngPair property.
-    pub lat_lng_pair: Option<LatLng>,
-    /// level property.
-    pub level: Option<Level>,
-    /// pitch property.
-    pub pitch: Option<f64>,
-    /// roll property.
-    pub roll: Option<f64>,
-}
-
-/// `Place` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Place {
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// placeId property.
-    pub place_id: Option<String>,
-}
-
-/// `LatLng` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LatLng {
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
-}
-
-/// `PhotoResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PhotoResponse {
-    /// photo property.
-    pub photo: Option<Photo>,
-    /// status property.
-    pub status: Option<Status>,
-}
-
 /// `Level` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Level {
@@ -133,17 +148,6 @@ pub struct Level {
     pub name: Option<String>,
     /// number property.
     pub number: Option<f64>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 // =============================================================================

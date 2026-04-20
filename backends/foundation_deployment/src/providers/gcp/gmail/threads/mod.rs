@@ -12,20 +12,39 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
+use super::shared::Message;
 use super::shared::Thread;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `MessagePart` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MessagePart {
+    /// body property.
+    pub body: Option<MessagePartBody>,
+    /// filename property.
+    pub filename: Option<String>,
+    /// headers property.
+    pub headers: Option<Vec<MessagePartHeader>>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+    /// partId property.
+    pub part_id: Option<String>,
+    /// parts property.
+    pub parts: Option<Vec<Box<MessagePart>>>,
+}
 
 /// `MessagePartBody` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -58,32 +77,6 @@ pub struct ClassificationLabelFieldValue {
     pub selection: Option<String>,
 }
 
-/// `ClassificationLabelValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClassificationLabelValue {
-    /// fields property.
-    pub fields: Option<Vec<ClassificationLabelFieldValue>>,
-    /// labelId property.
-    pub label_id: Option<String>,
-}
-
-/// `MessagePart` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MessagePart {
-    /// body property.
-    pub body: Option<MessagePartBody>,
-    /// filename property.
-    pub filename: Option<String>,
-    /// headers property.
-    pub headers: Option<Vec<MessagePartHeader>>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-    /// partId property.
-    pub part_id: Option<String>,
-    /// parts property.
-    pub parts: Option<Vec<MessagePart>>,
-}
-
 /// `MessagePartHeader` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MessagePartHeader {
@@ -91,6 +84,15 @@ pub struct MessagePartHeader {
     pub name: Option<String>,
     /// value property.
     pub value: Option<String>,
+}
+
+/// `ClassificationLabelValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClassificationLabelValue {
+    /// fields property.
+    pub fields: Option<Vec<ClassificationLabelFieldValue>>,
+    /// labelId property.
+    pub label_id: Option<String>,
 }
 
 // =============================================================================

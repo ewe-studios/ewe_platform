@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,42 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `V2BrowserKeyRestrictions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V2BrowserKeyRestrictions {
-    /// allowedReferrers property.
-    pub allowed_referrers: Option<Vec<String>>,
-}
-
-/// `V2Restrictions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V2Restrictions {
-    /// androidKeyRestrictions property.
-    pub android_key_restrictions: Option<V2AndroidKeyRestrictions>,
-    /// apiTargets property.
-    pub api_targets: Option<Vec<V2ApiTarget>>,
-    /// browserKeyRestrictions property.
-    pub browser_key_restrictions: Option<V2BrowserKeyRestrictions>,
-    /// iosKeyRestrictions property.
-    pub ios_key_restrictions: Option<V2IosKeyRestrictions>,
-    /// serverKeyRestrictions property.
-    pub server_key_restrictions: Option<V2ServerKeyRestrictions>,
-}
-
-/// `V2ListKeysResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V2ListKeysResponse {
-    /// keys property.
-    pub keys: Option<Vec<V2Key>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `V2IosKeyRestrictions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -90,22 +60,26 @@ pub struct V2AndroidApplication {
     pub sha1_fingerprint: Option<String>,
 }
 
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
 /// `V2AndroidKeyRestrictions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V2AndroidKeyRestrictions {
     /// allowedApplications property.
     pub allowed_applications: Option<Vec<V2AndroidApplication>>,
+}
+
+/// `V2Restrictions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct V2Restrictions {
+    /// androidKeyRestrictions property.
+    pub android_key_restrictions: Option<V2AndroidKeyRestrictions>,
+    /// apiTargets property.
+    pub api_targets: Option<Vec<V2ApiTarget>>,
+    /// browserKeyRestrictions property.
+    pub browser_key_restrictions: Option<V2BrowserKeyRestrictions>,
+    /// iosKeyRestrictions property.
+    pub ios_key_restrictions: Option<V2IosKeyRestrictions>,
+    /// serverKeyRestrictions property.
+    pub server_key_restrictions: Option<V2ServerKeyRestrictions>,
 }
 
 /// `V2Key` type.
@@ -133,6 +107,33 @@ pub struct V2Key {
     pub uid: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
+}
+
+/// `V2BrowserKeyRestrictions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct V2BrowserKeyRestrictions {
+    /// allowedReferrers property.
+    pub allowed_referrers: Option<Vec<String>>,
+}
+
+/// `V2ListKeysResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct V2ListKeysResponse {
+    /// keys property.
+    pub keys: Option<Vec<V2Key>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

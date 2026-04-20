@@ -12,17 +12,31 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Reference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Reference {
+    /// kind property.
+    pub kind: Option<String>,
+    /// referenceType property.
+    pub reference_type: Option<String>,
+    /// referrer property.
+    pub referrer: Option<String>,
+    /// target property.
+    pub target: Option<String>,
+}
 
 /// `InstanceListReferrers` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -39,19 +53,6 @@ pub struct InstanceListReferrers {
     pub self_link: Option<String>,
     /// warning property.
     pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `Reference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Reference {
-    /// kind property.
-    pub kind: Option<String>,
-    /// referenceType property.
-    pub reference_type: Option<String>,
-    /// referrer property.
-    pub referrer: Option<String>,
-    /// target property.
-    pub target: Option<String>,
 }
 
 // =============================================================================

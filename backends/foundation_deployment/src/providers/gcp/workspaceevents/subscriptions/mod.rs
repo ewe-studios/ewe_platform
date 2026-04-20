@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,20 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `PayloadOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PayloadOptions {
+    /// fieldMask property.
+    pub field_mask: Option<String>,
+    /// includeResource property.
+    pub include_resource: Option<bool>,
+}
 
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -38,15 +48,6 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `ListSubscriptionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSubscriptionsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// subscriptions property.
-    pub subscriptions: Option<Vec<Subscription>>,
-}
-
 /// `NotificationEndpoint` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotificationEndpoint {
@@ -54,13 +55,13 @@ pub struct NotificationEndpoint {
     pub pubsub_topic: Option<String>,
 }
 
-/// `PayloadOptions` type.
+/// `ListSubscriptionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PayloadOptions {
-    /// fieldMask property.
-    pub field_mask: Option<String>,
-    /// includeResource property.
-    pub include_resource: Option<bool>,
+pub struct ListSubscriptionsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// subscriptions property.
+    pub subscriptions: Option<Vec<Subscription>>,
 }
 
 /// `Subscription` type.

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,166 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `OAuthCredential` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OAuthCredential {
-    /// oauthTokenSecretVersion property.
-    pub oauth_token_secret_version: Option<String>,
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `ListConnectionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListConnectionsResponse {
-    /// connections property.
-    pub connections: Option<Vec<Connection>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `BitbucketDataCenterConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BitbucketDataCenterConfig {
-    /// authorizerCredential property.
-    pub authorizer_credential: Option<UserCredential>,
-    /// hostUri property.
-    pub host_uri: Option<String>,
-    /// readAuthorizerCredential property.
-    pub read_authorizer_credential: Option<UserCredential>,
-    /// serverVersion property.
-    pub server_version: Option<String>,
-    /// serviceDirectoryConfig property.
-    pub service_directory_config: Option<GoogleDevtoolsCloudbuildV2ServiceDirectoryConfig>,
-    /// sslCa property.
-    pub ssl_ca: Option<String>,
-    /// webhookSecretSecretVersion property.
-    pub webhook_secret_secret_version: Option<String>,
-}
-
-/// `GoogleDevtoolsCloudbuildV2ServiceDirectoryConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleDevtoolsCloudbuildV2ServiceDirectoryConfig {
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `GoogleDevtoolsCloudbuildV2GitHubEnterpriseConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleDevtoolsCloudbuildV2GitHubEnterpriseConfig {
-    /// apiKey property.
-    pub api_key: Option<String>,
-    /// appId property.
-    pub app_id: Option<String>,
-    /// appInstallationId property.
-    pub app_installation_id: Option<String>,
-    /// appSlug property.
-    pub app_slug: Option<String>,
-    /// hostUri property.
-    pub host_uri: Option<String>,
-    /// privateKeySecretVersion property.
-    pub private_key_secret_version: Option<String>,
-    /// serverVersion property.
-    pub server_version: Option<String>,
-    /// serviceDirectoryConfig property.
-    pub service_directory_config: Option<GoogleDevtoolsCloudbuildV2ServiceDirectoryConfig>,
-    /// sslCa property.
-    pub ssl_ca: Option<String>,
-    /// webhookSecretSecretVersion property.
-    pub webhook_secret_secret_version: Option<String>,
-}
-
-/// `FetchLinkableRepositoriesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FetchLinkableRepositoriesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// repositories property.
-    pub repositories: Option<Vec<Repository>>,
-}
-
-/// `Policy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Policy {
-    /// auditConfigs property.
-    pub audit_configs: Option<Vec<AuditConfig>>,
-    /// bindings property.
-    pub bindings: Option<Vec<Binding>>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// version property.
-    pub version: Option<i64>,
-}
-
-/// `BitbucketCloudConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BitbucketCloudConfig {
-    /// authorizerCredential property.
-    pub authorizer_credential: Option<UserCredential>,
-    /// readAuthorizerCredential property.
-    pub read_authorizer_credential: Option<UserCredential>,
-    /// webhookSecretSecretVersion property.
-    pub webhook_secret_secret_version: Option<String>,
-    /// workspace property.
-    pub workspace: Option<String>,
-}
-
-/// `TestIamPermissionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestIamPermissionsResponse {
-    /// permissions property.
-    pub permissions: Option<Vec<String>>,
-}
-
-/// `Connection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Connection {
-    /// annotations property.
-    pub annotations: Option<serde_json::Value>,
-    /// bitbucketCloudConfig property.
-    pub bitbucket_cloud_config: Option<BitbucketCloudConfig>,
-    /// bitbucketDataCenterConfig property.
-    pub bitbucket_data_center_config: Option<BitbucketDataCenterConfig>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// githubConfig property.
-    pub github_config: Option<GitHubConfig>,
-    /// githubEnterpriseConfig property.
-    pub github_enterprise_config: Option<GoogleDevtoolsCloudbuildV2GitHubEnterpriseConfig>,
-    /// gitlabConfig property.
-    pub gitlab_config: Option<GoogleDevtoolsCloudbuildV2GitLabConfig>,
-    /// installationState property.
-    pub installation_state: Option<InstallationState>,
-    /// name property.
-    pub name: Option<String>,
-    /// reconciling property.
-    pub reconciling: Option<bool>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
 
 /// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -191,66 +37,6 @@ pub struct Binding {
     pub members: Option<Vec<String>>,
     /// role property.
     pub role: Option<String>,
-}
-
-/// `UserCredential` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UserCredential {
-    /// userTokenSecretVersion property.
-    pub user_token_secret_version: Option<String>,
-    /// username property.
-    pub username: Option<String>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `GitHubConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GitHubConfig {
-    /// appInstallationId property.
-    pub app_installation_id: Option<String>,
-    /// authorizerCredential property.
-    pub authorizer_credential: Option<OAuthCredential>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `InstallationState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstallationState {
-    /// actionUri property.
-    pub action_uri: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// stage property.
-    pub stage: Option<String>,
 }
 
 /// `GoogleDevtoolsCloudbuildV2GitLabConfig` type.
@@ -289,6 +75,221 @@ pub struct Repository {
     pub update_time: Option<String>,
     /// webhookId property.
     pub webhook_id: Option<String>,
+}
+
+/// `BitbucketCloudConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BitbucketCloudConfig {
+    /// authorizerCredential property.
+    pub authorizer_credential: Option<UserCredential>,
+    /// readAuthorizerCredential property.
+    pub read_authorizer_credential: Option<UserCredential>,
+    /// webhookSecretSecretVersion property.
+    pub webhook_secret_secret_version: Option<String>,
+    /// workspace property.
+    pub workspace: Option<String>,
+}
+
+/// `Policy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Policy {
+    /// auditConfigs property.
+    pub audit_configs: Option<Vec<AuditConfig>>,
+    /// bindings property.
+    pub bindings: Option<Vec<Binding>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// version property.
+    pub version: Option<i64>,
+}
+
+/// `UserCredential` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UserCredential {
+    /// userTokenSecretVersion property.
+    pub user_token_secret_version: Option<String>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `FetchLinkableRepositoriesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FetchLinkableRepositoriesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// repositories property.
+    pub repositories: Option<Vec<Repository>>,
+}
+
+/// `GitHubConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GitHubConfig {
+    /// appInstallationId property.
+    pub app_installation_id: Option<String>,
+    /// authorizerCredential property.
+    pub authorizer_credential: Option<OAuthCredential>,
+}
+
+/// `TestIamPermissionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TestIamPermissionsResponse {
+    /// permissions property.
+    pub permissions: Option<Vec<String>>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `InstallationState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstallationState {
+    /// actionUri property.
+    pub action_uri: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// stage property.
+    pub stage: Option<String>,
+}
+
+/// `BitbucketDataCenterConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BitbucketDataCenterConfig {
+    /// authorizerCredential property.
+    pub authorizer_credential: Option<UserCredential>,
+    /// hostUri property.
+    pub host_uri: Option<String>,
+    /// readAuthorizerCredential property.
+    pub read_authorizer_credential: Option<UserCredential>,
+    /// serverVersion property.
+    pub server_version: Option<String>,
+    /// serviceDirectoryConfig property.
+    pub service_directory_config: Option<GoogleDevtoolsCloudbuildV2ServiceDirectoryConfig>,
+    /// sslCa property.
+    pub ssl_ca: Option<String>,
+    /// webhookSecretSecretVersion property.
+    pub webhook_secret_secret_version: Option<String>,
+}
+
+/// `ListConnectionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListConnectionsResponse {
+    /// connections property.
+    pub connections: Option<Vec<Connection>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `GoogleDevtoolsCloudbuildV2GitHubEnterpriseConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleDevtoolsCloudbuildV2GitHubEnterpriseConfig {
+    /// apiKey property.
+    pub api_key: Option<String>,
+    /// appId property.
+    pub app_id: Option<String>,
+    /// appInstallationId property.
+    pub app_installation_id: Option<String>,
+    /// appSlug property.
+    pub app_slug: Option<String>,
+    /// hostUri property.
+    pub host_uri: Option<String>,
+    /// privateKeySecretVersion property.
+    pub private_key_secret_version: Option<String>,
+    /// serverVersion property.
+    pub server_version: Option<String>,
+    /// serviceDirectoryConfig property.
+    pub service_directory_config: Option<GoogleDevtoolsCloudbuildV2ServiceDirectoryConfig>,
+    /// sslCa property.
+    pub ssl_ca: Option<String>,
+    /// webhookSecretSecretVersion property.
+    pub webhook_secret_secret_version: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `OAuthCredential` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OAuthCredential {
+    /// oauthTokenSecretVersion property.
+    pub oauth_token_secret_version: Option<String>,
+    /// username property.
+    pub username: Option<String>,
+}
+
+/// `Connection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Connection {
+    /// annotations property.
+    pub annotations: Option<serde_json::Value>,
+    /// bitbucketCloudConfig property.
+    pub bitbucket_cloud_config: Option<BitbucketCloudConfig>,
+    /// bitbucketDataCenterConfig property.
+    pub bitbucket_data_center_config: Option<BitbucketDataCenterConfig>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// githubConfig property.
+    pub github_config: Option<GitHubConfig>,
+    /// githubEnterpriseConfig property.
+    pub github_enterprise_config: Option<GoogleDevtoolsCloudbuildV2GitHubEnterpriseConfig>,
+    /// gitlabConfig property.
+    pub gitlab_config: Option<GoogleDevtoolsCloudbuildV2GitLabConfig>,
+    /// installationState property.
+    pub installation_state: Option<InstallationState>,
+    /// name property.
+    pub name: Option<String>,
+    /// reconciling property.
+    pub reconciling: Option<bool>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `GoogleDevtoolsCloudbuildV2ServiceDirectoryConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleDevtoolsCloudbuildV2ServiceDirectoryConfig {
+    /// service property.
+    pub service: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,29 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ResourceStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceStatus {
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `ListEvaluationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListEvaluationsResponse {
+    /// evaluations property.
+    pub evaluations: Option<Vec<Evaluation>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
 
 /// `Evaluation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -58,6 +77,24 @@ pub struct Evaluation {
     pub update_time: Option<String>,
 }
 
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GceInstanceFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GceInstanceFilter {
+    /// serviceAccounts property.
+    pub service_accounts: Option<Vec<String>>,
+}
+
 /// `BigQueryDestination` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BigQueryDestination {
@@ -78,42 +115,6 @@ pub struct ResourceFilter {
     pub resource_id_patterns: Option<Vec<String>>,
     /// scopes property.
     pub scopes: Option<Vec<String>>,
-}
-
-/// `ListEvaluationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListEvaluationsResponse {
-    /// evaluations property.
-    pub evaluations: Option<Vec<Evaluation>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `GceInstanceFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GceInstanceFilter {
-    /// serviceAccounts property.
-    pub service_accounts: Option<Vec<String>>,
-}
-
-/// `ResourceStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceStatus {
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 // =============================================================================

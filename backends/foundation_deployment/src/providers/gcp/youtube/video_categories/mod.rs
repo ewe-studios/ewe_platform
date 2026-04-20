@@ -12,17 +12,33 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `TokenPagination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TokenPagination {}
+
+/// `VideoCategorySnippet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoCategorySnippet {
+    /// assignable property.
+    pub assignable: Option<bool>,
+    /// channelId property.
+    pub channel_id: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
 
 /// `VideoCategory` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -35,17 +51,6 @@ pub struct VideoCategory {
     pub kind: Option<String>,
     /// snippet property.
     pub snippet: Option<VideoCategorySnippet>,
-}
-
-/// `VideoCategorySnippet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoCategorySnippet {
-    /// assignable property.
-    pub assignable: Option<bool>,
-    /// channelId property.
-    pub channel_id: Option<String>,
-    /// title property.
-    pub title: Option<String>,
 }
 
 /// `VideoCategoryListResponse` type.
@@ -70,10 +75,6 @@ pub struct VideoCategoryListResponse {
     /// visitorId property.
     pub visitor_id: Option<String>,
 }
-
-/// `TokenPagination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TokenPagination {}
 
 /// `PageInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

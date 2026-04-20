@@ -12,17 +12,67 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Drive;
+use super::shared::File;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `TeamDrive` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TeamDrive {
+    /// backgroundImageFile property.
+    pub background_image_file: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// backgroundImageLink property.
+    pub background_image_link: Option<String>,
+    /// capabilities property.
+    pub capabilities: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// colorRgb property.
+    pub color_rgb: Option<String>,
+    /// createdTime property.
+    pub created_time: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// orgUnitId property.
+    pub org_unit_id: Option<String>,
+    /// restrictions property.
+    pub restrictions: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// themeId property.
+    pub theme_id: Option<String>,
+}
+
+/// `ClientEncryptionDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClientEncryptionDetails {
+    /// decryptionMetadata property.
+    pub decryption_metadata: Option<DecryptionMetadata>,
+    /// encryptionState property.
+    pub encryption_state: Option<String>,
+}
+
+/// `DownloadRestriction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DownloadRestriction {
+    /// restrictedForReaders property.
+    pub restricted_for_readers: Option<bool>,
+    /// restrictedForWriters property.
+    pub restricted_for_writers: Option<bool>,
+}
 
 /// `User` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -39,6 +89,34 @@ pub struct User {
     pub permission_id: Option<String>,
     /// photoLink property.
     pub photo_link: Option<String>,
+}
+
+/// `ContentRestriction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContentRestriction {
+    /// ownerRestricted property.
+    pub owner_restricted: Option<bool>,
+    /// readOnly property.
+    pub read_only: Option<bool>,
+    /// reason property.
+    pub reason: Option<String>,
+    /// restrictingUser property.
+    pub restricting_user: Option<User>,
+    /// restrictionTime property.
+    pub restriction_time: Option<String>,
+    /// systemRestricted property.
+    pub system_restricted: Option<bool>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `DownloadRestrictionsMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DownloadRestrictionsMetadata {
+    /// effectiveDownloadRestrictionWithContext property.
+    pub effective_download_restriction_with_context: Option<DownloadRestriction>,
+    /// itemDownloadRestriction property.
+    pub item_download_restriction: Option<DownloadRestriction>,
 }
 
 /// `Permission` type.
@@ -79,6 +157,32 @@ pub struct Permission {
     pub view: Option<String>,
 }
 
+/// `ChangeList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChangeList {
+    /// changes property.
+    pub changes: Option<Vec<Change>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// newStartPageToken property.
+    pub new_start_page_token: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `Label` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Label {
+    /// fields property.
+    pub fields: Option<serde_json::Value>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// revisionId property.
+    pub revision_id: Option<String>,
+}
+
 /// `DecryptionMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DecryptionMetadata {
@@ -96,28 +200,6 @@ pub struct DecryptionMetadata {
     pub key_format: Option<String>,
     /// wrappedKey property.
     pub wrapped_key: Option<String>,
-}
-
-/// `ChangeList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChangeList {
-    /// changes property.
-    pub changes: Option<Vec<Change>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// newStartPageToken property.
-    pub new_start_page_token: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `ClientEncryptionDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClientEncryptionDetails {
-    /// decryptionMetadata property.
-    pub decryption_metadata: Option<DecryptionMetadata>,
-    /// encryptionState property.
-    pub encryption_state: Option<String>,
 }
 
 /// `Change` type.
@@ -145,83 +227,6 @@ pub struct Change {
     pub time: Option<String>,
     /// type property.
     pub r#type: Option<String>,
-}
-
-/// `DownloadRestriction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DownloadRestriction {
-    /// restrictedForReaders property.
-    pub restricted_for_readers: Option<bool>,
-    /// restrictedForWriters property.
-    pub restricted_for_writers: Option<bool>,
-}
-
-/// `TeamDrive` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TeamDrive {
-    /// backgroundImageFile property.
-    pub background_image_file: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// backgroundImageLink property.
-    pub background_image_link: Option<String>,
-    /// capabilities property.
-    pub capabilities: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// colorRgb property.
-    pub color_rgb: Option<String>,
-    /// createdTime property.
-    pub created_time: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// orgUnitId property.
-    pub org_unit_id: Option<String>,
-    /// restrictions property.
-    pub restrictions: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// themeId property.
-    pub theme_id: Option<String>,
-}
-
-/// `DownloadRestrictionsMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DownloadRestrictionsMetadata {
-    /// effectiveDownloadRestrictionWithContext property.
-    pub effective_download_restriction_with_context: Option<DownloadRestriction>,
-    /// itemDownloadRestriction property.
-    pub item_download_restriction: Option<DownloadRestriction>,
-}
-
-/// `ContentRestriction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContentRestriction {
-    /// ownerRestricted property.
-    pub owner_restricted: Option<bool>,
-    /// readOnly property.
-    pub read_only: Option<bool>,
-    /// reason property.
-    pub reason: Option<String>,
-    /// restrictingUser property.
-    pub restricting_user: Option<User>,
-    /// restrictionTime property.
-    pub restriction_time: Option<String>,
-    /// systemRestricted property.
-    pub system_restricted: Option<bool>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `Label` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Label {
-    /// fields property.
-    pub fields: Option<serde_json::Value>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// revisionId property.
-    pub revision_id: Option<String>,
 }
 
 // =============================================================================

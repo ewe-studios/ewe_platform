@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,11 +23,33 @@ use serde::{Deserialize, Serialize};
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
 
 /// `RowAccessPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,15 +68,6 @@ pub struct RowAccessPolicy {
     pub row_access_policy_reference: Option<RowAccessPolicyReference>,
 }
 
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
 /// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
@@ -65,26 +79,13 @@ pub struct Binding {
     pub role: Option<String>,
 }
 
-/// `Expr` type.
+/// `AuditLogConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `ListRowAccessPoliciesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListRowAccessPoliciesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// rowAccessPolicies property.
-    pub row_access_policies: Option<Vec<RowAccessPolicy>>,
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
 /// `RowAccessPolicyReference` type.
@@ -100,13 +101,13 @@ pub struct RowAccessPolicyReference {
     pub table_id: Option<String>,
 }
 
-/// `AuditLogConfig` type.
+/// `ListRowAccessPoliciesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
+pub struct ListRowAccessPoliciesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// rowAccessPolicies property.
+    pub row_access_policies: Option<Vec<RowAccessPolicy>>,
 }
 
 // =============================================================================

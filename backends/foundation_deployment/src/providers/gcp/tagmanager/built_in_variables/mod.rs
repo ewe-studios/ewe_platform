@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -29,15 +30,6 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 pub struct CreateBuiltInVariableResponse {
     /// builtInVariable property.
     pub built_in_variable: Option<Vec<BuiltInVariable>>,
-}
-
-/// `ListEnabledBuiltInVariablesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListEnabledBuiltInVariablesResponse {
-    /// builtInVariable property.
-    pub built_in_variable: Option<Vec<BuiltInVariable>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 /// `BuiltInVariable` type.
@@ -55,6 +47,15 @@ pub struct BuiltInVariable {
     pub r#type: Option<String>,
     /// workspaceId property.
     pub workspace_id: Option<String>,
+}
+
+/// `ListEnabledBuiltInVariablesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListEnabledBuiltInVariablesResponse {
+    /// builtInVariable property.
+    pub built_in_variable: Option<Vec<BuiltInVariable>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

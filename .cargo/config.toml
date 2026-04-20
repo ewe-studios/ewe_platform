@@ -22,7 +22,7 @@ EMSDK_DIR = { value = "tools/emsdk", relative=true, force = true }
 
 [target.'cfg(target_os = "linux")']
 linker = "clang"
-rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+rustflags = ["-C", "link-arg=-fuse-ld=lld"]
 
 
 [unstable]

@@ -12,21 +12,30 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Empty;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Empty` type.
+/// `ListAlertsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct ListAlertsResponse {
+    /// alerts property.
+    pub alerts: Option<Vec<Alert>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `Alert` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -76,15 +85,6 @@ pub struct AlertMetadata {
     pub status: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `ListAlertsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAlertsResponse {
-    /// alerts property.
-    pub alerts: Option<Vec<Alert>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

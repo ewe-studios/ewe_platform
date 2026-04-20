@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,73 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListInsightsConfigsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListInsightsConfigsResponse {
+    /// insightsConfigs property.
+    pub insights_configs: Option<Vec<InsightsConfig>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `RuntimeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RuntimeConfig {
+    /// appHubService property.
+    pub app_hub_service: Option<AppHubService>,
+    /// appHubWorkload property.
+    pub app_hub_workload: Option<AppHubWorkload>,
+    /// gkeWorkload property.
+    pub gke_workload: Option<GKEWorkload>,
+    /// googleCloudRun property.
+    pub google_cloud_run: Option<GoogleCloudRun>,
+    /// state property.
+    pub state: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `GoogleArtifactAnalysis` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleArtifactAnalysis {
+    /// projectId property.
+    pub project_id: Option<String>,
+}
+
+/// `Projects` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Projects {
+    /// projectIds property.
+    pub project_ids: Option<Vec<String>>,
+}
+
+/// `AppHubWorkload` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppHubWorkload {
+    /// criticality property.
+    pub criticality: Option<String>,
+    /// environment property.
+    pub environment: Option<String>,
+    /// workload property.
+    pub workload: Option<String>,
+}
+
+/// `GKEWorkload` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GKEWorkload {
+    /// cluster property.
+    pub cluster: Option<String>,
+    /// deployment property.
+    pub deployment: Option<String>,
+}
 
 /// `InsightsConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -56,45 +119,6 @@ pub struct InsightsConfig {
     pub update_time: Option<String>,
 }
 
-/// `AppHubWorkload` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppHubWorkload {
-    /// criticality property.
-    pub criticality: Option<String>,
-    /// environment property.
-    pub environment: Option<String>,
-    /// workload property.
-    pub workload: Option<String>,
-}
-
-/// `ListInsightsConfigsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListInsightsConfigsResponse {
-    /// insightsConfigs property.
-    pub insights_configs: Option<Vec<InsightsConfig>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `RuntimeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RuntimeConfig {
-    /// appHubService property.
-    pub app_hub_service: Option<AppHubService>,
-    /// appHubWorkload property.
-    pub app_hub_workload: Option<AppHubWorkload>,
-    /// gkeWorkload property.
-    pub gke_workload: Option<GKEWorkload>,
-    /// googleCloudRun property.
-    pub google_cloud_run: Option<GoogleCloudRun>,
-    /// state property.
-    pub state: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
 /// `AppHubService` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppHubService {
@@ -106,27 +130,11 @@ pub struct AppHubService {
     pub environment: Option<String>,
 }
 
-/// `GKEWorkload` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GKEWorkload {
-    /// cluster property.
-    pub cluster: Option<String>,
-    /// deployment property.
-    pub deployment: Option<String>,
-}
-
 /// `GoogleCloudRun` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRun {
     /// serviceUri property.
     pub service_uri: Option<String>,
-}
-
-/// `GoogleArtifactAnalysis` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleArtifactAnalysis {
-    /// projectId property.
-    pub project_id: Option<String>,
 }
 
 /// `GoogleArtifactRegistry` type.
@@ -138,11 +146,15 @@ pub struct GoogleArtifactRegistry {
     pub project_id: Option<String>,
 }
 
-/// `Projects` type.
+/// `ArtifactConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Projects {
-    /// projectIds property.
-    pub project_ids: Option<Vec<String>>,
+pub struct ArtifactConfig {
+    /// googleArtifactAnalysis property.
+    pub google_artifact_analysis: Option<GoogleArtifactAnalysis>,
+    /// googleArtifactRegistry property.
+    pub google_artifact_registry: Option<GoogleArtifactRegistry>,
+    /// uri property.
+    pub uri: Option<String>,
 }
 
 /// `Status` type.
@@ -154,17 +166,6 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
-}
-
-/// `ArtifactConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArtifactConfig {
-    /// googleArtifactAnalysis property.
-    pub google_artifact_analysis: Option<GoogleArtifactAnalysis>,
-    /// googleArtifactRegistry property.
-    pub google_artifact_registry: Option<GoogleArtifactRegistry>,
-    /// uri property.
-    pub uri: Option<String>,
 }
 
 // =============================================================================

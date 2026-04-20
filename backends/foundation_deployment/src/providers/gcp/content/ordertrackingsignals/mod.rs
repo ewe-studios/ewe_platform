@@ -12,17 +12,41 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `DateTime` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DateTime {
+    /// day property.
+    pub day: Option<i64>,
+    /// hours property.
+    pub hours: Option<i64>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<i64>,
+    /// timeZone property.
+    pub time_zone: Option<TimeZone>,
+    /// utcOffset property.
+    pub utc_offset: Option<String>,
+    /// year property.
+    pub year: Option<i64>,
+}
 
 /// `OrderTrackingSignal` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,13 +73,29 @@ pub struct OrderTrackingSignal {
     pub shipping_info: Option<Vec<OrderTrackingSignalShippingInfo>>,
 }
 
-/// `TimeZone` type.
+/// `OrderTrackingSignalLineItemDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeZone {
-    /// id property.
-    pub id: Option<String>,
-    /// version property.
-    pub version: Option<String>,
+pub struct OrderTrackingSignalLineItemDetails {
+    /// brand property.
+    pub brand: Option<String>,
+    /// gtin property.
+    pub gtin: Option<String>,
+    /// lineItemId property.
+    pub line_item_id: Option<String>,
+    /// mpn property.
+    pub mpn: Option<String>,
+    /// productDescription property.
+    pub product_description: Option<String>,
+    /// productId property.
+    pub product_id: Option<String>,
+    /// productTitle property.
+    pub product_title: Option<String>,
+    /// quantity property.
+    pub quantity: Option<String>,
+    /// sku property.
+    pub sku: Option<String>,
+    /// upc property.
+    pub upc: Option<String>,
 }
 
 /// `PriceAmount` type.
@@ -76,29 +116,6 @@ pub struct OrderTrackingSignalShipmentLineItemMapping {
     pub quantity: Option<String>,
     /// shipmentId property.
     pub shipment_id: Option<String>,
-}
-
-/// `DateTime` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DateTime {
-    /// day property.
-    pub day: Option<i64>,
-    /// hours property.
-    pub hours: Option<i64>,
-    /// minutes property.
-    pub minutes: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<i64>,
-    /// timeZone property.
-    pub time_zone: Option<TimeZone>,
-    /// utcOffset property.
-    pub utc_offset: Option<String>,
-    /// year property.
-    pub year: Option<i64>,
 }
 
 /// `OrderTrackingSignalShippingInfo` type.
@@ -128,29 +145,13 @@ pub struct OrderTrackingSignalShippingInfo {
     pub tracking_id: Option<String>,
 }
 
-/// `OrderTrackingSignalLineItemDetails` type.
+/// `TimeZone` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OrderTrackingSignalLineItemDetails {
-    /// brand property.
-    pub brand: Option<String>,
-    /// gtin property.
-    pub gtin: Option<String>,
-    /// lineItemId property.
-    pub line_item_id: Option<String>,
-    /// mpn property.
-    pub mpn: Option<String>,
-    /// productDescription property.
-    pub product_description: Option<String>,
-    /// productId property.
-    pub product_id: Option<String>,
-    /// productTitle property.
-    pub product_title: Option<String>,
-    /// quantity property.
-    pub quantity: Option<String>,
-    /// sku property.
-    pub sku: Option<String>,
-    /// upc property.
-    pub upc: Option<String>,
+pub struct TimeZone {
+    /// id property.
+    pub id: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
 // =============================================================================

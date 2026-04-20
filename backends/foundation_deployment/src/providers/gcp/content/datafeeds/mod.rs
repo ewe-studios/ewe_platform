@@ -12,17 +12,46 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `DatafeedFormat` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatafeedFormat {
+    /// columnDelimiter property.
+    pub column_delimiter: Option<String>,
+    /// fileEncoding property.
+    pub file_encoding: Option<String>,
+    /// quotingMode property.
+    pub quoting_mode: Option<String>,
+}
+
+/// `DatafeedTarget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatafeedTarget {
+    /// country property.
+    pub country: Option<String>,
+    /// excludedDestinations property.
+    pub excluded_destinations: Option<Vec<String>>,
+    /// feedLabel property.
+    pub feed_label: Option<String>,
+    /// includedDestinations property.
+    pub included_destinations: Option<Vec<String>>,
+    /// language property.
+    pub language: Option<String>,
+    /// targetCountries property.
+    pub target_countries: Option<Vec<String>>,
+}
 
 /// `DatafeedsListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -56,34 +85,6 @@ pub struct Datafeed {
     pub name: Option<String>,
     /// targets property.
     pub targets: Option<Vec<DatafeedTarget>>,
-}
-
-/// `DatafeedTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatafeedTarget {
-    /// country property.
-    pub country: Option<String>,
-    /// excludedDestinations property.
-    pub excluded_destinations: Option<Vec<String>>,
-    /// feedLabel property.
-    pub feed_label: Option<String>,
-    /// includedDestinations property.
-    pub included_destinations: Option<Vec<String>>,
-    /// language property.
-    pub language: Option<String>,
-    /// targetCountries property.
-    pub target_countries: Option<Vec<String>>,
-}
-
-/// `DatafeedFormat` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatafeedFormat {
-    /// columnDelimiter property.
-    pub column_delimiter: Option<String>,
-    /// fileEncoding property.
-    pub file_encoding: Option<String>,
-    /// quotingMode property.
-    pub quoting_mode: Option<String>,
 }
 
 /// `DatafeedFetchSchedule` type.

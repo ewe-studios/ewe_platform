@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,42 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `SparkHistoryServerConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkHistoryServerConfig {
+    /// dataprocCluster property.
+    pub dataproc_cluster: Option<String>,
+}
+
+/// `AuthenticationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthenticationConfig {
+    /// userWorkloadAuthenticationType property.
+    pub user_workload_authentication_type: Option<String>,
+}
+
+/// `RuntimeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RuntimeConfig {
+    /// autotuningConfig property.
+    pub autotuning_config: Option<AutotuningConfig>,
+    /// cohort property.
+    pub cohort: Option<String>,
+    /// containerImage property.
+    pub container_image: Option<String>,
+    /// properties property.
+    pub properties: Option<serde_json::Value>,
+    /// repositoryConfig property.
+    pub repository_config: Option<RepositoryConfig>,
+    /// version property.
+    pub version: Option<String>,
+}
 
 /// `JupyterConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -34,6 +66,71 @@ pub struct JupyterConfig {
     pub display_name: Option<String>,
     /// kernel property.
     pub kernel: Option<String>,
+}
+
+/// `UsageSnapshot` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UsageSnapshot {
+    /// acceleratorType property.
+    pub accelerator_type: Option<String>,
+    /// milliAccelerator property.
+    pub milli_accelerator: Option<String>,
+    /// milliDcu property.
+    pub milli_dcu: Option<String>,
+    /// milliDcuPremium property.
+    pub milli_dcu_premium: Option<String>,
+    /// shuffleStorageGb property.
+    pub shuffle_storage_gb: Option<String>,
+    /// shuffleStorageGbPremium property.
+    pub shuffle_storage_gb_premium: Option<String>,
+    /// snapshotTime property.
+    pub snapshot_time: Option<String>,
+}
+
+/// `RepositoryConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RepositoryConfig {
+    /// pypiRepositoryConfig property.
+    pub pypi_repository_config: Option<PyPiRepositoryConfig>,
+}
+
+/// `RuntimeInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RuntimeInfo {
+    /// approximateUsage property.
+    pub approximate_usage: Option<UsageMetrics>,
+    /// cohortInfo property.
+    pub cohort_info: Option<CohortInfo>,
+    /// currentUsage property.
+    pub current_usage: Option<UsageSnapshot>,
+    /// diagnosticOutputUri property.
+    pub diagnostic_output_uri: Option<String>,
+    /// endpoints property.
+    pub endpoints: Option<serde_json::Value>,
+    /// outputUri property.
+    pub output_uri: Option<String>,
+    /// propertiesInfo property.
+    pub properties_info: Option<PropertiesInfo>,
+}
+
+/// `PeripheralsConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PeripheralsConfig {
+    /// metastoreService property.
+    pub metastore_service: Option<String>,
+    /// sparkHistoryServerConfig property.
+    pub spark_history_server_config: Option<SparkHistoryServerConfig>,
+}
+
+/// `SessionStateHistory` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SessionStateHistory {
+    /// state property.
+    pub state: Option<String>,
+    /// stateMessage property.
+    pub state_message: Option<String>,
+    /// stateStartTime property.
+    pub state_start_time: Option<String>,
 }
 
 /// `Session` type.
@@ -73,30 +170,31 @@ pub struct Session {
     pub uuid: Option<String>,
 }
 
-/// `UsageSnapshot` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UsageSnapshot {
-    /// acceleratorType property.
-    pub accelerator_type: Option<String>,
-    /// milliAccelerator property.
-    pub milli_accelerator: Option<String>,
-    /// milliDcu property.
-    pub milli_dcu: Option<String>,
-    /// milliDcuPremium property.
-    pub milli_dcu_premium: Option<String>,
-    /// shuffleStorageGb property.
-    pub shuffle_storage_gb: Option<String>,
-    /// shuffleStorageGbPremium property.
-    pub shuffle_storage_gb_premium: Option<String>,
-    /// snapshotTime property.
-    pub snapshot_time: Option<String>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
-/// `RepositoryConfig` type.
+/// `PropertiesInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RepositoryConfig {
-    /// pypiRepositoryConfig property.
-    pub pypi_repository_config: Option<PyPiRepositoryConfig>,
+pub struct PropertiesInfo {
+    /// autotuningProperties property.
+    pub autotuning_properties: Option<serde_json::Value>,
+}
+
+/// `CohortInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CohortInfo {
+    /// cohort property.
+    pub cohort: Option<String>,
+    /// cohortSource property.
+    pub cohort_source: Option<String>,
 }
 
 /// `PyPiRepositoryConfig` type.
@@ -106,29 +204,32 @@ pub struct PyPiRepositoryConfig {
     pub pypi_repository: Option<String>,
 }
 
-/// `PeripheralsConfig` type.
+/// `ListSessionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PeripheralsConfig {
-    /// metastoreService property.
-    pub metastore_service: Option<String>,
-    /// sparkHistoryServerConfig property.
-    pub spark_history_server_config: Option<SparkHistoryServerConfig>,
+pub struct ListSessionsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// sessions property.
+    pub sessions: Option<Vec<Session>>,
 }
 
-/// `AuthenticationConfig` type.
+/// `SparkConnectConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthenticationConfig {
-    /// userWorkloadAuthenticationType property.
-    pub user_workload_authentication_type: Option<String>,
-}
+pub struct SparkConnectConfig {}
 
-/// `EnvironmentConfig` type.
+/// `UsageMetrics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnvironmentConfig {
-    /// executionConfig property.
-    pub execution_config: Option<ExecutionConfig>,
-    /// peripheralsConfig property.
-    pub peripherals_config: Option<PeripheralsConfig>,
+pub struct UsageMetrics {
+    /// acceleratorType property.
+    pub accelerator_type: Option<String>,
+    /// milliAcceleratorSeconds property.
+    pub milli_accelerator_seconds: Option<String>,
+    /// milliDcuSeconds property.
+    pub milli_dcu_seconds: Option<String>,
+    /// shuffleStorageGbSeconds property.
+    pub shuffle_storage_gb_seconds: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
 }
 
 /// `AutotuningConfig` type.
@@ -136,23 +237,6 @@ pub struct EnvironmentConfig {
 pub struct AutotuningConfig {
     /// scenarios property.
     pub scenarios: Option<Vec<String>>,
-}
-
-/// `RuntimeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RuntimeConfig {
-    /// autotuningConfig property.
-    pub autotuning_config: Option<AutotuningConfig>,
-    /// cohort property.
-    pub cohort: Option<String>,
-    /// containerImage property.
-    pub container_image: Option<String>,
-    /// properties property.
-    pub properties: Option<serde_json::Value>,
-    /// repositoryConfig property.
-    pub repository_config: Option<RepositoryConfig>,
-    /// version property.
-    pub version: Option<String>,
 }
 
 /// `ExecutionConfig` type.
@@ -178,96 +262,13 @@ pub struct ExecutionConfig {
     pub ttl: Option<String>,
 }
 
-/// `PropertiesInfo` type.
+/// `EnvironmentConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PropertiesInfo {
-    /// autotuningProperties property.
-    pub autotuning_properties: Option<serde_json::Value>,
-}
-
-/// `SparkHistoryServerConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkHistoryServerConfig {
-    /// dataprocCluster property.
-    pub dataproc_cluster: Option<String>,
-}
-
-/// `CohortInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CohortInfo {
-    /// cohort property.
-    pub cohort: Option<String>,
-    /// cohortSource property.
-    pub cohort_source: Option<String>,
-}
-
-/// `SessionStateHistory` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SessionStateHistory {
-    /// state property.
-    pub state: Option<String>,
-    /// stateMessage property.
-    pub state_message: Option<String>,
-    /// stateStartTime property.
-    pub state_start_time: Option<String>,
-}
-
-/// `UsageMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UsageMetrics {
-    /// acceleratorType property.
-    pub accelerator_type: Option<String>,
-    /// milliAcceleratorSeconds property.
-    pub milli_accelerator_seconds: Option<String>,
-    /// milliDcuSeconds property.
-    pub milli_dcu_seconds: Option<String>,
-    /// shuffleStorageGbSeconds property.
-    pub shuffle_storage_gb_seconds: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `RuntimeInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RuntimeInfo {
-    /// approximateUsage property.
-    pub approximate_usage: Option<UsageMetrics>,
-    /// cohortInfo property.
-    pub cohort_info: Option<CohortInfo>,
-    /// currentUsage property.
-    pub current_usage: Option<UsageSnapshot>,
-    /// diagnosticOutputUri property.
-    pub diagnostic_output_uri: Option<String>,
-    /// endpoints property.
-    pub endpoints: Option<serde_json::Value>,
-    /// outputUri property.
-    pub output_uri: Option<String>,
-    /// propertiesInfo property.
-    pub properties_info: Option<PropertiesInfo>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `SparkConnectConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkConnectConfig {}
-
-/// `ListSessionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSessionsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// sessions property.
-    pub sessions: Option<Vec<Session>>,
+pub struct EnvironmentConfig {
+    /// executionConfig property.
+    pub execution_config: Option<ExecutionConfig>,
+    /// peripheralsConfig property.
+    pub peripherals_config: Option<PeripheralsConfig>,
 }
 
 // =============================================================================

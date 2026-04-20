@@ -12,31 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `StatusEvent` type.
+/// `NFS` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StatusEvent {
-    /// description property.
-    pub description: Option<String>,
-    /// eventTime property.
-    pub event_time: Option<String>,
-    /// taskExecution property.
-    pub task_execution: Option<TaskExecution>,
-    /// taskState property.
-    pub task_state: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct NFS {
+    /// remotePath property.
+    pub remote_path: Option<String>,
+    /// server property.
+    pub server: Option<String>,
 }
 
 /// `AgentTask` type.
@@ -65,64 +60,15 @@ pub struct Barrier {
     pub name: Option<String>,
 }
 
-/// `Script` type.
+/// `AgentEnvironment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Script {
-    /// path property.
-    pub path: Option<String>,
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `ActionCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActionCondition {
-    /// exitCodes property.
-    pub exit_codes: Option<Vec<i64>>,
-}
-
-/// `KMSEnvMap` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KMSEnvMap {
-    /// cipherText property.
-    pub cipher_text: Option<String>,
-    /// keyName property.
-    pub key_name: Option<String>,
-}
-
-/// `AgentTaskRunnable` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AgentTaskRunnable {
-    /// alwaysRun property.
-    pub always_run: Option<bool>,
-    /// background property.
-    pub background: Option<bool>,
-    /// container property.
-    pub container: Option<AgentContainer>,
-    /// environment property.
-    pub environment: Option<AgentEnvironment>,
-    /// ignoreExitStatus property.
-    pub ignore_exit_status: Option<bool>,
-    /// script property.
-    pub script: Option<AgentScript>,
-    /// timeout property.
-    pub timeout: Option<String>,
-}
-
-/// `AgentKMSEnvMap` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AgentKMSEnvMap {
-    /// cipherText property.
-    pub cipher_text: Option<String>,
-    /// keyName property.
-    pub key_name: Option<String>,
-}
-
-/// `AgentTaskLoggingOption` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AgentTaskLoggingOption {
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
+pub struct AgentEnvironment {
+    /// encryptedVariables property.
+    pub encrypted_variables: Option<AgentKMSEnvMap>,
+    /// secretVariables property.
+    pub secret_variables: Option<serde_json::Value>,
+    /// variables property.
+    pub variables: Option<serde_json::Value>,
 }
 
 /// `TaskExecution` type.
@@ -130,30 +76,6 @@ pub struct AgentTaskLoggingOption {
 pub struct TaskExecution {
     /// exitCode property.
     pub exit_code: Option<i64>,
-}
-
-/// `ReportAgentStateResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportAgentStateResponse {
-    /// defaultReportInterval property.
-    pub default_report_interval: Option<String>,
-    /// minReportInterval property.
-    pub min_report_interval: Option<String>,
-    /// tasks property.
-    pub tasks: Option<Vec<AgentTask>>,
-    /// useBatchMonitoredResource property.
-    pub use_batch_monitored_resource: Option<bool>,
-}
-
-/// `Environment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Environment {
-    /// encryptedVariables property.
-    pub encrypted_variables: Option<KMSEnvMap>,
-    /// secretVariables property.
-    pub secret_variables: Option<serde_json::Value>,
-    /// variables property.
-    pub variables: Option<serde_json::Value>,
 }
 
 /// `TaskStatus` type.
@@ -165,54 +87,15 @@ pub struct TaskStatus {
     pub status_events: Option<Vec<StatusEvent>>,
 }
 
-/// `AgentScript` type.
+/// `Environment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AgentScript {
-    /// path property.
-    pub path: Option<String>,
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `TaskSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TaskSpec {
-    /// computeResource property.
-    pub compute_resource: Option<ComputeResource>,
-    /// environment property.
-    pub environment: Option<Environment>,
-    /// environments property.
-    pub environments: Option<serde_json::Value>,
-    /// lifecyclePolicies property.
-    pub lifecycle_policies: Option<Vec<LifecyclePolicy>>,
-    /// maxRetryCount property.
-    pub max_retry_count: Option<i64>,
-    /// maxRunDuration property.
-    pub max_run_duration: Option<String>,
-    /// runnables property.
-    pub runnables: Option<Vec<Runnable>>,
-    /// volumes property.
-    pub volumes: Option<Vec<Volume>>,
-}
-
-/// `ComputeResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeResource {
-    /// bootDiskMib property.
-    pub boot_disk_mib: Option<String>,
-    /// cpuMilli property.
-    pub cpu_milli: Option<String>,
-    /// memoryMib property.
-    pub memory_mib: Option<String>,
-}
-
-/// `LifecyclePolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LifecyclePolicy {
-    /// action property.
-    pub action: Option<String>,
-    /// actionCondition property.
-    pub action_condition: Option<ActionCondition>,
+pub struct Environment {
+    /// encryptedVariables property.
+    pub encrypted_variables: Option<KMSEnvMap>,
+    /// secretVariables property.
+    pub secret_variables: Option<serde_json::Value>,
+    /// variables property.
+    pub variables: Option<serde_json::Value>,
 }
 
 /// `Runnable` type.
@@ -240,15 +123,102 @@ pub struct Runnable {
     pub timeout: Option<String>,
 }
 
-/// `AgentEnvironment` type.
+/// `StatusEvent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AgentEnvironment {
-    /// encryptedVariables property.
-    pub encrypted_variables: Option<AgentKMSEnvMap>,
-    /// secretVariables property.
-    pub secret_variables: Option<serde_json::Value>,
-    /// variables property.
-    pub variables: Option<serde_json::Value>,
+pub struct StatusEvent {
+    /// description property.
+    pub description: Option<String>,
+    /// eventTime property.
+    pub event_time: Option<String>,
+    /// taskExecution property.
+    pub task_execution: Option<TaskExecution>,
+    /// taskState property.
+    pub task_state: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ReportAgentStateResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportAgentStateResponse {
+    /// defaultReportInterval property.
+    pub default_report_interval: Option<String>,
+    /// minReportInterval property.
+    pub min_report_interval: Option<String>,
+    /// tasks property.
+    pub tasks: Option<Vec<AgentTask>>,
+    /// useBatchMonitoredResource property.
+    pub use_batch_monitored_resource: Option<bool>,
+}
+
+/// `GCS` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GCS {
+    /// remotePath property.
+    pub remote_path: Option<String>,
+}
+
+/// `TaskSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TaskSpec {
+    /// computeResource property.
+    pub compute_resource: Option<ComputeResource>,
+    /// environment property.
+    pub environment: Option<Environment>,
+    /// environments property.
+    pub environments: Option<serde_json::Value>,
+    /// lifecyclePolicies property.
+    pub lifecycle_policies: Option<Vec<LifecyclePolicy>>,
+    /// maxRetryCount property.
+    pub max_retry_count: Option<i64>,
+    /// maxRunDuration property.
+    pub max_run_duration: Option<String>,
+    /// runnables property.
+    pub runnables: Option<Vec<Runnable>>,
+    /// volumes property.
+    pub volumes: Option<Vec<Volume>>,
+}
+
+/// `ActionCondition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActionCondition {
+    /// exitCodes property.
+    pub exit_codes: Option<Vec<i64>>,
+}
+
+/// `KMSEnvMap` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KMSEnvMap {
+    /// cipherText property.
+    pub cipher_text: Option<String>,
+    /// keyName property.
+    pub key_name: Option<String>,
+}
+
+/// `AgentTaskLoggingOption` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AgentTaskLoggingOption {
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+}
+
+/// `AgentTaskRunnable` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AgentTaskRunnable {
+    /// alwaysRun property.
+    pub always_run: Option<bool>,
+    /// background property.
+    pub background: Option<bool>,
+    /// container property.
+    pub container: Option<AgentContainer>,
+    /// environment property.
+    pub environment: Option<AgentEnvironment>,
+    /// ignoreExitStatus property.
+    pub ignore_exit_status: Option<bool>,
+    /// script property.
+    pub script: Option<AgentScript>,
+    /// timeout property.
+    pub timeout: Option<String>,
 }
 
 /// `AgentTaskUserAccount` type.
@@ -275,6 +245,50 @@ pub struct AgentContainer {
     pub volumes: Option<Vec<String>>,
 }
 
+/// `AgentScript` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AgentScript {
+    /// path property.
+    pub path: Option<String>,
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `ComputeResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeResource {
+    /// bootDiskMib property.
+    pub boot_disk_mib: Option<String>,
+    /// cpuMilli property.
+    pub cpu_milli: Option<String>,
+    /// memoryMib property.
+    pub memory_mib: Option<String>,
+}
+
+/// `LifecyclePolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LifecyclePolicy {
+    /// action property.
+    pub action: Option<String>,
+    /// actionCondition property.
+    pub action_condition: Option<ActionCondition>,
+}
+
+/// `Volume` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Volume {
+    /// deviceName property.
+    pub device_name: Option<String>,
+    /// gcs property.
+    pub gcs: Option<GCS>,
+    /// mountOptions property.
+    pub mount_options: Option<Vec<String>>,
+    /// mountPath property.
+    pub mount_path: Option<String>,
+    /// nfs property.
+    pub nfs: Option<NFS>,
+}
+
 /// `Container` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Container {
@@ -298,35 +312,22 @@ pub struct Container {
     pub volumes: Option<Vec<String>>,
 }
 
-/// `GCS` type.
+/// `Script` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GCS {
-    /// remotePath property.
-    pub remote_path: Option<String>,
+pub struct Script {
+    /// path property.
+    pub path: Option<String>,
+    /// text property.
+    pub text: Option<String>,
 }
 
-/// `Volume` type.
+/// `AgentKMSEnvMap` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Volume {
-    /// deviceName property.
-    pub device_name: Option<String>,
-    /// gcs property.
-    pub gcs: Option<GCS>,
-    /// mountOptions property.
-    pub mount_options: Option<Vec<String>>,
-    /// mountPath property.
-    pub mount_path: Option<String>,
-    /// nfs property.
-    pub nfs: Option<NFS>,
-}
-
-/// `NFS` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NFS {
-    /// remotePath property.
-    pub remote_path: Option<String>,
-    /// server property.
-    pub server: Option<String>,
+pub struct AgentKMSEnvMap {
+    /// cipherText property.
+    pub cipher_text: Option<String>,
+    /// keyName property.
+    pub key_name: Option<String>,
 }
 
 /// `AgentTaskSpec` type.

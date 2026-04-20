@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -24,109 +25,21 @@ use super::shared::Operation;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `RestoreInfo` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RestoreInfo {
-    /// backupInfo property.
-    pub backup_info: Option<BackupInfo>,
-    /// sourceType property.
-    pub source_type: Option<String>,
-}
-
-/// `DualRegionQuorum` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DualRegionQuorum {}
-
-/// `BackupInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupInfo {
-    /// backup property.
-    pub backup: Option<String>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// sourceDatabase property.
-    pub source_database: Option<String>,
-    /// versionTime property.
-    pub version_time: Option<String>,
-}
-
-/// `SingleRegionQuorum` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SingleRegionQuorum {
-    /// servingLocation property.
-    pub serving_location: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `EncryptionConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionConfig {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-    /// kmsKeyNames property.
-    pub kms_key_names: Option<Vec<String>>,
-}
-
-/// `QuorumType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuorumType {
-    /// dualRegion property.
-    pub dual_region: Option<DualRegionQuorum>,
-    /// singleRegion property.
-    pub single_region: Option<SingleRegionQuorum>,
-}
-
-/// `ListDatabasesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDatabasesResponse {
-    /// databases property.
-    pub databases: Option<Vec<Database>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `AddSplitPointsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AddSplitPointsResponse {}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `EncryptionInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionInfo {
-    /// encryptionStatus property.
-    pub encryption_status: Option<Status>,
-    /// encryptionType property.
-    pub encryption_type: Option<String>,
-    /// kmsKeyVersion property.
-    pub kms_key_version: Option<String>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
 }
 
 /// `QuorumInfo` type.
@@ -142,15 +55,17 @@ pub struct QuorumInfo {
     pub start_time: Option<String>,
 }
 
-/// `Binding` type.
+/// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
 /// `Database` type.
@@ -182,6 +97,92 @@ pub struct Database {
     pub state: Option<String>,
     /// versionRetentionPeriod property.
     pub version_retention_period: Option<String>,
+}
+
+/// `EncryptionInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EncryptionInfo {
+    /// encryptionStatus property.
+    pub encryption_status: Option<Status>,
+    /// encryptionType property.
+    pub encryption_type: Option<String>,
+    /// kmsKeyVersion property.
+    pub kms_key_version: Option<String>,
+}
+
+/// `BackupInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupInfo {
+    /// backup property.
+    pub backup: Option<String>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// sourceDatabase property.
+    pub source_database: Option<String>,
+    /// versionTime property.
+    pub version_time: Option<String>,
+}
+
+/// `QuorumType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuorumType {
+    /// dualRegion property.
+    pub dual_region: Option<DualRegionQuorum>,
+    /// singleRegion property.
+    pub single_region: Option<SingleRegionQuorum>,
+}
+
+/// `RestoreInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RestoreInfo {
+    /// backupInfo property.
+    pub backup_info: Option<BackupInfo>,
+    /// sourceType property.
+    pub source_type: Option<String>,
+}
+
+/// `EncryptionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EncryptionConfig {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+    /// kmsKeyNames property.
+    pub kms_key_names: Option<Vec<String>>,
+}
+
+/// `AddSplitPointsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AddSplitPointsResponse {}
+
+/// `ListDatabasesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDatabasesResponse {
+    /// databases property.
+    pub databases: Option<Vec<Database>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `DualRegionQuorum` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DualRegionQuorum {}
+
+/// `SingleRegionQuorum` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SingleRegionQuorum {
+    /// servingLocation property.
+    pub serving_location: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

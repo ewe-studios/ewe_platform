@@ -12,17 +12,42 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `CreativeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreativeConfig {
+    /// creativeType property.
+    pub creative_type: Option<String>,
+    /// displayCreativeConfig property.
+    pub display_creative_config: Option<InventorySourceDisplayCreativeConfig>,
+    /// videoCreativeConfig property.
+    pub video_creative_config: Option<InventorySourceVideoCreativeConfig>,
+}
+
+/// `RateDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RateDetails {
+    /// inventorySourceRateType property.
+    pub inventory_source_rate_type: Option<String>,
+    /// minimumSpend property.
+    pub minimum_spend: Option<Money>,
+    /// rate property.
+    pub rate: Option<Money>,
+    /// unitsPurchased property.
+    pub units_purchased: Option<String>,
+}
 
 /// `InventorySourceAccessors` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -31,6 +56,87 @@ pub struct InventorySourceAccessors {
     pub advertisers: Option<InventorySourceAccessorsAdvertiserAccessors>,
     /// partner property.
     pub partner: Option<InventorySourceAccessorsPartnerAccessor>,
+}
+
+/// `InventorySourceAccessorsAdvertiserAccessors` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InventorySourceAccessorsAdvertiserAccessors {
+    /// advertiserIds property.
+    pub advertiser_ids: Option<Vec<String>>,
+}
+
+/// `InventorySourceAccessorsPartnerAccessor` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InventorySourceAccessorsPartnerAccessor {
+    /// partnerId property.
+    pub partner_id: Option<String>,
+}
+
+/// `InventorySourceDisplayCreativeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InventorySourceDisplayCreativeConfig {
+    /// creativeSize property.
+    pub creative_size: Option<Dimensions>,
+}
+
+/// `ListInventorySourcesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListInventorySourcesResponse {
+    /// inventorySources property.
+    pub inventory_sources: Option<Vec<InventorySource>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `InventorySourceStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InventorySourceStatus {
+    /// configStatus property.
+    pub config_status: Option<String>,
+    /// entityPauseReason property.
+    pub entity_pause_reason: Option<String>,
+    /// entityStatus property.
+    pub entity_status: Option<String>,
+    /// sellerPauseReason property.
+    pub seller_pause_reason: Option<String>,
+    /// sellerStatus property.
+    pub seller_status: Option<String>,
+}
+
+/// `TimeRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeRange {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
+}
+
+/// `Money` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Money {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// units property.
+    pub units: Option<String>,
+}
+
+/// `Dimensions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Dimensions {
+    /// heightPixels property.
+    pub height_pixels: Option<i64>,
+    /// widthPixels property.
+    pub width_pixels: Option<i64>,
+}
+
+/// `InventorySourceVideoCreativeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InventorySourceVideoCreativeConfig {
+    /// duration property.
+    pub duration: Option<String>,
 }
 
 /// `InventorySource` type.
@@ -74,111 +180,6 @@ pub struct InventorySource {
     pub time_range: Option<TimeRange>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `TimeRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeRange {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `CreativeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreativeConfig {
-    /// creativeType property.
-    pub creative_type: Option<String>,
-    /// displayCreativeConfig property.
-    pub display_creative_config: Option<InventorySourceDisplayCreativeConfig>,
-    /// videoCreativeConfig property.
-    pub video_creative_config: Option<InventorySourceVideoCreativeConfig>,
-}
-
-/// `Money` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Money {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// units property.
-    pub units: Option<String>,
-}
-
-/// `RateDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RateDetails {
-    /// inventorySourceRateType property.
-    pub inventory_source_rate_type: Option<String>,
-    /// minimumSpend property.
-    pub minimum_spend: Option<Money>,
-    /// rate property.
-    pub rate: Option<Money>,
-    /// unitsPurchased property.
-    pub units_purchased: Option<String>,
-}
-
-/// `InventorySourceDisplayCreativeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InventorySourceDisplayCreativeConfig {
-    /// creativeSize property.
-    pub creative_size: Option<Dimensions>,
-}
-
-/// `InventorySourceVideoCreativeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InventorySourceVideoCreativeConfig {
-    /// duration property.
-    pub duration: Option<String>,
-}
-
-/// `InventorySourceStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InventorySourceStatus {
-    /// configStatus property.
-    pub config_status: Option<String>,
-    /// entityPauseReason property.
-    pub entity_pause_reason: Option<String>,
-    /// entityStatus property.
-    pub entity_status: Option<String>,
-    /// sellerPauseReason property.
-    pub seller_pause_reason: Option<String>,
-    /// sellerStatus property.
-    pub seller_status: Option<String>,
-}
-
-/// `Dimensions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Dimensions {
-    /// heightPixels property.
-    pub height_pixels: Option<i64>,
-    /// widthPixels property.
-    pub width_pixels: Option<i64>,
-}
-
-/// `InventorySourceAccessorsAdvertiserAccessors` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InventorySourceAccessorsAdvertiserAccessors {
-    /// advertiserIds property.
-    pub advertiser_ids: Option<Vec<String>>,
-}
-
-/// `InventorySourceAccessorsPartnerAccessor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InventorySourceAccessorsPartnerAccessor {
-    /// partnerId property.
-    pub partner_id: Option<String>,
-}
-
-/// `ListInventorySourcesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListInventorySourcesResponse {
-    /// inventorySources property.
-    pub inventory_sources: Option<Vec<InventorySource>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

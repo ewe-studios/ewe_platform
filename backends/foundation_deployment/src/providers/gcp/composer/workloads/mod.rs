@@ -12,27 +12,28 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ComposerWorkloadStatus` type.
+/// `ComposerWorkload` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComposerWorkloadStatus {
-    /// detailedStatusMessage property.
-    pub detailed_status_message: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// statusMessage property.
-    pub status_message: Option<String>,
+pub struct ComposerWorkload {
+    /// name property.
+    pub name: Option<String>,
+    /// status property.
+    pub status: Option<ComposerWorkloadStatus>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `ListWorkloadsResponse` type.
@@ -44,15 +45,15 @@ pub struct ListWorkloadsResponse {
     pub workloads: Option<Vec<ComposerWorkload>>,
 }
 
-/// `ComposerWorkload` type.
+/// `ComposerWorkloadStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComposerWorkload {
-    /// name property.
-    pub name: Option<String>,
-    /// status property.
-    pub status: Option<ComposerWorkloadStatus>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct ComposerWorkloadStatus {
+    /// detailedStatusMessage property.
+    pub detailed_status_message: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// statusMessage property.
+    pub status_message: Option<String>,
 }
 
 // =============================================================================

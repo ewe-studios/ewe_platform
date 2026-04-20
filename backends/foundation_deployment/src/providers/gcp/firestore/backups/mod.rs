@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,20 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleFirestoreAdminV1ListBackupsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirestoreAdminV1ListBackupsResponse {
+    /// backups property.
+    pub backups: Option<Vec<GoogleFirestoreAdminV1Backup>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
 
 /// `GoogleFirestoreAdminV1Stats` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -36,15 +46,6 @@ pub struct GoogleFirestoreAdminV1Stats {
     pub index_count: Option<String>,
     /// sizeBytes property.
     pub size_bytes: Option<String>,
-}
-
-/// `GoogleFirestoreAdminV1ListBackupsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1ListBackupsResponse {
-    /// backups property.
-    pub backups: Option<Vec<GoogleFirestoreAdminV1Backup>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
 }
 
 /// `GoogleFirestoreAdminV1Backup` type.

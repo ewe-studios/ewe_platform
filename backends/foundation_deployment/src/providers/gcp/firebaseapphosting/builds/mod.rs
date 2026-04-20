@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -36,6 +37,17 @@ pub struct BuildSource {
     pub codebase: Option<CodebaseSource>,
     /// container property.
     pub container: Option<ContainerSource>,
+}
+
+/// `SourceUserMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SourceUserMetadata {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// email property.
+    pub email: Option<String>,
+    /// imageUri property.
+    pub image_uri: Option<String>,
 }
 
 /// `EnvironmentVariable` type.
@@ -55,26 +67,86 @@ pub struct EnvironmentVariable {
     pub variable: Option<String>,
 }
 
-/// `SourceUserMetadata` type.
+/// `ArchiveSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceUserMetadata {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// email property.
-    pub email: Option<String>,
-    /// imageUri property.
-    pub image_uri: Option<String>,
+pub struct ArchiveSource {
+    /// author property.
+    pub author: Option<SourceUserMetadata>,
+    /// description property.
+    pub description: Option<String>,
+    /// externalSignedUri property.
+    pub external_signed_uri: Option<String>,
+    /// rootDirectory property.
+    pub root_directory: Option<String>,
+    /// userStorageUri property.
+    pub user_storage_uri: Option<String>,
 }
 
-/// `Error` type.
+/// `RunConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Error {
-    /// cloudResource property.
-    pub cloud_resource: Option<String>,
-    /// error property.
-    pub error: Option<Status>,
-    /// errorSource property.
-    pub error_source: Option<String>,
+pub struct RunConfig {
+    /// concurrency property.
+    pub concurrency: Option<i64>,
+    /// cpu property.
+    pub cpu: Option<f64>,
+    /// maxInstances property.
+    pub max_instances: Option<i64>,
+    /// memoryMib property.
+    pub memory_mib: Option<i64>,
+    /// minInstances property.
+    pub min_instances: Option<i64>,
+}
+
+/// `ListBuildsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListBuildsResponse {
+    /// builds property.
+    pub builds: Option<Vec<Build>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `CodebaseSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CodebaseSource {
+    /// author property.
+    pub author: Option<UserMetadata>,
+    /// branch property.
+    pub branch: Option<String>,
+    /// commit property.
+    pub commit: Option<String>,
+    /// commitMessage property.
+    pub commit_message: Option<String>,
+    /// commitTime property.
+    pub commit_time: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// hash property.
+    pub hash: Option<String>,
+    /// repository property.
+    pub repository: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `ContainerSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ContainerSource {
+    /// image property.
+    pub image: Option<String>,
 }
 
 /// `Build` type.
@@ -116,57 +188,15 @@ pub struct Build {
     pub update_time: Option<String>,
 }
 
-/// `CodebaseSource` type.
+/// `Config` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CodebaseSource {
-    /// author property.
-    pub author: Option<UserMetadata>,
-    /// branch property.
-    pub branch: Option<String>,
-    /// commit property.
-    pub commit: Option<String>,
-    /// commitMessage property.
-    pub commit_message: Option<String>,
-    /// commitTime property.
-    pub commit_time: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// hash property.
-    pub hash: Option<String>,
-    /// repository property.
-    pub repository: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `ArchiveSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArchiveSource {
-    /// author property.
-    pub author: Option<SourceUserMetadata>,
-    /// description property.
-    pub description: Option<String>,
-    /// externalSignedUri property.
-    pub external_signed_uri: Option<String>,
-    /// rootDirectory property.
-    pub root_directory: Option<String>,
-    /// userStorageUri property.
-    pub user_storage_uri: Option<String>,
-}
-
-/// `RunConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RunConfig {
-    /// concurrency property.
-    pub concurrency: Option<i64>,
-    /// cpu property.
-    pub cpu: Option<f64>,
-    /// maxInstances property.
-    pub max_instances: Option<i64>,
-    /// memoryMib property.
-    pub memory_mib: Option<i64>,
-    /// minInstances property.
-    pub min_instances: Option<i64>,
+pub struct Config {
+    /// effectiveEnv property.
+    pub effective_env: Option<Vec<EnvironmentVariable>>,
+    /// env property.
+    pub env: Option<Vec<EnvironmentVariable>>,
+    /// runConfig property.
+    pub run_config: Option<RunConfig>,
 }
 
 /// `UserMetadata` type.
@@ -180,44 +210,15 @@ pub struct UserMetadata {
     pub image_uri: Option<String>,
 }
 
-/// `Status` type.
+/// `Error` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `Config` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Config {
-    /// effectiveEnv property.
-    pub effective_env: Option<Vec<EnvironmentVariable>>,
-    /// env property.
-    pub env: Option<Vec<EnvironmentVariable>>,
-    /// runConfig property.
-    pub run_config: Option<RunConfig>,
-}
-
-/// `ContainerSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ContainerSource {
-    /// image property.
-    pub image: Option<String>,
-}
-
-/// `ListBuildsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListBuildsResponse {
-    /// builds property.
-    pub builds: Option<Vec<Build>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct Error {
+    /// cloudResource property.
+    pub cloud_resource: Option<String>,
+    /// error property.
+    pub error: Option<Status>,
+    /// errorSource property.
+    pub error_source: Option<String>,
 }
 
 // =============================================================================

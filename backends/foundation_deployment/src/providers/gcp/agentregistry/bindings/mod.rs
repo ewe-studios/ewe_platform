@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,42 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `AuthProviderBinding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthProviderBinding {
+    /// authProvider property.
+    pub auth_provider: Option<String>,
+    /// continueUri property.
+    pub continue_uri: Option<String>,
+    /// scopes property.
+    pub scopes: Option<Vec<String>>,
+}
+
+/// `ListBindingsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListBindingsResponse {
+    /// bindings property.
+    pub bindings: Option<Vec<Binding>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -48,47 +80,16 @@ pub struct Binding {
     pub update_time: Option<String>,
 }
 
-/// `ListBindingsResponse` type.
+/// `Source` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListBindingsResponse {
-    /// bindings property.
-    pub bindings: Option<Vec<Binding>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct Source {
+    /// identifier property.
+    pub identifier: Option<String>,
 }
 
 /// `Target` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Target {
-    /// identifier property.
-    pub identifier: Option<String>,
-}
-
-/// `AuthProviderBinding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthProviderBinding {
-    /// authProvider property.
-    pub auth_provider: Option<String>,
-    /// continueUri property.
-    pub continue_uri: Option<String>,
-    /// scopes property.
-    pub scopes: Option<Vec<String>>,
-}
-
-/// `Source` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Source {
     /// identifier property.
     pub identifier: Option<String>,
 }

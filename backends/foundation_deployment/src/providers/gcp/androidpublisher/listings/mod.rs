@@ -12,24 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ImagesDeleteAllResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImagesDeleteAllResponse {
-    /// deleted property.
-    pub deleted: Option<Vec<Image>>,
-}
 
 /// `ImagesListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,13 +39,6 @@ pub struct ListingsListResponse {
     pub kind: Option<String>,
     /// listings property.
     pub listings: Option<Vec<Listing>>,
-}
-
-/// `ImagesUploadResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImagesUploadResponse {
-    /// image property.
-    pub image: Option<Image>,
 }
 
 /// `Listing` type.
@@ -80,6 +67,20 @@ pub struct Image {
     pub sha256: Option<String>,
     /// url property.
     pub url: Option<String>,
+}
+
+/// `ImagesDeleteAllResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImagesDeleteAllResponse {
+    /// deleted property.
+    pub deleted: Option<Vec<Image>>,
+}
+
+/// `ImagesUploadResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImagesUploadResponse {
+    /// image property.
+    pub image: Option<Image>,
 }
 
 // =============================================================================

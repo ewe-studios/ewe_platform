@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,7 +23,7 @@ use serde::{Deserialize, Serialize};
 use super::shared::Empty;
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -49,9 +50,21 @@ pub struct AppProfile {
     pub standard_isolation: Option<StandardIsolation>,
 }
 
-/// `MemoryConfig` type.
+/// `DataBoostIsolationReadOnly` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MemoryConfig {}
+pub struct DataBoostIsolationReadOnly {
+    /// computeBillingOwner property.
+    pub compute_billing_owner: Option<String>,
+}
+
+/// `SingleClusterRouting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SingleClusterRouting {
+    /// allowTransactionalWrites property.
+    pub allow_transactional_writes: Option<bool>,
+    /// clusterId property.
+    pub cluster_id: Option<String>,
+}
 
 /// `StandardIsolation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -62,13 +75,13 @@ pub struct StandardIsolation {
     pub priority: Option<String>,
 }
 
-/// `SingleClusterRouting` type.
+/// `MultiClusterRoutingUseAny` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SingleClusterRouting {
-    /// allowTransactionalWrites property.
-    pub allow_transactional_writes: Option<bool>,
-    /// clusterId property.
-    pub cluster_id: Option<String>,
+pub struct MultiClusterRoutingUseAny {
+    /// clusterIds property.
+    pub cluster_ids: Option<Vec<String>>,
+    /// rowAffinity property.
+    pub row_affinity: Option<RowAffinity>,
 }
 
 /// `Status` type.
@@ -86,21 +99,9 @@ pub struct Status {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RowAffinity {}
 
-/// `DataBoostIsolationReadOnly` type.
+/// `MemoryConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataBoostIsolationReadOnly {
-    /// computeBillingOwner property.
-    pub compute_billing_owner: Option<String>,
-}
-
-/// `MultiClusterRoutingUseAny` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MultiClusterRoutingUseAny {
-    /// clusterIds property.
-    pub cluster_ids: Option<Vec<String>>,
-    /// rowAffinity property.
-    pub row_affinity: Option<RowAffinity>,
-}
+pub struct MemoryConfig {}
 
 /// `ListAppProfilesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

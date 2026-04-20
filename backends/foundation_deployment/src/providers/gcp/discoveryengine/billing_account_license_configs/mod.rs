@@ -12,31 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudDiscoveryengineV1DistributeLicenseConfigResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DistributeLicenseConfigResponse {
-    /// licenseConfig property.
-    pub license_config: Option<GoogleCloudDiscoveryengineV1LicenseConfig>,
-}
-
-/// `GoogleCloudDiscoveryengineV1RetractLicenseConfigResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1RetractLicenseConfigResponse {
-    /// licenseConfig property.
-    pub license_config: Option<GoogleCloudDiscoveryengineV1LicenseConfig>,
-}
 
 /// `GoogleCloudDiscoveryengineV1LicenseConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -69,15 +56,6 @@ pub struct GoogleCloudDiscoveryengineV1LicenseConfig {
     pub subscription_tier: Option<String>,
 }
 
-/// `GoogleCloudDiscoveryengineV1LicenseConfigScheduledUpdate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1LicenseConfigScheduledUpdate {
-    /// effectiveDate property.
-    pub effective_date: Option<GoogleTypeDate>,
-    /// seatCount property.
-    pub seat_count: Option<String>,
-}
-
 /// `GoogleTypeDate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDate {
@@ -87,6 +65,29 @@ pub struct GoogleTypeDate {
     pub month: Option<i64>,
     /// year property.
     pub year: Option<i64>,
+}
+
+/// `GoogleCloudDiscoveryengineV1DistributeLicenseConfigResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1DistributeLicenseConfigResponse {
+    /// licenseConfig property.
+    pub license_config: Option<GoogleCloudDiscoveryengineV1LicenseConfig>,
+}
+
+/// `GoogleCloudDiscoveryengineV1RetractLicenseConfigResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1RetractLicenseConfigResponse {
+    /// licenseConfig property.
+    pub license_config: Option<GoogleCloudDiscoveryengineV1LicenseConfig>,
+}
+
+/// `GoogleCloudDiscoveryengineV1LicenseConfigScheduledUpdate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1LicenseConfigScheduledUpdate {
+    /// effectiveDate property.
+    pub effective_date: Option<GoogleTypeDate>,
+    /// seatCount property.
+    pub seat_count: Option<String>,
 }
 
 // =============================================================================

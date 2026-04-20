@@ -12,23 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ValidateEventThreatDetectionCustomModuleResponse` type.
+/// `Position` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValidateEventThreatDetectionCustomModuleResponse {
-    /// errors property.
-    pub errors: Option<CustomModuleValidationErrors>,
+pub struct Position {
+    /// columnNumber property.
+    pub column_number: Option<i64>,
+    /// lineNumber property.
+    pub line_number: Option<i64>,
 }
 
 /// `CustomModuleValidationError` type.
@@ -44,20 +47,18 @@ pub struct CustomModuleValidationError {
     pub start: Option<Position>,
 }
 
+/// `ValidateEventThreatDetectionCustomModuleResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ValidateEventThreatDetectionCustomModuleResponse {
+    /// errors property.
+    pub errors: Option<CustomModuleValidationErrors>,
+}
+
 /// `CustomModuleValidationErrors` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomModuleValidationErrors {
     /// errors property.
     pub errors: Option<Vec<CustomModuleValidationError>>,
-}
-
-/// `Position` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Position {
-    /// columnNumber property.
-    pub column_number: Option<i64>,
-    /// lineNumber property.
-    pub line_number: Option<i64>,
 }
 
 // =============================================================================

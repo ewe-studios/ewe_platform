@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,21 +22,21 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `NetworkAddressReservation` type.
+/// `ListNetworksResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkAddressReservation {
-    /// endAddress property.
-    pub end_address: Option<String>,
-    /// note property.
-    pub note: Option<String>,
-    /// startAddress property.
-    pub start_address: Option<String>,
+pub struct ListNetworksResponse {
+    /// networks property.
+    pub networks: Option<Vec<Network>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `Network` type.
@@ -77,15 +78,17 @@ pub struct Network {
     pub vrf_attachment: Option<String>,
 }
 
-/// `ListNetworksResponse` type.
+/// `VRF` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListNetworksResponse {
-    /// networks property.
-    pub networks: Option<Vec<Network>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct VRF {
+    /// name property.
+    pub name: Option<String>,
+    /// qosPolicy property.
+    pub qos_policy: Option<QosPolicy>,
+    /// state property.
+    pub state: Option<String>,
+    /// vlanAttachments property.
+    pub vlan_attachments: Option<Vec<VlanAttachment>>,
 }
 
 /// `NetworkMountPoint` type.
@@ -99,6 +102,13 @@ pub struct NetworkMountPoint {
     pub ip_address: Option<String>,
     /// logicalInterface property.
     pub logical_interface: Option<String>,
+}
+
+/// `QosPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QosPolicy {
+    /// bandwidthGbps property.
+    pub bandwidth_gbps: Option<f64>,
 }
 
 /// `VlanAttachment` type.
@@ -120,17 +130,15 @@ pub struct VlanAttachment {
     pub router_ip: Option<String>,
 }
 
-/// `VRF` type.
+/// `NetworkAddressReservation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VRF {
-    /// name property.
-    pub name: Option<String>,
-    /// qosPolicy property.
-    pub qos_policy: Option<QosPolicy>,
-    /// state property.
-    pub state: Option<String>,
-    /// vlanAttachments property.
-    pub vlan_attachments: Option<Vec<VlanAttachment>>,
+pub struct NetworkAddressReservation {
+    /// endAddress property.
+    pub end_address: Option<String>,
+    /// note property.
+    pub note: Option<String>,
+    /// startAddress property.
+    pub start_address: Option<String>,
 }
 
 /// `Status` type.
@@ -142,13 +150,6 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
-}
-
-/// `QosPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QosPolicy {
-    /// bandwidthGbps property.
-    pub bandwidth_gbps: Option<f64>,
 }
 
 // =============================================================================

@@ -12,13 +12,17 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Empty;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -27,19 +31,6 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 /// `RequestSiteReviewResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestSiteReviewResponse {}
-
-/// `Empty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
-
-/// `ListSitesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSitesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// sites property.
-    pub sites: Option<Vec<Site>>,
-}
 
 /// `Site` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -50,6 +41,15 @@ pub struct Site {
     pub name: Option<String>,
     /// state property.
     pub state: Option<String>,
+}
+
+/// `ListSitesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListSitesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// sites property.
+    pub sites: Option<Vec<Site>>,
 }
 
 // =============================================================================

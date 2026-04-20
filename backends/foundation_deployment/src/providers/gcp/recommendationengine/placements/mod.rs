@@ -12,17 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudRecommendationengineV1Beta1PredictResponsePredictionResult` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecommendationengineV1Beta1PredictResponsePredictionResult {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
 
 /// `GoogleCloudRecommendationengineV1beta1PredictResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -39,14 +48,6 @@ pub struct GoogleCloudRecommendationengineV1beta1PredictResponse {
     pub recommendation_token: Option<String>,
     /// results property.
     pub results: Option<Vec<GoogleCloudRecommendationengineV1Beta1PredictResponsePredictionResult>>,
-}
-
-/// `GoogleCloudRecommendationengineV1Beta1PredictResponsePredictionResult` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecommendationengineV1Beta1PredictResponsePredictionResult {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 // =============================================================================

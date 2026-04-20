@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -33,6 +34,37 @@ pub struct DateRange {
     pub start_date: Option<Date>,
 }
 
+/// `Date` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `ReportFooter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportFooter {
+    /// matchingRowCount property.
+    pub matching_row_count: Option<String>,
+    /// warnings property.
+    pub warnings: Option<Vec<ReportWarning>>,
+}
+
+/// `ReportHeader` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportHeader {
+    /// dateRange property.
+    pub date_range: Option<DateRange>,
+    /// localizationSettings property.
+    pub localization_settings: Option<LocalizationSettings>,
+    /// reportingTimeZone property.
+    pub reporting_time_zone: Option<String>,
+}
+
 /// `ReportRow` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportRow {
@@ -40,15 +72,6 @@ pub struct ReportRow {
     pub dimension_values: Option<serde_json::Value>,
     /// metricValues property.
     pub metric_values: Option<serde_json::Value>,
-}
-
-/// `LocalizationSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizationSettings {
-    /// currencyCode property.
-    pub currency_code: Option<String>,
-    /// languageCode property.
-    pub language_code: Option<String>,
 }
 
 /// `GenerateMediationReportResponse` type.
@@ -62,6 +85,15 @@ pub struct GenerateMediationReportResponse {
     pub row: Option<ReportRow>,
 }
 
+/// `LocalizationSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizationSettings {
+    /// currencyCode property.
+    pub currency_code: Option<String>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+}
+
 /// `ReportWarning` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportWarning {
@@ -69,37 +101,6 @@ pub struct ReportWarning {
     pub description: Option<String>,
     /// type property.
     pub r#type: Option<String>,
-}
-
-/// `ReportFooter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportFooter {
-    /// matchingRowCount property.
-    pub matching_row_count: Option<String>,
-    /// warnings property.
-    pub warnings: Option<Vec<ReportWarning>>,
-}
-
-/// `Date` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `ReportHeader` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportHeader {
-    /// dateRange property.
-    pub date_range: Option<DateRange>,
-    /// localizationSettings property.
-    pub localization_settings: Option<LocalizationSettings>,
-    /// reportingTimeZone property.
-    pub reporting_time_zone: Option<String>,
 }
 
 // =============================================================================

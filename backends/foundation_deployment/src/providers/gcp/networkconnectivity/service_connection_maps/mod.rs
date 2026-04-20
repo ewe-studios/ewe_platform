@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,31 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ProducerPscConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProducerPscConfig {
-    /// automatedDnsCreationSpec property.
-    pub automated_dns_creation_spec: Option<AutomatedDnsCreationSpec>,
-    /// serviceAttachmentUri property.
-    pub service_attachment_uri: Option<String>,
-}
-
-/// `DnsAutomationStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsAutomationStatus {
-    /// error property.
-    pub error: Option<GoogleRpcStatus>,
-    /// fqdn property.
-    pub fqdn: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
 
 /// `ConsumerPscConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -107,6 +88,28 @@ pub struct ConsumerPscConnection {
     pub state: Option<String>,
 }
 
+/// `GoogleRpcErrorInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcErrorInfo {
+    /// domain property.
+    pub domain: Option<String>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
 /// `ListServiceConnectionMapsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListServiceConnectionMapsResponse {
@@ -149,15 +152,13 @@ pub struct ServiceConnectionMap {
     pub update_time: Option<String>,
 }
 
-/// `GoogleRpcStatus` type.
+/// `ProducerPscConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct ProducerPscConfig {
+    /// automatedDnsCreationSpec property.
+    pub automated_dns_creation_spec: Option<AutomatedDnsCreationSpec>,
+    /// serviceAttachmentUri property.
+    pub service_attachment_uri: Option<String>,
 }
 
 /// `AutomatedDnsCreationSpec` type.
@@ -171,15 +172,15 @@ pub struct AutomatedDnsCreationSpec {
     pub ttl: Option<String>,
 }
 
-/// `GoogleRpcErrorInfo` type.
+/// `DnsAutomationStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcErrorInfo {
-    /// domain property.
-    pub domain: Option<String>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// reason property.
-    pub reason: Option<String>,
+pub struct DnsAutomationStatus {
+    /// error property.
+    pub error: Option<GoogleRpcStatus>,
+    /// fqdn property.
+    pub fqdn: Option<String>,
+    /// state property.
+    pub state: Option<String>,
 }
 
 // =============================================================================

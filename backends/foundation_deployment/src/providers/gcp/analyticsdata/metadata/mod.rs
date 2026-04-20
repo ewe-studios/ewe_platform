@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -37,6 +38,29 @@ pub struct DimensionMetadata {
     pub deprecated_api_names: Option<Vec<String>>,
     /// description property.
     pub description: Option<String>,
+    /// uiName property.
+    pub ui_name: Option<String>,
+}
+
+/// `MetricMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetricMetadata {
+    /// apiName property.
+    pub api_name: Option<String>,
+    /// blockedReasons property.
+    pub blocked_reasons: Option<Vec<String>>,
+    /// category property.
+    pub category: Option<String>,
+    /// customDefinition property.
+    pub custom_definition: Option<bool>,
+    /// deprecatedApiNames property.
+    pub deprecated_api_names: Option<Vec<String>>,
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
     /// uiName property.
     pub ui_name: Option<String>,
 }
@@ -63,29 +87,6 @@ pub struct Metadata {
     pub metrics: Option<Vec<MetricMetadata>>,
     /// name property.
     pub name: Option<String>,
-}
-
-/// `MetricMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetricMetadata {
-    /// apiName property.
-    pub api_name: Option<String>,
-    /// blockedReasons property.
-    pub blocked_reasons: Option<Vec<String>>,
-    /// category property.
-    pub category: Option<String>,
-    /// customDefinition property.
-    pub custom_definition: Option<bool>,
-    /// deprecatedApiNames property.
-    pub deprecated_api_names: Option<Vec<String>>,
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// uiName property.
-    pub ui_name: Option<String>,
 }
 
 // =============================================================================

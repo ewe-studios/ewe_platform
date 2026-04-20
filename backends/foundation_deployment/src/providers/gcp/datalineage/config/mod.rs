@@ -12,17 +12,34 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleLineageEnablement` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleLineageEnablement
+{
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestion {
+    /// rules property.
+    pub rules:
+        Option<Vec<GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRule>>,
+}
 
 /// `GoogleCloudDatacatalogLineageConfigmanagementV1Config` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -35,22 +52,6 @@ pub struct GoogleCloudDatacatalogLineageConfigmanagementV1Config {
     pub name: Option<String>,
 }
 
-/// `GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleIntegrationSelector` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleIntegrationSelector
-{
-    /// integration property.
-    pub integration: Option<String>,
-}
-
-/// `GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleLineageEnablement` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleLineageEnablement
-{
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
 /// `GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRule {
@@ -60,12 +61,12 @@ pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngesti
     pub lineage_enablement: Option<GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleLineageEnablement>,
 }
 
-/// `GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestion` type.
+/// `GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleIntegrationSelector` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestion {
-    /// rules property.
-    pub rules:
-        Option<Vec<GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRule>>,
+pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleIntegrationSelector
+{
+    /// integration property.
+    pub integration: Option<String>,
 }
 
 // =============================================================================

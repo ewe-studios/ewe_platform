@@ -12,28 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ClassifyTextResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClassifyTextResponse {
-    /// categories property.
-    pub categories: Option<Vec<ClassificationCategory>>,
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// languageSupported property.
-    pub language_supported: Option<bool>,
-}
 
 /// `ClassificationCategory` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,6 +34,17 @@ pub struct ClassificationCategory {
     pub name: Option<String>,
     /// severity property.
     pub severity: Option<f64>,
+}
+
+/// `ClassifyTextResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClassifyTextResponse {
+    /// categories property.
+    pub categories: Option<Vec<ClassificationCategory>>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// languageSupported property.
+    pub language_supported: Option<bool>,
 }
 
 // =============================================================================

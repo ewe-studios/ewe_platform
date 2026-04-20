@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,21 +22,69 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Status` type.
+/// `AuthorizationAttemptInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
+pub struct AuthorizationAttemptInfo {
+    /// attemptTime property.
+    pub attempt_time: Option<String>,
     /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+    pub details: Option<String>,
+    /// domain property.
+    pub domain: Option<String>,
+    /// failureReason property.
+    pub failure_reason: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// troubleshooting property.
+    pub troubleshooting: Option<Troubleshooting>,
+}
+
+/// `ManagedIdentityCertificate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ManagedIdentityCertificate {
+    /// identity property.
+    pub identity: Option<String>,
+    /// provisioningIssue property.
+    pub provisioning_issue: Option<ProvisioningIssue>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `SelfManagedCertificate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SelfManagedCertificate {
+    /// pemCertificate property.
+    pub pem_certificate: Option<String>,
+    /// pemPrivateKey property.
+    pub pem_private_key: Option<String>,
+}
+
+/// `Troubleshooting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Troubleshooting {
+    /// cname property.
+    pub cname: Option<CNAME>,
+    /// ips property.
+    pub ips: Option<IPs>,
+    /// issues property.
+    pub issues: Option<Vec<String>>,
+}
+
+/// `IPs` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IPs {
+    /// resolved property.
+    pub resolved: Option<Vec<String>>,
+    /// serving property.
+    pub serving: Option<Vec<String>>,
+    /// servingOnAltPorts property.
+    pub serving_on_alt_ports: Option<Vec<String>>,
 }
 
 /// `CNAME` type.
@@ -80,43 +129,33 @@ pub struct Certificate {
     pub used_by: Option<Vec<UsedBy>>,
 }
 
-/// `AuthorizationAttemptInfo` type.
+/// `ListCertificatesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthorizationAttemptInfo {
-    /// attemptTime property.
-    pub attempt_time: Option<String>,
+pub struct ListCertificatesResponse {
+    /// certificates property.
+    pub certificates: Option<Vec<Certificate>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `UsedBy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UsedBy {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
     /// details property.
-    pub details: Option<String>,
-    /// domain property.
-    pub domain: Option<String>,
-    /// failureReason property.
-    pub failure_reason: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// troubleshooting property.
-    pub troubleshooting: Option<Troubleshooting>,
-}
-
-/// `Troubleshooting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Troubleshooting {
-    /// cname property.
-    pub cname: Option<CNAME>,
-    /// ips property.
-    pub ips: Option<IPs>,
-    /// issues property.
-    pub issues: Option<Vec<String>>,
-}
-
-/// `IPs` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IPs {
-    /// resolved property.
-    pub resolved: Option<Vec<String>>,
-    /// serving property.
-    pub serving: Option<Vec<String>>,
-    /// servingOnAltPorts property.
-    pub serving_on_alt_ports: Option<Vec<String>>,
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `ProvisioningIssue` type.
@@ -126,13 +165,6 @@ pub struct ProvisioningIssue {
     pub details: Option<String>,
     /// reason property.
     pub reason: Option<String>,
-}
-
-/// `UsedBy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UsedBy {
-    /// name property.
-    pub name: Option<String>,
 }
 
 /// `ManagedCertificate` type.
@@ -150,37 +182,6 @@ pub struct ManagedCertificate {
     pub provisioning_issue: Option<ProvisioningIssue>,
     /// state property.
     pub state: Option<String>,
-}
-
-/// `SelfManagedCertificate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SelfManagedCertificate {
-    /// pemCertificate property.
-    pub pem_certificate: Option<String>,
-    /// pemPrivateKey property.
-    pub pem_private_key: Option<String>,
-}
-
-/// `ManagedIdentityCertificate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ManagedIdentityCertificate {
-    /// identity property.
-    pub identity: Option<String>,
-    /// provisioningIssue property.
-    pub provisioning_issue: Option<ProvisioningIssue>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `ListCertificatesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCertificatesResponse {
-    /// certificates property.
-    pub certificates: Option<Vec<Certificate>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
 }
 
 // =============================================================================

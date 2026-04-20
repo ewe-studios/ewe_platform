@@ -12,25 +12,28 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `CollectionPeriod` type.
+/// `HistoryRecord` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CollectionPeriod {
-    /// firstDate property.
-    pub first_date: Option<Date>,
-    /// lastDate property.
-    pub last_date: Option<Date>,
+pub struct HistoryRecord {
+    /// collectionPeriods property.
+    pub collection_periods: Option<Vec<CollectionPeriod>>,
+    /// key property.
+    pub key: Option<HistoryKey>,
+    /// metrics property.
+    pub metrics: Option<serde_json::Value>,
 }
 
 /// `HistoryKey` type.
@@ -44,15 +47,6 @@ pub struct HistoryKey {
     pub url: Option<String>,
 }
 
-/// `QueryHistoryResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryHistoryResponse {
-    /// record property.
-    pub record: Option<HistoryRecord>,
-    /// urlNormalizationDetails property.
-    pub url_normalization_details: Option<UrlNormalization>,
-}
-
 /// `Date` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
@@ -64,17 +58,6 @@ pub struct Date {
     pub year: Option<i64>,
 }
 
-/// `HistoryRecord` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HistoryRecord {
-    /// collectionPeriods property.
-    pub collection_periods: Option<Vec<CollectionPeriod>>,
-    /// key property.
-    pub key: Option<HistoryKey>,
-    /// metrics property.
-    pub metrics: Option<serde_json::Value>,
-}
-
 /// `UrlNormalization` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlNormalization {
@@ -82,6 +65,24 @@ pub struct UrlNormalization {
     pub normalized_url: Option<String>,
     /// originalUrl property.
     pub original_url: Option<String>,
+}
+
+/// `CollectionPeriod` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CollectionPeriod {
+    /// firstDate property.
+    pub first_date: Option<Date>,
+    /// lastDate property.
+    pub last_date: Option<Date>,
+}
+
+/// `QueryHistoryResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueryHistoryResponse {
+    /// record property.
+    pub record: Option<HistoryRecord>,
+    /// urlNormalizationDetails property.
+    pub url_normalization_details: Option<UrlNormalization>,
 }
 
 // =============================================================================

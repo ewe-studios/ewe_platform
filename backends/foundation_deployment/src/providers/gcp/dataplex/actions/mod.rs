@@ -12,58 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudDataplexV1ActionUnauthorizedResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1ActionUnauthorizedResource {}
-
-/// `GoogleCloudDataplexV1ActionInvalidDataOrganization` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1ActionInvalidDataOrganization {}
-
-/// `GoogleCloudDataplexV1ActionInvalidDataPartition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1ActionInvalidDataPartition {
-    /// expectedStructure property.
-    pub expected_structure: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1ActionIncompatibleDataSchema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1ActionIncompatibleDataSchema {
-    /// existingSchema property.
-    pub existing_schema: Option<String>,
-    /// newSchema property.
-    pub new_schema: Option<String>,
-    /// sampledDataLocations property.
-    pub sampled_data_locations: Option<Vec<String>>,
-    /// schemaChange property.
-    pub schema_change: Option<String>,
-    /// table property.
-    pub table: Option<String>,
-}
-
-/// `GoogleCloudDataplexV1ActionInvalidDataFormat` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1ActionInvalidDataFormat {
-    /// expectedFormat property.
-    pub expected_format: Option<String>,
-    /// newFormat property.
-    pub new_format: Option<String>,
-    /// sampledDataLocations property.
-    pub sampled_data_locations: Option<Vec<String>>,
-}
 
 /// `GoogleCloudDataplexV1ListActionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -80,6 +40,28 @@ pub struct GoogleCloudDataplexV1ActionFailedSecurityPolicyApply {
     /// asset property.
     pub asset: Option<String>,
 }
+
+/// `GoogleCloudDataplexV1ActionInvalidDataPartition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1ActionInvalidDataPartition {
+    /// expectedStructure property.
+    pub expected_structure: Option<String>,
+}
+
+/// `GoogleCloudDataplexV1ActionInvalidDataFormat` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1ActionInvalidDataFormat {
+    /// expectedFormat property.
+    pub expected_format: Option<String>,
+    /// newFormat property.
+    pub new_format: Option<String>,
+    /// sampledDataLocations property.
+    pub sampled_data_locations: Option<Vec<String>>,
+}
+
+/// `GoogleCloudDataplexV1ActionMissingResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1ActionMissingResource {}
 
 /// `GoogleCloudDataplexV1Action` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -118,13 +100,32 @@ pub struct GoogleCloudDataplexV1Action {
     pub zone: Option<String>,
 }
 
+/// `GoogleCloudDataplexV1ActionIncompatibleDataSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1ActionIncompatibleDataSchema {
+    /// existingSchema property.
+    pub existing_schema: Option<String>,
+    /// newSchema property.
+    pub new_schema: Option<String>,
+    /// sampledDataLocations property.
+    pub sampled_data_locations: Option<Vec<String>>,
+    /// schemaChange property.
+    pub schema_change: Option<String>,
+    /// table property.
+    pub table: Option<String>,
+}
+
 /// `GoogleCloudDataplexV1ActionMissingData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ActionMissingData {}
 
-/// `GoogleCloudDataplexV1ActionMissingResource` type.
+/// `GoogleCloudDataplexV1ActionUnauthorizedResource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1ActionMissingResource {}
+pub struct GoogleCloudDataplexV1ActionUnauthorizedResource {}
+
+/// `GoogleCloudDataplexV1ActionInvalidDataOrganization` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1ActionInvalidDataOrganization {}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

@@ -12,38 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Segments` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Segments {
-    /// items property.
-    pub items: Option<Vec<Segment>>,
-    /// itemsPerPage property.
-    pub items_per_page: Option<i64>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextLink property.
-    pub next_link: Option<String>,
-    /// previousLink property.
-    pub previous_link: Option<String>,
-    /// startIndex property.
-    pub start_index: Option<i64>,
-    /// totalResults property.
-    pub total_results: Option<i64>,
-    /// username property.
-    pub username: Option<String>,
-}
 
 /// `Segment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -66,6 +46,27 @@ pub struct Segment {
     pub r#type: Option<String>,
     /// updated property.
     pub updated: Option<String>,
+}
+
+/// `Segments` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Segments {
+    /// items property.
+    pub items: Option<Vec<Segment>>,
+    /// itemsPerPage property.
+    pub items_per_page: Option<i64>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextLink property.
+    pub next_link: Option<String>,
+    /// previousLink property.
+    pub previous_link: Option<String>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+    /// totalResults property.
+    pub total_results: Option<i64>,
+    /// username property.
+    pub username: Option<String>,
 }
 
 // =============================================================================

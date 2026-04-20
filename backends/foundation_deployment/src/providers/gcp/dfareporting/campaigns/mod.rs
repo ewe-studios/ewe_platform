@@ -12,27 +12,24 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `MeasurementPartnerCampaignLink` type.
+/// `LastModifiedInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MeasurementPartnerCampaignLink {
-    /// linkStatus property.
-    pub link_status: Option<String>,
-    /// measurementPartner property.
-    pub measurement_partner: Option<String>,
-    /// partnerCampaignId property.
-    pub partner_campaign_id: Option<String>,
+pub struct LastModifiedInfo {
+    /// time property.
+    pub time: Option<String>,
 }
 
 /// `AudienceSegment` type.
@@ -55,6 +52,37 @@ pub struct OptimizationActivity {
     pub floodlight_activity_id_dimension_value: Option<DimensionValue>,
     /// weight property.
     pub weight: Option<i64>,
+}
+
+/// `CampaignsListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CampaignsListResponse {
+    /// campaigns property.
+    pub campaigns: Option<Vec<Campaign>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `ClickThroughUrlSuffixProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClickThroughUrlSuffixProperties {
+    /// clickThroughUrlSuffix property.
+    pub click_through_url_suffix: Option<String>,
+    /// overrideInheritedSuffix property.
+    pub override_inherited_suffix: Option<bool>,
+}
+
+/// `AudienceSegmentGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AudienceSegmentGroup {
+    /// audienceSegments property.
+    pub audience_segments: Option<Vec<AudienceSegment>>,
+    /// id property.
+    pub id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 /// `Campaign` type.
@@ -119,6 +147,35 @@ pub struct Campaign {
     pub subaccount_id: Option<String>,
 }
 
+/// `DefaultClickThroughEventTagProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DefaultClickThroughEventTagProperties {
+    /// defaultClickThroughEventTagId property.
+    pub default_click_through_event_tag_id: Option<String>,
+    /// overrideInheritedEventTag property.
+    pub override_inherited_event_tag: Option<bool>,
+}
+
+/// `EventTagOverride` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EventTagOverride {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// id property.
+    pub id: Option<String>,
+}
+
+/// `MeasurementPartnerCampaignLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MeasurementPartnerCampaignLink {
+    /// linkStatus property.
+    pub link_status: Option<String>,
+    /// measurementPartner property.
+    pub measurement_partner: Option<String>,
+    /// partnerCampaignId property.
+    pub partner_campaign_id: Option<String>,
+}
+
 /// `CreativeOptimizationConfiguration` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeOptimizationConfiguration {
@@ -132,15 +189,11 @@ pub struct CreativeOptimizationConfiguration {
     pub optimization_model: Option<String>,
 }
 
-/// `AudienceSegmentGroup` type.
+/// `AdBlockingConfiguration` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AudienceSegmentGroup {
-    /// audienceSegments property.
-    pub audience_segments: Option<Vec<AudienceSegment>>,
-    /// id property.
-    pub id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
+pub struct AdBlockingConfiguration {
+    /// enabled property.
+    pub enabled: Option<bool>,
 }
 
 /// `DimensionValue` type.
@@ -158,58 +211,6 @@ pub struct DimensionValue {
     pub match_type: Option<String>,
     /// value property.
     pub value: Option<String>,
-}
-
-/// `CampaignsListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CampaignsListResponse {
-    /// campaigns property.
-    pub campaigns: Option<Vec<Campaign>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `ClickThroughUrlSuffixProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClickThroughUrlSuffixProperties {
-    /// clickThroughUrlSuffix property.
-    pub click_through_url_suffix: Option<String>,
-    /// overrideInheritedSuffix property.
-    pub override_inherited_suffix: Option<bool>,
-}
-
-/// `LastModifiedInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LastModifiedInfo {
-    /// time property.
-    pub time: Option<String>,
-}
-
-/// `DefaultClickThroughEventTagProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DefaultClickThroughEventTagProperties {
-    /// defaultClickThroughEventTagId property.
-    pub default_click_through_event_tag_id: Option<String>,
-    /// overrideInheritedEventTag property.
-    pub override_inherited_event_tag: Option<bool>,
-}
-
-/// `AdBlockingConfiguration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdBlockingConfiguration {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `EventTagOverride` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventTagOverride {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// id property.
-    pub id: Option<String>,
 }
 
 // =============================================================================

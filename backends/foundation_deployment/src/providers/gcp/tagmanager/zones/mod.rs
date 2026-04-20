@@ -12,17 +12,34 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `RevertZoneResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RevertZoneResponse {
+    /// zone property.
+    pub zone: Option<Zone>,
+}
+
+/// `ZoneTypeRestriction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ZoneTypeRestriction {
+    /// enable property.
+    pub enable: Option<bool>,
+    /// whitelistedTypeId property.
+    pub whitelisted_type_id: Option<Vec<String>>,
+}
 
 /// `ListZonesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -33,13 +50,48 @@ pub struct ListZonesResponse {
     pub zone: Option<Vec<Zone>>,
 }
 
-/// `ZoneTypeRestriction` type.
+/// `ZoneChildContainer` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ZoneTypeRestriction {
-    /// enable property.
-    pub enable: Option<bool>,
-    /// whitelistedTypeId property.
-    pub whitelisted_type_id: Option<Vec<String>>,
+pub struct ZoneChildContainer {
+    /// nickname property.
+    pub nickname: Option<String>,
+    /// publicId property.
+    pub public_id: Option<String>,
+}
+
+/// `Parameter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Parameter {
+    /// isWeakReference property.
+    pub is_weak_reference: Option<bool>,
+    /// key property.
+    pub key: Option<String>,
+    /// list property.
+    pub list: Option<Vec<Box<Parameter>>>,
+    /// map property.
+    pub map: Option<Vec<Box<Parameter>>>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `ZoneBoundary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ZoneBoundary {
+    /// condition property.
+    pub condition: Option<Vec<Condition>>,
+    /// customEvaluationTriggerId property.
+    pub custom_evaluation_trigger_id: Option<Vec<String>>,
+}
+
+/// `Condition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Condition {
+    /// parameter property.
+    pub parameter: Option<Vec<Box<Parameter>>>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `Zone` type.
@@ -69,57 +121,6 @@ pub struct Zone {
     pub workspace_id: Option<String>,
     /// zoneId property.
     pub zone_id: Option<String>,
-}
-
-/// `Parameter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Parameter {
-    /// isWeakReference property.
-    pub is_weak_reference: Option<bool>,
-    /// key property.
-    pub key: Option<String>,
-    /// list property.
-    pub list: Option<Vec<Parameter>>,
-    /// map property.
-    pub map: Option<Vec<Parameter>>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `ZoneChildContainer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ZoneChildContainer {
-    /// nickname property.
-    pub nickname: Option<String>,
-    /// publicId property.
-    pub public_id: Option<String>,
-}
-
-/// `ZoneBoundary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ZoneBoundary {
-    /// condition property.
-    pub condition: Option<Vec<Condition>>,
-    /// customEvaluationTriggerId property.
-    pub custom_evaluation_trigger_id: Option<Vec<String>>,
-}
-
-/// `RevertZoneResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RevertZoneResponse {
-    /// zone property.
-    pub zone: Option<Zone>,
-}
-
-/// `Condition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Condition {
-    /// parameter property.
-    pub parameter: Option<Vec<Parameter>>,
-    /// type property.
-    pub r#type: Option<String>,
 }
 
 // =============================================================================

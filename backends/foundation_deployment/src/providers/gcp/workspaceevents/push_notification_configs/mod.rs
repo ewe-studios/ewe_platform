@@ -12,35 +12,21 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Empty;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `TaskPushNotificationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TaskPushNotificationConfig {
-    /// name property.
-    pub name: Option<String>,
-    /// pushNotificationConfig property.
-    pub push_notification_config: Option<PushNotificationConfig>,
-}
-
-/// `ListTaskPushNotificationConfigResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListTaskPushNotificationConfigResponse {
-    /// configs property.
-    pub configs: Option<Vec<TaskPushNotificationConfig>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `AuthenticationInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -64,9 +50,23 @@ pub struct PushNotificationConfig {
     pub url: Option<String>,
 }
 
-/// `Empty` type.
+/// `TaskPushNotificationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct TaskPushNotificationConfig {
+    /// name property.
+    pub name: Option<String>,
+    /// pushNotificationConfig property.
+    pub push_notification_config: Option<PushNotificationConfig>,
+}
+
+/// `ListTaskPushNotificationConfigResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListTaskPushNotificationConfigResponse {
+    /// configs property.
+    pub configs: Option<Vec<TaskPushNotificationConfig>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

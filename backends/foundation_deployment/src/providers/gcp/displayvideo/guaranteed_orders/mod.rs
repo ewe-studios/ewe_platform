@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `EditGuaranteedOrderReadAccessorsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EditGuaranteedOrderReadAccessorsResponse {
-    /// readAccessInherited property.
-    pub read_access_inherited: Option<bool>,
-    /// readAdvertiserIds property.
-    pub read_advertiser_ids: Option<Vec<String>>,
-}
 
 /// `GuaranteedOrderStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -42,6 +34,15 @@ pub struct GuaranteedOrderStatus {
     pub entity_pause_reason: Option<String>,
     /// entityStatus property.
     pub entity_status: Option<String>,
+}
+
+/// `EditGuaranteedOrderReadAccessorsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EditGuaranteedOrderReadAccessorsResponse {
+    /// readAccessInherited property.
+    pub read_access_inherited: Option<bool>,
+    /// readAdvertiserIds property.
+    pub read_advertiser_ids: Option<Vec<String>>,
 }
 
 /// `GuaranteedOrder` type.

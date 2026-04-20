@@ -12,70 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudApigeeV1SecurityAssessmentResultScoringResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1SecurityAssessmentResultScoringResult {
-    /// assessmentRecommendations property.
-    pub assessment_recommendations: Option<serde_json::Value>,
-    /// dataUpdateTime property.
-    pub data_update_time: Option<String>,
-    /// failedAssessmentPerWeight property.
-    pub failed_assessment_per_weight: Option<serde_json::Value>,
-    /// score property.
-    pub score: Option<i64>,
-    /// severity property.
-    pub severity: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsResponse {
-    /// assessmentTime property.
-    pub assessment_time: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// securityAssessmentResults property.
-    pub security_assessment_results: Option<Vec<GoogleCloudApigeeV1SecurityAssessmentResult>>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1SecurityAssessmentResultResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1SecurityAssessmentResultResource {
-    /// apiHubDeploymentDetails property.
-    pub api_hub_deployment_details:
-        Option<GoogleCloudApigeeV1SecurityAssessmentResultResourceApiHubDeploymentDetails>,
-    /// apiHubGatewayType property.
-    pub api_hub_gateway_type: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// resourceRevisionId property.
-    pub resource_revision_id: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
 
 /// `GoogleCloudApigeeV1SecurityAssessmentResultResourceApiHubDeploymentDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -92,6 +40,43 @@ pub struct GoogleCloudApigeeV1SecurityAssessmentResultResourceApiHubDeploymentDe
     pub source_project: Option<String>,
 }
 
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsResponse {
+    /// assessmentTime property.
+    pub assessment_time: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// securityAssessmentResults property.
+    pub security_assessment_results: Option<Vec<GoogleCloudApigeeV1SecurityAssessmentResult>>,
+}
+
+/// `GoogleCloudApigeeV1SecurityAssessmentResultScoringResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1SecurityAssessmentResultScoringResult {
+    /// assessmentRecommendations property.
+    pub assessment_recommendations: Option<serde_json::Value>,
+    /// dataUpdateTime property.
+    pub data_update_time: Option<String>,
+    /// failedAssessmentPerWeight property.
+    pub failed_assessment_per_weight: Option<serde_json::Value>,
+    /// score property.
+    pub score: Option<i64>,
+    /// severity property.
+    pub severity: Option<String>,
+}
+
 /// `GoogleCloudApigeeV1SecurityAssessmentResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityAssessmentResult {
@@ -103,6 +88,22 @@ pub struct GoogleCloudApigeeV1SecurityAssessmentResult {
     pub resource: Option<GoogleCloudApigeeV1SecurityAssessmentResultResource>,
     /// scoringResult property.
     pub scoring_result: Option<GoogleCloudApigeeV1SecurityAssessmentResultScoringResult>,
+}
+
+/// `GoogleCloudApigeeV1SecurityAssessmentResultResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1SecurityAssessmentResultResource {
+    /// apiHubDeploymentDetails property.
+    pub api_hub_deployment_details:
+        Option<GoogleCloudApigeeV1SecurityAssessmentResultResourceApiHubDeploymentDetails>,
+    /// apiHubGatewayType property.
+    pub api_hub_gateway_type: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// resourceRevisionId property.
+    pub resource_revision_id: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 // =============================================================================

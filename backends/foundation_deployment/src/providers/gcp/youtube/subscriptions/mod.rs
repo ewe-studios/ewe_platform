@@ -12,31 +12,34 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ThumbnailDetails` type.
+/// `Subscription` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ThumbnailDetails {
-    /// default property.
-    pub default: Option<Thumbnail>,
-    /// high property.
-    pub high: Option<Thumbnail>,
-    /// maxres property.
-    pub maxres: Option<Thumbnail>,
-    /// medium property.
-    pub medium: Option<Thumbnail>,
-    /// standard property.
-    pub standard: Option<Thumbnail>,
+pub struct Subscription {
+    /// contentDetails property.
+    pub content_details: Option<SubscriptionContentDetails>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// snippet property.
+    pub snippet: Option<SubscriptionSnippet>,
+    /// subscriberSnippet property.
+    pub subscriber_snippet: Option<SubscriptionSubscriberSnippet>,
 }
 
 /// `SubscriptionSnippet` type.
@@ -67,15 +70,27 @@ pub struct Thumbnail {
     pub width: Option<i64>,
 }
 
-/// `SubscriptionContentDetails` type.
+/// `SubscriptionListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubscriptionContentDetails {
-    /// activityType property.
-    pub activity_type: Option<String>,
-    /// newItemCount property.
-    pub new_item_count: Option<i64>,
-    /// totalItemCount property.
-    pub total_item_count: Option<i64>,
+pub struct SubscriptionListResponse {
+    /// etag property.
+    pub etag: Option<String>,
+    /// eventId property.
+    pub event_id: Option<String>,
+    /// items property.
+    pub items: Option<Vec<Subscription>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// pageInfo property.
+    pub page_info: Option<PageInfo>,
+    /// prevPageToken property.
+    pub prev_page_token: Option<String>,
+    /// tokenPagination property.
+    pub token_pagination: Option<TokenPagination>,
+    /// visitorId property.
+    pub visitor_id: Option<String>,
 }
 
 /// `SubscriptionSubscriberSnippet` type.
@@ -89,6 +104,21 @@ pub struct SubscriptionSubscriberSnippet {
     pub thumbnails: Option<ThumbnailDetails>,
     /// title property.
     pub title: Option<String>,
+}
+
+/// `ThumbnailDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ThumbnailDetails {
+    /// default property.
+    pub default: Option<Thumbnail>,
+    /// high property.
+    pub high: Option<Thumbnail>,
+    /// maxres property.
+    pub maxres: Option<Thumbnail>,
+    /// medium property.
+    pub medium: Option<Thumbnail>,
+    /// standard property.
+    pub standard: Option<Thumbnail>,
 }
 
 /// `ResourceId` type.
@@ -113,49 +143,20 @@ pub struct PageInfo {
     pub total_results: Option<i64>,
 }
 
-/// `SubscriptionListResponse` type.
+/// `SubscriptionContentDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubscriptionListResponse {
-    /// etag property.
-    pub etag: Option<String>,
-    /// eventId property.
-    pub event_id: Option<String>,
-    /// items property.
-    pub items: Option<Vec<Subscription>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// pageInfo property.
-    pub page_info: Option<PageInfo>,
-    /// prevPageToken property.
-    pub prev_page_token: Option<String>,
-    /// tokenPagination property.
-    pub token_pagination: Option<TokenPagination>,
-    /// visitorId property.
-    pub visitor_id: Option<String>,
+pub struct SubscriptionContentDetails {
+    /// activityType property.
+    pub activity_type: Option<String>,
+    /// newItemCount property.
+    pub new_item_count: Option<i64>,
+    /// totalItemCount property.
+    pub total_item_count: Option<i64>,
 }
 
 /// `TokenPagination` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TokenPagination {}
-
-/// `Subscription` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Subscription {
-    /// contentDetails property.
-    pub content_details: Option<SubscriptionContentDetails>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// snippet property.
-    pub snippet: Option<SubscriptionSnippet>,
-    /// subscriberSnippet property.
-    pub subscriber_snippet: Option<SubscriptionSubscriberSnippet>,
-}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

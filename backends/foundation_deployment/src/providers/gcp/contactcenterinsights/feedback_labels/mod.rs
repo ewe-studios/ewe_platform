@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,34 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue {
-    /// boolValue property.
-    pub bool_value: Option<bool>,
-    /// key property.
-    pub key: Option<String>,
-    /// naValue property.
-    pub na_value: Option<bool>,
-    /// normalizedScore property.
-    pub normalized_score: Option<f64>,
-    /// numValue property.
-    pub num_value: Option<f64>,
-    /// potentialScore property.
-    pub potential_score: Option<f64>,
-    /// score property.
-    pub score: Option<f64>,
-    /// skipValue property.
-    pub skip_value: Option<bool>,
-    /// strValue property.
-    pub str_value: Option<String>,
-}
 
 /// `GoogleCloudContactcenterinsightsV1FeedbackLabel` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -74,6 +52,29 @@ pub struct GoogleCloudContactcenterinsightsV1ListFeedbackLabelsResponse {
     pub feedback_labels: Option<Vec<GoogleCloudContactcenterinsightsV1FeedbackLabel>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue {
+    /// boolValue property.
+    pub bool_value: Option<bool>,
+    /// key property.
+    pub key: Option<String>,
+    /// naValue property.
+    pub na_value: Option<bool>,
+    /// normalizedScore property.
+    pub normalized_score: Option<f64>,
+    /// numValue property.
+    pub num_value: Option<f64>,
+    /// potentialScore property.
+    pub potential_score: Option<f64>,
+    /// score property.
+    pub score: Option<f64>,
+    /// skipValue property.
+    pub skip_value: Option<bool>,
+    /// strValue property.
+    pub str_value: Option<String>,
 }
 
 // =============================================================================

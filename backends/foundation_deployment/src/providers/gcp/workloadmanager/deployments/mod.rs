@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,21 +22,58 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListDeploymentsResponse` type.
+/// `SapSystemS4Config` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDeploymentsResponse {
-    /// deployments property.
-    pub deployments: Option<Vec<Deployment>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct SapSystemS4Config {
+    /// allowStoppingForUpdate property.
+    pub allow_stopping_for_update: Option<bool>,
+    /// ansibleRunnerServiceAccount property.
+    pub ansible_runner_service_account: Option<String>,
+    /// app property.
+    pub app: Option<AppDetails>,
+    /// database property.
+    pub database: Option<DatabaseDetails>,
+    /// deploymentModel property.
+    pub deployment_model: Option<String>,
+    /// environmentType property.
+    pub environment_type: Option<String>,
+    /// gcpProjectId property.
+    pub gcp_project_id: Option<String>,
+    /// location property.
+    pub location: Option<LocationDetails>,
+    /// mediaBucketName property.
+    pub media_bucket_name: Option<String>,
+    /// sapBootDiskImage property.
+    pub sap_boot_disk_image: Option<String>,
+    /// scalingMethod property.
+    pub scaling_method: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+    /// vmPrefix property.
+    pub vm_prefix: Option<String>,
+}
+
+/// `Pacemaker` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Pacemaker {
+    /// bucketNameNodeCertificates property.
+    pub bucket_name_node_certificates: Option<String>,
+    /// pacemakerCluster property.
+    pub pacemaker_cluster: Option<String>,
+    /// pacemakerClusterSecret property.
+    pub pacemaker_cluster_secret: Option<String>,
+    /// pacemakerClusterUsername property.
+    pub pacemaker_cluster_username: Option<String>,
+    /// sqlPacemakerSecret property.
+    pub sql_pacemaker_secret: Option<String>,
+    /// sqlPacemakerUsername property.
+    pub sql_pacemaker_username: Option<String>,
 }
 
 /// `SqlServerWorkload` type.
@@ -75,94 +113,6 @@ pub struct SqlServerWorkload {
     pub sql_server_version: Option<String>,
     /// vmPrefix property.
     pub vm_prefix: Option<String>,
-}
-
-/// `Pacemaker` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Pacemaker {
-    /// bucketNameNodeCertificates property.
-    pub bucket_name_node_certificates: Option<String>,
-    /// pacemakerCluster property.
-    pub pacemaker_cluster: Option<String>,
-    /// pacemakerClusterSecret property.
-    pub pacemaker_cluster_secret: Option<String>,
-    /// pacemakerClusterUsername property.
-    pub pacemaker_cluster_username: Option<String>,
-    /// sqlPacemakerSecret property.
-    pub sql_pacemaker_secret: Option<String>,
-    /// sqlPacemakerUsername property.
-    pub sql_pacemaker_username: Option<String>,
-}
-
-/// `AppDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppDetails {
-    /// appInstanceId property.
-    pub app_instance_id: Option<String>,
-    /// appServiceAccount property.
-    pub app_service_account: Option<String>,
-    /// appVmNames property.
-    pub app_vm_names: Option<Vec<String>>,
-    /// ascsImage property.
-    pub ascs_image: Option<String>,
-    /// ascsInstanceId property.
-    pub ascs_instance_id: Option<String>,
-    /// ascsMachineType property.
-    pub ascs_machine_type: Option<String>,
-    /// ascsServiceAccount property.
-    pub ascs_service_account: Option<String>,
-    /// ascsVm property.
-    pub ascs_vm: Option<String>,
-    /// ersInstanceId property.
-    pub ers_instance_id: Option<String>,
-    /// ersVm property.
-    pub ers_vm: Option<String>,
-    /// image property.
-    pub image: Option<String>,
-    /// machineType property.
-    pub machine_type: Option<String>,
-    /// secretManagerSecret property.
-    pub secret_manager_secret: Option<String>,
-    /// sharedStorage property.
-    pub shared_storage: Option<String>,
-    /// sid property.
-    pub sid: Option<String>,
-    /// vmsMultiplier property.
-    pub vms_multiplier: Option<i64>,
-}
-
-/// `SqlLocationDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlLocationDetails {
-    /// dnsZone property.
-    pub dns_zone: Option<String>,
-    /// gcpProjectId property.
-    pub gcp_project_id: Option<String>,
-    /// internetAccess property.
-    pub internet_access: Option<String>,
-    /// network property.
-    pub network: Option<String>,
-    /// primaryZone property.
-    pub primary_zone: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-    /// secondaryZone property.
-    pub secondary_zone: Option<String>,
-    /// subnetwork property.
-    pub subnetwork: Option<String>,
-    /// tertiaryZone property.
-    pub tertiary_zone: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 /// `LocationDetails` type.
@@ -232,31 +182,15 @@ pub struct ActiveDirectory {
     pub r#type: Option<String>,
 }
 
-/// `Deployment` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Deployment {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// sapSystemS4Config property.
-    pub sap_system_s4_config: Option<SapSystemS4Config>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-    /// sqlServerWorkload property.
-    pub sql_server_workload: Option<SqlServerWorkload>,
-    /// state property.
-    pub state: Option<String>,
-    /// terraformVariables property.
-    pub terraform_variables: Option<serde_json::Value>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-    /// workerPool property.
-    pub worker_pool: Option<String>,
-    /// workloadType property.
-    pub workload_type: Option<String>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `Database` type.
@@ -286,35 +220,102 @@ pub struct Database {
     pub tenancy_model: Option<String>,
 }
 
-/// `SapSystemS4Config` type.
+/// `Deployment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SapSystemS4Config {
-    /// allowStoppingForUpdate property.
-    pub allow_stopping_for_update: Option<bool>,
-    /// ansibleRunnerServiceAccount property.
-    pub ansible_runner_service_account: Option<String>,
-    /// app property.
-    pub app: Option<AppDetails>,
-    /// database property.
-    pub database: Option<DatabaseDetails>,
-    /// deploymentModel property.
-    pub deployment_model: Option<String>,
-    /// environmentType property.
-    pub environment_type: Option<String>,
+pub struct Deployment {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// sapSystemS4Config property.
+    pub sap_system_s4_config: Option<SapSystemS4Config>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// sqlServerWorkload property.
+    pub sql_server_workload: Option<SqlServerWorkload>,
+    /// state property.
+    pub state: Option<String>,
+    /// terraformVariables property.
+    pub terraform_variables: Option<serde_json::Value>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+    /// workerPool property.
+    pub worker_pool: Option<String>,
+    /// workloadType property.
+    pub workload_type: Option<String>,
+}
+
+/// `ListDeploymentsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDeploymentsResponse {
+    /// deployments property.
+    pub deployments: Option<Vec<Deployment>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `SqlLocationDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlLocationDetails {
+    /// dnsZone property.
+    pub dns_zone: Option<String>,
     /// gcpProjectId property.
     pub gcp_project_id: Option<String>,
-    /// location property.
-    pub location: Option<LocationDetails>,
-    /// mediaBucketName property.
-    pub media_bucket_name: Option<String>,
-    /// sapBootDiskImage property.
-    pub sap_boot_disk_image: Option<String>,
-    /// scalingMethod property.
-    pub scaling_method: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-    /// vmPrefix property.
-    pub vm_prefix: Option<String>,
+    /// internetAccess property.
+    pub internet_access: Option<String>,
+    /// network property.
+    pub network: Option<String>,
+    /// primaryZone property.
+    pub primary_zone: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// secondaryZone property.
+    pub secondary_zone: Option<String>,
+    /// subnetwork property.
+    pub subnetwork: Option<String>,
+    /// tertiaryZone property.
+    pub tertiary_zone: Option<String>,
+}
+
+/// `AppDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppDetails {
+    /// appInstanceId property.
+    pub app_instance_id: Option<String>,
+    /// appServiceAccount property.
+    pub app_service_account: Option<String>,
+    /// appVmNames property.
+    pub app_vm_names: Option<Vec<String>>,
+    /// ascsImage property.
+    pub ascs_image: Option<String>,
+    /// ascsInstanceId property.
+    pub ascs_instance_id: Option<String>,
+    /// ascsMachineType property.
+    pub ascs_machine_type: Option<String>,
+    /// ascsServiceAccount property.
+    pub ascs_service_account: Option<String>,
+    /// ascsVm property.
+    pub ascs_vm: Option<String>,
+    /// ersInstanceId property.
+    pub ers_instance_id: Option<String>,
+    /// ersVm property.
+    pub ers_vm: Option<String>,
+    /// image property.
+    pub image: Option<String>,
+    /// machineType property.
+    pub machine_type: Option<String>,
+    /// secretManagerSecret property.
+    pub secret_manager_secret: Option<String>,
+    /// sharedStorage property.
+    pub shared_storage: Option<String>,
+    /// sid property.
+    pub sid: Option<String>,
+    /// vmsMultiplier property.
+    pub vms_multiplier: Option<i64>,
 }
 
 // =============================================================================

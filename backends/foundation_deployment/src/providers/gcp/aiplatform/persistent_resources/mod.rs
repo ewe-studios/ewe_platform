@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,52 +22,65 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudAiplatformV1ResourcePoolAutoscalingSpec` type.
+/// `GoogleCloudAiplatformV1MachineSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ResourcePoolAutoscalingSpec {
-    /// maxReplicaCount property.
-    pub max_replica_count: Option<String>,
-    /// minReplicaCount property.
-    pub min_replica_count: Option<String>,
+pub struct GoogleCloudAiplatformV1MachineSpec {
+    /// acceleratorCount property.
+    pub accelerator_count: Option<i64>,
+    /// acceleratorType property.
+    pub accelerator_type: Option<String>,
+    /// gpuPartitionSize property.
+    pub gpu_partition_size: Option<String>,
+    /// machineType property.
+    pub machine_type: Option<String>,
+    /// reservationAffinity property.
+    pub reservation_affinity: Option<GoogleCloudAiplatformV1ReservationAffinity>,
+    /// tpuTopology property.
+    pub tpu_topology: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1ResourceRuntime` type.
+/// `GoogleCloudAiplatformV1RayMetricSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ResourceRuntime {
-    /// accessUris property.
-    pub access_uris: Option<serde_json::Value>,
+pub struct GoogleCloudAiplatformV1RayMetricSpec {
+    /// disabled property.
+    pub disabled: Option<bool>,
 }
 
-/// `GoogleCloudAiplatformV1ResourcePool` type.
+/// `GoogleCloudAiplatformV1DnsPeeringConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ResourcePool {
-    /// autoscalingSpec property.
-    pub autoscaling_spec: Option<GoogleCloudAiplatformV1ResourcePoolAutoscalingSpec>,
-    /// diskSpec property.
-    pub disk_spec: Option<GoogleCloudAiplatformV1DiskSpec>,
-    /// id property.
-    pub id: Option<String>,
-    /// machineSpec property.
-    pub machine_spec: Option<GoogleCloudAiplatformV1MachineSpec>,
-    /// replicaCount property.
-    pub replica_count: Option<String>,
-    /// usedReplicaCount property.
-    pub used_replica_count: Option<String>,
+pub struct GoogleCloudAiplatformV1DnsPeeringConfig {
+    /// domain property.
+    pub domain: Option<String>,
+    /// targetNetwork property.
+    pub target_network: Option<String>,
+    /// targetProject property.
+    pub target_project: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1ServiceAccountSpec` type.
+/// `GoogleCloudAiplatformV1ListPersistentResourcesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ServiceAccountSpec {
-    /// enableCustomServiceAccount property.
-    pub enable_custom_service_account: Option<bool>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
+pub struct GoogleCloudAiplatformV1ListPersistentResourcesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// persistentResources property.
+    pub persistent_resources: Option<Vec<GoogleCloudAiplatformV1PersistentResource>>,
+}
+
+/// `GoogleCloudAiplatformV1ReservationAffinity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ReservationAffinity {
+    /// key property.
+    pub key: Option<String>,
+    /// reservationAffinityType property.
+    pub reservation_affinity_type: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
 }
 
 /// `GoogleCloudAiplatformV1PersistentResource` type.
@@ -108,73 +122,13 @@ pub struct GoogleCloudAiplatformV1PersistentResource {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1DnsPeeringConfig` type.
+/// `GoogleCloudAiplatformV1DiskSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DnsPeeringConfig {
-    /// domain property.
-    pub domain: Option<String>,
-    /// targetNetwork property.
-    pub target_network: Option<String>,
-    /// targetProject property.
-    pub target_project: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1RayLogsSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RayLogsSpec {
-    /// disabled property.
-    pub disabled: Option<bool>,
-}
-
-/// `GoogleCloudAiplatformV1ReservationAffinity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReservationAffinity {
-    /// key property.
-    pub key: Option<String>,
-    /// reservationAffinityType property.
-    pub reservation_affinity_type: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAiplatformV1RayMetricSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RayMetricSpec {
-    /// disabled property.
-    pub disabled: Option<bool>,
-}
-
-/// `GoogleCloudAiplatformV1PscInterfaceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PscInterfaceConfig {
-    /// dnsPeeringConfigs property.
-    pub dns_peering_configs: Option<Vec<GoogleCloudAiplatformV1DnsPeeringConfig>>,
-    /// networkAttachment property.
-    pub network_attachment: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1EncryptionSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EncryptionSpec {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1MachineSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1MachineSpec {
-    /// acceleratorCount property.
-    pub accelerator_count: Option<i64>,
-    /// acceleratorType property.
-    pub accelerator_type: Option<String>,
-    /// gpuPartitionSize property.
-    pub gpu_partition_size: Option<String>,
-    /// machineType property.
-    pub machine_type: Option<String>,
-    /// reservationAffinity property.
-    pub reservation_affinity: Option<GoogleCloudAiplatformV1ReservationAffinity>,
-    /// tpuTopology property.
-    pub tpu_topology: Option<String>,
+pub struct GoogleCloudAiplatformV1DiskSpec {
+    /// bootDiskSizeGb property.
+    pub boot_disk_size_gb: Option<i64>,
+    /// bootDiskType property.
+    pub boot_disk_type: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1RaySpec` type.
@@ -192,15 +146,6 @@ pub struct GoogleCloudAiplatformV1RaySpec {
     pub resource_pool_images: Option<serde_json::Value>,
 }
 
-/// `GoogleCloudAiplatformV1ListPersistentResourcesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListPersistentResourcesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// persistentResources property.
-    pub persistent_resources: Option<Vec<GoogleCloudAiplatformV1PersistentResource>>,
-}
-
 /// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
@@ -212,13 +157,60 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1DiskSpec` type.
+/// `GoogleCloudAiplatformV1RayLogsSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DiskSpec {
-    /// bootDiskSizeGb property.
-    pub boot_disk_size_gb: Option<i64>,
-    /// bootDiskType property.
-    pub boot_disk_type: Option<String>,
+pub struct GoogleCloudAiplatformV1RayLogsSpec {
+    /// disabled property.
+    pub disabled: Option<bool>,
+}
+
+/// `GoogleCloudAiplatformV1ResourcePoolAutoscalingSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ResourcePoolAutoscalingSpec {
+    /// maxReplicaCount property.
+    pub max_replica_count: Option<String>,
+    /// minReplicaCount property.
+    pub min_replica_count: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ResourceRuntime` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ResourceRuntime {
+    /// accessUris property.
+    pub access_uris: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudAiplatformV1ResourcePool` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ResourcePool {
+    /// autoscalingSpec property.
+    pub autoscaling_spec: Option<GoogleCloudAiplatformV1ResourcePoolAutoscalingSpec>,
+    /// diskSpec property.
+    pub disk_spec: Option<GoogleCloudAiplatformV1DiskSpec>,
+    /// id property.
+    pub id: Option<String>,
+    /// machineSpec property.
+    pub machine_spec: Option<GoogleCloudAiplatformV1MachineSpec>,
+    /// replicaCount property.
+    pub replica_count: Option<String>,
+    /// usedReplicaCount property.
+    pub used_replica_count: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1EncryptionSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1EncryptionSpec {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1PscInterfaceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PscInterfaceConfig {
+    /// dnsPeeringConfigs property.
+    pub dns_peering_configs: Option<Vec<GoogleCloudAiplatformV1DnsPeeringConfig>>,
+    /// networkAttachment property.
+    pub network_attachment: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1ResourceRuntimeSpec` type.
@@ -228,6 +220,15 @@ pub struct GoogleCloudAiplatformV1ResourceRuntimeSpec {
     pub ray_spec: Option<GoogleCloudAiplatformV1RaySpec>,
     /// serviceAccountSpec property.
     pub service_account_spec: Option<GoogleCloudAiplatformV1ServiceAccountSpec>,
+}
+
+/// `GoogleCloudAiplatformV1ServiceAccountSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ServiceAccountSpec {
+    /// enableCustomServiceAccount property.
+    pub enable_custom_service_account: Option<bool>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
 }
 
 // =============================================================================

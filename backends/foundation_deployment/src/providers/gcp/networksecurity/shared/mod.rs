@@ -4,7 +4,7 @@
 //! DO NOT EDIT MANUALLY.
 
 // Re-export common API types from foundation_deployment
-pub use crate::providers::common::{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, RequestIntro};
+pub use crate::providers::common::{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation, RequestIntro};
 
 // Imports for shared resource types
 use foundation_macros::JsonHash;
@@ -13,13 +13,6 @@ use serde::{Deserialize, Serialize};
 // =============================================================================
 // SHARED RESOURCE TYPES
 // =============================================================================
-
-/// Shared type: `Empty`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
 
 /// Shared type: `GoogleIamV1Policy`.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -31,13 +24,6 @@ pub struct GoogleIamV1Policy {
 /// Shared type: `GoogleIamV1TestIamPermissionsResponse`.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1TestIamPermissionsResponse {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `Operation`.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Operation {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }

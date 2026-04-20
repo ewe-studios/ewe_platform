@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,102 +23,11 @@ use serde::{Deserialize, Serialize};
 use super::shared::GoogleLongrunningOperation;
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudAiplatformV1PipelineTaskDetailPipelineTaskStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PipelineTaskDetailPipelineTaskStatus {
-    /// error property.
-    pub error: Option<GoogleRpcStatus>,
-    /// state property.
-    pub state: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1Context` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Context {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// parentContexts property.
-    pub parent_contexts: Option<Vec<String>>,
-    /// schemaTitle property.
-    pub schema_title: Option<String>,
-    /// schemaVersion property.
-    pub schema_version: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1DnsPeeringConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DnsPeeringConfig {
-    /// domain property.
-    pub domain: Option<String>,
-    /// targetNetwork property.
-    pub target_network: Option<String>,
-    /// targetProject property.
-    pub target_project: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1PipelineTaskExecutorDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PipelineTaskExecutorDetail {
-    /// containerDetail property.
-    pub container_detail: Option<GoogleCloudAiplatformV1PipelineTaskExecutorDetailContainerDetail>,
-    /// customJobDetail property.
-    pub custom_job_detail: Option<GoogleCloudAiplatformV1PipelineTaskExecutorDetailCustomJobDetail>,
-}
-
-/// `GoogleCloudAiplatformV1PipelineTaskExecutorDetailContainerDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PipelineTaskExecutorDetailContainerDetail {
-    /// failedMainJobs property.
-    pub failed_main_jobs: Option<Vec<String>>,
-    /// failedPreCachingCheckJobs property.
-    pub failed_pre_caching_check_jobs: Option<Vec<String>>,
-    /// mainJob property.
-    pub main_job: Option<String>,
-    /// preCachingCheckJob property.
-    pub pre_caching_check_job: Option<String>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1PscInterfaceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PscInterfaceConfig {
-    /// dnsPeeringConfigs property.
-    pub dns_peering_configs: Option<Vec<GoogleCloudAiplatformV1DnsPeeringConfig>>,
-    /// networkAttachment property.
-    pub network_attachment: Option<String>,
-}
 
 /// `GoogleCloudAiplatformV1PipelineTaskDetail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -153,21 +63,6 @@ pub struct GoogleCloudAiplatformV1PipelineTaskDetail {
     pub task_unique_name: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1PipelineJobRuntimeConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PipelineJobRuntimeConfig {
-    /// failurePolicy property.
-    pub failure_policy: Option<String>,
-    /// gcsOutputDirectory property.
-    pub gcs_output_directory: Option<String>,
-    /// inputArtifacts property.
-    pub input_artifacts: Option<serde_json::Value>,
-    /// parameterValues property.
-    pub parameter_values: Option<serde_json::Value>,
-    /// parameters property.
-    pub parameters: Option<serde_json::Value>,
-}
-
 /// `GoogleCloudAiplatformV1Execution` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Execution {
@@ -193,15 +88,6 @@ pub struct GoogleCloudAiplatformV1Execution {
     pub state: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ListPipelineJobsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ListPipelineJobsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// pipelineJobs property.
-    pub pipeline_jobs: Option<Vec<GoogleCloudAiplatformV1PipelineJob>>,
 }
 
 /// `GoogleCloudAiplatformV1PipelineJob` type.
@@ -251,18 +137,24 @@ pub struct GoogleCloudAiplatformV1PipelineJob {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1EncryptionSpec` type.
+/// `GoogleCloudAiplatformV1PipelineTaskExecutorDetail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EncryptionSpec {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
+pub struct GoogleCloudAiplatformV1PipelineTaskExecutorDetail {
+    /// containerDetail property.
+    pub container_detail: Option<GoogleCloudAiplatformV1PipelineTaskExecutorDetailContainerDetail>,
+    /// customJobDetail property.
+    pub custom_job_detail: Option<GoogleCloudAiplatformV1PipelineTaskExecutorDetailCustomJobDetail>,
 }
 
-/// `GoogleCloudAiplatformV1PipelineTemplateMetadata` type.
+/// `GoogleCloudAiplatformV1DnsPeeringConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PipelineTemplateMetadata {
-    /// version property.
-    pub version: Option<String>,
+pub struct GoogleCloudAiplatformV1DnsPeeringConfig {
+    /// domain property.
+    pub domain: Option<String>,
+    /// targetNetwork property.
+    pub target_network: Option<String>,
+    /// targetProject property.
+    pub target_project: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1PipelineTaskExecutorDetailCustomJobDetail` type.
@@ -283,6 +175,115 @@ pub struct GoogleCloudAiplatformV1PipelineJobDetail {
     pub pipeline_run_context: Option<GoogleCloudAiplatformV1Context>,
     /// taskDetails property.
     pub task_details: Option<Vec<GoogleCloudAiplatformV1PipelineTaskDetail>>,
+}
+
+/// `GoogleCloudAiplatformV1PipelineTemplateMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PipelineTemplateMetadata {
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1EncryptionSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1EncryptionSpec {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ListPipelineJobsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ListPipelineJobsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// pipelineJobs property.
+    pub pipeline_jobs: Option<Vec<GoogleCloudAiplatformV1PipelineJob>>,
+}
+
+/// `GoogleCloudAiplatformV1Context` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1Context {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// parentContexts property.
+    pub parent_contexts: Option<Vec<String>>,
+    /// schemaTitle property.
+    pub schema_title: Option<String>,
+    /// schemaVersion property.
+    pub schema_version: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1PscInterfaceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PscInterfaceConfig {
+    /// dnsPeeringConfigs property.
+    pub dns_peering_configs: Option<Vec<GoogleCloudAiplatformV1DnsPeeringConfig>>,
+    /// networkAttachment property.
+    pub network_attachment: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1PipelineJobRuntimeConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PipelineJobRuntimeConfig {
+    /// failurePolicy property.
+    pub failure_policy: Option<String>,
+    /// gcsOutputDirectory property.
+    pub gcs_output_directory: Option<String>,
+    /// inputArtifacts property.
+    pub input_artifacts: Option<serde_json::Value>,
+    /// parameterValues property.
+    pub parameter_values: Option<serde_json::Value>,
+    /// parameters property.
+    pub parameters: Option<serde_json::Value>,
+}
+
+/// `GoogleCloudAiplatformV1PipelineTaskDetailPipelineTaskStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PipelineTaskDetailPipelineTaskStatus {
+    /// error property.
+    pub error: Option<GoogleRpcStatus>,
+    /// state property.
+    pub state: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1PipelineTaskExecutorDetailContainerDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PipelineTaskExecutorDetailContainerDetail {
+    /// failedMainJobs property.
+    pub failed_main_jobs: Option<Vec<String>>,
+    /// failedPreCachingCheckJobs property.
+    pub failed_pre_caching_check_jobs: Option<Vec<String>>,
+    /// mainJob property.
+    pub main_job: Option<String>,
+    /// preCachingCheckJob property.
+    pub pre_caching_check_job: Option<String>,
 }
 
 // =============================================================================

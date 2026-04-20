@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,39 +22,42 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Volumes;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DownloadAccessRestriction` type.
+/// `ReadingPosition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DownloadAccessRestriction {
-    /// deviceAllowed property.
-    pub device_allowed: Option<bool>,
-    /// downloadsAcquired property.
-    pub downloads_acquired: Option<i64>,
-    /// justAcquired property.
-    pub just_acquired: Option<bool>,
+pub struct ReadingPosition {
+    /// epubCfiPosition property.
+    pub epub_cfi_position: Option<String>,
+    /// gbImagePosition property.
+    pub gb_image_position: Option<String>,
+    /// gbTextPosition property.
+    pub gb_text_position: Option<String>,
     /// kind property.
     pub kind: Option<String>,
-    /// maxDownloadDevices property.
-    pub max_download_devices: Option<i64>,
-    /// message property.
-    pub message: Option<String>,
-    /// nonce property.
-    pub nonce: Option<String>,
-    /// reasonCode property.
-    pub reason_code: Option<String>,
-    /// restricted property.
-    pub restricted: Option<bool>,
-    /// signature property.
-    pub signature: Option<String>,
-    /// source property.
-    pub source: Option<String>,
+    /// pdfPosition property.
+    pub pdf_position: Option<String>,
+    /// updated property.
+    pub updated: Option<String>,
     /// volumeId property.
     pub volume_id: Option<String>,
+}
+
+/// `Volumeseriesinfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Volumeseriesinfo {
+    /// bookDisplayNumber property.
+    pub book_display_number: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// shortSeriesBookTitle property.
+    pub short_series_book_title: Option<String>,
+    /// volumeSeries property.
+    pub volume_series: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
 }
 
 /// `Volume` type.
@@ -108,34 +112,31 @@ pub struct Review {
     pub volume_id: Option<String>,
 }
 
-/// `Volumeseriesinfo` type.
+/// `DownloadAccessRestriction` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Volumeseriesinfo {
-    /// bookDisplayNumber property.
-    pub book_display_number: Option<String>,
+pub struct DownloadAccessRestriction {
+    /// deviceAllowed property.
+    pub device_allowed: Option<bool>,
+    /// downloadsAcquired property.
+    pub downloads_acquired: Option<i64>,
+    /// justAcquired property.
+    pub just_acquired: Option<bool>,
     /// kind property.
     pub kind: Option<String>,
-    /// shortSeriesBookTitle property.
-    pub short_series_book_title: Option<String>,
-    /// volumeSeries property.
-    pub volume_series: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-}
-
-/// `ReadingPosition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReadingPosition {
-    /// epubCfiPosition property.
-    pub epub_cfi_position: Option<String>,
-    /// gbImagePosition property.
-    pub gb_image_position: Option<String>,
-    /// gbTextPosition property.
-    pub gb_text_position: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// pdfPosition property.
-    pub pdf_position: Option<String>,
-    /// updated property.
-    pub updated: Option<String>,
+    /// maxDownloadDevices property.
+    pub max_download_devices: Option<i64>,
+    /// message property.
+    pub message: Option<String>,
+    /// nonce property.
+    pub nonce: Option<String>,
+    /// reasonCode property.
+    pub reason_code: Option<String>,
+    /// restricted property.
+    pub restricted: Option<bool>,
+    /// signature property.
+    pub signature: Option<String>,
+    /// source property.
+    pub source: Option<String>,
     /// volumeId property.
     pub volume_id: Option<String>,
 }

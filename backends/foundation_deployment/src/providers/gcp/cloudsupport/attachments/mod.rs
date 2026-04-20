@@ -12,71 +12,57 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DiffUploadRequest` type.
+/// `Actor` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiffUploadRequest {
-    /// checksumsInfo property.
-    pub checksums_info: Option<CompositeMedia>,
-    /// objectInfo property.
-    pub object_info: Option<CompositeMedia>,
-    /// objectVersion property.
-    pub object_version: Option<String>,
+pub struct Actor {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// email property.
+    pub email: Option<String>,
+    /// googleSupport property.
+    pub google_support: Option<bool>,
+    /// username property.
+    pub username: Option<String>,
 }
 
-/// `DiffDownloadResponse` type.
+/// `CompositeMedia` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiffDownloadResponse {
-    /// objectLocation property.
-    pub object_location: Option<CompositeMedia>,
-}
-
-/// `DiffVersionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiffVersionResponse {
-    /// objectSizeBytes property.
-    pub object_size_bytes: Option<String>,
-    /// objectVersion property.
-    pub object_version: Option<String>,
-}
-
-/// `Blobstore2Info` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Blobstore2Info {
-    /// blobGeneration property.
-    pub blob_generation: Option<String>,
-    /// blobId property.
-    pub blob_id: Option<String>,
-    /// downloadExternalReadToken property.
-    pub download_external_read_token: Option<String>,
-    /// downloadReadHandle property.
-    pub download_read_handle: Option<String>,
-    /// readToken property.
-    pub read_token: Option<String>,
-    /// uploadFragmentListCreationInfo property.
-    pub upload_fragment_list_creation_info: Option<String>,
-    /// uploadMetadataContainer property.
-    pub upload_metadata_container: Option<String>,
-}
-
-/// `DownloadParameters` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DownloadParameters {
-    /// allowGzipCompression property.
-    pub allow_gzip_compression: Option<bool>,
-    /// ignoreRange property.
-    pub ignore_range: Option<bool>,
+pub struct CompositeMedia {
+    /// blobRef property.
+    pub blob_ref: Option<String>,
+    /// blobstore2Info property.
+    pub blobstore2_info: Option<Blobstore2Info>,
+    /// cosmoBinaryReference property.
+    pub cosmo_binary_reference: Option<String>,
+    /// crc32cHash property.
+    pub crc32c_hash: Option<i64>,
+    /// inline property.
+    pub inline: Option<String>,
+    /// length property.
+    pub length: Option<String>,
+    /// md5Hash property.
+    pub md5_hash: Option<String>,
+    /// objectId property.
+    pub object_id: Option<ObjectId>,
+    /// path property.
+    pub path: Option<String>,
+    /// referenceType property.
+    pub reference_type: Option<String>,
+    /// sha1Hash property.
+    pub sha1_hash: Option<String>,
 }
 
 /// `Media` type.
@@ -144,39 +130,6 @@ pub struct Media {
     pub token: Option<String>,
 }
 
-/// `ObjectId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObjectId {
-    /// bucketName property.
-    pub bucket_name: Option<String>,
-    /// generation property.
-    pub generation: Option<String>,
-    /// objectName property.
-    pub object_name: Option<String>,
-}
-
-/// `DiffUploadResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiffUploadResponse {
-    /// objectVersion property.
-    pub object_version: Option<String>,
-    /// originalObject property.
-    pub original_object: Option<CompositeMedia>,
-}
-
-/// `Actor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Actor {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// email property.
-    pub email: Option<String>,
-    /// googleSupport property.
-    pub google_support: Option<bool>,
-    /// username property.
-    pub username: Option<String>,
-}
-
 /// `ContentTypeInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentTypeInfo {
@@ -196,40 +149,13 @@ pub struct ContentTypeInfo {
     pub fusion_id_detection_metadata: Option<String>,
 }
 
-/// `CompositeMedia` type.
+/// `DiffUploadResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompositeMedia {
-    /// blobRef property.
-    pub blob_ref: Option<String>,
-    /// blobstore2Info property.
-    pub blobstore2_info: Option<Blobstore2Info>,
-    /// cosmoBinaryReference property.
-    pub cosmo_binary_reference: Option<String>,
-    /// crc32cHash property.
-    pub crc32c_hash: Option<i64>,
-    /// inline property.
-    pub inline: Option<String>,
-    /// length property.
-    pub length: Option<String>,
-    /// md5Hash property.
-    pub md5_hash: Option<String>,
-    /// objectId property.
-    pub object_id: Option<ObjectId>,
-    /// path property.
-    pub path: Option<String>,
-    /// referenceType property.
-    pub reference_type: Option<String>,
-    /// sha1Hash property.
-    pub sha1_hash: Option<String>,
-}
-
-/// `ListAttachmentsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAttachmentsResponse {
-    /// attachments property.
-    pub attachments: Option<Vec<Attachment>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct DiffUploadResponse {
+    /// objectVersion property.
+    pub object_version: Option<String>,
+    /// originalObject property.
+    pub original_object: Option<CompositeMedia>,
 }
 
 /// `DiffChecksumsResponse` type.
@@ -241,6 +167,53 @@ pub struct DiffChecksumsResponse {
     pub chunk_size_bytes: Option<String>,
     /// objectLocation property.
     pub object_location: Option<CompositeMedia>,
+    /// objectSizeBytes property.
+    pub object_size_bytes: Option<String>,
+    /// objectVersion property.
+    pub object_version: Option<String>,
+}
+
+/// `DiffDownloadResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiffDownloadResponse {
+    /// objectLocation property.
+    pub object_location: Option<CompositeMedia>,
+}
+
+/// `ObjectId` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ObjectId {
+    /// bucketName property.
+    pub bucket_name: Option<String>,
+    /// generation property.
+    pub generation: Option<String>,
+    /// objectName property.
+    pub object_name: Option<String>,
+}
+
+/// `DiffUploadRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiffUploadRequest {
+    /// checksumsInfo property.
+    pub checksums_info: Option<CompositeMedia>,
+    /// objectInfo property.
+    pub object_info: Option<CompositeMedia>,
+    /// objectVersion property.
+    pub object_version: Option<String>,
+}
+
+/// `ListAttachmentsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAttachmentsResponse {
+    /// attachments property.
+    pub attachments: Option<Vec<Attachment>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `DiffVersionResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiffVersionResponse {
     /// objectSizeBytes property.
     pub object_size_bytes: Option<String>,
     /// objectVersion property.
@@ -262,6 +235,34 @@ pub struct Attachment {
     pub name: Option<String>,
     /// sizeBytes property.
     pub size_bytes: Option<String>,
+}
+
+/// `DownloadParameters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DownloadParameters {
+    /// allowGzipCompression property.
+    pub allow_gzip_compression: Option<bool>,
+    /// ignoreRange property.
+    pub ignore_range: Option<bool>,
+}
+
+/// `Blobstore2Info` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Blobstore2Info {
+    /// blobGeneration property.
+    pub blob_generation: Option<String>,
+    /// blobId property.
+    pub blob_id: Option<String>,
+    /// downloadExternalReadToken property.
+    pub download_external_read_token: Option<String>,
+    /// downloadReadHandle property.
+    pub download_read_handle: Option<String>,
+    /// readToken property.
+    pub read_token: Option<String>,
+    /// uploadFragmentListCreationInfo property.
+    pub upload_fragment_list_creation_info: Option<String>,
+    /// uploadMetadataContainer property.
+    pub upload_metadata_container: Option<String>,
 }
 
 // =============================================================================

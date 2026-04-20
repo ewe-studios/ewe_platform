@@ -12,17 +12,29 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudChannelV1MarketingInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1MarketingInfo {
+    /// defaultLogo property.
+    pub default_logo: Option<GoogleCloudChannelV1Media>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+}
 
 /// `GoogleCloudChannelV1ListProductsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -51,17 +63,6 @@ pub struct GoogleCloudChannelV1Product {
     pub marketing_info: Option<GoogleCloudChannelV1MarketingInfo>,
     /// name property.
     pub name: Option<String>,
-}
-
-/// `GoogleCloudChannelV1MarketingInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1MarketingInfo {
-    /// defaultLogo property.
-    pub default_logo: Option<GoogleCloudChannelV1Media>,
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
 }
 
 // =============================================================================

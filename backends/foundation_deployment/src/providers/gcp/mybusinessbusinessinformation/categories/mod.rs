@@ -12,25 +12,37 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListCategoriesResponse` type.
+/// `MoreHoursType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCategoriesResponse {
-    /// categories property.
-    pub categories: Option<Vec<Category>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct MoreHoursType {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// hoursTypeId property.
+    pub hours_type_id: Option<String>,
+    /// localizedDisplayName property.
+    pub localized_display_name: Option<String>,
+}
+
+/// `ServiceType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceType {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// serviceTypeId property.
+    pub service_type_id: Option<String>,
 }
 
 /// `Category` type.
@@ -46,24 +58,13 @@ pub struct Category {
     pub service_types: Option<Vec<ServiceType>>,
 }
 
-/// `ServiceType` type.
+/// `ListCategoriesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceType {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// serviceTypeId property.
-    pub service_type_id: Option<String>,
-}
-
-/// `MoreHoursType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MoreHoursType {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// hoursTypeId property.
-    pub hours_type_id: Option<String>,
-    /// localizedDisplayName property.
-    pub localized_display_name: Option<String>,
+pub struct ListCategoriesResponse {
+    /// categories property.
+    pub categories: Option<Vec<Category>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

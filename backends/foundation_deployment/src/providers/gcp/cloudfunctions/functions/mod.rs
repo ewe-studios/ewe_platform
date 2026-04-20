@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,18 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `TestIamPermissionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestIamPermissionsResponse {
-    /// permissions property.
-    pub permissions: Option<Vec<String>>,
-}
 
 /// `RepoSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -58,15 +52,121 @@ pub struct GenerateDownloadUrlResponse {
     pub download_url: Option<String>,
 }
 
-/// `Binding` type.
+/// `TestIamPermissionsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
+pub struct TestIamPermissionsResponse {
+    /// permissions property.
+    pub permissions: Option<Vec<String>>,
+}
+
+/// `ListFunctionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListFunctionsResponse {
+    /// functions property.
+    pub functions: Option<Vec<Function>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `BuildConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BuildConfig {
+    /// automaticUpdatePolicy property.
+    pub automatic_update_policy: Option<AutomaticUpdatePolicy>,
+    /// build property.
+    pub build: Option<String>,
+    /// dockerRegistry property.
+    pub docker_registry: Option<String>,
+    /// dockerRepository property.
+    pub docker_repository: Option<String>,
+    /// entryPoint property.
+    pub entry_point: Option<String>,
+    /// environmentVariables property.
+    pub environment_variables: Option<serde_json::Value>,
+    /// onDeployUpdatePolicy property.
+    pub on_deploy_update_policy: Option<OnDeployUpdatePolicy>,
+    /// runtime property.
+    pub runtime: Option<String>,
+    /// serviceAccount property.
+    pub service_account: Option<String>,
+    /// source property.
+    pub source: Option<Source>,
+    /// sourceProvenance property.
+    pub source_provenance: Option<SourceProvenance>,
+    /// sourceToken property.
+    pub source_token: Option<String>,
+    /// workerPool property.
+    pub worker_pool: Option<String>,
+}
+
+/// `UpgradeInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpgradeInfo {
+    /// buildConfig property.
+    pub build_config: Option<BuildConfig>,
+    /// eventTrigger property.
+    pub event_trigger: Option<EventTrigger>,
+    /// serviceConfig property.
+    pub service_config: Option<ServiceConfig>,
+    /// upgradeState property.
+    pub upgrade_state: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `SecretEnvVar` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecretEnvVar {
+    /// key property.
+    pub key: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// secret property.
+    pub secret: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `SecretVersion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecretVersion {
+    /// path property.
+    pub path: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `SourceProvenance` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SourceProvenance {
+    /// gitUri property.
+    pub git_uri: Option<String>,
+    /// resolvedRepoSource property.
+    pub resolved_repo_source: Option<RepoSource>,
+    /// resolvedStorageSource property.
+    pub resolved_storage_source: Option<StorageSource>,
+}
+
+/// `AuditConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
 }
 
 /// `EventTrigger` type.
@@ -92,17 +192,72 @@ pub struct EventTrigger {
     pub trigger_region: Option<String>,
 }
 
-/// `UpgradeInfo` type.
+/// `GoogleCloudFunctionsV2StateMessage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpgradeInfo {
-    /// buildConfig property.
-    pub build_config: Option<BuildConfig>,
-    /// eventTrigger property.
-    pub event_trigger: Option<EventTrigger>,
-    /// serviceConfig property.
-    pub service_config: Option<ServiceConfig>,
-    /// upgradeState property.
-    pub upgrade_state: Option<String>,
+pub struct GoogleCloudFunctionsV2StateMessage {
+    /// message property.
+    pub message: Option<String>,
+    /// severity property.
+    pub severity: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `StorageSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StorageSource {
+    /// bucket property.
+    pub bucket: Option<String>,
+    /// generation property.
+    pub generation: Option<String>,
+    /// object property.
+    pub object: Option<String>,
+    /// sourceUploadUrl property.
+    pub source_upload_url: Option<String>,
+}
+
+/// `DirectVpcNetworkInterface` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DirectVpcNetworkInterface {
+    /// network property.
+    pub network: Option<String>,
+    /// subnetwork property.
+    pub subnetwork: Option<String>,
+    /// tags property.
+    pub tags: Option<Vec<String>>,
+}
+
+/// `SecretVolume` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecretVolume {
+    /// mountPath property.
+    pub mount_path: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// secret property.
+    pub secret: Option<String>,
+    /// versions property.
+    pub versions: Option<Vec<SecretVersion>>,
+}
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `ServiceConfig` type.
@@ -152,104 +307,6 @@ pub struct ServiceConfig {
     pub vpc_connector_egress_settings: Option<String>,
 }
 
-/// `DirectVpcNetworkInterface` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DirectVpcNetworkInterface {
-    /// network property.
-    pub network: Option<String>,
-    /// subnetwork property.
-    pub subnetwork: Option<String>,
-    /// tags property.
-    pub tags: Option<Vec<String>>,
-}
-
-/// `SecretVolume` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecretVolume {
-    /// mountPath property.
-    pub mount_path: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// secret property.
-    pub secret: Option<String>,
-    /// versions property.
-    pub versions: Option<Vec<SecretVersion>>,
-}
-
-/// `AutomaticUpdatePolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutomaticUpdatePolicy {}
-
-/// `EventFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventFilter {
-    /// attribute property.
-    pub attribute: Option<String>,
-    /// operator property.
-    pub operator: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Policy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Policy {
-    /// auditConfigs property.
-    pub audit_configs: Option<Vec<AuditConfig>>,
-    /// bindings property.
-    pub bindings: Option<Vec<Binding>>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// version property.
-    pub version: Option<i64>,
-}
-
-/// `SourceProvenance` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SourceProvenance {
-    /// gitUri property.
-    pub git_uri: Option<String>,
-    /// resolvedRepoSource property.
-    pub resolved_repo_source: Option<RepoSource>,
-    /// resolvedStorageSource property.
-    pub resolved_storage_source: Option<StorageSource>,
-}
-
-/// `StorageSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StorageSource {
-    /// bucket property.
-    pub bucket: Option<String>,
-    /// generation property.
-    pub generation: Option<String>,
-    /// object property.
-    pub object: Option<String>,
-    /// sourceUploadUrl property.
-    pub source_upload_url: Option<String>,
-}
-
-/// `ListFunctionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListFunctionsResponse {
-    /// functions property.
-    pub functions: Option<Vec<Function>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
 /// `Function` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Function {
@@ -287,25 +344,9 @@ pub struct Function {
     pub url: Option<String>,
 }
 
-/// `SecretVersion` type.
+/// `AutomaticUpdatePolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecretVersion {
-    /// path property.
-    pub path: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `GoogleCloudFunctionsV2StateMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudFunctionsV2StateMessage {
-    /// message property.
-    pub message: Option<String>,
-    /// severity property.
-    pub severity: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
+pub struct AutomaticUpdatePolicy {}
 
 /// `Source` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -318,59 +359,6 @@ pub struct Source {
     pub storage_source: Option<StorageSource>,
 }
 
-/// `BuildConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BuildConfig {
-    /// automaticUpdatePolicy property.
-    pub automatic_update_policy: Option<AutomaticUpdatePolicy>,
-    /// build property.
-    pub build: Option<String>,
-    /// dockerRegistry property.
-    pub docker_registry: Option<String>,
-    /// dockerRepository property.
-    pub docker_repository: Option<String>,
-    /// entryPoint property.
-    pub entry_point: Option<String>,
-    /// environmentVariables property.
-    pub environment_variables: Option<serde_json::Value>,
-    /// onDeployUpdatePolicy property.
-    pub on_deploy_update_policy: Option<OnDeployUpdatePolicy>,
-    /// runtime property.
-    pub runtime: Option<String>,
-    /// serviceAccount property.
-    pub service_account: Option<String>,
-    /// source property.
-    pub source: Option<Source>,
-    /// sourceProvenance property.
-    pub source_provenance: Option<SourceProvenance>,
-    /// sourceToken property.
-    pub source_token: Option<String>,
-    /// workerPool property.
-    pub worker_pool: Option<String>,
-}
-
-/// `Expr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
-
 /// `OnDeployUpdatePolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OnDeployUpdatePolicy {
@@ -378,26 +366,39 @@ pub struct OnDeployUpdatePolicy {
     pub runtime_version: Option<String>,
 }
 
-/// `AuditConfig` type.
+/// `Policy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
+pub struct Policy {
+    /// auditConfigs property.
+    pub audit_configs: Option<Vec<AuditConfig>>,
+    /// bindings property.
+    pub bindings: Option<Vec<Binding>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// version property.
+    pub version: Option<i64>,
 }
 
-/// `SecretEnvVar` type.
+/// `Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecretEnvVar {
-    /// key property.
-    pub key: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// secret property.
-    pub secret: Option<String>,
-    /// version property.
-    pub version: Option<String>,
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `EventFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EventFilter {
+    /// attribute property.
+    pub attribute: Option<String>,
+    /// operator property.
+    pub operator: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
 // =============================================================================

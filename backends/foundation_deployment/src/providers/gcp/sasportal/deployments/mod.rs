@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,11 +23,20 @@ use serde::{Deserialize, Serialize};
 use super::shared::SasPortalEmpty;
 use super::shared::SasPortalOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `SasPortalListDeploymentsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SasPortalListDeploymentsResponse {
+    /// deployments property.
+    pub deployments: Option<Vec<SasPortalDeployment>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `SasPortalDeployment` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -50,15 +60,6 @@ pub struct SasPortalStatus {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
-}
-
-/// `SasPortalListDeploymentsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalListDeploymentsResponse {
-    /// deployments property.
-    pub deployments: Option<Vec<SasPortalDeployment>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

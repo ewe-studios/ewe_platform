@@ -12,17 +12,42 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ChannelProfileDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChannelProfileDetails {
+    /// channelId property.
+    pub channel_id: Option<String>,
+    /// channelUrl property.
+    pub channel_url: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// profileImageUrl property.
+    pub profile_image_url: Option<String>,
+}
+
+/// `SuperStickerMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SuperStickerMetadata {
+    /// altText property.
+    pub alt_text: Option<String>,
+    /// altTextLanguage property.
+    pub alt_text_language: Option<String>,
+    /// stickerId property.
+    pub sticker_id: Option<String>,
+}
 
 /// `SuperChatEvent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -62,10 +87,6 @@ pub struct SuperChatEventSnippet {
     pub supporter_details: Option<ChannelProfileDetails>,
 }
 
-/// `TokenPagination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TokenPagination {}
-
 /// `SuperChatEventListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuperChatEventListResponse {
@@ -87,30 +108,6 @@ pub struct SuperChatEventListResponse {
     pub visitor_id: Option<String>,
 }
 
-/// `SuperStickerMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SuperStickerMetadata {
-    /// altText property.
-    pub alt_text: Option<String>,
-    /// altTextLanguage property.
-    pub alt_text_language: Option<String>,
-    /// stickerId property.
-    pub sticker_id: Option<String>,
-}
-
-/// `ChannelProfileDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChannelProfileDetails {
-    /// channelId property.
-    pub channel_id: Option<String>,
-    /// channelUrl property.
-    pub channel_url: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// profileImageUrl property.
-    pub profile_image_url: Option<String>,
-}
-
 /// `PageInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PageInfo {
@@ -119,6 +116,10 @@ pub struct PageInfo {
     /// totalResults property.
     pub total_results: Option<i64>,
 }
+
+/// `TokenPagination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TokenPagination {}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

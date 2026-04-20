@@ -12,24 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ApksAddExternallyHostedResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApksAddExternallyHostedResponse {
-    /// externallyHostedApk property.
-    pub externally_hosted_apk: Option<ExternallyHostedApk>,
-}
 
 /// `ExternallyHostedApk` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -64,6 +58,13 @@ pub struct ExternallyHostedApk {
     pub version_code: Option<i64>,
     /// versionName property.
     pub version_name: Option<String>,
+}
+
+/// `ApksAddExternallyHostedResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApksAddExternallyHostedResponse {
+    /// externallyHostedApk property.
+    pub externally_hosted_apk: Option<ExternallyHostedApk>,
 }
 
 /// `UsesPermission` type.

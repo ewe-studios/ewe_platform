@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -20,6 +21,7 @@ use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
 use super::shared::EmptyResponse;
+use super::shared::Operation;
 use super::shared::VPCEndpointAssignment;
 use super::shared::VPCEndpointsResponse;
 
@@ -29,17 +31,611 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ProjectOwnerData` type.
+/// `RolesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectOwnerData {
-    /// branches_limit property.
-    pub branches_limit: i64,
+pub struct RolesResponse {
+    /// roles property.
+    pub roles: Vec<Role>,
+}
+
+/// `NeonAuthDeleteDomainFromRedirectURIWhitelistItem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthDeleteDomainFromRedirectURIWhitelistItem {
+    /// domain property.
+    pub domain: String,
+}
+
+/// `PgSettingsData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PgSettingsData {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DatabaseUpdateRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseUpdateRequest {
+    /// database property.
+    pub database: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AvailablePreloadLibrary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AvailablePreloadLibrary {
+    /// description property.
+    pub description: String,
+    /// is_default property.
+    pub is_default: bool,
+    /// is_experimental property.
+    pub is_experimental: bool,
+    /// library_name property.
+    pub library_name: String,
+    /// version property.
+    pub version: String,
+}
+
+/// `NeonAuthEmailServerConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthEmailServerConfig {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `NeonAuthWebhookConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthWebhookConfig {
+    /// enabled property.
+    pub enabled: bool,
+    /// enabled_events property.
+    pub enabled_events: Option<Vec<String>>,
+    /// timeout_seconds property.
+    pub timeout_seconds: Option<i64>,
+    /// webhook_url property.
+    pub webhook_url: Option<String>,
+}
+
+/// `DataAPIUpdateRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataAPIUpdateRequest {
+    /// settings property.
+    pub settings: Option<DataAPISettings>,
+}
+
+/// `RoleCreateRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RoleCreateRequest {
+    /// role property.
+    pub role: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `OperationStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OperationStatus {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `OperationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OperationsResponse {
+    /// operations property.
+    pub operations: Vec<Operation>,
+}
+
+/// `NeonAuthProviderProjectTransferStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthProviderProjectTransferStatus {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MaskingRulesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MaskingRulesResponse {
+    /// masking_rules property.
+    pub masking_rules: Vec<MaskingRule>,
+}
+
+/// `TransferProjectsToOrganizationRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TransferProjectsToOrganizationRequest {
+    /// destination_org_id property.
+    pub destination_org_id: String,
+    /// project_ids property.
+    pub project_ids: Vec<String>,
+}
+
+/// `ComputeUnit` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeUnit {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `UpdateNeonAuthUserRoleRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateNeonAuthUserRoleRequest {
+    /// roles property.
+    pub roles: Vec<String>,
+}
+
+/// `Provisioner` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Provisioner {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `NeonAuthCreateIntegrationResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthCreateIntegrationResponse {
+    /// auth_provider property.
+    pub auth_provider: NeonAuthSupportedAuthProvider,
+    /// auth_provider_project_id property.
+    pub auth_provider_project_id: String,
+    /// base_url property.
+    pub base_url: Option<String>,
+    /// jwks_url property.
+    pub jwks_url: String,
+    /// pub_client_key property.
+    pub pub_client_key: String,
+    /// schema_name property.
+    pub schema_name: String,
+    /// secret_server_key property.
+    pub secret_server_key: String,
+    /// table_name property.
+    pub table_name: String,
+}
+
+/// `NeonAuthAllowLocalhostResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthAllowLocalhostResponse {
+    /// allow_localhost property.
+    pub allow_localhost: bool,
+}
+
+/// `NeonAuthOauthProvider` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthOauthProvider {
+    /// client_id property.
+    pub client_id: Option<String>,
+    /// client_secret property.
+    pub client_secret: Option<String>,
+    /// id property.
+    pub id: NeonAuthOauthProviderId,
+    /// type property.
+    pub r#type: NeonAuthOauthProviderType,
+}
+
+/// `DataAPICreateRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataAPICreateRequest {
+    /// add_default_grants property.
+    pub add_default_grants: Option<bool>,
+    /// auth_provider property.
+    pub auth_provider: Option<String>,
+    /// jwks_url property.
+    pub jwks_url: Option<String>,
+    /// jwt_audience property.
+    pub jwt_audience: Option<String>,
+    /// provider_name property.
+    pub provider_name: Option<String>,
+    /// settings property.
+    pub settings: Option<DataAPISettings>,
+    /// skip_auth_schema property.
+    pub skip_auth_schema: Option<bool>,
+}
+
+/// `AnonymizationRunMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AnonymizationRunMetadata {
+    /// completed_at property.
+    pub completed_at: Option<String>,
+    /// masked_columns property.
+    pub masked_columns: Option<i64>,
+    /// started_at property.
+    pub started_at: Option<String>,
+    /// triggered_by property.
+    pub triggered_by: Option<String>,
+    /// triggered_by_username property.
+    pub triggered_by_username: Option<String>,
+}
+
+/// `NeonAuthOauthProviderType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthOauthProviderType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DatabaseOperations` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseOperations {}
+
+/// `DataAPISettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataAPISettings {
+    /// db_aggregates_enabled property.
+    pub db_aggregates_enabled: Option<bool>,
+    /// db_anon_role property.
+    pub db_anon_role: Option<String>,
+    /// db_extra_search_path property.
+    pub db_extra_search_path: Option<String>,
+    /// db_max_rows property.
+    pub db_max_rows: Option<i64>,
+    /// db_schemas property.
+    pub db_schemas: Option<Vec<String>>,
+    /// jwt_cache_max_lifetime property.
+    pub jwt_cache_max_lifetime: Option<i64>,
+    /// jwt_role_claim_key property.
+    pub jwt_role_claim_key: Option<String>,
+    /// openapi_mode property.
+    pub openapi_mode: Option<String>,
+    /// server_cors_allowed_origins property.
+    pub server_cors_allowed_origins: Option<String>,
+    /// server_timing_enabled property.
+    pub server_timing_enabled: Option<bool>,
+}
+
+/// `DatabasesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesResponse {
+    /// databases property.
+    pub databases: Vec<Database>,
+}
+
+/// `NeonAuthOrganizationConfigUpdate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthOrganizationConfigUpdate {
+    /// creator_role property.
+    pub creator_role: Option<String>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// membership_limit property.
+    pub membership_limit: Option<i64>,
+    /// organization_limit property.
+    pub organization_limit: Option<i64>,
+    /// send_invitation_email property.
+    pub send_invitation_email: Option<bool>,
+}
+
+/// `ProjectResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectResponse {
+    /// project property.
+    pub project: Project,
+}
+
+/// `BranchRestoreRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BranchRestoreRequest {
+    /// preserve_under_name property.
+    pub preserve_under_name: Option<String>,
+    /// source_branch_id property.
+    pub source_branch_id: String,
+    /// source_lsn property.
+    pub source_lsn: Option<String>,
+    /// source_timestamp property.
+    pub source_timestamp: Option<String>,
+}
+
+/// `NeonAuthIntegration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthIntegration {
+    /// auth_provider property.
+    pub auth_provider: NeonAuthSupportedAuthProvider,
+    /// auth_provider_project_id property.
+    pub auth_provider_project_id: String,
+    /// base_url property.
+    pub base_url: Option<String>,
+    /// branch_id property.
+    pub branch_id: String,
+    /// created_at property.
+    pub created_at: String,
+    /// db_name property.
+    pub db_name: String,
+    /// jwks_url property.
+    pub jwks_url: String,
+    /// owned_by property.
+    pub owned_by: NeonAuthProviderProjectOwnedBy,
+    /// transfer_status property.
+    pub transfer_status: Option<NeonAuthProviderProjectTransferStatus>,
+}
+
+/// `NeonAuthSupportedAuthProvider` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthSupportedAuthProvider {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AnnotationValueData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AnnotationValueData {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `NeonAuthCreateNewUserResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthCreateNewUserResponse {
+    /// id property.
+    pub id: String,
+}
+
+/// `NeonAuthProviderProjectOwnedBy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthProviderProjectOwnedBy {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `BranchCreateRequestEndpointOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BranchCreateRequestEndpointOptions {
+    /// autoscaling_limit_max_cu property.
+    pub autoscaling_limit_max_cu: Option<ComputeUnit>,
+    /// autoscaling_limit_min_cu property.
+    pub autoscaling_limit_min_cu: Option<ComputeUnit>,
+    /// provisioner property.
+    pub provisioner: Option<Provisioner>,
+    /// settings property.
+    pub settings: Option<EndpointSettingsData>,
+    /// suspend_timeout_seconds property.
+    pub suspend_timeout_seconds: Option<SuspendTimeoutSeconds>,
+    /// type property.
+    pub r#type: EndpointType,
+}
+
+/// `DataAPIReponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataAPIReponse {
+    /// available_schemas property.
+    pub available_schemas: Option<Vec<String>>,
+    /// settings property.
+    pub settings: Option<serde_json::Value>,
+    /// status property.
+    pub status: String,
+    /// url property.
+    pub url: String,
+}
+
+/// `OperationResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OperationResponse {
+    /// operation property.
+    pub operation: Operation,
+}
+
+/// `NeonAuthTransferAuthProviderProjectResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthTransferAuthProviderProjectResponse {
+    /// url property.
+    pub url: String,
+}
+
+/// `SendNeonAuthTestEmailResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SendNeonAuthTestEmailResponse {
+    /// error_message property.
+    pub error_message: Option<String>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `Database` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Database {
+    /// branch_id property.
+    pub branch_id: String,
+    /// created_at property.
+    pub created_at: String,
+    /// id property.
+    pub id: i64,
+    /// name property.
+    pub name: String,
+    /// owner_name property.
+    pub owner_name: String,
+    /// updated_at property.
+    pub updated_at: String,
+}
+
+/// `SuspendTimeoutSeconds` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SuspendTimeoutSeconds {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `NeonAuthEmailVerificationMethod` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthEmailVerificationMethod {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `BranchSchemaJSON` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BranchSchemaJSON {
+    /// tables property.
+    pub tables: Vec<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `GrantPermissionToProjectRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GrantPermissionToProjectRequest {
+    /// email property.
+    pub email: String,
+}
+
+/// `EndpointType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EndpointType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `BranchState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BranchState {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `BranchOperations` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BranchOperations {}
+
+/// `NeonAuthRedirectURIWhitelistDomain` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthRedirectURIWhitelistDomain {
+    /// auth_provider property.
+    pub auth_provider: NeonAuthSupportedAuthProvider,
+    /// domain property.
+    pub domain: String,
+}
+
+/// `UpdateNeonAuthUserRoleResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateNeonAuthUserRoleResponse {
+    /// id property.
+    pub id: String,
+}
+
+/// `EndpointPoolerMode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EndpointPoolerMode {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ProjectAuditLogLevel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectAuditLogLevel {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SharedEmailServer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SharedEmailServer {
+    /// sender_email property.
+    pub sender_email: Option<String>,
+    /// sender_name property.
+    pub sender_name: Option<String>,
+}
+
+/// `NeonAuthAddDomainToRedirectURIWhitelistRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthAddDomainToRedirectURIWhitelistRequest {
+    /// auth_provider property.
+    pub auth_provider: NeonAuthSupportedAuthProvider,
+    /// domain property.
+    pub domain: String,
+}
+
+/// `SendNeonAuthTestEmailRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SendNeonAuthTestEmailRequest {
+    /// `recipient_email` property.
+    pub recipient_email: String,
+}
+
+/// `BranchRestrictedAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BranchRestrictedAction {
+    /// name property.
+    pub name: String,
+    /// reason property.
+    pub reason: String,
+}
+
+/// `BranchResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BranchResponse {
+    /// branch property.
+    pub branch: Branch,
+}
+
+/// `DataAPICreateResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataAPICreateResponse {
+    /// url property.
+    pub url: String,
+}
+
+/// `DatabaseResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseResponse {
+    /// database property.
+    pub database: Database,
+}
+
+/// `VPCEndpoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VPCEndpoint {
+    /// label property.
+    pub label: String,
+    /// vpc_endpoint_id property.
+    pub vpc_endpoint_id: String,
+}
+
+/// `BranchAnonymizedCreateRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BranchAnonymizedCreateRequest {
+    /// `branch_create` property.
+    pub branch_create: Option<BranchCreateRequest>,
+    /// `masking_rules` property.
+    pub masking_rules: Option<Vec<MaskingRule>>,
+    /// `start_anonymization` property.
+    pub start_anonymization: Option<bool>,
+}
+
+/// `CreateBranchNeonAuthNewUserRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateBranchNeonAuthNewUserRequest {
     /// email property.
     pub email: String,
     /// name property.
-    pub name: String,
-    /// subscription_type property.
-    pub subscription_type: BillingSubscriptionType,
+    pub name: Option<String>,
+}
+
+/// `PgbouncerSettingsData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PgbouncerSettingsData {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `OperationAction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OperationAction {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `BackupScheduleItem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupScheduleItem {
+    /// day property.
+    pub day: Option<i64>,
+    /// frequency property.
+    pub frequency: String,
+    /// hour property.
+    pub hour: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// retention_seconds property.
+    pub retention_seconds: Option<i64>,
+}
+
+/// `BranchCreateRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BranchCreateRequest {
+    /// branch property.
+    pub branch: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// endpoints property.
+    pub endpoints: Option<Vec<BranchCreateRequestEndpointOptions>>,
 }
 
 /// `BranchSchemaCompareResponse` type.
@@ -49,20 +645,33 @@ pub struct BranchSchemaCompareResponse {
     pub diff: Option<String>,
 }
 
-/// `NeonAuthDeleteDomainFromRedirectURIWhitelistRequest` type.
+/// `DefaultEndpointSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthDeleteDomainFromRedirectURIWhitelistRequest {
-    /// auth_provider property.
-    pub auth_provider: NeonAuthSupportedAuthProvider,
-    /// domains property.
-    pub domains: Vec<NeonAuthDeleteDomainFromRedirectURIWhitelistItem>,
+pub struct DefaultEndpointSettings {
+    /// autoscaling_limit_max_cu property.
+    pub autoscaling_limit_max_cu: Option<ComputeUnit>,
+    /// autoscaling_limit_min_cu property.
+    pub autoscaling_limit_min_cu: Option<ComputeUnit>,
+    /// pg_settings property.
+    pub pg_settings: Option<PgSettingsData>,
+    /// pgbouncer_settings property.
+    pub pgbouncer_settings: Option<PgbouncerSettingsData>,
+    /// suspend_timeout_seconds property.
+    pub suspend_timeout_seconds: Option<SuspendTimeoutSeconds>,
 }
 
-/// `ProjectResponse` type.
+/// `ProjectUpdateRequest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectResponse {
+pub struct ProjectUpdateRequest {
     /// project property.
-    pub project: Project,
+    pub project: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EndpointUpdateRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EndpointUpdateRequest {
+    /// endpoint property.
+    pub endpoint: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `JWKS` type.
@@ -88,32 +697,21 @@ pub struct JWKS {
     pub updated_at: String,
 }
 
-/// `UpdateNeonAuthUserRoleResponse` type.
+/// `AddProjectJWKSRequest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateNeonAuthUserRoleResponse {
-    /// id property.
-    pub id: String,
-}
-
-/// `RolePasswordResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RolePasswordResponse {
-    /// password property.
-    pub password: String,
-}
-
-/// `OperationStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperationStatus {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EndpointType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndpointType {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct AddProjectJWKSRequest {
+    /// branch_id property.
+    pub branch_id: Option<String>,
+    /// jwks_url property.
+    pub jwks_url: String,
+    /// jwt_audience property.
+    pub jwt_audience: Option<String>,
+    /// provider_name property.
+    pub provider_name: String,
+    /// role_names property.
+    pub role_names: Option<Vec<String>>,
+    /// skip_role_creation property.
+    pub skip_role_creation: Option<bool>,
 }
 
 /// `ProjectPermissions` type.
@@ -123,73 +721,202 @@ pub struct ProjectPermissions {
     pub project_permissions: Vec<ProjectPermission>,
 }
 
-/// `Endpoint` type.
+/// `StandardEmailServer` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Endpoint {
-    /// autoscaling_limit_max_cu property.
-    pub autoscaling_limit_max_cu: ComputeUnit,
-    /// autoscaling_limit_min_cu property.
-    pub autoscaling_limit_min_cu: ComputeUnit,
-    /// branch_id property.
-    pub branch_id: String,
-    /// compute_release_version property.
-    pub compute_release_version: Option<String>,
-    /// created_at property.
-    pub created_at: String,
-    /// creation_source property.
-    pub creation_source: String,
-    /// current_state property.
-    pub current_state: EndpointState,
-    /// disabled property.
-    pub disabled: bool,
+pub struct StandardEmailServer {
     /// host property.
     pub host: String,
-    /// id property.
-    pub id: String,
-    /// last_active property.
-    pub last_active: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// passwordless_access property.
-    pub passwordless_access: bool,
-    /// pending_state property.
-    pub pending_state: Option<EndpointState>,
-    /// pooler_enabled property.
-    pub pooler_enabled: bool,
-    /// pooler_mode property.
-    pub pooler_mode: EndpointPoolerMode,
+    /// password property.
+    pub password: String,
+    /// port property.
+    pub port: i64,
+    /// sender_email property.
+    pub sender_email: String,
+    /// sender_name property.
+    pub sender_name: String,
+    /// username property.
+    pub username: String,
+}
+
+/// `EnableNeonAuthIntegrationRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnableNeonAuthIntegrationRequest {
+    /// auth_provider property.
+    pub auth_provider: NeonAuthSupportedAuthProvider,
+    /// database_name property.
+    pub database_name: Option<String>,
+}
+
+/// `AnonymizedBranchStatusResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AnonymizedBranchStatusResponse {
+    /// branch_id property.
+    pub branch_id: String,
+    /// created_at property.
+    pub created_at: String,
+    /// failed_at property.
+    pub failed_at: Option<String>,
+    /// last_run property.
+    pub last_run: Option<AnonymizationRunMetadata>,
     /// project_id property.
     pub project_id: String,
-    /// provisioner property.
-    pub provisioner: Provisioner,
-    /// proxy_host property.
-    pub proxy_host: String,
-    /// region_id property.
-    pub region_id: String,
-    /// settings property.
-    pub settings: EndpointSettingsData,
-    /// started_at property.
-    pub started_at: Option<String>,
-    /// suspend_timeout_seconds property.
-    pub suspend_timeout_seconds: SuspendTimeoutSeconds,
-    /// suspended_at property.
-    pub suspended_at: Option<String>,
-    /// type property.
-    pub r#type: EndpointType,
+    /// state property.
+    pub state: String,
+    /// status_message property.
+    pub status_message: Option<String>,
     /// updated_at property.
     pub updated_at: String,
 }
 
-/// `UpdateNeonAuthAllowLocalhostRequest` type.
+/// `BackupSchedule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateNeonAuthAllowLocalhostRequest {
-    /// allow_localhost property.
-    pub allow_localhost: bool,
+pub struct BackupSchedule {
+    /// schedule property.
+    pub schedule: Vec<BackupScheduleItem>,
 }
 
-/// `JWKSCreationOperation` type.
+/// `AllowedIps` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JWKSCreationOperation {}
+pub struct AllowedIps {
+    /// ips property.
+    pub ips: Option<Vec<String>>,
+    /// protected_branches_only property.
+    pub protected_branches_only: Option<bool>,
+}
+
+/// `BranchRestoreStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BranchRestoreStatus {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ProjectCreateRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectCreateRequest {
+    /// project property.
+    pub project: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `Role` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Role {
+    /// authentication_method property.
+    pub authentication_method: Option<String>,
+    /// branch_id property.
+    pub branch_id: String,
+    /// created_at property.
+    pub created_at: String,
+    /// name property.
+    pub name: String,
+    /// password property.
+    pub password: Option<String>,
+    /// protected property.
+    pub protected: Option<bool>,
+    /// updated_at property.
+    pub updated_at: String,
+}
+
+/// `BranchUpdateRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BranchUpdateRequest {
+    /// branch property.
+    pub branch: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `NeonAuthOrganizationConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthOrganizationConfig {
+    /// creator_role property.
+    pub creator_role: String,
+    /// enabled property.
+    pub enabled: bool,
+    /// membership_limit property.
+    pub membership_limit: i64,
+    /// organization_limit property.
+    pub organization_limit: i64,
+    /// send_invitation_email property.
+    pub send_invitation_email: bool,
+}
+
+/// `NeonAuthCreateAuthProviderSDKKeysRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthCreateAuthProviderSDKKeysRequest {
+    /// auth_provider property.
+    pub auth_provider: NeonAuthSupportedAuthProvider,
+    /// project_id property.
+    pub project_id: String,
+}
+
+/// `RolePasswordResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RolePasswordResponse {
+    /// password property.
+    pub password: String,
+}
+
+/// `ConnectionURIResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectionURIResponse {
+    /// uri property.
+    pub uri: String,
+}
+
+/// `NeonAuthOauthProviderId` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthOauthProviderId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MaskingRulesUpdateRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MaskingRulesUpdateRequest {
+    /// masking_rules property.
+    pub masking_rules: Vec<MaskingRule>,
+}
+
+/// `PreloadLibraries` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PreloadLibraries {
+    /// enabled_libraries property.
+    pub enabled_libraries: Option<Vec<String>>,
+    /// use_defaults property.
+    pub use_defaults: Option<bool>,
+}
+
+/// `NeonAuthPluginConfigs` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthPluginConfigs {
+    /// allow_localhost property.
+    pub allow_localhost: Option<bool>,
+    /// email_and_password property.
+    pub email_and_password: Option<NeonAuthEmailAndPasswordConfig>,
+    /// email_provider property.
+    pub email_provider: Option<NeonAuthEmailServerConfig>,
+    /// oauth_providers property.
+    pub oauth_providers: Option<Vec<NeonAuthOauthProvider>>,
+    /// organization property.
+    pub organization: Option<NeonAuthOrganizationConfig>,
+}
+
+/// `DatabaseCreateRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseCreateRequest {
+    /// database property.
+    pub database: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EndpointSettingsData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EndpointSettingsData {
+    /// pg_settings property.
+    pub pg_settings: Option<PgSettingsData>,
+    /// pgbouncer_settings property.
+    pub pgbouncer_settings: Option<PgbouncerSettingsData>,
+    /// preload_libraries property.
+    pub preload_libraries: Option<PreloadLibraries>,
+}
 
 /// `AnnotationCreateValueRequest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -197,6 +924,25 @@ pub struct AnnotationCreateValueRequest {
     /// annotation_value property.
     pub annotation_value: Option<AnnotationValueData>,
 }
+
+/// `ProjectQuota` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectQuota {
+    /// active_time_seconds property.
+    pub active_time_seconds: Option<i64>,
+    /// compute_time_seconds property.
+    pub compute_time_seconds: Option<i64>,
+    /// data_transfer_bytes property.
+    pub data_transfer_bytes: Option<i64>,
+    /// logical_size_bytes property.
+    pub logical_size_bytes: Option<i64>,
+    /// written_data_bytes property.
+    pub written_data_bytes: Option<i64>,
+}
+
+/// `ProjectRecoverResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectRecoverResponse {}
 
 /// `Branch` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -263,306 +1009,20 @@ pub struct Branch {
     pub written_data_bytes: i64,
 }
 
-/// `DataAPICreateRequest` type.
+/// `EndpointState` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataAPICreateRequest {
-    /// add_default_grants property.
-    pub add_default_grants: Option<bool>,
-    /// auth_provider property.
-    pub auth_provider: Option<String>,
-    /// jwks_url property.
-    pub jwks_url: Option<String>,
-    /// jwt_audience property.
-    pub jwt_audience: Option<String>,
-    /// provider_name property.
-    pub provider_name: Option<String>,
-    /// settings property.
-    pub settings: Option<DataAPISettings>,
-    /// skip_auth_schema property.
-    pub skip_auth_schema: Option<bool>,
-}
-
-/// `RoleCreateRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RoleCreateRequest {
-    /// role property.
-    pub role: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `BranchRestrictedAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BranchRestrictedAction {
-    /// name property.
-    pub name: String,
-    /// reason property.
-    pub reason: String,
-}
-
-/// `EndpointOperations` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndpointOperations {}
-
-/// `Operation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Operation {
-    /// action property.
-    pub action: OperationAction,
-    /// branch_id property.
-    pub branch_id: Option<String>,
-    /// created_at property.
-    pub created_at: String,
-    /// endpoint_id property.
-    pub endpoint_id: Option<String>,
-    /// error property.
-    pub error: Option<String>,
-    /// failures_count property.
-    pub failures_count: i64,
-    /// id property.
-    pub id: String,
-    /// project_id property.
-    pub project_id: String,
-    /// retry_at property.
-    pub retry_at: Option<String>,
-    /// status property.
-    pub status: OperationStatus,
-    /// total_duration_ms property.
-    pub total_duration_ms: i64,
-    /// updated_at property.
-    pub updated_at: String,
-}
-
-/// `BranchRestoreRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BranchRestoreRequest {
-    /// preserve_under_name property.
-    pub preserve_under_name: Option<String>,
-    /// source_branch_id property.
-    pub source_branch_id: String,
-    /// source_lsn property.
-    pub source_lsn: Option<String>,
-    /// source_timestamp property.
-    pub source_timestamp: Option<String>,
-}
-
-/// `PreloadLibraries` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreloadLibraries {
-    /// enabled_libraries property.
-    pub enabled_libraries: Option<Vec<String>>,
-    /// use_defaults property.
-    pub use_defaults: Option<bool>,
-}
-
-/// `SharedEmailServer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SharedEmailServer {
-    /// sender_email property.
-    pub sender_email: Option<String>,
-    /// sender_name property.
-    pub sender_name: Option<String>,
-}
-
-/// `NeonAuthPluginConfigs` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthPluginConfigs {
-    /// allow_localhost property.
-    pub allow_localhost: Option<bool>,
-    /// email_and_password property.
-    pub email_and_password: Option<NeonAuthEmailAndPasswordConfig>,
-    /// email_provider property.
-    pub email_provider: Option<NeonAuthEmailServerConfig>,
-    /// oauth_providers property.
-    pub oauth_providers: Option<Vec<NeonAuthOauthProvider>>,
-    /// organization property.
-    pub organization: Option<NeonAuthOrganizationConfig>,
-}
-
-/// `UpdateNeonAuthUserRoleRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateNeonAuthUserRoleRequest {
-    /// roles property.
-    pub roles: Vec<String>,
-}
-
-/// `EndpointSettingsData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndpointSettingsData {
-    /// pg_settings property.
-    pub pg_settings: Option<PgSettingsData>,
-    /// pgbouncer_settings property.
-    pub pgbouncer_settings: Option<PgbouncerSettingsData>,
-    /// preload_libraries property.
-    pub preload_libraries: Option<PreloadLibraries>,
-}
-
-/// `BranchState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BranchState {
+pub struct EndpointState {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `EndpointsResponse` type.
+/// `BranchSchemaResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndpointsResponse {
-    /// endpoints property.
-    pub endpoints: Vec<Endpoint>,
-}
-
-/// `BranchCreateRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BranchCreateRequest {
-    /// branch property.
-    pub branch: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// endpoints property.
-    pub endpoints: Option<Vec<BranchCreateRequestEndpointOptions>>,
-}
-
-/// `NeonAuthOrganizationConfigUpdate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthOrganizationConfigUpdate {
-    /// creator_role property.
-    pub creator_role: Option<String>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// membership_limit property.
-    pub membership_limit: Option<i64>,
-    /// organization_limit property.
-    pub organization_limit: Option<i64>,
-    /// send_invitation_email property.
-    pub send_invitation_email: Option<bool>,
-}
-
-/// `OperationAction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperationAction {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DatabaseOperations` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseOperations {}
-
-/// `NeonAuthIntegration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthIntegration {
-    /// auth_provider property.
-    pub auth_provider: NeonAuthSupportedAuthProvider,
-    /// auth_provider_project_id property.
-    pub auth_provider_project_id: String,
-    /// base_url property.
-    pub base_url: Option<String>,
-    /// branch_id property.
-    pub branch_id: String,
-    /// created_at property.
-    pub created_at: String,
-    /// db_name property.
-    pub db_name: String,
-    /// jwks_url property.
-    pub jwks_url: String,
-    /// owned_by property.
-    pub owned_by: NeonAuthProviderProjectOwnedBy,
-    /// transfer_status property.
-    pub transfer_status: Option<NeonAuthProviderProjectTransferStatus>,
-}
-
-/// `NeonAuthDeleteDomainFromRedirectURIWhitelistItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthDeleteDomainFromRedirectURIWhitelistItem {
-    /// domain property.
-    pub domain: String,
-}
-
-/// `RoleOperations` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RoleOperations {}
-
-/// `PgbouncerSettingsData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PgbouncerSettingsData {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RoleResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RoleResponse {
-    /// role property.
-    pub role: Role,
-}
-
-/// `DataAPIUpdateRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataAPIUpdateRequest {
-    /// settings property.
-    pub settings: Option<DataAPISettings>,
-}
-
-/// `NeonAuthEmailServerConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthEmailServerConfig {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `BackupScheduleItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupScheduleItem {
-    /// day property.
-    pub day: Option<i64>,
-    /// frequency property.
-    pub frequency: String,
-    /// hour property.
-    pub hour: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// retention_seconds property.
-    pub retention_seconds: Option<i64>,
-}
-
-/// `NeonAuthAddOAuthProviderRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthAddOAuthProviderRequest {
-    /// client_id property.
-    pub client_id: Option<String>,
-    /// client_secret property.
-    pub client_secret: Option<String>,
-    /// id property.
-    pub id: NeonAuthOauthProviderId,
-    /// microsoft_tenant_id property.
-    pub microsoft_tenant_id: Option<String>,
-}
-
-/// `ProjectQuota` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectQuota {
-    /// active_time_seconds property.
-    pub active_time_seconds: Option<i64>,
-    /// compute_time_seconds property.
-    pub compute_time_seconds: Option<i64>,
-    /// data_transfer_bytes property.
-    pub data_transfer_bytes: Option<i64>,
-    /// logical_size_bytes property.
-    pub logical_size_bytes: Option<i64>,
-    /// written_data_bytes property.
-    pub written_data_bytes: Option<i64>,
-}
-
-/// `BranchSchemaJSON` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BranchSchemaJSON {
-    /// tables property.
-    pub tables: Vec<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `NeonAuthCreateAuthProviderSDKKeysRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthCreateAuthProviderSDKKeysRequest {
-    /// auth_provider property.
-    pub auth_provider: NeonAuthSupportedAuthProvider,
-    /// project_id property.
-    pub project_id: String,
+pub struct BranchSchemaResponse {
+    /// json property.
+    pub json: Option<BranchSchemaJSON>,
+    /// sql property.
+    pub sql: Option<String>,
 }
 
 /// `NeonAuthEmailAndPasswordConfigUpdate` type.
@@ -584,53 +1044,78 @@ pub struct NeonAuthEmailAndPasswordConfigUpdate {
     pub send_verification_email_on_sign_up: Option<bool>,
 }
 
-/// `DatabasesResponse` type.
+/// `EndpointOperations` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesResponse {
-    /// databases property.
-    pub databases: Vec<Database>,
+pub struct EndpointOperations {}
+
+/// `MaintenanceWindow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MaintenanceWindow {
+    /// end_time property.
+    pub end_time: String,
+    /// start_time property.
+    pub start_time: String,
+    /// weekdays property.
+    pub weekdays: Vec<i64>,
 }
 
-/// `DatabaseUpdateRequest` type.
+/// `AvailablePreloadLibraries` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseUpdateRequest {
-    /// database property.
-    pub database: std::collections::HashMap<String, serde_json::Value>,
+pub struct AvailablePreloadLibraries {
+    /// libraries property.
+    pub libraries: Option<Vec<AvailablePreloadLibrary>>,
 }
 
-/// `AddProjectJWKSRequest` type.
+/// `NeonAuthRedirectURIWhitelistResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AddProjectJWKSRequest {
-    /// branch_id property.
-    pub branch_id: Option<String>,
-    /// jwks_url property.
-    pub jwks_url: String,
-    /// jwt_audience property.
-    pub jwt_audience: Option<String>,
-    /// provider_name property.
-    pub provider_name: String,
-    /// role_names property.
-    pub role_names: Option<Vec<String>>,
-    /// skip_role_creation property.
-    pub skip_role_creation: Option<bool>,
+pub struct NeonAuthRedirectURIWhitelistResponse {
+    /// domains property.
+    pub domains: Vec<NeonAuthRedirectURIWhitelistDomain>,
 }
 
-/// `BranchAnonymizedCreateRequest` type.
+/// `EndpointResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BranchAnonymizedCreateRequest {
-    /// `branch_create` property.
-    pub branch_create: Option<BranchCreateRequest>,
-    /// `masking_rules` property.
-    pub masking_rules: Option<Vec<MaskingRule>>,
-    /// `start_anonymization` property.
-    pub start_anonymization: Option<bool>,
+pub struct EndpointResponse {
+    /// endpoint property.
+    pub endpoint: Endpoint,
 }
 
-/// `EndpointUpdateRequest` type.
+/// `ProjectJWKSResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndpointUpdateRequest {
+pub struct ProjectJWKSResponse {
+    /// jwks property.
+    pub jwks: Vec<JWKS>,
+}
+
+/// `MaskingRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MaskingRule {
+    /// column_name property.
+    pub column_name: String,
+    /// database_name property.
+    pub database_name: String,
+    /// masking_function property.
+    pub masking_function: Option<String>,
+    /// masking_value property.
+    pub masking_value: Option<String>,
+    /// schema_name property.
+    pub schema_name: String,
+    /// table_name property.
+    pub table_name: String,
+}
+
+/// `EndpointCreateRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EndpointCreateRequest {
     /// endpoint property.
     pub endpoint: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SnapshotUpdateRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SnapshotUpdateRequest {
+    /// snapshot property.
+    pub snapshot: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ProjectTransferRequestResponse` type.
@@ -646,40 +1131,79 @@ pub struct ProjectTransferRequestResponse {
     pub project_id: String,
 }
 
-/// `StandardEmailServer` type.
+/// `BillingSubscriptionType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StandardEmailServer {
-    /// host property.
-    pub host: String,
-    /// password property.
-    pub password: String,
-    /// port property.
-    pub port: i64,
-    /// sender_email property.
-    pub sender_email: String,
-    /// sender_name property.
-    pub sender_name: String,
-    /// username property.
-    pub username: String,
+pub struct BillingSubscriptionType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `Role` type.
+/// `RoleResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Role {
-    /// authentication_method property.
-    pub authentication_method: Option<String>,
-    /// branch_id property.
-    pub branch_id: String,
-    /// created_at property.
-    pub created_at: String,
-    /// name property.
-    pub name: String,
-    /// password property.
-    pub password: Option<String>,
-    /// protected property.
-    pub protected: Option<bool>,
-    /// updated_at property.
-    pub updated_at: String,
+pub struct RoleResponse {
+    /// role property.
+    pub role: Role,
+}
+
+/// `PgVersion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PgVersion {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ProjectSettingsData` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectSettingsData {
+    /// allowed_ips property.
+    pub allowed_ips: Option<AllowedIps>,
+    /// audit_log_level property.
+    pub audit_log_level: Option<ProjectAuditLogLevel>,
+    /// block_public_connections property.
+    pub block_public_connections: Option<bool>,
+    /// block_vpc_connections property.
+    pub block_vpc_connections: Option<bool>,
+    /// enable_logical_replication property.
+    pub enable_logical_replication: Option<bool>,
+    /// hipaa property.
+    pub hipaa: Option<bool>,
+    /// maintenance_window property.
+    pub maintenance_window: Option<MaintenanceWindow>,
+    /// preload_libraries property.
+    pub preload_libraries: Option<PreloadLibraries>,
+    /// quota property.
+    pub quota: Option<ProjectQuota>,
+}
+
+/// `NeonAuthUpdateOAuthProviderRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthUpdateOAuthProviderRequest {
+    /// client_id property.
+    pub client_id: Option<String>,
+    /// client_secret property.
+    pub client_secret: Option<String>,
+    /// microsoft_tenant_id property.
+    pub microsoft_tenant_id: Option<String>,
+}
+
+/// `ProjectPermission` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectPermission {
+    /// granted_at property.
+    pub granted_at: String,
+    /// granted_to_email property.
+    pub granted_to_email: String,
+    /// id property.
+    pub id: String,
+    /// revoked_at property.
+    pub revoked_at: Option<String>,
+}
+
+/// `JWKSResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JWKSResponse {
+    /// jwks property.
+    pub jwks: JWKS,
 }
 
 /// `Project` type.
@@ -753,213 +1277,141 @@ pub struct Project {
     pub written_data_bytes: i64,
 }
 
-/// `AnonymizedBranchStatusResponse` type.
+/// `ProjectOwnerData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AnonymizedBranchStatusResponse {
-    /// branch_id property.
-    pub branch_id: String,
-    /// created_at property.
-    pub created_at: String,
-    /// failed_at property.
-    pub failed_at: Option<String>,
-    /// last_run property.
-    pub last_run: Option<AnonymizationRunMetadata>,
+pub struct ProjectOwnerData {
+    /// branches_limit property.
+    pub branches_limit: i64,
+    /// email property.
+    pub email: String,
+    /// name property.
+    pub name: String,
+    /// subscription_type property.
+    pub subscription_type: BillingSubscriptionType,
+}
+
+/// `NeonAuthDeleteDomainFromRedirectURIWhitelistRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthDeleteDomainFromRedirectURIWhitelistRequest {
+    /// auth_provider property.
+    pub auth_provider: NeonAuthSupportedAuthProvider,
+    /// domains property.
+    pub domains: Vec<NeonAuthDeleteDomainFromRedirectURIWhitelistItem>,
+}
+
+/// `NeonAuthAddOAuthProviderRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthAddOAuthProviderRequest {
+    /// client_id property.
+    pub client_id: Option<String>,
+    /// client_secret property.
+    pub client_secret: Option<String>,
+    /// id property.
+    pub id: NeonAuthOauthProviderId,
+    /// microsoft_tenant_id property.
+    pub microsoft_tenant_id: Option<String>,
+}
+
+/// `NeonAuthTransferAuthProviderProjectRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthTransferAuthProviderProjectRequest {
+    /// auth_provider property.
+    pub auth_provider: NeonAuthSupportedAuthProvider,
     /// project_id property.
     pub project_id: String,
-    /// state property.
-    pub state: String,
-    /// status_message property.
-    pub status_message: Option<String>,
+}
+
+/// `UpdateNeonAuthAllowLocalhostRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateNeonAuthAllowLocalhostRequest {
+    /// allow_localhost property.
+    pub allow_localhost: bool,
+}
+
+/// `RoleOperations` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RoleOperations {}
+
+/// `BranchesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BranchesResponse {
+    /// branches property.
+    pub branches: Vec<Branch>,
+}
+
+/// `Endpoint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Endpoint {
+    /// autoscaling_limit_max_cu property.
+    pub autoscaling_limit_max_cu: ComputeUnit,
+    /// autoscaling_limit_min_cu property.
+    pub autoscaling_limit_min_cu: ComputeUnit,
+    /// branch_id property.
+    pub branch_id: String,
+    /// compute_release_version property.
+    pub compute_release_version: Option<String>,
+    /// created_at property.
+    pub created_at: String,
+    /// creation_source property.
+    pub creation_source: String,
+    /// current_state property.
+    pub current_state: EndpointState,
+    /// disabled property.
+    pub disabled: bool,
+    /// host property.
+    pub host: String,
+    /// id property.
+    pub id: String,
+    /// last_active property.
+    pub last_active: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// passwordless_access property.
+    pub passwordless_access: bool,
+    /// pending_state property.
+    pub pending_state: Option<EndpointState>,
+    /// pooler_enabled property.
+    pub pooler_enabled: bool,
+    /// pooler_mode property.
+    pub pooler_mode: EndpointPoolerMode,
+    /// project_id property.
+    pub project_id: String,
+    /// provisioner property.
+    pub provisioner: Provisioner,
+    /// proxy_host property.
+    pub proxy_host: String,
+    /// region_id property.
+    pub region_id: String,
+    /// settings property.
+    pub settings: EndpointSettingsData,
+    /// started_at property.
+    pub started_at: Option<String>,
+    /// suspend_timeout_seconds property.
+    pub suspend_timeout_seconds: SuspendTimeoutSeconds,
+    /// suspended_at property.
+    pub suspended_at: Option<String>,
+    /// type property.
+    pub r#type: EndpointType,
     /// updated_at property.
     pub updated_at: String,
 }
 
-/// `ProjectSettingsData` type.
+/// `EndpointsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectSettingsData {
-    /// allowed_ips property.
-    pub allowed_ips: Option<AllowedIps>,
-    /// audit_log_level property.
-    pub audit_log_level: Option<ProjectAuditLogLevel>,
-    /// block_public_connections property.
-    pub block_public_connections: Option<bool>,
-    /// block_vpc_connections property.
-    pub block_vpc_connections: Option<bool>,
-    /// enable_logical_replication property.
-    pub enable_logical_replication: Option<bool>,
-    /// hipaa property.
-    pub hipaa: Option<bool>,
-    /// maintenance_window property.
-    pub maintenance_window: Option<MaintenanceWindow>,
-    /// preload_libraries property.
-    pub preload_libraries: Option<PreloadLibraries>,
-    /// quota property.
-    pub quota: Option<ProjectQuota>,
+pub struct EndpointsResponse {
+    /// endpoints property.
+    pub endpoints: Vec<Endpoint>,
 }
 
-/// `NeonAuthRedirectURIWhitelistResponse` type.
+/// `JWKSCreationOperation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthRedirectURIWhitelistResponse {
-    /// domains property.
-    pub domains: Vec<NeonAuthRedirectURIWhitelistDomain>,
-}
+pub struct JWKSCreationOperation {}
 
-/// `ConnectionURIResponse` type.
+/// `ListNeonAuthOauthProvidersResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionURIResponse {
-    /// uri property.
-    pub uri: String,
-}
-
-/// `EndpointResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndpointResponse {
-    /// endpoint property.
-    pub endpoint: Endpoint,
-}
-
-/// `NeonAuthRedirectURIWhitelistDomain` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthRedirectURIWhitelistDomain {
-    /// auth_provider property.
-    pub auth_provider: NeonAuthSupportedAuthProvider,
-    /// domain property.
-    pub domain: String,
-}
-
-/// `AnonymizationRunMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AnonymizationRunMetadata {
-    /// completed_at property.
-    pub completed_at: Option<String>,
-    /// masked_columns property.
-    pub masked_columns: Option<i64>,
-    /// started_at property.
-    pub started_at: Option<String>,
-    /// triggered_by property.
-    pub triggered_by: Option<String>,
-    /// triggered_by_username property.
-    pub triggered_by_username: Option<String>,
-}
-
-/// `NeonAuthEmailVerificationMethod` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthEmailVerificationMethod {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `NeonAuthAddDomainToRedirectURIWhitelistRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthAddDomainToRedirectURIWhitelistRequest {
-    /// auth_provider property.
-    pub auth_provider: NeonAuthSupportedAuthProvider,
-    /// domain property.
-    pub domain: String,
-}
-
-/// `DataAPIReponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataAPIReponse {
-    /// available_schemas property.
-    pub available_schemas: Option<Vec<String>>,
-    /// settings property.
-    pub settings: Option<serde_json::Value>,
-    /// status property.
-    pub status: String,
-    /// url property.
-    pub url: String,
-}
-
-/// `SendNeonAuthTestEmailRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SendNeonAuthTestEmailRequest {
-    /// `recipient_email` property.
-    pub recipient_email: String,
-}
-
-/// `ProjectCreateRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectCreateRequest {
-    /// project property.
-    pub project: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ProjectRecoverResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectRecoverResponse {}
-
-/// `BranchUpdateRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BranchUpdateRequest {
-    /// branch property.
-    pub branch: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RolesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RolesResponse {
-    /// roles property.
-    pub roles: Vec<Role>,
-}
-
-/// `SnapshotUpdateRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SnapshotUpdateRequest {
-    /// snapshot property.
-    pub snapshot: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DataAPICreateResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataAPICreateResponse {
-    /// url property.
-    pub url: String,
-}
-
-/// `BranchCreateRequestEndpointOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BranchCreateRequestEndpointOptions {
-    /// autoscaling_limit_max_cu property.
-    pub autoscaling_limit_max_cu: Option<ComputeUnit>,
-    /// autoscaling_limit_min_cu property.
-    pub autoscaling_limit_min_cu: Option<ComputeUnit>,
-    /// provisioner property.
-    pub provisioner: Option<Provisioner>,
-    /// settings property.
-    pub settings: Option<EndpointSettingsData>,
-    /// suspend_timeout_seconds property.
-    pub suspend_timeout_seconds: Option<SuspendTimeoutSeconds>,
-    /// type property.
-    pub r#type: EndpointType,
-}
-
-/// `NeonAuthOauthProviderId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthOauthProviderId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AnnotationValueData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AnnotationValueData {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `NeonAuthOauthProviderType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthOauthProviderType {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ProjectUpdateRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectUpdateRequest {
-    /// project property.
-    pub project: std::collections::HashMap<String, serde_json::Value>,
+pub struct ListNeonAuthOauthProvidersResponse {
+    /// providers property.
+    pub providers: Vec<NeonAuthOauthProvider>,
 }
 
 /// `NeonAuthEmailAndPasswordConfig` type.
@@ -979,485 +1431,6 @@ pub struct NeonAuthEmailAndPasswordConfig {
     pub send_verification_email_on_sign_in: bool,
     /// send_verification_email_on_sign_up property.
     pub send_verification_email_on_sign_up: bool,
-}
-
-/// `NeonAuthOrganizationConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthOrganizationConfig {
-    /// creator_role property.
-    pub creator_role: String,
-    /// enabled property.
-    pub enabled: bool,
-    /// membership_limit property.
-    pub membership_limit: i64,
-    /// organization_limit property.
-    pub organization_limit: i64,
-    /// send_invitation_email property.
-    pub send_invitation_email: bool,
-}
-
-/// `ProjectJWKSResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectJWKSResponse {
-    /// jwks property.
-    pub jwks: Vec<JWKS>,
-}
-
-/// `SuspendTimeoutSeconds` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SuspendTimeoutSeconds {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DataAPISettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataAPISettings {
-    /// db_aggregates_enabled property.
-    pub db_aggregates_enabled: Option<bool>,
-    /// db_anon_role property.
-    pub db_anon_role: Option<String>,
-    /// db_extra_search_path property.
-    pub db_extra_search_path: Option<String>,
-    /// db_max_rows property.
-    pub db_max_rows: Option<i64>,
-    /// db_schemas property.
-    pub db_schemas: Option<Vec<String>>,
-    /// jwt_cache_max_lifetime property.
-    pub jwt_cache_max_lifetime: Option<i64>,
-    /// jwt_role_claim_key property.
-    pub jwt_role_claim_key: Option<String>,
-    /// openapi_mode property.
-    pub openapi_mode: Option<String>,
-    /// server_cors_allowed_origins property.
-    pub server_cors_allowed_origins: Option<String>,
-    /// server_timing_enabled property.
-    pub server_timing_enabled: Option<bool>,
-}
-
-/// `VPCEndpoint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VPCEndpoint {
-    /// label property.
-    pub label: String,
-    /// vpc_endpoint_id property.
-    pub vpc_endpoint_id: String,
-}
-
-/// `JWKSResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JWKSResponse {
-    /// jwks property.
-    pub jwks: JWKS,
-}
-
-/// `AvailablePreloadLibraries` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AvailablePreloadLibraries {
-    /// libraries property.
-    pub libraries: Option<Vec<AvailablePreloadLibrary>>,
-}
-
-/// `BranchOperations` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BranchOperations {}
-
-/// `NeonAuthUpdateOAuthProviderRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthUpdateOAuthProviderRequest {
-    /// client_id property.
-    pub client_id: Option<String>,
-    /// client_secret property.
-    pub client_secret: Option<String>,
-    /// microsoft_tenant_id property.
-    pub microsoft_tenant_id: Option<String>,
-}
-
-/// `NeonAuthCreateNewUserResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthCreateNewUserResponse {
-    /// id property.
-    pub id: String,
-}
-
-/// `EndpointState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndpointState {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AllowedIps` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AllowedIps {
-    /// ips property.
-    pub ips: Option<Vec<String>>,
-    /// protected_branches_only property.
-    pub protected_branches_only: Option<bool>,
-}
-
-/// `CreateBranchNeonAuthNewUserRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateBranchNeonAuthNewUserRequest {
-    /// email property.
-    pub email: String,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `SendNeonAuthTestEmailResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SendNeonAuthTestEmailResponse {
-    /// error_message property.
-    pub error_message: Option<String>,
-    /// success property.
-    pub success: bool,
-}
-
-/// `DatabaseResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseResponse {
-    /// database property.
-    pub database: Database,
-}
-
-/// `MaskingRulesUpdateRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaskingRulesUpdateRequest {
-    /// masking_rules property.
-    pub masking_rules: Vec<MaskingRule>,
-}
-
-/// `TransferProjectsToOrganizationRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransferProjectsToOrganizationRequest {
-    /// destination_org_id property.
-    pub destination_org_id: String,
-    /// project_ids property.
-    pub project_ids: Vec<String>,
-}
-
-/// `PgSettingsData` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PgSettingsData {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `NeonAuthOauthProvider` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthOauthProvider {
-    /// client_id property.
-    pub client_id: Option<String>,
-    /// client_secret property.
-    pub client_secret: Option<String>,
-    /// id property.
-    pub id: NeonAuthOauthProviderId,
-    /// type property.
-    pub r#type: NeonAuthOauthProviderType,
-}
-
-/// `BackupSchedule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupSchedule {
-    /// schedule property.
-    pub schedule: Vec<BackupScheduleItem>,
-}
-
-/// `NeonAuthAllowLocalhostResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthAllowLocalhostResponse {
-    /// allow_localhost property.
-    pub allow_localhost: bool,
-}
-
-/// `MaskingRulesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaskingRulesResponse {
-    /// masking_rules property.
-    pub masking_rules: Vec<MaskingRule>,
-}
-
-/// `NeonAuthCreateIntegrationResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthCreateIntegrationResponse {
-    /// auth_provider property.
-    pub auth_provider: NeonAuthSupportedAuthProvider,
-    /// auth_provider_project_id property.
-    pub auth_provider_project_id: String,
-    /// base_url property.
-    pub base_url: Option<String>,
-    /// jwks_url property.
-    pub jwks_url: String,
-    /// pub_client_key property.
-    pub pub_client_key: String,
-    /// schema_name property.
-    pub schema_name: String,
-    /// secret_server_key property.
-    pub secret_server_key: String,
-    /// table_name property.
-    pub table_name: String,
-}
-
-/// `ComputeUnit` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeUnit {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `NeonAuthTransferAuthProviderProjectRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthTransferAuthProviderProjectRequest {
-    /// auth_provider property.
-    pub auth_provider: NeonAuthSupportedAuthProvider,
-    /// project_id property.
-    pub project_id: String,
-}
-
-/// `MaskingRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaskingRule {
-    /// column_name property.
-    pub column_name: String,
-    /// database_name property.
-    pub database_name: String,
-    /// masking_function property.
-    pub masking_function: Option<String>,
-    /// masking_value property.
-    pub masking_value: Option<String>,
-    /// schema_name property.
-    pub schema_name: String,
-    /// table_name property.
-    pub table_name: String,
-}
-
-/// `BranchResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BranchResponse {
-    /// branch property.
-    pub branch: Branch,
-}
-
-/// `EndpointPoolerMode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndpointPoolerMode {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DefaultEndpointSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DefaultEndpointSettings {
-    /// autoscaling_limit_max_cu property.
-    pub autoscaling_limit_max_cu: Option<ComputeUnit>,
-    /// autoscaling_limit_min_cu property.
-    pub autoscaling_limit_min_cu: Option<ComputeUnit>,
-    /// pg_settings property.
-    pub pg_settings: Option<PgSettingsData>,
-    /// pgbouncer_settings property.
-    pub pgbouncer_settings: Option<PgbouncerSettingsData>,
-    /// suspend_timeout_seconds property.
-    pub suspend_timeout_seconds: Option<SuspendTimeoutSeconds>,
-}
-
-/// `PgVersion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PgVersion {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `NeonAuthWebhookConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthWebhookConfig {
-    /// enabled property.
-    pub enabled: bool,
-    /// enabled_events property.
-    pub enabled_events: Option<Vec<String>>,
-    /// timeout_seconds property.
-    pub timeout_seconds: Option<i64>,
-    /// webhook_url property.
-    pub webhook_url: Option<String>,
-}
-
-/// `BillingSubscriptionType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BillingSubscriptionType {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `Provisioner` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Provisioner {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `BranchSchemaResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BranchSchemaResponse {
-    /// json property.
-    pub json: Option<BranchSchemaJSON>,
-    /// sql property.
-    pub sql: Option<String>,
-}
-
-/// `DatabaseCreateRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseCreateRequest {
-    /// database property.
-    pub database: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `NeonAuthProviderProjectOwnedBy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthProviderProjectOwnedBy {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `BranchesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BranchesResponse {
-    /// branches property.
-    pub branches: Vec<Branch>,
-}
-
-/// `EndpointCreateRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndpointCreateRequest {
-    /// endpoint property.
-    pub endpoint: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `MaintenanceWindow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaintenanceWindow {
-    /// end_time property.
-    pub end_time: String,
-    /// start_time property.
-    pub start_time: String,
-    /// weekdays property.
-    pub weekdays: Vec<i64>,
-}
-
-/// `GrantPermissionToProjectRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GrantPermissionToProjectRequest {
-    /// email property.
-    pub email: String,
-}
-
-/// `ListNeonAuthOauthProvidersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListNeonAuthOauthProvidersResponse {
-    /// providers property.
-    pub providers: Vec<NeonAuthOauthProvider>,
-}
-
-/// `NeonAuthSupportedAuthProvider` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthSupportedAuthProvider {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `NeonAuthTransferAuthProviderProjectResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthTransferAuthProviderProjectResponse {
-    /// url property.
-    pub url: String,
-}
-
-/// `OperationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperationsResponse {
-    /// operations property.
-    pub operations: Vec<Operation>,
-}
-
-/// `OperationResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperationResponse {
-    /// operation property.
-    pub operation: Operation,
-}
-
-/// `ProjectPermission` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectPermission {
-    /// granted_at property.
-    pub granted_at: String,
-    /// granted_to_email property.
-    pub granted_to_email: String,
-    /// id property.
-    pub id: String,
-    /// revoked_at property.
-    pub revoked_at: Option<String>,
-}
-
-/// `EnableNeonAuthIntegrationRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnableNeonAuthIntegrationRequest {
-    /// auth_provider property.
-    pub auth_provider: NeonAuthSupportedAuthProvider,
-    /// database_name property.
-    pub database_name: Option<String>,
-}
-
-/// `Database` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Database {
-    /// branch_id property.
-    pub branch_id: String,
-    /// created_at property.
-    pub created_at: String,
-    /// id property.
-    pub id: i64,
-    /// name property.
-    pub name: String,
-    /// owner_name property.
-    pub owner_name: String,
-    /// updated_at property.
-    pub updated_at: String,
-}
-
-/// `BranchRestoreStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BranchRestoreStatus {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AvailablePreloadLibrary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AvailablePreloadLibrary {
-    /// description property.
-    pub description: String,
-    /// is_default property.
-    pub is_default: bool,
-    /// is_experimental property.
-    pub is_experimental: bool,
-    /// library_name property.
-    pub library_name: String,
-    /// version property.
-    pub version: String,
-}
-
-/// `NeonAuthProviderProjectTransferStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthProviderProjectTransferStatus {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ProjectAuditLogLevel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectAuditLogLevel {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 // =============================================================================

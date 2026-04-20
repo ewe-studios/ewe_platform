@@ -12,17 +12,36 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `DriveDestination` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DriveDestination {
+    /// exportUri property.
+    pub export_uri: Option<String>,
+    /// file property.
+    pub file: Option<String>,
+}
+
+/// `ListRecordingsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListRecordingsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// recordings property.
+    pub recordings: Option<Vec<Recording>>,
+}
 
 /// `Recording` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -37,24 +56,6 @@ pub struct Recording {
     pub start_time: Option<String>,
     /// state property.
     pub state: Option<String>,
-}
-
-/// `ListRecordingsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListRecordingsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// recordings property.
-    pub recordings: Option<Vec<Recording>>,
-}
-
-/// `DriveDestination` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DriveDestination {
-    /// exportUri property.
-    pub export_uri: Option<String>,
-    /// file property.
-    pub file: Option<String>,
 }
 
 // =============================================================================

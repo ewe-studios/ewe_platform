@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -33,6 +34,13 @@ pub struct LocalizedText {
     pub text: Option<String>,
 }
 
+/// `StoreLayoutPagesListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StoreLayoutPagesListResponse {
+    /// page property.
+    pub page: Option<Vec<StorePage>>,
+}
+
 /// `StorePage` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StorePage {
@@ -42,13 +50,6 @@ pub struct StorePage {
     pub link: Option<Vec<String>>,
     /// name property.
     pub name: Option<Vec<LocalizedText>>,
-}
-
-/// `StoreLayoutPagesListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StoreLayoutPagesListResponse {
-    /// page property.
-    pub page: Option<Vec<StorePage>>,
 }
 
 // =============================================================================

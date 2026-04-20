@@ -12,65 +12,21 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Empty;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ArtifactConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArtifactConfig {
-    /// recordingConfig property.
-    pub recording_config: Option<RecordingConfig>,
-    /// smartNotesConfig property.
-    pub smart_notes_config: Option<SmartNotesConfig>,
-    /// transcriptionConfig property.
-    pub transcription_config: Option<TranscriptionConfig>,
-}
-
-/// `PhoneAccess` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PhoneAccess {
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// phoneNumber property.
-    pub phone_number: Option<String>,
-    /// pin property.
-    pub pin: Option<String>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-}
-
-/// `ModerationRestrictions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ModerationRestrictions {
-    /// chatRestriction property.
-    pub chat_restriction: Option<String>,
-    /// defaultJoinAsViewerType property.
-    pub default_join_as_viewer_type: Option<String>,
-    /// presentRestriction property.
-    pub present_restriction: Option<String>,
-    /// reactionRestriction property.
-    pub reaction_restriction: Option<String>,
-}
-
-/// `SmartNotesConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SmartNotesConfig {
-    /// autoSmartNotesGeneration property.
-    pub auto_smart_notes_generation: Option<String>,
-}
-
-/// `Empty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
 
 /// `Space` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -91,18 +47,33 @@ pub struct Space {
     pub phone_access: Option<Vec<PhoneAccess>>,
 }
 
+/// `PhoneAccess` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PhoneAccess {
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// phoneNumber property.
+    pub phone_number: Option<String>,
+    /// pin property.
+    pub pin: Option<String>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+}
+
+/// `GatewaySipAccess` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GatewaySipAccess {
+    /// sipAccessCode property.
+    pub sip_access_code: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
 /// `ActiveConference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActiveConference {
     /// conferenceRecord property.
     pub conference_record: Option<String>,
-}
-
-/// `RecordingConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RecordingConfig {
-    /// autoRecordingGeneration property.
-    pub auto_recording_generation: Option<String>,
 }
 
 /// `SpaceConfig` type.
@@ -122,6 +93,30 @@ pub struct SpaceConfig {
     pub moderation_restrictions: Option<ModerationRestrictions>,
 }
 
+/// `ArtifactConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ArtifactConfig {
+    /// recordingConfig property.
+    pub recording_config: Option<RecordingConfig>,
+    /// smartNotesConfig property.
+    pub smart_notes_config: Option<SmartNotesConfig>,
+    /// transcriptionConfig property.
+    pub transcription_config: Option<TranscriptionConfig>,
+}
+
+/// `ModerationRestrictions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ModerationRestrictions {
+    /// chatRestriction property.
+    pub chat_restriction: Option<String>,
+    /// defaultJoinAsViewerType property.
+    pub default_join_as_viewer_type: Option<String>,
+    /// presentRestriction property.
+    pub present_restriction: Option<String>,
+    /// reactionRestriction property.
+    pub reaction_restriction: Option<String>,
+}
+
 /// `TranscriptionConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TranscriptionConfig {
@@ -129,13 +124,18 @@ pub struct TranscriptionConfig {
     pub auto_transcription_generation: Option<String>,
 }
 
-/// `GatewaySipAccess` type.
+/// `SmartNotesConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GatewaySipAccess {
-    /// sipAccessCode property.
-    pub sip_access_code: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
+pub struct SmartNotesConfig {
+    /// autoSmartNotesGeneration property.
+    pub auto_smart_notes_generation: Option<String>,
+}
+
+/// `RecordingConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RecordingConfig {
+    /// autoRecordingGeneration property.
+    pub auto_recording_generation: Option<String>,
 }
 
 // =============================================================================

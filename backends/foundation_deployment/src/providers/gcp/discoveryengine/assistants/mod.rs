@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,30 +22,54 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudDiscoveryengineV1AssistantCustomerPolicyModelArmorConfig` type.
+/// `GoogleCloudDiscoveryengineV1ListAssistantsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AssistantCustomerPolicyModelArmorConfig {
-    /// failureMode property.
-    pub failure_mode: Option<String>,
-    /// responseTemplate property.
-    pub response_template: Option<String>,
-    /// userPromptTemplate property.
-    pub user_prompt_template: Option<String>,
+pub struct GoogleCloudDiscoveryengineV1ListAssistantsResponse {
+    /// assistants property.
+    pub assistants: Option<Vec<GoogleCloudDiscoveryengineV1Assistant>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
-/// `GoogleCloudDiscoveryengineV1AssistAnswerReply` type.
+/// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AssistAnswerReply {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// groundedContent property.
-    pub grounded_content: Option<GoogleCloudDiscoveryengineV1AssistantGroundedContent>,
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1AssistantContentFile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1AssistantContentFile {
+    /// fileId property.
+    pub file_id: Option<String>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadataSegment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadataSegment {
+    /// endIndex property.
+    pub end_index: Option<String>,
+    /// groundingScore property.
+    pub grounding_score: Option<f64>,
+    /// referenceIndices property.
+    pub reference_indices: Option<Vec<i64>>,
+    /// startIndex property.
+    pub start_index: Option<String>,
+    /// text property.
+    pub text: Option<String>,
 }
 
 /// `GoogleCloudDiscoveryengineV1AssistantGenerationConfig` type.
@@ -61,37 +86,85 @@ pub struct GoogleCloudDiscoveryengineV1AssistantGenerationConfig {
         Option<GoogleCloudDiscoveryengineV1AssistantGenerationConfigSystemInstruction>,
 }
 
-/// `GoogleCloudDiscoveryengineV1AssistantContentBlob` type.
+/// `GoogleCloudDiscoveryengineV1AssistantGroundedContent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AssistantContentBlob {
-    /// data property.
-    pub data: Option<String>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
+pub struct GoogleCloudDiscoveryengineV1AssistantGroundedContent {
+    /// citationMetadata property.
+    pub citation_metadata: Option<GoogleCloudDiscoveryengineV1CitationMetadata>,
+    /// content property.
+    pub content: Option<GoogleCloudDiscoveryengineV1AssistantContent>,
+    /// textGroundingMetadata property.
+    pub text_grounding_metadata:
+        Option<GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadata>,
 }
 
-/// `GoogleCloudDiscoveryengineV1StreamAssistResponse` type.
+/// `GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResultPolicyEnforcementResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1StreamAssistResponse {
-    /// answer property.
-    pub answer: Option<GoogleCloudDiscoveryengineV1AssistAnswer>,
-    /// assistToken property.
-    pub assist_token: Option<String>,
-    /// invocationTools property.
-    pub invocation_tools: Option<Vec<String>>,
-    /// sessionInfo property.
-    pub session_info: Option<GoogleCloudDiscoveryengineV1StreamAssistResponseSessionInfo>,
+pub struct GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResultPolicyEnforcementResult {
+    /// bannedPhraseEnforcementResult property.
+    pub banned_phrase_enforcement_result: Option<GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResultBannedPhraseEnforcementResult>,
+    /// modelArmorEnforcementResult property.
+    pub model_armor_enforcement_result: Option<GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResultModelArmorEnforcementResult>,
 }
 
-/// `GoogleRpcStatus` type.
+/// `GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadata {
+    /// references property.
+    pub references: Option<
+        Vec<GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadataReference>,
+    >,
+    /// segments property.
+    pub segments: Option<
+        Vec<GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadataSegment>,
+    >,
+}
+
+/// `GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResult {
+    /// policyResults property.
+    pub policy_results: Option<Vec<GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResultPolicyEnforcementResult>>,
+    /// verdict property.
+    pub verdict: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1Assistant` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1Assistant {
+    /// customerPolicy property.
+    pub customer_policy: Option<GoogleCloudDiscoveryengineV1AssistantCustomerPolicy>,
+    /// defaultWebGroundingToggleOff property.
+    pub default_web_grounding_toggle_off: Option<bool>,
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// enabledTools property.
+    pub enabled_tools: Option<serde_json::Value>,
+    /// generationConfig property.
+    pub generation_config: Option<GoogleCloudDiscoveryengineV1AssistantGenerationConfig>,
+    /// name property.
+    pub name: Option<String>,
+    /// webGroundingType property.
+    pub web_grounding_type: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1Citation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1Citation {
+    /// endIndex property.
+    pub end_index: Option<i64>,
+    /// license property.
+    pub license: Option<String>,
+    /// publicationDate property.
+    pub publication_date: Option<GoogleTypeDate>,
+    /// startIndex property.
+    pub start_index: Option<i64>,
+    /// title property.
+    pub title: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
 }
 
 /// `GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResultModelArmorEnforcementResult` type.
@@ -120,84 +193,6 @@ pub struct GoogleCloudDiscoveryengineV1AssistAnswer {
     pub state: Option<String>,
 }
 
-/// `GoogleCloudDiscoveryengineV1Citation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1Citation {
-    /// endIndex property.
-    pub end_index: Option<i64>,
-    /// license property.
-    pub license: Option<String>,
-    /// publicationDate property.
-    pub publication_date: Option<GoogleTypeDate>,
-    /// startIndex property.
-    pub start_index: Option<i64>,
-    /// title property.
-    pub title: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1AssistantCustomerPolicyBannedPhrase` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AssistantCustomerPolicyBannedPhrase {
-    /// ignoreDiacritics property.
-    pub ignore_diacritics: Option<bool>,
-    /// matchType property.
-    pub match_type: Option<String>,
-    /// phrase property.
-    pub phrase: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadataReferenceDocumentMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadataReferenceDocumentMetadata
-{
-    /// document property.
-    pub document: Option<String>,
-    /// domain property.
-    pub domain: Option<String>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-    /// pageIdentifier property.
-    pub page_identifier: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1AssistantContentExecutableCode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AssistantContentExecutableCode {
-    /// code property.
-    pub code: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1CitationMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1CitationMetadata {
-    /// citations property.
-    pub citations: Option<Vec<GoogleCloudDiscoveryengineV1Citation>>,
-}
-
-/// `GoogleCloudDiscoveryengineV1AssistantContentFile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AssistantContentFile {
-    /// fileId property.
-    pub file_id: Option<String>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1AssistantContentCodeExecutionResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AssistantContentCodeExecutionResult {
-    /// outcome property.
-    pub outcome: Option<String>,
-    /// output property.
-    pub output: Option<String>,
-}
-
 /// `GoogleCloudDiscoveryengineV1AssistantContent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistantContent {
@@ -218,109 +213,13 @@ pub struct GoogleCloudDiscoveryengineV1AssistantContent {
     pub thought: Option<bool>,
 }
 
-/// `GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadata` type.
+/// `GoogleCloudDiscoveryengineV1AssistantContentCodeExecutionResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadata {
-    /// references property.
-    pub references: Option<
-        Vec<GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadataReference>,
-    >,
-    /// segments property.
-    pub segments: Option<
-        Vec<GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadataSegment>,
-    >,
-}
-
-/// `GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadataSegment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadataSegment {
-    /// endIndex property.
-    pub end_index: Option<String>,
-    /// groundingScore property.
-    pub grounding_score: Option<f64>,
-    /// referenceIndices property.
-    pub reference_indices: Option<Vec<i64>>,
-    /// startIndex property.
-    pub start_index: Option<String>,
-    /// text property.
-    pub text: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1ListAssistantsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ListAssistantsResponse {
-    /// assistants property.
-    pub assistants: Option<Vec<GoogleCloudDiscoveryengineV1Assistant>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResultPolicyEnforcementResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResultPolicyEnforcementResult {
-    /// bannedPhraseEnforcementResult property.
-    pub banned_phrase_enforcement_result: Option<GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResultBannedPhraseEnforcementResult>,
-    /// modelArmorEnforcementResult property.
-    pub model_armor_enforcement_result: Option<GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResultModelArmorEnforcementResult>,
-}
-
-/// `GoogleCloudDiscoveryengineV1AssistantGenerationConfigSystemInstruction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AssistantGenerationConfigSystemInstruction {
-    /// additionalSystemInstruction property.
-    pub additional_system_instruction: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1AssistantCustomerPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AssistantCustomerPolicy {
-    /// bannedPhrases property.
-    pub banned_phrases:
-        Option<Vec<GoogleCloudDiscoveryengineV1AssistantCustomerPolicyBannedPhrase>>,
-    /// modelArmorConfig property.
-    pub model_armor_config:
-        Option<GoogleCloudDiscoveryengineV1AssistantCustomerPolicyModelArmorConfig>,
-}
-
-/// `GoogleCloudDiscoveryengineV1AssistantGroundedContent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AssistantGroundedContent {
-    /// citationMetadata property.
-    pub citation_metadata: Option<GoogleCloudDiscoveryengineV1CitationMetadata>,
-    /// content property.
-    pub content: Option<GoogleCloudDiscoveryengineV1AssistantContent>,
-    /// textGroundingMetadata property.
-    pub text_grounding_metadata:
-        Option<GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadata>,
-}
-
-/// `GoogleCloudDiscoveryengineV1Assistant` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1Assistant {
-    /// customerPolicy property.
-    pub customer_policy: Option<GoogleCloudDiscoveryengineV1AssistantCustomerPolicy>,
-    /// defaultWebGroundingToggleOff property.
-    pub default_web_grounding_toggle_off: Option<bool>,
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// enabledTools property.
-    pub enabled_tools: Option<serde_json::Value>,
-    /// generationConfig property.
-    pub generation_config: Option<GoogleCloudDiscoveryengineV1AssistantGenerationConfig>,
-    /// name property.
-    pub name: Option<String>,
-    /// webGroundingType property.
-    pub web_grounding_type: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResultBannedPhraseEnforcementResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResultBannedPhraseEnforcementResult
-{
-    /// bannedPhrases property.
-    pub banned_phrases: Option<Vec<String>>,
+pub struct GoogleCloudDiscoveryengineV1AssistantContentCodeExecutionResult {
+    /// outcome property.
+    pub outcome: Option<String>,
+    /// output property.
+    pub output: Option<String>,
 }
 
 /// `GoogleTypeDate` type.
@@ -334,13 +233,100 @@ pub struct GoogleTypeDate {
     pub year: Option<i64>,
 }
 
-/// `GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadataReference` type.
+/// `GoogleCloudDiscoveryengineV1AssistantContentBlob` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadataReference {
-    /// content property.
-    pub content: Option<String>,
-    /// documentMetadata property.
-    pub document_metadata: Option<GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadataReferenceDocumentMetadata>,
+pub struct GoogleCloudDiscoveryengineV1AssistantContentBlob {
+    /// data property.
+    pub data: Option<String>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1AssistantCustomerPolicyModelArmorConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1AssistantCustomerPolicyModelArmorConfig {
+    /// failureMode property.
+    pub failure_mode: Option<String>,
+    /// responseTemplate property.
+    pub response_template: Option<String>,
+    /// userPromptTemplate property.
+    pub user_prompt_template: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1AssistantGenerationConfigSystemInstruction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1AssistantGenerationConfigSystemInstruction {
+    /// additionalSystemInstruction property.
+    pub additional_system_instruction: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1CitationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1CitationMetadata {
+    /// citations property.
+    pub citations: Option<Vec<GoogleCloudDiscoveryengineV1Citation>>,
+}
+
+/// `GoogleCloudDiscoveryengineV1StreamAssistResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1StreamAssistResponse {
+    /// answer property.
+    pub answer: Option<GoogleCloudDiscoveryengineV1AssistAnswer>,
+    /// assistToken property.
+    pub assist_token: Option<String>,
+    /// invocationTools property.
+    pub invocation_tools: Option<Vec<String>>,
+    /// sessionInfo property.
+    pub session_info: Option<GoogleCloudDiscoveryengineV1StreamAssistResponseSessionInfo>,
+}
+
+/// `GoogleCloudDiscoveryengineV1AssistantCustomerPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1AssistantCustomerPolicy {
+    /// bannedPhrases property.
+    pub banned_phrases:
+        Option<Vec<GoogleCloudDiscoveryengineV1AssistantCustomerPolicyBannedPhrase>>,
+    /// modelArmorConfig property.
+    pub model_armor_config:
+        Option<GoogleCloudDiscoveryengineV1AssistantCustomerPolicyModelArmorConfig>,
+}
+
+/// `GoogleCloudDiscoveryengineV1AssistantCustomerPolicyBannedPhrase` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1AssistantCustomerPolicyBannedPhrase {
+    /// ignoreDiacritics property.
+    pub ignore_diacritics: Option<bool>,
+    /// matchType property.
+    pub match_type: Option<String>,
+    /// phrase property.
+    pub phrase: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1AssistAnswerReply` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1AssistAnswerReply {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// groundedContent property.
+    pub grounded_content: Option<GoogleCloudDiscoveryengineV1AssistantGroundedContent>,
+}
+
+/// `GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadataReferenceDocumentMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadataReferenceDocumentMetadata
+{
+    /// document property.
+    pub document: Option<String>,
+    /// domain property.
+    pub domain: Option<String>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
+    /// pageIdentifier property.
+    pub page_identifier: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
 }
 
 /// `GoogleCloudDiscoveryengineV1StreamAssistResponseSessionInfo` type.
@@ -350,13 +336,28 @@ pub struct GoogleCloudDiscoveryengineV1StreamAssistResponseSessionInfo {
     pub session: Option<String>,
 }
 
-/// `GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResult` type.
+/// `GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResultBannedPhraseEnforcementResult` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResult {
-    /// policyResults property.
-    pub policy_results: Option<Vec<GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResultPolicyEnforcementResult>>,
-    /// verdict property.
-    pub verdict: Option<String>,
+pub struct GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResultBannedPhraseEnforcementResult
+{
+    /// bannedPhrases property.
+    pub banned_phrases: Option<Vec<String>>,
+}
+
+/// `GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadataReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadataReference {
+    /// content property.
+    pub content: Option<String>,
+    /// documentMetadata property.
+    pub document_metadata: Option<GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadataReferenceDocumentMetadata>,
+}
+
+/// `GoogleCloudDiscoveryengineV1AssistantContentExecutableCode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1AssistantContentExecutableCode {
+    /// code property.
+    pub code: Option<String>,
 }
 
 // =============================================================================

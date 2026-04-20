@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,46 +22,28 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ExtensionChainExtension` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExtensionChainExtension {
-    /// authority property.
-    pub authority: Option<String>,
-    /// failOpen property.
-    pub fail_open: Option<bool>,
-    /// forwardAttributes property.
-    pub forward_attributes: Option<Vec<String>>,
-    /// forwardHeaders property.
-    pub forward_headers: Option<Vec<String>>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// observabilityMode property.
-    pub observability_mode: Option<bool>,
-    /// requestBodySendMode property.
-    pub request_body_send_mode: Option<String>,
-    /// responseBodySendMode property.
-    pub response_body_send_mode: Option<String>,
-    /// service property.
-    pub service: Option<String>,
-    /// supportedEvents property.
-    pub supported_events: Option<Vec<String>>,
-    /// timeout property.
-    pub timeout: Option<String>,
-}
 
 /// `ExtensionChainMatchCondition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExtensionChainMatchCondition {
     /// celExpression property.
     pub cel_expression: Option<String>,
+}
+
+/// `ExtensionChain` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExtensionChain {
+    /// extensions property.
+    pub extensions: Option<Vec<ExtensionChainExtension>>,
+    /// matchCondition property.
+    pub match_condition: Option<ExtensionChainMatchCondition>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 /// `Status` type.
@@ -108,15 +91,33 @@ pub struct LbTrafficExtension {
     pub update_time: Option<String>,
 }
 
-/// `ExtensionChain` type.
+/// `ExtensionChainExtension` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExtensionChain {
-    /// extensions property.
-    pub extensions: Option<Vec<ExtensionChainExtension>>,
-    /// matchCondition property.
-    pub match_condition: Option<ExtensionChainMatchCondition>,
+pub struct ExtensionChainExtension {
+    /// authority property.
+    pub authority: Option<String>,
+    /// failOpen property.
+    pub fail_open: Option<bool>,
+    /// forwardAttributes property.
+    pub forward_attributes: Option<Vec<String>>,
+    /// forwardHeaders property.
+    pub forward_headers: Option<Vec<String>>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
     /// name property.
     pub name: Option<String>,
+    /// observabilityMode property.
+    pub observability_mode: Option<bool>,
+    /// requestBodySendMode property.
+    pub request_body_send_mode: Option<String>,
+    /// responseBodySendMode property.
+    pub response_body_send_mode: Option<String>,
+    /// service property.
+    pub service: Option<String>,
+    /// supportedEvents property.
+    pub supported_events: Option<Vec<String>>,
+    /// timeout property.
+    pub timeout: Option<String>,
 }
 
 // =============================================================================

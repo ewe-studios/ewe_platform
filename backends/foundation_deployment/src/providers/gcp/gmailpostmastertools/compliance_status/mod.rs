@@ -12,27 +12,24 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DomainComplianceStatus` type.
+/// `ComplianceStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DomainComplianceStatus {
-    /// complianceData property.
-    pub compliance_data: Option<DomainComplianceData>,
-    /// name property.
-    pub name: Option<String>,
-    /// subdomainComplianceData property.
-    pub subdomain_compliance_data: Option<DomainComplianceData>,
+pub struct ComplianceStatus {
+    /// status property.
+    pub status: Option<String>,
 }
 
 /// `OneClickUnsubscribeVerdict` type.
@@ -53,11 +50,13 @@ pub struct ComplianceRowData {
     pub status: Option<ComplianceStatus>,
 }
 
-/// `ComplianceStatus` type.
+/// `HonorUnsubscribeVerdict` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComplianceStatus {
+pub struct HonorUnsubscribeVerdict {
+    /// reason property.
+    pub reason: Option<String>,
     /// status property.
-    pub status: Option<String>,
+    pub status: Option<ComplianceStatus>,
 }
 
 /// `DomainComplianceData` type.
@@ -73,13 +72,15 @@ pub struct DomainComplianceData {
     pub row_data: Option<Vec<ComplianceRowData>>,
 }
 
-/// `HonorUnsubscribeVerdict` type.
+/// `DomainComplianceStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HonorUnsubscribeVerdict {
-    /// reason property.
-    pub reason: Option<String>,
-    /// status property.
-    pub status: Option<ComplianceStatus>,
+pub struct DomainComplianceStatus {
+    /// complianceData property.
+    pub compliance_data: Option<DomainComplianceData>,
+    /// name property.
+    pub name: Option<String>,
+    /// subdomainComplianceData property.
+    pub subdomain_compliance_data: Option<DomainComplianceData>,
 }
 
 // =============================================================================

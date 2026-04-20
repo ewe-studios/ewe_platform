@@ -12,75 +12,24 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `RRSetRoutingPolicyHealthCheckTargets` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RRSetRoutingPolicyHealthCheckTargets {
-    /// externalEndpoints property.
-    pub external_endpoints: Option<Vec<String>>,
-    /// internalLoadBalancers property.
-    pub internal_load_balancers: Option<Vec<RRSetRoutingPolicyLoadBalancerTarget>>,
-}
-
-/// `ChangesListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ChangesListResponse {
-    /// changes property.
-    pub changes: Option<Vec<Change>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `RRSetRoutingPolicyLoadBalancerTarget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RRSetRoutingPolicyLoadBalancerTarget {
-    /// ipAddress property.
-    pub ip_address: Option<String>,
-    /// ipProtocol property.
-    pub ip_protocol: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// loadBalancerType property.
-    pub load_balancer_type: Option<String>,
-    /// networkUrl property.
-    pub network_url: Option<String>,
-    /// port property.
-    pub port: Option<String>,
-    /// project property.
-    pub project: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-}
 
 /// `RRSetRoutingPolicyWrrPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RRSetRoutingPolicyWrrPolicy {
     /// items property.
     pub items: Option<Vec<RRSetRoutingPolicyWrrPolicyWrrPolicyItem>>,
-    /// kind property.
-    pub kind: Option<String>,
-}
-
-/// `RRSetRoutingPolicyGeoPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RRSetRoutingPolicyGeoPolicy {
-    /// enableFencing property.
-    pub enable_fencing: Option<bool>,
-    /// items property.
-    pub items: Option<Vec<RRSetRoutingPolicyGeoPolicyGeoPolicyItem>>,
     /// kind property.
     pub kind: Option<String>,
 }
@@ -104,6 +53,75 @@ pub struct ResourceRecordSet {
     pub r#type: Option<String>,
 }
 
+/// `RRSetRoutingPolicyHealthCheckTargets` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RRSetRoutingPolicyHealthCheckTargets {
+    /// externalEndpoints property.
+    pub external_endpoints: Option<Vec<String>>,
+    /// internalLoadBalancers property.
+    pub internal_load_balancers: Option<Vec<RRSetRoutingPolicyLoadBalancerTarget>>,
+}
+
+/// `ChangesListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ChangesListResponse {
+    /// changes property.
+    pub changes: Option<Vec<Change>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `RRSetRoutingPolicyPrimaryBackupPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RRSetRoutingPolicyPrimaryBackupPolicy {
+    /// backupGeoTargets property.
+    pub backup_geo_targets: Option<RRSetRoutingPolicyGeoPolicy>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// primaryTargets property.
+    pub primary_targets: Option<RRSetRoutingPolicyHealthCheckTargets>,
+    /// trickleTraffic property.
+    pub trickle_traffic: Option<f64>,
+}
+
+/// `RRSetRoutingPolicyLoadBalancerTarget` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RRSetRoutingPolicyLoadBalancerTarget {
+    /// ipAddress property.
+    pub ip_address: Option<String>,
+    /// ipProtocol property.
+    pub ip_protocol: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// loadBalancerType property.
+    pub load_balancer_type: Option<String>,
+    /// networkUrl property.
+    pub network_url: Option<String>,
+    /// port property.
+    pub port: Option<String>,
+    /// project property.
+    pub project: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+}
+
+/// `RRSetRoutingPolicyGeoPolicyGeoPolicyItem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RRSetRoutingPolicyGeoPolicyGeoPolicyItem {
+    /// healthCheckedTargets property.
+    pub health_checked_targets: Option<RRSetRoutingPolicyHealthCheckTargets>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// rrdatas property.
+    pub rrdatas: Option<Vec<String>>,
+    /// signatureRrdatas property.
+    pub signature_rrdatas: Option<Vec<String>>,
+}
+
 /// `Change` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Change {
@@ -123,21 +141,6 @@ pub struct Change {
     pub status: Option<String>,
 }
 
-/// `RRSetRoutingPolicyGeoPolicyGeoPolicyItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RRSetRoutingPolicyGeoPolicyGeoPolicyItem {
-    /// healthCheckedTargets property.
-    pub health_checked_targets: Option<RRSetRoutingPolicyHealthCheckTargets>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// rrdatas property.
-    pub rrdatas: Option<Vec<String>>,
-    /// signatureRrdatas property.
-    pub signature_rrdatas: Option<Vec<String>>,
-}
-
 /// `RRSetRoutingPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RRSetRoutingPolicy {
@@ -153,19 +156,6 @@ pub struct RRSetRoutingPolicy {
     pub wrr: Option<RRSetRoutingPolicyWrrPolicy>,
 }
 
-/// `RRSetRoutingPolicyPrimaryBackupPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RRSetRoutingPolicyPrimaryBackupPolicy {
-    /// backupGeoTargets property.
-    pub backup_geo_targets: Option<RRSetRoutingPolicyGeoPolicy>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// primaryTargets property.
-    pub primary_targets: Option<RRSetRoutingPolicyHealthCheckTargets>,
-    /// trickleTraffic property.
-    pub trickle_traffic: Option<f64>,
-}
-
 /// `RRSetRoutingPolicyWrrPolicyWrrPolicyItem` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RRSetRoutingPolicyWrrPolicyWrrPolicyItem {
@@ -179,6 +169,17 @@ pub struct RRSetRoutingPolicyWrrPolicyWrrPolicyItem {
     pub signature_rrdatas: Option<Vec<String>>,
     /// weight property.
     pub weight: Option<f64>,
+}
+
+/// `RRSetRoutingPolicyGeoPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RRSetRoutingPolicyGeoPolicy {
+    /// enableFencing property.
+    pub enable_fencing: Option<bool>,
+    /// items property.
+    pub items: Option<Vec<RRSetRoutingPolicyGeoPolicyGeoPolicyItem>>,
+    /// kind property.
+    pub kind: Option<String>,
 }
 
 // =============================================================================

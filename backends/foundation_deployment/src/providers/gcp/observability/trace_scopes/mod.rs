@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,20 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListTraceScopesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListTraceScopesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// traceScopes property.
+    pub trace_scopes: Option<Vec<TraceScope>>,
+}
 
 /// `TraceScope` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,15 +50,6 @@ pub struct TraceScope {
     pub resource_names: Option<Vec<String>>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `ListTraceScopesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListTraceScopesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// traceScopes property.
-    pub trace_scopes: Option<Vec<TraceScope>>,
 }
 
 // =============================================================================

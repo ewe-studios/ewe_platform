@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Image;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -42,13 +43,6 @@ pub struct CustomerEncryptionKey {
     pub sha256: Option<String>,
 }
 
-/// `ImageParams` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImageParams {
-    /// resourceManagerTags property.
-    pub resource_manager_tags: Option<serde_json::Value>,
-}
-
 /// `DeprecationStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeprecationStatus {
@@ -64,6 +58,29 @@ pub struct DeprecationStatus {
     pub state: Option<String>,
 }
 
+/// `GuestOsFeature` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GuestOsFeature {
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ImageParams` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImageParams {
+    /// resourceManagerTags property.
+    pub resource_manager_tags: Option<serde_json::Value>,
+}
+
+/// `FileContentBuffer` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FileContentBuffer {
+    /// content property.
+    pub content: Option<String>,
+    /// fileType property.
+    pub file_type: Option<String>,
+}
+
 /// `InitialStateConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InitialStateConfig {
@@ -75,22 +92,6 @@ pub struct InitialStateConfig {
     pub keks: Option<Vec<FileContentBuffer>>,
     /// pk property.
     pub pk: Option<FileContentBuffer>,
-}
-
-/// `GuestOsFeature` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GuestOsFeature {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `FileContentBuffer` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FileContentBuffer {
-    /// content property.
-    pub content: Option<String>,
-    /// fileType property.
-    pub file_type: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,29 +24,11 @@ use super::shared::GoogleIamV1Policy;
 use super::shared::GoogleIamV1TestIamPermissionsResponse;
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Source` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Source {
-    /// ipBlocks property.
-    pub ip_blocks: Option<Vec<String>>,
-    /// principals property.
-    pub principals: Option<Vec<String>>,
-}
-
-/// `GoogleIamV1AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
-}
 
 /// `GoogleIamV1Binding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -56,25 +39,6 @@ pub struct GoogleIamV1Binding {
     pub members: Option<Vec<String>>,
     /// role property.
     pub role: Option<String>,
-}
-
-/// `AuthorizationPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthorizationPolicy {
-    /// action property.
-    pub action: Option<String>,
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// name property.
-    pub name: Option<String>,
-    /// rules property.
-    pub rules: Option<Vec<Rule>>,
-    /// updateTime property.
-    pub update_time: Option<String>,
 }
 
 /// `ListAuthorizationPoliciesResponse` type.
@@ -95,24 +59,13 @@ pub struct Rule {
     pub sources: Option<Vec<Source>>,
 }
 
-/// `HttpHeaderMatch` type.
+/// `Source` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpHeaderMatch {
-    /// headerName property.
-    pub header_name: Option<String>,
-    /// regexMatch property.
-    pub regex_match: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct Source {
+    /// ipBlocks property.
+    pub ip_blocks: Option<Vec<String>>,
+    /// principals property.
+    pub principals: Option<Vec<String>>,
 }
 
 /// `Destination` type.
@@ -141,6 +94,26 @@ pub struct Expr {
     pub title: Option<String>,
 }
 
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `HttpHeaderMatch` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpHeaderMatch {
+    /// headerName property.
+    pub header_name: Option<String>,
+    /// regexMatch property.
+    pub regex_match: Option<String>,
+}
+
 /// `GoogleIamV1AuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditConfig {
@@ -148,6 +121,34 @@ pub struct GoogleIamV1AuditConfig {
     pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
     /// service property.
     pub service: Option<String>,
+}
+
+/// `AuthorizationPolicy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthorizationPolicy {
+    /// action property.
+    pub action: Option<String>,
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// name property.
+    pub name: Option<String>,
+    /// rules property.
+    pub rules: Option<Vec<Rule>>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `GoogleIamV1AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
 }
 
 // =============================================================================

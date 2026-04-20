@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -24,46 +25,11 @@ use super::shared::ListSharedResourceSubscriptionsResponse;
 use super::shared::Policy;
 use super::shared::TestIamPermissionsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Subscription` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Subscription {
-    /// commercialInfo property.
-    pub commercial_info: Option<GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfo>,
-    /// creationTime property.
-    pub creation_time: Option<String>,
-    /// dataExchange property.
-    pub data_exchange: Option<String>,
-    /// destinationDataset property.
-    pub destination_dataset: Option<DestinationDataset>,
-    /// lastModifyTime property.
-    pub last_modify_time: Option<String>,
-    /// linkedDatasetMap property.
-    pub linked_dataset_map: Option<serde_json::Value>,
-    /// linkedResources property.
-    pub linked_resources: Option<Vec<LinkedResource>>,
-    /// listing property.
-    pub listing: Option<String>,
-    /// logLinkedDatasetQueryUserEmail property.
-    pub log_linked_dataset_query_user_email: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-    /// organizationDisplayName property.
-    pub organization_display_name: Option<String>,
-    /// organizationId property.
-    pub organization_id: Option<String>,
-    /// resourceType property.
-    pub resource_type: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// subscriberContact property.
-    pub subscriber_contact: Option<String>,
-}
 
 /// `SubscribeListingResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -72,13 +38,24 @@ pub struct SubscribeListingResponse {
     pub subscription: Option<Subscription>,
 }
 
-/// `PubSubTopicSource` type.
+/// `RestrictedExportPolicy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PubSubTopicSource {
-    /// dataAffinityRegions property.
-    pub data_affinity_regions: Option<Vec<String>>,
-    /// topic property.
-    pub topic: Option<String>,
+pub struct RestrictedExportPolicy {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// restrictDirectTableAccess property.
+    pub restrict_direct_table_access: Option<bool>,
+    /// restrictQueryResult property.
+    pub restrict_query_result: Option<bool>,
+}
+
+/// `ListListingsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListListingsResponse {
+    /// listings property.
+    pub listings: Option<Vec<Listing>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `Listing` type.
@@ -126,35 +103,6 @@ pub struct Listing {
     pub stored_procedure_config: Option<StoredProcedureConfig>,
 }
 
-/// `GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfo {
-    /// cloudMarketplace property.
-    pub cloud_marketplace: Option<
-        GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfoGoogleCloudMarketplaceInfo,
-    >,
-}
-
-/// `StoredProcedureConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StoredProcedureConfig {
-    /// allowedStoredProcedureTypes property.
-    pub allowed_stored_procedure_types: Option<Vec<String>>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `RestrictedExportConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RestrictedExportConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// restrictDirectTableAccess property.
-    pub restrict_direct_table_access: Option<bool>,
-    /// restrictQueryResult property.
-    pub restrict_query_result: Option<bool>,
-}
-
 /// `DataProvider` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataProvider {
@@ -162,33 +110,6 @@ pub struct DataProvider {
     pub name: Option<String>,
     /// primaryContact property.
     pub primary_contact: Option<String>,
-}
-
-/// `Publisher` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Publisher {
-    /// name property.
-    pub name: Option<String>,
-    /// primaryContact property.
-    pub primary_contact: Option<String>,
-}
-
-/// `SelectedResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SelectedResource {
-    /// routine property.
-    pub routine: Option<String>,
-    /// table property.
-    pub table: Option<String>,
-}
-
-/// `AuditLogConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditLogConfig {
-    /// exemptedMembers property.
-    pub exempted_members: Option<Vec<String>>,
-    /// logType property.
-    pub log_type: Option<String>,
 }
 
 /// `BigQueryDatasetSource` type.
@@ -206,15 +127,6 @@ pub struct BigQueryDatasetSource {
     pub selected_resources: Option<Vec<SelectedResource>>,
 }
 
-/// `GoogleCloudBigqueryAnalyticshubV1ListingCommercialInfoGoogleCloudMarketplaceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBigqueryAnalyticshubV1ListingCommercialInfoGoogleCloudMarketplaceInfo {
-    /// commercialState property.
-    pub commercial_state: Option<String>,
-    /// service property.
-    pub service: Option<String>,
-}
-
 /// `Expr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
@@ -228,13 +140,150 @@ pub struct Expr {
     pub title: Option<String>,
 }
 
-/// `DestinationDatasetReference` type.
+/// `AuditConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DestinationDatasetReference {
-    /// datasetId property.
-    pub dataset_id: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
+pub struct AuditConfig {
+    /// auditLogConfigs property.
+    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    /// service property.
+    pub service: Option<String>,
+}
+
+/// `GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfo {
+    /// cloudMarketplace property.
+    pub cloud_marketplace: Option<
+        GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfoGoogleCloudMarketplaceInfo,
+    >,
+}
+
+/// `Publisher` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Publisher {
+    /// name property.
+    pub name: Option<String>,
+    /// primaryContact property.
+    pub primary_contact: Option<String>,
+}
+
+/// `AuditLogConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuditLogConfig {
+    /// exemptedMembers property.
+    pub exempted_members: Option<Vec<String>>,
+    /// logType property.
+    pub log_type: Option<String>,
+}
+
+/// `StoredProcedureConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StoredProcedureConfig {
+    /// allowedStoredProcedureTypes property.
+    pub allowed_stored_procedure_types: Option<Vec<String>>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `GoogleCloudBigqueryAnalyticshubV1ListingCommercialInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBigqueryAnalyticshubV1ListingCommercialInfo {
+    /// cloudMarketplace property.
+    pub cloud_marketplace:
+        Option<GoogleCloudBigqueryAnalyticshubV1ListingCommercialInfoGoogleCloudMarketplaceInfo>,
+}
+
+/// `RestrictedExportConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RestrictedExportConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// restrictDirectTableAccess property.
+    pub restrict_direct_table_access: Option<bool>,
+    /// restrictQueryResult property.
+    pub restrict_query_result: Option<bool>,
+}
+
+/// `GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfoGoogleCloudMarketplaceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfoGoogleCloudMarketplaceInfo {
+    /// order property.
+    pub order: Option<String>,
+}
+
+/// `Replica` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Replica {
+    /// location property.
+    pub location: Option<String>,
+    /// primaryState property.
+    pub primary_state: Option<String>,
+    /// replicaState property.
+    pub replica_state: Option<String>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `Subscription` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Subscription {
+    /// commercialInfo property.
+    pub commercial_info: Option<GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfo>,
+    /// creationTime property.
+    pub creation_time: Option<String>,
+    /// dataExchange property.
+    pub data_exchange: Option<String>,
+    /// destinationDataset property.
+    pub destination_dataset: Option<DestinationDataset>,
+    /// lastModifyTime property.
+    pub last_modify_time: Option<String>,
+    /// linkedDatasetMap property.
+    pub linked_dataset_map: Option<serde_json::Value>,
+    /// linkedResources property.
+    pub linked_resources: Option<Vec<LinkedResource>>,
+    /// listing property.
+    pub listing: Option<String>,
+    /// logLinkedDatasetQueryUserEmail property.
+    pub log_linked_dataset_query_user_email: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+    /// organizationDisplayName property.
+    pub organization_display_name: Option<String>,
+    /// organizationId property.
+    pub organization_id: Option<String>,
+    /// resourceType property.
+    pub resource_type: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// subscriberContact property.
+    pub subscriber_contact: Option<String>,
+}
+
+/// `PubSubTopicSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PubSubTopicSource {
+    /// dataAffinityRegions property.
+    pub data_affinity_regions: Option<Vec<String>>,
+    /// topic property.
+    pub topic: Option<String>,
+}
+
+/// `GoogleCloudBigqueryAnalyticshubV1ListingCommercialInfoGoogleCloudMarketplaceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBigqueryAnalyticshubV1ListingCommercialInfoGoogleCloudMarketplaceInfo {
+    /// commercialState property.
+    pub commercial_state: Option<String>,
+    /// service property.
+    pub service: Option<String>,
 }
 
 /// `LinkedResource` type.
@@ -248,24 +297,13 @@ pub struct LinkedResource {
     pub listing: Option<String>,
 }
 
-/// `ListListingsResponse` type.
+/// `DestinationDatasetReference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListListingsResponse {
-    /// listings property.
-    pub listings: Option<Vec<Listing>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `Replica` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Replica {
-    /// location property.
-    pub location: Option<String>,
-    /// primaryState property.
-    pub primary_state: Option<String>,
-    /// replicaState property.
-    pub replica_state: Option<String>,
+pub struct DestinationDatasetReference {
+    /// datasetId property.
+    pub dataset_id: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
 }
 
 /// `DestinationDataset` type.
@@ -285,50 +323,13 @@ pub struct DestinationDataset {
     pub replica_locations: Option<Vec<String>>,
 }
 
-/// `GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfoGoogleCloudMarketplaceInfo` type.
+/// `SelectedResource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfoGoogleCloudMarketplaceInfo {
-    /// order property.
-    pub order: Option<String>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `AuditConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuditConfig {
-    /// auditLogConfigs property.
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
-    /// service property.
-    pub service: Option<String>,
-}
-
-/// `RestrictedExportPolicy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RestrictedExportPolicy {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// restrictDirectTableAccess property.
-    pub restrict_direct_table_access: Option<bool>,
-    /// restrictQueryResult property.
-    pub restrict_query_result: Option<bool>,
-}
-
-/// `GoogleCloudBigqueryAnalyticshubV1ListingCommercialInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBigqueryAnalyticshubV1ListingCommercialInfo {
-    /// cloudMarketplace property.
-    pub cloud_marketplace:
-        Option<GoogleCloudBigqueryAnalyticshubV1ListingCommercialInfoGoogleCloudMarketplaceInfo>,
+pub struct SelectedResource {
+    /// routine property.
+    pub routine: Option<String>,
+    /// table property.
+    pub table: Option<String>,
 }
 
 // =============================================================================

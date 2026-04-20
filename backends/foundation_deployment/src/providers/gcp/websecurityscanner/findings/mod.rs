@@ -12,17 +12,56 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Form` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Form {
+    /// actionUri property.
+    pub action_uri: Option<String>,
+    /// fields property.
+    pub fields: Option<Vec<String>>,
+}
+
+/// `Xss` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Xss {
+    /// attackVector property.
+    pub attack_vector: Option<String>,
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// stackTraces property.
+    pub stack_traces: Option<Vec<String>>,
+    /// storedXssSeedingUrl property.
+    pub stored_xss_seeding_url: Option<String>,
+}
+
+/// `VulnerableParameters` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VulnerableParameters {
+    /// parameterNames property.
+    pub parameter_names: Option<Vec<String>>,
+}
+
+/// `VulnerableHeaders` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VulnerableHeaders {
+    /// headers property.
+    pub headers: Option<Vec<Header>>,
+    /// missingHeaders property.
+    pub missing_headers: Option<Vec<Header>>,
+}
 
 /// `ListFindingsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -33,15 +72,22 @@ pub struct ListFindingsResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `OutdatedLibrary` type.
+/// `ViolatingResource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OutdatedLibrary {
-    /// learnMoreUrls property.
-    pub learn_more_urls: Option<Vec<String>>,
-    /// libraryName property.
-    pub library_name: Option<String>,
-    /// version property.
-    pub version: Option<String>,
+pub struct ViolatingResource {
+    /// contentType property.
+    pub content_type: Option<String>,
+    /// resourceUrl property.
+    pub resource_url: Option<String>,
+}
+
+/// `Xxe` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Xxe {
+    /// payloadLocation property.
+    pub payload_location: Option<String>,
+    /// payloadValue property.
+    pub payload_value: Option<String>,
 }
 
 /// `Header` type.
@@ -53,13 +99,15 @@ pub struct Header {
     pub value: Option<String>,
 }
 
-/// `VulnerableHeaders` type.
+/// `OutdatedLibrary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VulnerableHeaders {
-    /// headers property.
-    pub headers: Option<Vec<Header>>,
-    /// missingHeaders property.
-    pub missing_headers: Option<Vec<Header>>,
+pub struct OutdatedLibrary {
+    /// learnMoreUrls property.
+    pub learn_more_urls: Option<Vec<String>>,
+    /// libraryName property.
+    pub library_name: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
 /// `Finding` type.
@@ -101,53 +149,6 @@ pub struct Finding {
     pub xss: Option<Xss>,
     /// xxe property.
     pub xxe: Option<Xxe>,
-}
-
-/// `ViolatingResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ViolatingResource {
-    /// contentType property.
-    pub content_type: Option<String>,
-    /// resourceUrl property.
-    pub resource_url: Option<String>,
-}
-
-/// `Xss` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Xss {
-    /// attackVector property.
-    pub attack_vector: Option<String>,
-    /// errorMessage property.
-    pub error_message: Option<String>,
-    /// stackTraces property.
-    pub stack_traces: Option<Vec<String>>,
-    /// storedXssSeedingUrl property.
-    pub stored_xss_seeding_url: Option<String>,
-}
-
-/// `VulnerableParameters` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VulnerableParameters {
-    /// parameterNames property.
-    pub parameter_names: Option<Vec<String>>,
-}
-
-/// `Xxe` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Xxe {
-    /// payloadLocation property.
-    pub payload_location: Option<String>,
-    /// payloadValue property.
-    pub payload_value: Option<String>,
-}
-
-/// `Form` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Form {
-    /// actionUri property.
-    pub action_uri: Option<String>,
-    /// fields property.
-    pub fields: Option<Vec<String>>,
 }
 
 // =============================================================================

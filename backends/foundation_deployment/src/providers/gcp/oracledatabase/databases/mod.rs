@@ -12,44 +12,37 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DbBackupConfig` type.
+/// `DatabaseProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DbBackupConfig {
-    /// autoBackupEnabled property.
-    pub auto_backup_enabled: Option<bool>,
-    /// autoFullBackupDay property.
-    pub auto_full_backup_day: Option<String>,
-    /// autoFullBackupWindow property.
-    pub auto_full_backup_window: Option<String>,
-    /// autoIncrementalBackupWindow property.
-    pub auto_incremental_backup_window: Option<String>,
-    /// backupDeletionPolicy property.
-    pub backup_deletion_policy: Option<String>,
-    /// backupDestinationDetails property.
-    pub backup_destination_details: Option<Vec<BackupDestinationDetails>>,
-    /// retentionPeriodDays property.
-    pub retention_period_days: Option<i64>,
+pub struct DatabaseProperties {
+    /// databaseManagementConfig property.
+    pub database_management_config: Option<DatabaseManagementConfig>,
+    /// dbBackupConfig property.
+    pub db_backup_config: Option<DbBackupConfig>,
+    /// dbVersion property.
+    pub db_version: Option<String>,
+    /// state property.
+    pub state: Option<String>,
 }
 
-/// `DatabaseManagementConfig` type.
+/// `BackupDestinationDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseManagementConfig {
-    /// managementState property.
-    pub management_state: Option<String>,
-    /// managementType property.
-    pub management_type: Option<String>,
+pub struct BackupDestinationDetails {
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `Database` type.
@@ -93,24 +86,32 @@ pub struct Database {
     pub tde_wallet_password_secret_version: Option<String>,
 }
 
-/// `BackupDestinationDetails` type.
+/// `DatabaseManagementConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupDestinationDetails {
-    /// type property.
-    pub r#type: Option<String>,
+pub struct DatabaseManagementConfig {
+    /// managementState property.
+    pub management_state: Option<String>,
+    /// managementType property.
+    pub management_type: Option<String>,
 }
 
-/// `DatabaseProperties` type.
+/// `DbBackupConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseProperties {
-    /// databaseManagementConfig property.
-    pub database_management_config: Option<DatabaseManagementConfig>,
-    /// dbBackupConfig property.
-    pub db_backup_config: Option<DbBackupConfig>,
-    /// dbVersion property.
-    pub db_version: Option<String>,
-    /// state property.
-    pub state: Option<String>,
+pub struct DbBackupConfig {
+    /// autoBackupEnabled property.
+    pub auto_backup_enabled: Option<bool>,
+    /// autoFullBackupDay property.
+    pub auto_full_backup_day: Option<String>,
+    /// autoFullBackupWindow property.
+    pub auto_full_backup_window: Option<String>,
+    /// autoIncrementalBackupWindow property.
+    pub auto_incremental_backup_window: Option<String>,
+    /// backupDeletionPolicy property.
+    pub backup_deletion_policy: Option<String>,
+    /// backupDestinationDetails property.
+    pub backup_destination_details: Option<Vec<BackupDestinationDetails>>,
+    /// retentionPeriodDays property.
+    pub retention_period_days: Option<i64>,
 }
 
 /// `ListDatabasesResponse` type.

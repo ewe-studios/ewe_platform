@@ -12,50 +12,26 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GooglePrivacyDlpV2InfoType` type.
+/// `GooglePrivacyDlpV2ListColumnDataProfilesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2InfoType {
-    /// name property.
-    pub name: Option<String>,
-    /// sensitivityScore property.
-    pub sensitivity_score: Option<GooglePrivacyDlpV2SensitivityScore>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2DataRiskLevel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2DataRiskLevel {
-    /// score property.
-    pub score: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2SensitivityScore` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2SensitivityScore {
-    /// score property.
-    pub score: Option<String>,
-}
-
-/// `GooglePrivacyDlpV2ProfileStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ProfileStatus {
-    /// status property.
-    pub status: Option<GoogleRpcStatus>,
-    /// timestamp property.
-    pub timestamp: Option<String>,
+pub struct GooglePrivacyDlpV2ListColumnDataProfilesResponse {
+    /// columnDataProfiles property.
+    pub column_data_profiles: Option<Vec<GooglePrivacyDlpV2ColumnDataProfile>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `GooglePrivacyDlpV2ColumnDataProfile` type.
@@ -103,6 +79,29 @@ pub struct GooglePrivacyDlpV2ColumnDataProfile {
     pub table_id: Option<String>,
 }
 
+/// `GooglePrivacyDlpV2DataRiskLevel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2DataRiskLevel {
+    /// score property.
+    pub score: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2SensitivityScore` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2SensitivityScore {
+    /// score property.
+    pub score: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2ProfileStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2ProfileStatus {
+    /// status property.
+    pub status: Option<GoogleRpcStatus>,
+    /// timestamp property.
+    pub timestamp: Option<String>,
+}
+
 /// `GooglePrivacyDlpV2OtherInfoTypeSummary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2OtherInfoTypeSummary {
@@ -110,15 +109,6 @@ pub struct GooglePrivacyDlpV2OtherInfoTypeSummary {
     pub estimated_prevalence: Option<i64>,
     /// excludedFromAnalysis property.
     pub excluded_from_analysis: Option<bool>,
-    /// infoType property.
-    pub info_type: Option<GooglePrivacyDlpV2InfoType>,
-}
-
-/// `GooglePrivacyDlpV2InfoTypeSummary` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2InfoTypeSummary {
-    /// estimatedPrevalence property.
-    pub estimated_prevalence: Option<i64>,
     /// infoType property.
     pub info_type: Option<GooglePrivacyDlpV2InfoType>,
 }
@@ -134,13 +124,24 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `GooglePrivacyDlpV2ListColumnDataProfilesResponse` type.
+/// `GooglePrivacyDlpV2InfoType` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ListColumnDataProfilesResponse {
-    /// columnDataProfiles property.
-    pub column_data_profiles: Option<Vec<GooglePrivacyDlpV2ColumnDataProfile>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
+pub struct GooglePrivacyDlpV2InfoType {
+    /// name property.
+    pub name: Option<String>,
+    /// sensitivityScore property.
+    pub sensitivity_score: Option<GooglePrivacyDlpV2SensitivityScore>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `GooglePrivacyDlpV2InfoTypeSummary` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2InfoTypeSummary {
+    /// estimatedPrevalence property.
+    pub estimated_prevalence: Option<i64>,
+    /// infoType property.
+    pub info_type: Option<GooglePrivacyDlpV2InfoType>,
 }
 
 // =============================================================================

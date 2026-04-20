@@ -12,24 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleHomeEnterpriseSdmV1ListDevicesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleHomeEnterpriseSdmV1ListDevicesResponse {
-    /// devices property.
-    pub devices: Option<Vec<GoogleHomeEnterpriseSdmV1Device>>,
-}
 
 /// `GoogleHomeEnterpriseSdmV1ParentRelation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -42,11 +36,11 @@ pub struct GoogleHomeEnterpriseSdmV1ParentRelation {
     pub parent: Option<String>,
 }
 
-/// `GoogleHomeEnterpriseSdmV1ExecuteDeviceCommandResponse` type.
+/// `GoogleHomeEnterpriseSdmV1ListDevicesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleHomeEnterpriseSdmV1ExecuteDeviceCommandResponse {
-    /// results property.
-    pub results: Option<serde_json::Value>,
+pub struct GoogleHomeEnterpriseSdmV1ListDevicesResponse {
+    /// devices property.
+    pub devices: Option<Vec<GoogleHomeEnterpriseSdmV1Device>>,
 }
 
 /// `GoogleHomeEnterpriseSdmV1Device` type.
@@ -62,6 +56,13 @@ pub struct GoogleHomeEnterpriseSdmV1Device {
     pub traits: Option<serde_json::Value>,
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `GoogleHomeEnterpriseSdmV1ExecuteDeviceCommandResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleHomeEnterpriseSdmV1ExecuteDeviceCommandResponse {
+    /// results property.
+    pub results: Option<serde_json::Value>,
 }
 
 // =============================================================================

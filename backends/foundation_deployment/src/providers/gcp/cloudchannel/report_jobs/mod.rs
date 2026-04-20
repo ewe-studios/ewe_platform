@@ -12,17 +12,35 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudChannelV1ReportValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1ReportValue {
+    /// dateTimeValue property.
+    pub date_time_value: Option<GoogleTypeDateTime>,
+    /// dateValue property.
+    pub date_value: Option<GoogleTypeDate>,
+    /// decimalValue property.
+    pub decimal_value: Option<GoogleTypeDecimal>,
+    /// intValue property.
+    pub int_value: Option<String>,
+    /// moneyValue property.
+    pub money_value: Option<GoogleTypeMoney>,
+    /// stringValue property.
+    pub string_value: Option<String>,
+}
 
 /// `GoogleCloudChannelV1Row` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,35 +62,6 @@ pub struct GoogleCloudChannelV1Column {
     pub display_name: Option<String>,
 }
 
-/// `GoogleTypeDecimal` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeDecimal {
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `GoogleTypeDate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeDate {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `GoogleCloudChannelV1FetchReportResultsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1FetchReportResultsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// reportMetadata property.
-    pub report_metadata: Option<GoogleCloudChannelV1ReportResultsMetadata>,
-    /// rows property.
-    pub rows: Option<Vec<GoogleCloudChannelV1Row>>,
-}
-
 /// `GoogleCloudChannelV1Report` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1Report {
@@ -86,21 +75,31 @@ pub struct GoogleCloudChannelV1Report {
     pub name: Option<String>,
 }
 
-/// `GoogleCloudChannelV1ReportValue` type.
+/// `GoogleCloudChannelV1FetchReportResultsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1ReportValue {
-    /// dateTimeValue property.
-    pub date_time_value: Option<GoogleTypeDateTime>,
-    /// dateValue property.
-    pub date_value: Option<GoogleTypeDate>,
-    /// decimalValue property.
-    pub decimal_value: Option<GoogleTypeDecimal>,
-    /// intValue property.
-    pub int_value: Option<String>,
-    /// moneyValue property.
-    pub money_value: Option<GoogleTypeMoney>,
-    /// stringValue property.
-    pub string_value: Option<String>,
+pub struct GoogleCloudChannelV1FetchReportResultsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// reportMetadata property.
+    pub report_metadata: Option<GoogleCloudChannelV1ReportResultsMetadata>,
+    /// rows property.
+    pub rows: Option<Vec<GoogleCloudChannelV1Row>>,
+}
+
+/// `GoogleTypeDecimal` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeDecimal {
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `GoogleTypeTimeZone` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeTimeZone {
+    /// id property.
+    pub id: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
 /// `GoogleTypeMoney` type.
@@ -114,6 +113,30 @@ pub struct GoogleTypeMoney {
     pub units: Option<String>,
 }
 
+/// `GoogleCloudChannelV1ReportResultsMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1ReportResultsMetadata {
+    /// dateRange property.
+    pub date_range: Option<GoogleCloudChannelV1DateRange>,
+    /// precedingDateRange property.
+    pub preceding_date_range: Option<GoogleCloudChannelV1DateRange>,
+    /// report property.
+    pub report: Option<GoogleCloudChannelV1Report>,
+    /// rowCount property.
+    pub row_count: Option<String>,
+}
+
+/// `GoogleTypeDate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleTypeDate {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
 /// `GoogleCloudChannelV1DateRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1DateRange {
@@ -125,15 +148,6 @@ pub struct GoogleCloudChannelV1DateRange {
     pub usage_end_date_time: Option<GoogleTypeDateTime>,
     /// usageStartDateTime property.
     pub usage_start_date_time: Option<GoogleTypeDateTime>,
-}
-
-/// `GoogleTypeTimeZone` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeTimeZone {
-    /// id property.
-    pub id: Option<String>,
-    /// version property.
-    pub version: Option<String>,
 }
 
 /// `GoogleTypeDateTime` type.
@@ -157,19 +171,6 @@ pub struct GoogleTypeDateTime {
     pub utc_offset: Option<String>,
     /// year property.
     pub year: Option<i64>,
-}
-
-/// `GoogleCloudChannelV1ReportResultsMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1ReportResultsMetadata {
-    /// dateRange property.
-    pub date_range: Option<GoogleCloudChannelV1DateRange>,
-    /// precedingDateRange property.
-    pub preceding_date_range: Option<GoogleCloudChannelV1DateRange>,
-    /// report property.
-    pub report: Option<GoogleCloudChannelV1Report>,
-    /// rowCount property.
-    pub row_count: Option<String>,
 }
 
 // =============================================================================

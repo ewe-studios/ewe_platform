@@ -12,17 +12,34 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ConfigFile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfigFile {
+    /// content property.
+    pub content: Option<String>,
+}
+
+/// `ImportFile` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImportFile {
+    /// content property.
+    pub content: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
 
 /// `Manifest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -47,22 +64,6 @@ pub struct Manifest {
     pub name: Option<String>,
     /// selfLink property.
     pub self_link: Option<String>,
-}
-
-/// `ImportFile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImportFile {
-    /// content property.
-    pub content: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `ConfigFile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfigFile {
-    /// content property.
-    pub content: Option<String>,
 }
 
 /// `ManifestsListResponse` type.

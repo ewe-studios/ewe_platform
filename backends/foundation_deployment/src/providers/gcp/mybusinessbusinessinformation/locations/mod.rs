@@ -12,59 +12,21 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+// Import shared types used by this module
+use super::shared::Empty;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListLocationsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListLocationsResponse {
-    /// locations property.
-    pub locations: Option<Vec<Location>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// totalSize property.
-    pub total_size: Option<i64>,
-}
-
-/// `Categories` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Categories {
-    /// additionalCategories property.
-    pub additional_categories: Option<Vec<Category>>,
-    /// primaryCategory property.
-    pub primary_category: Option<Category>,
-}
-
-/// `Category` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Category {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// moreHoursTypes property.
-    pub more_hours_types: Option<Vec<MoreHoursType>>,
-    /// name property.
-    pub name: Option<String>,
-    /// serviceTypes property.
-    pub service_types: Option<Vec<ServiceType>>,
-}
-
-/// `MoreHours` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MoreHours {
-    /// hoursTypeId property.
-    pub hours_type_id: Option<String>,
-    /// periods property.
-    pub periods: Option<Vec<TimePeriod>>,
-}
 
 /// `RelationshipData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -77,22 +39,55 @@ pub struct RelationshipData {
     pub parent_location: Option<RelevantLocation>,
 }
 
-/// `AdWordsLocationExtensions` type.
+/// `OpenInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdWordsLocationExtensions {
-    /// adPhone property.
-    pub ad_phone: Option<String>,
+pub struct OpenInfo {
+    /// canReopen property.
+    pub can_reopen: Option<bool>,
+    /// openingDate property.
+    pub opening_date: Option<Date>,
+    /// status property.
+    pub status: Option<String>,
 }
 
-/// `ServiceItem` type.
+/// `Label` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceItem {
-    /// freeFormServiceItem property.
-    pub free_form_service_item: Option<FreeFormServiceItem>,
-    /// price property.
-    pub price: Option<Money>,
-    /// structuredServiceItem property.
-    pub structured_service_item: Option<StructuredServiceItem>,
+pub struct Label {
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+}
+
+/// `GoogleUpdatedLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleUpdatedLocation {
+    /// diffMask property.
+    pub diff_mask: Option<String>,
+    /// location property.
+    pub location: Option<Location>,
+    /// pendingMask property.
+    pub pending_mask: Option<String>,
+}
+
+/// `FreeFormServiceItem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FreeFormServiceItem {
+    /// category property.
+    pub category: Option<String>,
+    /// label property.
+    pub label: Option<Label>,
+}
+
+/// `PlaceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PlaceInfo {
+    /// placeId property.
+    pub place_id: Option<String>,
+    /// placeName property.
+    pub place_name: Option<String>,
 }
 
 /// `Location` type.
@@ -140,6 +135,46 @@ pub struct Location {
     pub website_uri: Option<String>,
 }
 
+/// `TimeOfDay` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeOfDay {
+    /// hours property.
+    pub hours: Option<i64>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+    /// nanos property.
+    pub nanos: Option<i64>,
+    /// seconds property.
+    pub seconds: Option<i64>,
+}
+
+/// `LatLng` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LatLng {
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
+}
+
+/// `Categories` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Categories {
+    /// additionalCategories property.
+    pub additional_categories: Option<Vec<Category>>,
+    /// primaryCategory property.
+    pub primary_category: Option<Category>,
+}
+
+/// `PhoneNumbers` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PhoneNumbers {
+    /// additionalPhones property.
+    pub additional_phones: Option<Vec<String>>,
+    /// primaryPhone property.
+    pub primary_phone: Option<String>,
+}
+
 /// `Money` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Money {
@@ -149,6 +184,64 @@ pub struct Money {
     pub nanos: Option<i64>,
     /// units property.
     pub units: Option<String>,
+}
+
+/// `PostalAddress` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostalAddress {
+    /// addressLines property.
+    pub address_lines: Option<Vec<String>>,
+    /// administrativeArea property.
+    pub administrative_area: Option<String>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// locality property.
+    pub locality: Option<String>,
+    /// organization property.
+    pub organization: Option<String>,
+    /// postalCode property.
+    pub postal_code: Option<String>,
+    /// recipients property.
+    pub recipients: Option<Vec<String>>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+    /// revision property.
+    pub revision: Option<i64>,
+    /// sortingCode property.
+    pub sorting_code: Option<String>,
+    /// sublocality property.
+    pub sublocality: Option<String>,
+}
+
+/// `MoreHoursType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MoreHoursType {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// hoursTypeId property.
+    pub hours_type_id: Option<String>,
+    /// localizedDisplayName property.
+    pub localized_display_name: Option<String>,
+}
+
+/// `ServiceType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceType {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// serviceTypeId property.
+    pub service_type_id: Option<String>,
+}
+
+/// `ServiceAreaBusiness` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceAreaBusiness {
+    /// businessType property.
+    pub business_type: Option<String>,
+    /// places property.
+    pub places: Option<Places>,
+    /// regionCode property.
+    pub region_code: Option<String>,
 }
 
 /// `TimePeriod` type.
@@ -164,11 +257,42 @@ pub struct TimePeriod {
     pub open_time: Option<TimeOfDay>,
 }
 
-/// `SpecialHours` type.
+/// `Places` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpecialHours {
-    /// specialHourPeriods property.
-    pub special_hour_periods: Option<Vec<SpecialHourPeriod>>,
+pub struct Places {
+    /// placeInfos property.
+    pub place_infos: Option<Vec<PlaceInfo>>,
+}
+
+/// `ServiceItem` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceItem {
+    /// freeFormServiceItem property.
+    pub free_form_service_item: Option<FreeFormServiceItem>,
+    /// price property.
+    pub price: Option<Money>,
+    /// structuredServiceItem property.
+    pub structured_service_item: Option<StructuredServiceItem>,
+}
+
+/// `RelevantLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RelevantLocation {
+    /// placeId property.
+    pub place_id: Option<String>,
+    /// relationType property.
+    pub relation_type: Option<String>,
+}
+
+/// `ListLocationsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListLocationsResponse {
+    /// locations property.
+    pub locations: Option<Vec<Location>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// totalSize property.
+    pub total_size: Option<i64>,
 }
 
 /// `SpecialHourPeriod` type.
@@ -186,17 +310,26 @@ pub struct SpecialHourPeriod {
     pub start_date: Option<Date>,
 }
 
-/// `TimeOfDay` type.
+/// `StructuredServiceItem` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeOfDay {
-    /// hours property.
-    pub hours: Option<i64>,
-    /// minutes property.
-    pub minutes: Option<i64>,
-    /// nanos property.
-    pub nanos: Option<i64>,
-    /// seconds property.
-    pub seconds: Option<i64>,
+pub struct StructuredServiceItem {
+    /// description property.
+    pub description: Option<String>,
+    /// serviceTypeId property.
+    pub service_type_id: Option<String>,
+}
+
+/// `Category` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Category {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// moreHoursTypes property.
+    pub more_hours_types: Option<Vec<MoreHoursType>>,
+    /// name property.
+    pub name: Option<String>,
+    /// serviceTypes property.
+    pub service_types: Option<Vec<ServiceType>>,
 }
 
 /// `Metadata` type.
@@ -234,53 +367,11 @@ pub struct Metadata {
     pub place_id: Option<String>,
 }
 
-/// `Label` type.
+/// `AdWordsLocationExtensions` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Label {
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// languageCode property.
-    pub language_code: Option<String>,
-}
-
-/// `Empty` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
-
-/// `BusinessHours` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BusinessHours {
-    /// periods property.
-    pub periods: Option<Vec<TimePeriod>>,
-}
-
-/// `ServiceAreaBusiness` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceAreaBusiness {
-    /// businessType property.
-    pub business_type: Option<String>,
-    /// places property.
-    pub places: Option<Places>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-}
-
-/// `Profile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Profile {
-    /// description property.
-    pub description: Option<String>,
-}
-
-/// `PhoneNumbers` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PhoneNumbers {
-    /// additionalPhones property.
-    pub additional_phones: Option<Vec<String>>,
-    /// primaryPhone property.
-    pub primary_phone: Option<String>,
+pub struct AdWordsLocationExtensions {
+    /// adPhone property.
+    pub ad_phone: Option<String>,
 }
 
 /// `Date` type.
@@ -294,125 +385,34 @@ pub struct Date {
     pub year: Option<i64>,
 }
 
-/// `PostalAddress` type.
+/// `Profile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostalAddress {
-    /// addressLines property.
-    pub address_lines: Option<Vec<String>>,
-    /// administrativeArea property.
-    pub administrative_area: Option<String>,
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// locality property.
-    pub locality: Option<String>,
-    /// organization property.
-    pub organization: Option<String>,
-    /// postalCode property.
-    pub postal_code: Option<String>,
-    /// recipients property.
-    pub recipients: Option<Vec<String>>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-    /// revision property.
-    pub revision: Option<i64>,
-    /// sortingCode property.
-    pub sorting_code: Option<String>,
-    /// sublocality property.
-    pub sublocality: Option<String>,
-}
-
-/// `FreeFormServiceItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FreeFormServiceItem {
-    /// category property.
-    pub category: Option<String>,
-    /// label property.
-    pub label: Option<Label>,
-}
-
-/// `ServiceType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceType {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// serviceTypeId property.
-    pub service_type_id: Option<String>,
-}
-
-/// `GoogleUpdatedLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleUpdatedLocation {
-    /// diffMask property.
-    pub diff_mask: Option<String>,
-    /// location property.
-    pub location: Option<Location>,
-    /// pendingMask property.
-    pub pending_mask: Option<String>,
-}
-
-/// `StructuredServiceItem` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StructuredServiceItem {
+pub struct Profile {
     /// description property.
     pub description: Option<String>,
-    /// serviceTypeId property.
-    pub service_type_id: Option<String>,
 }
 
-/// `LatLng` type.
+/// `MoreHours` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LatLng {
-    /// latitude property.
-    pub latitude: Option<f64>,
-    /// longitude property.
-    pub longitude: Option<f64>,
-}
-
-/// `RelevantLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RelevantLocation {
-    /// placeId property.
-    pub place_id: Option<String>,
-    /// relationType property.
-    pub relation_type: Option<String>,
-}
-
-/// `OpenInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OpenInfo {
-    /// canReopen property.
-    pub can_reopen: Option<bool>,
-    /// openingDate property.
-    pub opening_date: Option<Date>,
-    /// status property.
-    pub status: Option<String>,
-}
-
-/// `MoreHoursType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MoreHoursType {
-    /// displayName property.
-    pub display_name: Option<String>,
+pub struct MoreHours {
     /// hoursTypeId property.
     pub hours_type_id: Option<String>,
-    /// localizedDisplayName property.
-    pub localized_display_name: Option<String>,
+    /// periods property.
+    pub periods: Option<Vec<TimePeriod>>,
 }
 
-/// `Places` type.
+/// `BusinessHours` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Places {
-    /// placeInfos property.
-    pub place_infos: Option<Vec<PlaceInfo>>,
+pub struct BusinessHours {
+    /// periods property.
+    pub periods: Option<Vec<TimePeriod>>,
 }
 
-/// `PlaceInfo` type.
+/// `SpecialHours` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlaceInfo {
-    /// placeId property.
-    pub place_id: Option<String>,
-    /// placeName property.
-    pub place_name: Option<String>,
+pub struct SpecialHours {
+    /// specialHourPeriods property.
+    pub special_hour_periods: Option<Vec<SpecialHourPeriod>>,
 }
 
 // =============================================================================

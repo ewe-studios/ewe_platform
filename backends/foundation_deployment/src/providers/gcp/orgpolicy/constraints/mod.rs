@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudOrgpolicyV2ConstraintListConstraint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudOrgpolicyV2ConstraintListConstraint {
+    /// supportsIn property.
+    pub supports_in: Option<bool>,
+    /// supportsUnder property.
+    pub supports_under: Option<bool>,
+}
 
 /// `GoogleCloudOrgpolicyV2ListConstraintsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -31,6 +41,29 @@ pub struct GoogleCloudOrgpolicyV2ListConstraintsResponse {
     pub constraints: Option<Vec<GoogleCloudOrgpolicyV2Constraint>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudOrgpolicyV2ConstraintBooleanConstraint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudOrgpolicyV2ConstraintBooleanConstraint {
+    /// customConstraintDefinition property.
+    pub custom_constraint_definition:
+        Option<GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinition>,
+}
+
+/// `GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinition {
+    /// actionType property.
+    pub action_type: Option<String>,
+    /// condition property.
+    pub condition: Option<String>,
+    /// methodTypes property.
+    pub method_types: Option<Vec<String>>,
+    /// parameters property.
+    pub parameters: Option<serde_json::Value>,
+    /// resourceTypes property.
+    pub resource_types: Option<Vec<String>>,
 }
 
 /// `GoogleCloudOrgpolicyV2Constraint` type.
@@ -54,38 +87,6 @@ pub struct GoogleCloudOrgpolicyV2Constraint {
     pub supports_dry_run: Option<bool>,
     /// supportsSimulation property.
     pub supports_simulation: Option<bool>,
-}
-
-/// `GoogleCloudOrgpolicyV2ConstraintListConstraint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudOrgpolicyV2ConstraintListConstraint {
-    /// supportsIn property.
-    pub supports_in: Option<bool>,
-    /// supportsUnder property.
-    pub supports_under: Option<bool>,
-}
-
-/// `GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinition {
-    /// actionType property.
-    pub action_type: Option<String>,
-    /// condition property.
-    pub condition: Option<String>,
-    /// methodTypes property.
-    pub method_types: Option<Vec<String>>,
-    /// parameters property.
-    pub parameters: Option<serde_json::Value>,
-    /// resourceTypes property.
-    pub resource_types: Option<Vec<String>>,
-}
-
-/// `GoogleCloudOrgpolicyV2ConstraintBooleanConstraint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudOrgpolicyV2ConstraintBooleanConstraint {
-    /// customConstraintDefinition property.
-    pub custom_constraint_definition:
-        Option<GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinition>,
 }
 
 // =============================================================================

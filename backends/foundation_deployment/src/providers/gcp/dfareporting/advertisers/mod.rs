@@ -12,17 +12,57 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `DimensionValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DimensionValue {
+    /// dimensionName property.
+    pub dimension_name: Option<String>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// matchType property.
+    pub match_type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `MeasurementPartnerAdvertiserLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MeasurementPartnerAdvertiserLink {
+    /// linkStatus property.
+    pub link_status: Option<String>,
+    /// measurementPartner property.
+    pub measurement_partner: Option<String>,
+    /// partnerAdvertiserId property.
+    pub partner_advertiser_id: Option<String>,
+}
+
+/// `AdvertisersListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdvertisersListResponse {
+    /// advertisers property.
+    pub advertisers: Option<Vec<Advertiser>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
 
 /// `Advertiser` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -61,45 +101,6 @@ pub struct Advertiser {
     pub subaccount_id: Option<String>,
     /// suspended property.
     pub suspended: Option<bool>,
-}
-
-/// `AdvertisersListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdvertisersListResponse {
-    /// advertisers property.
-    pub advertisers: Option<Vec<Advertiser>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `MeasurementPartnerAdvertiserLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MeasurementPartnerAdvertiserLink {
-    /// linkStatus property.
-    pub link_status: Option<String>,
-    /// measurementPartner property.
-    pub measurement_partner: Option<String>,
-    /// partnerAdvertiserId property.
-    pub partner_advertiser_id: Option<String>,
-}
-
-/// `DimensionValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DimensionValue {
-    /// dimensionName property.
-    pub dimension_name: Option<String>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// matchType property.
-    pub match_type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
 }
 
 // =============================================================================

@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -59,15 +60,6 @@ pub struct GoogleCloudAiplatformV1Memory {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1RetrieveMemoriesResponseRetrievedMemory` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1RetrieveMemoriesResponseRetrievedMemory {
-    /// distance property.
-    pub distance: Option<f64>,
-    /// memory property.
-    pub memory: Option<GoogleCloudAiplatformV1Memory>,
-}
-
 /// `GoogleCloudAiplatformV1RetrieveMemoriesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RetrieveMemoriesResponse {
@@ -76,6 +68,15 @@ pub struct GoogleCloudAiplatformV1RetrieveMemoriesResponse {
     /// retrievedMemories property.
     pub retrieved_memories:
         Option<Vec<GoogleCloudAiplatformV1RetrieveMemoriesResponseRetrievedMemory>>,
+}
+
+/// `GoogleCloudAiplatformV1RetrieveMemoriesResponseRetrievedMemory` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1RetrieveMemoriesResponseRetrievedMemory {
+    /// distance property.
+    pub distance: Option<f64>,
+    /// memory property.
+    pub memory: Option<GoogleCloudAiplatformV1Memory>,
 }
 
 /// `GoogleCloudAiplatformV1MemoryTopicId` type.

@@ -12,121 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudDiscoveryengineV1WidgetConfigCustomerProvidedConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1WidgetConfigCustomerProvidedConfig {
-    /// customerType property.
-    pub customer_type: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1WidgetConfigUiBrandingSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1WidgetConfigUiBrandingSettings {
-    /// logo property.
-    pub logo: Option<GoogleCloudDiscoveryengineV1WidgetConfigImage>,
-}
-
-/// `GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpec {
-    /// chunkSpec property.
-    pub chunk_spec: Option<GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecChunkSpec>,
-    /// extractiveContentSpec property.
-    pub extractive_content_spec:
-        Option<GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecExtractiveContentSpec>,
-    /// searchResultMode property.
-    pub search_result_mode: Option<String>,
-    /// snippetSpec property.
-    pub snippet_spec: Option<GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSnippetSpec>,
-    /// summarySpec property.
-    pub summary_spec: Option<GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpec>,
-}
-
-/// `GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpec {
-    /// ignoreAdversarialQuery property.
-    pub ignore_adversarial_query: Option<bool>,
-    /// ignoreJailBreakingQuery property.
-    pub ignore_jail_breaking_query: Option<bool>,
-    /// ignoreLowRelevantContent property.
-    pub ignore_low_relevant_content: Option<bool>,
-    /// ignoreNonSummarySeekingQuery property.
-    pub ignore_non_summary_seeking_query: Option<bool>,
-    /// includeCitations property.
-    pub include_citations: Option<bool>,
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// modelPromptSpec property.
-    pub model_prompt_spec: Option<
-        GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpecModelPromptSpec,
-    >,
-    /// modelSpec property.
-    pub model_spec:
-        Option<GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpecModelSpec>,
-    /// summaryResultCount property.
-    pub summary_result_count: Option<i64>,
-    /// useSemanticChunks property.
-    pub use_semantic_chunks: Option<bool>,
-}
-
-/// `GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpecModelPromptSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpecModelPromptSpec {
-    /// preamble property.
-    pub preamble: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1WidgetConfigImage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1WidgetConfigImage {
-    /// url property.
-    pub url: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1WidgetConfigDataStoreComponent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1WidgetConfigDataStoreComponent {
-    /// dataStoreConfigType property.
-    pub data_store_config_type: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// entityName property.
-    pub entity_name: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1WidgetConfigNode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1WidgetConfigNode {
-    /// description property.
-    pub description: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// iconUrl property.
-    pub icon_url: Option<String>,
-    /// outputSchema property.
-    pub output_schema: Option<serde_json::Value>,
-    /// parameterSchema property.
-    pub parameter_schema: Option<serde_json::Value>,
-    /// type property.
-    pub r#type: Option<String>,
-}
 
 /// `GoogleCloudDiscoveryengineV1WidgetConfigCollectionComponent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -148,30 +45,95 @@ pub struct GoogleCloudDiscoveryengineV1WidgetConfigCollectionComponent {
     pub name: Option<String>,
 }
 
-/// `GoogleCloudDiscoveryengineV1WidgetConfigAccessSettings` type.
+/// `GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecChunkSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1WidgetConfigAccessSettings {
-    /// allowPublicAccess property.
-    pub allow_public_access: Option<bool>,
-    /// allowlistedDomains property.
-    pub allowlisted_domains: Option<Vec<String>>,
-    /// enableWebApp property.
-    pub enable_web_app: Option<bool>,
-    /// languageCode property.
-    pub language_code: Option<String>,
-    /// workforceIdentityPoolProvider property.
-    pub workforce_identity_pool_provider: Option<String>,
+pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecChunkSpec {
+    /// numNextChunks property.
+    pub num_next_chunks: Option<i64>,
+    /// numPreviousChunks property.
+    pub num_previous_chunks: Option<i64>,
 }
 
-/// `GoogleCloudDiscoveryengineV1WidgetConfigHomepageSettingShortcut` type.
+/// `GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpecModelSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1WidgetConfigHomepageSettingShortcut {
-    /// destinationUri property.
-    pub destination_uri: Option<String>,
-    /// icon property.
-    pub icon: Option<GoogleCloudDiscoveryengineV1WidgetConfigImage>,
-    /// title property.
-    pub title: Option<String>,
+pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpecModelSpec {
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1WidgetConfigHomepageSetting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1WidgetConfigHomepageSetting {
+    /// shortcuts property.
+    pub shortcuts: Option<Vec<GoogleCloudDiscoveryengineV1WidgetConfigHomepageSettingShortcut>>,
+}
+
+/// `GoogleCloudDiscoveryengineV1WidgetConfigCustomerProvidedConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1WidgetConfigCustomerProvidedConfig {
+    /// customerType property.
+    pub customer_type: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1WidgetConfigFacetField` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1WidgetConfigFacetField {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// field property.
+    pub field: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecExtractiveContentSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecExtractiveContentSpec {
+    /// maxExtractiveAnswerCount property.
+    pub max_extractive_answer_count: Option<i64>,
+    /// maxExtractiveSegmentCount property.
+    pub max_extractive_segment_count: Option<i64>,
+    /// numNextSegments property.
+    pub num_next_segments: Option<i64>,
+    /// numPreviousSegments property.
+    pub num_previous_segments: Option<i64>,
+    /// returnExtractiveSegmentScore property.
+    pub return_extractive_segment_score: Option<bool>,
+}
+
+/// `GoogleCloudDiscoveryengineV1WidgetConfigUiSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1WidgetConfigUiSettings {
+    /// dataStoreUiConfigs property.
+    pub data_store_ui_configs:
+        Option<Vec<GoogleCloudDiscoveryengineV1WidgetConfigDataStoreUiConfig>>,
+    /// defaultSearchRequestOrderBy property.
+    pub default_search_request_order_by: Option<String>,
+    /// disableUserEventsCollection property.
+    pub disable_user_events_collection: Option<bool>,
+    /// enableAutocomplete property.
+    pub enable_autocomplete: Option<bool>,
+    /// enableCreateAgentButton property.
+    pub enable_create_agent_button: Option<bool>,
+    /// enablePeopleSearch property.
+    pub enable_people_search: Option<bool>,
+    /// enableQualityFeedback property.
+    pub enable_quality_feedback: Option<bool>,
+    /// enableSafeSearch property.
+    pub enable_safe_search: Option<bool>,
+    /// enableSearchAsYouType property.
+    pub enable_search_as_you_type: Option<bool>,
+    /// enableVisualContentSummary property.
+    pub enable_visual_content_summary: Option<bool>,
+    /// features property.
+    pub features: Option<serde_json::Value>,
+    /// generativeAnswerConfig property.
+    pub generative_answer_config:
+        Option<GoogleCloudDiscoveryengineV1WidgetConfigUiSettingsGenerativeAnswerConfig>,
+    /// interactionType property.
+    pub interaction_type: Option<String>,
+    /// modelConfigs property.
+    pub model_configs: Option<serde_json::Value>,
+    /// resultDescriptionType property.
+    pub result_description_type: Option<String>,
 }
 
 /// `GoogleCloudDiscoveryengineV1WidgetConfig` type.
@@ -256,22 +218,6 @@ pub struct GoogleCloudDiscoveryengineV1WidgetConfig {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudDiscoveryengineV1WidgetConfigHomepageSetting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1WidgetConfigHomepageSetting {
-    /// shortcuts property.
-    pub shortcuts: Option<Vec<GoogleCloudDiscoveryengineV1WidgetConfigHomepageSettingShortcut>>,
-}
-
-/// `GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecChunkSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecChunkSpec {
-    /// numNextChunks property.
-    pub num_next_chunks: Option<i64>,
-    /// numPreviousChunks property.
-    pub num_previous_chunks: Option<i64>,
-}
-
 /// `GoogleCloudDiscoveryengineV1WidgetConfigDataStoreUiConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1WidgetConfigDataStoreUiConfig {
@@ -285,96 +231,19 @@ pub struct GoogleCloudDiscoveryengineV1WidgetConfigDataStoreUiConfig {
     pub name: Option<String>,
 }
 
-/// `GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecExtractiveContentSpec` type.
+/// `GoogleCloudDiscoveryengineV1WidgetConfigAccessSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecExtractiveContentSpec {
-    /// maxExtractiveAnswerCount property.
-    pub max_extractive_answer_count: Option<i64>,
-    /// maxExtractiveSegmentCount property.
-    pub max_extractive_segment_count: Option<i64>,
-    /// numNextSegments property.
-    pub num_next_segments: Option<i64>,
-    /// numPreviousSegments property.
-    pub num_previous_segments: Option<i64>,
-    /// returnExtractiveSegmentScore property.
-    pub return_extractive_segment_score: Option<bool>,
-}
-
-/// `GoogleCloudDiscoveryengineV1WidgetConfigAssistantSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1WidgetConfigAssistantSettings {
-    /// defaultWebGroundingToggleOff property.
-    pub default_web_grounding_toggle_off: Option<bool>,
-    /// disableLocationContext property.
-    pub disable_location_context: Option<bool>,
-    /// googleSearchGroundingEnabled property.
-    pub google_search_grounding_enabled: Option<bool>,
-    /// webGroundingType property.
-    pub web_grounding_type: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1WidgetConfigUiSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1WidgetConfigUiSettings {
-    /// dataStoreUiConfigs property.
-    pub data_store_ui_configs:
-        Option<Vec<GoogleCloudDiscoveryengineV1WidgetConfigDataStoreUiConfig>>,
-    /// defaultSearchRequestOrderBy property.
-    pub default_search_request_order_by: Option<String>,
-    /// disableUserEventsCollection property.
-    pub disable_user_events_collection: Option<bool>,
-    /// enableAutocomplete property.
-    pub enable_autocomplete: Option<bool>,
-    /// enableCreateAgentButton property.
-    pub enable_create_agent_button: Option<bool>,
-    /// enablePeopleSearch property.
-    pub enable_people_search: Option<bool>,
-    /// enableQualityFeedback property.
-    pub enable_quality_feedback: Option<bool>,
-    /// enableSafeSearch property.
-    pub enable_safe_search: Option<bool>,
-    /// enableSearchAsYouType property.
-    pub enable_search_as_you_type: Option<bool>,
-    /// enableVisualContentSummary property.
-    pub enable_visual_content_summary: Option<bool>,
-    /// features property.
-    pub features: Option<serde_json::Value>,
-    /// generativeAnswerConfig property.
-    pub generative_answer_config:
-        Option<GoogleCloudDiscoveryengineV1WidgetConfigUiSettingsGenerativeAnswerConfig>,
-    /// interactionType property.
-    pub interaction_type: Option<String>,
-    /// modelConfigs property.
-    pub model_configs: Option<serde_json::Value>,
-    /// resultDescriptionType property.
-    pub result_description_type: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1WidgetConfigFacetField` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1WidgetConfigFacetField {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// field property.
-    pub field: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSnippetSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSnippetSpec {
-    /// maxSnippetCount property.
-    pub max_snippet_count: Option<i64>,
-    /// referenceOnly property.
-    pub reference_only: Option<bool>,
-    /// returnSnippet property.
-    pub return_snippet: Option<bool>,
-}
-
-/// `GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpecModelSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpecModelSpec {
-    /// version property.
-    pub version: Option<String>,
+pub struct GoogleCloudDiscoveryengineV1WidgetConfigAccessSettings {
+    /// allowPublicAccess property.
+    pub allow_public_access: Option<bool>,
+    /// allowlistedDomains property.
+    pub allowlisted_domains: Option<Vec<String>>,
+    /// enableWebApp property.
+    pub enable_web_app: Option<bool>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// workforceIdentityPoolProvider property.
+    pub workforce_identity_pool_provider: Option<String>,
 }
 
 /// `GoogleCloudDiscoveryengineV1WidgetConfigUiSettingsGenerativeAnswerConfig` type.
@@ -400,6 +269,138 @@ pub struct GoogleCloudDiscoveryengineV1WidgetConfigUiSettingsGenerativeAnswerCon
     pub model_version: Option<String>,
     /// resultCount property.
     pub result_count: Option<i64>,
+}
+
+/// `GoogleCloudDiscoveryengineV1WidgetConfigHomepageSettingShortcut` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1WidgetConfigHomepageSettingShortcut {
+    /// destinationUri property.
+    pub destination_uri: Option<String>,
+    /// icon property.
+    pub icon: Option<GoogleCloudDiscoveryengineV1WidgetConfigImage>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSnippetSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSnippetSpec {
+    /// maxSnippetCount property.
+    pub max_snippet_count: Option<i64>,
+    /// referenceOnly property.
+    pub reference_only: Option<bool>,
+    /// returnSnippet property.
+    pub return_snippet: Option<bool>,
+}
+
+/// `GoogleCloudDiscoveryengineV1WidgetConfigAssistantSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1WidgetConfigAssistantSettings {
+    /// defaultWebGroundingToggleOff property.
+    pub default_web_grounding_toggle_off: Option<bool>,
+    /// disableLocationContext property.
+    pub disable_location_context: Option<bool>,
+    /// googleSearchGroundingEnabled property.
+    pub google_search_grounding_enabled: Option<bool>,
+    /// webGroundingType property.
+    pub web_grounding_type: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpecModelPromptSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpecModelPromptSpec {
+    /// preamble property.
+    pub preamble: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpec {
+    /// chunkSpec property.
+    pub chunk_spec: Option<GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecChunkSpec>,
+    /// extractiveContentSpec property.
+    pub extractive_content_spec:
+        Option<GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecExtractiveContentSpec>,
+    /// searchResultMode property.
+    pub search_result_mode: Option<String>,
+    /// snippetSpec property.
+    pub snippet_spec: Option<GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSnippetSpec>,
+    /// summarySpec property.
+    pub summary_spec: Option<GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpec>,
+}
+
+/// `GoogleCloudDiscoveryengineV1WidgetConfigNode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1WidgetConfigNode {
+    /// description property.
+    pub description: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// iconUrl property.
+    pub icon_url: Option<String>,
+    /// outputSchema property.
+    pub output_schema: Option<serde_json::Value>,
+    /// parameterSchema property.
+    pub parameter_schema: Option<serde_json::Value>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1WidgetConfigImage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1WidgetConfigImage {
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpec {
+    /// ignoreAdversarialQuery property.
+    pub ignore_adversarial_query: Option<bool>,
+    /// ignoreJailBreakingQuery property.
+    pub ignore_jail_breaking_query: Option<bool>,
+    /// ignoreLowRelevantContent property.
+    pub ignore_low_relevant_content: Option<bool>,
+    /// ignoreNonSummarySeekingQuery property.
+    pub ignore_non_summary_seeking_query: Option<bool>,
+    /// includeCitations property.
+    pub include_citations: Option<bool>,
+    /// languageCode property.
+    pub language_code: Option<String>,
+    /// modelPromptSpec property.
+    pub model_prompt_spec: Option<
+        GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpecModelPromptSpec,
+    >,
+    /// modelSpec property.
+    pub model_spec:
+        Option<GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpecModelSpec>,
+    /// summaryResultCount property.
+    pub summary_result_count: Option<i64>,
+    /// useSemanticChunks property.
+    pub use_semantic_chunks: Option<bool>,
+}
+
+/// `GoogleCloudDiscoveryengineV1WidgetConfigUiBrandingSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1WidgetConfigUiBrandingSettings {
+    /// logo property.
+    pub logo: Option<GoogleCloudDiscoveryengineV1WidgetConfigImage>,
+}
+
+/// `GoogleCloudDiscoveryengineV1WidgetConfigDataStoreComponent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1WidgetConfigDataStoreComponent {
+    /// dataStoreConfigType property.
+    pub data_store_config_type: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// entityName property.
+    pub entity_name: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 // =============================================================================

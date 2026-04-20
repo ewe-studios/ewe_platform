@@ -12,35 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `AccountShippingImprovements` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountShippingImprovements {
-    /// allowShippingImprovements property.
-    pub allow_shipping_improvements: Option<bool>,
-}
-
-/// `AccountsListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountsListResponse {
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// resources property.
-    pub resources: Option<Vec<Account>>,
-}
 
 /// `AccountUser` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -61,24 +44,38 @@ pub struct AccountUser {
     pub reporting_manager: Option<bool>,
 }
 
-/// `AccountCustomerService` type.
+/// `AccountGoogleMyBusinessLink` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountCustomerService {
-    /// email property.
-    pub email: Option<String>,
-    /// phoneNumber property.
-    pub phone_number: Option<String>,
-    /// url property.
-    pub url: Option<String>,
+pub struct AccountGoogleMyBusinessLink {
+    /// gmbAccountId property.
+    pub gmb_account_id: Option<String>,
+    /// gmbEmail property.
+    pub gmb_email: Option<String>,
+    /// status property.
+    pub status: Option<String>,
 }
 
-/// `AccountImageImprovements` type.
+/// `AccountYouTubeChannelLink` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountImageImprovements {
-    /// accountImageImprovementsSettings property.
-    pub account_image_improvements_settings: Option<AccountImageImprovementsSettings>,
-    /// effectiveAllowAutomaticImageImprovements property.
-    pub effective_allow_automatic_image_improvements: Option<bool>,
+pub struct AccountYouTubeChannelLink {
+    /// channelId property.
+    pub channel_id: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+}
+
+/// `AccountIdentityType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountIdentityType {
+    /// selfIdentified property.
+    pub self_identified: Option<bool>,
+}
+
+/// `AccountImageImprovementsSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountImageImprovementsSettings {
+    /// allowAutomaticImageImprovements property.
+    pub allow_automatic_image_improvements: Option<bool>,
 }
 
 /// `AccountItemUpdates` type.
@@ -137,13 +134,46 @@ pub struct Account {
     pub youtube_channel_links: Option<Vec<AccountYouTubeChannelLink>>,
 }
 
-/// `AccountAdsLink` type.
+/// `AccountsListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountAdsLink {
-    /// adsId property.
-    pub ads_id: Option<String>,
-    /// status property.
-    pub status: Option<String>,
+pub struct AccountsListResponse {
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// resources property.
+    pub resources: Option<Vec<Account>>,
+}
+
+/// `AccountItemUpdatesSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountItemUpdatesSettings {
+    /// allowAvailabilityUpdates property.
+    pub allow_availability_updates: Option<bool>,
+    /// allowConditionUpdates property.
+    pub allow_condition_updates: Option<bool>,
+    /// allowPriceUpdates property.
+    pub allow_price_updates: Option<bool>,
+    /// allowStrictAvailabilityUpdates property.
+    pub allow_strict_availability_updates: Option<bool>,
+}
+
+/// `AccountAutomaticImprovements` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountAutomaticImprovements {
+    /// imageImprovements property.
+    pub image_improvements: Option<AccountImageImprovements>,
+    /// itemUpdates property.
+    pub item_updates: Option<AccountItemUpdates>,
+    /// shippingImprovements property.
+    pub shipping_improvements: Option<AccountShippingImprovements>,
+}
+
+/// `AccountShippingImprovements` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountShippingImprovements {
+    /// allowShippingImprovements property.
+    pub allow_shipping_improvements: Option<bool>,
 }
 
 /// `AccountBusinessInformation` type.
@@ -161,84 +191,11 @@ pub struct AccountBusinessInformation {
     pub phone_verification_status: Option<String>,
 }
 
-/// `AccountAddress` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountAddress {
-    /// country property.
-    pub country: Option<String>,
-    /// locality property.
-    pub locality: Option<String>,
-    /// postalCode property.
-    pub postal_code: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-    /// streetAddress property.
-    pub street_address: Option<String>,
-}
-
-/// `AccountAutomaticImprovements` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountAutomaticImprovements {
-    /// imageImprovements property.
-    pub image_improvements: Option<AccountImageImprovements>,
-    /// itemUpdates property.
-    pub item_updates: Option<AccountItemUpdates>,
-    /// shippingImprovements property.
-    pub shipping_improvements: Option<AccountShippingImprovements>,
-}
-
-/// `AccountGoogleMyBusinessLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountGoogleMyBusinessLink {
-    /// gmbAccountId property.
-    pub gmb_account_id: Option<String>,
-    /// gmbEmail property.
-    pub gmb_email: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-}
-
-/// `AccountYouTubeChannelLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountYouTubeChannelLink {
-    /// channelId property.
-    pub channel_id: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-}
-
-/// `AccountIdentityType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountIdentityType {
-    /// selfIdentified property.
-    pub self_identified: Option<bool>,
-}
-
 /// `AccountConversionSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountConversionSettings {
     /// freeListingsAutoTaggingEnabled property.
     pub free_listings_auto_tagging_enabled: Option<bool>,
-}
-
-/// `AccountItemUpdatesSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountItemUpdatesSettings {
-    /// allowAvailabilityUpdates property.
-    pub allow_availability_updates: Option<bool>,
-    /// allowConditionUpdates property.
-    pub allow_condition_updates: Option<bool>,
-    /// allowPriceUpdates property.
-    pub allow_price_updates: Option<bool>,
-    /// allowStrictAvailabilityUpdates property.
-    pub allow_strict_availability_updates: Option<bool>,
-}
-
-/// `AccountImageImprovementsSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountImageImprovementsSettings {
-    /// allowAutomaticImageImprovements property.
-    pub allow_automatic_image_improvements: Option<bool>,
 }
 
 /// `AccountBusinessIdentity` type.
@@ -256,6 +213,50 @@ pub struct AccountBusinessIdentity {
     pub veteran_owned: Option<AccountIdentityType>,
     /// womenOwned property.
     pub women_owned: Option<AccountIdentityType>,
+}
+
+/// `AccountCustomerService` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountCustomerService {
+    /// email property.
+    pub email: Option<String>,
+    /// phoneNumber property.
+    pub phone_number: Option<String>,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `AccountAddress` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountAddress {
+    /// country property.
+    pub country: Option<String>,
+    /// locality property.
+    pub locality: Option<String>,
+    /// postalCode property.
+    pub postal_code: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// streetAddress property.
+    pub street_address: Option<String>,
+}
+
+/// `AccountAdsLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountAdsLink {
+    /// adsId property.
+    pub ads_id: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+}
+
+/// `AccountImageImprovements` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountImageImprovements {
+    /// accountImageImprovementsSettings property.
+    pub account_image_improvements_settings: Option<AccountImageImprovementsSettings>,
+    /// effectiveAllowAutomaticImageImprovements property.
+    pub effective_allow_automatic_image_improvements: Option<bool>,
 }
 
 // =============================================================================

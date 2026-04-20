@@ -12,17 +12,38 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `DecodeIntegrityTokenResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DecodeIntegrityTokenResponse {
+    /// tokenPayloadExternal property.
+    pub token_payload_external: Option<TokenPayloadExternal>,
+}
+
+/// `PcTokenPayloadExternal` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PcTokenPayloadExternal {
+    /// accountDetails property.
+    pub account_details: Option<PcAccountDetails>,
+    /// deviceIntegrity property.
+    pub device_integrity: Option<PcDeviceIntegrity>,
+    /// requestDetails property.
+    pub request_details: Option<PcRequestDetails>,
+    /// testingDetails property.
+    pub testing_details: Option<PcTestingDetails>,
+}
 
 /// `RequestDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -35,6 +56,123 @@ pub struct RequestDetails {
     pub request_package_name: Option<String>,
     /// timestampMillis property.
     pub timestamp_millis: Option<String>,
+}
+
+/// `DeviceIntegrity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceIntegrity {
+    /// deviceAttributes property.
+    pub device_attributes: Option<DeviceAttributes>,
+    /// deviceRecall property.
+    pub device_recall: Option<DeviceRecall>,
+    /// deviceRecognitionVerdict property.
+    pub device_recognition_verdict: Option<Vec<String>>,
+    /// legacyDeviceRecognitionVerdict property.
+    pub legacy_device_recognition_verdict: Option<Vec<String>>,
+    /// recentDeviceActivity property.
+    pub recent_device_activity: Option<RecentDeviceActivity>,
+}
+
+/// `Values` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Values {
+    /// bitFirst property.
+    pub bit_first: Option<bool>,
+    /// bitSecond property.
+    pub bit_second: Option<bool>,
+    /// bitThird property.
+    pub bit_third: Option<bool>,
+}
+
+/// `RecentDeviceActivity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RecentDeviceActivity {
+    /// deviceActivityLevel property.
+    pub device_activity_level: Option<String>,
+}
+
+/// `AccountActivity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountActivity {
+    /// activityLevel property.
+    pub activity_level: Option<String>,
+}
+
+/// `AppIntegrity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppIntegrity {
+    /// appRecognitionVerdict property.
+    pub app_recognition_verdict: Option<String>,
+    /// certificateSha256Digest property.
+    pub certificate_sha256_digest: Option<Vec<String>>,
+    /// packageName property.
+    pub package_name: Option<String>,
+    /// versionCode property.
+    pub version_code: Option<String>,
+}
+
+/// `TestingDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TestingDetails {
+    /// isTestingResponse property.
+    pub is_testing_response: Option<bool>,
+}
+
+/// `DeviceRecall` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceRecall {
+    /// values property.
+    pub values: Option<Values>,
+    /// writeDates property.
+    pub write_dates: Option<WriteDates>,
+}
+
+/// `PcDeviceIntegrity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PcDeviceIntegrity {
+    /// deviceRecognitionVerdict property.
+    pub device_recognition_verdict: Option<Vec<String>>,
+}
+
+/// `PcAccountDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PcAccountDetails {
+    /// appLicensingVerdict property.
+    pub app_licensing_verdict: Option<String>,
+}
+
+/// `DeviceAttributes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceAttributes {
+    /// sdkVersion property.
+    pub sdk_version: Option<i64>,
+}
+
+/// `AccountDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountDetails {
+    /// accountActivity property.
+    pub account_activity: Option<AccountActivity>,
+    /// appLicensingVerdict property.
+    pub app_licensing_verdict: Option<String>,
+}
+
+/// `DecodePcIntegrityTokenResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DecodePcIntegrityTokenResponse {
+    /// tokenPayloadExternal property.
+    pub token_payload_external: Option<PcTokenPayloadExternal>,
+}
+
+/// `WriteDates` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WriteDates {
+    /// yyyymmFirst property.
+    pub yyyymm_first: Option<i64>,
+    /// yyyymmSecond property.
+    pub yyyymm_second: Option<i64>,
+    /// yyyymmThird property.
+    pub yyyymm_third: Option<i64>,
 }
 
 /// `TokenPayloadExternal` type.
@@ -54,6 +192,24 @@ pub struct TokenPayloadExternal {
     pub testing_details: Option<TestingDetails>,
 }
 
+/// `PcRequestDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PcRequestDetails {
+    /// requestHash property.
+    pub request_hash: Option<String>,
+    /// requestPackageName property.
+    pub request_package_name: Option<String>,
+    /// requestTime property.
+    pub request_time: Option<String>,
+}
+
+/// `PcTestingDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PcTestingDetails {
+    /// isTestingResponse property.
+    pub is_testing_response: Option<bool>,
+}
+
 /// `EnvironmentDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnvironmentDetails {
@@ -68,161 +224,6 @@ pub struct EnvironmentDetails {
 pub struct AppAccessRiskVerdict {
     /// appsDetected property.
     pub apps_detected: Option<Vec<String>>,
-}
-
-/// `Values` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Values {
-    /// bitFirst property.
-    pub bit_first: Option<bool>,
-    /// bitSecond property.
-    pub bit_second: Option<bool>,
-    /// bitThird property.
-    pub bit_third: Option<bool>,
-}
-
-/// `PcTokenPayloadExternal` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PcTokenPayloadExternal {
-    /// accountDetails property.
-    pub account_details: Option<PcAccountDetails>,
-    /// deviceIntegrity property.
-    pub device_integrity: Option<PcDeviceIntegrity>,
-    /// requestDetails property.
-    pub request_details: Option<PcRequestDetails>,
-    /// testingDetails property.
-    pub testing_details: Option<PcTestingDetails>,
-}
-
-/// `PcDeviceIntegrity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PcDeviceIntegrity {
-    /// deviceRecognitionVerdict property.
-    pub device_recognition_verdict: Option<Vec<String>>,
-}
-
-/// `AppIntegrity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppIntegrity {
-    /// appRecognitionVerdict property.
-    pub app_recognition_verdict: Option<String>,
-    /// certificateSha256Digest property.
-    pub certificate_sha256_digest: Option<Vec<String>>,
-    /// packageName property.
-    pub package_name: Option<String>,
-    /// versionCode property.
-    pub version_code: Option<String>,
-}
-
-/// `AccountActivity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountActivity {
-    /// activityLevel property.
-    pub activity_level: Option<String>,
-}
-
-/// `DeviceRecall` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceRecall {
-    /// values property.
-    pub values: Option<Values>,
-    /// writeDates property.
-    pub write_dates: Option<WriteDates>,
-}
-
-/// `AccountDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountDetails {
-    /// accountActivity property.
-    pub account_activity: Option<AccountActivity>,
-    /// appLicensingVerdict property.
-    pub app_licensing_verdict: Option<String>,
-}
-
-/// `PcTestingDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PcTestingDetails {
-    /// isTestingResponse property.
-    pub is_testing_response: Option<bool>,
-}
-
-/// `DeviceIntegrity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceIntegrity {
-    /// deviceAttributes property.
-    pub device_attributes: Option<DeviceAttributes>,
-    /// deviceRecall property.
-    pub device_recall: Option<DeviceRecall>,
-    /// deviceRecognitionVerdict property.
-    pub device_recognition_verdict: Option<Vec<String>>,
-    /// legacyDeviceRecognitionVerdict property.
-    pub legacy_device_recognition_verdict: Option<Vec<String>>,
-    /// recentDeviceActivity property.
-    pub recent_device_activity: Option<RecentDeviceActivity>,
-}
-
-/// `DecodePcIntegrityTokenResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DecodePcIntegrityTokenResponse {
-    /// tokenPayloadExternal property.
-    pub token_payload_external: Option<PcTokenPayloadExternal>,
-}
-
-/// `RecentDeviceActivity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RecentDeviceActivity {
-    /// deviceActivityLevel property.
-    pub device_activity_level: Option<String>,
-}
-
-/// `PcRequestDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PcRequestDetails {
-    /// requestHash property.
-    pub request_hash: Option<String>,
-    /// requestPackageName property.
-    pub request_package_name: Option<String>,
-    /// requestTime property.
-    pub request_time: Option<String>,
-}
-
-/// `DeviceAttributes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceAttributes {
-    /// sdkVersion property.
-    pub sdk_version: Option<i64>,
-}
-
-/// `WriteDates` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WriteDates {
-    /// yyyymmFirst property.
-    pub yyyymm_first: Option<i64>,
-    /// yyyymmSecond property.
-    pub yyyymm_second: Option<i64>,
-    /// yyyymmThird property.
-    pub yyyymm_third: Option<i64>,
-}
-
-/// `TestingDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestingDetails {
-    /// isTestingResponse property.
-    pub is_testing_response: Option<bool>,
-}
-
-/// `DecodeIntegrityTokenResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DecodeIntegrityTokenResponse {
-    /// tokenPayloadExternal property.
-    pub token_payload_external: Option<TokenPayloadExternal>,
-}
-
-/// `PcAccountDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PcAccountDetails {
-    /// appLicensingVerdict property.
-    pub app_licensing_verdict: Option<String>,
 }
 
 // =============================================================================

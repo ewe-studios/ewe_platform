@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `OrgPolicyConstraint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OrgPolicyConstraint {
+    /// cannedConstraintId property.
+    pub canned_constraint_id: Option<String>,
+    /// policyRules property.
+    pub policy_rules: Option<Vec<GoogleCloudSecuritypostureV1PolicyRule>>,
+}
 
 /// `GoogleCloudSecuritypostureV1PolicyRuleStringValues` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -31,141 +41,6 @@ pub struct GoogleCloudSecuritypostureV1PolicyRuleStringValues {
     pub allowed_values: Option<Vec<String>>,
     /// deniedValues property.
     pub denied_values: Option<Vec<String>>,
-}
-
-/// `OrgPolicyConstraintCustom` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OrgPolicyConstraintCustom {
-    /// customConstraint property.
-    pub custom_constraint: Option<GoogleCloudSecuritypostureV1CustomConstraint>,
-    /// policyRules property.
-    pub policy_rules: Option<Vec<GoogleCloudSecuritypostureV1PolicyRule>>,
-}
-
-/// `Property` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Property {
-    /// name property.
-    pub name: Option<String>,
-    /// valueExpression property.
-    pub value_expression: Option<Expr>,
-}
-
-/// `GoogleCloudSecuritypostureV1PolicyRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudSecuritypostureV1PolicyRule {
-    /// allowAll property.
-    pub allow_all: Option<bool>,
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// denyAll property.
-    pub deny_all: Option<bool>,
-    /// enforce property.
-    pub enforce: Option<bool>,
-    /// parameters property.
-    pub parameters: Option<serde_json::Value>,
-    /// resourceTypes property.
-    pub resource_types: Option<ResourceTypes>,
-    /// values property.
-    pub values: Option<GoogleCloudSecuritypostureV1PolicyRuleStringValues>,
-}
-
-/// `Policy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Policy {
-    /// complianceStandards property.
-    pub compliance_standards: Option<Vec<ComplianceStandard>>,
-    /// constraint property.
-    pub constraint: Option<Constraint>,
-    /// description property.
-    pub description: Option<String>,
-    /// policyId property.
-    pub policy_id: Option<String>,
-}
-
-/// `CustomOutputSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomOutputSpec {
-    /// properties property.
-    pub properties: Option<Vec<Property>>,
-}
-
-/// `ListPostureTemplatesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListPostureTemplatesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// postureTemplates property.
-    pub posture_templates: Option<Vec<PostureTemplate>>,
-}
-
-/// `ResourceTypes` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTypes {
-    /// included property.
-    pub included: Option<Vec<String>>,
-}
-
-/// `PolicySet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PolicySet {
-    /// description property.
-    pub description: Option<String>,
-    /// policies property.
-    pub policies: Option<Vec<Policy>>,
-    /// policySetId property.
-    pub policy_set_id: Option<String>,
-}
-
-/// `ComplianceStandard` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComplianceStandard {
-    /// control property.
-    pub control: Option<String>,
-    /// standard property.
-    pub standard: Option<String>,
-}
-
-/// `ResourceSelector` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceSelector {
-    /// resourceTypes property.
-    pub resource_types: Option<Vec<String>>,
-}
-
-/// `Constraint` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Constraint {
-    /// orgPolicyConstraint property.
-    pub org_policy_constraint: Option<OrgPolicyConstraint>,
-    /// orgPolicyConstraintCustom property.
-    pub org_policy_constraint_custom: Option<OrgPolicyConstraintCustom>,
-    /// securityHealthAnalyticsCustomModule property.
-    pub security_health_analytics_custom_module: Option<SecurityHealthAnalyticsCustomModule>,
-    /// securityHealthAnalyticsModule property.
-    pub security_health_analytics_module: Option<SecurityHealthAnalyticsModule>,
-}
-
-/// `SecurityHealthAnalyticsCustomModule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityHealthAnalyticsCustomModule {
-    /// config property.
-    pub config: Option<CustomConfig>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// moduleEnablementState property.
-    pub module_enablement_state: Option<String>,
-}
-
-/// `SecurityHealthAnalyticsModule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecurityHealthAnalyticsModule {
-    /// moduleEnablementState property.
-    pub module_enablement_state: Option<String>,
-    /// moduleName property.
-    pub module_name: Option<String>,
 }
 
 /// `CustomConfig` type.
@@ -206,26 +81,106 @@ pub struct GoogleCloudSecuritypostureV1CustomConstraint {
     pub update_time: Option<String>,
 }
 
-/// `OrgPolicyConstraint` type.
+/// `CustomOutputSpec` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OrgPolicyConstraint {
-    /// cannedConstraintId property.
-    pub canned_constraint_id: Option<String>,
+pub struct CustomOutputSpec {
+    /// properties property.
+    pub properties: Option<Vec<Property>>,
+}
+
+/// `Policy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Policy {
+    /// complianceStandards property.
+    pub compliance_standards: Option<Vec<ComplianceStandard>>,
+    /// constraint property.
+    pub constraint: Option<Constraint>,
+    /// description property.
+    pub description: Option<String>,
+    /// policyId property.
+    pub policy_id: Option<String>,
+}
+
+/// `Property` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Property {
+    /// name property.
+    pub name: Option<String>,
+    /// valueExpression property.
+    pub value_expression: Option<Expr>,
+}
+
+/// `OrgPolicyConstraintCustom` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OrgPolicyConstraintCustom {
+    /// customConstraint property.
+    pub custom_constraint: Option<GoogleCloudSecuritypostureV1CustomConstraint>,
     /// policyRules property.
     pub policy_rules: Option<Vec<GoogleCloudSecuritypostureV1PolicyRule>>,
 }
 
-/// `Expr` type.
+/// `SecurityHealthAnalyticsCustomModule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Expr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
+pub struct SecurityHealthAnalyticsCustomModule {
+    /// config property.
+    pub config: Option<CustomConfig>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// moduleEnablementState property.
+    pub module_enablement_state: Option<String>,
+}
+
+/// `SecurityHealthAnalyticsModule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityHealthAnalyticsModule {
+    /// moduleEnablementState property.
+    pub module_enablement_state: Option<String>,
+    /// moduleName property.
+    pub module_name: Option<String>,
+}
+
+/// `ComplianceStandard` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComplianceStandard {
+    /// control property.
+    pub control: Option<String>,
+    /// standard property.
+    pub standard: Option<String>,
+}
+
+/// `ResourceSelector` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceSelector {
+    /// resourceTypes property.
+    pub resource_types: Option<Vec<String>>,
+}
+
+/// `GoogleCloudSecuritypostureV1PolicyRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudSecuritypostureV1PolicyRule {
+    /// allowAll property.
+    pub allow_all: Option<bool>,
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// denyAll property.
+    pub deny_all: Option<bool>,
+    /// enforce property.
+    pub enforce: Option<bool>,
+    /// parameters property.
+    pub parameters: Option<serde_json::Value>,
+    /// resourceTypes property.
+    pub resource_types: Option<ResourceTypes>,
+    /// values property.
+    pub values: Option<GoogleCloudSecuritypostureV1PolicyRuleStringValues>,
+}
+
+/// `ResourceTypes` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceTypes {
+    /// included property.
+    pub included: Option<Vec<String>>,
 }
 
 /// `PostureTemplate` type.
@@ -243,6 +198,52 @@ pub struct PostureTemplate {
     pub revision_id: Option<String>,
     /// state property.
     pub state: Option<String>,
+}
+
+/// `Expr` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Expr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `PolicySet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PolicySet {
+    /// description property.
+    pub description: Option<String>,
+    /// policies property.
+    pub policies: Option<Vec<Policy>>,
+    /// policySetId property.
+    pub policy_set_id: Option<String>,
+}
+
+/// `Constraint` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Constraint {
+    /// orgPolicyConstraint property.
+    pub org_policy_constraint: Option<OrgPolicyConstraint>,
+    /// orgPolicyConstraintCustom property.
+    pub org_policy_constraint_custom: Option<OrgPolicyConstraintCustom>,
+    /// securityHealthAnalyticsCustomModule property.
+    pub security_health_analytics_custom_module: Option<SecurityHealthAnalyticsCustomModule>,
+    /// securityHealthAnalyticsModule property.
+    pub security_health_analytics_module: Option<SecurityHealthAnalyticsModule>,
+}
+
+/// `ListPostureTemplatesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListPostureTemplatesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// postureTemplates property.
+    pub posture_templates: Option<Vec<PostureTemplate>>,
 }
 
 // =============================================================================

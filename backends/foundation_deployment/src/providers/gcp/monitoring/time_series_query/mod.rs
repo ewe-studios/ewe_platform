@@ -12,25 +12,76 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `TimeSeriesData` type.
+/// `TypedValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeSeriesData {
-    /// labelValues property.
-    pub label_values: Option<Vec<LabelValue>>,
-    /// pointData property.
-    pub point_data: Option<Vec<PointData>>,
+pub struct TypedValue {
+    /// boolValue property.
+    pub bool_value: Option<bool>,
+    /// distributionValue property.
+    pub distribution_value: Option<Distribution>,
+    /// doubleValue property.
+    pub double_value: Option<f64>,
+    /// int64Value property.
+    pub int64_value: Option<String>,
+    /// stringValue property.
+    pub string_value: Option<String>,
+}
+
+/// `Exponential` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Exponential {
+    /// growthFactor property.
+    pub growth_factor: Option<f64>,
+    /// numFiniteBuckets property.
+    pub num_finite_buckets: Option<i64>,
+    /// scale property.
+    pub scale: Option<f64>,
+}
+
+/// `LabelValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LabelValue {
+    /// boolValue property.
+    pub bool_value: Option<bool>,
+    /// int64Value property.
+    pub int64_value: Option<String>,
+    /// stringValue property.
+    pub string_value: Option<String>,
+}
+
+/// `QueryTimeSeriesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueryTimeSeriesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// partialErrors property.
+    pub partial_errors: Option<Vec<Status>>,
+    /// timeSeriesData property.
+    pub time_series_data: Option<Vec<TimeSeriesData>>,
+    /// timeSeriesDescriptor property.
+    pub time_series_descriptor: Option<TimeSeriesDescriptor>,
+}
+
+/// `TimeInterval` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeInterval {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
 }
 
 /// `BucketOptions` type.
@@ -44,20 +95,17 @@ pub struct BucketOptions {
     pub linear_buckets: Option<Linear>,
 }
 
-/// `Explicit` type.
+/// `ValueDescriptor` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Explicit {
-    /// bounds property.
-    pub bounds: Option<Vec<f64>>,
-}
-
-/// `Range` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Range {
-    /// max property.
-    pub max: Option<f64>,
-    /// min property.
-    pub min: Option<f64>,
+pub struct ValueDescriptor {
+    /// key property.
+    pub key: Option<String>,
+    /// metricKind property.
+    pub metric_kind: Option<String>,
+    /// unit property.
+    pub unit: Option<String>,
+    /// valueType property.
+    pub value_type: Option<String>,
 }
 
 /// `Distribution` type.
@@ -79,28 +127,13 @@ pub struct Distribution {
     pub sum_of_squared_deviation: Option<f64>,
 }
 
-/// `TimeInterval` type.
+/// `TimeSeriesData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeInterval {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
-}
-
-/// `TypedValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TypedValue {
-    /// boolValue property.
-    pub bool_value: Option<bool>,
-    /// distributionValue property.
-    pub distribution_value: Option<Distribution>,
-    /// doubleValue property.
-    pub double_value: Option<f64>,
-    /// int64Value property.
-    pub int64_value: Option<String>,
-    /// stringValue property.
-    pub string_value: Option<String>,
+pub struct TimeSeriesData {
+    /// labelValues property.
+    pub label_values: Option<Vec<LabelValue>>,
+    /// pointData property.
+    pub point_data: Option<Vec<PointData>>,
 }
 
 /// `Linear` type.
@@ -114,39 +147,31 @@ pub struct Linear {
     pub width: Option<f64>,
 }
 
-/// `QueryTimeSeriesResponse` type.
+/// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryTimeSeriesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// partialErrors property.
-    pub partial_errors: Option<Vec<Status>>,
-    /// timeSeriesData property.
-    pub time_series_data: Option<Vec<TimeSeriesData>>,
-    /// timeSeriesDescriptor property.
-    pub time_series_descriptor: Option<TimeSeriesDescriptor>,
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
-/// `Exemplar` type.
+/// `Explicit` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Exemplar {
-    /// attachments property.
-    pub attachments: Option<Vec<serde_json::Value>>,
-    /// timestamp property.
-    pub timestamp: Option<String>,
-    /// value property.
-    pub value: Option<f64>,
+pub struct Explicit {
+    /// bounds property.
+    pub bounds: Option<Vec<f64>>,
 }
 
-/// `Exponential` type.
+/// `TimeSeriesDescriptor` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Exponential {
-    /// growthFactor property.
-    pub growth_factor: Option<f64>,
-    /// numFiniteBuckets property.
-    pub num_finite_buckets: Option<i64>,
-    /// scale property.
-    pub scale: Option<f64>,
+pub struct TimeSeriesDescriptor {
+    /// labelDescriptors property.
+    pub label_descriptors: Option<Vec<LabelDescriptor>>,
+    /// pointDescriptors property.
+    pub point_descriptors: Option<Vec<ValueDescriptor>>,
 }
 
 /// `PointData` type.
@@ -158,13 +183,13 @@ pub struct PointData {
     pub values: Option<Vec<TypedValue>>,
 }
 
-/// `TimeSeriesDescriptor` type.
+/// `Range` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeSeriesDescriptor {
-    /// labelDescriptors property.
-    pub label_descriptors: Option<Vec<LabelDescriptor>>,
-    /// pointDescriptors property.
-    pub point_descriptors: Option<Vec<ValueDescriptor>>,
+pub struct Range {
+    /// max property.
+    pub max: Option<f64>,
+    /// min property.
+    pub min: Option<f64>,
 }
 
 /// `LabelDescriptor` type.
@@ -178,39 +203,15 @@ pub struct LabelDescriptor {
     pub value_type: Option<String>,
 }
 
-/// `Status` type.
+/// `Exemplar` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `ValueDescriptor` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValueDescriptor {
-    /// key property.
-    pub key: Option<String>,
-    /// metricKind property.
-    pub metric_kind: Option<String>,
-    /// unit property.
-    pub unit: Option<String>,
-    /// valueType property.
-    pub value_type: Option<String>,
-}
-
-/// `LabelValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LabelValue {
-    /// boolValue property.
-    pub bool_value: Option<bool>,
-    /// int64Value property.
-    pub int64_value: Option<String>,
-    /// stringValue property.
-    pub string_value: Option<String>,
+pub struct Exemplar {
+    /// attachments property.
+    pub attachments: Option<Vec<serde_json::Value>>,
+    /// timestamp property.
+    pub timestamp: Option<String>,
+    /// value property.
+    pub value: Option<f64>,
 }
 
 // =============================================================================

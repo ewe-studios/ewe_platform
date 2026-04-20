@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,20 +23,11 @@ use serde::{Deserialize, Serialize};
 use super::shared::Empty;
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `FetchGitRefsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FetchGitRefsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// refNames property.
-    pub ref_names: Option<Vec<String>>,
-}
 
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -88,17 +80,6 @@ pub struct GitRepositoryLink {
     pub webhook_id: Option<String>,
 }
 
-/// `FetchReadTokenResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FetchReadTokenResponse {
-    /// expirationTime property.
-    pub expiration_time: Option<String>,
-    /// gitUsername property.
-    pub git_username: Option<String>,
-    /// token property.
-    pub token: Option<String>,
-}
-
 /// `ListGitRepositoryLinksResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGitRepositoryLinksResponse {
@@ -108,6 +89,26 @@ pub struct ListGitRepositoryLinksResponse {
     pub next_page_token: Option<String>,
     /// unreachable property.
     pub unreachable: Option<Vec<String>>,
+}
+
+/// `FetchGitRefsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FetchGitRefsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// refNames property.
+    pub ref_names: Option<Vec<String>>,
+}
+
+/// `FetchReadTokenResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FetchReadTokenResponse {
+    /// expirationTime property.
+    pub expiration_time: Option<String>,
+    /// gitUsername property.
+    pub git_username: Option<String>,
+    /// token property.
+    pub token: Option<String>,
 }
 
 // =============================================================================

@@ -12,34 +12,49 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `UrlDownloadSize` type.
+/// `DestinationNotWorkingEvidence` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UrlDownloadSize {
-    /// downloadSizeKb property.
-    pub download_size_kb: Option<i64>,
-    /// normalizedUrl property.
-    pub normalized_url: Option<String>,
+pub struct DestinationNotWorkingEvidence {
+    /// dnsError property.
+    pub dns_error: Option<String>,
+    /// expandedUrl property.
+    pub expanded_url: Option<String>,
+    /// httpError property.
+    pub http_error: Option<i64>,
+    /// invalidPage property.
+    pub invalid_page: Option<String>,
+    /// lastCheckTime property.
+    pub last_check_time: Option<String>,
+    /// platform property.
+    pub platform: Option<String>,
+    /// redirectionError property.
+    pub redirection_error: Option<String>,
+    /// urlRejected property.
+    pub url_rejected: Option<String>,
 }
 
-/// `DomainCalls` type.
+/// `AdTechnologyProviders` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DomainCalls {
-    /// domain property.
-    pub domain: Option<String>,
-    /// httpCallCount property.
-    pub http_call_count: Option<i64>,
+pub struct AdTechnologyProviders {
+    /// detectedGvlIds property.
+    pub detected_gvl_ids: Option<Vec<String>>,
+    /// detectedProviderIds property.
+    pub detected_provider_ids: Option<Vec<String>>,
+    /// unidentifiedProviderDomains property.
+    pub unidentified_provider_domains: Option<Vec<String>>,
 }
 
 /// `PolicyCompliance` type.
@@ -51,6 +66,123 @@ pub struct PolicyCompliance {
     pub topics: Option<Vec<PolicyTopicEntry>>,
 }
 
+/// `AdvertiserAndBrand` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdvertiserAndBrand {
+    /// advertiserId property.
+    pub advertiser_id: Option<String>,
+    /// advertiserName property.
+    pub advertiser_name: Option<String>,
+    /// brandId property.
+    pub brand_id: Option<String>,
+    /// brandName property.
+    pub brand_name: Option<String>,
+}
+
+/// `ListCreativesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListCreativesResponse {
+    /// creatives property.
+    pub creatives: Option<Vec<Creative>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `PolicyTopicEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PolicyTopicEntry {
+    /// evidences property.
+    pub evidences: Option<Vec<PolicyTopicEvidence>>,
+    /// helpCenterUrl property.
+    pub help_center_url: Option<String>,
+    /// missingCertificate property.
+    pub missing_certificate: Option<bool>,
+    /// policyTopic property.
+    pub policy_topic: Option<String>,
+}
+
+/// `HttpCallEvidence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpCallEvidence {
+    /// urls property.
+    pub urls: Option<Vec<String>>,
+}
+
+/// `UrlDownloadSize` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UrlDownloadSize {
+    /// downloadSizeKb property.
+    pub download_size_kb: Option<i64>,
+    /// normalizedUrl property.
+    pub normalized_url: Option<String>,
+}
+
+/// `DestinationNotCrawlableEvidence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DestinationNotCrawlableEvidence {
+    /// crawlTime property.
+    pub crawl_time: Option<String>,
+    /// crawledUrl property.
+    pub crawled_url: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `DestinationUrlEvidence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DestinationUrlEvidence {
+    /// destinationUrl property.
+    pub destination_url: Option<String>,
+}
+
+/// `HttpCookieEvidence` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpCookieEvidence {
+    /// cookieNames property.
+    pub cookie_names: Option<Vec<String>>,
+    /// maxCookieCount property.
+    pub max_cookie_count: Option<i64>,
+}
+
+/// `CreativeServingDecision` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreativeServingDecision {
+    /// adTechnologyProviders property.
+    pub ad_technology_providers: Option<AdTechnologyProviders>,
+    /// chinaPolicyCompliance property.
+    pub china_policy_compliance: Option<PolicyCompliance>,
+    /// dealsPolicyCompliance property.
+    pub deals_policy_compliance: Option<PolicyCompliance>,
+    /// detectedAdvertisers property.
+    pub detected_advertisers: Option<Vec<AdvertiserAndBrand>>,
+    /// detectedAttributes property.
+    pub detected_attributes: Option<Vec<String>>,
+    /// detectedCategories property.
+    pub detected_categories: Option<Vec<String>>,
+    /// detectedCategoriesTaxonomy property.
+    pub detected_categories_taxonomy: Option<String>,
+    /// detectedClickThroughUrls property.
+    pub detected_click_through_urls: Option<Vec<String>>,
+    /// detectedDomains property.
+    pub detected_domains: Option<Vec<String>>,
+    /// detectedLanguages property.
+    pub detected_languages: Option<Vec<String>>,
+    /// detectedProductCategories property.
+    pub detected_product_categories: Option<Vec<i64>>,
+    /// detectedSensitiveCategories property.
+    pub detected_sensitive_categories: Option<Vec<i64>>,
+    /// detectedVendorIds property.
+    pub detected_vendor_ids: Option<Vec<i64>>,
+    /// lastStatusUpdate property.
+    pub last_status_update: Option<String>,
+    /// networkPolicyCompliance property.
+    pub network_policy_compliance: Option<PolicyCompliance>,
+    /// platformPolicyCompliance property.
+    pub platform_policy_compliance: Option<PolicyCompliance>,
+    /// russiaPolicyCompliance property.
+    pub russia_policy_compliance: Option<PolicyCompliance>,
+}
+
 /// `VideoContent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoContent {
@@ -60,6 +192,17 @@ pub struct VideoContent {
     pub video_url: Option<String>,
     /// videoVastXml property.
     pub video_vast_xml: Option<String>,
+}
+
+/// `HtmlContent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HtmlContent {
+    /// height property.
+    pub height: Option<i64>,
+    /// snippet property.
+    pub snippet: Option<String>,
+    /// width property.
+    pub width: Option<i64>,
 }
 
 /// `Creative` type.
@@ -109,15 +252,35 @@ pub struct Creative {
     pub video: Option<VideoContent>,
 }
 
-/// `HtmlContent` type.
+/// `NativeContent` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HtmlContent {
-    /// height property.
-    pub height: Option<i64>,
-    /// snippet property.
-    pub snippet: Option<String>,
-    /// width property.
-    pub width: Option<i64>,
+pub struct NativeContent {
+    /// advertiserName property.
+    pub advertiser_name: Option<String>,
+    /// appIcon property.
+    pub app_icon: Option<Image>,
+    /// body property.
+    pub body: Option<String>,
+    /// callToAction property.
+    pub call_to_action: Option<String>,
+    /// clickLinkUrl property.
+    pub click_link_url: Option<String>,
+    /// clickTrackingUrl property.
+    pub click_tracking_url: Option<String>,
+    /// headline property.
+    pub headline: Option<String>,
+    /// image property.
+    pub image: Option<Image>,
+    /// logo property.
+    pub logo: Option<Image>,
+    /// priceDisplayText property.
+    pub price_display_text: Option<String>,
+    /// starRating property.
+    pub star_rating: Option<f64>,
+    /// videoUrl property.
+    pub video_url: Option<String>,
+    /// videoVastXml property.
+    pub video_vast_xml: Option<String>,
 }
 
 /// `PolicyTopicEvidence` type.
@@ -150,175 +313,13 @@ pub struct Image {
     pub width: Option<i64>,
 }
 
-/// `HttpCallEvidence` type.
+/// `DomainCalls` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpCallEvidence {
-    /// urls property.
-    pub urls: Option<Vec<String>>,
-}
-
-/// `AdTechnologyProviders` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdTechnologyProviders {
-    /// detectedGvlIds property.
-    pub detected_gvl_ids: Option<Vec<String>>,
-    /// detectedProviderIds property.
-    pub detected_provider_ids: Option<Vec<String>>,
-    /// unidentifiedProviderDomains property.
-    pub unidentified_provider_domains: Option<Vec<String>>,
-}
-
-/// `HttpCookieEvidence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpCookieEvidence {
-    /// cookieNames property.
-    pub cookie_names: Option<Vec<String>>,
-    /// maxCookieCount property.
-    pub max_cookie_count: Option<i64>,
-}
-
-/// `ListCreativesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCreativesResponse {
-    /// creatives property.
-    pub creatives: Option<Vec<Creative>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `CreativeServingDecision` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreativeServingDecision {
-    /// adTechnologyProviders property.
-    pub ad_technology_providers: Option<AdTechnologyProviders>,
-    /// chinaPolicyCompliance property.
-    pub china_policy_compliance: Option<PolicyCompliance>,
-    /// dealsPolicyCompliance property.
-    pub deals_policy_compliance: Option<PolicyCompliance>,
-    /// detectedAdvertisers property.
-    pub detected_advertisers: Option<Vec<AdvertiserAndBrand>>,
-    /// detectedAttributes property.
-    pub detected_attributes: Option<Vec<String>>,
-    /// detectedCategories property.
-    pub detected_categories: Option<Vec<String>>,
-    /// detectedCategoriesTaxonomy property.
-    pub detected_categories_taxonomy: Option<String>,
-    /// detectedClickThroughUrls property.
-    pub detected_click_through_urls: Option<Vec<String>>,
-    /// detectedDomains property.
-    pub detected_domains: Option<Vec<String>>,
-    /// detectedLanguages property.
-    pub detected_languages: Option<Vec<String>>,
-    /// detectedProductCategories property.
-    pub detected_product_categories: Option<Vec<i64>>,
-    /// detectedSensitiveCategories property.
-    pub detected_sensitive_categories: Option<Vec<i64>>,
-    /// detectedVendorIds property.
-    pub detected_vendor_ids: Option<Vec<i64>>,
-    /// lastStatusUpdate property.
-    pub last_status_update: Option<String>,
-    /// networkPolicyCompliance property.
-    pub network_policy_compliance: Option<PolicyCompliance>,
-    /// platformPolicyCompliance property.
-    pub platform_policy_compliance: Option<PolicyCompliance>,
-    /// russiaPolicyCompliance property.
-    pub russia_policy_compliance: Option<PolicyCompliance>,
-}
-
-/// `DestinationNotWorkingEvidence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DestinationNotWorkingEvidence {
-    /// dnsError property.
-    pub dns_error: Option<String>,
-    /// expandedUrl property.
-    pub expanded_url: Option<String>,
-    /// httpError property.
-    pub http_error: Option<i64>,
-    /// invalidPage property.
-    pub invalid_page: Option<String>,
-    /// lastCheckTime property.
-    pub last_check_time: Option<String>,
-    /// platform property.
-    pub platform: Option<String>,
-    /// redirectionError property.
-    pub redirection_error: Option<String>,
-    /// urlRejected property.
-    pub url_rejected: Option<String>,
-}
-
-/// `PolicyTopicEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PolicyTopicEntry {
-    /// evidences property.
-    pub evidences: Option<Vec<PolicyTopicEvidence>>,
-    /// helpCenterUrl property.
-    pub help_center_url: Option<String>,
-    /// missingCertificate property.
-    pub missing_certificate: Option<bool>,
-    /// policyTopic property.
-    pub policy_topic: Option<String>,
-}
-
-/// `AdvertiserAndBrand` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdvertiserAndBrand {
-    /// advertiserId property.
-    pub advertiser_id: Option<String>,
-    /// advertiserName property.
-    pub advertiser_name: Option<String>,
-    /// brandId property.
-    pub brand_id: Option<String>,
-    /// brandName property.
-    pub brand_name: Option<String>,
-}
-
-/// `DownloadSizeEvidence` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DownloadSizeEvidence {
-    /// topUrlDownloadSizeBreakdowns property.
-    pub top_url_download_size_breakdowns: Option<Vec<UrlDownloadSize>>,
-    /// totalDownloadSizeKb property.
-    pub total_download_size_kb: Option<i64>,
-}
-
-/// `MediaFile` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MediaFile {
-    /// bitrate property.
-    pub bitrate: Option<String>,
-    /// mimeType property.
-    pub mime_type: Option<String>,
-}
-
-/// `NativeContent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NativeContent {
-    /// advertiserName property.
-    pub advertiser_name: Option<String>,
-    /// appIcon property.
-    pub app_icon: Option<Image>,
-    /// body property.
-    pub body: Option<String>,
-    /// callToAction property.
-    pub call_to_action: Option<String>,
-    /// clickLinkUrl property.
-    pub click_link_url: Option<String>,
-    /// clickTrackingUrl property.
-    pub click_tracking_url: Option<String>,
-    /// headline property.
-    pub headline: Option<String>,
-    /// image property.
-    pub image: Option<Image>,
-    /// logo property.
-    pub logo: Option<Image>,
-    /// priceDisplayText property.
-    pub price_display_text: Option<String>,
-    /// starRating property.
-    pub star_rating: Option<f64>,
-    /// videoUrl property.
-    pub video_url: Option<String>,
-    /// videoVastXml property.
-    pub video_vast_xml: Option<String>,
+pub struct DomainCalls {
+    /// domain property.
+    pub domain: Option<String>,
+    /// httpCallCount property.
+    pub http_call_count: Option<i64>,
 }
 
 /// `VideoMetadata` type.
@@ -338,22 +339,22 @@ pub struct VideoMetadata {
     pub vast_version: Option<String>,
 }
 
-/// `DestinationUrlEvidence` type.
+/// `MediaFile` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DestinationUrlEvidence {
-    /// destinationUrl property.
-    pub destination_url: Option<String>,
+pub struct MediaFile {
+    /// bitrate property.
+    pub bitrate: Option<String>,
+    /// mimeType property.
+    pub mime_type: Option<String>,
 }
 
-/// `DestinationNotCrawlableEvidence` type.
+/// `DownloadSizeEvidence` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DestinationNotCrawlableEvidence {
-    /// crawlTime property.
-    pub crawl_time: Option<String>,
-    /// crawledUrl property.
-    pub crawled_url: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
+pub struct DownloadSizeEvidence {
+    /// topUrlDownloadSizeBreakdowns property.
+    pub top_url_download_size_breakdowns: Option<Vec<UrlDownloadSize>>,
+    /// totalDownloadSizeKb property.
+    pub total_download_size_kb: Option<i64>,
 }
 
 /// `DomainCallEvidence` type.

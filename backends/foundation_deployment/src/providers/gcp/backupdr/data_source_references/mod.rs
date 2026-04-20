@@ -12,17 +12,35 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `DataSourceGcpResourceInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceGcpResourceInfo {
+    /// alloyDbClusterProperties property.
+    pub alloy_db_cluster_properties: Option<AlloyDBClusterDataSourceReferenceProperties>,
+    /// cloudSqlInstanceProperties property.
+    pub cloud_sql_instance_properties: Option<CloudSqlInstanceDataSourceReferenceProperties>,
+    /// filestoreInstanceProperties property.
+    pub filestore_instance_properties: Option<FilestoreInstanceDataSourceReferenceProperties>,
+    /// gcpResourcename property.
+    pub gcp_resourcename: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
 
 /// `FilestoreInstanceDataSourceReferenceProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -54,30 +72,6 @@ pub struct DataSourceReference {
     pub total_stored_bytes: Option<String>,
 }
 
-/// `DataSourceGcpResourceInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSourceGcpResourceInfo {
-    /// alloyDbClusterProperties property.
-    pub alloy_db_cluster_properties: Option<AlloyDBClusterDataSourceReferenceProperties>,
-    /// cloudSqlInstanceProperties property.
-    pub cloud_sql_instance_properties: Option<CloudSqlInstanceDataSourceReferenceProperties>,
-    /// filestoreInstanceProperties property.
-    pub filestore_instance_properties: Option<FilestoreInstanceDataSourceReferenceProperties>,
-    /// gcpResourcename property.
-    pub gcp_resourcename: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `AlloyDBClusterDataSourceReferenceProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AlloyDBClusterDataSourceReferenceProperties {
-    /// name property.
-    pub name: Option<String>,
-}
-
 /// `DataSourceBackupConfigInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataSourceBackupConfigInfo {
@@ -87,15 +81,11 @@ pub struct DataSourceBackupConfigInfo {
     pub last_successful_backup_consistency_time: Option<String>,
 }
 
-/// `ListDataSourceReferencesResponse` type.
+/// `AlloyDBClusterDataSourceReferenceProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDataSourceReferencesResponse {
-    /// dataSourceReferences property.
-    pub data_source_references: Option<Vec<DataSourceReference>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct AlloyDBClusterDataSourceReferenceProperties {
+    /// name property.
+    pub name: Option<String>,
 }
 
 /// `CloudSqlInstanceDataSourceReferenceProperties` type.
@@ -109,6 +99,17 @@ pub struct CloudSqlInstanceDataSourceReferenceProperties {
     pub instance_tier: Option<String>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `ListDataSourceReferencesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDataSourceReferencesResponse {
+    /// dataSourceReferences property.
+    pub data_source_references: Option<Vec<DataSourceReference>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 // =============================================================================

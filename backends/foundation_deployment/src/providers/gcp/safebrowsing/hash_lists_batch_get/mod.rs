@@ -12,17 +12,72 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleSecuritySafebrowsingV5RiceDeltaEncoded128Bit` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleSecuritySafebrowsingV5RiceDeltaEncoded128Bit {
+    /// encodedData property.
+    pub encoded_data: Option<String>,
+    /// entriesCount property.
+    pub entries_count: Option<i64>,
+    /// firstValueHi property.
+    pub first_value_hi: Option<String>,
+    /// firstValueLo property.
+    pub first_value_lo: Option<String>,
+    /// riceParameter property.
+    pub rice_parameter: Option<i64>,
+}
+
+/// `GoogleSecuritySafebrowsingV5RiceDeltaEncoded256Bit` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleSecuritySafebrowsingV5RiceDeltaEncoded256Bit {
+    /// encodedData property.
+    pub encoded_data: Option<String>,
+    /// entriesCount property.
+    pub entries_count: Option<i64>,
+    /// firstValueFirstPart property.
+    pub first_value_first_part: Option<String>,
+    /// firstValueFourthPart property.
+    pub first_value_fourth_part: Option<String>,
+    /// firstValueSecondPart property.
+    pub first_value_second_part: Option<String>,
+    /// firstValueThirdPart property.
+    pub first_value_third_part: Option<String>,
+    /// riceParameter property.
+    pub rice_parameter: Option<i64>,
+}
+
+/// `GoogleSecuritySafebrowsingV5BatchGetHashListsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleSecuritySafebrowsingV5BatchGetHashListsResponse {
+    /// hashLists property.
+    pub hash_lists: Option<Vec<GoogleSecuritySafebrowsingV5HashList>>,
+}
+
+/// `GoogleSecuritySafebrowsingV5RiceDeltaEncoded64Bit` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleSecuritySafebrowsingV5RiceDeltaEncoded64Bit {
+    /// encodedData property.
+    pub encoded_data: Option<String>,
+    /// entriesCount property.
+    pub entries_count: Option<i64>,
+    /// firstValue property.
+    pub first_value: Option<String>,
+    /// riceParameter property.
+    pub rice_parameter: Option<i64>,
+}
 
 /// `GoogleSecuritySafebrowsingV5HashListMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -64,26 +119,6 @@ pub struct GoogleSecuritySafebrowsingV5HashList {
     pub version: Option<String>,
 }
 
-/// `GoogleSecuritySafebrowsingV5BatchGetHashListsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleSecuritySafebrowsingV5BatchGetHashListsResponse {
-    /// hashLists property.
-    pub hash_lists: Option<Vec<GoogleSecuritySafebrowsingV5HashList>>,
-}
-
-/// `GoogleSecuritySafebrowsingV5RiceDeltaEncoded64Bit` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleSecuritySafebrowsingV5RiceDeltaEncoded64Bit {
-    /// encodedData property.
-    pub encoded_data: Option<String>,
-    /// entriesCount property.
-    pub entries_count: Option<i64>,
-    /// firstValue property.
-    pub first_value: Option<String>,
-    /// riceParameter property.
-    pub rice_parameter: Option<i64>,
-}
-
 /// `GoogleSecuritySafebrowsingV5RiceDeltaEncoded32Bit` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleSecuritySafebrowsingV5RiceDeltaEncoded32Bit {
@@ -93,40 +128,6 @@ pub struct GoogleSecuritySafebrowsingV5RiceDeltaEncoded32Bit {
     pub entries_count: Option<i64>,
     /// firstValue property.
     pub first_value: Option<i64>,
-    /// riceParameter property.
-    pub rice_parameter: Option<i64>,
-}
-
-/// `GoogleSecuritySafebrowsingV5RiceDeltaEncoded128Bit` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleSecuritySafebrowsingV5RiceDeltaEncoded128Bit {
-    /// encodedData property.
-    pub encoded_data: Option<String>,
-    /// entriesCount property.
-    pub entries_count: Option<i64>,
-    /// firstValueHi property.
-    pub first_value_hi: Option<String>,
-    /// firstValueLo property.
-    pub first_value_lo: Option<String>,
-    /// riceParameter property.
-    pub rice_parameter: Option<i64>,
-}
-
-/// `GoogleSecuritySafebrowsingV5RiceDeltaEncoded256Bit` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleSecuritySafebrowsingV5RiceDeltaEncoded256Bit {
-    /// encodedData property.
-    pub encoded_data: Option<String>,
-    /// entriesCount property.
-    pub entries_count: Option<i64>,
-    /// firstValueFirstPart property.
-    pub first_value_first_part: Option<String>,
-    /// firstValueFourthPart property.
-    pub first_value_fourth_part: Option<String>,
-    /// firstValueSecondPart property.
-    pub first_value_second_part: Option<String>,
-    /// firstValueThirdPart property.
-    pub first_value_third_part: Option<String>,
     /// riceParameter property.
     pub rice_parameter: Option<i64>,
 }

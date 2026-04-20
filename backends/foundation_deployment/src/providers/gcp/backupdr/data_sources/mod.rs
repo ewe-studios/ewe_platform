@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,21 +22,46 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `AlloyDBClusterDataSourceProperties` type.
+/// `ComputeInstanceDataSourceProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AlloyDBClusterDataSourceProperties {
-    /// clusterUid property.
-    pub cluster_uid: Option<String>,
+pub struct ComputeInstanceDataSourceProperties {
+    /// description property.
+    pub description: Option<String>,
+    /// machineType property.
+    pub machine_type: Option<String>,
     /// name property.
     pub name: Option<String>,
-    /// pitrWindows property.
-    pub pitr_windows: Option<Vec<AlloyDbPitrWindow>>,
+    /// totalDiskCount property.
+    pub total_disk_count: Option<String>,
+    /// totalDiskSizeGb property.
+    pub total_disk_size_gb: Option<String>,
+}
+
+/// `DataSourceGcpResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceGcpResource {
+    /// alloyDbClusterDatasourceProperties property.
+    pub alloy_db_cluster_datasource_properties: Option<AlloyDBClusterDataSourceProperties>,
+    /// cloudSqlInstanceDatasourceProperties property.
+    pub cloud_sql_instance_datasource_properties: Option<CloudSqlInstanceDataSourceProperties>,
+    /// computeInstanceDatasourceProperties property.
+    pub compute_instance_datasource_properties: Option<ComputeInstanceDataSourceProperties>,
+    /// diskDatasourceProperties property.
+    pub disk_datasource_properties: Option<DiskDataSourceProperties>,
+    /// filestoreInstanceDatasourceProperties property.
+    pub filestore_instance_datasource_properties: Option<FilestoreInstanceDataSourceProperties>,
+    /// gcpResourcename property.
+    pub gcp_resourcename: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `CloudSqlInstanceDataSourceProperties` type.
@@ -49,6 +75,97 @@ pub struct CloudSqlInstanceDataSourceProperties {
     pub instance_tier: Option<String>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `ListDataSourcesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListDataSourcesResponse {
+    /// dataSources property.
+    pub data_sources: Option<Vec<DataSource>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `DiskDataSourceProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskDataSourceProperties {
+    /// description property.
+    pub description: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// sizeGb property.
+    pub size_gb: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `BackupConfigInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupConfigInfo {
+    /// backupApplianceBackupConfig property.
+    pub backup_appliance_backup_config: Option<BackupApplianceBackupConfig>,
+    /// gcpBackupConfig property.
+    pub gcp_backup_config: Option<GcpBackupConfig>,
+    /// lastBackupError property.
+    pub last_backup_error: Option<Status>,
+    /// lastBackupState property.
+    pub last_backup_state: Option<String>,
+    /// lastSuccessfulBackupConsistencyTime property.
+    pub last_successful_backup_consistency_time: Option<String>,
+}
+
+/// `AlloyDBClusterDataSourceProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AlloyDBClusterDataSourceProperties {
+    /// clusterUid property.
+    pub cluster_uid: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// pitrWindows property.
+    pub pitr_windows: Option<Vec<AlloyDbPitrWindow>>,
+}
+
+/// `FetchAccessTokenResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FetchAccessTokenResponse {
+    /// expireTime property.
+    pub expire_time: Option<String>,
+    /// readLocation property.
+    pub read_location: Option<String>,
+    /// token property.
+    pub token: Option<String>,
+    /// writeLocation property.
+    pub write_location: Option<String>,
+}
+
+/// `GcpBackupConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GcpBackupConfig {
+    /// backupPlan property.
+    pub backup_plan: Option<String>,
+    /// backupPlanAssociation property.
+    pub backup_plan_association: Option<String>,
+    /// backupPlanDescription property.
+    pub backup_plan_description: Option<String>,
+    /// backupPlanRevisionId property.
+    pub backup_plan_revision_id: Option<String>,
+    /// backupPlanRevisionName property.
+    pub backup_plan_revision_name: Option<String>,
+    /// backupPlanRules property.
+    pub backup_plan_rules: Option<Vec<String>>,
+}
+
+/// `AlloyDbPitrWindow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AlloyDbPitrWindow {
+    /// endTime property.
+    pub end_time: Option<String>,
+    /// logRetentionDays property.
+    pub log_retention_days: Option<String>,
+    /// startTime property.
+    pub start_time: Option<String>,
 }
 
 /// `DataSource` type.
@@ -82,118 +199,6 @@ pub struct DataSource {
     pub update_time: Option<String>,
 }
 
-/// `DataSourceGcpResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSourceGcpResource {
-    /// alloyDbClusterDatasourceProperties property.
-    pub alloy_db_cluster_datasource_properties: Option<AlloyDBClusterDataSourceProperties>,
-    /// cloudSqlInstanceDatasourceProperties property.
-    pub cloud_sql_instance_datasource_properties: Option<CloudSqlInstanceDataSourceProperties>,
-    /// computeInstanceDatasourceProperties property.
-    pub compute_instance_datasource_properties: Option<ComputeInstanceDataSourceProperties>,
-    /// diskDatasourceProperties property.
-    pub disk_datasource_properties: Option<DiskDataSourceProperties>,
-    /// filestoreInstanceDatasourceProperties property.
-    pub filestore_instance_datasource_properties: Option<FilestoreInstanceDataSourceProperties>,
-    /// gcpResourcename property.
-    pub gcp_resourcename: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `FilestoreInstanceDataSourceProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FilestoreInstanceDataSourceProperties {
-    /// instanceCreateTime property.
-    pub instance_create_time: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `ListDataSourcesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListDataSourcesResponse {
-    /// dataSources property.
-    pub data_sources: Option<Vec<DataSource>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `FetchAccessTokenResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FetchAccessTokenResponse {
-    /// expireTime property.
-    pub expire_time: Option<String>,
-    /// readLocation property.
-    pub read_location: Option<String>,
-    /// token property.
-    pub token: Option<String>,
-    /// writeLocation property.
-    pub write_location: Option<String>,
-}
-
-/// `BackupApplianceBackupConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupApplianceBackupConfig {
-    /// applicationName property.
-    pub application_name: Option<String>,
-    /// backupApplianceId property.
-    pub backup_appliance_id: Option<String>,
-    /// backupApplianceName property.
-    pub backup_appliance_name: Option<String>,
-    /// hostName property.
-    pub host_name: Option<String>,
-    /// slaId property.
-    pub sla_id: Option<String>,
-    /// slpName property.
-    pub slp_name: Option<String>,
-    /// sltName property.
-    pub slt_name: Option<String>,
-}
-
-/// `BackupConfigInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackupConfigInfo {
-    /// backupApplianceBackupConfig property.
-    pub backup_appliance_backup_config: Option<BackupApplianceBackupConfig>,
-    /// gcpBackupConfig property.
-    pub gcp_backup_config: Option<GcpBackupConfig>,
-    /// lastBackupError property.
-    pub last_backup_error: Option<Status>,
-    /// lastBackupState property.
-    pub last_backup_state: Option<String>,
-    /// lastSuccessfulBackupConsistencyTime property.
-    pub last_successful_backup_consistency_time: Option<String>,
-}
-
-/// `DiskDataSourceProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DiskDataSourceProperties {
-    /// description property.
-    pub description: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// sizeGb property.
-    pub size_gb: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `InitiateBackupResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InitiateBackupResponse {
-    /// backup property.
-    pub backup: Option<String>,
-    /// baseBackupGenerationId property.
-    pub base_backup_generation_id: Option<i64>,
-    /// newBackupGenerationId property.
-    pub new_backup_generation_id: Option<i64>,
-}
-
 /// `DataSourceBackupApplianceApplication` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataSourceBackupApplianceApplication {
@@ -213,38 +218,6 @@ pub struct DataSourceBackupApplianceApplication {
     pub r#type: Option<String>,
 }
 
-/// `ComputeInstanceDataSourceProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeInstanceDataSourceProperties {
-    /// description property.
-    pub description: Option<String>,
-    /// machineType property.
-    pub machine_type: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// totalDiskCount property.
-    pub total_disk_count: Option<String>,
-    /// totalDiskSizeGb property.
-    pub total_disk_size_gb: Option<String>,
-}
-
-/// `GcpBackupConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GcpBackupConfig {
-    /// backupPlan property.
-    pub backup_plan: Option<String>,
-    /// backupPlanAssociation property.
-    pub backup_plan_association: Option<String>,
-    /// backupPlanDescription property.
-    pub backup_plan_description: Option<String>,
-    /// backupPlanRevisionId property.
-    pub backup_plan_revision_id: Option<String>,
-    /// backupPlanRevisionName property.
-    pub backup_plan_revision_name: Option<String>,
-    /// backupPlanRules property.
-    pub backup_plan_rules: Option<Vec<String>>,
-}
-
 /// `Status` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
@@ -256,15 +229,43 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `AlloyDbPitrWindow` type.
+/// `InitiateBackupResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AlloyDbPitrWindow {
-    /// endTime property.
-    pub end_time: Option<String>,
-    /// logRetentionDays property.
-    pub log_retention_days: Option<String>,
-    /// startTime property.
-    pub start_time: Option<String>,
+pub struct InitiateBackupResponse {
+    /// backup property.
+    pub backup: Option<String>,
+    /// baseBackupGenerationId property.
+    pub base_backup_generation_id: Option<i64>,
+    /// newBackupGenerationId property.
+    pub new_backup_generation_id: Option<i64>,
+}
+
+/// `FilestoreInstanceDataSourceProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FilestoreInstanceDataSourceProperties {
+    /// instanceCreateTime property.
+    pub instance_create_time: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `BackupApplianceBackupConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupApplianceBackupConfig {
+    /// applicationName property.
+    pub application_name: Option<String>,
+    /// backupApplianceId property.
+    pub backup_appliance_id: Option<String>,
+    /// backupApplianceName property.
+    pub backup_appliance_name: Option<String>,
+    /// hostName property.
+    pub host_name: Option<String>,
+    /// slaId property.
+    pub sla_id: Option<String>,
+    /// slpName property.
+    pub slp_name: Option<String>,
+    /// sltName property.
+    pub slt_name: Option<String>,
 }
 
 // =============================================================================

@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -27,14 +28,6 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DeletedTerminalReader` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeletedTerminalReader {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `TerminalOnboardingLink` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalOnboardingLink {
@@ -43,9 +36,9 @@ pub struct TerminalOnboardingLink {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `DeletedTerminalLocation` response type.
+/// `TerminalConnectionToken` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeletedTerminalLocation {
+pub struct TerminalConnectionToken {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -67,17 +60,25 @@ pub struct TerminalConfiguration {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `TerminalConnectionToken` response type.
+/// `TerminalLocation` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TerminalConnectionToken {
+pub struct TerminalLocation {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `TerminalLocation` response type.
+/// `DeletedTerminalLocation` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TerminalLocation {
+pub struct DeletedTerminalLocation {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DeletedTerminalReader` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeletedTerminalReader {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

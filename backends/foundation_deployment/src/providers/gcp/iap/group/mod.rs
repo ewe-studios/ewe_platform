@@ -12,35 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `CorsSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CorsSettings {
-    /// allowHttpOptions property.
-    pub allow_http_options: Option<bool>,
-}
-
-/// `Policy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Policy {
-    /// bindings property.
-    pub bindings: Option<Vec<Binding>>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// version property.
-    pub version: Option<i64>,
-}
 
 /// `AccessSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -63,17 +46,6 @@ pub struct AccessSettings {
     pub workforce_identity_settings: Option<WorkforceIdentitySettings>,
 }
 
-/// `IapSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IapSettings {
-    /// accessSettings property.
-    pub access_settings: Option<AccessSettings>,
-    /// applicationSettings property.
-    pub application_settings: Option<ApplicationSettings>,
-    /// name property.
-    pub name: Option<String>,
-}
-
 /// `PolicyName` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyName {
@@ -85,15 +57,15 @@ pub struct PolicyName {
     pub r#type: Option<String>,
 }
 
-/// `NextStateOfTags` type.
+/// `IapSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NextStateOfTags {
-    /// tagsFullState property.
-    pub tags_full_state: Option<TagsFullState>,
-    /// tagsFullStateForChildResource property.
-    pub tags_full_state_for_child_resource: Option<TagsFullStateForChildResource>,
-    /// tagsPartialState property.
-    pub tags_partial_state: Option<TagsPartialState>,
+pub struct IapSettings {
+    /// accessSettings property.
+    pub access_settings: Option<AccessSettings>,
+    /// applicationSettings property.
+    pub application_settings: Option<ApplicationSettings>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 /// `Expr` type.
@@ -107,30 +79,6 @@ pub struct Expr {
     pub location: Option<String>,
     /// title property.
     pub title: Option<String>,
-}
-
-/// `ApplicationSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApplicationSettings {
-    /// accessDeniedPageSettings property.
-    pub access_denied_page_settings: Option<AccessDeniedPageSettings>,
-    /// attributePropagationSettings property.
-    pub attribute_propagation_settings: Option<AttributePropagationSettings>,
-    /// cookieDomain property.
-    pub cookie_domain: Option<String>,
-    /// csmSettings property.
-    pub csm_settings: Option<CsmSettings>,
-}
-
-/// `OAuth2` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OAuth2 {
-    /// clientId property.
-    pub client_id: Option<String>,
-    /// clientSecret property.
-    pub client_secret: Option<String>,
-    /// clientSecretSha256 property.
-    pub client_secret_sha256: Option<String>,
 }
 
 /// `Resource` type.
@@ -152,6 +100,91 @@ pub struct Resource {
     pub r#type: Option<String>,
 }
 
+/// `TagsPartialState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TagsPartialState {
+    /// tagKeysToRemove property.
+    pub tag_keys_to_remove: Option<Vec<String>>,
+    /// tagsToUpsert property.
+    pub tags_to_upsert: Option<serde_json::Value>,
+}
+
+/// `Policy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Policy {
+    /// bindings property.
+    pub bindings: Option<Vec<Binding>>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// version property.
+    pub version: Option<i64>,
+}
+
+/// `TagsFullState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TagsFullState {
+    /// tags property.
+    pub tags: Option<serde_json::Value>,
+}
+
+/// `ValidateIapAttributeExpressionResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ValidateIapAttributeExpressionResponse {}
+
+/// `CsmSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CsmSettings {
+    /// rctokenAud property.
+    pub rctoken_aud: Option<String>,
+}
+
+/// `ReauthSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReauthSettings {
+    /// maxAge property.
+    pub max_age: Option<String>,
+    /// method property.
+    pub method: Option<String>,
+    /// policyType property.
+    pub policy_type: Option<String>,
+}
+
+/// `AccessDeniedPageSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessDeniedPageSettings {
+    /// accessDeniedPageUri property.
+    pub access_denied_page_uri: Option<String>,
+    /// generateTroubleshootingUri property.
+    pub generate_troubleshooting_uri: Option<bool>,
+    /// remediationTokenGenerationEnabled property.
+    pub remediation_token_generation_enabled: Option<bool>,
+}
+
+/// `TestIamPermissionsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TestIamPermissionsResponse {
+    /// permissions property.
+    pub permissions: Option<Vec<String>>,
+}
+
+/// `AttributePropagationSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AttributePropagationSettings {
+    /// enable property.
+    pub enable: Option<bool>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// outputCredentials property.
+    pub output_credentials: Option<Vec<String>>,
+}
+
+/// `CorsSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CorsSettings {
+    /// allowHttpOptions property.
+    pub allow_http_options: Option<bool>,
+}
+
 /// `PolicyDelegationSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyDelegationSettings {
@@ -163,6 +196,55 @@ pub struct PolicyDelegationSettings {
     pub policy_name: Option<PolicyName>,
     /// resource property.
     pub resource: Option<Resource>,
+}
+
+/// `NextStateOfTags` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NextStateOfTags {
+    /// tagsFullState property.
+    pub tags_full_state: Option<TagsFullState>,
+    /// tagsFullStateForChildResource property.
+    pub tags_full_state_for_child_resource: Option<TagsFullStateForChildResource>,
+    /// tagsPartialState property.
+    pub tags_partial_state: Option<TagsPartialState>,
+}
+
+/// `Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// condition property.
+    pub condition: Option<Expr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `TagsFullStateForChildResource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TagsFullStateForChildResource {
+    /// tags property.
+    pub tags: Option<serde_json::Value>,
+}
+
+/// `GcipSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GcipSettings {
+    /// loginPageUri property.
+    pub login_page_uri: Option<String>,
+    /// tenantIds property.
+    pub tenant_ids: Option<Vec<String>>,
+}
+
+/// `OAuth2` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OAuth2 {
+    /// clientId property.
+    pub client_id: Option<String>,
+    /// clientSecret property.
+    pub client_secret: Option<String>,
+    /// clientSecretSha256 property.
+    pub client_secret_sha256: Option<String>,
 }
 
 /// `OAuthSettings` type.
@@ -189,94 +271,17 @@ pub struct WorkforceIdentitySettings {
     pub workforce_pools: Option<Vec<String>>,
 }
 
-/// `AccessDeniedPageSettings` type.
+/// `ApplicationSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessDeniedPageSettings {
-    /// accessDeniedPageUri property.
-    pub access_denied_page_uri: Option<String>,
-    /// generateTroubleshootingUri property.
-    pub generate_troubleshooting_uri: Option<bool>,
-    /// remediationTokenGenerationEnabled property.
-    pub remediation_token_generation_enabled: Option<bool>,
-}
-
-/// `ReauthSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReauthSettings {
-    /// maxAge property.
-    pub max_age: Option<String>,
-    /// method property.
-    pub method: Option<String>,
-    /// policyType property.
-    pub policy_type: Option<String>,
-}
-
-/// `TagsFullState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TagsFullState {
-    /// tags property.
-    pub tags: Option<serde_json::Value>,
-}
-
-/// `Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Binding {
-    /// condition property.
-    pub condition: Option<Expr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `TagsFullStateForChildResource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TagsFullStateForChildResource {
-    /// tags property.
-    pub tags: Option<serde_json::Value>,
-}
-
-/// `TagsPartialState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TagsPartialState {
-    /// tagKeysToRemove property.
-    pub tag_keys_to_remove: Option<Vec<String>>,
-    /// tagsToUpsert property.
-    pub tags_to_upsert: Option<serde_json::Value>,
-}
-
-/// `AttributePropagationSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AttributePropagationSettings {
-    /// enable property.
-    pub enable: Option<bool>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// outputCredentials property.
-    pub output_credentials: Option<Vec<String>>,
-}
-
-/// `CsmSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CsmSettings {
-    /// rctokenAud property.
-    pub rctoken_aud: Option<String>,
-}
-
-/// `TestIamPermissionsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestIamPermissionsResponse {
-    /// permissions property.
-    pub permissions: Option<Vec<String>>,
-}
-
-/// `GcipSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GcipSettings {
-    /// loginPageUri property.
-    pub login_page_uri: Option<String>,
-    /// tenantIds property.
-    pub tenant_ids: Option<Vec<String>>,
+pub struct ApplicationSettings {
+    /// accessDeniedPageSettings property.
+    pub access_denied_page_settings: Option<AccessDeniedPageSettings>,
+    /// attributePropagationSettings property.
+    pub attribute_propagation_settings: Option<AttributePropagationSettings>,
+    /// cookieDomain property.
+    pub cookie_domain: Option<String>,
+    /// csmSettings property.
+    pub csm_settings: Option<CsmSettings>,
 }
 
 /// `AllowedDomainsSettings` type.
@@ -287,10 +292,6 @@ pub struct AllowedDomainsSettings {
     /// enable property.
     pub enable: Option<bool>,
 }
-
-/// `ValidateIapAttributeExpressionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValidateIapAttributeExpressionResponse {}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

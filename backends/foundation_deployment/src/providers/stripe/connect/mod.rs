@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -28,105 +29,9 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DeletedPerson` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeletedPerson {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `Payout` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Payout {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TransferReversal` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransferReversal {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DeletedAccount` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeletedAccount {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AccountLink` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountLink {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `Transfer` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Transfer {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TreasuryInboundTransfer` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TreasuryInboundTransfer {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `Capability` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Capability {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `TreasuryOutboundTransfer` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryOutboundTransfer {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TreasuryFinancialAccountFeatures` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TreasuryFinancialAccountFeatures {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TreasuryFinancialAccount` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TreasuryFinancialAccount {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `FinancialConnectionsAccount` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FinancialConnectionsAccount {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `LoginLink` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoginLink {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -140,9 +45,105 @@ pub struct Person {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
+/// `FinancialConnectionsAccount` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FinancialConnectionsAccount {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `Capability` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Capability {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `Payout` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Payout {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TreasuryInboundTransfer` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TreasuryInboundTransfer {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `Transfer` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Transfer {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DeletedAccount` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeletedAccount {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TreasuryFinancialAccount` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TreasuryFinancialAccount {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TreasuryFinancialAccountFeatures` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TreasuryFinancialAccountFeatures {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TransferReversal` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TransferReversal {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DeletedPerson` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeletedPerson {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `LoginLink` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoginLink {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `Account` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Account {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AccountLink` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountLink {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,22 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Author` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Author {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// profilePhotoUri property.
+    pub profile_photo_uri: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
 
 /// `Question` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -74,17 +86,6 @@ pub struct Answer {
     pub update_time: Option<String>,
     /// upvoteCount property.
     pub upvote_count: Option<i64>,
-}
-
-/// `Author` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Author {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// profilePhotoUri property.
-    pub profile_photo_uri: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
 }
 
 // =============================================================================

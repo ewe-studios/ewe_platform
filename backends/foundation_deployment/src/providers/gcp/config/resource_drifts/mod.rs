@@ -12,27 +12,30 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ResourceDrift` type.
+/// `ResourceDriftTerraformInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceDrift {
-    /// name property.
-    pub name: Option<String>,
-    /// propertyDrifts property.
-    pub property_drifts: Option<Vec<PropertyDrift>>,
-    /// terraformInfo property.
-    pub terraform_info: Option<ResourceDriftTerraformInfo>,
+pub struct ResourceDriftTerraformInfo {
+    /// address property.
+    pub address: Option<String>,
+    /// provider property.
+    pub provider: Option<String>,
+    /// resourceName property.
+    pub resource_name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `ListResourceDriftsResponse` type.
@@ -61,17 +64,15 @@ pub struct PropertyDrift {
     pub path: Option<String>,
 }
 
-/// `ResourceDriftTerraformInfo` type.
+/// `ResourceDrift` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceDriftTerraformInfo {
-    /// address property.
-    pub address: Option<String>,
-    /// provider property.
-    pub provider: Option<String>,
-    /// resourceName property.
-    pub resource_name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct ResourceDrift {
+    /// name property.
+    pub name: Option<String>,
+    /// propertyDrifts property.
+    pub property_drifts: Option<Vec<PropertyDrift>>,
+    /// terraformInfo property.
+    pub terraform_info: Option<ResourceDriftTerraformInfo>,
 }
 
 // =============================================================================

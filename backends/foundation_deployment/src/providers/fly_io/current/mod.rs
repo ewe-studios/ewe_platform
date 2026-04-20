@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -24,19 +25,19 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `CurrentTokenResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CurrentTokenResponse {
-    /// tokens property.
-    pub tokens: Option<Vec<MainTokenInfo>>,
-}
-
 /// `MainTokenInfo` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MainTokenInfo {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CurrentTokenResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CurrentTokenResponse {
+    /// tokens property.
+    pub tokens: Option<Vec<MainTokenInfo>>,
 }
 
 // =============================================================================

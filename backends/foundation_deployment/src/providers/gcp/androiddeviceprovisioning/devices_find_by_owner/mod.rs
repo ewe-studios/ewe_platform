@@ -12,17 +12,37 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `DeviceClaim` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceClaim {
+    /// additionalService property.
+    pub additional_service: Option<String>,
+    /// googleWorkspaceCustomerId property.
+    pub google_workspace_customer_id: Option<String>,
+    /// ownerCompanyId property.
+    pub owner_company_id: Option<String>,
+    /// resellerId property.
+    pub reseller_id: Option<String>,
+    /// sectionType property.
+    pub section_type: Option<String>,
+    /// vacationModeExpireTime property.
+    pub vacation_mode_expire_time: Option<String>,
+    /// vacationModeStartTime property.
+    pub vacation_mode_start_time: Option<String>,
+}
 
 /// `DeviceIdentifier` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -58,32 +78,6 @@ pub struct FindDevicesByOwnerResponse {
     pub total_size: Option<i64>,
 }
 
-/// `DeviceMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceMetadata {
-    /// entries property.
-    pub entries: Option<serde_json::Value>,
-}
-
-/// `DeviceClaim` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceClaim {
-    /// additionalService property.
-    pub additional_service: Option<String>,
-    /// googleWorkspaceCustomerId property.
-    pub google_workspace_customer_id: Option<String>,
-    /// ownerCompanyId property.
-    pub owner_company_id: Option<String>,
-    /// resellerId property.
-    pub reseller_id: Option<String>,
-    /// sectionType property.
-    pub section_type: Option<String>,
-    /// vacationModeExpireTime property.
-    pub vacation_mode_expire_time: Option<String>,
-    /// vacationModeStartTime property.
-    pub vacation_mode_start_time: Option<String>,
-}
-
 /// `Device` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Device {
@@ -99,6 +93,13 @@ pub struct Device {
     pub device_metadata: Option<DeviceMetadata>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `DeviceMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceMetadata {
+    /// entries property.
+    pub entries: Option<serde_json::Value>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,31 +22,23 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::MerchantReview;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `MerchantReviewItemLevelIssue` type.
+/// `MerchantReviewStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MerchantReviewItemLevelIssue {
-    /// attribute property.
-    pub attribute: Option<String>,
-    /// code property.
-    pub code: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// detail property.
-    pub detail: Option<String>,
-    /// documentation property.
-    pub documentation: Option<String>,
-    /// reportingContext property.
-    pub reporting_context: Option<String>,
-    /// resolution property.
-    pub resolution: Option<String>,
-    /// severity property.
-    pub severity: Option<String>,
+pub struct MerchantReviewStatus {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// destinationStatuses property.
+    pub destination_statuses: Option<Vec<MerchantReviewDestinationStatus>>,
+    /// itemLevelIssues property.
+    pub item_level_issues: Option<Vec<MerchantReviewItemLevelIssue>>,
+    /// lastUpdateTime property.
+    pub last_update_time: Option<String>,
 }
 
 /// `MerchantReviewDestinationStatus` type.
@@ -59,24 +52,11 @@ pub struct MerchantReviewDestinationStatus {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomAttribute {
     /// groupValues property.
-    pub group_values: Option<Vec<CustomAttribute>>,
+    pub group_values: Option<Vec<Box<CustomAttribute>>>,
     /// name property.
     pub name: Option<String>,
     /// value property.
     pub value: Option<String>,
-}
-
-/// `MerchantReviewStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MerchantReviewStatus {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// destinationStatuses property.
-    pub destination_statuses: Option<Vec<MerchantReviewDestinationStatus>>,
-    /// itemLevelIssues property.
-    pub item_level_issues: Option<Vec<MerchantReviewItemLevelIssue>>,
-    /// lastUpdateTime property.
-    pub last_update_time: Option<String>,
 }
 
 /// `MerchantReviewAttributes` type.
@@ -114,6 +94,27 @@ pub struct MerchantReviewAttributes {
     pub reviewer_username: Option<String>,
     /// title property.
     pub title: Option<String>,
+}
+
+/// `MerchantReviewItemLevelIssue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MerchantReviewItemLevelIssue {
+    /// attribute property.
+    pub attribute: Option<String>,
+    /// code property.
+    pub code: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// detail property.
+    pub detail: Option<String>,
+    /// documentation property.
+    pub documentation: Option<String>,
+    /// reportingContext property.
+    pub reporting_context: Option<String>,
+    /// resolution property.
+    pub resolution: Option<String>,
+    /// severity property.
+    pub severity: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -22,7 +23,7 @@ use serde::{Deserialize, Serialize};
 use super::shared::GoogleLongrunningOperation;
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -35,6 +36,53 @@ pub struct GoogleCloudRetailV2CompleteQueryResponseCompletionResult {
     pub attributes: Option<serde_json::Value>,
     /// suggestion property.
     pub suggestion: Option<String>,
+}
+
+/// `GoogleCloudRetailV2CompleteQueryResponseRecentSearchResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2CompleteQueryResponseRecentSearchResult {
+    /// recentSearch property.
+    pub recent_search: Option<String>,
+}
+
+/// `GoogleCloudRetailV2ProductLevelConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2ProductLevelConfig {
+    /// ingestionProductType property.
+    pub ingestion_product_type: Option<String>,
+    /// merchantCenterProductIdField property.
+    pub merchant_center_product_id_field: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudRetailV2Catalog` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2Catalog {
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// productLevelConfig property.
+    pub product_level_config: Option<GoogleCloudRetailV2ProductLevelConfig>,
+}
+
+/// `GoogleCloudRetailV2ListCatalogsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRetailV2ListCatalogsResponse {
+    /// catalogs property.
+    pub catalogs: Option<Vec<GoogleCloudRetailV2Catalog>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 /// `GoogleCloudRetailV2CompleteQueryResponse` type.
@@ -60,53 +108,6 @@ pub struct GoogleCloudRetailV2GetDefaultBranchResponse {
     pub note: Option<String>,
     /// setTime property.
     pub set_time: Option<String>,
-}
-
-/// `GoogleCloudRetailV2Catalog` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2Catalog {
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// productLevelConfig property.
-    pub product_level_config: Option<GoogleCloudRetailV2ProductLevelConfig>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `GoogleCloudRetailV2CompleteQueryResponseRecentSearchResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2CompleteQueryResponseRecentSearchResult {
-    /// recentSearch property.
-    pub recent_search: Option<String>,
-}
-
-/// `GoogleCloudRetailV2ListCatalogsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2ListCatalogsResponse {
-    /// catalogs property.
-    pub catalogs: Option<Vec<GoogleCloudRetailV2Catalog>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `GoogleCloudRetailV2ProductLevelConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2ProductLevelConfig {
-    /// ingestionProductType property.
-    pub ingestion_product_type: Option<String>,
-    /// merchantCenterProductIdField property.
-    pub merchant_center_product_id_field: Option<String>,
 }
 
 // =============================================================================

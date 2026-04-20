@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,20 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudDialogflowCxV3IntentTrainingPhrasePart` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3IntentTrainingPhrasePart {
+    /// parameterId property.
+    pub parameter_id: Option<String>,
+    /// text property.
+    pub text: Option<String>,
+}
 
 /// `GoogleCloudDialogflowCxV3IntentParameter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,13 +50,15 @@ pub struct GoogleCloudDialogflowCxV3IntentParameter {
     pub redact: Option<bool>,
 }
 
-/// `GoogleCloudDialogflowCxV3IntentTrainingPhrasePart` type.
+/// `GoogleCloudDialogflowCxV3IntentTrainingPhrase` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3IntentTrainingPhrasePart {
-    /// parameterId property.
-    pub parameter_id: Option<String>,
-    /// text property.
-    pub text: Option<String>,
+pub struct GoogleCloudDialogflowCxV3IntentTrainingPhrase {
+    /// id property.
+    pub id: Option<String>,
+    /// parts property.
+    pub parts: Option<Vec<GoogleCloudDialogflowCxV3IntentTrainingPhrasePart>>,
+    /// repeatCount property.
+    pub repeat_count: Option<i64>,
 }
 
 /// `GoogleCloudDialogflowCxV3Intent` type.
@@ -70,17 +82,6 @@ pub struct GoogleCloudDialogflowCxV3Intent {
     pub priority: Option<i64>,
     /// trainingPhrases property.
     pub training_phrases: Option<Vec<GoogleCloudDialogflowCxV3IntentTrainingPhrase>>,
-}
-
-/// `GoogleCloudDialogflowCxV3IntentTrainingPhrase` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3IntentTrainingPhrase {
-    /// id property.
-    pub id: Option<String>,
-    /// parts property.
-    pub parts: Option<Vec<GoogleCloudDialogflowCxV3IntentTrainingPhrasePart>>,
-    /// repeatCount property.
-    pub repeat_count: Option<i64>,
 }
 
 /// `GoogleCloudDialogflowCxV3ListIntentsResponse` type.

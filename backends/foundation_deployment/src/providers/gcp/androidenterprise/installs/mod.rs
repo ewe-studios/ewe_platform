@@ -12,24 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `InstallsListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstallsListResponse {
-    /// install property.
-    pub install: Option<Vec<Install>>,
-}
 
 /// `Install` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -40,6 +34,13 @@ pub struct Install {
     pub product_id: Option<String>,
     /// versionCode property.
     pub version_code: Option<i64>,
+}
+
+/// `InstallsListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstallsListResponse {
+    /// install property.
+    pub install: Option<Vec<Install>>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,31 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListExascaleDbStorageVaultsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListExascaleDbStorageVaultsResponse {
-    /// exascaleDbStorageVaults property.
-    pub exascale_db_storage_vaults: Option<Vec<ExascaleDbStorageVault>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
 
 /// `ExascaleDbStorageVault` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -66,13 +47,22 @@ pub struct ExascaleDbStorageVault {
     pub properties: Option<ExascaleDbStorageVaultProperties>,
 }
 
-/// `ExascaleDbStorageDetails` type.
+/// `ListExascaleDbStorageVaultsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExascaleDbStorageDetails {
-    /// availableSizeGbs property.
-    pub available_size_gbs: Option<i64>,
-    /// totalSizeGbs property.
-    pub total_size_gbs: Option<i64>,
+pub struct ListExascaleDbStorageVaultsResponse {
+    /// exascaleDbStorageVaults property.
+    pub exascale_db_storage_vaults: Option<Vec<ExascaleDbStorageVault>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `TimeZone` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeZone {
+    /// id property.
+    pub id: Option<String>,
+    /// version property.
+    pub version: Option<String>,
 }
 
 /// `ExascaleDbStorageVaultProperties` type.
@@ -102,13 +92,24 @@ pub struct ExascaleDbStorageVaultProperties {
     pub vm_cluster_ids: Option<Vec<String>>,
 }
 
-/// `TimeZone` type.
+/// `ExascaleDbStorageDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeZone {
-    /// id property.
-    pub id: Option<String>,
-    /// version property.
-    pub version: Option<String>,
+pub struct ExascaleDbStorageDetails {
+    /// availableSizeGbs property.
+    pub available_size_gbs: Option<i64>,
+    /// totalSizeGbs property.
+    pub total_size_gbs: Option<i64>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

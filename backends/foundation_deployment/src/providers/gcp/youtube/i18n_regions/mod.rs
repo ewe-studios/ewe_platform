@@ -12,25 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `I18NRegionSnippet` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct I18NRegionSnippet {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
 
 /// `I18nRegionListResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,6 +38,14 @@ pub struct I18nRegionListResponse {
     pub kind: Option<String>,
     /// visitorId property.
     pub visitor_id: Option<String>,
+}
+
+/// `I18NRegionSnippet` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct I18NRegionSnippet {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `I18NRegion` response type.

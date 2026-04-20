@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,40 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ListConnectorsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListConnectorsResponse {
+    /// connectors property.
+    pub connectors: Option<Vec<Connector>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `Subnet` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Subnet {
+    /// name property.
+    pub name: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+}
 
 /// `Connector` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -52,35 +82,6 @@ pub struct Connector {
     pub state: Option<String>,
     /// subnet property.
     pub subnet: Option<Subnet>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `Subnet` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Subnet {
-    /// name property.
-    pub name: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-}
-
-/// `ListConnectorsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListConnectorsResponse {
-    /// connectors property.
-    pub connectors: Option<Vec<Connector>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

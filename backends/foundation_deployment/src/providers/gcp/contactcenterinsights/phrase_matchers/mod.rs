@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,28 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudContactcenterinsightsV1PhraseMatchRuleConfig` type.
+/// `GoogleCloudContactcenterinsightsV1ListPhraseMatchersResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1PhraseMatchRuleConfig {
-    /// exactMatchConfig property.
-    pub exact_match_config: Option<GoogleCloudContactcenterinsightsV1ExactMatchConfig>,
-    /// regexMatchConfig property.
-    pub regex_match_config: Option<GoogleCloudContactcenterinsightsV1RegexMatchConfig>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1PhraseMatchRuleGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1PhraseMatchRuleGroup {
-    /// phraseMatchRules property.
-    pub phrase_match_rules: Option<Vec<GoogleCloudContactcenterinsightsV1PhraseMatchRule>>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct GoogleCloudContactcenterinsightsV1ListPhraseMatchersResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// phraseMatchers property.
+    pub phrase_matchers: Option<Vec<GoogleCloudContactcenterinsightsV1PhraseMatcher>>,
 }
 
 /// `GoogleCloudContactcenterinsightsV1PhraseMatchRule` type.
@@ -59,6 +51,31 @@ pub struct GoogleCloudContactcenterinsightsV1PhraseMatchRule {
 /// `GoogleCloudContactcenterinsightsV1RegexMatchConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1RegexMatchConfig {}
+
+/// `GoogleCloudContactcenterinsightsV1PhraseMatchRuleGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1PhraseMatchRuleGroup {
+    /// phraseMatchRules property.
+    pub phrase_match_rules: Option<Vec<GoogleCloudContactcenterinsightsV1PhraseMatchRule>>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1PhraseMatchRuleConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1PhraseMatchRuleConfig {
+    /// exactMatchConfig property.
+    pub exact_match_config: Option<GoogleCloudContactcenterinsightsV1ExactMatchConfig>,
+    /// regexMatchConfig property.
+    pub regex_match_config: Option<GoogleCloudContactcenterinsightsV1RegexMatchConfig>,
+}
+
+/// `GoogleCloudContactcenterinsightsV1ExactMatchConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1ExactMatchConfig {
+    /// caseSensitive property.
+    pub case_sensitive: Option<bool>,
+}
 
 /// `GoogleCloudContactcenterinsightsV1PhraseMatcher` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -86,22 +103,6 @@ pub struct GoogleCloudContactcenterinsightsV1PhraseMatcher {
     pub update_time: Option<String>,
     /// versionTag property.
     pub version_tag: Option<String>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1ExactMatchConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1ExactMatchConfig {
-    /// caseSensitive property.
-    pub case_sensitive: Option<bool>,
-}
-
-/// `GoogleCloudContactcenterinsightsV1ListPhraseMatchersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1ListPhraseMatchersResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// phraseMatchers property.
-    pub phrase_matchers: Option<Vec<GoogleCloudContactcenterinsightsV1PhraseMatcher>>,
 }
 
 // =============================================================================

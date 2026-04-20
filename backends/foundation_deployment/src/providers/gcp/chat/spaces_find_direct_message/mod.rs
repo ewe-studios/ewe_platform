@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,31 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Space;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `PermissionSetting` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PermissionSetting {
+    /// assistantManagersAllowed property.
+    pub assistant_managers_allowed: Option<bool>,
+    /// managersAllowed property.
+    pub managers_allowed: Option<bool>,
+    /// membersAllowed property.
+    pub members_allowed: Option<bool>,
+}
+
+/// `SpaceDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpaceDetails {
+    /// description property.
+    pub description: Option<String>,
+    /// guidelines property.
+    pub guidelines: Option<String>,
+}
 
 /// `AccessSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -43,15 +64,6 @@ pub struct MembershipCount {
     pub joined_direct_human_user_count: Option<i64>,
     /// joinedGroupCount property.
     pub joined_group_count: Option<i64>,
-}
-
-/// `SpaceDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SpaceDetails {
-    /// description property.
-    pub description: Option<String>,
-    /// guidelines property.
-    pub guidelines: Option<String>,
 }
 
 /// `PermissionSettings` type.
@@ -73,17 +85,6 @@ pub struct PermissionSettings {
     pub toggle_history: Option<PermissionSetting>,
     /// useAtMentionAll property.
     pub use_at_mention_all: Option<PermissionSetting>,
-}
-
-/// `PermissionSetting` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PermissionSetting {
-    /// assistantManagersAllowed property.
-    pub assistant_managers_allowed: Option<bool>,
-    /// managersAllowed property.
-    pub managers_allowed: Option<bool>,
-    /// membersAllowed property.
-    pub members_allowed: Option<bool>,
 }
 
 // =============================================================================

@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -26,25 +27,6 @@ use super::shared::ApiResponse;
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `UpdateBranchBody` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateBranchBody {
-    /// branch_name property.
-    pub branch_name: Option<String>,
-    /// git_branch property.
-    pub git_branch: Option<String>,
-    /// notify_url property.
-    pub notify_url: Option<String>,
-    /// persistent property.
-    pub persistent: Option<bool>,
-    /// request_review property.
-    pub request_review: Option<bool>,
-    /// reset_on_push property.
-    pub reset_on_push: Option<bool>,
-    /// status property.
-    pub status: Option<String>,
-}
 
 /// `BranchDeleteResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -76,6 +58,25 @@ pub struct BranchDetailResponse {
     pub release_channel: String,
     /// status property.
     pub status: String,
+}
+
+/// `UpdateBranchBody` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateBranchBody {
+    /// branch_name property.
+    pub branch_name: Option<String>,
+    /// git_branch property.
+    pub git_branch: Option<String>,
+    /// notify_url property.
+    pub notify_url: Option<String>,
+    /// persistent property.
+    pub persistent: Option<bool>,
+    /// request_review property.
+    pub request_review: Option<bool>,
+    /// reset_on_push property.
+    pub reset_on_push: Option<bool>,
+    /// status property.
+    pub status: Option<String>,
 }
 
 // =============================================================================

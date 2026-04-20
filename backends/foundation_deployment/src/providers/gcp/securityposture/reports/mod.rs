@@ -12,17 +12,51 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `AssetDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AssetDetails {
+    /// asset property.
+    pub asset: Option<String>,
+    /// assetType property.
+    pub asset_type: Option<String>,
+}
+
+/// `PostureDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostureDetails {
+    /// policySet property.
+    pub policy_set: Option<String>,
+    /// posture property.
+    pub posture: Option<String>,
+    /// postureDeployment property.
+    pub posture_deployment: Option<String>,
+    /// postureDeploymentTargetResource property.
+    pub posture_deployment_target_resource: Option<String>,
+    /// postureRevisionId property.
+    pub posture_revision_id: Option<String>,
+}
+
+/// `IaCValidationReport` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IaCValidationReport {
+    /// note property.
+    pub note: Option<String>,
+    /// violations property.
+    pub violations: Option<Vec<Violation>>,
+}
 
 /// `Report` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -37,13 +71,15 @@ pub struct Report {
     pub update_time: Option<String>,
 }
 
-/// `IaCValidationReport` type.
+/// `ListReportsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IaCValidationReport {
-    /// note property.
-    pub note: Option<String>,
-    /// violations property.
-    pub violations: Option<Vec<Violation>>,
+pub struct ListReportsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// reports property.
+    pub reports: Option<Vec<Report>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `Violation` type.
@@ -65,15 +101,6 @@ pub struct Violation {
     pub violated_posture: Option<PostureDetails>,
 }
 
-/// `AssetDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AssetDetails {
-    /// asset property.
-    pub asset: Option<String>,
-    /// assetType property.
-    pub asset_type: Option<String>,
-}
-
 /// `PolicyDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyDetails {
@@ -85,32 +112,6 @@ pub struct PolicyDetails {
     pub constraint_type: Option<String>,
     /// description property.
     pub description: Option<String>,
-}
-
-/// `ListReportsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListReportsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// reports property.
-    pub reports: Option<Vec<Report>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `PostureDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostureDetails {
-    /// policySet property.
-    pub policy_set: Option<String>,
-    /// posture property.
-    pub posture: Option<String>,
-    /// postureDeployment property.
-    pub posture_deployment: Option<String>,
-    /// postureDeploymentTargetResource property.
-    pub posture_deployment_target_resource: Option<String>,
-    /// postureRevisionId property.
-    pub posture_revision_id: Option<String>,
 }
 
 // =============================================================================

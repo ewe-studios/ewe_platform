@@ -12,17 +12,63 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `DmlStatistics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DmlStatistics {
+    /// deletedRowCount property.
+    pub deleted_row_count: Option<String>,
+    /// dmlMode property.
+    pub dml_mode: Option<String>,
+    /// fineGrainedDmlUnusedReason property.
+    pub fine_grained_dml_unused_reason: Option<String>,
+    /// insertedRowCount property.
+    pub inserted_row_count: Option<String>,
+    /// updatedRowCount property.
+    pub updated_row_count: Option<String>,
+}
+
+/// `TableSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableSchema {
+    /// fields property.
+    pub fields: Option<Vec<Box<TableFieldSchema>>>,
+    /// foreignTypeInfo property.
+    pub foreign_type_info: Option<ForeignTypeInfo>,
+}
+
+/// `ForeignTypeInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ForeignTypeInfo {
+    /// typeSystem property.
+    pub type_system: Option<String>,
+}
+
+/// `SessionInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SessionInfo {
+    /// sessionId property.
+    pub session_id: Option<String>,
+}
+
+/// `TableCell` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableCell {
+    /// v property.
+    pub v: Option<serde_json::Value>,
+}
 
 /// `GetQueryResultsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -51,6 +97,74 @@ pub struct GetQueryResultsResponse {
     pub total_bytes_processed: Option<String>,
     /// totalRows property.
     pub total_rows: Option<String>,
+}
+
+/// `TableFieldSchema` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableFieldSchema {
+    /// categories property.
+    pub categories: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// collation property.
+    pub collation: Option<String>,
+    /// dataPolicies property.
+    pub data_policies: Option<Vec<DataPolicyOption>>,
+    /// defaultValueExpression property.
+    pub default_value_expression: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// fields property.
+    pub fields: Option<Vec<Box<TableFieldSchema>>>,
+    /// foreignTypeDefinition property.
+    pub foreign_type_definition: Option<String>,
+    /// generatedColumn property.
+    pub generated_column: Option<GeneratedColumn>,
+    /// maxLength property.
+    pub max_length: Option<String>,
+    /// mode property.
+    pub mode: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// policyTags property.
+    pub policy_tags: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// precision property.
+    pub precision: Option<String>,
+    /// rangeElementType property.
+    pub range_element_type: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// roundingMode property.
+    pub rounding_mode: Option<String>,
+    /// scale property.
+    pub scale: Option<String>,
+    /// timestampPrecision property.
+    pub timestamp_precision: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `JobCreationReason` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JobCreationReason {
+    /// code property.
+    pub code: Option<String>,
+}
+
+/// `ErrorProto` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ErrorProto {
+    /// debugInfo property.
+    pub debug_info: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// reason property.
+    pub reason: Option<String>,
+}
+
+/// `TableRow` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableRow {
+    /// f property.
+    pub f: Option<Vec<TableCell>>,
 }
 
 /// `QueryResponse` type.
@@ -100,33 +214,13 @@ pub struct QueryResponse {
     pub total_slot_ms: Option<String>,
 }
 
-/// `DmlStatistics` type.
+/// `GeneratedColumn` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DmlStatistics {
-    /// deletedRowCount property.
-    pub deleted_row_count: Option<String>,
-    /// dmlMode property.
-    pub dml_mode: Option<String>,
-    /// fineGrainedDmlUnusedReason property.
-    pub fine_grained_dml_unused_reason: Option<String>,
-    /// insertedRowCount property.
-    pub inserted_row_count: Option<String>,
-    /// updatedRowCount property.
-    pub updated_row_count: Option<String>,
-}
-
-/// `JobCreationReason` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JobCreationReason {
-    /// code property.
-    pub code: Option<String>,
-}
-
-/// `TableRow` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableRow {
-    /// f property.
-    pub f: Option<Vec<TableCell>>,
+pub struct GeneratedColumn {
+    /// generatedExpressionInfo property.
+    pub generated_expression_info: Option<GeneratedExpressionInfo>,
+    /// generatedMode property.
+    pub generated_mode: Option<String>,
 }
 
 /// `GeneratedExpressionInfo` type.
@@ -140,22 +234,6 @@ pub struct GeneratedExpressionInfo {
     pub stored: Option<bool>,
 }
 
-/// `SessionInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SessionInfo {
-    /// sessionId property.
-    pub session_id: Option<String>,
-}
-
-/// `TableSchema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableSchema {
-    /// fields property.
-    pub fields: Option<Vec<TableFieldSchema>>,
-    /// foreignTypeInfo property.
-    pub foreign_type_info: Option<ForeignTypeInfo>,
-}
-
 /// `JobReference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobReference {
@@ -165,83 +243,6 @@ pub struct JobReference {
     pub location: Option<String>,
     /// projectId property.
     pub project_id: Option<String>,
-}
-
-/// `ErrorProto` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ErrorProto {
-    /// debugInfo property.
-    pub debug_info: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-    /// reason property.
-    pub reason: Option<String>,
-}
-
-/// `TableFieldSchema` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableFieldSchema {
-    /// categories property.
-    pub categories: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// collation property.
-    pub collation: Option<String>,
-    /// dataPolicies property.
-    pub data_policies: Option<Vec<DataPolicyOption>>,
-    /// defaultValueExpression property.
-    pub default_value_expression: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// fields property.
-    pub fields: Option<Vec<TableFieldSchema>>,
-    /// foreignTypeDefinition property.
-    pub foreign_type_definition: Option<String>,
-    /// generatedColumn property.
-    pub generated_column: Option<GeneratedColumn>,
-    /// maxLength property.
-    pub max_length: Option<String>,
-    /// mode property.
-    pub mode: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// policyTags property.
-    pub policy_tags: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// precision property.
-    pub precision: Option<String>,
-    /// rangeElementType property.
-    pub range_element_type: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// roundingMode property.
-    pub rounding_mode: Option<String>,
-    /// scale property.
-    pub scale: Option<String>,
-    /// timestampPrecision property.
-    pub timestamp_precision: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `ForeignTypeInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ForeignTypeInfo {
-    /// typeSystem property.
-    pub type_system: Option<String>,
-}
-
-/// `GeneratedColumn` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeneratedColumn {
-    /// generatedExpressionInfo property.
-    pub generated_expression_info: Option<GeneratedExpressionInfo>,
-    /// generatedMode property.
-    pub generated_mode: Option<String>,
-}
-
-/// `TableCell` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableCell {
-    /// v property.
-    pub v: Option<serde_json::Value>,
 }
 
 /// `DataPolicyOption` type.

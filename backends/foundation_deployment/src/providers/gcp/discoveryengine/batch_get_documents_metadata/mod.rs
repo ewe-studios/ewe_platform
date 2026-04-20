@@ -12,35 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponseDocumentMetadataMatcherValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponseDocumentMetadataMatcherValue
-{
-    /// fhirResource property.
-    pub fhir_resource: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponse {
-    /// documentsMetadata property.
-    pub documents_metadata:
-        Option<Vec<GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponseDocumentMetadata>>,
-}
 
 /// `GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponseDocumentMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -55,6 +38,24 @@ pub struct GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponseDocument
     >,
     /// state property.
     pub state: Option<String>,
+}
+
+/// `GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponse {
+    /// documentsMetadata property.
+    pub documents_metadata:
+        Option<Vec<GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponseDocumentMetadata>>,
+}
+
+/// `GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponseDocumentMetadataMatcherValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponseDocumentMetadataMatcherValue
+{
+    /// fhirResource property.
+    pub fhir_resource: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
 }
 
 // =============================================================================

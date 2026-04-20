@@ -12,36 +12,35 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `SummaryField` type.
+/// `SortOrderParameter` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SummaryField {
-    /// field property.
-    pub field: Option<String>,
+pub struct SortOrderParameter {
+    /// fieldSource property.
+    pub field_source: Option<FieldSource>,
+    /// sortOrderDirection property.
+    pub sort_order_direction: Option<String>,
 }
 
-/// `LoggingQuery` type.
+/// `FunctionApplication` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoggingQuery {
-    /// filter property.
-    pub filter: Option<String>,
-    /// summaryFieldEnd property.
-    pub summary_field_end: Option<i64>,
-    /// summaryFieldStart property.
-    pub summary_field_start: Option<i64>,
-    /// summaryFields property.
-    pub summary_fields: Option<Vec<SummaryField>>,
+pub struct FunctionApplication {
+    /// parameters property.
+    pub parameters: Option<Vec<serde_json::Value>>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `ProjectedField` type.
@@ -63,74 +62,11 @@ pub struct ProjectedField {
     pub truncation_granularity: Option<String>,
 }
 
-/// `SortOrderParameter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SortOrderParameter {
-    /// fieldSource property.
-    pub field_source: Option<FieldSource>,
-    /// sortOrderDirection property.
-    pub sort_order_direction: Option<String>,
-}
-
-/// `OpsAnalyticsQuery` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OpsAnalyticsQuery {
-    /// queryBuilder property.
-    pub query_builder: Option<QueryBuilderConfig>,
-    /// sqlQueryText property.
-    pub sql_query_text: Option<String>,
-}
-
-/// `FieldSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FieldSource {
-    /// aliasRef property.
-    pub alias_ref: Option<String>,
-    /// columnType property.
-    pub column_type: Option<String>,
-    /// field property.
-    pub field: Option<String>,
-    /// isJson property.
-    pub is_json: Option<bool>,
-    /// parentPath property.
-    pub parent_path: Option<String>,
-    /// projectedField property.
-    pub projected_field: Option<ProjectedField>,
-}
-
-/// `ListRecentQueriesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListRecentQueriesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// recentQueries property.
-    pub recent_queries: Option<Vec<RecentQuery>>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
-}
-
-/// `QueryBuilderConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QueryBuilderConfig {
-    /// fieldSources property.
-    pub field_sources: Option<Vec<FieldSource>>,
-    /// filter property.
-    pub filter: Option<FilterPredicate>,
-    /// limit property.
-    pub limit: Option<String>,
-    /// orderBys property.
-    pub order_bys: Option<Vec<SortOrderParameter>>,
-    /// resourceNames property.
-    pub resource_names: Option<Vec<String>>,
-    /// searchTerm property.
-    pub search_term: Option<String>,
-}
-
 /// `FilterPredicate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilterPredicate {
     /// childPredicates property.
-    pub child_predicates: Option<Vec<FilterPredicate>>,
+    pub child_predicates: Option<Vec<Box<FilterPredicate>>>,
     /// leafPredicate property.
     pub leaf_predicate: Option<FilterExpression>,
     /// operatorType property.
@@ -150,6 +86,43 @@ pub struct RecentQuery {
     pub ops_analytics_query: Option<OpsAnalyticsQuery>,
 }
 
+/// `OpsAnalyticsQuery` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OpsAnalyticsQuery {
+    /// queryBuilder property.
+    pub query_builder: Option<QueryBuilderConfig>,
+    /// sqlQueryText property.
+    pub sql_query_text: Option<String>,
+}
+
+/// `ListRecentQueriesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListRecentQueriesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// recentQueries property.
+    pub recent_queries: Option<Vec<RecentQuery>>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
+
+/// `FieldSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FieldSource {
+    /// aliasRef property.
+    pub alias_ref: Option<String>,
+    /// columnType property.
+    pub column_type: Option<String>,
+    /// field property.
+    pub field: Option<String>,
+    /// isJson property.
+    pub is_json: Option<bool>,
+    /// parentPath property.
+    pub parent_path: Option<String>,
+    /// projectedField property.
+    pub projected_field: Option<ProjectedField>,
+}
+
 /// `FilterExpression` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilterExpression {
@@ -165,13 +138,41 @@ pub struct FilterExpression {
     pub literal_value: Option<serde_json::Value>,
 }
 
-/// `FunctionApplication` type.
+/// `SummaryField` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FunctionApplication {
-    /// parameters property.
-    pub parameters: Option<Vec<serde_json::Value>>,
-    /// type property.
-    pub r#type: Option<String>,
+pub struct SummaryField {
+    /// field property.
+    pub field: Option<String>,
+}
+
+/// `LoggingQuery` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoggingQuery {
+    /// filter property.
+    pub filter: Option<String>,
+    /// summaryFieldEnd property.
+    pub summary_field_end: Option<i64>,
+    /// summaryFieldStart property.
+    pub summary_field_start: Option<i64>,
+    /// summaryFields property.
+    pub summary_fields: Option<Vec<SummaryField>>,
+}
+
+/// `QueryBuilderConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueryBuilderConfig {
+    /// fieldSources property.
+    pub field_sources: Option<Vec<FieldSource>>,
+    /// filter property.
+    pub filter: Option<Box<FilterPredicate>>,
+    /// limit property.
+    pub limit: Option<String>,
+    /// orderBys property.
+    pub order_bys: Option<Vec<SortOrderParameter>>,
+    /// resourceNames property.
+    pub resource_names: Option<Vec<String>>,
+    /// searchTerm property.
+    pub search_term: Option<String>,
 }
 
 // =============================================================================

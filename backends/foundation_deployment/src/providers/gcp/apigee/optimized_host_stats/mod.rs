@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,27 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleCloudApigeeV1OptimizedStats;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudApigeeV1OptimizedStatsNode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1OptimizedStatsNode {
+    /// data property.
+    pub data: Option<Vec<serde_json::Value>>,
+}
+
+/// `GoogleCloudApigeeV1Metadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1Metadata {
+    /// errors property.
+    pub errors: Option<Vec<String>>,
+    /// notices property.
+    pub notices: Option<Vec<String>>,
+}
 
 /// `GoogleCloudApigeeV1OptimizedStatsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -38,22 +55,6 @@ pub struct GoogleCloudApigeeV1OptimizedStatsResponse {
     pub result_truncated: Option<bool>,
     /// stats property.
     pub stats: Option<GoogleCloudApigeeV1OptimizedStatsNode>,
-}
-
-/// `GoogleCloudApigeeV1Metadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1Metadata {
-    /// errors property.
-    pub errors: Option<Vec<String>>,
-    /// notices property.
-    pub notices: Option<Vec<String>>,
-}
-
-/// `GoogleCloudApigeeV1OptimizedStatsNode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1OptimizedStatsNode {
-    /// data property.
-    pub data: Option<Vec<serde_json::Value>>,
 }
 
 // =============================================================================

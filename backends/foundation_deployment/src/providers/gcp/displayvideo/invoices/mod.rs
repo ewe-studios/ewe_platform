@@ -12,46 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ListInvoicesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListInvoicesResponse {
-    /// invoices property.
-    pub invoices: Option<Vec<Invoice>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `Date` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `DateRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DateRange {
-    /// endDate property.
-    pub end_date: Option<Date>,
-    /// startDate property.
-    pub start_date: Option<Date>,
-}
 
 /// `Invoice` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -98,6 +70,26 @@ pub struct Invoice {
     pub total_tax_amount_micros: Option<String>,
 }
 
+/// `PrismaCpeCode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrismaCpeCode {
+    /// prismaClientCode property.
+    pub prisma_client_code: Option<String>,
+    /// prismaEstimateCode property.
+    pub prisma_estimate_code: Option<String>,
+    /// prismaProductCode property.
+    pub prisma_product_code: Option<String>,
+}
+
+/// `ListInvoicesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListInvoicesResponse {
+    /// invoices property.
+    pub invoices: Option<Vec<Invoice>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
 /// `BudgetSummary` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BudgetSummary {
@@ -113,15 +105,24 @@ pub struct BudgetSummary {
     pub total_amount_micros: Option<String>,
 }
 
-/// `PrismaCpeCode` type.
+/// `Date` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrismaCpeCode {
-    /// prismaClientCode property.
-    pub prisma_client_code: Option<String>,
-    /// prismaEstimateCode property.
-    pub prisma_estimate_code: Option<String>,
-    /// prismaProductCode property.
-    pub prisma_product_code: Option<String>,
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `DateRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DateRange {
+    /// endDate property.
+    pub end_date: Option<Date>,
+    /// startDate property.
+    pub start_date: Option<Date>,
 }
 
 // =============================================================================

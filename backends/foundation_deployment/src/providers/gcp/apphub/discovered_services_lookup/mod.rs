@@ -12,17 +12,39 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ServiceReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceReference {
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `FunctionalType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FunctionalType {
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `Identity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Identity {
+    /// principal property.
+    pub principal: Option<String>,
+}
 
 /// `LookupDiscoveredServiceResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -36,13 +58,6 @@ pub struct LookupDiscoveredServiceResponse {
 pub struct RegistrationType {
     /// type property.
     pub r#type: Option<String>,
-}
-
-/// `ServiceReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceReference {
-    /// uri property.
-    pub uri: Option<String>,
 }
 
 /// `ServiceProperties` type.
@@ -73,20 +88,6 @@ pub struct DiscoveredService {
     pub service_properties: Option<ServiceProperties>,
     /// serviceReference property.
     pub service_reference: Option<ServiceReference>,
-}
-
-/// `FunctionalType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FunctionalType {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `Identity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Identity {
-    /// principal property.
-    pub principal: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,86 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `CampaignGoal` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CampaignGoal {
-    /// campaignGoalType property.
-    pub campaign_goal_type: Option<String>,
-    /// performanceGoal property.
-    pub performance_goal: Option<PerformanceGoal>,
-}
-
-/// `DateRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DateRange {
-    /// endDate property.
-    pub end_date: Option<Date>,
-    /// startDate property.
-    pub start_date: Option<Date>,
-}
-
-/// `Date` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `PrismaConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrismaConfig {
-    /// prismaCpeCode property.
-    pub prisma_cpe_code: Option<PrismaCpeCode>,
-    /// prismaType property.
-    pub prisma_type: Option<String>,
-    /// supplier property.
-    pub supplier: Option<String>,
-}
-
-/// `ListCampaignsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCampaignsResponse {
-    /// campaigns property.
-    pub campaigns: Option<Vec<Campaign>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `PrismaCpeCode` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrismaCpeCode {
-    /// prismaClientCode property.
-    pub prisma_client_code: Option<String>,
-    /// prismaEstimateCode property.
-    pub prisma_estimate_code: Option<String>,
-    /// prismaProductCode property.
-    pub prisma_product_code: Option<String>,
-}
-
-/// `FrequencyCap` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FrequencyCap {
-    /// maxImpressions property.
-    pub max_impressions: Option<i64>,
-    /// maxViews property.
-    pub max_views: Option<i64>,
-    /// timeUnit property.
-    pub time_unit: Option<String>,
-    /// timeUnitCount property.
-    pub time_unit_count: Option<i64>,
-    /// unlimited property.
-    pub unlimited: Option<bool>,
-}
 
 /// `Campaign` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -127,6 +53,21 @@ pub struct Campaign {
     pub update_time: Option<String>,
 }
 
+/// `FrequencyCap` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FrequencyCap {
+    /// maxImpressions property.
+    pub max_impressions: Option<i64>,
+    /// maxViews property.
+    pub max_views: Option<i64>,
+    /// timeUnit property.
+    pub time_unit: Option<String>,
+    /// timeUnitCount property.
+    pub time_unit_count: Option<i64>,
+    /// unlimited property.
+    pub unlimited: Option<bool>,
+}
+
 /// `PerformanceGoal` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerformanceGoal {
@@ -138,6 +79,15 @@ pub struct PerformanceGoal {
     pub performance_goal_string: Option<String>,
     /// performanceGoalType property.
     pub performance_goal_type: Option<String>,
+}
+
+/// `CampaignGoal` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CampaignGoal {
+    /// campaignGoalType property.
+    pub campaign_goal_type: Option<String>,
+    /// performanceGoal property.
+    pub performance_goal: Option<PerformanceGoal>,
 }
 
 /// `CampaignBudget` type.
@@ -163,6 +113,28 @@ pub struct CampaignBudget {
     pub prisma_config: Option<PrismaConfig>,
 }
 
+/// `Date` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `PrismaConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrismaConfig {
+    /// prismaCpeCode property.
+    pub prisma_cpe_code: Option<PrismaCpeCode>,
+    /// prismaType property.
+    pub prisma_type: Option<String>,
+    /// supplier property.
+    pub supplier: Option<String>,
+}
+
 /// `CampaignFlight` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CampaignFlight {
@@ -170,6 +142,35 @@ pub struct CampaignFlight {
     pub planned_dates: Option<DateRange>,
     /// plannedSpendAmountMicros property.
     pub planned_spend_amount_micros: Option<String>,
+}
+
+/// `DateRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DateRange {
+    /// endDate property.
+    pub end_date: Option<Date>,
+    /// startDate property.
+    pub start_date: Option<Date>,
+}
+
+/// `ListCampaignsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListCampaignsResponse {
+    /// campaigns property.
+    pub campaigns: Option<Vec<Campaign>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `PrismaCpeCode` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrismaCpeCode {
+    /// prismaClientCode property.
+    pub prisma_client_code: Option<String>,
+    /// prismaEstimateCode property.
+    pub prisma_estimate_code: Option<String>,
+    /// prismaProductCode property.
+    pub prisma_product_code: Option<String>,
 }
 
 // =============================================================================

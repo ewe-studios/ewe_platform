@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `AccountPermissionsListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccountPermissionsListResponse {
+    /// accountPermissions property.
+    pub account_permissions: Option<Vec<AccountPermission>>,
+    /// kind property.
+    pub kind: Option<String>,
+}
 
 /// `AccountPermission` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -39,15 +49,6 @@ pub struct AccountPermission {
     pub name: Option<String>,
     /// permissionGroupId property.
     pub permission_group_id: Option<String>,
-}
-
-/// `AccountPermissionsListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccountPermissionsListResponse {
-    /// accountPermissions property.
-    pub account_permissions: Option<Vec<AccountPermission>>,
-    /// kind property.
-    pub kind: Option<String>,
 }
 
 // =============================================================================

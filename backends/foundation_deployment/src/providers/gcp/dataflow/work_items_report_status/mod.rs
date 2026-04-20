@@ -12,39 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `HotKeyDetection` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HotKeyDetection {
-    /// hotKeyAge property.
-    pub hot_key_age: Option<String>,
-    /// systemName property.
-    pub system_name: Option<String>,
-    /// userStepName property.
-    pub user_step_name: Option<String>,
-}
 
 /// `WorkItemServiceState` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -68,7 +47,27 @@ pub struct WorkItemServiceState {
     /// suggestedStopPoint property.
     pub suggested_stop_point: Option<ApproximateProgress>,
     /// suggestedStopPosition property.
-    pub suggested_stop_position: Option<Position>,
+    pub suggested_stop_position: Option<Box<Position>>,
+}
+
+/// `ConcatPosition` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConcatPosition {
+    /// index property.
+    pub index: Option<i64>,
+    /// position property.
+    pub position: Option<Box<Position>>,
+}
+
+/// `HotKeyDetection` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HotKeyDetection {
+    /// hotKeyAge property.
+    pub hot_key_age: Option<String>,
+    /// systemName property.
+    pub system_name: Option<String>,
+    /// userStepName property.
+    pub user_step_name: Option<String>,
 }
 
 /// `MetricShortId` type.
@@ -80,13 +79,44 @@ pub struct MetricShortId {
     pub short_id: Option<String>,
 }
 
+/// `ReportWorkItemStatusResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportWorkItemStatusResponse {
+    /// unifiedWorkerResponse property.
+    pub unified_worker_response: Option<serde_json::Value>,
+    /// workItemServiceStates property.
+    pub work_item_service_states: Option<Vec<WorkItemServiceState>>,
+}
+
+/// `ApproximateProgress` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApproximateProgress {
+    /// percentComplete property.
+    pub percent_complete: Option<f64>,
+    /// position property.
+    pub position: Option<Box<Position>>,
+    /// remainingTime property.
+    pub remaining_time: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
 /// `Position` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Position {
     /// byteOffset property.
     pub byte_offset: Option<String>,
     /// concatPosition property.
-    pub concat_position: Option<ConcatPosition>,
+    pub concat_position: Option<Box<ConcatPosition>>,
     /// end property.
     pub end: Option<bool>,
     /// key property.
@@ -97,35 +127,6 @@ pub struct Position {
     pub shuffle_position: Option<String>,
 }
 
-/// `ConcatPosition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConcatPosition {
-    /// index property.
-    pub index: Option<i64>,
-    /// position property.
-    pub position: Option<Position>,
-}
-
-/// `ApproximateProgress` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApproximateProgress {
-    /// percentComplete property.
-    pub percent_complete: Option<f64>,
-    /// position property.
-    pub position: Option<Position>,
-    /// remainingTime property.
-    pub remaining_time: Option<String>,
-}
-
-/// `ReportWorkItemStatusResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportWorkItemStatusResponse {
-    /// unifiedWorkerResponse property.
-    pub unified_worker_response: Option<serde_json::Value>,
-    /// workItemServiceStates property.
-    pub work_item_service_states: Option<Vec<WorkItemServiceState>>,
-}
-
 /// `ApproximateSplitRequest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApproximateSplitRequest {
@@ -134,7 +135,7 @@ pub struct ApproximateSplitRequest {
     /// fractionOfRemainder property.
     pub fraction_of_remainder: Option<f64>,
     /// position property.
-    pub position: Option<Position>,
+    pub position: Option<Box<Position>>,
 }
 
 // =============================================================================

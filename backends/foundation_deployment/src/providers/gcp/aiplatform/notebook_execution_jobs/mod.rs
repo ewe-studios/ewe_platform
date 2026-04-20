@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,18 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudAiplatformV1NotebookExecutionJobDirectNotebookSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1NotebookExecutionJobDirectNotebookSource {
-    /// content property.
-    pub content: Option<String>,
-}
 
 /// `GoogleCloudAiplatformV1ListNotebookExecutionJobsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -41,6 +35,33 @@ pub struct GoogleCloudAiplatformV1ListNotebookExecutionJobsResponse {
     pub next_page_token: Option<String>,
     /// notebookExecutionJobs property.
     pub notebook_execution_jobs: Option<Vec<GoogleCloudAiplatformV1NotebookExecutionJob>>,
+}
+
+/// `GoogleCloudAiplatformV1EncryptionSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1EncryptionSpec {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1NotebookExecutionJobGcsNotebookSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1NotebookExecutionJobGcsNotebookSource {
+    /// generation property.
+    pub generation: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1ReservationAffinity` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1ReservationAffinity {
+    /// key property.
+    pub key: Option<String>,
+    /// reservationAffinityType property.
+    pub reservation_affinity_type: Option<String>,
+    /// values property.
+    pub values: Option<Vec<String>>,
 }
 
 /// `GoogleCloudAiplatformV1MachineSpec` type.
@@ -58,6 +79,24 @@ pub struct GoogleCloudAiplatformV1MachineSpec {
     pub reservation_affinity: Option<GoogleCloudAiplatformV1ReservationAffinity>,
     /// tpuTopology property.
     pub tpu_topology: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1NotebookExecutionJobDataformRepositorySource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1NotebookExecutionJobDataformRepositorySource {
+    /// commitSha property.
+    pub commit_sha: Option<String>,
+    /// dataformRepositoryResourceName property.
+    pub dataform_repository_resource_name: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1PersistentDiskSpec` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1PersistentDiskSpec {
+    /// diskSizeGb property.
+    pub disk_size_gb: Option<String>,
+    /// diskType property.
+    pub disk_type: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1NetworkSpec` type.
@@ -82,20 +121,11 @@ pub struct GoogleCloudAiplatformV1NotebookExecutionJobCustomEnvironmentSpec {
     pub persistent_disk_spec: Option<GoogleCloudAiplatformV1PersistentDiskSpec>,
 }
 
-/// `GoogleCloudAiplatformV1NotebookExecutionJobGcsNotebookSource` type.
+/// `GoogleCloudAiplatformV1NotebookExecutionJobDirectNotebookSource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1NotebookExecutionJobGcsNotebookSource {
-    /// generation property.
-    pub generation: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1EncryptionSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1EncryptionSpec {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
+pub struct GoogleCloudAiplatformV1NotebookExecutionJobDirectNotebookSource {
+    /// content property.
+    pub content: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1NotebookExecutionJob` type.
@@ -146,19 +176,6 @@ pub struct GoogleCloudAiplatformV1NotebookExecutionJob {
     pub workbench_runtime: Option<GoogleCloudAiplatformV1NotebookExecutionJobWorkbenchRuntime>,
 }
 
-/// `GoogleCloudAiplatformV1NotebookExecutionJobWorkbenchRuntime` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1NotebookExecutionJobWorkbenchRuntime {}
-
-/// `GoogleCloudAiplatformV1PersistentDiskSpec` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1PersistentDiskSpec {
-    /// diskSizeGb property.
-    pub disk_size_gb: Option<String>,
-    /// diskType property.
-    pub disk_type: Option<String>,
-}
-
 /// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
@@ -170,25 +187,9 @@ pub struct GoogleRpcStatus {
     pub message: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1NotebookExecutionJobDataformRepositorySource` type.
+/// `GoogleCloudAiplatformV1NotebookExecutionJobWorkbenchRuntime` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1NotebookExecutionJobDataformRepositorySource {
-    /// commitSha property.
-    pub commit_sha: Option<String>,
-    /// dataformRepositoryResourceName property.
-    pub dataform_repository_resource_name: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1ReservationAffinity` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1ReservationAffinity {
-    /// key property.
-    pub key: Option<String>,
-    /// reservationAffinityType property.
-    pub reservation_affinity_type: Option<String>,
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
+pub struct GoogleCloudAiplatformV1NotebookExecutionJobWorkbenchRuntime {}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

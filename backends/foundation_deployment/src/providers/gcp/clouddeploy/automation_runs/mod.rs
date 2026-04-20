@@ -12,43 +12,31 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `RepairPhase` type.
+/// `RetryAttempt` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RepairPhase {
-    /// retry property.
-    pub retry: Option<RetryPhase>,
-    /// rollback property.
-    pub rollback: Option<RollbackAttempt>,
-}
-
-/// `AdvanceRolloutRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdvanceRolloutRule {
-    /// condition property.
-    pub condition: Option<AutomationRuleCondition>,
-    /// id property.
-    pub id: Option<String>,
-    /// sourcePhases property.
-    pub source_phases: Option<Vec<String>>,
+pub struct RetryAttempt {
+    /// attempt property.
+    pub attempt: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// stateDesc property.
+    pub state_desc: Option<String>,
     /// wait property.
     pub wait: Option<String>,
 }
-
-/// `CancelAutomationRunResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelAutomationRunResponse {}
 
 /// `TargetsPresentCondition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -61,28 +49,15 @@ pub struct TargetsPresentCondition {
     pub update_time: Option<String>,
 }
 
-/// `AutomationRule` type.
+/// `RetryPhase` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutomationRule {
-    /// advanceRolloutRule property.
-    pub advance_rollout_rule: Option<AdvanceRolloutRule>,
-    /// promoteReleaseRule property.
-    pub promote_release_rule: Option<PromoteReleaseRule>,
-    /// repairRolloutRule property.
-    pub repair_rollout_rule: Option<RepairRolloutRule>,
-    /// timedPromoteReleaseRule property.
-    pub timed_promote_release_rule: Option<TimedPromoteReleaseRule>,
-}
-
-/// `ListAutomationRunsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAutomationRunsResponse {
-    /// automationRuns property.
-    pub automation_runs: Option<Vec<AutomationRun>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct RetryPhase {
+    /// attempts property.
+    pub attempts: Option<Vec<RetryAttempt>>,
+    /// backoffMode property.
+    pub backoff_mode: Option<String>,
+    /// totalAttempts property.
+    pub total_attempts: Option<String>,
 }
 
 /// `RepairRolloutOperation` type.
@@ -100,59 +75,17 @@ pub struct RepairRolloutOperation {
     pub rollout: Option<String>,
 }
 
-/// `TimedPromoteReleaseOperation` type.
+/// `AutomationRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimedPromoteReleaseOperation {
-    /// phase property.
-    pub phase: Option<String>,
-    /// release property.
-    pub release: Option<String>,
-    /// targetId property.
-    pub target_id: Option<String>,
-}
-
-/// `PolicyViolationDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PolicyViolationDetails {
-    /// failureMessage property.
-    pub failure_message: Option<String>,
-    /// policy property.
-    pub policy: Option<String>,
-    /// ruleId property.
-    pub rule_id: Option<String>,
-}
-
-/// `PromoteReleaseOperation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PromoteReleaseOperation {
-    /// phase property.
-    pub phase: Option<String>,
-    /// rollout property.
-    pub rollout: Option<String>,
-    /// targetId property.
-    pub target_id: Option<String>,
-    /// wait property.
-    pub wait: Option<String>,
-}
-
-/// `RetryPhase` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RetryPhase {
-    /// attempts property.
-    pub attempts: Option<Vec<RetryAttempt>>,
-    /// backoffMode property.
-    pub backoff_mode: Option<String>,
-    /// totalAttempts property.
-    pub total_attempts: Option<String>,
-}
-
-/// `TargetAttribute` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TargetAttribute {
-    /// id property.
-    pub id: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
+pub struct AutomationRule {
+    /// advanceRolloutRule property.
+    pub advance_rollout_rule: Option<AdvanceRolloutRule>,
+    /// promoteReleaseRule property.
+    pub promote_release_rule: Option<PromoteReleaseRule>,
+    /// repairRolloutRule property.
+    pub repair_rollout_rule: Option<RepairRolloutRule>,
+    /// timedPromoteReleaseRule property.
+    pub timed_promote_release_rule: Option<TimedPromoteReleaseRule>,
 }
 
 /// `TimedPromoteReleaseCondition` type.
@@ -162,72 +95,6 @@ pub struct TimedPromoteReleaseCondition {
     pub next_promotion_time: Option<String>,
     /// targetsList property.
     pub targets_list: Option<Vec<Targets>>,
-}
-
-/// `Retry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Retry {
-    /// attempts property.
-    pub attempts: Option<String>,
-    /// backoffMode property.
-    pub backoff_mode: Option<String>,
-    /// wait property.
-    pub wait: Option<String>,
-}
-
-/// `Targets` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Targets {
-    /// destinationTargetId property.
-    pub destination_target_id: Option<String>,
-    /// sourceTargetId property.
-    pub source_target_id: Option<String>,
-}
-
-/// `RetryAttempt` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RetryAttempt {
-    /// attempt property.
-    pub attempt: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// stateDesc property.
-    pub state_desc: Option<String>,
-    /// wait property.
-    pub wait: Option<String>,
-}
-
-/// `AutomationRuleCondition` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutomationRuleCondition {
-    /// targetsPresentCondition property.
-    pub targets_present_condition: Option<TargetsPresentCondition>,
-    /// timedPromoteReleaseCondition property.
-    pub timed_promote_release_condition: Option<TimedPromoteReleaseCondition>,
-}
-
-/// `TimedPromoteReleaseRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimedPromoteReleaseRule {
-    /// condition property.
-    pub condition: Option<AutomationRuleCondition>,
-    /// destinationPhase property.
-    pub destination_phase: Option<String>,
-    /// destinationTargetId property.
-    pub destination_target_id: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// schedule property.
-    pub schedule: Option<String>,
-    /// timeZone property.
-    pub time_zone: Option<String>,
-}
-
-/// `AutomationResourceSelector` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutomationResourceSelector {
-    /// targets property.
-    pub targets: Option<Vec<TargetAttribute>>,
 }
 
 /// `Automation` type.
@@ -259,26 +126,65 @@ pub struct Automation {
     pub update_time: Option<String>,
 }
 
-/// `RollbackAttempt` type.
+/// `RepairRolloutRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RollbackAttempt {
+pub struct RepairRolloutRule {
+    /// condition property.
+    pub condition: Option<AutomationRuleCondition>,
+    /// id property.
+    pub id: Option<String>,
+    /// jobs property.
+    pub jobs: Option<Vec<String>>,
+    /// phases property.
+    pub phases: Option<Vec<String>>,
+    /// repairPhases property.
+    pub repair_phases: Option<Vec<RepairPhaseConfig>>,
+}
+
+/// `Retry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Retry {
+    /// attempts property.
+    pub attempts: Option<String>,
+    /// backoffMode property.
+    pub backoff_mode: Option<String>,
+    /// wait property.
+    pub wait: Option<String>,
+}
+
+/// `TimedPromoteReleaseRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimedPromoteReleaseRule {
+    /// condition property.
+    pub condition: Option<AutomationRuleCondition>,
+    /// destinationPhase property.
+    pub destination_phase: Option<String>,
+    /// destinationTargetId property.
+    pub destination_target_id: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// schedule property.
+    pub schedule: Option<String>,
+    /// timeZone property.
+    pub time_zone: Option<String>,
+}
+
+/// `Rollback` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Rollback {
     /// destinationPhase property.
     pub destination_phase: Option<String>,
     /// disableRollbackIfRolloutPending property.
     pub disable_rollback_if_rollout_pending: Option<bool>,
-    /// rolloutId property.
-    pub rollout_id: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// stateDesc property.
-    pub state_desc: Option<String>,
 }
 
-/// `PolicyViolation` type.
+/// `AutomationRuleCondition` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PolicyViolation {
-    /// policyViolationDetails property.
-    pub policy_violation_details: Option<Vec<PolicyViolationDetails>>,
+pub struct AutomationRuleCondition {
+    /// targetsPresentCondition property.
+    pub targets_present_condition: Option<TargetsPresentCondition>,
+    /// timedPromoteReleaseCondition property.
+    pub timed_promote_release_condition: Option<TimedPromoteReleaseCondition>,
 }
 
 /// `AutomationRun` type.
@@ -324,19 +230,98 @@ pub struct AutomationRun {
     pub wait_until_time: Option<String>,
 }
 
-/// `RepairRolloutRule` type.
+/// `TimedPromoteReleaseOperation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RepairRolloutRule {
-    /// condition property.
-    pub condition: Option<AutomationRuleCondition>,
-    /// id property.
-    pub id: Option<String>,
-    /// jobs property.
-    pub jobs: Option<Vec<String>>,
-    /// phases property.
-    pub phases: Option<Vec<String>>,
-    /// repairPhases property.
-    pub repair_phases: Option<Vec<RepairPhaseConfig>>,
+pub struct TimedPromoteReleaseOperation {
+    /// phase property.
+    pub phase: Option<String>,
+    /// release property.
+    pub release: Option<String>,
+    /// targetId property.
+    pub target_id: Option<String>,
+}
+
+/// `PolicyViolationDetails` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PolicyViolationDetails {
+    /// failureMessage property.
+    pub failure_message: Option<String>,
+    /// policy property.
+    pub policy: Option<String>,
+    /// ruleId property.
+    pub rule_id: Option<String>,
+}
+
+/// `AdvanceRolloutOperation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdvanceRolloutOperation {
+    /// destinationPhase property.
+    pub destination_phase: Option<String>,
+    /// rollout property.
+    pub rollout: Option<String>,
+    /// sourcePhase property.
+    pub source_phase: Option<String>,
+    /// wait property.
+    pub wait: Option<String>,
+}
+
+/// `PromoteReleaseOperation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PromoteReleaseOperation {
+    /// phase property.
+    pub phase: Option<String>,
+    /// rollout property.
+    pub rollout: Option<String>,
+    /// targetId property.
+    pub target_id: Option<String>,
+    /// wait property.
+    pub wait: Option<String>,
+}
+
+/// `CancelAutomationRunResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CancelAutomationRunResponse {}
+
+/// `RollbackAttempt` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RollbackAttempt {
+    /// destinationPhase property.
+    pub destination_phase: Option<String>,
+    /// disableRollbackIfRolloutPending property.
+    pub disable_rollback_if_rollout_pending: Option<bool>,
+    /// rolloutId property.
+    pub rollout_id: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// stateDesc property.
+    pub state_desc: Option<String>,
+}
+
+/// `AutomationResourceSelector` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutomationResourceSelector {
+    /// targets property.
+    pub targets: Option<Vec<TargetAttribute>>,
+}
+
+/// `Targets` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Targets {
+    /// destinationTargetId property.
+    pub destination_target_id: Option<String>,
+    /// sourceTargetId property.
+    pub source_target_id: Option<String>,
+}
+
+/// `ListAutomationRunsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAutomationRunsResponse {
+    /// automationRuns property.
+    pub automation_runs: Option<Vec<AutomationRun>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `PromoteReleaseRule` type.
@@ -354,26 +339,13 @@ pub struct PromoteReleaseRule {
     pub wait: Option<String>,
 }
 
-/// `Rollback` type.
+/// `RepairPhase` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Rollback {
-    /// destinationPhase property.
-    pub destination_phase: Option<String>,
-    /// disableRollbackIfRolloutPending property.
-    pub disable_rollback_if_rollout_pending: Option<bool>,
-}
-
-/// `AdvanceRolloutOperation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdvanceRolloutOperation {
-    /// destinationPhase property.
-    pub destination_phase: Option<String>,
-    /// rollout property.
-    pub rollout: Option<String>,
-    /// sourcePhase property.
-    pub source_phase: Option<String>,
-    /// wait property.
-    pub wait: Option<String>,
+pub struct RepairPhase {
+    /// retry property.
+    pub retry: Option<RetryPhase>,
+    /// rollback property.
+    pub rollback: Option<RollbackAttempt>,
 }
 
 /// `RepairPhaseConfig` type.
@@ -383,6 +355,35 @@ pub struct RepairPhaseConfig {
     pub retry: Option<Retry>,
     /// rollback property.
     pub rollback: Option<Rollback>,
+}
+
+/// `AdvanceRolloutRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdvanceRolloutRule {
+    /// condition property.
+    pub condition: Option<AutomationRuleCondition>,
+    /// id property.
+    pub id: Option<String>,
+    /// sourcePhases property.
+    pub source_phases: Option<Vec<String>>,
+    /// wait property.
+    pub wait: Option<String>,
+}
+
+/// `TargetAttribute` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TargetAttribute {
+    /// id property.
+    pub id: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+}
+
+/// `PolicyViolation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PolicyViolation {
+    /// policyViolationDetails property.
+    pub policy_violation_details: Option<Vec<PolicyViolationDetails>>,
 }
 
 // =============================================================================

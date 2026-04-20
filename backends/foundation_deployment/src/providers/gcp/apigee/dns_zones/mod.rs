@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,20 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudApigeeV1DnsZonePeeringConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1DnsZonePeeringConfig {
+    /// targetNetworkId property.
+    pub target_network_id: Option<String>,
+    /// targetProjectId property.
+    pub target_project_id: Option<String>,
+}
 
 /// `GoogleCloudApigeeV1ListDnsZonesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -34,17 +44,6 @@ pub struct GoogleCloudApigeeV1ListDnsZonesResponse {
     pub dns_zones: Option<Vec<GoogleCloudApigeeV1DnsZone>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-}
-
-/// `GoogleRpcStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
 }
 
 /// `GoogleCloudApigeeV1DnsZone` type.
@@ -66,13 +65,15 @@ pub struct GoogleCloudApigeeV1DnsZone {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudApigeeV1DnsZonePeeringConfig` type.
+/// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1DnsZonePeeringConfig {
-    /// targetNetworkId property.
-    pub target_network_id: Option<String>,
-    /// targetProjectId property.
-    pub target_project_id: Option<String>,
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

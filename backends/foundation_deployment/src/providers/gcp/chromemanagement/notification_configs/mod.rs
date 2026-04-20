@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,18 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleChromeManagementV1TelemetryEventNotificationFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1TelemetryEventNotificationFilter {
+    /// eventTypes property.
+    pub event_types: Option<Vec<String>>,
+}
 
 /// `GoogleChromeManagementV1TelemetryNotificationConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -38,6 +46,16 @@ pub struct GoogleChromeManagementV1TelemetryNotificationConfig {
     pub google_cloud_pubsub_topic: Option<String>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `GoogleChromeManagementV1ListTelemetryNotificationConfigsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1ListTelemetryNotificationConfigsResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// telemetryNotificationConfigs property.
+    pub telemetry_notification_configs:
+        Option<Vec<GoogleChromeManagementV1TelemetryNotificationConfig>>,
 }
 
 /// `GoogleChromeManagementV1TelemetryNotificationFilter` type.
@@ -54,23 +72,6 @@ pub struct GoogleChromeManagementV1TelemetryNotificationFilter {
     pub user_email: Option<String>,
     /// userOrgUnitId property.
     pub user_org_unit_id: Option<String>,
-}
-
-/// `GoogleChromeManagementV1ListTelemetryNotificationConfigsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1ListTelemetryNotificationConfigsResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// telemetryNotificationConfigs property.
-    pub telemetry_notification_configs:
-        Option<Vec<GoogleChromeManagementV1TelemetryNotificationConfig>>,
-}
-
-/// `GoogleChromeManagementV1TelemetryEventNotificationFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1TelemetryEventNotificationFilter {
-    /// eventTypes property.
-    pub event_types: Option<Vec<String>>,
 }
 
 // =============================================================================

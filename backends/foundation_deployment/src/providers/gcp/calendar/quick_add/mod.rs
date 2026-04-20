@@ -7,50 +7,26 @@
 
 #![cfg(feature = "gcp_calendar_quick_add")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
 use super::shared::Event;
 
-use super::shared::{ApiResponse, ApiError, ApiPending};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ConferenceSolution` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConferenceSolution {
-    /// iconUri property.
-    pub icon_uri: Option<String>,
-    /// key property.
-    pub key: Option<ConferenceSolutionKey>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `ConferenceParameters` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConferenceParameters {
-    /// addOnParameters property.
-    pub add_on_parameters: Option<ConferenceParametersAddOnParameters>,
-}
-
-/// `EventBirthdayProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventBirthdayProperties {
-    /// contact property.
-    pub contact: Option<String>,
-    /// customTypeName property.
-    pub custom_type_name: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
 
 /// `ConferenceData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -71,26 +47,40 @@ pub struct ConferenceData {
     pub signature: Option<String>,
 }
 
-/// `EventDateTime` type.
+/// `ConferenceParametersAddOnParameters` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventDateTime {
-    /// date property.
-    pub date: Option<String>,
-    /// dateTime property.
-    pub date_time: Option<String>,
-    /// timeZone property.
-    pub time_zone: Option<String>,
+pub struct ConferenceParametersAddOnParameters {
+    /// parameters property.
+    pub parameters: Option<serde_json::Value>,
 }
 
-/// `EventFocusTimeProperties` type.
+/// `EventOutOfOfficeProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventFocusTimeProperties {
+pub struct EventOutOfOfficeProperties {
     /// autoDeclineMode property.
     pub auto_decline_mode: Option<String>,
-    /// chatStatus property.
-    pub chat_status: Option<String>,
     /// declineMessage property.
     pub decline_message: Option<String>,
+}
+
+/// `EventReminder` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EventReminder {
+    /// method property.
+    pub method: Option<String>,
+    /// minutes property.
+    pub minutes: Option<i64>,
+}
+
+/// `EventBirthdayProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EventBirthdayProperties {
+    /// contact property.
+    pub contact: Option<String>,
+    /// customTypeName property.
+    pub custom_type_name: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
 }
 
 /// `CreateConferenceRequest` type.
@@ -104,25 +94,22 @@ pub struct CreateConferenceRequest {
     pub status: Option<ConferenceRequestStatus>,
 }
 
-/// `ConferenceParametersAddOnParameters` type.
+/// `EventDateTime` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConferenceParametersAddOnParameters {
-    /// parameters property.
-    pub parameters: Option<serde_json::Value>,
+pub struct EventDateTime {
+    /// date property.
+    pub date: Option<String>,
+    /// dateTime property.
+    pub date_time: Option<String>,
+    /// timeZone property.
+    pub time_zone: Option<String>,
 }
 
-/// `ConferenceSolutionKey` type.
+/// `ConferenceParameters` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConferenceSolutionKey {
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `ConferenceRequestStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConferenceRequestStatus {
-    /// statusCode property.
-    pub status_code: Option<String>,
+pub struct ConferenceParameters {
+    /// addOnParameters property.
+    pub add_on_parameters: Option<ConferenceParametersAddOnParameters>,
 }
 
 /// `EventAttachment` type.
@@ -140,13 +127,54 @@ pub struct EventAttachment {
     pub title: Option<String>,
 }
 
-/// `EventReminder` type.
+/// `ConferenceSolutionKey` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventReminder {
-    /// method property.
-    pub method: Option<String>,
-    /// minutes property.
-    pub minutes: Option<i64>,
+pub struct ConferenceSolutionKey {
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `EventAttendee` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EventAttendee {
+    /// additionalGuests property.
+    pub additional_guests: Option<i64>,
+    /// comment property.
+    pub comment: Option<String>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// email property.
+    pub email: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// optional property.
+    pub optional: Option<bool>,
+    /// organizer property.
+    pub organizer: Option<bool>,
+    /// resource property.
+    pub resource: Option<bool>,
+    /// responseStatus property.
+    pub response_status: Option<String>,
+    /// self property.
+    pub _self: Option<bool>,
+}
+
+/// `ConferenceRequestStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConferenceRequestStatus {
+    /// statusCode property.
+    pub status_code: Option<String>,
+}
+
+/// `EventFocusTimeProperties` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EventFocusTimeProperties {
+    /// autoDeclineMode property.
+    pub auto_decline_mode: Option<String>,
+    /// chatStatus property.
+    pub chat_status: Option<String>,
+    /// declineMessage property.
+    pub decline_message: Option<String>,
 }
 
 /// `EventWorkingLocationProperties` type.
@@ -160,6 +188,17 @@ pub struct EventWorkingLocationProperties {
     pub office_location: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `ConferenceSolution` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConferenceSolution {
+    /// iconUri property.
+    pub icon_uri: Option<String>,
+    /// key property.
+    pub key: Option<ConferenceSolutionKey>,
+    /// name property.
+    pub name: Option<String>,
 }
 
 /// `EntryPoint` type.
@@ -185,40 +224,6 @@ pub struct EntryPoint {
     pub region_code: Option<String>,
     /// uri property.
     pub uri: Option<String>,
-}
-
-/// `EventAttendee` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventAttendee {
-    /// additionalGuests property.
-    pub additional_guests: Option<i64>,
-    /// comment property.
-    pub comment: Option<String>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// email property.
-    pub email: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// optional property.
-    pub optional: Option<bool>,
-    /// organizer property.
-    pub organizer: Option<bool>,
-    /// resource property.
-    pub resource: Option<bool>,
-    /// responseStatus property.
-    pub response_status: Option<String>,
-    /// self property.
-    pub r#self: Option<bool>,
-}
-
-/// `EventOutOfOfficeProperties` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventOutOfOfficeProperties {
-    /// autoDeclineMode property.
-    pub auto_decline_mode: Option<String>,
-    /// declineMessage property.
-    pub decline_message: Option<String>,
 }
 
 // =============================================================================
@@ -269,7 +274,15 @@ pub fn calendar_events_quick_add_request<R, F>(
     client: &SimpleHttpClient<R>,
     args: &CalendarEventsQuickAddArgs,
     builder_mod: Option<F>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<Event>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError>
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Event>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
     R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
@@ -279,30 +292,49 @@ where
         args.calendar_id,
     );
 
-    let mut builder = client.post(&endpoint_url)
+    let mut builder = client
+        .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e: foundation_core::wire::simple_http::HttpClientError| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                    let parsed: Event = serde_json::from_str(&body).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Event =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
-

@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -31,6 +32,17 @@ pub struct DatabasesUsageGetResponsePeriod {
     pub end: String,
     /// start property.
     pub start: String,
+}
+
+/// `DatabasesUsageGetResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesUsageGetResponse {
+    /// generatedAt property.
+    pub generated_at: String,
+    /// metrics property.
+    pub metrics: DatabasesUsageGetResponseMetrics,
+    /// period property.
+    pub period: DatabasesUsageGetResponsePeriod,
 }
 
 /// `DatabasesUsageGetResponseMetricsOperations` type.
@@ -58,17 +70,6 @@ pub struct DatabasesUsageGetResponseMetricsStorage {
     pub unit: String,
     /// used property.
     pub used: f64,
-}
-
-/// `DatabasesUsageGetResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesUsageGetResponse {
-    /// generatedAt property.
-    pub generated_at: String,
-    /// metrics property.
-    pub metrics: DatabasesUsageGetResponseMetrics,
-    /// period property.
-    pub period: DatabasesUsageGetResponsePeriod,
 }
 
 // =============================================================================

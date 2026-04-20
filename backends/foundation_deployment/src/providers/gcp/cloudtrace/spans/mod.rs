@@ -12,17 +12,132 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `TimeEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeEvent {
+    /// annotation property.
+    pub annotation: Option<Annotation>,
+    /// messageEvent property.
+    pub message_event: Option<MessageEvent>,
+    /// time property.
+    pub time: Option<String>,
+}
+
+/// `StackFrame` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StackFrame {
+    /// columnNumber property.
+    pub column_number: Option<String>,
+    /// fileName property.
+    pub file_name: Option<TruncatableString>,
+    /// functionName property.
+    pub function_name: Option<TruncatableString>,
+    /// lineNumber property.
+    pub line_number: Option<String>,
+    /// loadModule property.
+    pub load_module: Option<Module>,
+    /// originalFunctionName property.
+    pub original_function_name: Option<TruncatableString>,
+    /// sourceVersion property.
+    pub source_version: Option<TruncatableString>,
+}
+
+/// `Module` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Module {
+    /// buildId property.
+    pub build_id: Option<TruncatableString>,
+    /// module property.
+    pub module: Option<TruncatableString>,
+}
+
+/// `Links` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Links {
+    /// droppedLinksCount property.
+    pub dropped_links_count: Option<i64>,
+    /// link property.
+    pub link: Option<Vec<Link>>,
+}
+
+/// `TruncatableString` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TruncatableString {
+    /// truncatedByteCount property.
+    pub truncated_byte_count: Option<i64>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `TimeEvents` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TimeEvents {
+    /// droppedAnnotationsCount property.
+    pub dropped_annotations_count: Option<i64>,
+    /// droppedMessageEventsCount property.
+    pub dropped_message_events_count: Option<i64>,
+    /// timeEvent property.
+    pub time_event: Option<Vec<TimeEvent>>,
+}
+
+/// `Link` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Link {
+    /// attributes property.
+    pub attributes: Option<Attributes>,
+    /// spanId property.
+    pub span_id: Option<String>,
+    /// traceId property.
+    pub trace_id: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `MessageEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MessageEvent {
+    /// compressedSizeBytes property.
+    pub compressed_size_bytes: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// uncompressedSizeBytes property.
+    pub uncompressed_size_bytes: Option<String>,
+}
+
+/// `Status` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `StackFrames` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StackFrames {
+    /// droppedFramesCount property.
+    pub dropped_frames_count: Option<i64>,
+    /// frame property.
+    pub frame: Option<Vec<StackFrame>>,
+}
 
 /// `Span` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -57,41 +172,6 @@ pub struct Span {
     pub time_events: Option<TimeEvents>,
 }
 
-/// `Annotation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Annotation {
-    /// attributes property.
-    pub attributes: Option<Attributes>,
-    /// description property.
-    pub description: Option<TruncatableString>,
-}
-
-/// `MessageEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MessageEvent {
-    /// compressedSizeBytes property.
-    pub compressed_size_bytes: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// uncompressedSizeBytes property.
-    pub uncompressed_size_bytes: Option<String>,
-}
-
-/// `Link` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Link {
-    /// attributes property.
-    pub attributes: Option<Attributes>,
-    /// spanId property.
-    pub span_id: Option<String>,
-    /// traceId property.
-    pub trace_id: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
 /// `Attributes` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Attributes {
@@ -101,65 +181,13 @@ pub struct Attributes {
     pub dropped_attributes_count: Option<i64>,
 }
 
-/// `TruncatableString` type.
+/// `Annotation` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TruncatableString {
-    /// truncatedByteCount property.
-    pub truncated_byte_count: Option<i64>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `Status` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `TimeEvents` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeEvents {
-    /// droppedAnnotationsCount property.
-    pub dropped_annotations_count: Option<i64>,
-    /// droppedMessageEventsCount property.
-    pub dropped_message_events_count: Option<i64>,
-    /// timeEvent property.
-    pub time_event: Option<Vec<TimeEvent>>,
-}
-
-/// `TimeEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TimeEvent {
-    /// annotation property.
-    pub annotation: Option<Annotation>,
-    /// messageEvent property.
-    pub message_event: Option<MessageEvent>,
-    /// time property.
-    pub time: Option<String>,
-}
-
-/// `StackFrame` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StackFrame {
-    /// columnNumber property.
-    pub column_number: Option<String>,
-    /// fileName property.
-    pub file_name: Option<TruncatableString>,
-    /// functionName property.
-    pub function_name: Option<TruncatableString>,
-    /// lineNumber property.
-    pub line_number: Option<String>,
-    /// loadModule property.
-    pub load_module: Option<Module>,
-    /// originalFunctionName property.
-    pub original_function_name: Option<TruncatableString>,
-    /// sourceVersion property.
-    pub source_version: Option<TruncatableString>,
+pub struct Annotation {
+    /// attributes property.
+    pub attributes: Option<Attributes>,
+    /// description property.
+    pub description: Option<TruncatableString>,
 }
 
 /// `StackTrace` type.
@@ -169,33 +197,6 @@ pub struct StackTrace {
     pub stack_frames: Option<StackFrames>,
     /// stackTraceHashId property.
     pub stack_trace_hash_id: Option<String>,
-}
-
-/// `Module` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Module {
-    /// buildId property.
-    pub build_id: Option<TruncatableString>,
-    /// module property.
-    pub module: Option<TruncatableString>,
-}
-
-/// `Links` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Links {
-    /// droppedLinksCount property.
-    pub dropped_links_count: Option<i64>,
-    /// link property.
-    pub link: Option<Vec<Link>>,
-}
-
-/// `StackFrames` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StackFrames {
-    /// droppedFramesCount property.
-    pub dropped_frames_count: Option<i64>,
-    /// frame property.
-    pub frame: Option<Vec<StackFrame>>,
 }
 
 // =============================================================================

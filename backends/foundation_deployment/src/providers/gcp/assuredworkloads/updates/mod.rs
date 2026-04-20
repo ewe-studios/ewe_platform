@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,42 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRule` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRule {
-    /// allowAll property.
-    pub allow_all: Option<bool>,
-    /// denyAll property.
-    pub deny_all: Option<bool>,
-    /// enforce property.
-    pub enforce: Option<bool>,
-    /// values property.
-    pub values: Option<GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRuleStringValues>,
-}
-
-/// `GoogleCloudAssuredworkloadsV1OrgPolicyUpdate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1OrgPolicyUpdate {
-    /// appliedPolicy property.
-    pub applied_policy: Option<GoogleCloudAssuredworkloadsV1OrgPolicy>,
-    /// suggestedPolicy property.
-    pub suggested_policy: Option<GoogleCloudAssuredworkloadsV1OrgPolicy>,
-}
-
-/// `GoogleCloudAssuredworkloadsV1ListWorkloadUpdatesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1ListWorkloadUpdatesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// workloadUpdates property.
-    pub workload_updates: Option<Vec<GoogleCloudAssuredworkloadsV1WorkloadUpdate>>,
-}
 
 /// `GoogleCloudAssuredworkloadsV1WorkloadUpdate` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -73,15 +43,51 @@ pub struct GoogleCloudAssuredworkloadsV1WorkloadUpdate {
     pub update_time: Option<String>,
 }
 
-/// `GoogleRpcStatus` type.
+/// `GoogleCloudAssuredworkloadsV1UpdateDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct GoogleCloudAssuredworkloadsV1UpdateDetails {
+    /// orgPolicyUpdate property.
+    pub org_policy_update: Option<GoogleCloudAssuredworkloadsV1OrgPolicyUpdate>,
+}
+
+/// `GoogleCloudAssuredworkloadsV1OrgPolicyUpdate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAssuredworkloadsV1OrgPolicyUpdate {
+    /// appliedPolicy property.
+    pub applied_policy: Option<GoogleCloudAssuredworkloadsV1OrgPolicy>,
+    /// suggestedPolicy property.
+    pub suggested_policy: Option<GoogleCloudAssuredworkloadsV1OrgPolicy>,
+}
+
+/// `GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRuleStringValues` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRuleStringValues {
+    /// allowedValues property.
+    pub allowed_values: Option<Vec<String>>,
+    /// deniedValues property.
+    pub denied_values: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAssuredworkloadsV1ListWorkloadUpdatesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAssuredworkloadsV1ListWorkloadUpdatesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// workloadUpdates property.
+    pub workload_updates: Option<Vec<GoogleCloudAssuredworkloadsV1WorkloadUpdate>>,
+}
+
+/// `GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRule {
+    /// allowAll property.
+    pub allow_all: Option<bool>,
+    /// denyAll property.
+    pub deny_all: Option<bool>,
+    /// enforce property.
+    pub enforce: Option<bool>,
+    /// values property.
+    pub values: Option<GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRuleStringValues>,
 }
 
 /// `GoogleCloudAssuredworkloadsV1OrgPolicy` type.
@@ -99,20 +105,15 @@ pub struct GoogleCloudAssuredworkloadsV1OrgPolicy {
     pub rule: Option<GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRule>,
 }
 
-/// `GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRuleStringValues` type.
+/// `GoogleRpcStatus` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRuleStringValues {
-    /// allowedValues property.
-    pub allowed_values: Option<Vec<String>>,
-    /// deniedValues property.
-    pub denied_values: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAssuredworkloadsV1UpdateDetails` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1UpdateDetails {
-    /// orgPolicyUpdate property.
-    pub org_policy_update: Option<GoogleCloudAssuredworkloadsV1OrgPolicyUpdate>,
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 // =============================================================================

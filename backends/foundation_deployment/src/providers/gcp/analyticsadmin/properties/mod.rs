@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,44 +22,15 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleAnalyticsAdminV1betaRunAccessReportResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionResponse` type.
+/// `GoogleAnalyticsAdminV1BetaAccessQuotaStatus` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionResponse {}
-
-/// `GoogleAnalyticsAdminV1BetaAccessDimensionHeader` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAnalyticsAdminV1BetaAccessDimensionHeader {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleAnalyticsAdminV1betaListPropertiesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAnalyticsAdminV1betaListPropertiesResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// properties property.
-    pub properties: Option<Vec<GoogleAnalyticsAdminV1BetaProperty>>,
-}
-
-/// `GoogleAnalyticsAdminV1BetaProperty` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAnalyticsAdminV1BetaProperty {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleAnalyticsAdminV1BetaAccessRow` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAnalyticsAdminV1BetaAccessRow {
+pub struct GoogleAnalyticsAdminV1BetaAccessQuotaStatus {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -95,17 +67,9 @@ pub struct GoogleAnalyticsAdminV1betaProperty {
     pub update_time: Option<String>,
 }
 
-/// `GoogleAnalyticsAdminV1BetaAccessQuota` response type.
+/// `GoogleAnalyticsAdminV1BetaAccessRow` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAnalyticsAdminV1BetaAccessQuota {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleAnalyticsAdminV1BetaAccessQuotaStatus` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAnalyticsAdminV1BetaAccessQuotaStatus {
+pub struct GoogleAnalyticsAdminV1BetaAccessRow {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -119,17 +83,54 @@ pub struct GoogleAnalyticsAdminV1BetaAccessDimensionValue {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleAnalyticsAdminV1BetaAccessMetricHeader` response type.
+/// `GoogleAnalyticsAdminV1BetaAccessDimensionHeader` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAnalyticsAdminV1BetaAccessMetricHeader {
+pub struct GoogleAnalyticsAdminV1BetaAccessDimensionHeader {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
+/// `GoogleAnalyticsAdminV1BetaAccessQuota` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAnalyticsAdminV1BetaAccessQuota {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleAnalyticsAdminV1BetaProperty` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAnalyticsAdminV1BetaProperty {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleAnalyticsAdminV1betaListPropertiesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAnalyticsAdminV1betaListPropertiesResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// properties property.
+    pub properties: Option<Vec<GoogleAnalyticsAdminV1BetaProperty>>,
+}
+
 /// `GoogleAnalyticsAdminV1BetaAccessMetricValue` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1BetaAccessMetricValue {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionResponse {}
+
+/// `GoogleAnalyticsAdminV1BetaAccessMetricHeader` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAnalyticsAdminV1BetaAccessMetricHeader {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

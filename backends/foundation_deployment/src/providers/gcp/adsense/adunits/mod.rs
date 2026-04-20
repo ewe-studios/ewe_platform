@@ -12,30 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `CustomChannel` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomChannel {
-    /// active property.
-    pub active: Option<bool>,
-    /// displayName property.
-    pub display_name: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// reportingDimensionId property.
-    pub reporting_dimension_id: Option<String>,
-}
 
 /// `ListAdUnitsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -61,15 +49,6 @@ pub struct AdUnit {
     pub state: Option<String>,
 }
 
-/// `ListLinkedCustomChannelsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListLinkedCustomChannelsResponse {
-    /// customChannels property.
-    pub custom_channels: Option<Vec<CustomChannel>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
 /// `ContentAdsSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentAdsSettings {
@@ -77,6 +56,28 @@ pub struct ContentAdsSettings {
     pub size: Option<String>,
     /// type property.
     pub r#type: Option<String>,
+}
+
+/// `CustomChannel` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomChannel {
+    /// active property.
+    pub active: Option<bool>,
+    /// displayName property.
+    pub display_name: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// reportingDimensionId property.
+    pub reporting_dimension_id: Option<String>,
+}
+
+/// `ListLinkedCustomChannelsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListLinkedCustomChannelsResponse {
+    /// customChannels property.
+    pub custom_channels: Option<Vec<CustomChannel>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

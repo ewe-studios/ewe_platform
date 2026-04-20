@@ -12,17 +12,25 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `StoreLayoutClustersListResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StoreLayoutClustersListResponse {
+    /// cluster property.
+    pub cluster: Option<Vec<StoreCluster>>,
+}
 
 /// `StoreCluster` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,13 +52,6 @@ pub struct LocalizedText {
     pub locale: Option<String>,
     /// text property.
     pub text: Option<String>,
-}
-
-/// `StoreLayoutClustersListResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StoreLayoutClustersListResponse {
-    /// cluster property.
-    pub cluster: Option<Vec<StoreCluster>>,
 }
 
 // =============================================================================

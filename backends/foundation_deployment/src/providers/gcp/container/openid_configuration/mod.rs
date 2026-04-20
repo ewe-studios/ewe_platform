@@ -12,17 +12,29 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `HttpCacheControlResponseHeader` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HttpCacheControlResponseHeader {
+    /// age property.
+    pub age: Option<String>,
+    /// directive property.
+    pub directive: Option<String>,
+    /// expires property.
+    pub expires: Option<String>,
+}
 
 /// `GetOpenIDConfigResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -43,17 +55,6 @@ pub struct GetOpenIDConfigResponse {
     pub response_types_supported: Option<Vec<String>>,
     /// subject_types_supported property.
     pub subject_types_supported: Option<Vec<String>>,
-}
-
-/// `HttpCacheControlResponseHeader` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HttpCacheControlResponseHeader {
-    /// age property.
-    pub age: Option<String>,
-    /// directive property.
-    pub directive: Option<String>,
-    /// expires property.
-    pub expires: Option<String>,
 }
 
 // =============================================================================

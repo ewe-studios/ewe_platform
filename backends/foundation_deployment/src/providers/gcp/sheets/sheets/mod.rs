@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ColorStyle` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ColorStyle {
+    /// rgbColor property.
+    pub rgb_color: Option<Color>,
+    /// themeColor property.
+    pub theme_color: Option<String>,
+}
 
 /// `SheetProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,6 +59,32 @@ pub struct SheetProperties {
     pub title: Option<String>,
 }
 
+/// `Color` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Color {
+    /// alpha property.
+    pub alpha: Option<f64>,
+    /// blue property.
+    pub blue: Option<f64>,
+    /// green property.
+    pub green: Option<f64>,
+    /// red property.
+    pub red: Option<f64>,
+}
+
+/// `DataExecutionStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataExecutionStatus {
+    /// errorCode property.
+    pub error_code: Option<String>,
+    /// errorMessage property.
+    pub error_message: Option<String>,
+    /// lastRefreshTime property.
+    pub last_refresh_time: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
 /// `GridProperties` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GridProperties {
@@ -68,37 +104,6 @@ pub struct GridProperties {
     pub row_group_control_after: Option<bool>,
 }
 
-/// `DataSourceColumn` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSourceColumn {
-    /// formula property.
-    pub formula: Option<String>,
-    /// reference property.
-    pub reference: Option<DataSourceColumnReference>,
-}
-
-/// `ColorStyle` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ColorStyle {
-    /// rgbColor property.
-    pub rgb_color: Option<Color>,
-    /// themeColor property.
-    pub theme_color: Option<String>,
-}
-
-/// `DataExecutionStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataExecutionStatus {
-    /// errorCode property.
-    pub error_code: Option<String>,
-    /// errorMessage property.
-    pub error_message: Option<String>,
-    /// lastRefreshTime property.
-    pub last_refresh_time: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
 /// `DataSourceColumnReference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataSourceColumnReference {
@@ -106,17 +111,13 @@ pub struct DataSourceColumnReference {
     pub name: Option<String>,
 }
 
-/// `Color` type.
+/// `DataSourceColumn` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Color {
-    /// alpha property.
-    pub alpha: Option<f64>,
-    /// blue property.
-    pub blue: Option<f64>,
-    /// green property.
-    pub green: Option<f64>,
-    /// red property.
-    pub red: Option<f64>,
+pub struct DataSourceColumn {
+    /// formula property.
+    pub formula: Option<String>,
+    /// reference property.
+    pub reference: Option<DataSourceColumnReference>,
 }
 
 /// `DataSourceSheetProperties` type.

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -32,31 +33,6 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 pub struct GoogleCloudApihubV1ApigeeEdgeConfig {
     /// environmentFilter property.
     pub environment_filter: Option<GoogleCloudApihubV1EnvironmentFilter>,
-}
-
-/// `GoogleCloudApihubV1EnvironmentFilter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1EnvironmentFilter {
-    /// allEnvironments property.
-    pub all_environments: Option<bool>,
-    /// environments property.
-    pub environments: Option<Vec<String>>,
-}
-
-/// `GoogleCloudApihubV1AllDataAddonConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1AllDataAddonConfig {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `GoogleCloudApihubV1ListAddonsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1ListAddonsResponse {
-    /// addons property.
-    pub addons: Option<Vec<GoogleCloudApihubV1Addon>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 /// `GoogleCloudApihubV1GatewayPluginConfig` type.
@@ -72,6 +48,15 @@ pub struct GoogleCloudApihubV1GatewayPluginConfig {
     pub plugin_instance: Option<String>,
 }
 
+/// `GoogleCloudApihubV1ListAddonsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1ListAddonsResponse {
+    /// addons property.
+    pub addons: Option<Vec<GoogleCloudApihubV1Addon>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
 /// `GoogleCloudApihubV1ApigeeOPDKConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ApigeeOPDKConfig {
@@ -79,22 +64,20 @@ pub struct GoogleCloudApihubV1ApigeeOPDKConfig {
     pub environment_filter: Option<GoogleCloudApihubV1EnvironmentFilter>,
 }
 
-/// `GoogleCloudApihubV1ApigeeXHybridConfig` type.
+/// `GoogleCloudApihubV1AddonConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1ApigeeXHybridConfig {
-    /// environmentFilter property.
-    pub environment_filter: Option<GoogleCloudApihubV1EnvironmentFilter>,
+pub struct GoogleCloudApihubV1AddonConfig {
+    /// allDataAddonConfig property.
+    pub all_data_addon_config: Option<GoogleCloudApihubV1AllDataAddonConfig>,
+    /// gatewayPluginAddonConfig property.
+    pub gateway_plugin_addon_config: Option<GoogleCloudApihubV1GatewayPluginAddonConfig>,
 }
 
-/// `GoogleRpcStatus` type.
+/// `GoogleCloudApihubV1GatewayPluginAddonConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct GoogleCloudApihubV1GatewayPluginAddonConfig {
+    /// gatewayPluginConfigs property.
+    pub gateway_plugin_configs: Option<Vec<GoogleCloudApihubV1GatewayPluginConfig>>,
 }
 
 /// `GoogleCloudApihubV1Addon` type.
@@ -118,20 +101,38 @@ pub struct GoogleCloudApihubV1Addon {
     pub update_time: Option<String>,
 }
 
-/// `GoogleCloudApihubV1AddonConfig` type.
+/// `GoogleCloudApihubV1AllDataAddonConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1AddonConfig {
-    /// allDataAddonConfig property.
-    pub all_data_addon_config: Option<GoogleCloudApihubV1AllDataAddonConfig>,
-    /// gatewayPluginAddonConfig property.
-    pub gateway_plugin_addon_config: Option<GoogleCloudApihubV1GatewayPluginAddonConfig>,
+pub struct GoogleCloudApihubV1AllDataAddonConfig {
+    /// enabled property.
+    pub enabled: Option<bool>,
 }
 
-/// `GoogleCloudApihubV1GatewayPluginAddonConfig` type.
+/// `GoogleCloudApihubV1ApigeeXHybridConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1GatewayPluginAddonConfig {
-    /// gatewayPluginConfigs property.
-    pub gateway_plugin_configs: Option<Vec<GoogleCloudApihubV1GatewayPluginConfig>>,
+pub struct GoogleCloudApihubV1ApigeeXHybridConfig {
+    /// environmentFilter property.
+    pub environment_filter: Option<GoogleCloudApihubV1EnvironmentFilter>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudApihubV1EnvironmentFilter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApihubV1EnvironmentFilter {
+    /// allEnvironments property.
+    pub all_environments: Option<bool>,
+    /// environments property.
+    pub environments: Option<Vec<String>>,
 }
 
 // =============================================================================

@@ -12,20 +12,35 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
 use super::shared::Bucket;
+use super::shared::ObjectAccessControl;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `Buckets` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Buckets {
+    /// items property.
+    pub items: Option<Vec<Bucket>>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
+}
 
 /// `BucketAccessControl` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -52,19 +67,6 @@ pub struct BucketAccessControl {
     pub role: Option<String>,
     /// selfLink property.
     pub self_link: Option<String>,
-}
-
-/// `Buckets` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Buckets {
-    /// items property.
-    pub items: Option<Vec<Bucket>>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
 }
 
 // =============================================================================

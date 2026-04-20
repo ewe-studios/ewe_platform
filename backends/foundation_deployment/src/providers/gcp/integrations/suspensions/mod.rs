@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -31,13 +32,18 @@ pub struct EnterpriseCrmEventbusProtoEventParameters {
     pub parameters: Option<Vec<EnterpriseCrmEventbusProtoParameterEntry>>,
 }
 
-/// `EnterpriseCrmEventbusProtoToken` type.
+/// `EnterpriseCrmEventbusProtoIntParameterArray` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoToken {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct EnterpriseCrmEventbusProtoIntParameterArray {
+    /// intValues property.
+    pub int_values: Option<Vec<String>>,
+}
+
+/// `GoogleCloudIntegrationsV1alphaLiftSuspensionResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1alphaLiftSuspensionResponse {
+    /// eventExecutionInfoId property.
+    pub event_execution_info_id: Option<String>,
 }
 
 /// `GoogleCloudIntegrationsV1alphaListSuspensionsResponse` type.
@@ -49,6 +55,42 @@ pub struct GoogleCloudIntegrationsV1alphaListSuspensionsResponse {
     pub suspensions: Option<Vec<GoogleCloudIntegrationsV1AlphaSuspension>>,
 }
 
+/// `EnterpriseCrmEventbusProtoNotification` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoNotification {
+    /// buganizerNotification property.
+    pub buganizer_notification: Option<EnterpriseCrmEventbusProtoBuganizerNotification>,
+    /// emailAddress property.
+    pub email_address: Option<EnterpriseCrmEventbusProtoAddress>,
+    /// escalatorQueue property.
+    pub escalator_queue: Option<String>,
+    /// pubsubTopic property.
+    pub pubsub_topic: Option<String>,
+    /// request property.
+    pub request: Option<EnterpriseCrmEventbusProtoCustomSuspensionRequest>,
+}
+
+/// `EnterpriseCrmEventbusProtoBuganizerNotification` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoBuganizerNotification {
+    /// assigneeEmailAddress property.
+    pub assignee_email_address: Option<String>,
+    /// componentId property.
+    pub component_id: Option<String>,
+    /// templateId property.
+    pub template_id: Option<String>,
+    /// title property.
+    pub title: Option<String>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaSuspension` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaSuspension {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `EnterpriseCrmEventbusProtoAddress` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoAddress {
@@ -58,6 +100,52 @@ pub struct EnterpriseCrmEventbusProtoAddress {
     pub name: Option<String>,
     /// tokens property.
     pub tokens: Option<Vec<EnterpriseCrmEventbusProtoToken>>,
+}
+
+/// `EnterpriseCrmEventbusProtoSerializedObjectParameter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoSerializedObjectParameter {
+    /// objectValue property.
+    pub object_value: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoSuspensionConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoSuspensionConfig {
+    /// customMessage property.
+    pub custom_message: Option<String>,
+    /// notifications property.
+    pub notifications: Option<Vec<EnterpriseCrmEventbusProtoNotification>>,
+    /// suspensionExpiration property.
+    pub suspension_expiration: Option<EnterpriseCrmEventbusProtoSuspensionExpiration>,
+    /// whoMayResolve property.
+    pub who_may_resolve: Option<Vec<EnterpriseCrmEventbusProtoSuspensionAuthPermissions>>,
+}
+
+/// `EnterpriseCrmEventbusProtoParameterEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoParameterEntry {
+    /// key property.
+    pub key: Option<String>,
+    /// masked property.
+    pub masked: Option<bool>,
+    /// value property.
+    pub value: Option<EnterpriseCrmEventbusProtoParameterValueType>,
+}
+
+/// `EnterpriseCrmEventbusProtoDoubleParameterArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoDoubleParameterArray {
+    /// doubleValues property.
+    pub double_values: Option<Vec<f64>>,
+}
+
+/// `GoogleCloudIntegrationsV1AlphaSuspensionAudit` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudIntegrationsV1AlphaSuspensionAudit {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `EnterpriseCrmEventbusProtoParameterValueType` type.
@@ -87,10 +175,6 @@ pub struct EnterpriseCrmEventbusProtoParameterValueType {
     pub string_value: Option<String>,
 }
 
-/// `GoogleCloudIntegrationsV1alphaResolveSuspensionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1alphaResolveSuspensionResponse {}
-
 /// `GoogleCloudIntegrationsV1AlphaSuspensionApprovalExpiration` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1AlphaSuspensionApprovalExpiration {
@@ -99,75 +183,9 @@ pub struct GoogleCloudIntegrationsV1AlphaSuspensionApprovalExpiration {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `GoogleCloudIntegrationsV1alphaLiftSuspensionResponse` type.
+/// `GoogleCloudIntegrationsV1alphaResolveSuspensionResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1alphaLiftSuspensionResponse {
-    /// eventExecutionInfoId property.
-    pub event_execution_info_id: Option<String>,
-}
-
-/// `EnterpriseCrmEventbusProtoDoubleParameterArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoDoubleParameterArray {
-    /// doubleValues property.
-    pub double_values: Option<Vec<f64>>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaSuspensionApprovalConfig` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaSuspensionApprovalConfig {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaSuspensionAudit` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaSuspensionAudit {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EnterpriseCrmEventbusProtoSerializedObjectParameter` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoSerializedObjectParameter {
-    /// objectValue property.
-    pub object_value: Option<String>,
-}
-
-/// `EnterpriseCrmEventbusProtoProtoParameterArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoProtoParameterArray {
-    /// protoValues property.
-    pub proto_values: Option<Vec<serde_json::Value>>,
-}
-
-/// `EnterpriseCrmEventbusProtoSuspensionAuthPermissions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoSuspensionAuthPermissions {
-    /// gaiaIdentity property.
-    pub gaia_identity: Option<EnterpriseCrmEventbusProtoSuspensionAuthPermissionsGaiaIdentity>,
-    /// googleGroup property.
-    pub google_group: Option<EnterpriseCrmEventbusProtoSuspensionAuthPermissionsGaiaIdentity>,
-    /// loasRole property.
-    pub loas_role: Option<String>,
-    /// mdbGroup property.
-    pub mdb_group: Option<String>,
-}
-
-/// `EnterpriseCrmEventbusProtoBuganizerNotification` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoBuganizerNotification {
-    /// assigneeEmailAddress property.
-    pub assignee_email_address: Option<String>,
-    /// componentId property.
-    pub component_id: Option<String>,
-    /// templateId property.
-    pub template_id: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
+pub struct GoogleCloudIntegrationsV1alphaResolveSuspensionResponse {}
 
 /// `EnterpriseCrmEventbusProtoSuspensionAuthPermissionsGaiaIdentity` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -176,14 +194,6 @@ pub struct EnterpriseCrmEventbusProtoSuspensionAuthPermissionsGaiaIdentity {
     pub email_address: Option<String>,
     /// gaiaId property.
     pub gaia_id: Option<String>,
-}
-
-/// `GoogleCloudIntegrationsV1AlphaSuspension` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1AlphaSuspension {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `GoogleInternalCloudCrmEventbusV3PostToQueueWithTriggerIdRequest` type.
@@ -215,30 +225,12 @@ pub struct GoogleInternalCloudCrmEventbusV3PostToQueueWithTriggerIdRequest {
     pub workflow_name: Option<String>,
 }
 
-/// `EnterpriseCrmEventbusProtoNotification` type.
+/// `GoogleCloudIntegrationsV1AlphaSuspensionApprovalConfig` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoNotification {
-    /// buganizerNotification property.
-    pub buganizer_notification: Option<EnterpriseCrmEventbusProtoBuganizerNotification>,
-    /// emailAddress property.
-    pub email_address: Option<EnterpriseCrmEventbusProtoAddress>,
-    /// escalatorQueue property.
-    pub escalator_queue: Option<String>,
-    /// pubsubTopic property.
-    pub pubsub_topic: Option<String>,
-    /// request property.
-    pub request: Option<EnterpriseCrmEventbusProtoCustomSuspensionRequest>,
-}
-
-/// `EnterpriseCrmEventbusProtoParameterEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoParameterEntry {
-    /// key property.
-    pub key: Option<String>,
-    /// masked property.
-    pub masked: Option<bool>,
-    /// value property.
-    pub value: Option<EnterpriseCrmEventbusProtoParameterValueType>,
+pub struct GoogleCloudIntegrationsV1AlphaSuspensionApprovalConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `EnterpriseCrmEventbusProtoSuspensionExpiration` type.
@@ -259,24 +251,18 @@ pub struct EnterpriseCrmEventbusProtoBooleanParameterArray {
     pub boolean_values: Option<Vec<bool>>,
 }
 
-/// `EnterpriseCrmEventbusProtoSuspensionConfig` type.
+/// `EnterpriseCrmEventbusProtoProtoParameterArray` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoSuspensionConfig {
-    /// customMessage property.
-    pub custom_message: Option<String>,
-    /// notifications property.
-    pub notifications: Option<Vec<EnterpriseCrmEventbusProtoNotification>>,
-    /// suspensionExpiration property.
-    pub suspension_expiration: Option<EnterpriseCrmEventbusProtoSuspensionExpiration>,
-    /// whoMayResolve property.
-    pub who_may_resolve: Option<Vec<EnterpriseCrmEventbusProtoSuspensionAuthPermissions>>,
+pub struct EnterpriseCrmEventbusProtoProtoParameterArray {
+    /// protoValues property.
+    pub proto_values: Option<Vec<serde_json::Value>>,
 }
 
-/// `EnterpriseCrmEventbusProtoIntParameterArray` type.
+/// `EnterpriseCrmEventbusProtoStringParameterArray` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoIntParameterArray {
-    /// intValues property.
-    pub int_values: Option<Vec<String>>,
+pub struct EnterpriseCrmEventbusProtoStringParameterArray {
+    /// stringValues property.
+    pub string_values: Option<Vec<String>>,
 }
 
 /// `EnterpriseCrmEventbusProtoCustomSuspensionRequest` type.
@@ -289,11 +275,26 @@ pub struct EnterpriseCrmEventbusProtoCustomSuspensionRequest {
     pub suspension_info_event_parameter_key: Option<String>,
 }
 
-/// `EnterpriseCrmEventbusProtoStringParameterArray` type.
+/// `EnterpriseCrmEventbusProtoToken` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnterpriseCrmEventbusProtoStringParameterArray {
-    /// stringValues property.
-    pub string_values: Option<Vec<String>>,
+pub struct EnterpriseCrmEventbusProtoToken {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `EnterpriseCrmEventbusProtoSuspensionAuthPermissions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnterpriseCrmEventbusProtoSuspensionAuthPermissions {
+    /// gaiaIdentity property.
+    pub gaia_identity: Option<EnterpriseCrmEventbusProtoSuspensionAuthPermissionsGaiaIdentity>,
+    /// googleGroup property.
+    pub google_group: Option<EnterpriseCrmEventbusProtoSuspensionAuthPermissionsGaiaIdentity>,
+    /// loasRole property.
+    pub loas_role: Option<String>,
+    /// mdbGroup property.
+    pub mdb_group: Option<String>,
 }
 
 // =============================================================================

@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -36,6 +37,40 @@ pub struct Status {
     pub details: Option<Vec<serde_json::Value>>,
     /// message property.
     pub message: Option<String>,
+}
+
+/// `MirroringDeploymentGroupConnectedEndpointGroup` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MirroringDeploymentGroupConnectedEndpointGroup {
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `ListMirroringDeploymentGroupsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListMirroringDeploymentGroupsResponse {
+    /// mirroringDeploymentGroups property.
+    pub mirroring_deployment_groups: Option<Vec<MirroringDeploymentGroup>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `MirroringLocation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MirroringLocation {
+    /// location property.
+    pub location: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+}
+
+/// `MirroringDeploymentGroupDeployment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MirroringDeploymentGroupDeployment {
+    /// name property.
+    pub name: Option<String>,
+    /// state property.
+    pub state: Option<String>,
 }
 
 /// `MirroringDeploymentGroup` type.
@@ -63,40 +98,6 @@ pub struct MirroringDeploymentGroup {
     pub state: Option<String>,
     /// updateTime property.
     pub update_time: Option<String>,
-}
-
-/// `ListMirroringDeploymentGroupsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListMirroringDeploymentGroupsResponse {
-    /// mirroringDeploymentGroups property.
-    pub mirroring_deployment_groups: Option<Vec<MirroringDeploymentGroup>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `MirroringDeploymentGroupConnectedEndpointGroup` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MirroringDeploymentGroupConnectedEndpointGroup {
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `MirroringLocation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MirroringLocation {
-    /// location property.
-    pub location: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-}
-
-/// `MirroringDeploymentGroupDeployment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MirroringDeploymentGroupDeployment {
-    /// name property.
-    pub name: Option<String>,
-    /// state property.
-    pub state: Option<String>,
 }
 
 // =============================================================================

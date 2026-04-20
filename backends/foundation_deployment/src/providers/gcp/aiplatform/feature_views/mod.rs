@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -23,122 +24,45 @@ use super::shared::GoogleIamV1Policy;
 use super::shared::GoogleIamV1TestIamPermissionsResponse;
 use super::shared::GoogleLongrunningOperation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudAiplatformV1FeatureViewSyncConfig` type.
+/// `GoogleCloudAiplatformV1SyncFeatureViewResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureViewSyncConfig {
-    /// continuous property.
-    pub continuous: Option<bool>,
-    /// cron property.
-    pub cron: Option<String>,
+pub struct GoogleCloudAiplatformV1SyncFeatureViewResponse {
+    /// featureViewSync property.
+    pub feature_view_sync: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1BoolArray` type.
+/// `GoogleCloudAiplatformV1FeatureViewIndexConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1BoolArray {
-    /// values property.
-    pub values: Option<Vec<bool>>,
+pub struct GoogleCloudAiplatformV1FeatureViewIndexConfig {
+    /// bruteForceConfig property.
+    pub brute_force_config: Option<GoogleCloudAiplatformV1FeatureViewIndexConfigBruteForceConfig>,
+    /// crowdingColumn property.
+    pub crowding_column: Option<String>,
+    /// distanceMeasureType property.
+    pub distance_measure_type: Option<String>,
+    /// embeddingColumn property.
+    pub embedding_column: Option<String>,
+    /// embeddingDimension property.
+    pub embedding_dimension: Option<i64>,
+    /// filterColumns property.
+    pub filter_columns: Option<Vec<String>>,
+    /// treeAhConfig property.
+    pub tree_ah_config: Option<GoogleCloudAiplatformV1FeatureViewIndexConfigTreeAHConfig>,
 }
 
-/// `GoogleCloudAiplatformV1AutomaticResources` type.
+/// `GoogleCloudAiplatformV1FeatureViewFeatureRegistrySourceFeatureGroup` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1AutomaticResources {
-    /// maxReplicaCount property.
-    pub max_replica_count: Option<i64>,
-    /// minReplicaCount property.
-    pub min_replica_count: Option<i64>,
-}
-
-/// `GoogleTypeExpr` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleTypeExpr {
-    /// description property.
-    pub description: Option<String>,
-    /// expression property.
-    pub expression: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// title property.
-    pub title: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1FeatureViewFeatureRegistrySource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureViewFeatureRegistrySource {
-    /// featureGroups property.
-    pub feature_groups:
-        Option<Vec<GoogleCloudAiplatformV1FeatureViewFeatureRegistrySourceFeatureGroup>>,
-    /// projectNumber property.
-    pub project_number: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1FeatureValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureValue {
-    /// boolArrayValue property.
-    pub bool_array_value: Option<GoogleCloudAiplatformV1BoolArray>,
-    /// boolValue property.
-    pub bool_value: Option<bool>,
-    /// bytesValue property.
-    pub bytes_value: Option<String>,
-    /// doubleArrayValue property.
-    pub double_array_value: Option<GoogleCloudAiplatformV1DoubleArray>,
-    /// doubleValue property.
-    pub double_value: Option<f64>,
-    /// int64ArrayValue property.
-    pub int64_array_value: Option<GoogleCloudAiplatformV1Int64Array>,
-    /// int64Value property.
-    pub int64_value: Option<String>,
-    /// metadata property.
-    pub metadata: Option<GoogleCloudAiplatformV1FeatureValueMetadata>,
-    /// stringArrayValue property.
-    pub string_array_value: Option<GoogleCloudAiplatformV1StringArray>,
-    /// stringValue property.
-    pub string_value: Option<String>,
-    /// structValue property.
-    pub struct_value: Option<GoogleCloudAiplatformV1StructValue>,
-}
-
-/// `GoogleIamV1Binding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1Binding {
-    /// condition property.
-    pub condition: Option<GoogleTypeExpr>,
-    /// members property.
-    pub members: Option<Vec<String>>,
-    /// role property.
-    pub role: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1FeatureViewBigtableMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureViewBigtableMetadata {
-    /// readAppProfile property.
-    pub read_app_profile: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1FetchFeatureValuesResponseFeatureNameValuePairListFeatureNameValuePair` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FetchFeatureValuesResponseFeatureNameValuePairListFeatureNameValuePair
-{
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<GoogleCloudAiplatformV1FeatureValue>,
-}
-
-/// `GoogleCloudAiplatformV1FeatureViewBigQuerySource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureViewBigQuerySource {
-    /// entityIdColumns property.
-    pub entity_id_columns: Option<Vec<String>>,
-    /// uri property.
-    pub uri: Option<String>,
+pub struct GoogleCloudAiplatformV1FeatureViewFeatureRegistrySourceFeatureGroup {
+    /// featureGroupId property.
+    pub feature_group_id: Option<String>,
+    /// featureIds property.
+    pub feature_ids: Option<Vec<String>>,
 }
 
 /// `GoogleCloudAiplatformV1FetchFeatureValuesResponse` type.
@@ -153,15 +77,76 @@ pub struct GoogleCloudAiplatformV1FetchFeatureValuesResponse {
     pub proto_struct: Option<serde_json::Value>,
 }
 
-/// `GoogleCloudAiplatformV1NearestNeighborsNeighbor` type.
+/// `GoogleCloudAiplatformV1FeatureViewDirectWriteResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1NearestNeighborsNeighbor {
-    /// distance property.
-    pub distance: Option<f64>,
-    /// entityId property.
-    pub entity_id: Option<String>,
-    /// entityKeyValues property.
-    pub entity_key_values: Option<GoogleCloudAiplatformV1FetchFeatureValuesResponse>,
+pub struct GoogleCloudAiplatformV1FeatureViewDirectWriteResponse {
+    /// status property.
+    pub status: Option<GoogleRpcStatus>,
+    /// writeResponses property.
+    pub write_responses:
+        Option<Vec<GoogleCloudAiplatformV1FeatureViewDirectWriteResponseWriteResponse>>,
+}
+
+/// `GoogleCloudAiplatformV1FeatureViewIndexConfigTreeAHConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FeatureViewIndexConfigTreeAHConfig {
+    /// leafNodeEmbeddingCount property.
+    pub leaf_node_embedding_count: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1FeatureViewDataKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FeatureViewDataKey {
+    /// compositeKey property.
+    pub composite_key: Option<GoogleCloudAiplatformV1FeatureViewDataKeyCompositeKey>,
+    /// key property.
+    pub key: Option<String>,
+}
+
+/// `GoogleRpcStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleRpcStatus {
+    /// code property.
+    pub code: Option<i64>,
+    /// details property.
+    pub details: Option<Vec<serde_json::Value>>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1BoolArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1BoolArray {
+    /// values property.
+    pub values: Option<Vec<bool>>,
+}
+
+/// `GoogleCloudAiplatformV1NearestNeighbors` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1NearestNeighbors {
+    /// neighbors property.
+    pub neighbors: Option<Vec<GoogleCloudAiplatformV1NearestNeighborsNeighbor>>,
+}
+
+/// `GoogleCloudAiplatformV1FeatureValueMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FeatureValueMetadata {
+    /// generateTime property.
+    pub generate_time: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1FeatureViewDataKeyCompositeKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FeatureViewDataKeyCompositeKey {
+    /// parts property.
+    pub parts: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAiplatformV1DoubleArray` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1DoubleArray {
+    /// values property.
+    pub values: Option<Vec<f64>>,
 }
 
 /// `GoogleCloudAiplatformV1FeatureView` type.
@@ -201,6 +186,42 @@ pub struct GoogleCloudAiplatformV1FeatureView {
     pub vertex_rag_source: Option<GoogleCloudAiplatformV1FeatureViewVertexRagSource>,
 }
 
+/// `GoogleCloudAiplatformV1FeatureValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FeatureValue {
+    /// boolArrayValue property.
+    pub bool_array_value: Option<GoogleCloudAiplatformV1BoolArray>,
+    /// boolValue property.
+    pub bool_value: Option<bool>,
+    /// bytesValue property.
+    pub bytes_value: Option<String>,
+    /// doubleArrayValue property.
+    pub double_array_value: Option<GoogleCloudAiplatformV1DoubleArray>,
+    /// doubleValue property.
+    pub double_value: Option<f64>,
+    /// int64ArrayValue property.
+    pub int64_array_value: Option<GoogleCloudAiplatformV1Int64Array>,
+    /// int64Value property.
+    pub int64_value: Option<String>,
+    /// metadata property.
+    pub metadata: Option<GoogleCloudAiplatformV1FeatureValueMetadata>,
+    /// stringArrayValue property.
+    pub string_array_value: Option<GoogleCloudAiplatformV1StringArray>,
+    /// stringValue property.
+    pub string_value: Option<String>,
+    /// structValue property.
+    pub struct_value: Option<Box<GoogleCloudAiplatformV1StructValue>>,
+}
+
+/// `GoogleCloudAiplatformV1FeatureViewDirectWriteResponseWriteResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FeatureViewDirectWriteResponseWriteResponse {
+    /// dataKey property.
+    pub data_key: Option<GoogleCloudAiplatformV1FeatureViewDataKey>,
+    /// onlineStoreWriteTime property.
+    pub online_store_write_time: Option<String>,
+}
+
 /// `GoogleCloudAiplatformV1ListFeatureViewsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListFeatureViewsResponse {
@@ -210,94 +231,11 @@ pub struct GoogleCloudAiplatformV1ListFeatureViewsResponse {
     pub next_page_token: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1Int64Array` type.
+/// `GoogleCloudAiplatformV1FeatureViewOptimizedConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1Int64Array {
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAiplatformV1StringArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StringArray {
-    /// values property.
-    pub values: Option<Vec<String>>,
-}
-
-/// `GoogleCloudAiplatformV1StructValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StructValue {
-    /// values property.
-    pub values: Option<Vec<GoogleCloudAiplatformV1StructFieldValue>>,
-}
-
-/// `GoogleCloudAiplatformV1NearestNeighbors` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1NearestNeighbors {
-    /// neighbors property.
-    pub neighbors: Option<Vec<GoogleCloudAiplatformV1NearestNeighborsNeighbor>>,
-}
-
-/// `GoogleCloudAiplatformV1GenerateFetchAccessTokenResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1GenerateFetchAccessTokenResponse {
-    /// accessToken property.
-    pub access_token: Option<String>,
-    /// expireTime property.
-    pub expire_time: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1FeatureViewDataKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureViewDataKey {
-    /// compositeKey property.
-    pub composite_key: Option<GoogleCloudAiplatformV1FeatureViewDataKeyCompositeKey>,
-    /// key property.
-    pub key: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1SyncFeatureViewResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1SyncFeatureViewResponse {
-    /// featureViewSync property.
-    pub feature_view_sync: Option<String>,
-}
-
-/// `GoogleCloudAiplatformV1FeatureViewIndexConfigBruteForceConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureViewIndexConfigBruteForceConfig {}
-
-/// `GoogleCloudAiplatformV1DoubleArray` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1DoubleArray {
-    /// values property.
-    pub values: Option<Vec<f64>>,
-}
-
-/// `GoogleCloudAiplatformV1FeatureViewIndexConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureViewIndexConfig {
-    /// bruteForceConfig property.
-    pub brute_force_config: Option<GoogleCloudAiplatformV1FeatureViewIndexConfigBruteForceConfig>,
-    /// crowdingColumn property.
-    pub crowding_column: Option<String>,
-    /// distanceMeasureType property.
-    pub distance_measure_type: Option<String>,
-    /// embeddingColumn property.
-    pub embedding_column: Option<String>,
-    /// embeddingDimension property.
-    pub embedding_dimension: Option<i64>,
-    /// filterColumns property.
-    pub filter_columns: Option<Vec<String>>,
-    /// treeAhConfig property.
-    pub tree_ah_config: Option<GoogleCloudAiplatformV1FeatureViewIndexConfigTreeAHConfig>,
-}
-
-/// `GoogleCloudAiplatformV1FetchFeatureValuesResponseFeatureNameValuePairList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FetchFeatureValuesResponseFeatureNameValuePairList {
-    /// features property.
-    pub features: Option<Vec<GoogleCloudAiplatformV1FetchFeatureValuesResponseFeatureNameValuePairListFeatureNameValuePair>>,
+pub struct GoogleCloudAiplatformV1FeatureViewOptimizedConfig {
+    /// automaticResources property.
+    pub automatic_resources: Option<GoogleCloudAiplatformV1AutomaticResources>,
 }
 
 /// `GoogleCloudAiplatformV1SearchNearestEntitiesResponse` type.
@@ -307,30 +245,14 @@ pub struct GoogleCloudAiplatformV1SearchNearestEntitiesResponse {
     pub nearest_neighbors: Option<GoogleCloudAiplatformV1NearestNeighbors>,
 }
 
-/// `GoogleCloudAiplatformV1StructFieldValue` type.
+/// `GoogleCloudAiplatformV1FeatureViewFeatureRegistrySource` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1StructFieldValue {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<GoogleCloudAiplatformV1FeatureValue>,
-}
-
-/// `GoogleCloudAiplatformV1FeatureViewDirectWriteResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureViewDirectWriteResponse {
-    /// status property.
-    pub status: Option<GoogleRpcStatus>,
-    /// writeResponses property.
-    pub write_responses:
-        Option<Vec<GoogleCloudAiplatformV1FeatureViewDirectWriteResponseWriteResponse>>,
-}
-
-/// `GoogleCloudAiplatformV1FeatureViewDataKeyCompositeKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureViewDataKeyCompositeKey {
-    /// parts property.
-    pub parts: Option<Vec<String>>,
+pub struct GoogleCloudAiplatformV1FeatureViewFeatureRegistrySource {
+    /// featureGroups property.
+    pub feature_groups:
+        Option<Vec<GoogleCloudAiplatformV1FeatureViewFeatureRegistrySourceFeatureGroup>>,
+    /// projectNumber property.
+    pub project_number: Option<String>,
 }
 
 /// `GoogleCloudAiplatformV1FeatureViewVertexRagSource` type.
@@ -342,54 +264,133 @@ pub struct GoogleCloudAiplatformV1FeatureViewVertexRagSource {
     pub uri: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1FeatureViewFeatureRegistrySourceFeatureGroup` type.
+/// `GoogleCloudAiplatformV1NearestNeighborsNeighbor` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureViewFeatureRegistrySourceFeatureGroup {
-    /// featureGroupId property.
-    pub feature_group_id: Option<String>,
-    /// featureIds property.
-    pub feature_ids: Option<Vec<String>>,
+pub struct GoogleCloudAiplatformV1NearestNeighborsNeighbor {
+    /// distance property.
+    pub distance: Option<f64>,
+    /// entityId property.
+    pub entity_id: Option<String>,
+    /// entityKeyValues property.
+    pub entity_key_values: Option<GoogleCloudAiplatformV1FetchFeatureValuesResponse>,
 }
 
-/// `GoogleCloudAiplatformV1FeatureViewOptimizedConfig` type.
+/// `GoogleCloudAiplatformV1FetchFeatureValuesResponseFeatureNameValuePairList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureViewOptimizedConfig {
-    /// automaticResources property.
-    pub automatic_resources: Option<GoogleCloudAiplatformV1AutomaticResources>,
+pub struct GoogleCloudAiplatformV1FetchFeatureValuesResponseFeatureNameValuePairList {
+    /// features property.
+    pub features: Option<Vec<GoogleCloudAiplatformV1FetchFeatureValuesResponseFeatureNameValuePairListFeatureNameValuePair>>,
 }
 
-/// `GoogleCloudAiplatformV1FeatureValueMetadata` type.
+/// `GoogleTypeExpr` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureValueMetadata {
-    /// generateTime property.
-    pub generate_time: Option<String>,
+pub struct GoogleTypeExpr {
+    /// description property.
+    pub description: Option<String>,
+    /// expression property.
+    pub expression: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// title property.
+    pub title: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1FeatureViewIndexConfigTreeAHConfig` type.
+/// `GoogleCloudAiplatformV1StructValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureViewIndexConfigTreeAHConfig {
-    /// leafNodeEmbeddingCount property.
-    pub leaf_node_embedding_count: Option<String>,
+pub struct GoogleCloudAiplatformV1StructValue {
+    /// values property.
+    pub values: Option<Vec<Box<GoogleCloudAiplatformV1StructFieldValue>>>,
 }
 
-/// `GoogleRpcStatus` type.
+/// `GoogleCloudAiplatformV1GenerateFetchAccessTokenResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleRpcStatus {
-    /// code property.
-    pub code: Option<i64>,
-    /// details property.
-    pub details: Option<Vec<serde_json::Value>>,
-    /// message property.
-    pub message: Option<String>,
+pub struct GoogleCloudAiplatformV1GenerateFetchAccessTokenResponse {
+    /// accessToken property.
+    pub access_token: Option<String>,
+    /// expireTime property.
+    pub expire_time: Option<String>,
 }
 
-/// `GoogleCloudAiplatformV1FeatureViewDirectWriteResponseWriteResponse` type.
+/// `GoogleCloudAiplatformV1StringArray` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAiplatformV1FeatureViewDirectWriteResponseWriteResponse {
-    /// dataKey property.
-    pub data_key: Option<GoogleCloudAiplatformV1FeatureViewDataKey>,
-    /// onlineStoreWriteTime property.
-    pub online_store_write_time: Option<String>,
+pub struct GoogleCloudAiplatformV1StringArray {
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAiplatformV1AutomaticResources` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1AutomaticResources {
+    /// maxReplicaCount property.
+    pub max_replica_count: Option<i64>,
+    /// minReplicaCount property.
+    pub min_replica_count: Option<i64>,
+}
+
+/// `GoogleCloudAiplatformV1Int64Array` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1Int64Array {
+    /// values property.
+    pub values: Option<Vec<String>>,
+}
+
+/// `GoogleCloudAiplatformV1StructFieldValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1StructFieldValue {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<Box<GoogleCloudAiplatformV1FeatureValue>>,
+}
+
+/// `GoogleCloudAiplatformV1FetchFeatureValuesResponseFeatureNameValuePairListFeatureNameValuePair` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FetchFeatureValuesResponseFeatureNameValuePairListFeatureNameValuePair
+{
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<Box<GoogleCloudAiplatformV1FeatureValue>>,
+}
+
+/// `GoogleCloudAiplatformV1FeatureViewBigQuerySource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FeatureViewBigQuerySource {
+    /// entityIdColumns property.
+    pub entity_id_columns: Option<Vec<String>>,
+    /// uri property.
+    pub uri: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1FeatureViewBigtableMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FeatureViewBigtableMetadata {
+    /// readAppProfile property.
+    pub read_app_profile: Option<String>,
+}
+
+/// `GoogleIamV1Binding` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleIamV1Binding {
+    /// condition property.
+    pub condition: Option<GoogleTypeExpr>,
+    /// members property.
+    pub members: Option<Vec<String>>,
+    /// role property.
+    pub role: Option<String>,
+}
+
+/// `GoogleCloudAiplatformV1FeatureViewIndexConfigBruteForceConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FeatureViewIndexConfigBruteForceConfig {}
+
+/// `GoogleCloudAiplatformV1FeatureViewSyncConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAiplatformV1FeatureViewSyncConfig {
+    /// continuous property.
+    pub continuous: Option<bool>,
+    /// cron property.
+    pub cron: Option<String>,
 }
 
 // =============================================================================

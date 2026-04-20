@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,57 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudRecaptchaenterpriseV1WebKeySettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1WebKeySettings {
-    /// allowAllDomains property.
-    pub allow_all_domains: Option<bool>,
-    /// allowAmpTraffic property.
-    pub allow_amp_traffic: Option<bool>,
-    /// allowedDomains property.
-    pub allowed_domains: Option<Vec<String>>,
-    /// challengeSecurityPreference property.
-    pub challenge_security_preference: Option<String>,
-    /// challengeSettings property.
-    pub challenge_settings: Option<GoogleCloudRecaptchaenterpriseV1WebKeySettingsChallengeSettings>,
-    /// integrationType property.
-    pub integration_type: Option<String>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1WebKeySettingsChallengeSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1WebKeySettingsChallengeSettings {
-    /// actionSettings property.
-    pub action_settings: Option<serde_json::Value>,
-    /// defaultSettings property.
-    pub default_settings: Option<GoogleCloudRecaptchaenterpriseV1WebKeySettingsActionSettings>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1WafSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1WafSettings {
-    /// wafFeature property.
-    pub waf_feature: Option<String>,
-    /// wafService property.
-    pub waf_service: Option<String>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1AndroidKeySettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1AndroidKeySettings {
-    /// allowAllPackageNames property.
-    pub allow_all_package_names: Option<bool>,
-    /// allowedPackageNames property.
-    pub allowed_package_names: Option<Vec<String>>,
-    /// supportNonGoogleAppStoreDistribution property.
-    pub support_non_google_app_store_distribution: Option<bool>,
-}
 
 /// `GoogleCloudRecaptchaenterpriseV1IpOverrideData` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -82,55 +37,11 @@ pub struct GoogleCloudRecaptchaenterpriseV1IpOverrideData {
     pub override_type: Option<String>,
 }
 
-/// `GoogleCloudRecaptchaenterpriseV1ExpressKeySettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1ExpressKeySettings {}
-
-/// `GoogleCloudRecaptchaenterpriseV1TestingOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1TestingOptions {
-    /// testingChallenge property.
-    pub testing_challenge: Option<String>,
-    /// testingScore property.
-    pub testing_score: Option<f64>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1AppleDeveloperId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1AppleDeveloperId {
-    /// keyId property.
-    pub key_id: Option<String>,
-    /// privateKey property.
-    pub private_key: Option<String>,
-    /// teamId property.
-    pub team_id: Option<String>,
-}
-
 /// `GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse {
     /// legacySecretKey property.
     pub legacy_secret_key: Option<String>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1IOSKeySettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1IOSKeySettings {
-    /// allowAllBundleIds property.
-    pub allow_all_bundle_ids: Option<bool>,
-    /// allowedBundleIds property.
-    pub allowed_bundle_ids: Option<Vec<String>>,
-    /// appleDeveloperId property.
-    pub apple_developer_id: Option<GoogleCloudRecaptchaenterpriseV1AppleDeveloperId>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse {
-    /// ipOverrides property.
-    pub ip_overrides: Option<Vec<GoogleCloudRecaptchaenterpriseV1IpOverrideData>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 /// `GoogleCloudRecaptchaenterpriseV1Key` type.
@@ -158,17 +69,6 @@ pub struct GoogleCloudRecaptchaenterpriseV1Key {
     pub web_settings: Option<GoogleCloudRecaptchaenterpriseV1WebKeySettings>,
 }
 
-/// `GoogleCloudRecaptchaenterpriseV1WebKeySettingsActionSettings` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1WebKeySettingsActionSettings {
-    /// scoreThreshold property.
-    pub score_threshold: Option<f64>,
-}
-
-/// `GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse {}
-
 /// `GoogleCloudRecaptchaenterpriseV1ListKeysResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1ListKeysResponse {
@@ -178,9 +78,110 @@ pub struct GoogleCloudRecaptchaenterpriseV1ListKeysResponse {
     pub next_page_token: Option<String>,
 }
 
+/// `GoogleCloudRecaptchaenterpriseV1IOSKeySettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1IOSKeySettings {
+    /// allowAllBundleIds property.
+    pub allow_all_bundle_ids: Option<bool>,
+    /// allowedBundleIds property.
+    pub allowed_bundle_ids: Option<Vec<String>>,
+    /// appleDeveloperId property.
+    pub apple_developer_id: Option<GoogleCloudRecaptchaenterpriseV1AppleDeveloperId>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1ExpressKeySettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1ExpressKeySettings {}
+
+/// `GoogleCloudRecaptchaenterpriseV1WebKeySettingsChallengeSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1WebKeySettingsChallengeSettings {
+    /// actionSettings property.
+    pub action_settings: Option<serde_json::Value>,
+    /// defaultSettings property.
+    pub default_settings: Option<GoogleCloudRecaptchaenterpriseV1WebKeySettingsActionSettings>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1WebKeySettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1WebKeySettings {
+    /// allowAllDomains property.
+    pub allow_all_domains: Option<bool>,
+    /// allowAmpTraffic property.
+    pub allow_amp_traffic: Option<bool>,
+    /// allowedDomains property.
+    pub allowed_domains: Option<Vec<String>>,
+    /// challengeSecurityPreference property.
+    pub challenge_security_preference: Option<String>,
+    /// challengeSettings property.
+    pub challenge_settings: Option<GoogleCloudRecaptchaenterpriseV1WebKeySettingsChallengeSettings>,
+    /// integrationType property.
+    pub integration_type: Option<String>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1AppleDeveloperId` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1AppleDeveloperId {
+    /// keyId property.
+    pub key_id: Option<String>,
+    /// privateKey property.
+    pub private_key: Option<String>,
+    /// teamId property.
+    pub team_id: Option<String>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse {
+    /// ipOverrides property.
+    pub ip_overrides: Option<Vec<GoogleCloudRecaptchaenterpriseV1IpOverrideData>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1AndroidKeySettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1AndroidKeySettings {
+    /// allowAllPackageNames property.
+    pub allow_all_package_names: Option<bool>,
+    /// allowedPackageNames property.
+    pub allowed_package_names: Option<Vec<String>>,
+    /// supportNonGoogleAppStoreDistribution property.
+    pub support_non_google_app_store_distribution: Option<bool>,
+}
+
 /// `GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideResponse {}
+
+/// `GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse {}
+
+/// `GoogleCloudRecaptchaenterpriseV1TestingOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1TestingOptions {
+    /// testingChallenge property.
+    pub testing_challenge: Option<String>,
+    /// testingScore property.
+    pub testing_score: Option<f64>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1WafSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1WafSettings {
+    /// wafFeature property.
+    pub waf_feature: Option<String>,
+    /// wafService property.
+    pub waf_service: Option<String>,
+}
+
+/// `GoogleCloudRecaptchaenterpriseV1WebKeySettingsActionSettings` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1WebKeySettingsActionSettings {
+    /// scoreThreshold property.
+    pub score_threshold: Option<f64>,
+}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

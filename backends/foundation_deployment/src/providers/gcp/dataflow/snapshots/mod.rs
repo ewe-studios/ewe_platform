@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,15 +22,18 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Snapshot;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DeleteSnapshotResponse` type.
+/// `ListSnapshotsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteSnapshotResponse {}
+pub struct ListSnapshotsResponse {
+    /// snapshots property.
+    pub snapshots: Option<Vec<Snapshot>>,
+}
 
 /// `PubsubSnapshotMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -42,12 +46,9 @@ pub struct PubsubSnapshotMetadata {
     pub topic_name: Option<String>,
 }
 
-/// `ListSnapshotsResponse` type.
+/// `DeleteSnapshotResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListSnapshotsResponse {
-    /// snapshots property.
-    pub snapshots: Option<Vec<Snapshot>>,
-}
+pub struct DeleteSnapshotResponse {}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

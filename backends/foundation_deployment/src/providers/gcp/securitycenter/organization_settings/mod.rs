@@ -12,28 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `AssetDiscoveryConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AssetDiscoveryConfig {
-    /// folderIds property.
-    pub folder_ids: Option<Vec<String>>,
-    /// inclusionMode property.
-    pub inclusion_mode: Option<String>,
-    /// projectIds property.
-    pub project_ids: Option<Vec<String>>,
-}
 
 /// `OrganizationSettings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -44,6 +34,17 @@ pub struct OrganizationSettings {
     pub enable_asset_discovery: Option<bool>,
     /// name property.
     pub name: Option<String>,
+}
+
+/// `AssetDiscoveryConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AssetDiscoveryConfig {
+    /// folderIds property.
+    pub folder_ids: Option<Vec<String>>,
+    /// inclusionMode property.
+    pub inclusion_mode: Option<String>,
+    /// projectIds property.
+    pub project_ids: Option<Vec<String>>,
 }
 
 // =============================================================================

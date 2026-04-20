@@ -12,34 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `LogExclusion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LogExclusion {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// disabled property.
-    pub disabled: Option<bool>,
-    /// filter property.
-    pub filter: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
 
 /// `Settings` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -69,6 +53,23 @@ pub struct DefaultSinkConfig {
     pub filter: Option<String>,
     /// mode property.
     pub mode: Option<String>,
+}
+
+/// `LogExclusion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogExclusion {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// disabled property.
+    pub disabled: Option<bool>,
+    /// filter property.
+    pub filter: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
 }
 
 // =============================================================================

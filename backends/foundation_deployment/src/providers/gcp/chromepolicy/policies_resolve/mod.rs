@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleChromePolicyVersionsV1ResolveResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromePolicyVersionsV1ResolveResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// resolvedPolicies property.
+    pub resolved_policies: Option<Vec<GoogleChromePolicyVersionsV1ResolvedPolicy>>,
+}
 
 /// `GoogleChromePolicyVersionsV1PolicyTargetKey` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -33,13 +43,13 @@ pub struct GoogleChromePolicyVersionsV1PolicyTargetKey {
     pub target_resource: Option<String>,
 }
 
-/// `GoogleChromePolicyVersionsV1ResolveResponse` type.
+/// `GoogleChromePolicyVersionsV1PolicyValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromePolicyVersionsV1ResolveResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// resolvedPolicies property.
-    pub resolved_policies: Option<Vec<GoogleChromePolicyVersionsV1ResolvedPolicy>>,
+pub struct GoogleChromePolicyVersionsV1PolicyValue {
+    /// policySchema property.
+    pub policy_schema: Option<String>,
+    /// value property.
+    pub value: Option<serde_json::Value>,
 }
 
 /// `GoogleChromePolicyVersionsV1ResolvedPolicy` type.
@@ -53,15 +63,6 @@ pub struct GoogleChromePolicyVersionsV1ResolvedPolicy {
     pub target_key: Option<GoogleChromePolicyVersionsV1PolicyTargetKey>,
     /// value property.
     pub value: Option<GoogleChromePolicyVersionsV1PolicyValue>,
-}
-
-/// `GoogleChromePolicyVersionsV1PolicyValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromePolicyVersionsV1PolicyValue {
-    /// policySchema property.
-    pub policy_schema: Option<String>,
-    /// value property.
-    pub value: Option<serde_json::Value>,
 }
 
 // =============================================================================

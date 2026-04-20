@@ -12,17 +12,27 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `EnrollmentTokenGoogleAuthenticationOptions` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnrollmentTokenGoogleAuthenticationOptions {
+    /// authenticationRequirement property.
+    pub authentication_requirement: Option<String>,
+    /// requiredAccountEmail property.
+    pub required_account_email: Option<String>,
+}
 
 /// `EnrollmentToken` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -35,15 +45,6 @@ pub struct EnrollmentToken {
     pub google_authentication_options: Option<EnrollmentTokenGoogleAuthenticationOptions>,
     /// token property.
     pub token: Option<String>,
-}
-
-/// `EnrollmentTokenGoogleAuthenticationOptions` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnrollmentTokenGoogleAuthenticationOptions {
-    /// authenticationRequirement property.
-    pub authentication_requirement: Option<String>,
-    /// requiredAccountEmail property.
-    pub required_account_email: Option<String>,
 }
 
 // =============================================================================

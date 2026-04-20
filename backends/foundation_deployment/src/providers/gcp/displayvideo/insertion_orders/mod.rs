@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,24 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Empty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `MaximizeSpendBidStrategy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MaximizeSpendBidStrategy {
-    /// customBiddingAlgorithmId property.
-    pub custom_bidding_algorithm_id: Option<String>,
-    /// maxAverageCpmBidAmountMicros property.
-    pub max_average_cpm_bid_amount_micros: Option<String>,
-    /// performanceGoalType property.
-    pub performance_goal_type: Option<String>,
-    /// raiseBidForDeals property.
-    pub raise_bid_for_deals: Option<bool>,
-}
 
 /// `Kpi` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -55,76 +43,48 @@ pub struct Kpi {
     pub kpi_type: Option<String>,
 }
 
-/// `InsertionOrderBudgetSegment` type.
+/// `InsertionOrderBudget` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InsertionOrderBudgetSegment {
-    /// budgetAmountMicros property.
-    pub budget_amount_micros: Option<String>,
-    /// campaignBudgetId property.
-    pub campaign_budget_id: Option<String>,
-    /// dateRange property.
-    pub date_range: Option<DateRange>,
-    /// description property.
-    pub description: Option<String>,
+pub struct InsertionOrderBudget {
+    /// automationType property.
+    pub automation_type: Option<String>,
+    /// budgetSegments property.
+    pub budget_segments: Option<Vec<InsertionOrderBudgetSegment>>,
+    /// budgetUnit property.
+    pub budget_unit: Option<String>,
 }
 
-/// `FixedBidStrategy` type.
+/// `ListInsertionOrdersResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FixedBidStrategy {
-    /// bidAmountMicros property.
-    pub bid_amount_micros: Option<String>,
+pub struct ListInsertionOrdersResponse {
+    /// insertionOrders property.
+    pub insertion_orders: Option<Vec<InsertionOrder>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
-/// `Pacing` type.
+/// `FrequencyCap` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Pacing {
-    /// dailyMaxImpressions property.
-    pub daily_max_impressions: Option<String>,
-    /// dailyMaxMicros property.
-    pub daily_max_micros: Option<String>,
-    /// pacingPeriod property.
-    pub pacing_period: Option<String>,
-    /// pacingType property.
-    pub pacing_type: Option<String>,
+pub struct FrequencyCap {
+    /// maxImpressions property.
+    pub max_impressions: Option<i64>,
+    /// maxViews property.
+    pub max_views: Option<i64>,
+    /// timeUnit property.
+    pub time_unit: Option<String>,
+    /// timeUnitCount property.
+    pub time_unit_count: Option<i64>,
+    /// unlimited property.
+    pub unlimited: Option<bool>,
 }
 
-/// `PerformanceGoalBidStrategy` type.
+/// `DateRange` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PerformanceGoalBidStrategy {
-    /// customBiddingAlgorithmId property.
-    pub custom_bidding_algorithm_id: Option<String>,
-    /// maxAverageCpmBidAmountMicros property.
-    pub max_average_cpm_bid_amount_micros: Option<String>,
-    /// performanceGoalAmountMicros property.
-    pub performance_goal_amount_micros: Option<String>,
-    /// performanceGoalType property.
-    pub performance_goal_type: Option<String>,
-}
-
-/// `Date` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `BiddingStrategy` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BiddingStrategy {
-    /// demandGenBid property.
-    pub demand_gen_bid: Option<DemandGenBiddingStrategy>,
-    /// fixedBid property.
-    pub fixed_bid: Option<FixedBidStrategy>,
-    /// maximizeSpendAutoBid property.
-    pub maximize_spend_auto_bid: Option<MaximizeSpendBidStrategy>,
-    /// performanceGoalAutoBid property.
-    pub performance_goal_auto_bid: Option<PerformanceGoalBidStrategy>,
-    /// youtubeAndPartnersBid property.
-    pub youtube_and_partners_bid: Option<YoutubeAndPartnersBiddingStrategy>,
+pub struct DateRange {
+    /// endDate property.
+    pub end_date: Option<Date>,
+    /// startDate property.
+    pub start_date: Option<Date>,
 }
 
 /// `InsertionOrder` type.
@@ -166,39 +126,19 @@ pub struct InsertionOrder {
     pub update_time: Option<String>,
 }
 
-/// `ListInsertionOrdersResponse` type.
+/// `BiddingStrategy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListInsertionOrdersResponse {
-    /// insertionOrders property.
-    pub insertion_orders: Option<Vec<InsertionOrder>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `InsertionOrderBudget` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InsertionOrderBudget {
-    /// automationType property.
-    pub automation_type: Option<String>,
-    /// budgetSegments property.
-    pub budget_segments: Option<Vec<InsertionOrderBudgetSegment>>,
-    /// budgetUnit property.
-    pub budget_unit: Option<String>,
-}
-
-/// `FrequencyCap` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FrequencyCap {
-    /// maxImpressions property.
-    pub max_impressions: Option<i64>,
-    /// maxViews property.
-    pub max_views: Option<i64>,
-    /// timeUnit property.
-    pub time_unit: Option<String>,
-    /// timeUnitCount property.
-    pub time_unit_count: Option<i64>,
-    /// unlimited property.
-    pub unlimited: Option<bool>,
+pub struct BiddingStrategy {
+    /// demandGenBid property.
+    pub demand_gen_bid: Option<DemandGenBiddingStrategy>,
+    /// fixedBid property.
+    pub fixed_bid: Option<FixedBidStrategy>,
+    /// maximizeSpendAutoBid property.
+    pub maximize_spend_auto_bid: Option<MaximizeSpendBidStrategy>,
+    /// performanceGoalAutoBid property.
+    pub performance_goal_auto_bid: Option<PerformanceGoalBidStrategy>,
+    /// youtubeAndPartnersBid property.
+    pub youtube_and_partners_bid: Option<YoutubeAndPartnersBiddingStrategy>,
 }
 
 /// `IntegrationDetails` type.
@@ -225,26 +165,61 @@ pub struct PartnerCost {
     pub invoice_type: Option<String>,
 }
 
-/// `YoutubeAndPartnersBiddingStrategy` type.
+/// `Pacing` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct YoutubeAndPartnersBiddingStrategy {
-    /// adGroupEffectiveTargetCpaSource property.
-    pub ad_group_effective_target_cpa_source: Option<String>,
-    /// adGroupEffectiveTargetCpaValue property.
-    pub ad_group_effective_target_cpa_value: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<String>,
+pub struct Pacing {
+    /// dailyMaxImpressions property.
+    pub daily_max_impressions: Option<String>,
+    /// dailyMaxMicros property.
+    pub daily_max_micros: Option<String>,
+    /// pacingPeriod property.
+    pub pacing_period: Option<String>,
+    /// pacingType property.
+    pub pacing_type: Option<String>,
 }
 
-/// `DateRange` type.
+/// `FixedBidStrategy` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DateRange {
-    /// endDate property.
-    pub end_date: Option<Date>,
-    /// startDate property.
-    pub start_date: Option<Date>,
+pub struct FixedBidStrategy {
+    /// bidAmountMicros property.
+    pub bid_amount_micros: Option<String>,
+}
+
+/// `PerformanceGoalBidStrategy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PerformanceGoalBidStrategy {
+    /// customBiddingAlgorithmId property.
+    pub custom_bidding_algorithm_id: Option<String>,
+    /// maxAverageCpmBidAmountMicros property.
+    pub max_average_cpm_bid_amount_micros: Option<String>,
+    /// performanceGoalAmountMicros property.
+    pub performance_goal_amount_micros: Option<String>,
+    /// performanceGoalType property.
+    pub performance_goal_type: Option<String>,
+}
+
+/// `Date` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
+}
+
+/// `InsertionOrderBudgetSegment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InsertionOrderBudgetSegment {
+    /// budgetAmountMicros property.
+    pub budget_amount_micros: Option<String>,
+    /// campaignBudgetId property.
+    pub campaign_budget_id: Option<String>,
+    /// dateRange property.
+    pub date_range: Option<DateRange>,
+    /// description property.
+    pub description: Option<String>,
 }
 
 /// `DemandGenBiddingStrategy` type.
@@ -258,6 +233,32 @@ pub struct DemandGenBiddingStrategy {
     pub r#type: Option<String>,
     /// value property.
     pub value: Option<String>,
+}
+
+/// `YoutubeAndPartnersBiddingStrategy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct YoutubeAndPartnersBiddingStrategy {
+    /// adGroupEffectiveTargetCpaSource property.
+    pub ad_group_effective_target_cpa_source: Option<String>,
+    /// adGroupEffectiveTargetCpaValue property.
+    pub ad_group_effective_target_cpa_value: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `MaximizeSpendBidStrategy` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MaximizeSpendBidStrategy {
+    /// customBiddingAlgorithmId property.
+    pub custom_bidding_algorithm_id: Option<String>,
+    /// maxAverageCpmBidAmountMicros property.
+    pub max_average_cpm_bid_amount_micros: Option<String>,
+    /// performanceGoalType property.
+    pub performance_goal_type: Option<String>,
+    /// raiseBidForDeals property.
+    pub raise_bid_for_deals: Option<bool>,
 }
 
 // =============================================================================

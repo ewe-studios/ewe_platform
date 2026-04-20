@@ -12,174 +12,32 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `StandardSqlField` type.
+/// `RegressionMetrics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StandardSqlField {
-    /// name property.
-    pub name: Option<String>,
-    /// type property.
-    pub r#type: Option<StandardSqlDataType>,
-}
-
-/// `PrincipalComponentInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrincipalComponentInfo {
-    /// cumulativeExplainedVarianceRatio property.
-    pub cumulative_explained_variance_ratio: Option<f64>,
-    /// explainedVariance property.
-    pub explained_variance: Option<f64>,
-    /// explainedVarianceRatio property.
-    pub explained_variance_ratio: Option<f64>,
-    /// principalComponentId property.
-    pub principal_component_id: Option<String>,
-}
-
-/// `ArimaSingleModelForecastingMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArimaSingleModelForecastingMetrics {
-    /// arimaFittingMetrics property.
-    pub arima_fitting_metrics: Option<ArimaFittingMetrics>,
-    /// hasDrift property.
-    pub has_drift: Option<bool>,
-    /// hasHolidayEffect property.
-    pub has_holiday_effect: Option<bool>,
-    /// hasSpikesAndDips property.
-    pub has_spikes_and_dips: Option<bool>,
-    /// hasStepChanges property.
-    pub has_step_changes: Option<bool>,
-    /// nonSeasonalOrder property.
-    pub non_seasonal_order: Option<ArimaOrder>,
-    /// seasonalPeriods property.
-    pub seasonal_periods: Option<Vec<String>>,
-    /// timeSeriesId property.
-    pub time_series_id: Option<String>,
-    /// timeSeriesIds property.
-    pub time_series_ids: Option<Vec<String>>,
-}
-
-/// `StringHparamSearchSpace` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StringHparamSearchSpace {
-    /// candidates property.
-    pub candidates: Option<Vec<String>>,
-}
-
-/// `Row` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Row {
-    /// actualLabel property.
-    pub actual_label: Option<String>,
-    /// entries property.
-    pub entries: Option<Vec<Entry>>,
-}
-
-/// `IntCandidates` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntCandidates {
-    /// candidates property.
-    pub candidates: Option<Vec<String>>,
-}
-
-/// `Model` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Model {
-    /// bestTrialId property.
-    pub best_trial_id: Option<String>,
-    /// creationTime property.
-    pub creation_time: Option<String>,
-    /// defaultTrialId property.
-    pub default_trial_id: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// encryptionConfiguration property.
-    pub encryption_configuration: Option<EncryptionConfiguration>,
-    /// etag property.
-    pub etag: Option<String>,
-    /// expirationTime property.
-    pub expiration_time: Option<String>,
-    /// featureColumns property.
-    pub feature_columns: Option<Vec<StandardSqlField>>,
-    /// friendlyName property.
-    pub friendly_name: Option<String>,
-    /// hparamSearchSpaces property.
-    pub hparam_search_spaces: Option<HparamSearchSpaces>,
-    /// hparamTrials property.
-    pub hparam_trials: Option<Vec<HparamTuningTrial>>,
-    /// labelColumns property.
-    pub label_columns: Option<Vec<StandardSqlField>>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// lastModifiedTime property.
-    pub last_modified_time: Option<String>,
-    /// location property.
-    pub location: Option<String>,
-    /// modelReference property.
-    pub model_reference: Option<ModelReference>,
-    /// modelType property.
-    pub model_type: Option<String>,
-    /// optimalTrialIds property.
-    pub optimal_trial_ids: Option<Vec<String>>,
-    /// remoteModelInfo property.
-    pub remote_model_info: Option<RemoteModelInfo>,
-    /// trainingRuns property.
-    pub training_runs: Option<Vec<TrainingRun>>,
-    /// transformColumns property.
-    pub transform_columns: Option<Vec<TransformColumn>>,
-}
-
-/// `StandardSqlStructType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StandardSqlStructType {
-    /// fields property.
-    pub fields: Option<Vec<StandardSqlField>>,
-}
-
-/// `ArimaForecastingMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArimaForecastingMetrics {
-    /// arimaFittingMetrics property.
-    pub arima_fitting_metrics: Option<Vec<ArimaFittingMetrics>>,
-    /// arimaSingleModelForecastingMetrics property.
-    pub arima_single_model_forecasting_metrics: Option<Vec<ArimaSingleModelForecastingMetrics>>,
-    /// hasDrift property.
-    pub has_drift: Option<Vec<bool>>,
-    /// nonSeasonalOrder property.
-    pub non_seasonal_order: Option<Vec<ArimaOrder>>,
-    /// seasonalPeriods property.
-    pub seasonal_periods: Option<Vec<String>>,
-    /// timeSeriesId property.
-    pub time_series_id: Option<Vec<String>>,
-}
-
-/// `EvaluationMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EvaluationMetrics {
-    /// arimaForecastingMetrics property.
-    pub arima_forecasting_metrics: Option<ArimaForecastingMetrics>,
-    /// binaryClassificationMetrics property.
-    pub binary_classification_metrics: Option<BinaryClassificationMetrics>,
-    /// clusteringMetrics property.
-    pub clustering_metrics: Option<ClusteringMetrics>,
-    /// dimensionalityReductionMetrics property.
-    pub dimensionality_reduction_metrics: Option<DimensionalityReductionMetrics>,
-    /// multiClassClassificationMetrics property.
-    pub multi_class_classification_metrics: Option<MultiClassClassificationMetrics>,
-    /// rankingMetrics property.
-    pub ranking_metrics: Option<RankingMetrics>,
-    /// regressionMetrics property.
-    pub regression_metrics: Option<RegressionMetrics>,
+pub struct RegressionMetrics {
+    /// meanAbsoluteError property.
+    pub mean_absolute_error: Option<f64>,
+    /// meanSquaredError property.
+    pub mean_squared_error: Option<f64>,
+    /// meanSquaredLogError property.
+    pub mean_squared_log_error: Option<f64>,
+    /// medianAbsoluteError property.
+    pub median_absolute_error: Option<f64>,
+    /// rSquared property.
+    pub r_squared: Option<f64>,
 }
 
 /// `GlobalExplanation` type.
@@ -189,163 +47,6 @@ pub struct GlobalExplanation {
     pub class_label: Option<String>,
     /// explanations property.
     pub explanations: Option<Vec<Explanation>>,
-}
-
-/// `ClusteringMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusteringMetrics {
-    /// clusters property.
-    pub clusters: Option<Vec<Cluster>>,
-    /// daviesBouldinIndex property.
-    pub davies_bouldin_index: Option<f64>,
-    /// meanSquaredDistance property.
-    pub mean_squared_distance: Option<f64>,
-}
-
-/// `AggregateClassificationMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AggregateClassificationMetrics {
-    /// accuracy property.
-    pub accuracy: Option<f64>,
-    /// f1Score property.
-    pub f1_score: Option<f64>,
-    /// logLoss property.
-    pub log_loss: Option<f64>,
-    /// precision property.
-    pub precision: Option<f64>,
-    /// recall property.
-    pub recall: Option<f64>,
-    /// rocAuc property.
-    pub roc_auc: Option<f64>,
-    /// threshold property.
-    pub threshold: Option<f64>,
-}
-
-/// `BinaryConfusionMatrix` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BinaryConfusionMatrix {
-    /// accuracy property.
-    pub accuracy: Option<f64>,
-    /// f1Score property.
-    pub f1_score: Option<f64>,
-    /// falseNegatives property.
-    pub false_negatives: Option<String>,
-    /// falsePositives property.
-    pub false_positives: Option<String>,
-    /// positiveClassThreshold property.
-    pub positive_class_threshold: Option<f64>,
-    /// precision property.
-    pub precision: Option<f64>,
-    /// recall property.
-    pub recall: Option<f64>,
-    /// trueNegatives property.
-    pub true_negatives: Option<String>,
-    /// truePositives property.
-    pub true_positives: Option<String>,
-}
-
-/// `IntRange` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntRange {
-    /// max property.
-    pub max: Option<String>,
-    /// min property.
-    pub min: Option<String>,
-}
-
-/// `ClusterInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClusterInfo {
-    /// centroidId property.
-    pub centroid_id: Option<String>,
-    /// clusterRadius property.
-    pub cluster_radius: Option<f64>,
-    /// clusterSize property.
-    pub cluster_size: Option<String>,
-}
-
-/// `ListModelsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListModelsResponse {
-    /// models property.
-    pub models: Option<Vec<Model>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
-
-/// `ArimaOrder` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArimaOrder {
-    /// d property.
-    pub d: Option<String>,
-    /// p property.
-    pub p: Option<String>,
-    /// q property.
-    pub q: Option<String>,
-}
-
-/// `DimensionalityReductionMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DimensionalityReductionMetrics {
-    /// totalExplainedVarianceRatio property.
-    pub total_explained_variance_ratio: Option<f64>,
-}
-
-/// `IntHparamSearchSpace` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntHparamSearchSpace {
-    /// candidates property.
-    pub candidates: Option<IntCandidates>,
-    /// range property.
-    pub range: Option<IntRange>,
-}
-
-/// `CategoricalValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CategoricalValue {
-    /// categoryCounts property.
-    pub category_counts: Option<Vec<CategoryCount>>,
-}
-
-/// `ModelReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ModelReference {
-    /// datasetId property.
-    pub dataset_id: Option<String>,
-    /// modelId property.
-    pub model_id: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-}
-
-/// `MultiClassClassificationMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MultiClassClassificationMetrics {
-    /// aggregateClassificationMetrics property.
-    pub aggregate_classification_metrics: Option<AggregateClassificationMetrics>,
-    /// confusionMatrixList property.
-    pub confusion_matrix_list: Option<Vec<ConfusionMatrix>>,
-}
-
-/// `IterationResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IterationResult {
-    /// arimaResult property.
-    pub arima_result: Option<ArimaResult>,
-    /// clusterInfos property.
-    pub cluster_infos: Option<Vec<ClusterInfo>>,
-    /// durationMs property.
-    pub duration_ms: Option<String>,
-    /// evalLoss property.
-    pub eval_loss: Option<f64>,
-    /// index property.
-    pub index: Option<i64>,
-    /// learnRate property.
-    pub learn_rate: Option<f64>,
-    /// principalComponentInfos property.
-    pub principal_component_infos: Option<Vec<PrincipalComponentInfo>>,
-    /// trainingLoss property.
-    pub training_loss: Option<f64>,
 }
 
 /// `ArimaResult` type.
@@ -375,6 +76,410 @@ pub struct ArimaCoefficients {
     pub intercept_coefficient: Option<f64>,
     /// movingAverageCoefficients property.
     pub moving_average_coefficients: Option<Vec<f64>>,
+}
+
+/// `RankingMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RankingMetrics {
+    /// averageRank property.
+    pub average_rank: Option<f64>,
+    /// meanAveragePrecision property.
+    pub mean_average_precision: Option<f64>,
+    /// meanSquaredError property.
+    pub mean_squared_error: Option<f64>,
+    /// normalizedDiscountedCumulativeGain property.
+    pub normalized_discounted_cumulative_gain: Option<f64>,
+}
+
+/// `TrainingRun` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TrainingRun {
+    /// classLevelGlobalExplanations property.
+    pub class_level_global_explanations: Option<Vec<GlobalExplanation>>,
+    /// dataSplitResult property.
+    pub data_split_result: Option<DataSplitResult>,
+    /// evaluationMetrics property.
+    pub evaluation_metrics: Option<EvaluationMetrics>,
+    /// modelLevelGlobalExplanation property.
+    pub model_level_global_explanation: Option<GlobalExplanation>,
+    /// results property.
+    pub results: Option<Vec<IterationResult>>,
+    /// startTime property.
+    pub start_time: Option<String>,
+    /// trainingOptions property.
+    pub training_options: Option<TrainingOptions>,
+    /// trainingStartTime property.
+    pub training_start_time: Option<String>,
+    /// vertexAiModelId property.
+    pub vertex_ai_model_id: Option<String>,
+    /// vertexAiModelVersion property.
+    pub vertex_ai_model_version: Option<String>,
+}
+
+/// `ArimaOrder` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ArimaOrder {
+    /// d property.
+    pub d: Option<String>,
+    /// p property.
+    pub p: Option<String>,
+    /// q property.
+    pub q: Option<String>,
+}
+
+/// `TableReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TableReference {
+    /// datasetId property.
+    pub dataset_id: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+    /// tableId property.
+    pub table_id: Option<String>,
+}
+
+/// `TransformColumn` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TransformColumn {
+    /// name property.
+    pub name: Option<String>,
+    /// transformSql property.
+    pub transform_sql: Option<String>,
+    /// type property.
+    pub r#type: Option<Box<StandardSqlDataType>>,
+}
+
+/// `Explanation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Explanation {
+    /// attribution property.
+    pub attribution: Option<f64>,
+    /// featureName property.
+    pub feature_name: Option<String>,
+}
+
+/// `StringHparamSearchSpace` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StringHparamSearchSpace {
+    /// candidates property.
+    pub candidates: Option<Vec<String>>,
+}
+
+/// `ArimaForecastingMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ArimaForecastingMetrics {
+    /// arimaFittingMetrics property.
+    pub arima_fitting_metrics: Option<Vec<ArimaFittingMetrics>>,
+    /// arimaSingleModelForecastingMetrics property.
+    pub arima_single_model_forecasting_metrics: Option<Vec<ArimaSingleModelForecastingMetrics>>,
+    /// hasDrift property.
+    pub has_drift: Option<Vec<bool>>,
+    /// nonSeasonalOrder property.
+    pub non_seasonal_order: Option<Vec<ArimaOrder>>,
+    /// seasonalPeriods property.
+    pub seasonal_periods: Option<Vec<String>>,
+    /// timeSeriesId property.
+    pub time_series_id: Option<Vec<String>>,
+}
+
+/// `DataSplitResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataSplitResult {
+    /// evaluationTable property.
+    pub evaluation_table: Option<TableReference>,
+    /// testTable property.
+    pub test_table: Option<TableReference>,
+    /// trainingTable property.
+    pub training_table: Option<TableReference>,
+}
+
+/// `ConfusionMatrix` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConfusionMatrix {
+    /// confidenceThreshold property.
+    pub confidence_threshold: Option<f64>,
+    /// rows property.
+    pub rows: Option<Vec<Row>>,
+}
+
+/// `CategoryCount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CategoryCount {
+    /// category property.
+    pub category: Option<String>,
+    /// count property.
+    pub count: Option<String>,
+}
+
+/// `ListModelsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListModelsResponse {
+    /// models property.
+    pub models: Option<Vec<Model>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `RemoteModelInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RemoteModelInfo {
+    /// connection property.
+    pub connection: Option<String>,
+    /// endpoint property.
+    pub endpoint: Option<String>,
+    /// maxBatchingRows property.
+    pub max_batching_rows: Option<String>,
+    /// remoteModelVersion property.
+    pub remote_model_version: Option<String>,
+    /// remoteServiceType property.
+    pub remote_service_type: Option<String>,
+    /// speechRecognizer property.
+    pub speech_recognizer: Option<String>,
+}
+
+/// `MultiClassClassificationMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MultiClassClassificationMetrics {
+    /// aggregateClassificationMetrics property.
+    pub aggregate_classification_metrics: Option<AggregateClassificationMetrics>,
+    /// confusionMatrixList property.
+    pub confusion_matrix_list: Option<Vec<ConfusionMatrix>>,
+}
+
+/// `ModelReference` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ModelReference {
+    /// datasetId property.
+    pub dataset_id: Option<String>,
+    /// modelId property.
+    pub model_id: Option<String>,
+    /// projectId property.
+    pub project_id: Option<String>,
+}
+
+/// `CategoricalValue` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CategoricalValue {
+    /// categoryCounts property.
+    pub category_counts: Option<Vec<CategoryCount>>,
+}
+
+/// `IntHparamSearchSpace` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntHparamSearchSpace {
+    /// candidates property.
+    pub candidates: Option<IntCandidates>,
+    /// range property.
+    pub range: Option<IntRange>,
+}
+
+/// `DoubleHparamSearchSpace` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DoubleHparamSearchSpace {
+    /// candidates property.
+    pub candidates: Option<DoubleCandidates>,
+    /// range property.
+    pub range: Option<DoubleRange>,
+}
+
+/// `Model` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Model {
+    /// bestTrialId property.
+    pub best_trial_id: Option<String>,
+    /// creationTime property.
+    pub creation_time: Option<String>,
+    /// defaultTrialId property.
+    pub default_trial_id: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// encryptionConfiguration property.
+    pub encryption_configuration: Option<EncryptionConfiguration>,
+    /// etag property.
+    pub etag: Option<String>,
+    /// expirationTime property.
+    pub expiration_time: Option<String>,
+    /// featureColumns property.
+    pub feature_columns: Option<Vec<Box<StandardSqlField>>>,
+    /// friendlyName property.
+    pub friendly_name: Option<String>,
+    /// hparamSearchSpaces property.
+    pub hparam_search_spaces: Option<HparamSearchSpaces>,
+    /// hparamTrials property.
+    pub hparam_trials: Option<Vec<HparamTuningTrial>>,
+    /// labelColumns property.
+    pub label_columns: Option<Vec<Box<StandardSqlField>>>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// lastModifiedTime property.
+    pub last_modified_time: Option<String>,
+    /// location property.
+    pub location: Option<String>,
+    /// modelReference property.
+    pub model_reference: Option<ModelReference>,
+    /// modelType property.
+    pub model_type: Option<String>,
+    /// optimalTrialIds property.
+    pub optimal_trial_ids: Option<Vec<String>>,
+    /// remoteModelInfo property.
+    pub remote_model_info: Option<RemoteModelInfo>,
+    /// trainingRuns property.
+    pub training_runs: Option<Vec<TrainingRun>>,
+    /// transformColumns property.
+    pub transform_columns: Option<Vec<TransformColumn>>,
+}
+
+/// `Cluster` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Cluster {
+    /// centroidId property.
+    pub centroid_id: Option<String>,
+    /// count property.
+    pub count: Option<String>,
+    /// featureValues property.
+    pub feature_values: Option<Vec<FeatureValue>>,
+}
+
+/// `ArimaFittingMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ArimaFittingMetrics {
+    /// aic property.
+    pub aic: Option<f64>,
+    /// logLikelihood property.
+    pub log_likelihood: Option<f64>,
+    /// variance property.
+    pub variance: Option<f64>,
+}
+
+/// `BinaryConfusionMatrix` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BinaryConfusionMatrix {
+    /// accuracy property.
+    pub accuracy: Option<f64>,
+    /// f1Score property.
+    pub f1_score: Option<f64>,
+    /// falseNegatives property.
+    pub false_negatives: Option<String>,
+    /// falsePositives property.
+    pub false_positives: Option<String>,
+    /// positiveClassThreshold property.
+    pub positive_class_threshold: Option<f64>,
+    /// precision property.
+    pub precision: Option<f64>,
+    /// recall property.
+    pub recall: Option<f64>,
+    /// trueNegatives property.
+    pub true_negatives: Option<String>,
+    /// truePositives property.
+    pub true_positives: Option<String>,
+}
+
+/// `StandardSqlField` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StandardSqlField {
+    /// name property.
+    pub name: Option<String>,
+    /// type property.
+    pub r#type: Option<Box<StandardSqlDataType>>,
+}
+
+/// `EvaluationMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EvaluationMetrics {
+    /// arimaForecastingMetrics property.
+    pub arima_forecasting_metrics: Option<ArimaForecastingMetrics>,
+    /// binaryClassificationMetrics property.
+    pub binary_classification_metrics: Option<BinaryClassificationMetrics>,
+    /// clusteringMetrics property.
+    pub clustering_metrics: Option<ClusteringMetrics>,
+    /// dimensionalityReductionMetrics property.
+    pub dimensionality_reduction_metrics: Option<DimensionalityReductionMetrics>,
+    /// multiClassClassificationMetrics property.
+    pub multi_class_classification_metrics: Option<MultiClassClassificationMetrics>,
+    /// rankingMetrics property.
+    pub ranking_metrics: Option<RankingMetrics>,
+    /// regressionMetrics property.
+    pub regression_metrics: Option<RegressionMetrics>,
+}
+
+/// `StandardSqlStructType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StandardSqlStructType {
+    /// fields property.
+    pub fields: Option<Vec<Box<StandardSqlField>>>,
+}
+
+/// `IntCandidates` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntCandidates {
+    /// candidates property.
+    pub candidates: Option<Vec<String>>,
+}
+
+/// `IterationResult` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IterationResult {
+    /// arimaResult property.
+    pub arima_result: Option<ArimaResult>,
+    /// clusterInfos property.
+    pub cluster_infos: Option<Vec<ClusterInfo>>,
+    /// durationMs property.
+    pub duration_ms: Option<String>,
+    /// evalLoss property.
+    pub eval_loss: Option<f64>,
+    /// index property.
+    pub index: Option<i64>,
+    /// learnRate property.
+    pub learn_rate: Option<f64>,
+    /// principalComponentInfos property.
+    pub principal_component_infos: Option<Vec<PrincipalComponentInfo>>,
+    /// trainingLoss property.
+    pub training_loss: Option<f64>,
+}
+
+/// `IntArrayHparamSearchSpace` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntArrayHparamSearchSpace {
+    /// candidates property.
+    pub candidates: Option<Vec<IntArray>>,
+}
+
+/// `IntRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntRange {
+    /// max property.
+    pub max: Option<String>,
+    /// min property.
+    pub min: Option<String>,
+}
+
+/// `ClusterInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterInfo {
+    /// centroidId property.
+    pub centroid_id: Option<String>,
+    /// clusterRadius property.
+    pub cluster_radius: Option<f64>,
+    /// clusterSize property.
+    pub cluster_size: Option<String>,
+}
+
+/// `DimensionalityReductionMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DimensionalityReductionMetrics {
+    /// totalExplainedVarianceRatio property.
+    pub total_explained_variance_ratio: Option<f64>,
+}
+
+/// `ClusteringMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusteringMetrics {
+    /// clusters property.
+    pub clusters: Option<Vec<Cluster>>,
+    /// daviesBouldinIndex property.
+    pub davies_bouldin_index: Option<f64>,
+    /// meanSquaredDistance property.
+    pub mean_squared_distance: Option<f64>,
 }
 
 /// `TrainingOptions` type.
@@ -584,6 +689,34 @@ pub struct TrainingOptions {
     pub xgboost_version: Option<String>,
 }
 
+/// `AggregateClassificationMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AggregateClassificationMetrics {
+    /// accuracy property.
+    pub accuracy: Option<f64>,
+    /// f1Score property.
+    pub f1_score: Option<f64>,
+    /// logLoss property.
+    pub log_loss: Option<f64>,
+    /// precision property.
+    pub precision: Option<f64>,
+    /// recall property.
+    pub recall: Option<f64>,
+    /// rocAuc property.
+    pub roc_auc: Option<f64>,
+    /// threshold property.
+    pub threshold: Option<f64>,
+}
+
+/// `Row` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Row {
+    /// actualLabel property.
+    pub actual_label: Option<String>,
+    /// entries property.
+    pub entries: Option<Vec<Entry>>,
+}
+
 /// `HparamTuningTrial` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HparamTuningTrial {
@@ -609,40 +742,75 @@ pub struct HparamTuningTrial {
     pub trial_id: Option<String>,
 }
 
-/// `TrainingRun` type.
+/// `ArimaModelInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TrainingRun {
-    /// classLevelGlobalExplanations property.
-    pub class_level_global_explanations: Option<Vec<GlobalExplanation>>,
-    /// dataSplitResult property.
-    pub data_split_result: Option<DataSplitResult>,
-    /// evaluationMetrics property.
-    pub evaluation_metrics: Option<EvaluationMetrics>,
-    /// modelLevelGlobalExplanation property.
-    pub model_level_global_explanation: Option<GlobalExplanation>,
-    /// results property.
-    pub results: Option<Vec<IterationResult>>,
-    /// startTime property.
-    pub start_time: Option<String>,
-    /// trainingOptions property.
-    pub training_options: Option<TrainingOptions>,
-    /// trainingStartTime property.
-    pub training_start_time: Option<String>,
-    /// vertexAiModelId property.
-    pub vertex_ai_model_id: Option<String>,
-    /// vertexAiModelVersion property.
-    pub vertex_ai_model_version: Option<String>,
+pub struct ArimaModelInfo {
+    /// arimaCoefficients property.
+    pub arima_coefficients: Option<ArimaCoefficients>,
+    /// arimaFittingMetrics property.
+    pub arima_fitting_metrics: Option<ArimaFittingMetrics>,
+    /// hasDrift property.
+    pub has_drift: Option<bool>,
+    /// hasHolidayEffect property.
+    pub has_holiday_effect: Option<bool>,
+    /// hasSpikesAndDips property.
+    pub has_spikes_and_dips: Option<bool>,
+    /// hasStepChanges property.
+    pub has_step_changes: Option<bool>,
+    /// nonSeasonalOrder property.
+    pub non_seasonal_order: Option<ArimaOrder>,
+    /// seasonalPeriods property.
+    pub seasonal_periods: Option<Vec<String>>,
+    /// timeSeriesId property.
+    pub time_series_id: Option<String>,
+    /// timeSeriesIds property.
+    pub time_series_ids: Option<Vec<String>>,
 }
 
-/// `TransformColumn` type.
+/// `EncryptionConfiguration` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransformColumn {
-    /// name property.
-    pub name: Option<String>,
-    /// transformSql property.
-    pub transform_sql: Option<String>,
-    /// type property.
-    pub r#type: Option<StandardSqlDataType>,
+pub struct EncryptionConfiguration {
+    /// kmsKeyName property.
+    pub kms_key_name: Option<String>,
+}
+
+/// `StandardSqlDataType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StandardSqlDataType {
+    /// arrayElementType property.
+    pub array_element_type: Option<Box<StandardSqlDataType>>,
+    /// rangeElementType property.
+    pub range_element_type: Option<Box<StandardSqlDataType>>,
+    /// structType property.
+    pub struct_type: Option<Box<StandardSqlStructType>>,
+    /// typeKind property.
+    pub type_kind: Option<String>,
+}
+
+/// `BinaryClassificationMetrics` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BinaryClassificationMetrics {
+    /// aggregateClassificationMetrics property.
+    pub aggregate_classification_metrics: Option<AggregateClassificationMetrics>,
+    /// binaryConfusionMatrixList property.
+    pub binary_confusion_matrix_list: Option<Vec<BinaryConfusionMatrix>>,
+    /// negativeLabel property.
+    pub negative_label: Option<String>,
+    /// positiveLabel property.
+    pub positive_label: Option<String>,
+}
+
+/// `PrincipalComponentInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrincipalComponentInfo {
+    /// cumulativeExplainedVarianceRatio property.
+    pub cumulative_explained_variance_ratio: Option<f64>,
+    /// explainedVariance property.
+    pub explained_variance: Option<f64>,
+    /// explainedVarianceRatio property.
+    pub explained_variance_ratio: Option<f64>,
+    /// principalComponentId property.
+    pub principal_component_id: Option<String>,
 }
 
 /// `HparamSearchSpaces` type.
@@ -694,74 +862,29 @@ pub struct HparamSearchSpaces {
     pub wals_alpha: Option<DoubleHparamSearchSpace>,
 }
 
-/// `BinaryClassificationMetrics` type.
+/// `Entry` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BinaryClassificationMetrics {
-    /// aggregateClassificationMetrics property.
-    pub aggregate_classification_metrics: Option<AggregateClassificationMetrics>,
-    /// binaryConfusionMatrixList property.
-    pub binary_confusion_matrix_list: Option<Vec<BinaryConfusionMatrix>>,
-    /// negativeLabel property.
-    pub negative_label: Option<String>,
-    /// positiveLabel property.
-    pub positive_label: Option<String>,
+pub struct Entry {
+    /// itemCount property.
+    pub item_count: Option<String>,
+    /// predictedLabel property.
+    pub predicted_label: Option<String>,
 }
 
-/// `RegressionMetrics` type.
+/// `FeatureValue` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegressionMetrics {
-    /// meanAbsoluteError property.
-    pub mean_absolute_error: Option<f64>,
-    /// meanSquaredError property.
-    pub mean_squared_error: Option<f64>,
-    /// meanSquaredLogError property.
-    pub mean_squared_log_error: Option<f64>,
-    /// medianAbsoluteError property.
-    pub median_absolute_error: Option<f64>,
-    /// rSquared property.
-    pub r_squared: Option<f64>,
+pub struct FeatureValue {
+    /// categoricalValue property.
+    pub categorical_value: Option<CategoricalValue>,
+    /// featureColumn property.
+    pub feature_column: Option<String>,
+    /// numericalValue property.
+    pub numerical_value: Option<f64>,
 }
 
-/// `Cluster` type.
+/// `ArimaSingleModelForecastingMetrics` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Cluster {
-    /// centroidId property.
-    pub centroid_id: Option<String>,
-    /// count property.
-    pub count: Option<String>,
-    /// featureValues property.
-    pub feature_values: Option<Vec<FeatureValue>>,
-}
-
-/// `DataSplitResult` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataSplitResult {
-    /// evaluationTable property.
-    pub evaluation_table: Option<TableReference>,
-    /// testTable property.
-    pub test_table: Option<TableReference>,
-    /// trainingTable property.
-    pub training_table: Option<TableReference>,
-}
-
-/// `StandardSqlDataType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StandardSqlDataType {
-    /// arrayElementType property.
-    pub array_element_type: Option<StandardSqlDataType>,
-    /// rangeElementType property.
-    pub range_element_type: Option<StandardSqlDataType>,
-    /// structType property.
-    pub struct_type: Option<StandardSqlStructType>,
-    /// typeKind property.
-    pub type_kind: Option<String>,
-}
-
-/// `ArimaModelInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArimaModelInfo {
-    /// arimaCoefficients property.
-    pub arima_coefficients: Option<ArimaCoefficients>,
+pub struct ArimaSingleModelForecastingMetrics {
     /// arimaFittingMetrics property.
     pub arima_fitting_metrics: Option<ArimaFittingMetrics>,
     /// hasDrift property.
@@ -782,88 +905,6 @@ pub struct ArimaModelInfo {
     pub time_series_ids: Option<Vec<String>>,
 }
 
-/// `FeatureValue` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FeatureValue {
-    /// categoricalValue property.
-    pub categorical_value: Option<CategoricalValue>,
-    /// featureColumn property.
-    pub feature_column: Option<String>,
-    /// numericalValue property.
-    pub numerical_value: Option<f64>,
-}
-
-/// `EncryptionConfiguration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionConfiguration {
-    /// kmsKeyName property.
-    pub kms_key_name: Option<String>,
-}
-
-/// `RankingMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RankingMetrics {
-    /// averageRank property.
-    pub average_rank: Option<f64>,
-    /// meanAveragePrecision property.
-    pub mean_average_precision: Option<f64>,
-    /// meanSquaredError property.
-    pub mean_squared_error: Option<f64>,
-    /// normalizedDiscountedCumulativeGain property.
-    pub normalized_discounted_cumulative_gain: Option<f64>,
-}
-
-/// `CategoryCount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CategoryCount {
-    /// category property.
-    pub category: Option<String>,
-    /// count property.
-    pub count: Option<String>,
-}
-
-/// `Entry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Entry {
-    /// itemCount property.
-    pub item_count: Option<String>,
-    /// predictedLabel property.
-    pub predicted_label: Option<String>,
-}
-
-/// `IntArrayHparamSearchSpace` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntArrayHparamSearchSpace {
-    /// candidates property.
-    pub candidates: Option<Vec<IntArray>>,
-}
-
-/// `RemoteModelInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemoteModelInfo {
-    /// connection property.
-    pub connection: Option<String>,
-    /// endpoint property.
-    pub endpoint: Option<String>,
-    /// maxBatchingRows property.
-    pub max_batching_rows: Option<String>,
-    /// remoteModelVersion property.
-    pub remote_model_version: Option<String>,
-    /// remoteServiceType property.
-    pub remote_service_type: Option<String>,
-    /// speechRecognizer property.
-    pub speech_recognizer: Option<String>,
-}
-
-/// `ConfusionMatrix` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConfusionMatrix {
-    /// confidenceThreshold property.
-    pub confidence_threshold: Option<f64>,
-    /// rows property.
-    pub rows: Option<Vec<Row>>,
-}
-
 /// `DoubleCandidates` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DoubleCandidates {
@@ -871,51 +912,11 @@ pub struct DoubleCandidates {
     pub candidates: Option<Vec<f64>>,
 }
 
-/// `TableReference` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TableReference {
-    /// datasetId property.
-    pub dataset_id: Option<String>,
-    /// projectId property.
-    pub project_id: Option<String>,
-    /// tableId property.
-    pub table_id: Option<String>,
-}
-
-/// `Explanation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Explanation {
-    /// attribution property.
-    pub attribution: Option<f64>,
-    /// featureName property.
-    pub feature_name: Option<String>,
-}
-
-/// `DoubleHparamSearchSpace` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DoubleHparamSearchSpace {
-    /// candidates property.
-    pub candidates: Option<DoubleCandidates>,
-    /// range property.
-    pub range: Option<DoubleRange>,
-}
-
 /// `IntArray` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntArray {
     /// elements property.
     pub elements: Option<Vec<String>>,
-}
-
-/// `ArimaFittingMetrics` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArimaFittingMetrics {
-    /// aic property.
-    pub aic: Option<f64>,
-    /// logLikelihood property.
-    pub log_likelihood: Option<f64>,
-    /// variance property.
-    pub variance: Option<f64>,
 }
 
 // =============================================================================

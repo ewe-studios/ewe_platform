@@ -12,17 +12,54 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `InputParameter` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InputParameter {
+    /// additionalDetails property.
+    pub additional_details: Option<serde_json::Value>,
+    /// dataType property.
+    pub data_type: Option<String>,
+    /// defaultValue property.
+    pub default_value: Option<serde_json::Value>,
+    /// description property.
+    pub description: Option<String>,
+    /// jsonSchema property.
+    pub json_schema: Option<Box<JsonSchema>>,
+    /// name property.
+    pub name: Option<String>,
+    /// nullable property.
+    pub nullable: Option<bool>,
+}
+
+/// `ResultMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResultMetadata {
+    /// dataType property.
+    pub data_type: Option<String>,
+    /// defaultValue property.
+    pub default_value: Option<serde_json::Value>,
+    /// description property.
+    pub description: Option<String>,
+    /// jsonSchema property.
+    pub json_schema: Option<Box<JsonSchema>>,
+    /// name property.
+    pub name: Option<String>,
+    /// nullable property.
+    pub nullable: Option<bool>,
+}
 
 /// `Action` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -32,7 +69,7 @@ pub struct Action {
     /// displayName property.
     pub display_name: Option<String>,
     /// inputJsonSchema property.
-    pub input_json_schema: Option<JsonSchema>,
+    pub input_json_schema: Option<Box<JsonSchema>>,
     /// inputParameters property.
     pub input_parameters: Option<Vec<InputParameter>>,
     /// metadata property.
@@ -40,7 +77,7 @@ pub struct Action {
     /// name property.
     pub name: Option<String>,
     /// resultJsonSchema property.
-    pub result_json_schema: Option<JsonSchema>,
+    pub result_json_schema: Option<Box<JsonSchema>>,
     /// resultMetadata property.
     pub result_metadata: Option<Vec<ResultMetadata>>,
 }
@@ -63,7 +100,7 @@ pub struct JsonSchema {
     /// format property.
     pub format: Option<String>,
     /// items property.
-    pub items: Option<JsonSchema>,
+    pub items: Option<Box<JsonSchema>>,
     /// jdbcType property.
     pub jdbc_type: Option<String>,
     /// maxItems property.
@@ -90,23 +127,13 @@ pub struct JsonSchema {
     pub unique_items: Option<bool>,
 }
 
-/// `InputParameter` type.
+/// `ExecuteActionResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InputParameter {
-    /// additionalDetails property.
-    pub additional_details: Option<serde_json::Value>,
-    /// dataType property.
-    pub data_type: Option<String>,
-    /// defaultValue property.
-    pub default_value: Option<serde_json::Value>,
-    /// description property.
-    pub description: Option<String>,
-    /// jsonSchema property.
-    pub json_schema: Option<JsonSchema>,
-    /// name property.
-    pub name: Option<String>,
-    /// nullable property.
-    pub nullable: Option<bool>,
+pub struct ExecuteActionResponse {
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+    /// results property.
+    pub results: Option<Vec<serde_json::Value>>,
 }
 
 /// `ListActionsResponse` type.
@@ -120,32 +147,6 @@ pub struct ListActionsResponse {
     pub next_page_token: Option<String>,
     /// unsupportedActionNames property.
     pub unsupported_action_names: Option<Vec<String>>,
-}
-
-/// `ExecuteActionResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExecuteActionResponse {
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-    /// results property.
-    pub results: Option<Vec<serde_json::Value>>,
-}
-
-/// `ResultMetadata` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResultMetadata {
-    /// dataType property.
-    pub data_type: Option<String>,
-    /// defaultValue property.
-    pub default_value: Option<serde_json::Value>,
-    /// description property.
-    pub description: Option<String>,
-    /// jsonSchema property.
-    pub json_schema: Option<JsonSchema>,
-    /// name property.
-    pub name: Option<String>,
-    /// nullable property.
-    pub nullable: Option<bool>,
 }
 
 // =============================================================================

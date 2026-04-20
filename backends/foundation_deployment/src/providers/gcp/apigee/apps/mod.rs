@@ -12,17 +12,43 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `GoogleCloudApigeeV1ListAppGroupAppsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ListAppGroupAppsResponse {
+    /// appGroupApps property.
+    pub app_group_apps: Option<Vec<GoogleCloudApigeeV1AppGroupApp>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+}
+
+/// `GoogleCloudApigeeV1ListDeveloperAppsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ListDeveloperAppsResponse {
+    /// app property.
+    pub app: Option<Vec<GoogleCloudApigeeV1DeveloperApp>>,
+}
+
+/// `GoogleCloudApigeeV1Attribute` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1Attribute {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
 
 /// `GoogleCloudApigeeV1Credential` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -147,31 +173,6 @@ pub struct GoogleCloudApigeeV1App {
     pub scopes: Option<Vec<String>>,
     /// status property.
     pub status: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1Attribute` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1Attribute {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `GoogleCloudApigeeV1ListDeveloperAppsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ListDeveloperAppsResponse {
-    /// app property.
-    pub app: Option<Vec<GoogleCloudApigeeV1DeveloperApp>>,
-}
-
-/// `GoogleCloudApigeeV1ListAppGroupAppsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ListAppGroupAppsResponse {
-    /// appGroupApps property.
-    pub app_group_apps: Option<Vec<GoogleCloudApigeeV1AppGroupApp>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
 }
 
 /// `GoogleCloudApigeeV1ListAppsResponse` type.

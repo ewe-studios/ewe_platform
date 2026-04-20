@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,30 +22,11 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `GoogleCloudContentwarehouseV1DocumentLink` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1DocumentLink {
-    /// createTime property.
-    pub create_time: Option<String>,
-    /// description property.
-    pub description: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// sourceDocumentReference property.
-    pub source_document_reference: Option<GoogleCloudContentwarehouseV1DocumentReference>,
-    /// state property.
-    pub state: Option<String>,
-    /// targetDocumentReference property.
-    pub target_document_reference: Option<GoogleCloudContentwarehouseV1DocumentReference>,
-    /// updateTime property.
-    pub update_time: Option<String>,
-}
 
 /// `GoogleCloudContentwarehouseV1DocumentReference` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -65,6 +47,25 @@ pub struct GoogleCloudContentwarehouseV1DocumentReference {
     pub document_name: Option<String>,
     /// snippet property.
     pub snippet: Option<String>,
+    /// updateTime property.
+    pub update_time: Option<String>,
+}
+
+/// `GoogleCloudContentwarehouseV1DocumentLink` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1DocumentLink {
+    /// createTime property.
+    pub create_time: Option<String>,
+    /// description property.
+    pub description: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// sourceDocumentReference property.
+    pub source_document_reference: Option<GoogleCloudContentwarehouseV1DocumentReference>,
+    /// state property.
+    pub state: Option<String>,
+    /// targetDocumentReference property.
+    pub target_document_reference: Option<GoogleCloudContentwarehouseV1DocumentReference>,
     /// updateTime property.
     pub update_time: Option<String>,
 }

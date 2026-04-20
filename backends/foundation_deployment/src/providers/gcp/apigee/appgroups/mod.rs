@@ -12,13 +12,14 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -51,6 +52,15 @@ pub struct GoogleCloudApigeeV1AppGroup {
     pub status: Option<String>,
 }
 
+/// `GoogleCloudApigeeV1Attribute` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1Attribute {
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
 /// `GoogleCloudApigeeV1ListAppGroupsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListAppGroupsResponse {
@@ -60,15 +70,6 @@ pub struct GoogleCloudApigeeV1ListAppGroupsResponse {
     pub next_page_token: Option<String>,
     /// totalSize property.
     pub total_size: Option<i64>,
-}
-
-/// `GoogleCloudApigeeV1Attribute` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1Attribute {
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<String>,
 }
 
 // =============================================================================

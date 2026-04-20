@@ -12,25 +12,48 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `CustomerListCustomersResponse` type.
+/// `ListVendorCustomersResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CustomerListCustomersResponse {
+pub struct ListVendorCustomersResponse {
     /// customers property.
     pub customers: Option<Vec<Company>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
+    /// totalSize property.
+    pub total_size: Option<i64>,
+}
+
+/// `ListCustomersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListCustomersResponse {
+    /// customers property.
+    pub customers: Option<Vec<Company>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// totalSize property.
+    pub total_size: Option<i64>,
+}
+
+/// `GoogleWorkspaceAccount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleWorkspaceAccount {
+    /// customerId property.
+    pub customer_id: Option<String>,
+    /// preProvisioningTokens property.
+    pub pre_provisioning_tokens: Option<Vec<String>>,
 }
 
 /// `Company` type.
@@ -56,35 +79,13 @@ pub struct Company {
     pub terms_status: Option<String>,
 }
 
-/// `ListCustomersResponse` type.
+/// `CustomerListCustomersResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCustomersResponse {
+pub struct CustomerListCustomersResponse {
     /// customers property.
     pub customers: Option<Vec<Company>>,
     /// nextPageToken property.
     pub next_page_token: Option<String>,
-    /// totalSize property.
-    pub total_size: Option<i64>,
-}
-
-/// `ListVendorCustomersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListVendorCustomersResponse {
-    /// customers property.
-    pub customers: Option<Vec<Company>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// totalSize property.
-    pub total_size: Option<i64>,
-}
-
-/// `GoogleWorkspaceAccount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleWorkspaceAccount {
-    /// customerId property.
-    pub customer_id: Option<String>,
-    /// preProvisioningTokens property.
-    pub pre_provisioning_tokens: Option<Vec<String>>,
 }
 
 // =============================================================================

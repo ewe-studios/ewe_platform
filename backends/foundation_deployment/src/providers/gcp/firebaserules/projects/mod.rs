@@ -12,32 +12,33 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `FunctionCall` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FunctionCall {
+    /// args property.
+    pub args: Option<Vec<serde_json::Value>>,
+    /// function property.
+    pub function: Option<String>,
+}
 
 /// `ValueCount` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValueCount {
     /// count property.
     pub count: Option<i64>,
-    /// value property.
-    pub value: Option<serde_json::Value>,
-}
-
-/// `VisitedExpression` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VisitedExpression {
-    /// sourcePosition property.
-    pub source_position: Option<SourcePosition>,
     /// value property.
     pub value: Option<serde_json::Value>,
 }
@@ -49,15 +50,6 @@ pub struct TestRulesetResponse {
     pub issues: Option<Vec<Issue>>,
     /// testResults property.
     pub test_results: Option<Vec<TestResult>>,
-}
-
-/// `FunctionCall` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FunctionCall {
-    /// args property.
-    pub args: Option<Vec<serde_json::Value>>,
-    /// function property.
-    pub function: Option<String>,
 }
 
 /// `Issue` type.
@@ -79,7 +71,7 @@ pub struct TestResult {
     /// errorPosition property.
     pub error_position: Option<SourcePosition>,
     /// expressionReports property.
-    pub expression_reports: Option<Vec<ExpressionReport>>,
+    pub expression_reports: Option<Vec<Box<ExpressionReport>>>,
     /// functionCalls property.
     pub function_calls: Option<Vec<FunctionCall>>,
     /// state property.
@@ -92,7 +84,7 @@ pub struct TestResult {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExpressionReport {
     /// children property.
-    pub children: Option<Vec<ExpressionReport>>,
+    pub children: Option<Vec<Box<ExpressionReport>>>,
     /// sourcePosition property.
     pub source_position: Option<SourcePosition>,
     /// values property.
@@ -112,6 +104,15 @@ pub struct SourcePosition {
     pub file_name: Option<String>,
     /// line property.
     pub line: Option<i64>,
+}
+
+/// `VisitedExpression` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VisitedExpression {
+    /// sourcePosition property.
+    pub source_position: Option<SourcePosition>,
+    /// value property.
+    pub value: Option<serde_json::Value>,
 }
 
 // =============================================================================

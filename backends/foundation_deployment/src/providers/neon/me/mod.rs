@@ -12,6 +12,7 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -23,29 +24,6 @@ use super::shared::ApiResponse;
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `PaymentSource` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentSource {
-    /// card property.
-    pub card: Option<PaymentSourceBankCard>,
-    /// type property.
-    pub r#type: String,
-}
-
-/// `BillingAccountState` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BillingAccountState {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `BillingSubscriptionType` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BillingSubscriptionType {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
 
 /// `PaymentSourceBankCard` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -60,66 +38,20 @@ pub struct PaymentSourceBankCard {
     pub last4: String,
 }
 
-/// `IdentityProviderId` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdentityProviderId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CurrentUserInfoResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CurrentUserInfoResponse {
-    /// active_seconds_limit property.
-    pub active_seconds_limit: i64,
-    /// auth_accounts property.
-    pub auth_accounts: Vec<CurrentUserAuthAccount>,
-    /// billing_account property.
-    pub billing_account: Option<BillingAccount>,
-    /// branches_limit property.
-    pub branches_limit: i64,
-    /// compute_seconds_limit property.
-    pub compute_seconds_limit: Option<i64>,
-    /// email property.
-    pub email: String,
-    /// id property.
-    pub id: String,
-    /// image property.
-    pub image: String,
-    /// last_name property.
-    pub last_name: String,
-    /// login property.
-    pub login: String,
-    /// max_autoscaling_limit property.
-    pub max_autoscaling_limit: f64,
-    /// name property.
-    pub name: String,
-    /// plan property.
-    pub plan: String,
-    /// projects_limit property.
-    pub projects_limit: i64,
-}
-
-/// `CurrentUserAuthAccount` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CurrentUserAuthAccount {
-    /// email property.
-    pub email: String,
-    /// image property.
-    pub image: String,
-    /// login property.
-    pub login: String,
-    /// name property.
-    pub name: String,
-    /// provider property.
-    pub provider: IdentityProviderId,
-}
-
 /// `BillingPaymentMethod` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingPaymentMethod {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `PaymentSource` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentSource {
+    /// card property.
+    pub card: Option<PaymentSourceBankCard>,
+    /// type property.
+    pub r#type: String,
 }
 
 /// `BillingAccount` type.
@@ -163,6 +95,13 @@ pub struct BillingAccount {
     pub tax_id_type: Option<String>,
 }
 
+/// `BillingSubscriptionType` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BillingSubscriptionType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `PlanVersion` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlanVersion {
@@ -172,6 +111,13 @@ pub struct PlanVersion {
     pub minor: i64,
 }
 
+/// `IdentityProviderId` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IdentityProviderId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `PlanDetails` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlanDetails {
@@ -179,6 +125,61 @@ pub struct PlanDetails {
     pub name: String,
     /// version property.
     pub version: Option<PlanVersion>,
+}
+
+/// `CurrentUserInfoResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CurrentUserInfoResponse {
+    /// active_seconds_limit property.
+    pub active_seconds_limit: i64,
+    /// auth_accounts property.
+    pub auth_accounts: Vec<CurrentUserAuthAccount>,
+    /// billing_account property.
+    pub billing_account: Option<BillingAccount>,
+    /// branches_limit property.
+    pub branches_limit: i64,
+    /// compute_seconds_limit property.
+    pub compute_seconds_limit: Option<i64>,
+    /// email property.
+    pub email: String,
+    /// id property.
+    pub id: String,
+    /// image property.
+    pub image: String,
+    /// last_name property.
+    pub last_name: String,
+    /// login property.
+    pub login: String,
+    /// max_autoscaling_limit property.
+    pub max_autoscaling_limit: f64,
+    /// name property.
+    pub name: String,
+    /// plan property.
+    pub plan: String,
+    /// projects_limit property.
+    pub projects_limit: i64,
+}
+
+/// `BillingAccountState` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BillingAccountState {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CurrentUserAuthAccount` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CurrentUserAuthAccount {
+    /// email property.
+    pub email: String,
+    /// image property.
+    pub image: String,
+    /// login property.
+    pub login: String,
+    /// name property.
+    pub name: String,
+    /// provider property.
+    pub provider: IdentityProviderId,
 }
 
 // =============================================================================

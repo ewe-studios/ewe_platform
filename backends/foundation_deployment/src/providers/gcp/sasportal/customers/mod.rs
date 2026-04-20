@@ -12,26 +12,18 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `SasPortalListCustomersResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalListCustomersResponse {
-    /// customers property.
-    pub customers: Option<Vec<SasPortalCustomer>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-}
 
 /// `SasPortalCustomer` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -42,6 +34,15 @@ pub struct SasPortalCustomer {
     pub name: Option<String>,
     /// sasUserIds property.
     pub sas_user_ids: Option<Vec<String>>,
+}
+
+/// `SasPortalListCustomersResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SasPortalListCustomersResponse {
+    /// customers property.
+    pub customers: Option<Vec<SasPortalCustomer>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
 }
 
 // =============================================================================

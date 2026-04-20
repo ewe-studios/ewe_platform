@@ -12,17 +12,38 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `TeamDriveList` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TeamDriveList {
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// teamDrives property.
+    pub team_drives: Option<Vec<TeamDrive>>,
+}
+
+/// `DownloadRestriction` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DownloadRestriction {
+    /// restrictedForReaders property.
+    pub restricted_for_readers: Option<bool>,
+    /// restrictedForWriters property.
+    pub restricted_for_writers: Option<bool>,
+}
 
 /// `TeamDrive` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,26 +70,6 @@ pub struct TeamDrive {
     pub restrictions: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// themeId property.
     pub theme_id: Option<String>,
-}
-
-/// `TeamDriveList` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TeamDriveList {
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// teamDrives property.
-    pub team_drives: Option<Vec<TeamDrive>>,
-}
-
-/// `DownloadRestriction` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DownloadRestriction {
-    /// restrictedForReaders property.
-    pub restricted_for_readers: Option<bool>,
-    /// restrictedForWriters property.
-    pub restricted_for_writers: Option<bool>,
 }
 
 // =============================================================================

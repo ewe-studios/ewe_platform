@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,21 +22,19 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListAclPoliciesResponse` type.
+/// `AclRule` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAclPoliciesResponse {
-    /// aclPolicies property.
-    pub acl_policies: Option<Vec<AclPolicy>>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// unreachable property.
-    pub unreachable: Option<Vec<String>>,
+pub struct AclRule {
+    /// rule property.
+    pub rule: Option<String>,
+    /// username property.
+    pub username: Option<String>,
 }
 
 /// `Status` type.
@@ -49,13 +48,15 @@ pub struct Status {
     pub message: Option<String>,
 }
 
-/// `AclRule` type.
+/// `ListAclPoliciesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AclRule {
-    /// rule property.
-    pub rule: Option<String>,
-    /// username property.
-    pub username: Option<String>,
+pub struct ListAclPoliciesResponse {
+    /// aclPolicies property.
+    pub acl_policies: Option<Vec<AclPolicy>>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// unreachable property.
+    pub unreachable: Option<Vec<String>>,
 }
 
 /// `AclPolicy` type.

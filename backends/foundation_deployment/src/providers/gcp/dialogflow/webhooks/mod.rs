@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,19 +22,44 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::GoogleProtobufEmpty;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GoogleCloudDialogflowCxV3ListWebhooksResponse` type.
+/// `GoogleCloudDialogflowCxV3WebhookGenericWebService` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ListWebhooksResponse {
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// webhooks property.
-    pub webhooks: Option<Vec<GoogleCloudDialogflowCxV3Webhook>>,
+pub struct GoogleCloudDialogflowCxV3WebhookGenericWebService {
+    /// allowedCaCerts property.
+    pub allowed_ca_certs: Option<Vec<String>>,
+    /// httpMethod property.
+    pub http_method: Option<String>,
+    /// oauthConfig property.
+    pub oauth_config: Option<GoogleCloudDialogflowCxV3WebhookGenericWebServiceOAuthConfig>,
+    /// parameterMapping property.
+    pub parameter_mapping: Option<serde_json::Value>,
+    /// password property.
+    pub password: Option<String>,
+    /// requestBody property.
+    pub request_body: Option<String>,
+    /// requestHeaders property.
+    pub request_headers: Option<serde_json::Value>,
+    /// secretVersionForUsernamePassword property.
+    pub secret_version_for_username_password: Option<String>,
+    /// secretVersionsForRequestHeaders property.
+    pub secret_versions_for_request_headers: Option<serde_json::Value>,
+    /// serviceAccountAuthConfig property.
+    pub service_account_auth_config:
+        Option<GoogleCloudDialogflowCxV3WebhookGenericWebServiceServiceAccountAuthConfig>,
+    /// serviceAgentAuth property.
+    pub service_agent_auth: Option<String>,
+    /// uri property.
+    pub uri: Option<String>,
+    /// username property.
+    pub username: Option<String>,
+    /// webhookType property.
+    pub webhook_type: Option<String>,
 }
 
 /// `GoogleCloudDialogflowCxV3Webhook` type.
@@ -68,6 +94,15 @@ pub struct GoogleCloudDialogflowCxV3WebhookGenericWebServiceOAuthConfig {
     pub token_endpoint: Option<String>,
 }
 
+/// `GoogleCloudDialogflowCxV3ListWebhooksResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ListWebhooksResponse {
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// webhooks property.
+    pub webhooks: Option<Vec<GoogleCloudDialogflowCxV3Webhook>>,
+}
+
 /// `GoogleCloudDialogflowCxV3WebhookServiceDirectoryConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDialogflowCxV3WebhookServiceDirectoryConfig {
@@ -75,40 +110,6 @@ pub struct GoogleCloudDialogflowCxV3WebhookServiceDirectoryConfig {
     pub generic_web_service: Option<GoogleCloudDialogflowCxV3WebhookGenericWebService>,
     /// service property.
     pub service: Option<String>,
-}
-
-/// `GoogleCloudDialogflowCxV3WebhookGenericWebService` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3WebhookGenericWebService {
-    /// allowedCaCerts property.
-    pub allowed_ca_certs: Option<Vec<String>>,
-    /// httpMethod property.
-    pub http_method: Option<String>,
-    /// oauthConfig property.
-    pub oauth_config: Option<GoogleCloudDialogflowCxV3WebhookGenericWebServiceOAuthConfig>,
-    /// parameterMapping property.
-    pub parameter_mapping: Option<serde_json::Value>,
-    /// password property.
-    pub password: Option<String>,
-    /// requestBody property.
-    pub request_body: Option<String>,
-    /// requestHeaders property.
-    pub request_headers: Option<serde_json::Value>,
-    /// secretVersionForUsernamePassword property.
-    pub secret_version_for_username_password: Option<String>,
-    /// secretVersionsForRequestHeaders property.
-    pub secret_versions_for_request_headers: Option<serde_json::Value>,
-    /// serviceAccountAuthConfig property.
-    pub service_account_auth_config:
-        Option<GoogleCloudDialogflowCxV3WebhookGenericWebServiceServiceAccountAuthConfig>,
-    /// serviceAgentAuth property.
-    pub service_agent_auth: Option<String>,
-    /// uri property.
-    pub uri: Option<String>,
-    /// username property.
-    pub username: Option<String>,
-    /// webhookType property.
-    pub webhook_type: Option<String>,
 }
 
 /// `GoogleCloudDialogflowCxV3WebhookGenericWebServiceServiceAccountAuthConfig` type.

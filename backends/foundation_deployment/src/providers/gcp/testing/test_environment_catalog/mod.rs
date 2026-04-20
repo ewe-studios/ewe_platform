@@ -12,17 +12,154 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `NetworkConfiguration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkConfiguration {
+    /// downRule property.
+    pub down_rule: Option<TrafficRule>,
+    /// id property.
+    pub id: Option<String>,
+    /// upRule property.
+    pub up_rule: Option<TrafficRule>,
+}
+
+/// `TestEnvironmentCatalog` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TestEnvironmentCatalog {
+    /// androidDeviceCatalog property.
+    pub android_device_catalog: Option<AndroidDeviceCatalog>,
+    /// deviceIpBlockCatalog property.
+    pub device_ip_block_catalog: Option<DeviceIpBlockCatalog>,
+    /// iosDeviceCatalog property.
+    pub ios_device_catalog: Option<IosDeviceCatalog>,
+    /// networkConfigurationCatalog property.
+    pub network_configuration_catalog: Option<NetworkConfigurationCatalog>,
+    /// softwareCatalog property.
+    pub software_catalog: Option<ProvidedSoftwareCatalog>,
+}
+
+/// `ProvidedSoftwareCatalog` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProvidedSoftwareCatalog {
+    /// androidxOrchestratorVersion property.
+    pub androidx_orchestrator_version: Option<String>,
+    /// orchestratorVersion property.
+    pub orchestrator_version: Option<String>,
+}
+
+/// `Distribution` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Distribution {
+    /// marketShare property.
+    pub market_share: Option<f64>,
+    /// measurementTime property.
+    pub measurement_time: Option<String>,
+}
+
+/// `PerAndroidVersionInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PerAndroidVersionInfo {
+    /// deviceCapacity property.
+    pub device_capacity: Option<String>,
+    /// directAccessVersionInfo property.
+    pub direct_access_version_info: Option<DirectAccessVersionInfo>,
+    /// interactiveDeviceAvailabilityEstimate property.
+    pub interactive_device_availability_estimate: Option<String>,
+    /// versionId property.
+    pub version_id: Option<String>,
+}
+
+/// `Orientation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Orientation {
+    /// id property.
+    pub id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// tags property.
+    pub tags: Option<Vec<String>>,
+}
+
+/// `TrafficRule` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TrafficRule {
+    /// bandwidth property.
+    pub bandwidth: Option<f64>,
+    /// burst property.
+    pub burst: Option<f64>,
+    /// delay property.
+    pub delay: Option<String>,
+    /// packetDuplicationRatio property.
+    pub packet_duplication_ratio: Option<f64>,
+    /// packetLossRatio property.
+    pub packet_loss_ratio: Option<f64>,
+}
+
+/// `DeviceIpBlock` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceIpBlock {
+    /// addedDate property.
+    pub added_date: Option<Date>,
+    /// block property.
+    pub block: Option<String>,
+    /// form property.
+    pub form: Option<String>,
+}
+
+/// `IosVersion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IosVersion {
+    /// id property.
+    pub id: Option<String>,
+    /// majorVersion property.
+    pub major_version: Option<i64>,
+    /// minorVersion property.
+    pub minor_version: Option<i64>,
+    /// supportedXcodeVersionIds property.
+    pub supported_xcode_version_ids: Option<Vec<String>>,
+    /// tags property.
+    pub tags: Option<Vec<String>>,
+}
+
+/// `IosRuntimeConfiguration` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IosRuntimeConfiguration {
+    /// locales property.
+    pub locales: Option<Vec<Locale>>,
+    /// orientations property.
+    pub orientations: Option<Vec<Orientation>>,
+}
+
+/// `AndroidDeviceCatalog` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AndroidDeviceCatalog {
+    /// models property.
+    pub models: Option<Vec<AndroidModel>>,
+    /// runtimeConfiguration property.
+    pub runtime_configuration: Option<AndroidRuntimeConfiguration>,
+    /// versions property.
+    pub versions: Option<Vec<AndroidVersion>>,
+}
+
+/// `DeviceIpBlockCatalog` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeviceIpBlockCatalog {
+    /// ipBlocks property.
+    pub ip_blocks: Option<Vec<DeviceIpBlock>>,
+}
 
 /// `AndroidModel` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -65,49 +202,86 @@ pub struct AndroidModel {
     pub thumbnail_url: Option<String>,
 }
 
-/// `TrafficRule` type.
+/// `Date` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TrafficRule {
-    /// bandwidth property.
-    pub bandwidth: Option<f64>,
-    /// burst property.
-    pub burst: Option<f64>,
-    /// delay property.
-    pub delay: Option<String>,
-    /// packetDuplicationRatio property.
-    pub packet_duplication_ratio: Option<f64>,
-    /// packetLossRatio property.
-    pub packet_loss_ratio: Option<f64>,
+pub struct Date {
+    /// day property.
+    pub day: Option<i64>,
+    /// month property.
+    pub month: Option<i64>,
+    /// year property.
+    pub year: Option<i64>,
 }
 
-/// `TestEnvironmentCatalog` type.
+/// `AndroidRuntimeConfiguration` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestEnvironmentCatalog {
-    /// androidDeviceCatalog property.
-    pub android_device_catalog: Option<AndroidDeviceCatalog>,
-    /// deviceIpBlockCatalog property.
-    pub device_ip_block_catalog: Option<DeviceIpBlockCatalog>,
-    /// iosDeviceCatalog property.
-    pub ios_device_catalog: Option<IosDeviceCatalog>,
-    /// networkConfigurationCatalog property.
-    pub network_configuration_catalog: Option<NetworkConfigurationCatalog>,
-    /// softwareCatalog property.
-    pub software_catalog: Option<ProvidedSoftwareCatalog>,
+pub struct AndroidRuntimeConfiguration {
+    /// locales property.
+    pub locales: Option<Vec<Locale>>,
+    /// orientations property.
+    pub orientations: Option<Vec<Orientation>>,
 }
 
-/// `IosVersion` type.
+/// `LabInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IosVersion {
+pub struct LabInfo {
+    /// name property.
+    pub name: Option<String>,
+    /// regionCode property.
+    pub region_code: Option<String>,
+}
+
+/// `AndroidVersion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AndroidVersion {
+    /// apiLevel property.
+    pub api_level: Option<i64>,
+    /// codeName property.
+    pub code_name: Option<String>,
+    /// distribution property.
+    pub distribution: Option<Distribution>,
     /// id property.
     pub id: Option<String>,
-    /// majorVersion property.
-    pub major_version: Option<i64>,
-    /// minorVersion property.
-    pub minor_version: Option<i64>,
-    /// supportedXcodeVersionIds property.
-    pub supported_xcode_version_ids: Option<Vec<String>>,
+    /// releaseDate property.
+    pub release_date: Option<Date>,
     /// tags property.
     pub tags: Option<Vec<String>>,
+    /// versionString property.
+    pub version_string: Option<String>,
+}
+
+/// `NetworkConfigurationCatalog` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NetworkConfigurationCatalog {
+    /// configurations property.
+    pub configurations: Option<Vec<NetworkConfiguration>>,
+}
+
+/// `PerIosVersionInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PerIosVersionInfo {
+    /// deviceCapacity property.
+    pub device_capacity: Option<String>,
+    /// versionId property.
+    pub version_id: Option<String>,
+}
+
+/// `XcodeVersion` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct XcodeVersion {
+    /// tags property.
+    pub tags: Option<Vec<String>>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `DirectAccessVersionInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DirectAccessVersionInfo {
+    /// directAccessSupported property.
+    pub direct_access_supported: Option<bool>,
+    /// minimumAndroidStudioVersion property.
+    pub minimum_android_studio_version: Option<String>,
 }
 
 /// `Locale` type.
@@ -121,64 +295,6 @@ pub struct Locale {
     pub region: Option<String>,
     /// tags property.
     pub tags: Option<Vec<String>>,
-}
-
-/// `LabInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LabInfo {
-    /// name property.
-    pub name: Option<String>,
-    /// regionCode property.
-    pub region_code: Option<String>,
-}
-
-/// `AndroidRuntimeConfiguration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AndroidRuntimeConfiguration {
-    /// locales property.
-    pub locales: Option<Vec<Locale>>,
-    /// orientations property.
-    pub orientations: Option<Vec<Orientation>>,
-}
-
-/// `DirectAccessVersionInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DirectAccessVersionInfo {
-    /// directAccessSupported property.
-    pub direct_access_supported: Option<bool>,
-    /// minimumAndroidStudioVersion property.
-    pub minimum_android_studio_version: Option<String>,
-}
-
-/// `AndroidDeviceCatalog` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AndroidDeviceCatalog {
-    /// models property.
-    pub models: Option<Vec<AndroidModel>>,
-    /// runtimeConfiguration property.
-    pub runtime_configuration: Option<AndroidRuntimeConfiguration>,
-    /// versions property.
-    pub versions: Option<Vec<AndroidVersion>>,
-}
-
-/// `PerIosVersionInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PerIosVersionInfo {
-    /// deviceCapacity property.
-    pub device_capacity: Option<String>,
-    /// versionId property.
-    pub version_id: Option<String>,
-}
-
-/// `DeviceIpBlock` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceIpBlock {
-    /// addedDate property.
-    pub added_date: Option<Date>,
-    /// block property.
-    pub block: Option<String>,
-    /// form property.
-    pub form: Option<String>,
 }
 
 /// `IosModel` type.
@@ -206,105 +322,6 @@ pub struct IosModel {
     pub tags: Option<Vec<String>>,
 }
 
-/// `DeviceIpBlockCatalog` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceIpBlockCatalog {
-    /// ipBlocks property.
-    pub ip_blocks: Option<Vec<DeviceIpBlock>>,
-}
-
-/// `Orientation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Orientation {
-    /// id property.
-    pub id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// tags property.
-    pub tags: Option<Vec<String>>,
-}
-
-/// `Date` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Date {
-    /// day property.
-    pub day: Option<i64>,
-    /// month property.
-    pub month: Option<i64>,
-    /// year property.
-    pub year: Option<i64>,
-}
-
-/// `Distribution` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Distribution {
-    /// marketShare property.
-    pub market_share: Option<f64>,
-    /// measurementTime property.
-    pub measurement_time: Option<String>,
-}
-
-/// `PerAndroidVersionInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PerAndroidVersionInfo {
-    /// deviceCapacity property.
-    pub device_capacity: Option<String>,
-    /// directAccessVersionInfo property.
-    pub direct_access_version_info: Option<DirectAccessVersionInfo>,
-    /// interactiveDeviceAvailabilityEstimate property.
-    pub interactive_device_availability_estimate: Option<String>,
-    /// versionId property.
-    pub version_id: Option<String>,
-}
-
-/// `NetworkConfiguration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkConfiguration {
-    /// downRule property.
-    pub down_rule: Option<TrafficRule>,
-    /// id property.
-    pub id: Option<String>,
-    /// upRule property.
-    pub up_rule: Option<TrafficRule>,
-}
-
-/// `AndroidVersion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AndroidVersion {
-    /// apiLevel property.
-    pub api_level: Option<i64>,
-    /// codeName property.
-    pub code_name: Option<String>,
-    /// distribution property.
-    pub distribution: Option<Distribution>,
-    /// id property.
-    pub id: Option<String>,
-    /// releaseDate property.
-    pub release_date: Option<Date>,
-    /// tags property.
-    pub tags: Option<Vec<String>>,
-    /// versionString property.
-    pub version_string: Option<String>,
-}
-
-/// `XcodeVersion` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct XcodeVersion {
-    /// tags property.
-    pub tags: Option<Vec<String>>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `ProvidedSoftwareCatalog` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProvidedSoftwareCatalog {
-    /// androidxOrchestratorVersion property.
-    pub androidx_orchestrator_version: Option<String>,
-    /// orchestratorVersion property.
-    pub orchestrator_version: Option<String>,
-}
-
 /// `IosDeviceCatalog` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosDeviceCatalog {
@@ -316,22 +333,6 @@ pub struct IosDeviceCatalog {
     pub versions: Option<Vec<IosVersion>>,
     /// xcodeVersions property.
     pub xcode_versions: Option<Vec<XcodeVersion>>,
-}
-
-/// `NetworkConfigurationCatalog` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NetworkConfigurationCatalog {
-    /// configurations property.
-    pub configurations: Option<Vec<NetworkConfiguration>>,
-}
-
-/// `IosRuntimeConfiguration` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IosRuntimeConfiguration {
-    /// locales property.
-    pub locales: Option<Vec<Locale>>,
-    /// orientations property.
-    pub orientations: Option<Vec<Orientation>>,
 }
 
 // =============================================================================

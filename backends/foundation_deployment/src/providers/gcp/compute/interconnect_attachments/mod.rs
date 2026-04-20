@@ -12,8 +12,9 @@
     clippy::doc_markdown,
     clippy::useless_format
 )]
+#![allow(unused_imports)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -21,24 +22,36 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::Operation;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `InterconnectAttachmentL2ForwardingGeneveHeader` type.
+/// `InterconnectAttachmentAggregatedList` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachmentL2ForwardingGeneveHeader {
-    /// vni property.
-    pub vni: Option<i64>,
+pub struct InterconnectAttachmentAggregatedList {
+    /// id property.
+    pub id: Option<String>,
+    /// items property.
+    pub items: Option<serde_json::Value>,
+    /// kind property.
+    pub kind: Option<String>,
+    /// nextPageToken property.
+    pub next_page_token: Option<String>,
+    /// selfLink property.
+    pub self_link: Option<String>,
+    /// unreachables property.
+    pub unreachables: Option<Vec<String>>,
+    /// warning property.
+    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `InstancesBulkInsertOperationMetadata` type.
+/// `InterconnectAttachmentParams` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// perLocationStatus property.
-    pub per_location_status: Option<serde_json::Value>,
+pub struct InterconnectAttachmentParams {
+    /// resourceManagerTags property.
+    pub resource_manager_tags: Option<serde_json::Value>,
 }
 
 /// `InterconnectAttachmentConfigurationConstraints` type.
@@ -49,23 +62,6 @@ pub struct InterconnectAttachmentConfigurationConstraints {
     /// bgpPeerAsnRanges property.
     pub bgp_peer_asn_ranges:
         Option<Vec<InterconnectAttachmentConfigurationConstraintsBgpPeerASNRange>>,
-}
-
-/// `QuotaExceededInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct QuotaExceededInfo {
-    /// dimensions property.
-    pub dimensions: Option<serde_json::Value>,
-    /// futureLimit property.
-    pub future_limit: Option<f64>,
-    /// limit property.
-    pub limit: Option<f64>,
-    /// limitName property.
-    pub limit_name: Option<String>,
-    /// metricName property.
-    pub metric_name: Option<String>,
-    /// rolloutStatus property.
-    pub rollout_status: Option<String>,
 }
 
 /// `InterconnectAttachmentList` type.
@@ -85,37 +81,6 @@ pub struct InterconnectAttachmentList {
     pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `LocalizedMessage` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LocalizedMessage {
-    /// locale property.
-    pub locale: Option<String>,
-    /// message property.
-    pub message: Option<String>,
-}
-
-/// `InterconnectAttachmentPrivateInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachmentPrivateInfo {
-    /// tag8021q property.
-    pub tag8021q: Option<i64>,
-}
-
-/// `InterconnectAttachmentL2Forwarding` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachmentL2Forwarding {
-    /// applianceMappings property.
-    pub appliance_mappings: Option<serde_json::Value>,
-    /// defaultApplianceIpAddress property.
-    pub default_appliance_ip_address: Option<String>,
-    /// geneveHeader property.
-    pub geneve_header: Option<InterconnectAttachmentL2ForwardingGeneveHeader>,
-    /// network property.
-    pub network: Option<String>,
-    /// tunnelEndpointIpAddress property.
-    pub tunnel_endpoint_ip_address: Option<String>,
-}
-
 /// `InterconnectAttachmentPartnerMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentPartnerMetadata {
@@ -127,20 +92,20 @@ pub struct InterconnectAttachmentPartnerMetadata {
     pub portal_url: Option<String>,
 }
 
-/// `InterconnectAttachmentConfigurationConstraintsBgpPeerASNRange` type.
+/// `InterconnectAttachmentPrivateInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachmentConfigurationConstraintsBgpPeerASNRange {
-    /// max property.
-    pub max: Option<i64>,
-    /// min property.
-    pub min: Option<i64>,
+pub struct InterconnectAttachmentPrivateInfo {
+    /// tag8021q property.
+    pub tag8021q: Option<i64>,
 }
 
-/// `Help` type.
+/// `GetVersionOperationMetadataSbomInfo` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Help {
-    /// links property.
-    pub links: Option<Vec<HelpLink>>,
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// currentComponentVersions property.
+    pub current_component_versions: Option<serde_json::Value>,
+    /// targetComponentVersions property.
+    pub target_component_versions: Option<serde_json::Value>,
 }
 
 /// `InterconnectAttachment` type.
@@ -242,32 +207,11 @@ pub struct InterconnectAttachment {
     pub vlan_tag8021q: Option<i64>,
 }
 
-/// `InterconnectAttachmentAggregatedList` type.
+/// `Help` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachmentAggregatedList {
-    /// id property.
-    pub id: Option<String>,
-    /// items property.
-    pub items: Option<serde_json::Value>,
-    /// kind property.
-    pub kind: Option<String>,
-    /// nextPageToken property.
-    pub next_page_token: Option<String>,
-    /// selfLink property.
-    pub self_link: Option<String>,
-    /// unreachables property.
-    pub unreachables: Option<Vec<String>>,
-    /// warning property.
-    pub warning: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `GetVersionOperationMetadataSbomInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// currentComponentVersions property.
-    pub current_component_versions: Option<serde_json::Value>,
-    /// targetComponentVersions property.
-    pub target_component_versions: Option<serde_json::Value>,
+pub struct Help {
+    /// links property.
+    pub links: Option<Vec<HelpLink>>,
 }
 
 /// `HelpLink` type.
@@ -279,11 +223,20 @@ pub struct HelpLink {
     pub url: Option<String>,
 }
 
-/// `InterconnectAttachmentParams` type.
+/// `SetCommonInstanceMetadataOperationMetadata` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectAttachmentParams {
-    /// resourceManagerTags property.
-    pub resource_manager_tags: Option<serde_json::Value>,
+pub struct SetCommonInstanceMetadataOperationMetadata {
+    /// clientOperationId property.
+    pub client_operation_id: Option<String>,
+    /// perLocationOperations property.
+    pub per_location_operations: Option<serde_json::Value>,
+}
+
+/// `InterconnectAttachmentL2ForwardingGeneveHeader` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectAttachmentL2ForwardingGeneveHeader {
+    /// vni property.
+    pub vni: Option<i64>,
 }
 
 /// `ErrorInfo` type.
@@ -297,13 +250,44 @@ pub struct ErrorInfo {
     pub reason: Option<String>,
 }
 
-/// `SetCommonInstanceMetadataOperationMetadata` type.
+/// `InterconnectAttachmentL2Forwarding` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetCommonInstanceMetadataOperationMetadata {
-    /// clientOperationId property.
-    pub client_operation_id: Option<String>,
-    /// perLocationOperations property.
-    pub per_location_operations: Option<serde_json::Value>,
+pub struct InterconnectAttachmentL2Forwarding {
+    /// applianceMappings property.
+    pub appliance_mappings: Option<serde_json::Value>,
+    /// defaultApplianceIpAddress property.
+    pub default_appliance_ip_address: Option<String>,
+    /// geneveHeader property.
+    pub geneve_header: Option<InterconnectAttachmentL2ForwardingGeneveHeader>,
+    /// network property.
+    pub network: Option<String>,
+    /// tunnelEndpointIpAddress property.
+    pub tunnel_endpoint_ip_address: Option<String>,
+}
+
+/// `InterconnectAttachmentConfigurationConstraintsBgpPeerASNRange` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectAttachmentConfigurationConstraintsBgpPeerASNRange {
+    /// max property.
+    pub max: Option<i64>,
+    /// min property.
+    pub min: Option<i64>,
+}
+
+/// `InstancesBulkInsertOperationMetadata` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// perLocationStatus property.
+    pub per_location_status: Option<serde_json::Value>,
+}
+
+/// `LocalizedMessage` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LocalizedMessage {
+    /// locale property.
+    pub locale: Option<String>,
+    /// message property.
+    pub message: Option<String>,
 }
 
 /// `GetVersionOperationMetadata` type.
@@ -311,6 +295,23 @@ pub struct SetCommonInstanceMetadataOperationMetadata {
 pub struct GetVersionOperationMetadata {
     /// inlineSbomInfo property.
     pub inline_sbom_info: Option<GetVersionOperationMetadataSbomInfo>,
+}
+
+/// `QuotaExceededInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QuotaExceededInfo {
+    /// dimensions property.
+    pub dimensions: Option<serde_json::Value>,
+    /// futureLimit property.
+    pub future_limit: Option<f64>,
+    /// limit property.
+    pub limit: Option<f64>,
+    /// limitName property.
+    pub limit_name: Option<String>,
+    /// metricName property.
+    pub metric_name: Option<String>,
+    /// rolloutStatus property.
+    pub rollout_status: Option<String>,
 }
 
 // =============================================================================
