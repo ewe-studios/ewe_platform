@@ -1906,11 +1906,12 @@ impl<T: Read> ByteBufferPointer<T> {
     /// Returns an error if reading from the underlying reader fails.
     pub fn next_line(&mut self, buf: &mut String) -> std::io::Result<usize> {
         const NEWLINE_SLICE: &[u8] = b"\n";
-        let read = match self.next_until(NEWLINE_SLICE) {
-            Ok(inner) => match inner {
+        let read = {
+            let inner = self.next_until(NEWLINE_SLICE)?;
+            match inner {
                 PeekState::Request(c) => {
                     unsafe {
-                        let mut buf_vec = buf.as_mut_vec();
+                        let buf_vec = buf.as_mut_vec();
                         buf_vec.extend_from_slice(c);
                     };
                     Ok(c.len())
@@ -1920,8 +1921,7 @@ impl<T: Read> ByteBufferPointer<T> {
                     Err(crate::err!(WriteZero, "Provided zero size request"))
                 }
                 _ => unreachable!("Should never trigger"),
-            },
-            Err(err) => return Err(err),
+            }
         };
 
         match read {
@@ -1956,8 +1956,9 @@ impl<T: Read> ByteBufferPointer<T> {
     /// # Errors
     /// Returns an error if reading from the underlying reader fails.
     pub fn next_bytes_until(&mut self, target: &[u8], buf: &mut Vec<u8>) -> std::io::Result<usize> {
-        let read = match self.next_until(target) {
-            Ok(inner) => match inner {
+        let read = {
+            let inner = self.next_until(target)?;
+            match inner {
                 PeekState::Request(c) => {
                     unsafe {
                         buf.extend_from_slice(c);
@@ -1969,8 +1970,7 @@ impl<T: Read> ByteBufferPointer<T> {
                     Err(crate::err!(WriteZero, "Provided zero size request"))
                 }
                 _ => unreachable!("Should never trigger"),
-            },
-            Err(err) => return Err(err),
+            }
         };
 
         match read {
@@ -2003,8 +2003,9 @@ impl<T: Read> ByteBufferPointer<T> {
     /// # Errors
     /// Returns an error if reading from the underlying reader fails.
     pub fn read_bytes_until(&mut self, target: &[u8], buf: &mut Vec<u8>) -> std::io::Result<usize> {
-        let read = match self.next_until(target) {
-            Ok(inner) => match inner {
+        let read = {
+            let inner = self.next_until(target)?;
+            match inner {
                 PeekState::Request(c) => {
                     unsafe {
                         buf.extend_from_slice(c);
@@ -2016,8 +2017,7 @@ impl<T: Read> ByteBufferPointer<T> {
                     Err(crate::err!(WriteZero, "Provided zero size request"))
                 }
                 _ => unreachable!("Should never trigger"),
-            },
-            Err(err) => return Err(err),
+            }
         };
 
         match read {
@@ -2052,8 +2052,9 @@ impl<T: Read> ByteBufferPointer<T> {
     /// Returns an error if reading from the underlying reader fails.
     pub fn read_line(&mut self, buf: &mut String) -> std::io::Result<usize> {
         const NEWLINE_SLICE: &[u8] = b"\n";
-        let read = match self.next_until(NEWLINE_SLICE) {
-            Ok(inner) => match inner {
+        let read = {
+            let inner = self.next_until(NEWLINE_SLICE)?;
+            match inner {
                 PeekState::Request(c) => {
                     match String::from_utf8(c.to_vec()) {
                         Ok(inner) => {
@@ -2079,8 +2080,7 @@ impl<T: Read> ByteBufferPointer<T> {
                     Err(err!(InvalidInput, "Zero length input not allowed"))
                 }
                 _ => unreachable!("Should never trigger"),
-            },
-            Err(err) => return Err(err),
+            }
         };
 
         match read {

@@ -40,7 +40,9 @@ pub use namespaced::NamespacedStore;
 pub use r2::R2StateStore;
 #[cfg(feature = "libsql")]
 pub use sqlite::SqliteStateStore;
-pub use store_state_task::{ProviderError, StoreStateIdentifierTask, StoreStatePending, StoreStateTask};
+pub use store_state_task::{
+    ProviderError, StoreStateIdentifierTask, StoreStatePending, StoreStateTask,
+};
 pub use traits::{StateStore, StateStoreStream};
 pub use types::{ResourceState, StateStatus};
 
@@ -84,19 +86,31 @@ pub fn create_state_store(
 
     #[cfg(feature = "libsql")]
     if std::env::var("LIBSQL_TURSO_URL").is_ok() {
-        return Ok(Box::new(LibSQLStateStore::from_env(project_dir, project, stage)?));
+        return Ok(Box::new(LibSQLStateStore::from_env(
+            project_dir,
+            project,
+            stage,
+        )?));
     }
 
     #[cfg(feature = "libsql")]
     if std::env::var("LIBSQL_LOCAL_PATH").is_ok() {
-        return Ok(Box::new(LibSQLStateStore::from_env(project_dir, project, stage)?));
+        return Ok(Box::new(LibSQLStateStore::from_env(
+            project_dir,
+            project,
+            stage,
+        )?));
     }
 
     #[cfg(feature = "libsql")]
     if std::env::var("DEPLOYMENT_STATE_DB").is_ok()
         || project_dir.join(".deployment/state.db").exists()
     {
-        return Ok(Box::new(SqliteStateStore::from_env(project_dir, project, stage)?));
+        return Ok(Box::new(SqliteStateStore::from_env(
+            project_dir,
+            project,
+            stage,
+        )?));
     }
 
     Ok(Box::new(FileStateStore::new(project_dir, project, stage)))

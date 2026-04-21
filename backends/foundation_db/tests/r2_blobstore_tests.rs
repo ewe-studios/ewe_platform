@@ -23,7 +23,13 @@ fn test_r2_blobstore_put_get() {
     };
 
     let test_data = b"Hello, R2!";
-    let key = format!("test_put_get_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs());
+    let key = format!(
+        "test_put_get_{}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs()
+    );
 
     let _: () = collect_one(storage.put_blob(&key, test_data).unwrap())
         .unwrap()
@@ -35,7 +41,9 @@ fn test_r2_blobstore_put_get() {
     assert_eq!(retrieved, Some(test_data.to_vec()));
 
     // Cleanup
-    let _: () = collect_one(storage.delete_blob(&key).unwrap()).unwrap().unwrap();
+    let _: () = collect_one(storage.delete_blob(&key).unwrap())
+        .unwrap()
+        .unwrap();
 }
 
 #[test]
@@ -47,7 +55,13 @@ fn test_r2_blobstore_delete() {
     };
 
     let test_data = b"To be deleted";
-    let key = format!("test_delete_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs());
+    let key = format!(
+        "test_delete_{}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs()
+    );
 
     let _: () = collect_one(storage.put_blob(&key, test_data).unwrap())
         .unwrap()
@@ -76,7 +90,13 @@ fn test_r2_blobstore_exists() {
         return;
     };
 
-    let key = format!("test_exists_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs());
+    let key = format!(
+        "test_exists_{}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs()
+    );
 
     let exists: bool = collect_one(storage.blob_exists(&key).unwrap())
         .unwrap()
@@ -94,7 +114,9 @@ fn test_r2_blobstore_exists() {
     assert!(exists);
 
     // Cleanup
-    let _: () = collect_one(storage.delete_blob(&key).unwrap()).unwrap().unwrap();
+    let _: () = collect_one(storage.delete_blob(&key).unwrap())
+        .unwrap()
+        .unwrap();
 }
 
 #[test]
@@ -105,7 +127,13 @@ fn test_r2_blobstore_binary_data() {
         return;
     };
 
-    let key = format!("test_binary_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs());
+    let key = format!(
+        "test_binary_{}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs()
+    );
 
     // Test with binary data including null bytes
     let test_data = vec![0x00, 0x01, 0x02, 0xFF, 0xFE, 0xFD];
@@ -119,7 +147,9 @@ fn test_r2_blobstore_binary_data() {
     assert_eq!(retrieved, Some(test_data));
 
     // Cleanup
-    let _: () = collect_one(storage.delete_blob(&key).unwrap()).unwrap().unwrap();
+    let _: () = collect_one(storage.delete_blob(&key).unwrap())
+        .unwrap()
+        .unwrap();
 }
 
 #[test]
@@ -130,7 +160,13 @@ fn test_r2_blobstore_delete_nonexistent() {
         return;
     };
 
-    let key = format!("test_del_none_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs());
+    let key = format!(
+        "test_del_none_{}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs()
+    );
 
     // Deleting non-existent key should succeed (no error)
     let result: Result<(), _> = collect_one(storage.delete_blob(&key).unwrap()).unwrap();

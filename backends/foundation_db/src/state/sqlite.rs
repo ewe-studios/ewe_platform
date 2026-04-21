@@ -1,4 +1,4 @@
-//! Local-only SQLite state store via libsql.
+//! Local-only `SQLite` state store via libsql.
 //!
 //! WHY: Faster than JSON files for large numbers of resources, supports
 //! concurrent reads via WAL mode. No external dependencies.
@@ -28,7 +28,7 @@ fn create_table_sql(table_name: &str) -> String {
     format!(
         r"
         PRAGMA journal_mode=WAL;
-        CREATE TABLE IF NOT EXISTS {} (
+        CREATE TABLE IF NOT EXISTS {table_name} (
             id TEXT PRIMARY KEY,
             kind TEXT NOT NULL,
             provider TEXT NOT NULL,
@@ -40,8 +40,7 @@ fn create_table_sql(table_name: &str) -> String {
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
         )
-        ",
-        table_name
+        "
     )
 }
 
@@ -49,7 +48,7 @@ fn create_table_sql(table_name: &str) -> String {
 fn upsert_sql(table_name: &str) -> String {
     format!(
         r"
-        INSERT INTO {} (id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at)
+        INSERT INTO {table_name} (id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
             kind = excluded.kind,
@@ -60,12 +59,26 @@ fn upsert_sql(table_name: &str) -> String {
             output = excluded.output,
             config_snapshot = excluded.config_snapshot,
             updated_at = excluded.updated_at
-        ",
-        table_name
+        "
     )
 }
 
-/// Plain local SQLite state store using libsql.
+/// Generate CREATE INDEX statements for a given table name.
+fn create_indexes_sql(table_name: &str) -> String {
+    format!(
+        "CREATE INDEX IF NOT EXISTS idx_{table_name}_kind ON {table_name}(kind);\
+         CREATE INDEX IF NOT EXISTS idx_{table_name}_provider ON {table_name}(provider);\
+         CREATE INDEX IF NOT EXISTS idx_{table_name}_status ON {table_name}(status);\
+         CREATE INDEX IF NOT EXISTS idx_{table_name}_environment ON {table_name}(environment);"
+    )
+}
+
+/// Escape `%` and `_` characters in a prefix for safe LIKE queries.
+fn escape_like(s: &str) -> String {
+    s.replace('%', "\\%").replace('_', "\\_")
+}
+
+/// Plain local `SQLite` state store using libsql.
 ///
 /// Local-only, no remote sync. Default path: `{project_dir}/.deployment/state.db`.
 /// Uses WAL mode for concurrent read access.
@@ -73,7 +86,7 @@ fn upsert_sql(table_name: &str) -> String {
 /// Table names are prefixed with `{project}_{stage}_` for namespacing.
 pub struct SqliteStateStore {
     conn: Arc<libsql::Connection>,
-    table_name: String,  // "{project}_{stage}_resources"
+    table_name: String, // "{project}_{stage}_resources"
 }
 
 impl SqliteStateStore {
@@ -89,9 +102,10 @@ impl SqliteStateStore {
             std::fs::create_dir_all(parent)?;
         }
         let path_str = db_path.to_string_lossy().to_string();
-        let table_name = format!("{}_{}_resources",
-            project.replace('-', "_").replace(' ', "_"),
-            stage.replace('-', "_").replace(' ', "_")
+        let table_name = format!(
+            "{}_{}_resources",
+            project.replace(['-', ' '], "_"),
+            stage.replace(['-', ' '], "_")
         );
         let db = exec_future(async move { libsql::Builder::new_local(&path_str).build().await })?;
         let conn = db
@@ -113,8 +127,7 @@ impl SqliteStateStore {
     /// Returns an error if the database cannot be opened.
     pub fn from_env(project_dir: &Path, project: &str, stage: &str) -> Result<Self, StorageError> {
         let db_path = std::env::var("DEPLOYMENT_STATE_DB")
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| project_dir.join(".deployment/state.db"));
+            .map_or_else(|_| project_dir.join(".deployment/state.db"), PathBuf::from);
         Self::new(&db_path, project, stage)
     }
 }
@@ -122,7 +135,11 @@ impl SqliteStateStore {
 /// Parse a row into a `ResourceState`.
 ///
 /// Column order must match the SELECT in queries below:
-/// id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at
+/// id, kind, provider, status, environment, `config_hash`, `output`, `config_snapshot`, `created_at`, `updated_at`
+///
+/// # Errors
+///
+/// Returns an error if any column fails SQL conversion or JSON parsing.
 pub fn parse_resource_row(row: &libsql::Row) -> Result<ResourceState, StorageError> {
     let id: String = row
         .get(0)
@@ -183,6 +200,10 @@ pub fn parse_resource_row(row: &libsql::Row) -> Result<ResourceState, StorageErr
 }
 
 /// Serialize a `ResourceState` into SQL parameter values.
+///
+/// # Errors
+///
+/// Returns an error if JSON serialization fails.
 pub fn state_to_params(state: &ResourceState) -> Result<Vec<libsql::Value>, StorageError> {
     let status_json = serde_json::to_string(&state.status)
         .map_err(|e| StorageError::Serialization(e.to_string()))?;
@@ -226,7 +247,9 @@ pub fn to_state_stream<T: Send + 'static>(
 impl StateStore for SqliteStateStore {
     fn init(&self) -> Result<(), StorageError> {
         let conn = Arc::clone(&self.conn);
-        let sql = create_table_sql(&self.table_name);
+        let table_sql = create_table_sql(&self.table_name);
+        let index_sql = create_indexes_sql(&self.table_name);
+        let sql = format!("{table_sql}\n{index_sql}");
         exec_future(async move { conn.execute_batch(&sql).await })?;
         Ok(())
     }
@@ -237,7 +260,7 @@ impl StateStore for SqliteStateStore {
 
         let iter = run_future_iter(
             move || async move {
-                let sql = format!("SELECT id FROM {} ORDER BY id", table);
+                let sql = format!("SELECT id FROM {table} ORDER BY id");
                 let mut stmt = conn
                     .prepare(&sql)
                     .await
@@ -263,18 +286,13 @@ impl StateStore for SqliteStateStore {
         let conn = Arc::clone(&self.conn);
         let table = self.table_name.clone();
         let stream = schedule_future(async move {
-            let sql = format!("SELECT COUNT(*) FROM {}", table);
-            let mut stmt = conn
-                .prepare(&sql)
-                .await?;
+            let sql = format!("SELECT COUNT(*) FROM {table}");
+            let mut stmt = conn.prepare(&sql).await?;
             let mut rows = stmt.query([libsql::Value::Null; 0]).await?;
-            match rows.next().await? {
-                Some(row) => {
-                    let count: i64 = row.get(0)?;
-                    Ok::<_, libsql::Error>(usize::try_from(count).unwrap_or(0))
-                }
-                None => Ok::<_, libsql::Error>(0),
-            }
+            let count = rows.next().await?.map_or(Ok(0), |row| {
+                row.get::<i64>(0).map(|c| usize::try_from(c).unwrap_or(0))
+            })?;
+            Ok::<_, libsql::Error>(count)
         })?;
         Ok(to_state_stream(stream))
     }
@@ -288,8 +306,7 @@ impl StateStore for SqliteStateStore {
         let table = self.table_name.clone();
         let stream = schedule_future(async move {
             let sql = format!(
-                "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} WHERE id = ?",
-                table
+                "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {table} WHERE id = ?"
             );
             let mut stmt = conn
                 .prepare(&sql)
@@ -330,8 +347,7 @@ impl StateStore for SqliteStateStore {
                     .collect::<Vec<_>>()
                     .join(",");
                 let sql = format!(
-                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} WHERE id IN ({})",
-                    table, placeholders
+                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {table} WHERE id IN ({placeholders})"
                 );
                 let params: Vec<libsql::Value> = owned_ids
                     .iter()
@@ -363,8 +379,7 @@ impl StateStore for SqliteStateStore {
         let iter = run_future_iter(
             move || async move {
                 let sql = format!(
-                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} ORDER BY id",
-                    table
+                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {table} ORDER BY id"
                 );
                 let mut stmt = conn
                     .prepare(&sql)
@@ -406,11 +421,207 @@ impl StateStore for SqliteStateStore {
         let conn = Arc::clone(&self.conn);
         let table = self.table_name.clone();
         let stream = schedule_future(async move {
-            let sql = format!("DELETE FROM {} WHERE id = ?", table);
+            let sql = format!("DELETE FROM {table} WHERE id = ?");
             conn.execute(&sql, [id])
                 .await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
             Ok::<_, StorageError>(())
+        })?;
+        Ok(to_state_stream(stream))
+    }
+
+    fn list_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<String>, StorageError> {
+        let prefix = escape_like(prefix);
+        let conn = Arc::clone(&self.conn);
+        let table = self.table_name.clone();
+
+        let iter = run_future_iter(
+            move || async move {
+                let sql =
+                    format!("SELECT id FROM {table} WHERE id LIKE ?||'%' ESCAPE '\\' ORDER BY id");
+                let mut stmt = conn
+                    .prepare(&sql)
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                let rows = stmt
+                    .query([libsql::Value::Text(prefix)])
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                Ok::<_, StorageError>(LibsqlRowsIterator::new(rows, |row| {
+                    row.get::<String>(0)
+                        .map_err(|e| StorageError::SqlConversion(e.to_string()))
+                }))
+            },
+            None,
+            None,
+        )
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
+
+        Ok(Box::new(iter))
+    }
+
+    fn count_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<usize>, StorageError> {
+        let prefix = escape_like(prefix);
+        let conn = Arc::clone(&self.conn);
+        let table = self.table_name.clone();
+        let stream = schedule_future(async move {
+            let sql = format!("SELECT COUNT(*) FROM {table} WHERE id LIKE ?||'%' ESCAPE '\\'");
+            let mut stmt = conn
+                .prepare(&sql)
+                .await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+            let mut rows = stmt
+                .query([libsql::Value::Text(prefix)])
+                .await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+            let count = rows
+                .next()
+                .await
+                .map_err(|e| StorageError::Backend(e.to_string()))?
+                .map_or(Ok::<usize, StorageError>(0), |row| {
+                    let count: i64 = row
+                        .get(0)
+                        .map_err(|e| StorageError::Backend(e.to_string()))?;
+                    Ok(usize::try_from(count).unwrap_or(0))
+                })?;
+            Ok::<_, StorageError>(count)
+        })?;
+        Ok(to_state_stream(stream))
+    }
+
+    fn all_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<ResourceState>, StorageError> {
+        let prefix = escape_like(prefix);
+        let conn = Arc::clone(&self.conn);
+        let table = self.table_name.clone();
+
+        let iter = run_future_iter(
+            move || async move {
+                let sql = format!(
+                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at \
+                     FROM {table} WHERE id LIKE ?||'%' ESCAPE '\\' ORDER BY id"
+                );
+                let mut stmt = conn
+                    .prepare(&sql)
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                let rows = stmt
+                    .query([libsql::Value::Text(prefix)])
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                Ok::<_, StorageError>(LibsqlRowsIterator::new(rows, parse_resource_row))
+            },
+            None,
+            None,
+        )
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
+
+        Ok(Box::new(iter))
+    }
+
+    fn find_by_kind(&self, kind: &str) -> Result<StateStoreStream<ResourceState>, StorageError> {
+        let kind = kind.to_string();
+        let conn = Arc::clone(&self.conn);
+        let table = self.table_name.clone();
+
+        let iter = run_future_iter(
+            move || async move {
+                let sql = format!(
+                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at \
+                     FROM {table} WHERE kind = ? ORDER BY id"
+                );
+                let mut stmt = conn
+                    .prepare(&sql)
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                let rows = stmt
+                    .query([libsql::Value::Text(kind)])
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                Ok::<_, StorageError>(LibsqlRowsIterator::new(rows, parse_resource_row))
+            },
+            None,
+            None,
+        )
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
+
+        Ok(Box::new(iter))
+    }
+
+    fn find_by_status(
+        &self,
+        status: &str,
+    ) -> Result<StateStoreStream<ResourceState>, StorageError> {
+        let status = status.to_string();
+        let conn = Arc::clone(&self.conn);
+        let table = self.table_name.clone();
+
+        let iter = run_future_iter(
+            move || async move {
+                let sql = format!(
+                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at \
+                     FROM {table} WHERE status = ? ORDER BY id"
+                );
+                let mut stmt = conn
+                    .prepare(&sql)
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                let rows = stmt
+                    .query([libsql::Value::Text(status)])
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                Ok::<_, StorageError>(LibsqlRowsIterator::new(rows, parse_resource_row))
+            },
+            None,
+            None,
+        )
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
+
+        Ok(Box::new(iter))
+    }
+
+    fn find_by_provider(
+        &self,
+        provider: &str,
+    ) -> Result<StateStoreStream<ResourceState>, StorageError> {
+        let provider = provider.to_string();
+        let conn = Arc::clone(&self.conn);
+        let table = self.table_name.clone();
+
+        let iter = run_future_iter(
+            move || async move {
+                let sql = format!(
+                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at \
+                     FROM {table} WHERE provider = ? ORDER BY id"
+                );
+                let mut stmt = conn
+                    .prepare(&sql)
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                let rows = stmt
+                    .query([libsql::Value::Text(provider)])
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                Ok::<_, StorageError>(LibsqlRowsIterator::new(rows, parse_resource_row))
+            },
+            None,
+            None,
+        )
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
+
+        Ok(Box::new(iter))
+    }
+
+    fn delete_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<usize>, StorageError> {
+        let prefix = escape_like(prefix);
+        let conn = Arc::clone(&self.conn);
+        let table = self.table_name.clone();
+        let stream = schedule_future(async move {
+            let sql = format!("DELETE FROM {table} WHERE id LIKE ?||'%' ESCAPE '\\'");
+            let result = conn
+                .execute(&sql, [libsql::Value::Text(prefix)])
+                .await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+            Ok::<_, StorageError>(usize::try_from(result).unwrap_or(0))
         })?;
         Ok(to_state_stream(stream))
     }

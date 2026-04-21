@@ -42,13 +42,14 @@ impl D1KeyValueStore {
     ///
     /// Table name will be `{table_prefix}_kv` for namespacing.
     #[must_use]
-    pub fn new(
-        api_token: &str,
-        account_id: &str,
-        database_id: &str,
-        table_prefix: &str,
-    ) -> Self {
-        Self::with_base_url(api_token, account_id, database_id, table_prefix, CF_API_BASE)
+    pub fn new(api_token: &str, account_id: &str, database_id: &str, table_prefix: &str) -> Self {
+        Self::with_base_url(
+            api_token,
+            account_id,
+            database_id,
+            table_prefix,
+            CF_API_BASE,
+        )
     }
 
     /// Create a new D1 key-value store with a custom API base URL.
@@ -186,10 +187,7 @@ impl KeyValueStore for D1KeyValueStore {
         key: &str,
     ) -> StorageResult<StorageItemStream<'a, Option<V>>> {
         let sql = format!("SELECT value FROM {} WHERE key = ?", self.table_name);
-        let response = self.execute_sql(
-            &sql,
-            &[serde_json::Value::String(key.to_string())],
-        )?;
+        let response = self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
         let rows = Self::extract_rows(&response);
 
         match rows.first() {
@@ -245,10 +243,7 @@ impl KeyValueStore for D1KeyValueStore {
 
     fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
         let sql = format!("SELECT 1 FROM {} WHERE key = ? LIMIT 1", self.table_name);
-        let response = self.execute_sql(
-            &sql,
-            &[serde_json::Value::String(key.to_string())],
-        )?;
+        let response = self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
         let rows = Self::extract_rows(&response);
         Ok(Self::wrap_value(!rows.is_empty()))
     }
@@ -256,7 +251,10 @@ impl KeyValueStore for D1KeyValueStore {
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
         let (sql, param) = match prefix {
             Some(p) => (
-                format!("SELECT key FROM {} WHERE key LIKE ? ORDER BY key", self.table_name),
+                format!(
+                    "SELECT key FROM {} WHERE key LIKE ? ORDER BY key",
+                    self.table_name
+                ),
                 format!("{p}%"),
             ),
             None => (
@@ -305,9 +303,7 @@ impl QueryStore for D1KeyValueStore {
                 DataValue::Real(f) => serde_json::Number::from_f64(*f)
                     .map_or(serde_json::Value::Null, serde_json::Value::Number),
                 DataValue::Text(s) => serde_json::Value::String(s.clone()),
-                DataValue::Blob(b) => {
-                    serde_json::Value::String(STANDARD.encode(b))
-                }
+                DataValue::Blob(b) => serde_json::Value::String(STANDARD.encode(b)),
             })
             .collect();
 
@@ -318,9 +314,9 @@ impl QueryStore for D1KeyValueStore {
             .iter()
             .map(|row| {
                 // Convert D1 row to SqlRow
-                let obj = row
-                    .as_object()
-                    .ok_or_else(|| StorageError::SqlConversion("row is not an object".to_string()))?;
+                let obj = row.as_object().ok_or_else(|| {
+                    StorageError::SqlConversion("row is not an object".to_string())
+                })?;
 
                 let columns: Vec<(String, DataValue)> = obj
                     .iter()
@@ -362,9 +358,7 @@ impl QueryStore for D1KeyValueStore {
                 DataValue::Real(f) => serde_json::Number::from_f64(*f)
                     .map_or(serde_json::Value::Null, serde_json::Value::Number),
                 DataValue::Text(s) => serde_json::Value::String(s.clone()),
-                DataValue::Blob(b) => {
-                    serde_json::Value::String(STANDARD.encode(b))
-                }
+                DataValue::Blob(b) => serde_json::Value::String(STANDARD.encode(b)),
             })
             .collect();
 
@@ -410,10 +404,7 @@ impl RateLimiterStore for D1KeyValueStore {
         let window_start = now - window_seconds;
 
         let sql = "SELECT count, window_start FROM rate_limits WHERE key = ?";
-        let response = self.execute_sql(
-            sql,
-            &[serde_json::Value::String(key.to_string())],
-        )?;
+        let response = self.execute_sql(sql, &[serde_json::Value::String(key.to_string())])?;
         let rows = Self::extract_rows(&response);
 
         let allowed = match rows.first() {
@@ -491,7 +482,8 @@ impl BlobStore for D1KeyValueStore {
             "type": "blob",
             "encoding": "base64",
             "data": encoded
-        }).to_string();
+        })
+        .to_string();
 
         let sql = format!(
             "INSERT INTO {} (key, value, updated_at) VALUES (?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = strftime('%s', 'now') * 1000",
@@ -515,10 +507,7 @@ impl BlobStore for D1KeyValueStore {
 
     fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>> {
         let sql = "SELECT value FROM {} WHERE key = ?".to_string();
-        let response = self.execute_sql(
-            &sql,
-            &[serde_json::Value::String(key.to_string())],
-        )?;
+        let response = self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
         let rows = Self::extract_rows(&response);
 
         match rows.first() {
@@ -536,10 +525,8 @@ impl BlobStore for D1KeyValueStore {
                     .map_err(|e| StorageError::Serialization(e.to_string()))?;
 
                 // Check if it's a blob wrapper
-                let is_blob = wrapper
-                    .get("type")
-                    .and_then(serde_json::Value::as_str)
-                    == Some("blob");
+                let is_blob =
+                    wrapper.get("type").and_then(serde_json::Value::as_str) == Some("blob");
 
                 if !is_blob {
                     return Ok(Self::wrap_value(None));
@@ -549,10 +536,13 @@ impl BlobStore for D1KeyValueStore {
                     .get("data")
                     .and_then(serde_json::Value::as_str)
                     .ok_or_else(|| {
-                        StorageError::Serialization("missing data field in blob wrapper".to_string())
+                        StorageError::Serialization(
+                            "missing data field in blob wrapper".to_string(),
+                        )
                     })?;
 
-                let decoded = STANDARD.decode(encoded)
+                let decoded = STANDARD
+                    .decode(encoded)
                     .map_err(|e| StorageError::Backend(format!("Base64 decode failed: {e}")))?;
 
                 Ok(Self::wrap_value(Some(decoded)))
@@ -569,10 +559,7 @@ impl BlobStore for D1KeyValueStore {
 
     fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
         let sql = "SELECT 1 FROM {} WHERE key = ? LIMIT 1".to_string();
-        let response = self.execute_sql(
-            &sql,
-            &[serde_json::Value::String(key.to_string())],
-        )?;
+        let response = self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
         let rows = Self::extract_rows(&response);
         Ok(Self::wrap_value(!rows.is_empty()))
     }

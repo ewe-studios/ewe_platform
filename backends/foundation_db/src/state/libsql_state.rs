@@ -1,6 +1,6 @@
 //! Embedded libsql state store with optional Turso sync.
 //!
-//! WHY: Combines the speed of local SQLite with optional remote sync to Turso
+//! WHY: Combines the speed of local `SQLite` with optional remote sync to Turso
 //! for cross-machine state sharing.
 //!
 //! WHAT: `LibSQLStateStore` wraps an embedded libsql database that can
@@ -28,7 +28,7 @@ fn create_table_sql(table_name: &str) -> String {
     format!(
         r"
         PRAGMA journal_mode=WAL;
-        CREATE TABLE IF NOT EXISTS {} (
+        CREATE TABLE IF NOT EXISTS {table_name} (
             id TEXT PRIMARY KEY,
             kind TEXT NOT NULL,
             provider TEXT NOT NULL,
@@ -40,8 +40,7 @@ fn create_table_sql(table_name: &str) -> String {
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
         )
-        ",
-        table_name
+        "
     )
 }
 
@@ -49,7 +48,7 @@ fn create_table_sql(table_name: &str) -> String {
 fn upsert_sql(table_name: &str) -> String {
     format!(
         r"
-        INSERT INTO {} (id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at)
+        INSERT INTO {table_name} (id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
             kind = excluded.kind,
@@ -60,8 +59,7 @@ fn upsert_sql(table_name: &str) -> String {
             output = excluded.output,
             config_snapshot = excluded.config_snapshot,
             updated_at = excluded.updated_at
-        ",
-        table_name
+        "
     )
 }
 
@@ -76,7 +74,7 @@ pub struct LibSQLStateStore {
     conn: Arc<libsql::Connection>,
     db: Arc<libsql::Database>,
     has_remote: bool,
-    table_name: String,  // "{project}_{stage}_resources"
+    table_name: String, // "{project}_{stage}_resources"
 }
 
 impl LibSQLStateStore {
@@ -92,9 +90,10 @@ impl LibSQLStateStore {
             std::fs::create_dir_all(parent)?;
         }
         let path_str = local_path.to_string_lossy().to_string();
-        let table_name = format!("{}_{}_resources",
-            project.replace('-', "_").replace(' ', "_"),
-            stage.replace('-', "_").replace(' ', "_")
+        let table_name = format!(
+            "{}_{}_resources",
+            project.replace(['-', ' '], "_"),
+            stage.replace(['-', ' '], "_")
         );
         let db = exec_future(async move { libsql::Builder::new_local(&path_str).build().await })?;
         let conn = db
@@ -128,9 +127,10 @@ impl LibSQLStateStore {
         let path_str = local_path.to_string_lossy().to_string();
         let url = turso_url.to_string();
         let token = auth_token.to_string();
-        let table_name = format!("{}_{}_resources",
-            project.replace('-', "_").replace(' ', "_"),
-            stage.replace('-', "_").replace(' ', "_")
+        let table_name = format!(
+            "{}_{}_resources",
+            project.replace(['-', ' '], "_"),
+            stage.replace(['-', ' '], "_")
         );
         let db = exec_future(async move {
             libsql::Builder::new_remote_replica(&path_str, url, token)
@@ -159,8 +159,7 @@ impl LibSQLStateStore {
     /// Returns an error if required env vars are missing or connection fails.
     pub fn from_env(project_dir: &Path, project: &str, stage: &str) -> Result<Self, StorageError> {
         let local_path = std::env::var("LIBSQL_LOCAL_PATH")
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| project_dir.join(".deployment/libsql.db"));
+            .map_or_else(|_| project_dir.join(".deployment/libsql.db"), PathBuf::from);
 
         match (
             std::env::var("LIBSQL_TURSO_URL"),
@@ -189,7 +188,7 @@ impl StateStore for LibSQLStateStore {
 
         let iter = run_future_iter(
             move || async move {
-                let sql = format!("SELECT id FROM {} ORDER BY id", table);
+                let sql = format!("SELECT id FROM {table} ORDER BY id");
                 let mut stmt = conn
                     .prepare(&sql)
                     .await
@@ -215,18 +214,13 @@ impl StateStore for LibSQLStateStore {
         let conn = Arc::clone(&self.conn);
         let table = self.table_name.clone();
         let stream = schedule_future(async move {
-            let sql = format!("SELECT COUNT(*) FROM {}", table);
-            let mut stmt = conn
-                .prepare(&sql)
-                .await?;
+            let sql = format!("SELECT COUNT(*) FROM {table}");
+            let mut stmt = conn.prepare(&sql).await?;
             let mut rows = stmt.query([libsql::Value::Null; 0]).await?;
-            match rows.next().await? {
-                Some(row) => {
-                    let count: i64 = row.get(0)?;
-                    Ok::<_, libsql::Error>(usize::try_from(count).unwrap_or(0))
-                }
-                None => Ok::<_, libsql::Error>(0),
-            }
+            let count = rows.next().await?.map_or(Ok(0), |row| {
+                row.get::<i64>(0).map(|c| usize::try_from(c).unwrap_or(0))
+            })?;
+            Ok::<_, libsql::Error>(count)
         })?;
         Ok(to_state_stream(stream))
     }
@@ -240,8 +234,7 @@ impl StateStore for LibSQLStateStore {
         let table = self.table_name.clone();
         let stream = schedule_future(async move {
             let sql = format!(
-                "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} WHERE id = ?",
-                table
+                "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {table} WHERE id = ?"
             );
             let mut stmt = conn
                 .prepare(&sql)
@@ -282,8 +275,7 @@ impl StateStore for LibSQLStateStore {
                     .collect::<Vec<_>>()
                     .join(",");
                 let sql = format!(
-                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} WHERE id IN ({})",
-                    table, placeholders
+                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {table} WHERE id IN ({placeholders})"
                 );
                 let params: Vec<libsql::Value> = owned_ids
                     .iter()
@@ -315,8 +307,7 @@ impl StateStore for LibSQLStateStore {
         let iter = run_future_iter(
             move || async move {
                 let sql = format!(
-                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} ORDER BY id",
-                    table
+                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {table} ORDER BY id"
                 );
                 let mut stmt = conn
                     .prepare(&sql)
@@ -358,7 +349,7 @@ impl StateStore for LibSQLStateStore {
         let conn = Arc::clone(&self.conn);
         let table = self.table_name.clone();
         let stream = schedule_future(async move {
-            let sql = format!("DELETE FROM {} WHERE id = ?", table);
+            let sql = format!("DELETE FROM {table} WHERE id = ?");
             conn.execute(&sql, [id])
                 .await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;

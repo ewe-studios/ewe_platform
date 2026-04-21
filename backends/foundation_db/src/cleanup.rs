@@ -220,7 +220,8 @@ pub trait StorageCleanup: QueryStore {
         stats.jwt_tokens_deleted = self.cleanup_expired_jwt_tokens(now - 2_592_000)?;
 
         // Verification tokens: 1 hour expiration
-        stats.verification_tokens_deleted = self.cleanup_expired_verification_tokens(now - 3_600)?;
+        stats.verification_tokens_deleted =
+            self.cleanup_expired_verification_tokens(now - 3_600)?;
 
         // OAuth states: 10 minute expiration
         stats.oauth_states_deleted = self.cleanup_expired_oauth_states(now - 600)?;

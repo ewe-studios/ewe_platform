@@ -800,14 +800,10 @@ fn test_concurrent_queue_stream_iterator_returns_none_when_closed() {
 }
 
 #[test]
+#[should_panic]
 fn test_concurrent_queue_stream_iterator_panics_on_zero_max_turns() {
     let queue: Arc<ConcurrentQueue<Stream<u32, &str>>> = Arc::new(ConcurrentQueue::bounded(10));
-
-    let result = std::panic::catch_unwind(|| {
-        let _ = ConcurrentQueueStreamIterator::new(queue.clone(), 0, Duration::from_nanos(20));
-    });
-
-    assert!(result.is_err(), "Should panic when max_turns is 0");
+    let _ = ConcurrentQueueStreamIterator::new(queue.clone(), 0, Duration::from_nanos(20));
 }
 
 #[test]

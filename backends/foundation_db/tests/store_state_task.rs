@@ -23,7 +23,10 @@ struct MockSuccessTask<T> {
 
 impl<T: Clone + Send + 'static> MockSuccessTask<T> {
     fn new(value: T) -> Self {
-        Self { value, called: false }
+        Self {
+            value,
+            called: false,
+        }
     }
 }
 
@@ -40,7 +43,9 @@ impl<T: Clone + Send + 'static> TaskIterator for MockSuccessTask<T> {
             None
         } else {
             self.called = true;
-            Some(foundation_core::valtron::TaskStatus::Ready(Ok(self.value.clone())))
+            Some(foundation_core::valtron::TaskStatus::Ready(Ok(self
+                .value
+                .clone())))
         }
     }
 }
@@ -54,7 +59,10 @@ struct MockFailResourceTask {
 
 impl MockFailResourceTask {
     fn new(error: String) -> Self {
-        Self { error, called: false }
+        Self {
+            error,
+            called: false,
+        }
     }
 }
 
@@ -71,7 +79,9 @@ impl TaskIterator for MockFailResourceTask {
             None
         } else {
             self.called = true;
-            Some(foundation_core::valtron::TaskStatus::Ready(Err(self.error.clone())))
+            Some(foundation_core::valtron::TaskStatus::Ready(Err(self
+                .error
+                .clone())))
         }
     }
 }
@@ -85,7 +95,10 @@ struct MockFailTask {
 
 impl MockFailTask {
     fn new(error: String) -> Self {
-        Self { error, called: false }
+        Self {
+            error,
+            called: false,
+        }
     }
 }
 
@@ -102,7 +115,9 @@ impl TaskIterator for MockFailTask {
             None
         } else {
             self.called = true;
-            Some(foundation_core::valtron::TaskStatus::Ready(Err(self.error.clone())))
+            Some(foundation_core::valtron::TaskStatus::Ready(Err(self
+                .error
+                .clone())))
         }
     }
 }
@@ -182,7 +197,10 @@ fn test_store_state_task_success() {
         }
     }
 
-    assert!(found_success, "Task should have yielded a successful result");
+    assert!(
+        found_success,
+        "Task should have yielded a successful result"
+    );
 
     // Verify state was stored
     let state_store = FileStateStore::new(temp_dir.path(), "test-project", "dev");
@@ -303,7 +321,10 @@ fn test_store_state_identifier_task_success() {
         }
     }
 
-    assert!(found_success, "Task should have yielded a successful result");
+    assert!(
+        found_success,
+        "Task should have yielded a successful result"
+    );
 
     // Verify state was stored with correct resource ID from trait
     let state_store = FileStateStore::new(temp_dir.path(), "test-project", "dev");
@@ -388,9 +409,7 @@ fn test_provider_error_display() {
     assert!(api_err.to_string().contains("API error"));
 
     let state_err: ProviderError<String> =
-        ProviderError::State(StorageError::Serialization(
-            "serde error".to_string(),
-        ));
+        ProviderError::State(StorageError::Serialization("serde error".to_string()));
     assert!(state_err.to_string().contains("state store error"));
 
     let serialize_err: ProviderError<String> =
@@ -400,8 +419,7 @@ fn test_provider_error_display() {
     let hash_err: ProviderError<String> = ProviderError::HashFailed("hash error".to_string());
     assert!(hash_err.to_string().contains("hash failed"));
 
-    let exec_err: ProviderError<String> =
-        ProviderError::ExecuteFailed("exec error".to_string());
+    let exec_err: ProviderError<String> = ProviderError::ExecuteFailed("exec error".to_string());
     assert!(exec_err.to_string().contains("execution failed"));
 }
 
@@ -409,9 +427,7 @@ fn test_provider_error_display() {
 fn test_provider_error_from_storage_error() {
     use foundation_db::state::store_state_task::ProviderError;
 
-    let storage_err = StorageError::Serialization(
-        "test error".to_string(),
-    );
+    let storage_err = StorageError::Serialization("test error".to_string());
     let provider_err: ProviderError<String> = storage_err.into();
 
     match provider_err {
