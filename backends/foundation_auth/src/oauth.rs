@@ -217,7 +217,10 @@ impl OAuthManager {
     /// # Errors
     ///
     /// Returns an `OAuthError` if the configuration is invalid or the URL cannot be parsed.
-    pub fn get_authorization_url(&self, state: &str) -> Result<(String, Option<PkceChallenge>), OAuthError> {
+    pub fn get_authorization_url(
+        &self,
+        state: &str,
+    ) -> Result<(String, Option<PkceChallenge>), OAuthError> {
         self.config.validate()?;
 
         let mut url = Url::parse(&self.config.authorization_url)
@@ -233,8 +236,7 @@ impl OAuthManager {
         // Add scopes if present
         if !self.config.scopes.is_empty() {
             let scopes_joined = self.config.scopes.join(" ");
-            url.query_pairs_mut()
-                .append_pair("scope", &scopes_joined);
+            url.query_pairs_mut().append_pair("scope", &scopes_joined);
         }
 
         // Add PKCE if enabled
@@ -278,7 +280,10 @@ impl OAuthManager {
         let mut body_parts = vec![
             format!("grant_type={}", urlencoding::encode("authorization_code")),
             format!("code={}", urlencoding::encode(code)),
-            format!("redirect_uri={}", urlencoding::encode(&self.config.redirect_uri)),
+            format!(
+                "redirect_uri={}",
+                urlencoding::encode(&self.config.redirect_uri)
+            ),
             format!("client_id={}", urlencoding::encode(&self.config.client_id)),
         ];
 
@@ -299,7 +304,10 @@ impl OAuthManager {
         let response = client
             .post(&self.config.token_url)
             .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
-            .header(foundation_core::wire::simple_http::SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
+            .header(
+                foundation_core::wire::simple_http::SimpleHeader::CONTENT_TYPE,
+                "application/x-www-form-urlencoded",
+            )
             .body_text(body)
             .build_client()
             .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
@@ -309,7 +317,9 @@ impl OAuthManager {
         if !response.is_success() {
             let body = match response.get_body_ref() {
                 foundation_core::wire::simple_http::SendSafeBody::Text(t) => t.clone(),
-                foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
+                foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => {
+                    String::from_utf8_lossy(b).to_string()
+                }
                 _ => String::new(),
             };
             return Err(OAuthError::TokenEndpointError {
@@ -321,7 +331,9 @@ impl OAuthManager {
         // Parse JSON response
         let body_text = match response.get_body_ref() {
             foundation_core::wire::simple_http::SendSafeBody::Text(t) => t.as_str(),
-            foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => std::str::from_utf8(b).map_err(|e| OAuthError::TokenParseError(e.to_string()))?,
+            foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => {
+                std::str::from_utf8(b).map_err(|e| OAuthError::TokenParseError(e.to_string()))?
+            }
             _ => "",
         };
         let token_response: TokenResponse = serde_json::from_str(body_text)
@@ -343,7 +355,10 @@ impl OAuthManager {
     ///
     /// Returns an `OAuthError` if the token request fails or the response cannot be parsed.
     #[allow(clippy::cast_possible_truncation, clippy::needless_pass_by_value)]
-    pub fn client_credentials(&self, scopes: Option<Vec<String>>) -> Result<OAuthToken, OAuthError> {
+    pub fn client_credentials(
+        &self,
+        scopes: Option<Vec<String>>,
+    ) -> Result<OAuthToken, OAuthError> {
         self.config.validate()?;
 
         let Some(ref client_secret) = self.config.client_secret else {
@@ -378,7 +393,10 @@ impl OAuthManager {
         let response = client
             .post(&self.config.token_url)
             .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
-            .header(foundation_core::wire::simple_http::SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
+            .header(
+                foundation_core::wire::simple_http::SimpleHeader::CONTENT_TYPE,
+                "application/x-www-form-urlencoded",
+            )
             .body_text(body)
             .build_client()
             .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
@@ -388,7 +406,9 @@ impl OAuthManager {
         if !response.is_success() {
             let body = match response.get_body_ref() {
                 foundation_core::wire::simple_http::SendSafeBody::Text(t) => t.clone(),
-                foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
+                foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => {
+                    String::from_utf8_lossy(b).to_string()
+                }
                 _ => String::new(),
             };
             return Err(OAuthError::TokenEndpointError {
@@ -400,7 +420,9 @@ impl OAuthManager {
         // Parse JSON response
         let body_text = match response.get_body_ref() {
             foundation_core::wire::simple_http::SendSafeBody::Text(t) => t.as_str(),
-            foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => std::str::from_utf8(b).map_err(|e| OAuthError::TokenParseError(e.to_string()))?,
+            foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => {
+                std::str::from_utf8(b).map_err(|e| OAuthError::TokenParseError(e.to_string()))?
+            }
             _ => "",
         };
         let token_response: TokenResponse = serde_json::from_str(body_text)
@@ -443,7 +465,10 @@ impl OAuthManager {
         let response = client
             .post(&self.config.token_url)
             .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
-            .header(foundation_core::wire::simple_http::SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
+            .header(
+                foundation_core::wire::simple_http::SimpleHeader::CONTENT_TYPE,
+                "application/x-www-form-urlencoded",
+            )
             .body_text(body)
             .build_client()
             .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
@@ -453,7 +478,9 @@ impl OAuthManager {
         if !response.is_success() {
             let body = match response.get_body_ref() {
                 foundation_core::wire::simple_http::SendSafeBody::Text(t) => t.clone(),
-                foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
+                foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => {
+                    String::from_utf8_lossy(b).to_string()
+                }
                 _ => String::new(),
             };
             #[allow(clippy::cast_possible_truncation)]
@@ -466,7 +493,9 @@ impl OAuthManager {
         // Parse JSON response
         let body_text = match response.get_body_ref() {
             foundation_core::wire::simple_http::SendSafeBody::Text(t) => t.as_str(),
-            foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => std::str::from_utf8(b).map_err(|e| OAuthError::TokenParseError(e.to_string()))?,
+            foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => {
+                std::str::from_utf8(b).map_err(|e| OAuthError::TokenParseError(e.to_string()))?
+            }
             _ => "",
         };
         let token_response: TokenResponse = serde_json::from_str(body_text)
@@ -476,7 +505,9 @@ impl OAuthManager {
             access_token: token_response.access_token,
             token_type: token_response.token_type,
             expires_in: token_response.expires_in,
-            refresh_token: token_response.refresh_token.or_else(|| Some(refresh_token.to_string())),
+            refresh_token: token_response
+                .refresh_token
+                .or_else(|| Some(refresh_token.to_string())),
             scope: token_response.scope,
             id_token: token_response.id_token,
         })
@@ -505,18 +536,26 @@ impl OAuthToken {
     #[must_use]
     #[allow(clippy::cast_possible_wrap)]
     pub fn into_jwt_token(self) -> Option<JwtToken> {
-        let expires_at = self
-            .expires_in
-            .map_or_else(|| chrono::Utc::now().timestamp() + 3600, |exp| chrono::Utc::now().timestamp() + exp as i64);
+        let expires_at = self.expires_in.map_or_else(
+            || chrono::Utc::now().timestamp() + 3600,
+            |exp| chrono::Utc::now().timestamp() + exp as i64,
+        );
 
-        JwtToken::from_parts(self.access_token, self.refresh_token, expires_at, self.scope, None, None).into()
+        JwtToken::from_parts(
+            self.access_token,
+            self.refresh_token,
+            expires_at,
+            self.scope,
+            None,
+            None,
+        )
+        .into()
     }
 
     /// Check if the token is expired.
     #[must_use]
     pub fn is_expired(&self, buffer_seconds: u64) -> bool {
-        self.expires_in
-            .is_some_and(|exp| exp <= buffer_seconds)
+        self.expires_in.is_some_and(|exp| exp <= buffer_seconds)
     }
 }
 

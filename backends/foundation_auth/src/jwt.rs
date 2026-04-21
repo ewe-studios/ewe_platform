@@ -56,17 +56,24 @@ impl JwtToken {
         // Parse the JWT payload to extract claims
         let claims = decode_claims(&token)?;
 
-        let expires_at = claims
-            .exp
-            .ok_or(JwtError::MissingExpiration)?;
+        let expires_at = claims.exp.ok_or(JwtError::MissingExpiration)?;
 
         Ok(Self {
             token: ConfidentialText::new(token),
             refresh_token: None, // Refresh token not embedded in JWT
             expires_at,
-            scope: claims.custom.get("scope").and_then(|v| v.as_str().map(String::from)),
-            audience: claims.custom.get("aud").and_then(|v| v.as_str().map(String::from)),
-            issuer: claims.custom.get("iss").and_then(|v| v.as_str().map(String::from)),
+            scope: claims
+                .custom
+                .get("scope")
+                .and_then(|v| v.as_str().map(String::from)),
+            audience: claims
+                .custom
+                .get("aud")
+                .and_then(|v| v.as_str().map(String::from)),
+            issuer: claims
+                .custom
+                .get("iss")
+                .and_then(|v| v.as_str().map(String::from)),
             created_at: Utc::now().timestamp(),
         })
     }
@@ -263,7 +270,9 @@ fn decode_claims(token: &str) -> Result<Claims, JwtError> {
 /// Base64 decode with URL-safe alphabet.
 fn base64_decode(input: &str) -> Result<Vec<u8>, JwtError> {
     use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-    URL_SAFE_NO_PAD.decode(input).map_err(|_| JwtError::DecodeError)
+    URL_SAFE_NO_PAD
+        .decode(input)
+        .map_err(|_| JwtError::DecodeError)
 }
 
 /// JWT claims structure.
@@ -388,14 +397,8 @@ mod tests {
     #[test]
     fn test_jwt_token_expires_within() {
         let soon = Utc::now().timestamp() + 120; // 2 minutes from now
-        let token = JwtToken::from_parts(
-            "expiring_token".to_string(),
-            None,
-            soon,
-            None,
-            None,
-            None,
-        );
+        let token =
+            JwtToken::from_parts("expiring_token".to_string(), None, soon, None, None, None);
 
         // Should expire within 5 minutes
         assert!(token.expires_within(300));
