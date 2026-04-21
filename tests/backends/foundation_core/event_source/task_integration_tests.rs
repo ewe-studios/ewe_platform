@@ -12,8 +12,10 @@ use foundation_core::wire::event_source::{
     Event, EventSourceProgress, EventSourceTask, ParseResult,
 };
 use foundation_core::wire::simple_http::client::{MockDnsResolver, StaticSocketAddr};
+use foundation_core::wire::simple_http::{SendSafeBody, SimpleMethod};
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use std::net::SocketAddr;
+use std::sync::{Arc, Mutex};
 
 /// Parse the SocketAddr from a TestHttpServer's base_url (e.g. "http://127.0.0.1:PORT").
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
@@ -333,5 +335,106 @@ fn test_event_source_task_stream_exhaust() {
     assert!(
         task.next_status().is_none(),
         "Exhausted task should keep returning None"
+    );
+}
+
+/// WHY: `with_body` should switch method from GET to POST.
+/// WHAT: Verify the server receives a POST request when a body is provided.
+#[test]
+fn test_event_source_task_with_body_uses_post() {
+    let captured_method = Arc::new(Mutex::new(None));
+    let captured_body = Arc::new(Mutex::new(None));
+    let method_clone = captured_method.clone();
+    let body_clone = captured_body.clone();
+
+    let server = TestHttpServer::with_response(move |req| {
+        *method_clone.lock().unwrap() = Some(req.method.clone());
+        let text = match &req.body {
+            SendSafeBody::Text(t) => Some(t.clone()),
+            SendSafeBody::Bytes(b) => Some(String::from_utf8_lossy(b).to_string()),
+            _ => None,
+        };
+        *body_clone.lock().unwrap() = text;
+        sse_response(b"data: post-ok\n\n")
+    });
+
+    let addr = server_addr(&server);
+    let resolver = StaticSocketAddr::new(addr);
+    let url = server.url("/v1/chat/completions");
+
+    let json_body =
+        r#"{"model":"gpt-4","messages":[{"role":"user","content":"hello"}],"stream":true}"#;
+    let mut task = EventSourceTask::connect(resolver, &url)
+        .unwrap()
+        .with_body(SendSafeBody::Text(json_body.to_string()));
+
+    let mut got_event = false;
+    while let Some(status) = task.next_status() {
+        if let TaskStatus::Ready(ParseResult {
+            event: Event::Message { ref data, .. },
+            ..
+        }) = status
+        {
+            assert_eq!(data, "post-ok");
+            got_event = true;
+            break;
+        }
+    }
+
+    assert!(got_event, "Should have received the event");
+
+    let method = captured_method.lock().unwrap();
+    assert_eq!(
+        *method,
+        Some(SimpleMethod::POST),
+        "with_body should switch method to POST"
+    );
+
+    let body = captured_body.lock().unwrap();
+    assert_eq!(
+        body.as_deref(),
+        Some(json_body),
+        "Server should receive the JSON body"
+    );
+}
+
+/// WHY: Without `with_body`, the default method should be GET.
+/// WHAT: Verify the server receives a GET request when no body is set.
+#[test]
+fn test_event_source_task_default_method_is_get() {
+    let captured_method = Arc::new(Mutex::new(None));
+    let method_clone = captured_method.clone();
+
+    let server = TestHttpServer::with_response(move |req| {
+        *method_clone.lock().unwrap() = Some(req.method.clone());
+        sse_response(b"data: get-ok\n\n")
+    });
+
+    let addr = server_addr(&server);
+    let resolver = StaticSocketAddr::new(addr);
+    let url = server.url("/events");
+
+    let mut task = EventSourceTask::connect(resolver, &url).unwrap();
+
+    let mut got_event = false;
+    while let Some(status) = task.next_status() {
+        if let TaskStatus::Ready(ParseResult {
+            event: Event::Message { ref data, .. },
+            ..
+        }) = status
+        {
+            assert_eq!(data, "get-ok");
+            got_event = true;
+            break;
+        }
+    }
+
+    assert!(got_event, "Should have received the event");
+
+    let method = captured_method.lock().unwrap();
+    assert_eq!(
+        *method,
+        Some(SimpleMethod::GET),
+        "Default method should be GET"
     );
 }
