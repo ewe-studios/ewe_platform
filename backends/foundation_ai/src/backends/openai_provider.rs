@@ -546,8 +546,10 @@ impl<R: DnsResolver + 'static> Model for OpenAIModel<R> {
             inner: driven,
             model_id: self.model_id.clone(),
             accumulated_text: String::new(),
+            tool_calls: Vec::new(),
             finish_reason: None,
             usage: None,
+            done: false,
         })
     }
 }
@@ -565,30 +567,40 @@ struct OpenAIStream<R: DnsResolver + 'static> {
     inner: foundation_core::valtron::DrivenStreamIterator<ReconnectingEventSourceTask<R>>,
     model_id: ModelId,
     accumulated_text: String,
+    tool_calls: Vec<AccumulatedToolCall>,
     finish_reason: Option<String>,
     usage: Option<OpenAIUsage>,
+    done: bool,
+}
+
+struct AccumulatedToolCall {
+    id: String,
+    name: String,
+    arguments: String,
 }
 
 impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
     type Item = Stream<Messages, ModelState>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+
         loop {
             let item = self.inner.next()?;
 
             match item {
                 Stream::Next(parse_result) => {
-                    // Skip non-message events
                     let Event::Message { data, .. } = &parse_result.event else {
                         continue;
                     };
 
-                    // Skip [DONE] sentinel
                     if data.trim() == "[DONE]" {
-                        continue;
+                        self.done = true;
+                        return Some(Stream::Next(self.build_final_message()));
                     }
 
-                    // Parse chunk
                     let Ok(chunk) = serde_json::from_str::<ChatCompletionChunk>(data) else {
                         continue;
                     };
@@ -597,14 +609,17 @@ impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
                         self.usage = Some(u);
                     }
 
-                    let mut yielded = false;
+                    let mut text_yielded = false;
                     for choice in &chunk.choices {
                         if let Some(ref delta) = choice.delta {
                             if let Some(ref content) = delta.content {
                                 if !content.is_empty() {
                                     self.accumulated_text.push_str(content);
-                                    yielded = true;
+                                    text_yielded = true;
                                 }
+                            }
+                            if let Some(ref tool_calls) = delta.tool_calls {
+                                self.accumulate_tool_calls(tool_calls);
                             }
                         }
                         if let Some(ref reason) = choice.finish_reason {
@@ -614,7 +629,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
                         }
                     }
 
-                    if yielded {
+                    if text_yielded {
                         return Some(Stream::Next(Messages::Assistant {
                             model: self.model_id.clone(),
                             timestamp: SystemTime::now(),
@@ -630,10 +645,106 @@ impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
                         }));
                     }
                 }
-                Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Ignore => {
-                    // Still working, no data yet
+                Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Ignore => {}
+            }
+        }
+    }
+}
+
+impl<R: DnsResolver + 'static> OpenAIStream<R> {
+    fn accumulate_tool_calls(&mut self, deltas: &[OpenAIToolCallDelta]) {
+        for delta in deltas {
+            let idx = delta.index as usize;
+
+            // Grow the vec if needed
+            while self.tool_calls.len() <= idx {
+                self.tool_calls.push(AccumulatedToolCall {
+                    id: String::new(),
+                    name: String::new(),
+                    arguments: String::new(),
+                });
+            }
+
+            let tc = &mut self.tool_calls[idx];
+            if let Some(ref id) = delta.id {
+                tc.id.clone_from(id);
+            }
+            if let Some(ref func) = delta.function {
+                if let Some(ref name) = func.name {
+                    tc.name.clone_from(name);
+                }
+                if let Some(ref args) = func.arguments {
+                    tc.arguments.push_str(args);
                 }
             }
+        }
+    }
+
+    fn build_final_message(&self) -> Messages {
+        let stop_reason = match self.finish_reason.as_deref() {
+            Some("stop") | None => StopReason::Stop,
+            Some("length") => StopReason::Length,
+            Some("tool_calls") => StopReason::ToolUse,
+            Some(_) => StopReason::Error,
+        };
+
+        #[allow(clippy::cast_precision_loss)]
+        let usage_report = self
+            .usage
+            .as_ref()
+            .map_or_else(empty_usage_report, |u| UsageReport {
+                input: u.prompt_tokens as f64,
+                output: u.completion_tokens as f64,
+                cache_read: 0.0,
+                cache_write: 0.0,
+                total_tokens: u.total_tokens as f64,
+                cost: UsageCosting {
+                    currency: String::from("USD"),
+                    input: 0.0,
+                    output: 0.0,
+                    cache_read: 0.0,
+                    cache_write: 0.0,
+                    total_tokens: u.total_tokens as f64,
+                },
+            });
+
+        let content = if self.tool_calls.is_empty() {
+            ModelOutput::Text(TextContent {
+                content: self.accumulated_text.clone(),
+                signature: None,
+            })
+        } else {
+            let tc = &self.tool_calls[0];
+            let arguments: Option<HashMap<String, crate::types::ArgType>> =
+                serde_json::from_str(&tc.arguments)
+                    .ok()
+                    .map(|v: serde_json::Value| {
+                        v.as_object()
+                            .map(|obj| {
+                                obj.iter()
+                                    .map(|(k, v)| (k.clone(), json_value_to_arg_type(v)))
+                                    .collect()
+                            })
+                            .unwrap_or_default()
+                    });
+
+            ModelOutput::ToolCall {
+                id: tc.id.clone(),
+                name: tc.name.clone(),
+                arguments,
+                signature: None,
+            }
+        };
+
+        Messages::Assistant {
+            model: self.model_id.clone(),
+            timestamp: SystemTime::now(),
+            usage: usage_report,
+            content,
+            stop_reason,
+            provider: ModelProviders::OPENAI,
+            error_detail: None,
+            signature: None,
         }
     }
 }
@@ -751,7 +862,26 @@ pub struct OpenAIDelta {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tool_calls: Option<Vec<OpenAIToolCall>>,
+    pub tool_calls: Option<Vec<OpenAIToolCallDelta>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenAIToolCallDelta {
+    pub index: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
+    pub tool_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub function: Option<OpenAIFunctionCallDelta>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenAIFunctionCallDelta {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub arguments: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -882,6 +1012,22 @@ fn empty_usage_report() -> UsageReport {
             cache_write: 0.0,
             total_tokens: 0.0,
         },
+    }
+}
+
+fn json_value_to_arg_type(v: &serde_json::Value) -> crate::types::ArgType {
+    match v {
+        serde_json::Value::String(s) => crate::types::ArgType::Text(s.clone()),
+        serde_json::Value::Number(n) => {
+            if let Some(i) = n.as_i64() {
+                crate::types::ArgType::I64(i)
+            } else if let Some(f) = n.as_f64() {
+                crate::types::ArgType::Float64(f)
+            } else {
+                crate::types::ArgType::Text(n.to_string())
+            }
+        }
+        other => crate::types::ArgType::JSON(other.to_string()),
     }
 }
 
@@ -1265,5 +1411,114 @@ mod tests {
         );
         assert!(response.usage.is_some());
         assert_eq!(response.usage.as_ref().unwrap().total_tokens, 15);
+    }
+
+    #[test]
+    fn test_tool_call_delta_deserialization() {
+        let chunk_json = r#"{
+            "id":"chatcmpl-123","object":"chat.completion.chunk","created":1234567890,"model":"gpt-4",
+            "choices":[{
+                "index":0,
+                "delta":{"tool_calls":[{"index":0,"id":"call_abc","type":"function","function":{"name":"get_weather","arguments":""}}]},
+                "finish_reason":null
+            }]
+        }"#;
+
+        let chunk: ChatCompletionChunk = serde_json::from_str(chunk_json).unwrap();
+        let delta = chunk.choices[0].delta.as_ref().unwrap();
+        let tc = &delta.tool_calls.as_ref().unwrap()[0];
+        assert_eq!(tc.index, 0);
+        assert_eq!(tc.id.as_deref(), Some("call_abc"));
+        assert_eq!(
+            tc.function.as_ref().unwrap().name.as_deref(),
+            Some("get_weather")
+        );
+    }
+
+    #[test]
+    fn test_tool_call_delta_continuation() {
+        let continuation = r#"{
+            "id":"chatcmpl-123","object":"chat.completion.chunk","created":1234567890,"model":"gpt-4",
+            "choices":[{
+                "index":0,
+                "delta":{"tool_calls":[{"index":0,"function":{"arguments":"{\"loc"}}]},
+                "finish_reason":null
+            }]
+        }"#;
+
+        let chunk: ChatCompletionChunk = serde_json::from_str(continuation).unwrap();
+        let delta = chunk.choices[0].delta.as_ref().unwrap();
+        let tc = &delta.tool_calls.as_ref().unwrap()[0];
+        assert_eq!(tc.index, 0);
+        assert!(tc.id.is_none());
+        assert_eq!(
+            tc.function.as_ref().unwrap().arguments.as_deref(),
+            Some("{\"loc")
+        );
+    }
+
+    #[test]
+    fn test_tool_call_accumulation() {
+        let chunks = vec![
+            r#"{"id":"c1","object":"chat.completion.chunk","created":0,"model":"gpt-4","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_1","type":"function","function":{"name":"get_weather","arguments":""}}]},"finish_reason":null}]}"#,
+            r#"{"id":"c1","object":"chat.completion.chunk","created":0,"model":"gpt-4","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"{\"location\""}}]},"finish_reason":null}]}"#,
+            r#"{"id":"c1","object":"chat.completion.chunk","created":0,"model":"gpt-4","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":": \"Paris\"}"}}]},"finish_reason":null}]}"#,
+        ];
+
+        let mut tool_calls: Vec<AccumulatedToolCall> = Vec::new();
+
+        for raw in &chunks {
+            let chunk: ChatCompletionChunk = serde_json::from_str(raw).unwrap();
+            for choice in &chunk.choices {
+                if let Some(ref delta) = choice.delta {
+                    if let Some(ref tcs) = delta.tool_calls {
+                        for tc_delta in tcs {
+                            let idx = tc_delta.index as usize;
+                            while tool_calls.len() <= idx {
+                                tool_calls.push(AccumulatedToolCall {
+                                    id: String::new(),
+                                    name: String::new(),
+                                    arguments: String::new(),
+                                });
+                            }
+                            let tc = &mut tool_calls[idx];
+                            if let Some(ref id) = tc_delta.id {
+                                tc.id.clone_from(id);
+                            }
+                            if let Some(ref func) = tc_delta.function {
+                                if let Some(ref name) = func.name {
+                                    tc.name.clone_from(name);
+                                }
+                                if let Some(ref args) = func.arguments {
+                                    tc.arguments.push_str(args);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        assert_eq!(tool_calls.len(), 1);
+        assert_eq!(tool_calls[0].id, "call_1");
+        assert_eq!(tool_calls[0].name, "get_weather");
+        assert_eq!(tool_calls[0].arguments, r#"{"location": "Paris"}"#);
+    }
+
+    #[test]
+    fn test_json_value_to_arg_type() {
+        let text = json_value_to_arg_type(&serde_json::json!("hello"));
+        assert!(matches!(text, crate::types::ArgType::Text(s) if s == "hello"));
+
+        let int = json_value_to_arg_type(&serde_json::json!(42));
+        assert!(matches!(int, crate::types::ArgType::I64(42)));
+
+        let float = json_value_to_arg_type(&serde_json::json!(3.14));
+        assert!(
+            matches!(float, crate::types::ArgType::Float64(f) if (f - 3.14).abs() < f64::EPSILON)
+        );
+
+        let obj = json_value_to_arg_type(&serde_json::json!({"nested": true}));
+        assert!(matches!(obj, crate::types::ArgType::JSON(_)));
     }
 }

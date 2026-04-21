@@ -227,109 +227,506 @@ File: agent/prompt_builder.py (hermes-agent)
 
 ### 1. OpenAI Chat Completions API
 
+Reference: packages/ai/src/providers/openai-completions.ts (pi-mono)
+
 Tool Definition Format:
-- { type: "function", function: { name: string, description: string, parameters: JSONSchema } }
-- strict: false (not enforced)
+    { type: "function", function: { name: string, description: string, parameters: JSONSchema } }
+    strict: false (not enforced)
+
+From pi-mono convertTools() at line 708:
+    function convertTools(tools: Tool[], compat): ChatCompletionTool[] {
+        return tools.map((tool) => ({
+            type: "function",
+            function: {
+                name: tool.name,
+                description: tool.description,
+                parameters: tool.parameters as any,
+                ...(compat.supportsStrictMode !== false && { strict: false }),
+            },
+        }));
+    }
 
 Tool Call Output (API response):
-- message.tool_calls[index].id: string (tool call identifier)
-- message.tool_calls[index].type: "function"
-- message.tool_calls[index].function.name: string
-- message.tool_calls[index].function.arguments: string (JSON string, NOT parsed object)
+    message.tool_calls[index].id: string (tool call identifier)
+    message.tool_calls[index].type: "function"
+    message.tool_calls[index].function.name: string
+    message.tool_calls[index].function.arguments: string (JSON string, NOT parsed object)
 
-Streaming (delta chunks):
-- delta.tool_calls[index].index: number
-- delta.tool_calls[index].id: string (first chunk only)
-- delta.tool_calls[index].function.name: string (first chunk only)
-- delta.tool_calls[index].function.arguments: string (incremental JSON fragment)
+Streaming (delta chunks) -- from pi-mono at line 221:
+    if (choice?.delta?.tool_calls) {
+        for (const toolCall of choice.delta.tool_calls) {
+            if (!currentBlock || currentBlock.type !== "toolCall" ||
+                (toolCall.id && currentBlock.id !== toolCall.id)) {
+                finishCurrentBlock(currentBlock);
+                currentBlock = {
+                    type: "toolCall",
+                    id: toolCall.id || "",
+                    name: toolCall.function?.name || "",
+                    arguments: {},
+                    partialArgs: "",
+                };
+                output.content.push(currentBlock);
+                stream.push({ type: "toolcall_start", ... });
+            }
+            if (currentBlock.type === "toolCall") {
+                if (toolCall.function?.arguments) {
+                    currentBlock.partialArgs += toolCall.function.arguments;
+                    currentBlock.arguments = parseStreamingJson(currentBlock.partialArgs);
+                }
+                stream.push({ type: "toolcall_delta", delta: ..., ... });
+            }
+        }
+    }
 
-Tool Result Format:
-- { role: "tool", tool_call_id: string, content: string }
+Key pattern: arguments are accumulated incrementally as JSON fragments. parseStreamingJson is called on each delta to get best-effort parsed object.
 
-Stop Reason: "tool_calls" when model wants to use tools
+Tool Result Format -- from pi-mono at line 634:
+    const toolResultMsg: ChatCompletionToolMessageParam = {
+        role: "tool",
+        content: sanitizeSurrogates(hasText ? textResult : "(see attached image)"),
+        tool_call_id: toolMsg.toolCallId,
+    };
+    if (compat.requiresToolResultName && toolMsg.toolName) {
+        (toolResultMsg as any).name = toolMsg.toolName;
+    }
+
+Stop Reason mapping -- from pi-mono mapStopReason() at line 752:
+    case "function_call":
+    case "tool_calls":
+        return { stopReason: "toolUse" };
+
+Tool ID normalization for Responses API -- from pi-mono at line 488:
+    const normalizeToolCallId = (id: string): string => {
+        // Handle pipe-separated IDs from OpenAI Responses API
+        // Format: {call_id}|{id} where {id} can be 400+ chars with special chars
+        if (id.includes("|")) {
+            const [callId] = id.split("|");
+            return callId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 40);
+        }
+        if (model.provider === "openai") return id.length > 40 ? id.slice(0, 40) : id;
+        return id;
+    };
+
+hasToolHistory() check -- from pi-mono at line 41:
+    function hasToolHistory(messages: Message[]): boolean {
+        for (const msg of messages) {
+            if (msg.role === "toolResult") return true;
+            if (msg.role === "assistant") {
+                if (msg.content.some((block) => block.type === "toolCall")) return true;
+            }
+        }
+        return false;
+    }
+    // Used because Anthropic (via proxy) requires the tools param to be present
+    // when messages include tool_calls or tool role messages
 
 ### 2. OpenAI Responses API
 
-Tool Definition Format:
-- { type: "function", name: string, description: string, parameters: JSONSchema, strict: boolean }
+Reference: packages/ai/src/providers/openai-responses-shared.ts (pi-mono)
 
-Tool Call Output:
-- function_call items with id, name, arguments
-- Composite ID: call_id|item_id format
-- arguments is a JSON string
+The Responses API uses a fundamentally different format from Chat Completions.
 
-Streaming Events:
-- response.output_item.added: signals new tool call starting
-- response.function_call_arguments.delta: incremental arguments
-- response.function_call_arguments.done: arguments complete
+Tool Definition Format -- from convertResponsesTools() at line 261:
+    export function convertResponsesTools(tools: Tool[], options?): OpenAITool[] {
+        const strict = options?.strict === undefined ? false : options.strict;
+        return tools.map((tool) => ({
+            type: "function",
+            name: tool.name,
+            description: tool.description,
+            parameters: tool.parameters as any,
+            strict,
+        }));
+    }
 
-Tool Result Format:
-- function_call_output items with call_id and output string
+Tool Call Output -- composite ID format from line 187:
+    // Tool calls become function_call items with composite IDs
+    output.push({
+        type: "function_call",
+        id: itemId,         // the "fc_xxx" item ID
+        call_id: callId,    // the actual tool call identifier
+        name: toolCall.name,
+        arguments: JSON.stringify(toolCall.arguments),
+    });
+
+Composite ID handling -- from convertResponsesMessages() at line 100:
+    const normalizeToolCallId = (id: string): string => {
+        if (!id.includes("|")) return normalizeIdPart(id);
+        const [callId, itemId] = id.split("|");
+        const normalizedCallId = normalizeIdPart(callId);
+        let normalizedItemId = normalizeIdPart(itemId);
+        // OpenAI Responses API requires item id to start with "fc"
+        if (!normalizedItemId.startsWith("fc")) {
+            normalizedItemId = normalizeIdPart(`fc_${normalizedItemId}`);
+        }
+        return `${normalizedCallId}|${normalizedItemId}`;
+    };
+
+Tool Result Format -- from line 210:
+    messages.push({
+        type: "function_call_output",
+        call_id: callId,  // just the call_id part, NOT the composite
+        output: sanitizeSurrogates(hasText ? textResult : "(see attached image)"),
+    });
+
+Streaming Events -- from processResponsesStream() at line 276:
+    else if (event.type === "response.output_item.added") {
+        if (item.type === "function_call") {
+            currentBlock = {
+                type: "toolCall",
+                id: `${item.call_id}|${item.id}`,  // composite ID
+                name: item.name,
+                arguments: {},
+                partialJson: item.arguments || "",
+            };
+        }
+    }
+    else if (event.type === "response.function_call_arguments.delta") {
+        currentBlock.partialJson += event.delta;
+        currentBlock.arguments = parseStreamingJson(currentBlock.partialJson);
+    }
+    else if (event.type === "response.function_call_arguments.done") {
+        currentBlock.partialJson = event.arguments;
+        currentBlock.arguments = parseStreamingJson(currentBlock.partialJson);
+    }
+
+Stop Reason mapping -- from mapStopReason() at line 488:
+    case "completed": return "stop";
+    case "incomplete": return "length";
+    case "failed":
+    case "cancelled": return "error";
+    // If content has tool calls but stop is "stop", override to "toolUse":
+    if (output.content.some((b) => b.type === "toolCall") && output.stopReason === "stop") {
+        output.stopReason = "toolUse";
+    }
 
 ### 3. Anthropic Messages API
 
-Tool Definition Format:
-- { name: string, description: string, input_schema: JSONSchema }
-- No type wrapper like OpenAI -- tools are a flat array
+References:
+- packages/ai/src/providers/anthropic.ts (pi-mono)
+- agent/anthropic_adapter.py (hermes-agent)
 
-Tool Call Output (content blocks):
-- content blocks with type: "tool_use"
-- id: string (must match [a-zA-Z0-9_-]+, max 64 chars)
-- name: string
-- input: object (parsed JSON object, NOT string)
+Tool Definition Format -- from pi-mono at line 862:
+    function convertTools(tools: Tool[], isOAuthToken: boolean): Anthropic.Messages.Tool[] {
+        return tools.map((tool) => ({
+            name: isOAuthToken ? toClaudeCodeName(tool.name) : tool.name,
+            description: tool.description,
+            input_schema: {
+                type: "object",
+                properties: jsonSchema.properties || {},
+                required: jsonSchema.required || [],
+            },
+        }));
+    }
 
-Streaming:
-- content_block_start: { type: "tool_use", id, name }
-- input_json_delta: { partial_json: string } (incremental fragments)
-- content_block_stop: signals completion
+No type wrapper like OpenAI -- tools are a flat array with { name, description, input_schema }.
 
-Tool Result Format:
-- { role: "user", content: [{ type: "tool_result", tool_use_id: string, content: string }] }
+OAuth/Claude Code tool name prefixing -- from hermes-agent at line 1269:
+    # 3. Prefix tool names with mcp_ (Claude Code convention)
+    if anthropic_tools:
+        for tool in anthropic_tools:
+            if "name" in tool:
+                tool["name"] = "mcp_" + tool["name"]
 
-Stop Reason: "tool_use" when model wants to use tools
+    # 4. Prefix tool names in message history (tool_use and tool_result blocks)
+    for msg in anthropic_messages:
+        for block in content:
+            if block.get("type") == "tool_use" and "name" in block:
+                if not block["name"].startswith("mcp_"):
+                    block["name"] = "mcp_" + block["name"]
+
+pi-mono canonicalizes tool names using Claude Code's known tool list at line 70:
+    const claudeCodeTools = [
+        "Read", "Write", "Edit", "Bash", "Grep", "Glob",
+        "AskUserQuestion", "EnterPlanMode", "ExitPlanMode", ...
+    ];
+    const ccToolLookup = new Map(claudeCodeTools.map((t) => [t.toLowerCase(), t]));
+    const toClaudeCodeName = (name: string) => ccToolLookup.get(name.toLowerCase()) ?? name;
+
+Tool Call Output (content blocks) -- from pi-mono streaming at line 306:
+    else if (event.content_block.type === "tool_use") {
+        const block = {
+            type: "toolCall",
+            id: event.content_block.id,
+            name: isOAuth ? fromClaudeCodeName(event.content_block.name, context.tools)
+                          : event.content_block.name,
+            arguments: event.content_block.input ?? {},
+            partialJson: "",
+            index: event.index,
+        };
+    }
+
+Streaming -- from pi-mono at line 345:
+    else if (event.delta.type === "input_json_delta") {
+        const index = blocks.findIndex((b) => b.index === event.index);
+        const block = blocks[index];
+        if (block && block.type === "toolCall") {
+            block.partialJson += event.delta.partial_json;
+            block.arguments = parseStreamingJson(block.partialJson);
+            stream.push({ type: "toolcall_delta", delta: event.delta.partial_json, ... });
+        }
+    }
+
+Tool ID constraint -- normalizeToolCallId() at pi-mono line 693:
+    function normalizeToolCallId(id: string): string {
+        return id.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 64);
+    }
+
+Tool Result Format -- from pi-mono at line 799:
+    toolResults.push({
+        type: "tool_result",
+        tool_use_id: msg.toolCallId,
+        content: convertContentBlocks(msg.content),
+        is_error: msg.isError,
+    });
+    // Consecutive tool results are collected into a single user message (line 801-831)
+
+Stop Reason mapping -- from pi-mono mapStopReason() at line 880:
+    case "end_turn": return "stop";
+    case "max_tokens": return "length";
+    case "tool_use": return "toolUse";
+    case "refusal": return "error";
+    case "pause_turn": return "stop";  // Stop is good enough -> resubmit
+    case "sensitive": return "error";  // Content flagged by safety filters
+
+hermes-agent message conversion -- from convert_messages_to_anthropic() at line 1029:
+    # Key patterns from hermes-agent:
+    # 1. Extract thinking blocks from reasoning_details
+    # 2. Convert tool_calls to tool_use blocks:
+    blocks.append({
+        "type": "tool_use",
+        "id": _sanitize_tool_id(tc.get("id", "")),
+        "name": fn.get("name", ""),
+        "input": parsed_args,  # JSON string -> parsed object
+    })
+    # 3. Tool results become tool_result in user messages:
+    tool_result = {
+        "type": "tool_result",
+        "tool_use_id": _sanitize_tool_id(m.get("tool_call_id", "")),
+        "content": result_content,
+    }
+    # 4. Merge consecutive tool results into one user message (line 1105)
+    # 5. Enforce strict role alternation (line 1171-1207)
+    # 6. Strip orphaned tool_use blocks (line 1134-1149)
+    # 7. Strip orphaned tool_result blocks (line 1151-1169)
 
 Important constraints:
 - Strict role alternation: user, assistant, user, assistant...
 - Tool results must be in a user message
 - Multiple tool results can be in a single content block
 - Tool names in OAuth/MCP mode require mcp_ prefix for Claude Code
+- Empty assistant content must be replaced with placeholder
 
 ### 4. Google Gemini API
 
-Tool Definition Format:
-- { functionDeclarations: [{ name, description, parametersJsonSchema }] }
-- Wrapped in functionDeclarations array
+References:
+- packages/ai/src/providers/google.ts (pi-mono)
+- packages/ai/src/providers/google-shared.ts (pi-mono)
 
-Tool Call Output:
-- parts containing functionCall objects
-- functionCall.name: string
-- functionCall.args: object (parsed JSON, NOT string)
-- No tool call ID returned by API -- must generate locally
+Tool Definition Format -- from convertTools() at google-shared.ts line 250:
+    export function convertTools(tools: Tool[], useParameters = false) {
+        return [{
+            functionDeclarations: tools.map((tool) => ({
+                name: tool.name,
+                description: tool.description,
+                ...(useParameters
+                    ? { parameters: tool.parameters }
+                    : { parametersJsonSchema: tool.parameters }),
+            })),
+        }];
+    }
 
-Tool Result Format:
-- parts containing functionResponse objects
-- functionResponse.name: string
-- functionResponse.response: object
-- functionResponse.id: string (only required for Claude/GPT-oss behind Google APIs)
+Tool call counter for ID generation -- from google.ts at line 46:
+    let toolCallCounter = 0;
+    // Google does not return tool call IDs -- must generate locally
+
+Tool Call Output -- from google.ts at line 156:
+    if (part.functionCall) {
+        // Generate unique ID if not provided or if it's a duplicate
+        const providedId = part.functionCall.id;
+        const needsNewId = !providedId || output.content.some(
+            (b) => b.type === "toolCall" && b.id === providedId
+        );
+        const toolCallId = needsNewId
+            ? `${part.functionCall.name}_${Date.now()}_${++toolCallCounter}`
+            : providedId;
+
+        const toolCall = {
+            type: "toolCall",
+            id: toolCallId,
+            name: part.functionCall.name || "",
+            arguments: part.functionCall.args ?? {},  // DIRECT OBJECT, not JSON string
+            ...(part.thoughtSignature && { thoughtSignature: part.thoughtSignature }),
+        };
+        // Emit toolcall_start, toolcall_delta, toolcall_end immediately (not streamed)
+        stream.push({ type: "toolcall_start", ... });
+        stream.push({ type: "toolcall_delta", delta: JSON.stringify(toolCall.arguments), ... });
+        stream.push({ type: "toolcall_end", toolCall, ... });
+    }
+
+Key difference: Google returns parsed JSON objects as arguments, not JSON strings. This requires serialization back to string for our internal representation if needed.
+
+Tool Result Format -- from google-shared.ts at line 208:
+    const functionResponsePart = {
+        functionResponse: {
+            name: msg.toolName,
+            response: msg.isError ? { error: responseValue } : { output: responseValue },
+            ...(hasImages && modelSupportsMultimodalFunctionResponse && { parts: imageParts }),
+            ...(includeId ? { id: msg.toolCallId } : {}),
+        },
+    };
+
+requiresToolCallId() -- from google-shared.ts at line 69:
+    export function requiresToolCallId(modelId: string): boolean {
+        return modelId.startsWith("claude-") || modelId.startsWith("gpt-oss-");
+    }
+
+Tool choice mapping -- from google-shared.ts at line 269:
+    export function mapToolChoice(choice: string): FunctionCallingConfigMode {
+        case "auto": return FunctionCallingConfigMode.AUTO;
+        case "none": return FunctionCallingConfigMode.NONE;
+        case "any":  return FunctionCallingConfigMode.ANY;
+    }
+
+Thought signature handling -- from google-shared.ts at line 27:
+    export function isThinkingPart(part): boolean {
+        return part.thought === true;  // definitive marker, not thoughtSignature
+    }
+    // thoughtSignature can appear on ANY part type (text, functionCall, etc.)
+    // It does NOT indicate the part itself is thinking content
 
 ### 5. AWS Bedrock Converse API
 
-Tool Definition Format:
-- { toolSpec: { name, description, inputSchema: { json: JSONSchema } } }
-- toolChoice: { auto, any, tool: { name } }
+Reference: packages/ai/src/providers/amazon-bedrock.ts (pi-mono)
 
-Tool Call Output:
-- content blocks with toolUse: { toolUseId, name, input }
-- input is a parsed object
+Tool Definition Format -- from convertToolConfig() at line 652:
+    function convertToolConfig(tools: Tool[], toolChoice): ToolConfiguration | undefined {
+        const bedrockTools = tools.map((tool) => ({
+            toolSpec: {
+                name: tool.name,
+                description: tool.description,
+                inputSchema: { json: tool.parameters },
+            },
+        }));
+        // toolChoice mapping
+        switch (toolChoice) {
+            case "auto":  bedrockToolChoice = { auto: {} };
+            case "any":   bedrockToolChoice = { any: {} };
+            case tool:    bedrockToolChoice = { tool: { name: toolChoice.name } };
+        }
+        return { tools: bedrockTools, toolChoice: bedrockToolChoice };
+    }
 
-Tool Result Format:
-- { toolResult: { toolUseId, content: [{ text: string }], status: "success"|"error" } }
+Tool Call Output -- from handleContentBlockStart() at line 263:
+    if (start?.toolUse) {
+        const block = {
+            type: "toolCall",
+            id: start.toolUse.toolUseId || "",
+            name: start.toolUse.name || "",
+            arguments: {},
+            partialJson: "",
+            index,
+        };
+    }
+
+Streaming -- from handleContentBlockDelta() at line 286:
+    else if (delta?.toolUse && block?.type === "toolCall") {
+        block.partialJson = (block.partialJson || "") + (delta.toolUse.input || "");
+        block.arguments = parseStreamingJson(block.partialJson);
+    }
+
+Tool Result Format -- from convertMessages() at line 586:
+    toolResults.push({
+        toolResult: {
+            toolUseId: m.toolCallId,
+            content: m.content.map((c) =>
+                c.type === "image"
+                    ? { image: createImageBlock(c.mimeType, c.data) }
+                    : { text: sanitizeSurrogates(c.text) }
+            ),
+            status: m.isError ? ToolResultStatus.ERROR : ToolResultStatus.SUCCESS,
+        },
+    });
+    // All consecutive tool results collected into single user message
+
+Stop Reason mapping -- from mapStopReason() at line 683:
+    case BedrockStopReason.END_TURN:
+    case BedrockStopReason.STOP_SEQUENCE:    return "stop";
+    case BedrockStopReason.MAX_TOKENS:
+    case BedrockStopReason.MODEL_CONTEXT_WINDOW_EXCEEDED: return "length";
+    case BedrockStopReason.TOOL_USE:         return "toolUse";
 
 ### 6. Mistral API
 
-- OpenAI-compatible format but with 9-char tool call ID constraint
-- Tool IDs longer than 9 chars are hashed (SHA256) and truncated
-- Collision handling required when hash collisions occur
+Reference: packages/ai/src/providers/mistral.ts (pi-mono)
+
+OpenAI-compatible format but with 9-char tool call ID constraint.
+
+Tool call ID normalizer with collision handling -- at line 144:
+    const MISTRAL_TOOL_CALL_ID_LENGTH = 9;
+
+    function createMistralToolCallIdNormalizer(): (id: string) => string {
+        const idMap = new Map<string, string>();
+        const reverseMap = new Map<string, string>();
+        return (id: string): string => {
+            const existing = idMap.get(id);
+            if (existing) return existing;
+            let attempt = 0;
+            while (true) {
+                const candidate = deriveMistralToolCallId(id, attempt);
+                const owner = reverseMap.get(candidate);
+                if (!owner || owner === id) {
+                    idMap.set(id, candidate);
+                    reverseMap.set(candidate, id);
+                    return candidate;
+                }
+                attempt++;
+            }
+        };
+    }
+
+    function deriveMistralToolCallId(id: string, attempt: number): string {
+        const normalized = id.replace(/[^a-zA-Z0-9]/g, "");
+        if (attempt === 0 && normalized.length === MISTRAL_TOOL_CALL_ID_LENGTH) return normalized;
+        const seed = attempt === 0 ? normalized : `${normalized}:${attempt}`;
+        return shortHash(seed).replace(/[^a-zA-Z0-9]/g, "").slice(0, MISTRAL_TOOL_CALL_ID_LENGTH);
+    }
+
+Key insight: If the ID is already exactly 9 alphanumeric chars, it passes through unchanged. Otherwise it's hashed. Collision detection uses a reverse map -- if a hash collides with an existing ID, the attempt counter increments to produce a different hash.
+
+Tool Definition Format -- from toFunctionTools() at line 437:
+    function toFunctionTools(tools: Tool[]): Array<FunctionTool & { type: "function" }> {
+        return tools.map((tool) => ({
+            type: "function",
+            function: {
+                name: tool.name,
+                description: tool.description,
+                parameters: tool.parameters as unknown as Record<string, unknown>,
+                strict: false,
+            },
+        }));
+    }
+
+Thinking blocks format -- from toChatMessages() at line 486:
+    contentParts.push({
+        type: "thinking",
+        thinking: [{ type: "text", text: sanitizeSurrogates(block.thinking) }],
+    });
+
+Streaming tool calls -- from consumeChatStream() at line 372:
+    const toolCalls = delta.toolCalls || [];
+    for (const toolCall of toolCalls) {
+        const callId = toolCall.id && toolCall.id !== "null"
+            ? toolCall.id
+            : deriveMistralToolCallId(`toolcall:${toolCall.index ?? 0}`, 0);
+        // ... accumulate partialArgs, parseStreamingJson, emit deltas
+    }
+
+Stop Reason mapping -- from mapChatStopReason() at line 570:
+    case "stop":              return "stop";
+    case "length":
+    case "model_length":      return "length";
+    case "tool_calls":        return "toolUse";
+    case "error":             return "error";
 
 ### 7. Open-Source Model Text-Based Formats (llama.cpp / local models)
 
@@ -371,102 +768,209 @@ These models do NOT have structured tool calling APIs. Tool calls are embedded i
 
 ## Unified Internal Representation
 
-Our system uses a single internal ToolCall representation that all formatters translate to/from:
+Our system uses a single internal ToolCall representation that all formatters translate to/from. This is the same pattern both reference projects use internally before routing to providers.
+
+### pi-mono internal representation
+File: packages/ai/src/types.ts (pi-mono)
+
+    export interface ToolCall {
+        type: "toolCall";
+        id: string;
+        name: string;
+        arguments: Record<string, any>;
+        thoughtSignature?: string; // Google-specific: opaque signature for reusing thought context
+    }
+
+    export interface ToolResultMessage<TDetails = any> {
+        role: "toolResult";
+        toolCallId: string;
+        toolName: string;
+        content: (TextContent | ImageContent)[];
+        details?: TDetails;
+        isError: boolean;
+        timestamp: number;
+    }
+
+    export type StopReason = "stop" | "length" | "toolUse" | "error" | "aborted";
+
+    // Event protocol for streaming tool calls
+    export type AssistantMessageEvent =
+        | { type: "toolcall_start"; contentIndex: number; partial: AssistantMessage }
+        | { type: "toolcall_delta"; contentIndex: number; delta: string; partial: AssistantMessage }
+        | { type: "toolcall_end"; contentIndex: number; toolCall: ToolCall; partial: AssistantMessage }
+        | { type: "done"; reason: Extract<StopReason, "stop" | "length" | "toolUse">; message: AssistantMessage }
+        | { type: "error"; reason: Extract<StopReason, "aborted" | "error">; error: AssistantMessage };
+
+### hermes-agent internal representation
+File: agent/anthropic_adapter.py, normalize_anthropic_response() (hermes-agent)
+
+    # Anthropic response normalized to OpenAI-style tool_calls
+    tool_calls.append(
+        SimpleNamespace(
+            id=block.id,
+            type="function",
+            function=SimpleNamespace(
+                name=name,
+                arguments=json.dumps(block.input),  // input is object, serialized to string
+            ),
+        )
+    )
+
+    # Stop reason mapping
+    stop_reason_map = {
+        "end_turn": "stop",
+        "tool_use": "tool_calls",
+        "max_tokens": "length",
+        "stop_sequence": "stop",
+    }
+
+### foundation_ai existing types (target)
 
 Based on existing types in backends/foundation_ai/src/types/mod.rs:
 
 Tool struct (line 727):
-- id: String
-- name: String
-- description: String
-- arguments: Option<HashMap<String, ArgType>>
+    id: String
+    name: String
+    description: String
+    arguments: Option<HashMap<String, ArgType>>
 
 ModelOutput::ToolCall variant (line 629):
-- id: String
-- name: String
-- arguments: Option<HashMap<String, ArgType>>
-- signature: Option<String>
+    id: String
+    name: String
+    arguments: Option<HashMap<String, ArgType>>
+    signature: Option<String>
 
 Messages::ToolResult variant (line 667):
-- id: String
-- name: String
-- timestamp: SystemTime
-- details: Option<String>
-- content: UserModelContent
-- error_detail: Option<String>
-- signature: Option<String>
-
-ArgType enum (line 557):
-- Text(String), Float32, Float64, Usize, U8-U128, Isize, I8-I128, Duration
-- JSON(String) for custom types
+    id: String
+    name: String
+    timestamp: SystemTime
+    details: Option<String>
+    content: UserModelContent
+    error_detail: Option<String>
+    signature: Option<String>
 
 StopReason enum (line 520):
-- Stop, Length, ToolUse, Error, Aborted
+    Stop, Length, ToolUse, Error, Aborted
 
-This provides a consistent internal representation. ToolFormatters translate between provider-specific formats and this unified representation.
+### Key observation from both projects
+
+pi-mono stores arguments as Record<string, any> (untyped JSON objects). hermes-agent normalizes to json.dumps(block.input) (JSON string). foundation_ai uses HashMap<String, ArgType> which is more structured -- we already have typed variants (Text, Float32, I64, etc.). The ToolFormatter must handle the bridge: API providers return either parsed objects (Anthropic input, Google args) or JSON strings (OpenAI function.arguments), and we must coerce them to HashMap<String, ArgType>.
 
 ## Architecture: Plugin-Based ToolFormatter System
+
+### Design Decision: Trait vs Callback Pattern
+
+Both reference projects use different approaches:
+- pi-mono: Direct provider functions (streamAnthropic, streamOpenAICompletions, etc.) with inline tool conversion
+- hermes-agent: Adapter pattern (anthropic_adapter.py) with convert_tools, convert_messages, normalize_response
+
+Our approach combines both: a ToolFormatter trait for compile-time dispatch (matching foundation_ai's ModelProvider pattern) with the adapter concepts from hermes-agent. Each formatter handles:
+1. format_tools() -- our Tool[] -> provider schema (like pi-mono's convertTools)
+2. format_messages() -- our Messages[] -> provider messages (like hermes-agent's convert_messages_to_anthropic)
+3. extract_tool_calls() -- provider response -> unified ToolCall (like hermes-agent's normalize_anthropic_response)
+4. parse_stream_chunk() -- incremental delta parsing (like pi-mono's streaming event handlers)
+5. coerce_arguments() -- string args -> typed values (like hermes-agent's coerce_tool_args)
 
 ### Core Trait
 
 pub trait ToolFormatter: Send + Sync {
-/// Returns the provider/API this formatter handles.
-fn provider(&self) -> ModelAPI;
+    /// Returns the provider/API this formatter handles.
+    fn provider(&self) -> ModelAPI;
 
-/// Convert internal Tool definitions into provider-specific tool schema.
-fn format_tools(&self, tools: &[Tool]) -> ToolFormatResult;
+    /// Convert internal Tool definitions into provider-specific tool schema.
+    /// Maps to: pi-mono convertTools(), hermes-agent convert_tools_to_anthropic()
+    fn format_tools(&self, tools: &[Tool], options: ToolFormatOptions) -> ToolFormatResult;
 
-/// Extract structured tool calls from raw model output text.
-/// For API providers (OpenAI, Anthropic), this parses API response structures.
-/// For text-based models (local llama.cpp), this parses text patterns.
-fn extract_tool_calls(&self, text: &str) -> ExtractResult;
+    /// Convert our Messages into provider-specific message format.
+    /// Maps to: hermes-agent convert_messages_to_anthropic(), pi-mono convertMessages()
+    fn format_messages(&self, messages: &[Messages], options: MessageFormatOptions) -> MessageFormatResult;
 
-/// Format tool results back into provider-expected message structures.
-fn format_tool_results(&self, results: &[Messages]) -> FormatResult;
+    /// Extract structured tool calls from raw provider response.
+    /// Maps to: hermes-agent normalize_anthropic_response(), pi-mono streaming block assembly
+    fn extract_tool_calls(&self, response: &ToolResponse) -> ExtractResult;
 
-/// Parse streaming delta/incremental output into tool call events.
-fn parse_stream_chunk(&self, chunk: &[u8]) -> StreamParseResult;
+    /// Parse streaming delta/incremental output into tool call events.
+    /// Maps to: pi-mono content_block_delta handling, delta.tool_calls handling
+    fn parse_stream_chunk(&self, chunk: &[u8]) -> StreamParseResult;
 
-/// Apply type coercion to tool arguments based on JSON Schema.
-fn coerce_arguments(&self, name: &str, args: &HashMap<String, String>) -> HashMap<String, ArgType>;
+    /// Apply type coercion to tool arguments based on JSON Schema.
+    /// Maps to: hermes-agent coerce_tool_args()
+    fn coerce_arguments(&self, tool_name: &str, args: HashMap<String, String>) -> HashMap<String, ArgType>;
 
-/// Normalize tool call IDs to comply with provider constraints.
-fn normalize_tool_call_id(&self, id: &str) -> String;
+    /// Normalize tool call IDs to comply with provider constraints.
+    /// Maps to: pi-mono normalizeToolCallId(), _sanitize_tool_id() in hermes-agent
+    fn normalize_tool_call_id(&self, id: &str) -> String;
 
-/// Map provider-specific stop reasons to unified StopReason.
-fn map_stop_reason(&self, reason: &str) -> StopReason;
+    /// Map provider-specific stop reasons to unified StopReason.
+    /// Maps to: pi-mono mapStopReason() in each provider
+    fn map_stop_reason(&self, reason: &str) -> StopReason;
 }
 
 ### Format Result Types
 
-pub struct ToolFormatResult {
-/// Provider-specific formatted tools (as JSON Value for flexibility).
-pub formatted: serde_json::Value,
-/// Any system prompt additions required for tool mode.
-pub system_prompt_additions: Option<String>,
-}
+These types reflect the patterns observed across both projects:
 
-pub struct ExtractResult {
-/// Extracted tool calls.
-pub calls: Vec<Tool>,
-/// Remaining text (non-tool-call content).
-pub remaining_text: Option<String>,
-/// Whether the model intends to use tools (vs pure text response).
-pub has_tool_calls: bool,
-}
+ToolFormatResult -- what both projects produce when formatting tool definitions:
+    pub struct ToolFormatResult {
+        /// Provider-specific formatted tools (serde_json::Value for flexibility).
+        /// e.g., OpenAI: [{ type: "function", function: { ... } }]
+        ///       Anthropic: [{ name, description, input_schema: { ... } }]
+        ///       Google: [{ functionDeclarations: [{ name, description, parametersJsonSchema }] }]
+        ///       Bedrock: { tools: [{ toolSpec: { ... } }], toolChoice: { ... } }
+        pub formatted: serde_json::Value,
+        /// Any system prompt additions required for tool mode.
+        /// e.g., OAuth Anthropic needs "You are Claude Code..." prefix
+        pub system_prompt_additions: Option<String>,
+    }
 
-pub struct FormatResult {
-/// Provider-specific formatted messages.
-pub formatted: serde_json::Value,
-}
+    pub struct ToolFormatOptions {
+        /// Whether OAuth/MCP mode is active (affects tool naming with mcp_ prefix).
+        pub is_oauth: bool,
+        /// Provider-specific tool choice (auto, any, none, specific tool).
+        pub tool_choice: Option<ToolChoice>,
+    }
 
-pub enum StreamEvent {
-ToolCallStart { index: usize, id: String, name: String },
-ToolCallDelta { index: usize, arguments: String },
-ToolCallEnd { index: usize },
-TextDelta { text: String },
-Stop { reason: StopReason },
-}
+ExtractResult -- what both projects produce after parsing provider responses:
+    pub struct ExtractResult {
+        /// Extracted tool calls in unified Tool format.
+        pub calls: Vec<Tool>,
+        /// Remaining text content (non-tool-call text).
+        /// For API providers this is the assistant's text content.
+        /// For text-based models this is the non-tool-call portions of output.
+        pub remaining_text: Option<String>,
+        /// Whether the model intends to use tools (vs pure text response).
+        pub has_tool_calls: bool,
+    }
+
+    pub struct ToolResponse {
+        /// Raw provider response (JSON for APIs, text for local models).
+        pub raw: String,
+        /// Optional stop reason from provider.
+        pub stop_reason: Option<String>,
+    }
+
+MessageFormatResult -- what hermes-agent's convert_messages_to_anthropic returns:
+    pub struct MessageFormatResult {
+        /// Provider-specific formatted messages.
+        pub formatted: serde_json::Value,
+        /// System prompt extracted from messages (for providers that separate it).
+        pub system_prompt: Option<String>,
+    }
+
+StreamParseResult -- what pi-mono's streaming handlers produce per chunk:
+    pub enum StreamEvent {
+        ToolCallStart { index: usize, id: String, name: String },
+        ToolCallDelta { index: usize, arguments: String },
+        ToolCallEnd { index: usize },
+        TextDelta { text: String },
+        Stop { reason: StopReason },
+    }
+
+    pub enum StreamParseResult {
+        Event(StreamEvent),
+        Pending,    // Chunk had no actionable tool call data
+        Error(String),
+    }
 
 ### Plugin Registry
 
@@ -495,37 +999,147 @@ The registry allows runtime registration of formatters. When a model provider is
 
 ### Type Coercion Module
 
-coerce.rs -- Type coercion from LLM-returned strings to JSON Schema types:
+coerce.rs -- Type coercion from LLM-returned strings to JSON Schema types.
 
-The coerce_tool_args function takes raw string arguments from the LLM and the JSON Schema definition of the tool, then:
-1. Iterates over each property in the schema
-2. Checks the declared type (integer, number, boolean, string)
-3. Coerces the string value to the appropriate ArgType:
-   - "integer" -> parse as integer, store as ArgType::I64 or similar
+Reference: hermes-agent model_tools.py, coerce_tool_args() at line 372:
+
+    def coerce_tool_args(tool_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
+        """Coerce tool call arguments to match their JSON Schema types.
+
+        LLMs frequently return numbers as strings ("42" instead of 42)
+        and booleans as strings ("true" instead of true).
+        """
+        schema = registry.get_schema(tool_name)
+        properties = (schema.get("parameters") or {}).get("properties")
+        for key, value in args.items():
+            if not isinstance(value, str):
+                continue
+            prop_schema = properties.get(key)
+            expected = prop_schema.get("type")  # "integer", "number", "boolean"
+            coerced = _coerce_value(value, expected)
+            if coerced is not value:
+                args[key] = coerced
+        return args
+
+    def _coerce_value(value: str, expected_type):
+        if isinstance(expected_type, list):
+            # Union type — try each in order
+            for t in expected_type:
+                result = _coerce_value(value, t)
+                if result is not value:
+                    return result
+            return value
+        if expected_type in ("integer", "number"):
+            return _coerce_number(value, integer_only=(expected_type == "integer"))
+        if expected_type == "boolean":
+            return _coerce_boolean(value)
+        return value
+
+    def _coerce_number(value: str, integer_only: bool = False):
+        try:
+            f = float(value)
+        except (ValueError, OverflowError):
+            return value
+        if f == int(f):
+            return int(f)
+        if integer_only:
+            return value  # Schema wants int but value has decimals
+        return f
+
+    def _coerce_boolean(value: str):
+        low = value.strip().lower()
+        if low == "true": return True
+        if low == "false": return False
+        return value
+
+The coerce_arguments function in Rust must:
+1. Iterate over each property in the JSON Schema
+2. Check the declared type (integer, number, boolean, string)
+3. Coerce the string value to the appropriate ArgType:
+   - "integer" -> parse as integer, store as ArgType::I64
    - "number" -> parse as float, store as ArgType::Float64
-   - "boolean" -> parse "true"/"false"/"yes"/"no" -> ArgType::JSON(true/false)
+   - "boolean" -> parse "true"/"false" -> ArgType::JSON(true/false)
    - "string" -> keep as ArgType::Text
-4. Handles nested objects and arrays recursively
-5. Returns the coerced HashMap<String, ArgType>
+4. Handle union types (e.g., ["integer", "string"]) by trying each in order
+5. Return the coerced HashMap<String, ArgType>
+6. Preserve original values when coercion fails
 
 ### Message Transformation Layer
 
-transform.rs -- Cross-provider message normalization:
+transform.rs -- Cross-provider message normalization.
+
+Reference: packages/ai/src/providers/transform-messages.ts (pi-mono)
 
 1. Tool ID normalization:
-   - Anthropic: [a-zA-Z0-9_-]+, max 64 chars
-   - Mistral: exactly 9 chars (hash-based)
-   - OpenAI: any string
-   - Google: locally generated IDs
-2. Thinking block handling:
-   - Convert provider-specific thinking blocks to unified format
-   - Drop redacted thinking content for cross-model compatibility
-3. Role alternation enforcement:
-   - Anthropic requires strict user/assistant alternation
-   - Merge consecutive tool results into single content block
-   - Insert synthetic tool results for orphaned tool calls
-4. Error filtering:
-   - Remove errored/aborted assistant messages from history
+   The transformMessages function accepts a normalizeToolCallId callback:
+
+    export function transformMessages<TApi extends Api>(
+        messages: Message[],
+        model: Model<TApi>,
+        normalizeToolCallId?: (id: string, model: Model<TApi>, source: AssistantMessage) => string,
+    ): Message[] {
+        const toolCallIdMap = new Map<string, string>();
+        // First pass: normalize IDs on assistant messages
+        // Second pass: insert synthetic tool results for orphaned tool calls
+    }
+
+   Each provider constructs its own normalizer:
+   - Anthropic: id.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 64)
+   - Mistral: hash-based 9-char derivation with collision handling
+   - Google: normalize only for Claude/GPT-oss behind Google APIs
+   - OpenAI Responses: split pipe-separated IDs, sanitize
+
+2. Thinking block handling -- from transform-messages.ts at line 40:
+
+    if (block.type === "thinking") {
+        // Redacted thinking is opaque encrypted content, only valid for same model
+        if (block.redacted) {
+            return isSameModel ? block : [];  // drop for cross-model
+        }
+        // Skip empty thinking blocks, convert others to plain text
+        if (!block.thinking || block.thinking.trim() === "") return [];
+        if (isSameModel) return block;
+        return { type: "text", text: block.thinking };  // convert to text
+    }
+
+3. Synthetic tool result insertion -- from transform-messages.ts at line 98:
+
+    // Second pass: insert synthetic empty tool results for orphaned tool calls
+    for (const tc of pendingToolCalls) {
+        if (!existingToolResultIds.has(tc.id)) {
+            result.push({
+                role: "toolResult",
+                toolCallId: tc.id,
+                toolName: tc.name,
+                content: [{ type: "text", text: "No result provided" }],
+                isError: true,
+                timestamp: Date.now(),
+            });
+        }
+    }
+
+4. Error/abort filtering -- from transform-messages.ts at line 126:
+
+    const assistantMsg = msg as AssistantMessage;
+    if (assistantMsg.stopReason === "error" || assistantMsg.stopReason === "aborted") {
+        continue;  // Skip errored/aborted assistant messages entirely
+    }
+    // These are incomplete turns that shouldn't be replayed:
+    // - May have partial content (reasoning without message, incomplete tool calls)
+    // - Replaying them can cause API errors
+    // - The model should retry from the last valid state
+
+5. Cross-provider transformation flow:
+
+    // Each provider calls transformMessages before sending to API
+    const transformedMessages = transformMessages(messages, model, normalizeToolCallId);
+
+   The normalizer callback is provider-specific:
+   - openai-completions.ts line 503: transformMessages(context.messages, model, normalizeToolCallId)
+   - anthropic.ts line 706: transformMessages(messages, model, normalizeToolCallId)
+   - google-shared.ts line 97: transformMessages(context.messages, model, normalizeToolCallId)
+   - amazon-bedrock.ts line 499: transformMessages(context.messages, model, normalizeToolCallId)
+   - mistral.ts line 70: transformMessages(context.messages, model, normalizeMistralToolCallId)
 
 ## Implementation Tasks
 
